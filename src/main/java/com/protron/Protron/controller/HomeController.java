@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.protron.Protron.service.TimesheetWorkflowService;
 
 @Controller
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
+
 public class HomeController {
 
     @Autowired
