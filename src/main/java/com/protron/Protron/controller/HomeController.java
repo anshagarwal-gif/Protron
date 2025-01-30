@@ -1,6 +1,7 @@
 package com.protron.Protron.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,4 +47,19 @@ public class HomeController {
         timesheetWorkflowService.rejectTimesheet(taskId, managerId, reason);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/pendingApprovals/{managerId}")
+    public ResponseEntity<List<Map<String, Object>>> getPendingApprovals(@PathVariable String managerId) {
+        List<Map<String, Object>> pendingApprovals = timesheetWorkflowService.getPendingApprovals(managerId);
+        return ResponseEntity.ok(pendingApprovals);
+    }
+
+    @PostMapping("/resubmit/{taskId}")
+    public ResponseEntity<Void> resubmitTimesheet(
+            @PathVariable String taskId,
+            @RequestParam String employeeId) {
+        timesheetWorkflowService.resubmitTimesheet(taskId, employeeId);
+        return ResponseEntity.ok().build();
+    }
+
 }
