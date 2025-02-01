@@ -84,4 +84,10 @@ public class HomeController {
         return ResponseEntity.ok("Timesheet deleted successfully");
     }
 
+    @GetMapping("/timesheets/{employeeId}")
+    public ResponseEntity<List<TimesheetDTO>> getAllTimeSheetsForEmployee(@PathVariable Long employeeId) {
+        List<TimesheetDTO> timesheets = timesheetService.getTimesheetsForEmployee(employeeId);
+        return ResponseEntity.ok(timesheets);
+    }
+
 }

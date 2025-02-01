@@ -63,9 +63,36 @@ public class TimesheetService {
     /**
      * Get all timesheets for an employee.
      */
-    public List<Timesheet> getTimesheetsForEmployee(Long employeeId) {
-        return timesheetRepository.findByEmployeeEmployeeId(employeeId);
+    public List<TimesheetDTO> getTimesheetsForEmployee(Long employeeId) {
+        List<Timesheet> timesheets = timesheetRepository.findByEmployeeEmployeeId(employeeId);
+        List<TimesheetDTO> timesheetDTOs = new ArrayList<>();
+
+        for (Timesheet timesheet : timesheets) {
+            TimesheetDTO dto = new TimesheetDTO();
+            dto.setTimesheetId(timesheet.getTimesheetId());
+            dto.setEmployeeId(timesheet.getEmployee().getEmployeeId());
+            dto.setDate(timesheet.getDate());
+            dto.setTaskDuration(timesheet.getTaskDuration());
+            dto.setStatus(timesheet.getStatus());
+
+            List<TaskDTO> taskDTOs = new ArrayList<>();
+            for (Task task : timesheet.getTasks()) {
+                TaskDTO taskDTO = new TaskDTO();
+                taskDTO.setTaskId(task.getTaskId());
+                taskDTO.setTaskName(task.getTaskName());
+                taskDTO.setTaskDescription(task.getTaskDescription());
+                taskDTO.setDuration(task.getDuration());
+                taskDTO.setStartTime(task.getStartTime());
+                taskDTO.setEndTime(task.getEndTime());
+                taskDTOs.add(taskDTO);
+            }
+
+            dto.setTasks(taskDTOs);
+            timesheetDTOs.add(dto);
+        }
+        return timesheetDTOs;
     }
+
 
     /**
      * Get all timesheets pending approval.
