@@ -8,11 +8,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.protron.Protron.Dto.TimesheetDTO;
+import com.protron.Protron.entities.Timesheet;
+import com.protron.Protron.service.TimesheetService;
 import com.protron.Protron.service.TimesheetWorkflowService;
 
 @Controller
@@ -21,13 +27,23 @@ import com.protron.Protron.service.TimesheetWorkflowService;
 public class HomeController {
 
     @Autowired
+    private TimesheetService timesheetService;
+    @Autowired
     private TimesheetWorkflowService timesheetWorkflowService;
+
+    @PostMapping("/insert")
+    public ResponseEntity<Timesheet> insertTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
+        Timesheet savedTimesheet = timesheetService.saveTimesheet(timesheetDTO);
+        return ResponseEntity.ok(savedTimesheet);
+    }
 
     @PostMapping("/submit")
     public ResponseEntity<String> submitTimesheet(
             @RequestParam String employeeId,
             @RequestParam String timesheetId) {
+
         String processId = timesheetWorkflowService.startTimesheetApproval(employeeId, timesheetId);
+        System.out.println(processId);
         return ResponseEntity.ok(processId);
     }
 
@@ -60,6 +76,12 @@ public class HomeController {
             @RequestParam String employeeId) {
         timesheetWorkflowService.resubmitTimesheet(taskId, employeeId);
         return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/delete/{timesheetId}")
+    public ResponseEntity<String> deleteTimesheet(@PathVariable Long timesheetId) {
+        timesheetService.deleteTimesheet(timesheetId);
+        return ResponseEntity.ok("Timesheet deleted successfully");
     }
 
 }
