@@ -24,7 +24,7 @@ public class Task {
     private String taskDescription;
 
     @Column(nullable = false)
-    private int duration; // Duration in minutes or hours
+    private double duration; // Duration in minutes or hours
 
     @Column(nullable = false)
     private LocalTime startTime;
@@ -60,11 +60,11 @@ public class Task {
         this.taskDescription = taskDescription;
     }
 
-    public int getDuration() {
+    public double getDuration() {
         return duration;
     }
 
-    public void setDuration(int duration) {
+    public void setDuration(double duration) {
         this.duration = duration;
     }
 

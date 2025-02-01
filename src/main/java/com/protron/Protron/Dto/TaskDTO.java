@@ -1,5 +1,6 @@
 package com.protron.Protron.Dto;
 
+import com.protron.Protron.entities.Timesheet;
 import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalTime;
@@ -10,9 +11,10 @@ public class TaskDTO {
     private Long taskId;
     private String taskName; // Name of the task
     private String taskDescription; // Task details
-    private int duration; // Task duration in minutes or hours
+    private double duration; // Task duration in minutes or hours
     private LocalTime startTime; // Task start time
     private LocalTime endTime; // Task end time
+    private Long timesheetId;
 
     public String getTaskName() {
         return taskName;
@@ -30,11 +32,11 @@ public class TaskDTO {
         this.taskDescription = taskDescription;
     }
 
-    public int getDuration() {
+    public double getDuration() {
         return duration;
     }
 
-    public void setDuration(int duration) {
+    public void setDuration(double duration) {
         this.duration = duration;
     }
 
@@ -60,5 +62,13 @@ public class TaskDTO {
 
     public void setTaskId(Long taskId) {
         this.taskId = taskId;
+    }
+
+    public Long getTimesheetId() {
+        return timesheetId;
+    }
+
+    public void setTimesheetId(Long timesheetId) {
+        this.timesheetId = timesheetId;
     }
 }
