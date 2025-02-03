@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.protron.Protron.entities.Approver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -40,10 +41,12 @@ public class HomeController {
     @PostMapping("/submit")
     public ResponseEntity<String> submitTimesheet(
             @RequestParam String employeeId,
-            @RequestParam String timesheetId) {
+            @RequestParam String timesheetId,
+            @RequestBody List<Approver> approvers) {
 
         String processId = timesheetWorkflowService.startTimesheetApproval(employeeId, timesheetId);
         System.out.println(processId);
+        System.out.println(approvers);
         return ResponseEntity.ok(processId);
     }
 
