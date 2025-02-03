@@ -42,7 +42,7 @@ public class HomeController {
     public ResponseEntity<String> submitTimesheet(
             @RequestParam String employeeId,
             @RequestParam String timesheetId,
-            @RequestBody List<Approver> approvers) {
+            @RequestParam(value = "approvers", required = false) List<String> approvers) {
 
         String processId = timesheetWorkflowService.startTimesheetApproval(employeeId, timesheetId);
         System.out.println(processId);
