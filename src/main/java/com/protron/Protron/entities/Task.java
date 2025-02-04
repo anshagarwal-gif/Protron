@@ -1,5 +1,6 @@
 package com.protron.Protron.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,6 +35,7 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "timesheet_id", nullable = false)
+    @JsonBackReference
     private Timesheet timesheet;
 
     public Long getTaskId() {

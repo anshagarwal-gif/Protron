@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.protron.Protron.entities.Approver;
+import com.protron.Protron.repository.ApproverRepository;
+import com.protron.Protron.service.ApprovalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,6 +33,10 @@ public class HomeController {
     private TimesheetService timesheetService;
     @Autowired
     private TimesheetWorkflowService timesheetWorkflowService;
+    @Autowired
+    private ApproverRepository approverRepository;
+    @Autowired
+    private ApprovalService approvalService;
 
     @PostMapping("/insert")
     public ResponseEntity<Timesheet> insertTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
@@ -45,10 +51,16 @@ public class HomeController {
             @RequestParam(value = "approvers", required = false) List<String> approvers) {
 
         String processId = timesheetWorkflowService.startTimesheetApproval(employeeId, timesheetId);
-        System.out.println(processId);
-        System.out.println(approvers);
+//        System.out.println(processId);
+//        System.out.println(approvers);
 
         timesheetService.updateTimesheetStatus(timesheetId , "Pending");
+
+        for(String email: approvers){
+            Approver approver = approverRepository.findByEmail(email);
+            approvalService.addApproval(approver.getApproverId(), timesheetId);
+        }
+
 
         return ResponseEntity.ok(processId);
     }

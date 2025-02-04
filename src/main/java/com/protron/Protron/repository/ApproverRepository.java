@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ApproverRepository extends JpaRepository<Approver, Long> {
+    Approver findByEmail(String email);
 }
