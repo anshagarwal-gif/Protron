@@ -27,6 +27,13 @@ public class TimesheetService {
     @Autowired
     private TaskRepository taskRepository;
 
+    public void updateTimesheetStatus(Long timesheetId, String status){
+        Timesheet timesheet = timesheetRepository.findById(timesheetId)
+                .orElseThrow(() -> new RuntimeException("Timesheet not found"));
+        timesheet.setStatus(status);
+        timesheetRepository.save(timesheet);
+    }
+
     /**
      * Create a new timesheet with tasks.
      */

@@ -41,12 +41,15 @@ public class HomeController {
     @PostMapping("/submit")
     public ResponseEntity<String> submitTimesheet(
             @RequestParam String employeeId,
-            @RequestParam String timesheetId,
+            @RequestParam Long timesheetId,
             @RequestParam(value = "approvers", required = false) List<String> approvers) {
 
         String processId = timesheetWorkflowService.startTimesheetApproval(employeeId, timesheetId);
         System.out.println(processId);
         System.out.println(approvers);
+
+        timesheetService.updateTimesheetStatus(timesheetId , "Pending");
+
         return ResponseEntity.ok(processId);
     }
 

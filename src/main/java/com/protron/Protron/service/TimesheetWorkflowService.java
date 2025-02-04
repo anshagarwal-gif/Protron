@@ -24,7 +24,7 @@ public class TimesheetWorkflowService {
     /**
      * Start the timesheet approval process.
      */
-    public String startTimesheetApproval(String employeeId, String timesheetId) {
+    public String startTimesheetApproval(String employeeId, Long timesheetId) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("initiator", employeeId);
         variables.put("timesheetId", timesheetId);
