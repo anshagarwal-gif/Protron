@@ -1,7 +1,6 @@
 package com.protron.Protron.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +10,7 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.List;
 
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "timesheetId")
 @Entity
 @Getter
 @Setter
@@ -34,7 +34,7 @@ public class Timesheet {
 
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
-    @JsonBackReference
+    @JsonManagedReference
     private Employee employee;
 
     @OneToMany(mappedBy = "timesheet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

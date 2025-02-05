@@ -1,6 +1,6 @@
 package com.protron.Protron.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.util.List;
 
+@JsonIgnoreProperties("timesheets")
 @Entity
 @Getter
 @Setter
@@ -28,7 +29,7 @@ public class Employee {
     private String password;
 
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonBackReference
     private List<Timesheet> timesheets;
 
     public Long getEmployeeId() {
