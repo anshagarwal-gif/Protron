@@ -5,59 +5,44 @@
              targetNamespace="http://flowable.org/processes">
 
     <process id="timesheetApprovalProcess" name="Timesheet Approval Process" isExecutable="true">
+        
         <!-- Start event when timesheet is submitted -->
         <startEvent id="startEvent" name="Timesheet Submitted"/>
-
-        <!-- First level approval task (Manager 1) -->
-        <userTask id="manager1Approval" name="Manager 1 Approval"
-                  flowable:candidateGroups="manager1">
-            <documentation>First level approval for timesheet</documentation>
+        
+        <!-- Approval Task assigned to approver dynamically -->
+        <userTask id="managerApproval" name="Manager Approval"
+                  flowable:candidateUsers="${approverEmails}">
+            <documentation>Approver reviews and approves/rejects the timesheet</documentation>
         </userTask>
 
-        <!-- Gateway to check Manager 1's decision -->
-        <exclusiveGateway id="manager1Decision" name="Manager 1 Decision"/>
 
-        <!-- Second level approval task (Manager 2) -->
-        <userTask id="manager2Approval" name="Manager 2 Approval"
-                  flowable:candidateGroups="manager2">
-            <documentation>Second level approval for timesheet</documentation>
-        </userTask>
+        <!-- Gateway to check Approver's decision -->
+        <exclusiveGateway id="approvalDecision" name="Approval Decision"/>
 
-        <!-- Gateway to check Manager 2's decision -->
-        <exclusiveGateway id="manager2Decision" name="Manager 2 Decision"/>
+        <!-- Path for Approval -->
+        <sequenceFlow id="approvedFlow" sourceRef="approvalDecision" targetRef="approvedEnd">
+            <conditionExpression xsi:type="tFormalExpression">${approved == true}</conditionExpression>
+        </sequenceFlow>
 
-        <!-- Revision task for employee -->
+        <!-- Path for Rejection -->
+        <sequenceFlow id="rejectedFlow" sourceRef="approvalDecision" targetRef="reviseTimesheet">
+            <conditionExpression xsi:type="tFormalExpression">${approved == false}</conditionExpression>
+        </sequenceFlow>
+
+        <!-- Task to revise timesheet -->
         <userTask id="reviseTimesheet" name="Revise Timesheet"
                   flowable:assignee="${initiator}">
-            <documentation>Revise and resubmit timesheet</documentation>
+            <documentation>Employee must revise and resubmit the timesheet</documentation>
         </userTask>
 
-        <!-- End events -->
+        <!-- End Events -->
         <endEvent id="approvedEnd" name="Timesheet Approved"/>
         <endEvent id="rejectedEnd" name="Timesheet Rejected"/>
 
-        <!-- Flow sequences -->
-        <sequenceFlow sourceRef="startEvent" targetRef="manager1Approval"/>
-        <sequenceFlow sourceRef="manager1Approval" targetRef="manager1Decision"/>
-        
-        <!-- Manager 1 decision flows -->
-        <sequenceFlow sourceRef="manager1Decision" targetRef="manager2Approval">
-            <conditionExpression xsi:type="tFormalExpression">${approved == true}</conditionExpression>
-        </sequenceFlow>
-        <sequenceFlow sourceRef="manager1Decision" targetRef="reviseTimesheet">
-            <conditionExpression xsi:type="tFormalExpression">${approved == false}</conditionExpression>
-        </sequenceFlow>
+        <!-- Define Process Flow -->
+        <sequenceFlow sourceRef="startEvent" targetRef="managerApproval"/>
+        <sequenceFlow sourceRef="managerApproval" targetRef="approvalDecision"/>
+        <sequenceFlow sourceRef="reviseTimesheet" targetRef="managerApproval"/>
 
-        <!-- Manager 2 decision flows -->
-        <sequenceFlow sourceRef="manager2Approval" targetRef="manager2Decision"/>
-        <sequenceFlow sourceRef="manager2Decision" targetRef="approvedEnd">
-            <conditionExpression xsi:type="tFormalExpression">${approved == true}</conditionExpression>
-        </sequenceFlow>
-        <sequenceFlow sourceRef="manager2Decision" targetRef="reviseTimesheet">
-            <conditionExpression xsi:type="tFormalExpression">${approved == false}</conditionExpression>
-        </sequenceFlow>
-
-        <!-- Revision flow -->
-        <sequenceFlow sourceRef="reviseTimesheet" targetRef="manager1Approval"/>
     </process>
 </definitions>

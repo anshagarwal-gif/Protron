@@ -19,10 +19,9 @@ public class ApprovalController {
     }
 
     @PostMapping("/newApproval")
-        public ResponseEntity<Approval> addApproval(
-                @RequestParam Long approverId,
-                @RequestParam Long timesheetId
-    ) {
+    public ResponseEntity<Approval> addApproval(
+            @RequestParam Long approverId,
+            @RequestParam Long timesheetId) {
         return ResponseEntity.ok(approvalService.addApproval(approverId, timesheetId));
     }
 
@@ -38,7 +37,7 @@ public class ApprovalController {
     }
 
     @GetMapping("/getApprovalByApproverId")
-    public ResponseEntity<List<Approval>>  getApprovalByApproverId(@RequestParam Long approverId ){
+    public ResponseEntity<List<Approval>> getApprovalByApproverId(@RequestParam Long approverId) {
         List<Approval> approvals = approvalService.getApprovalsByApproverId(approverId);
         return approvals.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(approvals);
     }

@@ -91,11 +91,12 @@ public class TaskService {
             taskRepository.deleteById(taskId);
             return true;
         }
-        return false;  // You can throw an exception if task not found
+        return false; // You can throw an exception if task not found
     }
 
     // Get All Tasks for a Timesheet
     public List<Task> getTasksByTimesheetId(Long timesheetId) {
         return taskRepository.findByTimesheetTimesheetId(timesheetId);
     }
+
 }
