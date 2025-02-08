@@ -176,6 +176,7 @@ public class HomeController {
         }
 
         timesheetService.updateTimesheetStatus(timesheetId, allRejected ? "Rejected" : "Pending");
+        timesheetService.updateTimesheetRejectReason(timesheetId, reason);
 
         return ResponseEntity.ok(allRejected ? "Timesheet Rejected by all approvers" : "Some rejections pending");
     }

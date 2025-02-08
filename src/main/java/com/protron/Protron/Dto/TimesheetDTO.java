@@ -14,7 +14,8 @@ public class TimesheetDTO {
     private LocalDate date; // Date of the timesheet
     private int taskDuration; // Total duration of tasks in hours
     private String status; // Status of the timesheet (Pending, Approved, Rejected)
-    private List<TaskDTO> tasks; // List of task details
+    private List<TaskDTO> tasks;
+    private String reason;// List of task details
 
     public Long getEmployeeId() {
         return employeeId;
@@ -62,5 +63,13 @@ public class TimesheetDTO {
 
     public void setTimesheetId(Long timesheetId) {
         this.timesheetId = timesheetId;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

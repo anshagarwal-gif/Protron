@@ -34,6 +34,13 @@ public class TimesheetService {
         timesheetRepository.save(timesheet);
     }
 
+    public void updateTimesheetRejectReason(Long timesheetId, String reason){
+        Timesheet timesheet = timesheetRepository.findById(timesheetId)
+                .orElseThrow(() -> new RuntimeException("Timesheet not found"));
+        timesheet.setReason(reason);
+        timesheetRepository.save(timesheet);
+    }
+
     /**
      * Create a new timesheet with tasks.
      */
@@ -81,6 +88,7 @@ public class TimesheetService {
             dto.setDate(timesheet.getDate());
             dto.setTaskDuration(timesheet.getTaskDuration());
             dto.setStatus(timesheet.getStatus());
+            dto.setReason(timesheet.getReason());
 
             List<TaskDTO> taskDTOs = new ArrayList<>();
             for (Task task : timesheet.getTasks()) {

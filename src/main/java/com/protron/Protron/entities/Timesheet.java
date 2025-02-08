@@ -32,6 +32,9 @@ public class Timesheet {
     @Column(nullable = false)
     private String status; // Approved, Rejected, Pending
 
+    @Column(nullable = false)
+    private String reason= "Default Reason";
+
     @ManyToOne
     @JoinColumn(name = "employee_id", nullable = false)
     @JsonManagedReference
@@ -87,5 +90,13 @@ public class Timesheet {
 
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }
