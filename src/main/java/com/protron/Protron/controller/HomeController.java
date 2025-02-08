@@ -48,6 +48,15 @@ public class HomeController {
     @Autowired
     private RuntimeService runtimeService;
 
+    private List<String> convertToEmailList(Object approverEmailsObj) {
+        if (approverEmailsObj instanceof String) {
+            return Arrays.asList(((String) approverEmailsObj).split(","));
+        } else if (approverEmailsObj instanceof List) {
+            return (List<String>) approverEmailsObj;
+        }
+        return null;
+    }
+
     @PostMapping("/insert")
     public ResponseEntity<Timesheet> insertTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
         Timesheet savedTimesheet = timesheetService.saveTimesheet(timesheetDTO);
@@ -96,22 +105,11 @@ public class HomeController {
 
     @PostMapping("/approve/{timesheetId}")
     public ResponseEntity<String> approveTimesheet(@PathVariable Long timesheetId) {
+        String processInstanceId = timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId);
 
         // Retrieve approver emails from Flowable process variables
-        Object approverEmailsObj = runtimeService.getVariable(
-                timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId),
-                "approverEmails");
-
-        List<String> approverEmails;
-        if (approverEmailsObj instanceof String) {
-            // If stored as a single comma-separated string, convert to List
-            approverEmails = Arrays.asList(((String) approverEmailsObj).split(","));
-        } else if (approverEmailsObj instanceof List) {
-            // Safe cast if it was stored as a List
-            approverEmails = (List<String>) approverEmailsObj;
-        } else {
-            return ResponseEntity.badRequest().body("Approver emails not found or invalid format.");
-        }
+        Object approverEmailsObj = runtimeService.getVariable(processInstanceId, "approverEmails");
+        List<String> approverEmails = convertToEmailList(approverEmailsObj);
 
         if (approverEmails == null || approverEmails.isEmpty()) {
             return ResponseEntity.badRequest().body("Approver emails not found for timesheet " + timesheetId);
@@ -119,44 +117,38 @@ public class HomeController {
 
         System.out.println("Approving Timesheet: " + timesheetId + ", Approver Emails: " + approverEmails);
 
+        boolean allApproved = true;
         for (String approverEmail : approverEmails) {
-            // Get the task assigned to this approver
             String taskId = timesheetWorkflowService.getTaskIdByTimesheetId(timesheetId, approverEmail);
 
             if (taskId == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No active approval task found for " + approverEmail);
+                System.out.println("No active task found for approver: " + approverEmail);
+                allApproved = false;
+                continue; // Instead of returning, continue to the next approver
             }
 
-            // Claim and approve the task
-            taskService.claim(taskId, approverEmail);
-            timesheetWorkflowService.approveTimesheet(taskId, approverEmail);
+            try {
+                taskService.claim(taskId, approverEmail);
+                timesheetWorkflowService.approveTimesheet(taskId, approverEmail);
+            } catch (Exception e) {
+                System.out.println("Error approving task for " + approverEmail + ": " + e.getMessage());
+                allApproved = false;
+            }
         }
 
-        // Update status (still Pending if other approvals are required)
-        timesheetService.updateTimesheetStatus(timesheetId, "Approved");
+        // Update status based on whether all tasks were processed
+        timesheetService.updateTimesheetStatus(timesheetId, allApproved ? "Approved" : "Pending");
 
-        return ResponseEntity.ok("Timesheet Approved by all approvers");
+        return ResponseEntity.ok(allApproved ? "Timesheet Approved by all approvers" : "Some approvals pending");
     }
 
     @PostMapping("/reject/{timesheetId}")
     public ResponseEntity<String> rejectTimesheet(@PathVariable Long timesheetId, @RequestParam String reason) {
+        String processInstanceId = timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId);
 
         // Retrieve approver emails from Flowable process variables
-        Object approverEmailsObj = runtimeService.getVariable(
-                timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId),
-                "approverEmails");
-
-        List<String> approverEmails;
-        if (approverEmailsObj instanceof String) {
-            // If stored as a single comma-separated string, convert to List
-            approverEmails = Arrays.asList(((String) approverEmailsObj).split(","));
-        } else if (approverEmailsObj instanceof List) {
-            // Safe cast if it was stored as a List
-            approverEmails = (List<String>) approverEmailsObj;
-        } else {
-            return ResponseEntity.badRequest().body("Approver emails not found or invalid format.");
-        }
+        Object approverEmailsObj = runtimeService.getVariable(processInstanceId, "approverEmails");
+        List<String> approverEmails = convertToEmailList(approverEmailsObj);
 
         if (approverEmails == null || approverEmails.isEmpty()) {
             return ResponseEntity.badRequest().body("Approver emails not found for timesheet " + timesheetId);
@@ -164,24 +156,28 @@ public class HomeController {
 
         System.out.println("Rejecting Timesheet: " + timesheetId + ", Approver Emails: " + approverEmails);
 
+        boolean allRejected = true;
         for (String approverEmail : approverEmails) {
-            // Get the task assigned to this approver
             String taskId = timesheetWorkflowService.getTaskIdByTimesheetId(timesheetId, approverEmail);
 
             if (taskId == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No active rejection task found for " + approverEmail);
+                System.out.println("No active rejection task found for " + approverEmail);
+                allRejected = false;
+                continue;
             }
 
-            // Claim and reject the task
-            taskService.claim(taskId, approverEmail);
-            timesheetWorkflowService.rejectTimesheet(taskId, approverEmail, reason);
+            try {
+                taskService.claim(taskId, approverEmail);
+                timesheetWorkflowService.rejectTimesheet(taskId, approverEmail, reason);
+            } catch (Exception e) {
+                System.out.println("Error rejecting task for " + approverEmail + ": " + e.getMessage());
+                allRejected = false;
+            }
         }
 
-        // Update status
-        timesheetService.updateTimesheetStatus(timesheetId, "Rejected");
+        timesheetService.updateTimesheetStatus(timesheetId, allRejected ? "Rejected" : "Pending");
 
-        return ResponseEntity.ok("Timesheet Rejected by all approvers");
+        return ResponseEntity.ok(allRejected ? "Timesheet Rejected by all approvers" : "Some rejections pending");
     }
 
     @GetMapping("/pendingApprovals/{managerId}")
