@@ -9,4 +9,5 @@ public interface ApprovalRepository extends JpaRepository<Approval, Long> {
     List<Approval> findByApproverApproverId(Long approverId);
     List<Approval> findByTimesheetTimesheetId(Long timesheetId);
 
+    List<Approval> findByTimesheet_TimesheetId(Long timesheetId);
 }

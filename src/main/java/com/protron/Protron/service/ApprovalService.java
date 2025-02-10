@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ApprovalService {
@@ -55,4 +56,10 @@ public class ApprovalService {
         return approvalRepository.findByTimesheetTimesheetId(timesheetId);
     }
 
+    public List<Approver> getApproversByTimesheetId(Long timesheetId) {
+        List<Approval> approvals = approvalRepository.findByTimesheet_TimesheetId(timesheetId);
+        return approvals.stream()
+                .map(Approval::getApprover)
+                .collect(Collectors.toList());
+    }
 }

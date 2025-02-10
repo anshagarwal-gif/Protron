@@ -1,6 +1,7 @@
 package com.protron.Protron.controller;
 
 import com.protron.Protron.entities.Approval;
+import com.protron.Protron.entities.Approver;
 import com.protron.Protron.service.ApprovalService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,5 +47,10 @@ public class ApprovalController {
     public ResponseEntity<List<Approval>> getApprovalsByTimesheetId(@RequestParam Long timesheetId) {
         List<Approval> approvals = approvalService.getApprovalsByTimesheetId(timesheetId);
         return approvals.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(approvals);
+    }
+
+    @GetMapping("/timesheet/{timesheetId}/approvers")
+    public List<Approver> getApproversByTimesheet(@PathVariable Long timesheetId) {
+        return approvalService.getApproversByTimesheetId(timesheetId);
     }
 }
