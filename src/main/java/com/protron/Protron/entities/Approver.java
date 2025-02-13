@@ -18,6 +18,9 @@ public class Approver {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
+    private String password;
+
     public Long getApproverId() {
         return approverId;
     }
@@ -32,5 +35,13 @@ public class Approver {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
