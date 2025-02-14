@@ -3,13 +3,13 @@ package com.protron.Protron.Dto;
 public class ApprovalDTO {
 
     private Long approverId;
-    private String approverName; // Assuming the Approver entity has a name
+    private String approverEmail; // Assuming the Approver entity has a name
     private String status;
     private String reason;
 
-    public ApprovalDTO(Long approverId, String approverName, String status, String reason) {
+    public ApprovalDTO(Long approverId, String approverEmail, String status, String reason) {
         this.approverId = approverId;
-        this.approverName = approverName;
+        this.approverEmail = approverEmail;
         this.status = status;
         this.reason = reason;
     }
@@ -21,14 +21,6 @@ public class ApprovalDTO {
 
     public void setApproverId(Long approverId) {
         this.approverId = approverId;
-    }
-
-    public String getApproverName() {
-        return approverName;
-    }
-
-    public void setApproverName(String approverName) {
-        this.approverName = approverName;
     }
 
     public String getStatus() {
@@ -47,4 +39,11 @@ public class ApprovalDTO {
         this.reason = reason;
     }
 
+    public String getApproverEmail() {
+        return approverEmail;
+    }
+
+    public void setApproverEmail(String approverEmail) {
+        this.approverEmail = approverEmail;
+    }
 }

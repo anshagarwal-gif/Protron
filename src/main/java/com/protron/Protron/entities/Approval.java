@@ -1,6 +1,8 @@
 package com.protron.Protron.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +29,12 @@ public class Approval {
     @JoinColumn(name = "timesheet_id", nullable = false)
     private Timesheet timesheet;
 
+    @Column(nullable = false)
+    private String status = "Pending";
+
+    @Column(nullable = false)
+    private String reason = "NA";
+
     public Long getApprovalId() {
         return approvalId;
     }
@@ -49,5 +57,21 @@ public class Approval {
 
     public void setTimesheet(Timesheet timesheet) {
         this.timesheet = timesheet;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

@@ -130,7 +130,7 @@ public class HomeController {
             }
 
             String approverEmail = currentTask.getAssignee(); // Extract email from task assignment
-
+            System.out.println(approverEmail);
             // Check if this approver has already approved
             @SuppressWarnings("unchecked")
             List<String> approvedBy = (List<String>) runtimeService.getVariable(processInstanceId, "approvedBy");
@@ -163,6 +163,8 @@ public class HomeController {
             currentCount++;
 
             runtimeService.setVariable(processInstanceId, "currentApprovalCount", currentCount);
+
+            approvalService.updateApprovalStatus(timesheetId, approverEmail, "Approved", "NA");
 
             // If all approvers have approved, update the timesheet status
             if (currentCount.equals(totalApprovers)) {
@@ -228,6 +230,8 @@ public class HomeController {
             // Update timesheet status and reason
             timesheetService.updateTimesheetStatus(timesheetId, "Rejected");
             timesheetService.updateTimesheetRejectReason(timesheetId, reason);
+
+            approvalService.updateApprovalStatus(timesheetId, approverEmail, "Rejected", reason);
 
             // Cancel all remaining tasks since one rejection is enough
             runtimeService.deleteProcessInstance(processInstanceId,

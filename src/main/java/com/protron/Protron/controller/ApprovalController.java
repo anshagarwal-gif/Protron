@@ -1,5 +1,6 @@
 package com.protron.Protron.controller;
 
+import com.protron.Protron.Dto.ApprovalDTO;
 import com.protron.Protron.entities.Approval;
 import com.protron.Protron.entities.Approver;
 import com.protron.Protron.service.ApprovalService;
@@ -44,8 +45,8 @@ public class ApprovalController {
     }
 
     @GetMapping("/getApprovalByTimesheetId")
-    public ResponseEntity<List<Approval>> getApprovalsByTimesheetId(@RequestParam Long timesheetId) {
-        List<Approval> approvals = approvalService.getApprovalsByTimesheetId(timesheetId);
+    public ResponseEntity<List<ApprovalDTO>> getApprovalsByTimesheetId(@RequestParam Long timesheetId) {
+        List<ApprovalDTO> approvals = approvalService.getApprovalsByTimesheetId(timesheetId);
         return approvals.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(approvals);
     }
 
