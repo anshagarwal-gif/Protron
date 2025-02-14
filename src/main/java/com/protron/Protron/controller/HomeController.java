@@ -3,10 +3,7 @@ package com.protron.Protron.controller;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.protron.Protron.entities.Approver;
 import com.protron.Protron.repository.ApproverRepository;
@@ -21,13 +18,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.protron.Protron.Dto.TimesheetDTO;
 import com.protron.Protron.entities.Timesheet;
 import com.protron.Protron.service.TimesheetService;
 import com.protron.Protron.service.TimesheetWorkflowService;
+
+import org.flowable.task.api.Task;
 
 @Controller
 @CrossOrigin(origins = "http://localhost:5173")
@@ -67,7 +66,7 @@ public class HomeController {
     public ResponseEntity<String> submitTimesheet(
             @RequestParam String employeeId,
             @RequestParam Long timesheetId,
-            @RequestParam(value = "approverEmails", required = false) List<String> approverEmails) { // Multiple emails
+            @RequestParam(value = "approverEmails", required = false) List<String> approverEmails) {
 
         System.out.println("=== Debug Information ===");
         System.out.println("Employee ID: " + employeeId);
@@ -78,107 +77,168 @@ public class HomeController {
             return ResponseEntity.badRequest().body("Approver emails are required");
         }
 
-        for (String email : approverEmails) {
-            Approver approver = approverRepository.findByEmail(email);
-            if (approver == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Approver with email " + email + " not found.");
+        try {
+            // Create approvals in the database
+            for (String email : approverEmails) {
+                Approver approver = approverRepository.findByEmail(email);
+                if (approver == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Approver with email " + email + " not found.");
+                }
+                approvalService.addApproval(approver.getApproverId(), timesheetId);
             }
-            approvalService.addApproval(approver.getApproverId(), timesheetId);
+
+            // Start the Flowable process
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("initiator", employeeId);
+            variables.put("timesheetId", timesheetId);
+            variables.put("approverList", approverEmails);
+            variables.put("allApproved", true); // Initial state
+            variables.put("currentApprovalCount", 0);
+            variables.put("totalApprovers", approverEmails.size());
+
+            String processInstanceId = runtimeService.startProcessInstanceByKey(
+                    "timesheetApprovalProcess",
+                    variables).getProcessInstanceId();
+
+            System.out.println("Started Process with ID: " + processInstanceId);
+            timesheetService.updateTimesheetStatus(timesheetId, "Pending");
+
+            return ResponseEntity.ok(processInstanceId);
+        } catch (Exception e) {
+            System.out.println("Error submitting timesheet: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error submitting timesheet: " + e.getMessage());
         }
-
-        // Store emails as a comma-separated string for Flowable
-
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("initiator", employeeId);
-        variables.put("timesheetId", timesheetId);
-        variables.put("approverEmails", approverEmails); // Pass as process variable
-
-        String processInstanceId = runtimeService.startProcessInstanceByKey("timesheetApprovalProcess", variables)
-                .getProcessInstanceId();
-
-        System.out.println("Started Process with ID: " + processInstanceId);
-        timesheetService.updateTimesheetStatus(timesheetId, "Pending");
-
-        return ResponseEntity.ok(processInstanceId);
     }
 
     @PostMapping("/approve/{timesheetId}")
     public ResponseEntity<String> approveTimesheet(@PathVariable Long timesheetId) {
-        String processInstanceId = timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId);
-
-        // Retrieve approver emails from Flowable process variables
-        Object approverEmailsObj = runtimeService.getVariable(processInstanceId, "approverEmails");
-        List<String> approverEmails = convertToEmailList(approverEmailsObj);
-
-        if (approverEmails == null || approverEmails.isEmpty()) {
-            return ResponseEntity.badRequest().body("Approver emails not found for timesheet " + timesheetId);
-        }
-
-        System.out.println("Approving Timesheet: " + timesheetId + ", Approver Emails: " + approverEmails);
-
-        boolean allApproved = true;
-        for (String approverEmail : approverEmails) {
-            String taskId = timesheetWorkflowService.getTaskIdByTimesheetId(timesheetId, approverEmail);
-
-            if (taskId == null) {
-                System.out.println("No active task found for approver: " + approverEmail);
-                allApproved = false;
-                continue; // Instead of returning, continue to the next approver
+        try {
+            String processInstanceId = timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId);
+            if (processInstanceId == null) {
+                return ResponseEntity.badRequest().body("No active process found for timesheet");
             }
 
-            try {
-                taskService.claim(taskId, approverEmail);
-                timesheetWorkflowService.approveTimesheet(taskId, approverEmail);
-            } catch (Exception e) {
-                System.out.println("Error approving task for " + approverEmail + ": " + e.getMessage());
-                allApproved = false;
+            // Get current task and extract assignee (approver's email)
+            Task currentTask = taskService.createTaskQuery()
+                    .processInstanceId(processInstanceId)
+                    .singleResult();
+
+            if (currentTask == null || currentTask.getAssignee() == null) {
+                return ResponseEntity.badRequest().body("No active task found for current approver");
             }
+
+            String approverEmail = currentTask.getAssignee(); // Extract email from task assignment
+
+            // Check if this approver has already approved
+            @SuppressWarnings("unchecked")
+            List<String> approvedBy = (List<String>) runtimeService.getVariable(processInstanceId, "approvedBy");
+            if (approvedBy == null) {
+                approvedBy = new ArrayList<>();
+            }
+
+            if (approvedBy.contains(approverEmail)) {
+                return ResponseEntity.badRequest().body("You have already approved this timesheet");
+            }
+
+            // Claim and complete the task
+            taskService.claim(currentTask.getId(), approverEmail);
+
+            // Add this approver to the approved list
+            approvedBy.add(approverEmail);
+            runtimeService.setVariable(processInstanceId, "approvedBy", approvedBy);
+
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("approved", true);
+            variables.put("approverEmail", approverEmail);
+
+            // Update approval count
+            Integer currentCount = (Integer) runtimeService.getVariable(processInstanceId, "currentApprovalCount");
+            Integer totalApprovers = (Integer) runtimeService.getVariable(processInstanceId, "totalApprovers");
+
+            if (currentCount == null) {
+                currentCount = 0;
+            }
+            currentCount++;
+
+            runtimeService.setVariable(processInstanceId, "currentApprovalCount", currentCount);
+
+            // If all approvers have approved, update the timesheet status
+            if (currentCount.equals(totalApprovers)) {
+                variables.put("allApproved", true);
+                timesheetService.updateTimesheetStatus(timesheetId, "Approved");
+            }
+
+            taskService.complete(currentTask.getId(), variables);
+
+            return ResponseEntity.ok("Approval processed successfully");
+        } catch (Exception e) {
+            System.out.println("Error processing approval: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing approval: " + e.getMessage());
         }
-
-        // Update status based on whether all tasks were processed
-        timesheetService.updateTimesheetStatus(timesheetId, allApproved ? "Approved" : "Pending");
-
-        return ResponseEntity.ok(allApproved ? "Timesheet Approved by all approvers" : "Some approvals pending");
     }
 
     @PostMapping("/reject/{timesheetId}")
     public ResponseEntity<String> rejectTimesheet(@PathVariable Long timesheetId, @RequestParam String reason) {
-        String processInstanceId = timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId);
-
-        // Retrieve approver emails from Flowable process variables
-        Object approverEmailsObj = runtimeService.getVariable(processInstanceId, "approverEmails");
-        List<String> approverEmails = convertToEmailList(approverEmailsObj);
-
-        if (approverEmails == null || approverEmails.isEmpty()) {
-            return ResponseEntity.badRequest().body("Approver emails not found for timesheet " + timesheetId);
-        }
-
-        System.out.println("Rejecting Timesheet: " + timesheetId + ", Approver Emails: " + approverEmails);
-
-        boolean allRejected = true;
-        for (String approverEmail : approverEmails) {
-            String taskId = timesheetWorkflowService.getTaskIdByTimesheetId(timesheetId, approverEmail);
-
-            if (taskId == null) {
-                System.out.println("No active rejection task found for " + approverEmail);
-                allRejected = false;
-                continue;
+        try {
+            String processInstanceId = timesheetWorkflowService.getProcessInstanceIdByTimesheetId(timesheetId);
+            if (processInstanceId == null) {
+                return ResponseEntity.badRequest().body("No active process found for timesheet");
             }
 
-            try {
-                taskService.claim(taskId, approverEmail);
-                timesheetWorkflowService.rejectTimesheet(taskId, approverEmail, reason);
-            } catch (Exception e) {
-                System.out.println("Error rejecting task for " + approverEmail + ": " + e.getMessage());
-                allRejected = false;
+            // Get current task and extract assignee (approver's email)
+            Task currentTask = taskService.createTaskQuery()
+                    .processInstanceId(processInstanceId)
+                    .singleResult();
+
+            if (currentTask == null || currentTask.getAssignee() == null) {
+                return ResponseEntity.badRequest().body("No active task found for current approver");
             }
+
+            String approverEmail = currentTask.getAssignee(); // Extract email from task assignment
+
+            // Check if this approver has already taken action
+            @SuppressWarnings("unchecked")
+            List<String> actedBy = (List<String>) runtimeService.getVariable(processInstanceId, "actedBy");
+            if (actedBy == null) {
+                actedBy = new ArrayList<>();
+            }
+
+            if (actedBy.contains(approverEmail)) {
+                return ResponseEntity.badRequest().body("You have already acted on this timesheet");
+            }
+
+            // Claim and complete the task
+            taskService.claim(currentTask.getId(), approverEmail);
+
+            // Add this approver to the acted list
+            actedBy.add(approverEmail);
+            runtimeService.setVariable(processInstanceId, "actedBy", actedBy);
+
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("approved", false);
+            variables.put("allApproved", false);
+            variables.put("rejectionReason", reason);
+            variables.put("rejectedBy", approverEmail);
+
+            taskService.complete(currentTask.getId(), variables);
+
+            // Update timesheet status and reason
+            timesheetService.updateTimesheetStatus(timesheetId, "Rejected");
+            timesheetService.updateTimesheetRejectReason(timesheetId, reason);
+
+            // Cancel all remaining tasks since one rejection is enough
+            runtimeService.deleteProcessInstance(processInstanceId,
+                    "Timesheet rejected by " + approverEmail + ": " + reason);
+
+            return ResponseEntity.ok("Timesheet rejected successfully");
+        } catch (Exception e) {
+            System.out.println("Error processing rejection: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing rejection: " + e.getMessage());
         }
-
-        timesheetService.updateTimesheetStatus(timesheetId, allRejected ? "Rejected" : "Pending");
-        timesheetService.updateTimesheetRejectReason(timesheetId, reason);
-
-        return ResponseEntity.ok(allRejected ? "Timesheet Rejected by all approvers" : "Some rejections pending");
     }
 
     @GetMapping("/pendingApprovals/{managerId}")

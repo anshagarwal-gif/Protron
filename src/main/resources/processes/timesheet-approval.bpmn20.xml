@@ -5,44 +5,42 @@
              targetNamespace="http://flowable.org/processes">
 
     <process id="timesheetApprovalProcess" name="Timesheet Approval Process" isExecutable="true">
-        
         <!-- Start event when timesheet is submitted -->
         <startEvent id="startEvent" name="Timesheet Submitted"/>
-        
-        <!-- Approval Task assigned to approver dynamically -->
-        <userTask id="managerApproval" name="Manager Approval"
-                  flowable:candidateUsers="${approverEmails}">
-            <documentation>Approver reviews and approves/rejects the timesheet</documentation>
-        </userTask>
 
+        <!-- Initialize process variables -->
+        <serviceTask id="initializeProcess" name="Initialize Process"
+                     flowable:class="com.protron.Protron.Components.InitializeProcessDelegate"/>
+
+        <!-- Multi-instance approval task -->
+        <userTask id="managerApproval" name="Manager Approval">
+            <extensionElements>
+                <flowable:taskListener event="create" 
+                    class="com.protron.Protron.Components.ApprovalTaskCreateListener"/>
+            </extensionElements>
+            <multiInstanceLoopCharacteristics isSequential="true"
+                flowable:collection="${approverList}"
+                flowable:elementVariable="currentApprover">
+                <completionCondition>${nrOfCompletedInstances == nrOfInstances}</completionCondition>
+            </multiInstanceLoopCharacteristics>
+        </userTask>
 
         <!-- Gateway to check Approver's decision -->
         <exclusiveGateway id="approvalDecision" name="Approval Decision"/>
-
-        <!-- Path for Approval -->
-        <sequenceFlow id="approvedFlow" sourceRef="approvalDecision" targetRef="approvedEnd">
-            <conditionExpression xsi:type="tFormalExpression">${approved == true}</conditionExpression>
-        </sequenceFlow>
-
-        <!-- Path for Rejection -->
-        <sequenceFlow id="rejectedFlow" sourceRef="approvalDecision" targetRef="reviseTimesheet">
-            <conditionExpression xsi:type="tFormalExpression">${approved == false}</conditionExpression>
-        </sequenceFlow>
-
-        <!-- Task to revise timesheet -->
-        <userTask id="reviseTimesheet" name="Revise Timesheet"
-                  flowable:assignee="${initiator}">
-            <documentation>Employee must revise and resubmit the timesheet</documentation>
-        </userTask>
 
         <!-- End Events -->
         <endEvent id="approvedEnd" name="Timesheet Approved"/>
         <endEvent id="rejectedEnd" name="Timesheet Rejected"/>
 
-        <!-- Define Process Flow -->
-        <sequenceFlow sourceRef="startEvent" targetRef="managerApproval"/>
-        <sequenceFlow sourceRef="managerApproval" targetRef="approvalDecision"/>
-        <sequenceFlow sourceRef="reviseTimesheet" targetRef="managerApproval"/>
-
+        <!-- Define Sequence Flows -->
+        <sequenceFlow id="flow1" sourceRef="startEvent" targetRef="initializeProcess"/>
+        <sequenceFlow id="flow2" sourceRef="initializeProcess" targetRef="managerApproval"/>
+        <sequenceFlow id="flow3" sourceRef="managerApproval" targetRef="approvalDecision"/>
+        <sequenceFlow id="approvedFlow" sourceRef="approvalDecision" targetRef="approvedEnd">
+            <conditionExpression xsi:type="tFormalExpression">${allApproved == true}</conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="rejectedFlow" sourceRef="approvalDecision" targetRef="rejectedEnd">
+            <conditionExpression xsi:type="tFormalExpression">${allApproved == false}</conditionExpression>
+        </sequenceFlow>
     </process>
 </definitions>
