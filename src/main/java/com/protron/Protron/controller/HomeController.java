@@ -119,6 +119,11 @@ public class HomeController {
             if (processInstanceId == null) {
                 return ResponseEntity.badRequest().body("No active process found for timesheet");
             }
+            // Check if the timesheet has already been rejected
+            Boolean isRejected = (Boolean) runtimeService.getVariable(processInstanceId, "isRejected");
+            if (Boolean.TRUE.equals(isRejected)) {
+                return ResponseEntity.badRequest().body("Timesheet has already been rejected.");
+            }
 
             // Get current task and extract assignee (approver's email)
             Task currentTask = taskService.createTaskQuery()
@@ -190,6 +195,14 @@ public class HomeController {
                 return ResponseEntity.badRequest().body("No active process found for timesheet");
             }
 
+            // ✅ Check if process instance exists before proceeding
+            long instanceCount = runtimeService.createProcessInstanceQuery()
+                    .processInstanceId(processInstanceId)
+                    .count();
+            if (instanceCount == 0) {
+                return ResponseEntity.badRequest().body("Process instance does not exist or is already completed.");
+            }
+
             // Get current task and extract assignee (approver's email)
             Task currentTask = taskService.createTaskQuery()
                     .processInstanceId(processInstanceId)
@@ -233,9 +246,14 @@ public class HomeController {
 
             approvalService.updateApprovalStatus(timesheetId, approverEmail, "Rejected", reason);
 
-            // Cancel all remaining tasks since one rejection is enough
-            runtimeService.deleteProcessInstance(processInstanceId,
-                    "Timesheet rejected by " + approverEmail + ": " + reason);
+            // ✅ Ensure process instance exists before deleting it
+            instanceCount = runtimeService.createProcessInstanceQuery()
+                    .processInstanceId(processInstanceId)
+                    .count();
+            if (instanceCount > 0) {
+                runtimeService.deleteProcessInstance(processInstanceId,
+                        "Timesheet rejected by " + approverEmail + ": " + reason);
+            }
 
             return ResponseEntity.ok("Timesheet rejected successfully");
         } catch (Exception e) {
