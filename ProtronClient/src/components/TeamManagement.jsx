@@ -22,8 +22,8 @@ const TeamManagement = () => {
 
     const fetchEmployees = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`,{
-                headers:{ Authorization: `${sessionStorage.getItem('token')}` }
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
             })
             setEmployees(res.data)
             console.log(res)
@@ -37,8 +37,8 @@ const TeamManagement = () => {
     console.log(employees)
     const handleProfileClick = async (email) => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`,{
-                headers:{ Authorization: `${sessionStorage.getItem('token')}` }
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
             }); // adjust your endpoint if needed
             console.log(res.data)
             setSelectedProfile(res.data);
@@ -64,7 +64,7 @@ const TeamManagement = () => {
                 `${import.meta.env.VITE_API_URL}/api/project-team/${id}/status`,
                 {},
                 {
-                    headers:{ Authorization: `${sessionStorage.getItem('token')}` }
+                    headers: { Authorization: `${sessionStorage.getItem('token')}` }
                 },
                 {
                     params: { status: newStatus },
@@ -77,8 +77,8 @@ const TeamManagement = () => {
             console.log("Status updated successfully:", response.data);
 
             // Refetch updated list of employees
-            const updatedList = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`,{
-                headers:{ Authorization: `${sessionStorage.getItem('token')}` }
+            const updatedList = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
             });
             setEmployees(updatedList.data);
 
@@ -160,14 +160,16 @@ const TeamManagement = () => {
                                     <td className="py-3 px-4">{member.empCode}</td>
                                     <td className="py-3 px-4">{member.email}</td>
                                     <td className="py-3 px-4">{member.cost}</td>
-                                    <td className="py-3 px-4">{member.dateOfJoining.split('T')[0]}</td>
+                                    <td className="py-3 px-4">
+                                        {member.dateOfJoining ? member.dateOfJoining.split('T')[0] : 'N/A'}
+                                    </td>
                                     <td className="py-3 px-4">
                                         <span className={`${getStatusColor(member.status)}`}>
                                             {member.status}
                                         </span>
                                     </td>
                                     {/* <td className="py-3 px-4 relative"> */}
-                                        {/* <button
+                                    {/* <button
                                             onClick={() => toggleActions(member.userId)}
                                             className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm flex items-center"
                                         >
@@ -175,7 +177,7 @@ const TeamManagement = () => {
                                             <FiChevronDown size={14} className="ml-1" />
                                         </button> */}
 
-                                        {/* {actionsOpen[member.userId] && (
+                                    {/* {actionsOpen[member.userId] && (
                                             <div className="absolute right-4 mt-1 bg-white shadow-lg border rounded z-10 w-32">
                                                 <button
                                                     onClick={() => handleStatusChange(member.userId, member.status === 'On Hold' ? 'Active' : 'On Hold')}
@@ -183,13 +185,13 @@ const TeamManagement = () => {
                                                 >
                                                     {member.status === 'On Hold' ? 'Activate' : 'Hold'}
                                                 </button> */}
-                                                {/* <button
+                                    {/* <button
                                                     onClick={() => handleRemoveMember(member.userId)}
                                                     className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500 text-sm"
                                                 >
                                                     Remove
                                                 </button> */}
-                                            {/* </div>
+                                    {/* </div>
                                         )} */}
                                     {/* </td> */}
                                 </tr>
