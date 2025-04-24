@@ -161,7 +161,7 @@ const TeamManagement = () => {
                                     <td className="py-3 px-4">{member.email}</td>
                                     <td className="py-3 px-4">{member.cost}</td>
                                     <td className="py-3 px-4">
-                                        {member.dateOfJoining ? member.dateOfJoining.split('T')[0] : 'N/A'}
+                                        {member.dateOfJoining === null ? member.dateOfJoining.split('T')[0] : 'N/A'}
                                     </td>
                                     <td className="py-3 px-4">
                                         <span className={`${getStatusColor(member.status)}`}>
@@ -238,11 +238,11 @@ const TeamManagement = () => {
                             </h2>
                             <p className="text-sm text-gray-500">{selectedProfile.empCode}</p>
                             <p className="text-sm">
-                                {selectedProfile.dateOfJoining ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
+                                {selectedProfile.dateOfJoining === null ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
                             </p>
                         </div>
                     </div>
-                    
+
 
 
                     <div className="mt-6">
