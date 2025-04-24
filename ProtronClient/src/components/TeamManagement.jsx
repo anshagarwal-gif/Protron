@@ -238,10 +238,11 @@ const TeamManagement = () => {
                             </h2>
                             <p className="text-sm text-gray-500">{selectedProfile.empCode}</p>
                             <p className="text-sm">
-                                {selectedProfile.dateOfJoining?.split("T")[0]}
+                                {selectedProfile.dateOfJoining ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
                             </p>
                         </div>
                     </div>
+                    
 
 
                     <div className="mt-6">
