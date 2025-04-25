@@ -20,21 +20,25 @@ const TeamManagement = () => {
         }
     };
 
-    const fetchEmployees = async () => {
-        try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
-                headers: { Authorization: `${sessionStorage.getItem('token')}` }
-            })
-            setEmployees(res.data)
-            console.log(res)
-        } catch (error) {
-            console.log(error)
-        }
-    }
+
     useEffect(() => {
+
+        const fetchEmployees = async () => {
+            try {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+                    headers: { Authorization: `${sessionStorage.getItem('token')}` }
+                })
+                setEmployees(res.data)
+                console.log(res)
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
         fetchEmployees()
+        
     }, [])
-    console.log(employees)
+
     const handleProfileClick = async (email) => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
@@ -161,7 +165,7 @@ const TeamManagement = () => {
                                     <td className="py-3 px-4">{member.email}</td>
                                     <td className="py-3 px-4">{member.cost}</td>
                                     <td className="py-3 px-4">
-                                        {member.dateOfJoining === null ? member.dateOfJoining.split('T')[0] : 'N/A'}
+                                        {member.dateOfJoining ? member.dateOfJoining.split('T')[0] : "N/A"}
                                     </td>
                                     <td className="py-3 px-4">
                                         <span className={`${getStatusColor(member.status)}`}>
@@ -238,7 +242,7 @@ const TeamManagement = () => {
                             </h2>
                             <p className="text-sm text-gray-500">{selectedProfile.empCode}</p>
                             <p className="text-sm">
-                                {selectedProfile.dateOfJoining === null ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
+                                {selectedProfile.dateOfJoining ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
                             </p>
                         </div>
                     </div>
