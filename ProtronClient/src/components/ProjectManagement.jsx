@@ -264,11 +264,6 @@ const ProjectManagement = () => {
                 <AiFillProject /> Project Management
               </h1>
       
-              <div className="flex w-full bg-[#AECCE4] py-2 mt-5">
-                <p>JIRA</p>
-                <h2>| Manage Projects</h2>
-              </div>
-      
               <div className="flex justify-between items-center mt-5">
                 <h1>Project List</h1>
                 <div className="flex gap-4">
