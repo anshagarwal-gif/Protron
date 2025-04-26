@@ -29,6 +29,9 @@ public class ProjectTeam {
 
     // Added last updated by field
     private String lastUpdatedBy;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id")
+    private Tenant tenant;
 
     // Getters and setters for the new fields
     public LocalDateTime getStartTimestamp() {

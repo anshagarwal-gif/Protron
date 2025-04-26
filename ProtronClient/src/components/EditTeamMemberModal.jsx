@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FiX, FiRefreshCw } from 'react-icons/fi';
 
 const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
     const [formData, setFormData] = useState({
@@ -8,19 +8,34 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
         estimatedReleaseDate: '',
         taskType: 'developer' // Default value
     });
+    
+    // Store initial data for reset functionality
+    const [initialFormData, setInitialFormData] = useState({
+        pricing: '',
+        unit: '',
+        estimatedReleaseDate: '',
+        taskType: 'developer'
+    });
+
+    // Theme colors
+    const greenPrimary = '#1b5e20'; // green-900
+    const greenHover = '#2e7d32'; // green-600
 
     useEffect(() => {
         if (member) {
             // Log the member object to see what's coming from the database
             console.log("Member data received:", member);
             
-            setFormData({
+            const newFormData = {
                 pricing: member.pricing || '',
                 unit: member.unit || 'Dollar',
                 estimatedReleaseDate: member.estimatedReleaseDate || '',
                 // Use the member's taskType if it exists, otherwise default to 'developer'
                 taskType: member.taskType || 'developer'
-            });
+            };
+            
+            setFormData(newFormData);
+            setInitialFormData(newFormData); // Store initial data for reset
         }
     }, [member]); // Re-run when member changes
 
@@ -38,6 +53,11 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
         console.log("Submitting form data:", formData);
         onUpdate(formData, member.projectTeamId);
     };
+    
+    const handleReset = () => {
+        // Reset form to initial values
+        setFormData({...initialFormData});
+    };
 
     if (!isOpen) return null;
 
@@ -45,7 +65,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
             <div className="bg-white rounded-lg w-full max-w-md p-6">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold text-gray-800">Edit Team Member</h2>
+                    <h2 className="text-lg font-bold" style={{ color: greenPrimary }}>Edit Team Member</h2>
                     <button
                         onClick={onClose}
                         className="text-gray-500 hover:text-gray-700"
@@ -57,7 +77,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                 <form onSubmit={handleSubmit}>
                     {/* Display member info (non-editable) */}
                     <div className="mb-4 flex items-center">
-                        <div className="w-10 h-10 bg-gray-200 rounded-full mr-3 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full mr-3 flex items-center justify-center" style={{ backgroundColor: greenPrimary }}>
                             {member?.user?.profilePhoto ? (
                                 <img
                                     src={member.user.profilePhoto}
@@ -65,7 +85,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                                     className="w-10 h-10 rounded-full"
                                 />
                             ) : (
-                                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: greenPrimary }}>
                                     {member?.user?.firstName?.charAt(0) || ''}
                                 </div>
                             )}
@@ -96,7 +116,8 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                             name="taskType"
                             value={formData.taskType}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                            style={{ '--tw-ring-color': greenPrimary }}
                             required
                         >
                             <option value="developer">Developer</option>
@@ -115,7 +136,8 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                                 name="pricing"
                                 value={formData.pricing}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                                style={{ '--tw-ring-color': greenPrimary }}
                                 required
                             />
                         </div>
@@ -127,7 +149,8 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                                 name="unit"
                                 value={formData.unit}
                                 onChange={handleChange}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                                style={{ '--tw-ring-color': greenPrimary }}
                                 required
                             >
                                 <option value="Dollar">Dollar ($)</option>
@@ -146,7 +169,8 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                             name="estimatedReleaseDate"
                             value={formData.estimatedReleaseDate}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
+                            style={{ '--tw-ring-color': greenPrimary }}
                             required
                         />
                     </div>
@@ -155,13 +179,32 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50"
+                            className="px-4 py-2 border rounded hover:bg-gray-50"
+                            style={{ 
+                                borderColor: greenPrimary, 
+                                color: greenPrimary 
+                            }}
                         >
                             Cancel
                         </button>
                         <button
+                            type="button"
+                            onClick={handleReset}
+                            className="px-4 py-2 border rounded flex items-center"
+                            style={{ 
+                                borderColor: greenPrimary, 
+                                color: greenPrimary 
+                            }}
+                        >
+                            <FiRefreshCw className="mr-1" /> Reset
+                        </button>
+                        <button
                             type="submit"
-                            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+                            className="px-4 py-2 text-white rounded hover:bg-opacity-90"
+                            style={{ 
+                                backgroundColor: greenPrimary,
+                                '--tw-hover-bg-opacity': 0.9
+                            }}
                         >
                             Update
                         </button>

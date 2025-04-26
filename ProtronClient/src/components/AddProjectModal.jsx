@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import PersonIcon from '@mui/icons-material/Person';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -39,11 +38,12 @@ const currencySymbols = {
 
 const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => {
     const [users, setUsers] = useState([]);
+    const [initialFormData, setInitialFormData] = useState({});
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`,{
-                headers:{ Authorization: `${sessionStorage.getItem('token')}` }
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
             });
             setUsers(res.data);
         } catch (error) {
@@ -53,7 +53,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+        // Store initial form data for reset functionality
+        setInitialFormData({ ...formData });
+    }, [open]);
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -73,8 +75,16 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         onSubmit(formData);
     };
 
+    const handleReset = () => {
+        setFormData({ ...initialFormData });
+    };
+
     // Common height for input fields
     const fieldHeight = '56px';
+
+    // Custom theme colors
+    const greenPrimary = '#1b5e20'; // green-900
+    const greenHover = '#2e7d32'; // green-600
 
     return (
         <Dialog
@@ -94,22 +104,12 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                     bgcolor: '#f8f9fa',
                     borderBottom: '1px solid #e0e0e0',
                     py: 2.5,
-                    px: 3,
-                    display:"flex",
-                    justifyContent:"space-between"
+                    px: 3
                 }}
             >
-                <Typography variant="h5" fontWeight="600" color="primary.dark">
+                <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
                     Add New Project
                 </Typography>
-                <Button
-                    onClick={onClose}
-                    variant="outlined"
-                    color="secondary"
-                    sx={{ px: 3 }}
-                >
-                    Cancel
-                </Button>
             </Box>
 
             <DialogContent sx={{ p: 3 }}>
@@ -129,7 +129,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <ProjectIcon color="primary" />
+                                            <ProjectIcon sx={{ color: greenPrimary }} />
                                         </InputAdornment>
                                     ),
                                     sx: { height: fieldHeight }
@@ -158,7 +158,14 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             component="label"
                                             size="small"
                                             variant="outlined"
-                                            color="primary"
+                                            sx={{ 
+                                                borderColor: greenPrimary, 
+                                                color: greenPrimary,
+                                                '&:hover': { 
+                                                    borderColor: greenHover, 
+                                                    color: greenHover 
+                                                } 
+                                            }}
                                         >
                                             Change
                                             <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
@@ -167,9 +174,16 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 ) : (
                                     <Button
                                         component="label"
-                                        startIcon={<CloudUploadIcon />}
+                                        startIcon={<CloudUploadIcon sx={{ color: greenPrimary }} />}
                                         variant="outlined"
-                                        color="primary"
+                                        sx={{ 
+                                            borderColor: greenPrimary, 
+                                            color: greenPrimary,
+                                            '&:hover': { 
+                                                borderColor: greenHover, 
+                                                color: greenHover 
+                                            } 
+                                        }}
                                     >
                                         Project Icon
                                         <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
@@ -194,7 +208,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         InputProps: {
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <CalendarTodayIcon color="primary" />
+                                                    <CalendarTodayIcon sx={{ color: greenPrimary }} />
                                                 </InputAdornment>
                                             ),
                                             sx: { height: fieldHeight }
@@ -213,11 +227,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 }
                                 slotProps={{
                                     textField: {
-                                        fullWidth: true, // ❗ fixed typo: was "fullwidth"
+                                        fullWidth: true,
                                         InputProps: {
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <CalendarTodayIcon color="primary" />
+                                                    <CalendarTodayIcon sx={{ color: greenPrimary }} />
                                                 </InputAdornment>
                                             ),
                                             sx: { height: fieldHeight }
@@ -250,7 +264,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             startAdornment: (
                                                 <>
                                                     <InputAdornment position="start">
-                                                        <PersonIcon color="primary" />
+                                                        <PersonIcon sx={{ color: greenPrimary }} />
                                                     </InputAdornment>
                                                     {params.InputProps.startAdornment}
                                                 </>
@@ -284,7 +298,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             startAdornment: (
                                                 <>
                                                     <InputAdornment position="start">
-                                                        <PeopleAltIcon color="primary" />
+                                                        <PeopleAltIcon sx={{ color: greenPrimary }} />
                                                     </InputAdornment>
                                                     {params.InputProps.startAdornment}
                                                 </>
@@ -302,7 +316,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                                     height: 24,
                                                     mr: 1,
                                                     fontSize: "12px",
-                                                    bgcolor: "primary.light",
+                                                    bgcolor: greenPrimary,
                                                 }}
                                             >
                                                 {option.firstName?.charAt(0)}
@@ -323,8 +337,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                                 p: 0.5,
                                                 pl: 1,
                                                 borderRadius: 1,
-                                                bgcolor: "primary.light",
-                                                color: "primary.contrastText",
+                                                bgcolor: greenHover,
+                                                color: "white",
                                             }}
                                             {...getTagProps({ index })}
                                         >
@@ -334,7 +348,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                                     height: 20,
                                                     fontSize: "10px",
                                                     mr: 0.5,
-                                                    bgcolor: "primary.main",
+                                                    bgcolor: greenPrimary,
                                                 }}
                                             >
                                                 {option.firstName?.charAt(0)}
@@ -347,23 +361,26 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         </Box>
                     </Box>
 
-                    {/* Row 4: Currency, Cost, and Submit Button (3 elements in one row) */}
-                    
-                    <Grid item xs={12} sm={6}>
-  <TextField
-    fullWidth
-    label="Sponsor Name"
-    placeholder="Enter sponsor or tenent"
-    value={formData.tenent}
-    onChange={(e) =>
-      setFormData((prev) => ({ ...prev, tenent: e.target.value }))
-    }
-    variant="outlined"
-  />
-</Grid>
+                    {/* Row 4: Sponsor Name */}
+                    <Box sx={{ display: 'flex', gap: 3 }}>
+                        <Box sx={{ flex: 1 }}>
+                            <TextField
+                                fullWidth
+                                label="Sponsor Name"
+                                placeholder="Enter sponsor or tenant"
+                                value={formData.tenent}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({ ...prev, tenent: e.target.value }))
+                                }
+                                variant="outlined"
+                                InputProps={{
+                                    sx: { height: fieldHeight }
+                                }}
+                            />
+                        </Box>
+                    </Box>
 
-                    <Grid item xs={12} sm={4}>
-                    {/* Row 4: Currency and Cost */}
+                    {/* Row 5: Currency and Cost */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ width: '30%' }}>
                             <FormControl fullWidth>
@@ -394,8 +411,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <AttachMoneyIcon color="primary" />
-                                            {formData.currency ? currencySymbols[formData.currency] : '$'}
+                                            {formData.currency ? currencySymbols[formData.currency] : ''}
                                         </InputAdornment>
                                     ),
                                     sx: { height: fieldHeight }
@@ -404,27 +420,54 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         </Box>
                     </Box>
 
-                    {/* Row 5: Create Project Button (Full Width) */}
-                    <Box>
+                    {/* Row 6: Action Buttons (Right-aligned) */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                        <Button
+                            onClick={onClose}
+                            variant="outlined"
+                            sx={{ 
+                                borderColor: greenPrimary,
+                                color: greenPrimary,
+                                height: '42px',
+                                '&:hover': { 
+                                    borderColor: greenHover,
+                                    color: greenHover
+                                }
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleReset}
+                            variant="outlined"
+                            sx={{ 
+                                borderColor: greenPrimary,
+                                color: greenPrimary,
+                                height: '42px',
+                                '&:hover': { 
+                                    borderColor: greenHover,
+                                    color: greenHover
+                                }
+                            }}
+                        >
+                            Reset
+                        </Button>
                         <Button
                             onClick={handleSubmit}
                             variant="contained"
-                            color="primary"
-                            fullWidth
                             sx={{
-                                height: fieldHeight,
+                                bgcolor: greenPrimary,
+                                color: 'white',
+                                height: '42px',
                                 fontWeight: 600,
-                                boxShadow: 2,
-                                marginTop:"10px",
                                 '&:hover': {
-                                    boxShadow: 4
+                                    bgcolor: greenHover
                                 }
                             }}
                         >
                             Create Project
                         </Button>
                     </Box>
-                </Grid>
                 </Box>
             </DialogContent>
         </Dialog>

@@ -21,4 +21,8 @@ public class Role {
 
     @OneToMany(mappedBy = "role")
     private List<AccessRight> accessRights;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id")
+    private Tenant tenant;
+
 }

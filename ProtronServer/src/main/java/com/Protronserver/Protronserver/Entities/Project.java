@@ -81,6 +81,9 @@ public class Project {
     @Where(clause = "end_timestamp IS NULL")
     @JsonIgnoreProperties("project")
     private List<ProjectTeam> projectTeam;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id")
+    private Tenant tenant;
 
     public Long getProjectId() {
         return projectId;

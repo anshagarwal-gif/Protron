@@ -121,6 +121,9 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
+    @ManyToOne
+    @JoinColumn(name = "tenant_id")
+    private Tenant tenant;
 
     @OneToMany(mappedBy = "user")
     private List<TimesheetTask> timesheetTasks;
