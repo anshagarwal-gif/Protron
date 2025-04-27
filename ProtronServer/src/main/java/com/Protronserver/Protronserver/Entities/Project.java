@@ -27,7 +27,10 @@ public class Project {
     private String projectIcon;
     private Date startDate;
     private Date endDate;
+    private String unit;
+
     private Double projectCost;
+
     private String tenent;
     // Added timestamp fields
     private LocalDateTime startTimestamp;
@@ -35,6 +38,15 @@ public class Project {
 
     // Added last updated by field
     private String lastUpdatedBy;
+    private String sponsor;
+
+    public String getSponsor() {
+        return sponsor;
+    }
+
+    public void setSponsor(String sponsor) {
+        this.sponsor = sponsor;
+    }
 
     // Getters and setters for the new fields
     public LocalDateTime getStartTimestamp() {
@@ -55,6 +67,14 @@ public class Project {
 
     public String getLastUpdatedBy() {
         return lastUpdatedBy;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public void setLastUpdatedBy(String lastUpdatedBy) {

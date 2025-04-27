@@ -368,9 +368,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 fullWidth
                                 label="Sponsor Name"
                                 placeholder="Enter sponsor or tenant"
-                                value={formData.tenent}
+                                value={formData.sponsor}
                                 onChange={(e) =>
-                                    setFormData((prev) => ({ ...prev, tenent: e.target.value }))
+                                    setFormData((prev) => ({ ...prev, sponsor: e.target.value }))
                                 }
                                 variant="outlined"
                                 InputProps={{

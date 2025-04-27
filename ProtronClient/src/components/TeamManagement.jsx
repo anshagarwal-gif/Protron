@@ -1,21 +1,33 @@
 import React, { useEffect, useState } from 'react'
-import { FiUser, FiChevronDown, FiMenu  } from 'react-icons/fi'
+import { FiUser, FiChevronDown, FiMenu, FiArrowUp, FiArrowDown, FiFilter } from 'react-icons/fi'
 import axios from 'axios'
 
 const TeamManagement = () => {
     const [employees, setEmployees] = useState([])
+    const [filteredEmployees, setFilteredEmployees] = useState([])
     const [actionsOpen, setActionsOpen] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedProfile, setSelectedProfile] = useState(null);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileView, setIsMobileView] = useState(false);
-
-    const employeesPerPage = 10;
+    
+    // Sorting state
+    const [sortField, setSortField] = useState('firstName');
+    const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
+    
+    // Status filter
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [showStatusFilterDropdown, setShowStatusFilterDropdown] = useState(false);
+    
+    // For entries dropdown
+    const [employeesPerPage, setEmployeesPerPage] = useState(10);
+    const [showEntriesDropdown, setShowEntriesDropdown] = useState(false);
+    
+    // Calculate current page data
     const indexOfLastEmployee = currentPage * employeesPerPage;
     const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
-    const currentEmployees = employees.slice(indexOfFirstEmployee, indexOfLastEmployee);
-    const totalPages = Math.ceil(employees.length / employeesPerPage);
-
+    const currentEmployees = filteredEmployees.slice(indexOfFirstEmployee, indexOfLastEmployee);
+    const totalPages = Math.ceil(filteredEmployees.length / employeesPerPage);
 
     useEffect(() => {
         const handleResize = () => {
@@ -31,21 +43,126 @@ const TeamManagement = () => {
         // Clean up
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+    
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showEntriesDropdown && !event.target.closest('.entries-dropdown-container')) {
+                setShowEntriesDropdown(false);
+            }
+            
+            if (showStatusFilterDropdown && !event.target.closest('.status-filter-container')) {
+                setShowStatusFilterDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showEntriesDropdown, showStatusFilterDropdown]);
+    
+    // Apply filtering and sorting whenever the relevant state changes
+    useEffect(() => {
+        let filtered = [...employees];
+        
+        // Apply status filter
+        if (statusFilter !== 'All') {
+            filtered = filtered.filter(employee => employee.status === statusFilter);
+        }
+        
+        // Apply sorting
+        filtered = sortEmployees(filtered, sortField, sortOrder);
+        
+        setFilteredEmployees(filtered);
+        setCurrentPage(1); // Reset to first page when filter/sort changes
+    }, [employees, statusFilter, sortField, sortOrder]);
+    
+    // Function to sort employees by any field
+    const sortEmployees = (employeesToSort, field, order) => {
+        return [...employeesToSort].sort((a, b) => {
+            let valueA, valueB;
+            
+            // Handle different field types
+            switch(field) {
+                case 'firstName':
+                    valueA = `${a.firstName || ''} ${a.lastName || ''}`.toLowerCase();
+                    valueB = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase();
+                    break;
+                case 'empCode':
+                    valueA = a.empCode?.toLowerCase() || '';
+                    valueB = b.empCode?.toLowerCase() || '';
+                    break;
+                case 'email':
+                    valueA = a.email?.toLowerCase() || '';
+                    valueB = b.email?.toLowerCase() || '';
+                    break;
+                case 'cost':
+                    valueA = parseFloat(a.cost || 0);
+                    valueB = parseFloat(b.cost || 0);
+                    break;
+                case 'dateOfJoining':
+                    valueA = new Date(a.dateOfJoining || 0);
+                    valueB = new Date(b.dateOfJoining || 0);
+                    break;
+                case 'status':
+                    valueA = a.status?.toLowerCase() || '';
+                    valueB = b.status?.toLowerCase() || '';
+                    break;
+                default:
+                    valueA = a[field] || '';
+                    valueB = b[field] || '';
+            }
+            
+            // Handle the sort direction
+            if (order === 'asc') {
+                return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+            } else {
+                return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+            }
+        });
+    };
+    
+    // Function to handle column header click for sorting
+    const handleSort = (field) => {
+        const newOrder = field === sortField && sortOrder === 'asc' ? 'desc' : 'asc';
+        setSortField(field);
+        setSortOrder(newOrder);
+    };
+    
+    // Helper function to render sort icons
+    const renderSortIcon = (field) => {
+        if (sortField !== field) {
+            return <FiChevronDown className="ml-1 text-gray-400 text-xs" />;
+        }
+        return sortOrder === 'asc' ? 
+            <FiArrowUp className="ml-1 text-green-900" /> : 
+            <FiArrowDown className="ml-1 text-green-900" />;
+    };
+    
     const goToPage = (pageNumber) => {
         if (pageNumber >= 1 && pageNumber <= totalPages) {
             setCurrentPage(pageNumber);
         }
     };
 
+    const handleEntriesChange = (value) => {
+        setEmployeesPerPage(value);
+        setCurrentPage(1); // Reset to first page when changing entries per page
+        setShowEntriesDropdown(false);
+    };
+    
+    const handleStatusFilterChange = (status) => {
+        setStatusFilter(status);
+        setShowStatusFilterDropdown(false);
+    };
 
     useEffect(() => {
-
         const fetchEmployees = async () => {
             try {
                 const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
                     headers: { Authorization: `${sessionStorage.getItem('token')}` }
                 })
                 setEmployees(res.data)
+                setFilteredEmployees(res.data)
                 console.log(res)
             } catch (error) {
                 console.log(error)
@@ -53,7 +170,6 @@ const TeamManagement = () => {
         }
 
         fetchEmployees()
-        
     }, [])
 
     const handleProfileClick = async (email) => {
@@ -76,6 +192,7 @@ const TeamManagement = () => {
             [id]: !prev[id]
         }));
     };
+    
     const handleStatusChange = async (id, newStatus) => {
         console.log("handleStatusChange called with:", id, newStatus);
 
@@ -123,18 +240,6 @@ const TeamManagement = () => {
         }
     };
 
-    // const handleRemoveMember = async (id) => {
-    //     console.log("remove function is called")
-    //     try {
-    //         const response = await axios.delete(`http://localhost:8282/api/project-team/delete/${id}`);
-    //         console.log("Deleted successfully:", response.data);
-    //     } catch (error) {
-    //         console.error("Failed to delete:", error);
-    //     }
-    // };
-
-
-
     const getStatusColor = (status) => {
         switch (status) {
             case 'Active':
@@ -174,7 +279,7 @@ const TeamManagement = () => {
                 </div>
                 <div className="flex justify-between border-b py-2">
                     <span className="font-medium text-gray-600">Join Date:</span>
-                    <span className="text-gray-800">{member.dateOfJoining.split('T')[0]}</span>
+                    <span className="text-gray-800">{member.dateOfJoining ? member.dateOfJoining.split('T')[0] : "N/A"}</span>
                 </div>
                 <div className="flex justify-between py-2">
                     <span className="font-medium text-gray-600">Status:</span>
@@ -185,11 +290,91 @@ const TeamManagement = () => {
             </div>
         </div>
     );
+    
     return (
         <div className="max-w-full px-4 sm:px-6 pb-6">
             <div>
             <h1 className='flex items-center gap-2 text-xl font-bold mb-4'><FiUser /> Team Management</h1>
             <h1 className='mt-5 mb-4 font-semibold text-center md:text-left'>Team Member List</h1>
+            
+                {/* Status filter and entries dropdown row */}
+                <div className="flex flex-wrap items-center justify-between mt-4 mb-4">
+                    {/* Entries per page dropdown */}
+                    <div className="flex items-center text-gray-700 mb-2 md:mb-0">
+                        <span className="mr-2 font-medium">Show</span>
+                        <div className="relative entries-dropdown-container">
+                            <button
+                                className="flex items-center justify-between w-24 px-3 py-2 border border-green-700 rounded bg-white text-green-900 hover:border-green-900 focus:outline-none focus:ring-1 focus:ring-green-700"
+                                onClick={() => setShowEntriesDropdown(!showEntriesDropdown)}
+                                aria-expanded={showEntriesDropdown}
+                                aria-haspopup="true"
+                            >
+                                <span className="font-medium">{employeesPerPage}</span>
+                                <FiChevronDown className={`transition-transform duration-200 ${showEntriesDropdown ? 'transform rotate-180' : ''}`} />
+                            </button>
+                            
+                            {showEntriesDropdown && (
+                                <div className="absolute top-full left-0 w-24 mt-1 bg-white border border-green-700 rounded shadow-lg z-10 overflow-hidden">
+                                    {[10, 20, 50, 100].map((value) => (
+                                        <button
+                                            key={value}
+                                            className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${
+                                            employeesPerPage === value 
+                                                ? 'bg-green-900 text-white font-medium' 
+                                                : 'text-green-900 hover:bg-green-100'
+                                            }`}
+                                            onClick={() => handleEntriesChange(value)}
+                                        >
+                                            {value}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <span className="ml-2 font-medium">entries</span>
+                    </div>
+                    
+                    {/* Status filter dropdown */}
+                    <div className="flex items-center text-gray-700 mb-2 md:mb-0">
+                        <span className="mr-2 font-medium">Status:</span>
+                        <div className="relative status-filter-container">
+                            <button
+                                className="flex items-center justify-between w-32 px-3 py-2 border border-green-700 rounded bg-white text-green-900 hover:border-green-900 focus:outline-none focus:ring-1 focus:ring-green-700"
+                                onClick={() => setShowStatusFilterDropdown(!showStatusFilterDropdown)}
+                                aria-expanded={showStatusFilterDropdown}
+                                aria-haspopup="true"
+                            >
+                                <span className="font-medium flex items-center">
+                                    <FiFilter className="mr-2" />
+                                    {statusFilter}
+                                </span>
+                                <FiChevronDown className={`transition-transform duration-200 ${showStatusFilterDropdown ? 'transform rotate-180' : ''}`} />
+                            </button>
+                            
+                            {showStatusFilterDropdown && (
+                                <div className="absolute top-full left-0 w-32 mt-1 bg-white border border-green-700 rounded shadow-lg z-10 overflow-hidden">
+                                    {['All', 'Active', 'On Hold', 'Removed'].map((status) => (
+                                        <button
+                                            key={status}
+                                            className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${
+                                            statusFilter === status 
+                                                ? 'bg-green-900 text-white font-medium' 
+                                                : 'text-green-900 hover:bg-green-100'
+                                            }`}
+                                            onClick={() => handleStatusFilterChange(status)}
+                                        >
+                                            {status}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="text-sm text-green-800 bg-green-50 px-3 py-1 rounded border border-green-200">
+                        Showing <span className="font-semibold">{filteredEmployees.length > 0 ? indexOfFirstEmployee + 1 : 0}</span> to <span className="font-semibold">{Math.min(indexOfLastEmployee, filteredEmployees.length)}</span> of <span className="font-semibold">{filteredEmployees.length}</span> entries
+                    </div>
+                </div>
                 
                 {/* Mobile View */}
                 {isMobileView ? (
@@ -204,59 +389,201 @@ const TeamManagement = () => {
                         <table className="w-full min-w-[640px]">
                             <thead className="bg-gray-100">
                                 <tr className="text-left">
-                                    <th className="py-3 px-4 text-sm font-medium text-gray-600">#</th>
-                                    <th className="py-3 px-4 text-sm font-medium text-gray-600">Name</th>
-                                    <th className="py-3 px-4 text-sm font-medium text-gray-600">Emp-Code</th>
-                                    <th className="py-3 px-4 text-sm font-medium text-gray-600">Email</th>
-                                    <th className="py-3 px-4 text-sm font-medium text-gray-600">Cost</th>
-                                    <th className="py-3 px-4 text-sm font-medium text-gray-600">DOJ</th>
-                                    <th className="py-3 px-4 text-sm font-medium text-gray-600">Status</th>
-                                    </tr>
+                                    <th className="py-2 px-4 text-sm font-medium text-gray-700">#</th>
+                                    <th 
+                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        onClick={() => handleSort('firstName')}
+                                    >
+                                        <div className="flex items-center">
+                                            Name
+                                            {renderSortIcon('firstName')}
+                                        </div>
+                                    </th>
+                                    <th 
+                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        onClick={() => handleSort('empCode')}
+                                    >
+                                        <div className="flex items-center">
+                                            Emp-Code
+                                            {renderSortIcon('empCode')}
+                                        </div>
+                                    </th>
+                                    <th 
+                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        onClick={() => handleSort('email')}
+                                    >
+                                        <div className="flex items-center">
+                                            Email
+                                            {renderSortIcon('email')}
+                                        </div>
+                                    </th>
+                                    <th 
+                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        onClick={() => handleSort('cost')}
+                                    >
+                                        <div className="flex items-center">
+                                            Cost
+                                            {renderSortIcon('cost')}
+                                        </div>
+                                    </th>
+                                    <th 
+                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        onClick={() => handleSort('dateOfJoining')}
+                                    >
+                                        <div className="flex items-center">
+                                            DOJ
+                                            {renderSortIcon('dateOfJoining')}
+                                        </div>
+                                    </th>
+                                    <th 
+                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        onClick={() => handleSort('status')}
+                                    >
+                                        <div className="flex items-center">
+                                            Status
+                                            {renderSortIcon('status')}
+                                        </div>
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
-                                {currentEmployees.map((member, index) => (
-                                    <tr key={member.userId} className="border-t">
-                                        <td className="py-3 px-4">{member.userId}</td>
-                                        <td className="py-3 px-4 flex items-center cursor-pointer" onClick={() => handleProfileClick(member.email)}>
-                                            <img src={`${import.meta.env.VITE_API_URL}/api/users/${member.userId}/photo`} alt={member.name} className="w-12 h-12 rounded-full object-cover border border-gray-200 mr-2" />
-                                            <span>{member.firstName + member.lastName}</span>
-                                        </td>
-                                        <td className="py-3 px-4">{member.empCode}</td>
-                                        <td className="py-3 px-4">{member.email}</td>
-                                        <td className="py-3 px-4">{member.cost}</td>
-                                        <td className="py-3 px-4">
-                                        {member.dateOfJoining ? member.dateOfJoining.split('T')[0] : "N/A"}
-                                    </td>
-                                        <td className="py-3 px-4">
-                                            <span className={`${getStatusColor(member.status)}`}>
-                                                {member.status}
-                                            </span>
+                                {currentEmployees.length > 0 ? (
+                                    currentEmployees.map((member, index) => (
+                                        <tr key={member.userId} className="border-t hover:bg-gray-50">
+                                            <td className="py-2 px-4">{indexOfFirstEmployee + index + 1}</td>
+                                            <td className="py-2 px-4 flex items-center cursor-pointer" onClick={() => handleProfileClick(member.email)}>
+                                                <img src={`${import.meta.env.VITE_API_URL}/api/users/${member.userId}/photo`} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2" />
+                                                <span>{member.firstName + member.lastName}</span>
+                                            </td>
+                                            <td className="py-2 px-4">{member.empCode}</td>
+                                            <td className="py-2 px-4">{member.email}</td>
+                                            <td className="py-2 px-4">{member.cost || 'N/A'}</td>
+                                            <td className="py-2 px-4">
+                                            {member.dateOfJoining ? member.dateOfJoining.split('T')[0] : "N/A"}
+                                            </td>
+                                            <td className="py-2 px-4">
+                                                <span className={`${getStatusColor(member.status)}`}>
+                                                    {member.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="7" className="py-4 text-center">
+                                            No team members found
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
                 )}
                 
-                {/* Pagination - Works for both views */}
-                <div className="flex justify-between items-center mt-4 px-4">
-                    <button
-                        onClick={() => goToPage(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-                    >
-                        Prev
-                    </button>
-                    <span className="text-sm">Page {currentPage} of {totalPages}</span>
-                    <button
-                        onClick={() => goToPage(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="px-3 py-1 bg-gray-200 text-gray-700 rounded disabled:opacity-50"
-                    >
-                        Next
-                    </button>
-                </div>
+                {/* Pagination - Enhanced */}
+                {filteredEmployees.length > 0 && (
+                    <div className="flex justify-center mt-4 mb-6">
+                        <nav className="flex items-center">
+                            <button
+                                onClick={() => goToPage(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className={`mx-1 px-3 py-1 rounded ${
+                                    currentPage === 1 
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-green-900 text-white hover:bg-green-600'
+                                }`}
+                            >
+                                Prev
+                            </button>
+                            
+                            <div className="flex mx-2">
+                                {totalPages <= 7 ? (
+                                    // Show all pages if 7 or fewer pages
+                                    [...Array(totalPages).keys()].map(number => (
+                                    <button
+                                        key={number + 1}
+                                        onClick={() => goToPage(number + 1)}
+                                        className={`mx-1 px-3 py-1 rounded ${
+                                        currentPage === number + 1
+                                            ? 'bg-green-900 text-white'
+                                            : 'bg-gray-200 hover:bg-gray-300'
+                                        }`}
+                                    >
+                                        {number + 1}
+                                    </button>
+                                    ))
+                                ) : (
+                                    // Show pagination with ellipsis for more than 7 pages
+                                    <>
+                                    {/* First page always shown */}
+                                    <button
+                                        onClick={() => goToPage(1)}
+                                        className={`mx-1 px-3 py-1 rounded ${
+                                        currentPage === 1
+                                            ? 'bg-green-900 text-white'
+                                            : 'bg-gray-200 hover:bg-gray-300'
+                                        }`}
+                                    >
+                                        1
+                                    </button>
+                                    
+                                    {/* Show ellipsis if not on first few pages */}
+                                    {currentPage > 3 && <span className="mx-1">...</span>}
+                                    
+                                    {/* Show current page and surrounding pages */}
+                                    {[...Array(totalPages).keys()]
+                                        .filter(number => {
+                                        const pageNum = number + 1;
+                                        return pageNum !== 1 && 
+                                                pageNum !== totalPages && 
+                                                Math.abs(pageNum - currentPage) < 2;
+                                        })
+                                        .map(number => (
+                                        <button
+                                            key={number + 1}
+                                            onClick={() => goToPage(number + 1)}
+                                            className={`mx-1 px-3 py-1 rounded ${
+                                            currentPage === number + 1
+                                                ? 'bg-green-900 text-white'
+                                                : 'bg-gray-200 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            {number + 1}
+                                        </button>
+                                        ))}
+                                    
+                                    {/* Show ellipsis if not on last few pages */}
+                                    {currentPage < totalPages - 2 && <span className="mx-1">...</span>}
+                                    
+                                    {/* Last page always shown */}
+                                    <button
+                                        onClick={() => goToPage(totalPages)}
+                                        className={`mx-1 px-3 py-1 rounded ${
+                                        currentPage === totalPages
+                                            ? 'bg-green-900 text-white'
+                                            : 'bg-gray-200 hover:bg-gray-300'
+                                        }`}
+                                    >
+                                        {totalPages}
+                                    </button>
+                                    </>
+                                )}
+                            </div>
+                            
+                            <button
+                                onClick={() => goToPage(currentPage + 1)}
+                                disabled={currentPage === totalPages || totalPages === 0}
+                                className={`mx-1 px-3 py-1 rounded ${
+                                    currentPage === totalPages || totalPages === 0
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                                    : 'bg-green-900 text-white hover:bg-green-600'
+                                }`}
+                            >
+                                Next
+                            </button>
+                        </nav>
+                    </div>
+                )}
             </div>
             
             {isProfileOpen && selectedProfile && (

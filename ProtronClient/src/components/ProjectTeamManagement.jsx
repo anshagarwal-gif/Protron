@@ -286,9 +286,9 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                     <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{project.startDate.split("T")[0]}</span></p>
                 </div>
                 <div>
-                    <p className="text-gray-500 text-sm">PM Name: <span className="font-medium text-gray-700">{project.projectManager?.firstName}{" "}
+                    <p className="text-gray-500  text-sm">PM Name: <span className="font-medium text-gray-700">{project.projectManager?.firstName}{" "}
                         {project.projectManager?.lastName}</span></p>
-                    <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.tenent || "N/A"}</span></p>
+                    <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.sponsor || "N/A"}</span></p>
                 </div>
                 <div>
                     <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{project.projectCost}</span></p>

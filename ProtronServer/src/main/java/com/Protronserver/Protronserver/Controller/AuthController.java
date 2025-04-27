@@ -35,6 +35,7 @@ public class AuthController {
 
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
+
         String email = request.get("email");
         Optional<User> userOpt = userRepository.findByEmailAndEndTimestampIsNull(email);
         if (userOpt.isEmpty()) {
@@ -49,21 +50,21 @@ public class AuthController {
         message.setTo(email);
         message.setSubject("Your OTP for password reset");
         String content = """
-Hi,
+                Hi,
 
-We received a request to reset the password for your Protron account.
+                We received a request to reset the password for your Protron account.
 
-Please use the One-Time Password (OTP) below to proceed:
+                Please use the One-Time Password (OTP) below to proceed:
 
-OTP: %s
+                OTP: %s
 
-This OTP is valid for 5 minutes. Do not share this with anyone.
+                This OTP is valid for 5 minutes. Do not share this with anyone.
 
-If you did not request a password reset, you can safely ignore this email.
+                If you did not request a password reset, you can safely ignore this email.
 
-Regards,
-Team Protron
-""".formatted(otp);
+                Regards,
+                Team Protron
+                """.formatted(otp);
         message.setText(content);
         message.setFrom("dopahiya.feedback@gmail.com");
         mailSender.send(message);

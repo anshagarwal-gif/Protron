@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import axios from 'axios';
 import GlobalSnackbar from './components/GlobalSnackbar';
+import Navbar from './components/Navbar';
 
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
@@ -98,14 +99,14 @@ const App = () => {
     return (
 <LocalizationProvider dateAdapter={AdapterDayjs}>
             <div className="flex flex-col h-screen">
-                <div className="flex flex-1 overflow-hidden">
-                    <Sidebar 
-                        activeSection={activeSection} 
-                        setActiveSection={setActiveSection} 
-                        handleLogout={handleLogout} 
-                    />
+               
+                <Navbar 
+                    activeSection={activeSection} 
+                    setActiveSection={setActiveSection} 
+                    handleLogout={handleLogout} 
+                />
                     <div className="flex-1 p-6 overflow-y-auto">{renderContent()}</div>
-                </div>
+              
                 <GlobalSnackbar
                     open={snackbar.open}
                     message={snackbar.message}

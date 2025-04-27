@@ -36,6 +36,8 @@ public class ManageProjectService {
         project.setEndDate(request.getEndDate());
         project.setProjectCost(request.getProjectCost());
         project.setTenent(request.getTenent());
+        project.setSponsor(request.getSponsor());
+        project.setUnit(request.getUnit());
 
         // fetch the actual User object from the DB
         System.out.println(request.getProjectManagerId());
@@ -85,7 +87,7 @@ public class ManageProjectService {
                 .orElseThrow(() -> new RuntimeException("Project not found with ID: " + projectId));
     }
 
-    public Project updateProject(Long id,ProjectUpdateDTO request) {
+    public Project updateProject(Long id, ProjectUpdateDTO request) {
         Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
 
@@ -99,14 +101,19 @@ public class ManageProjectService {
 
         // Create a new version of the project with updated fields
         Project updatedProject = new Project();
-        updatedProject.setProjectName(request.getProjectName() != null ? request.getProjectName() : existingProject.getProjectName());
-        updatedProject.setProjectIcon(request.getProjectIcon() != null ? request.getProjectIcon() : existingProject.getProjectIcon());
-        updatedProject.setStartDate(request.getStartDate() != null ? request.getStartDate() : existingProject.getStartDate());
+        updatedProject.setProjectName(
+                request.getProjectName() != null ? request.getProjectName() : existingProject.getProjectName());
+        updatedProject.setProjectIcon(
+                request.getProjectIcon() != null ? request.getProjectIcon() : existingProject.getProjectIcon());
+        updatedProject
+                .setStartDate(request.getStartDate() != null ? request.getStartDate() : existingProject.getStartDate());
         updatedProject.setEndDate(request.getEndDate() != null ? request.getEndDate() : existingProject.getEndDate());
-        updatedProject.setProjectCost(request.getProjectCost() != null ? request.getProjectCost() : existingProject.getProjectCost());
+        updatedProject.setProjectCost(
+                request.getProjectCost() != null ? request.getProjectCost() : existingProject.getProjectCost());
         updatedProject.setStartTimestamp(LocalDateTime.now());
         updatedProject.setEndTimestamp(null);
-//        updatedProject.setProjectTeam(existingProject.getProjectTeam());
+
+        // updatedProject.setProjectTeam(existingProject.getProjectTeam());
 
         // Set manager if ID is passed
         if (request.getProjectManagerId() != null) {
@@ -118,7 +125,7 @@ public class ManageProjectService {
         }
 
         List<ProjectTeam> projectTeams = existingProject.getProjectTeam();
-        for(ProjectTeam team : projectTeams){
+        for (ProjectTeam team : projectTeams) {
             team.setProject(updatedProject);
         }
 
