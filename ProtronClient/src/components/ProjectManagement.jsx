@@ -863,7 +863,9 @@ const ProjectManagement = () => {
                 </span>
                 <span className="text-gray-500 text-sm font-medium">Sponsor</span>
               </div>
-              <p className="text-base">{selectedProject.sponsor || "Not assigned"}</p>
+              <p className="text-base">{selectedProject.sponsor ? 
+                  `${selectedProject.sponsor.firstName} ${selectedProject.sponsor.lastName} (${selectedProject.sponsor.empCode})` : 
+                  "Not assigned"}</p>
             </div>
           </div>
 
@@ -910,10 +912,10 @@ const ProjectManagement = () => {
                   {selectedProject.projectTeam.map((member, index) => (
                     <div key={index} className="flex items-center">
                       <div className="bg-green-100 text-green-700 rounded-full h-8 w-8 flex items-center justify-center mr-3">
-                        {member.firstName ? member.firstName.charAt(0) : "U"}
+                        {member.user.firstName ? member.user.firstName.charAt(0) : "U"}
                       </div>
                       <div>
-                        <p className="font-medium">{member.firstName} {member.lastName}</p>
+                        <p className="font-medium">{member.user.firstName} {member.user.lastName}</p>
                         <p className="text-sm text-gray-500">{member.empCode || "No ID"}</p>
                       </div>
                     </div>
