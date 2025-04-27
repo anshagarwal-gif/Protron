@@ -106,19 +106,20 @@ public class ManageTeamService {
     }
 
     public void deleteProjectTeam(Long id) {
-        ProjectTeam team = getProjectTeamById(id);
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User user) {
-            team.setLastUpdatedBy(user.getEmail());
-            team.setEndTimestamp(LocalDateTime.now());
-            team.setStatus("removed");
-        }
-        projectTeamRepository.save(team);
+//        ProjectTeam team = getProjectTeamById(id);
+//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//        if (principal instanceof User user) {
+//            team.setLastUpdatedBy(user.getEmail());
+//            team.setEndTimestamp(LocalDateTime.now());
+//            team.setStatus("removed");
+//        }
+//        projectTeamRepository.save(team);
         // projectTeamRepository.delete(team);
+        updateStatus(id, "removed");
     }
 
     public List<ProjectTeam> getProjectTeam(Long projectId) {
-        return projectTeamRepository.findActiveOrRemovedByProjectId(projectId);
+        return projectTeamRepository.findByProjectProjectIdAndEndTimestampIsNull(projectId);
     }
 
 }
