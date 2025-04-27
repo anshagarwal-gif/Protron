@@ -40,7 +40,7 @@ const currencySymbols = {
 const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, projectId }) => {
     const [users, setUsers] = useState([]);
     const [initialFormData, setInitialFormData] = useState({});
-
+    console.log(formData)
     const fetchUsers = async () => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
@@ -90,6 +90,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     };
 
     const handleSubmit = () => {
+        console.log(formData)
         onSubmit(formData);
     };
 
@@ -99,7 +100,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
     // Common height for input fields
     const fieldHeight = '56px';
-    
+
     // Custom theme colors
     const greenPrimary = '#1b5e20'; // green-900
     const greenHover = '#2e7d32'; // green-600
@@ -176,13 +177,13 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                             component="label"
                                             size="small"
                                             variant="outlined"
-                                            sx={{ 
-                                                borderColor: greenPrimary, 
+                                            sx={{
+                                                borderColor: greenPrimary,
                                                 color: greenPrimary,
-                                                '&:hover': { 
-                                                    borderColor: greenHover, 
-                                                    color: greenHover 
-                                                } 
+                                                '&:hover': {
+                                                    borderColor: greenHover,
+                                                    color: greenHover
+                                                }
                                             }}
                                         >
                                             Change
@@ -194,13 +195,13 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                         component="label"
                                         startIcon={<CloudUploadIcon sx={{ color: greenPrimary }} />}
                                         variant="outlined"
-                                        sx={{ 
-                                            borderColor: greenPrimary, 
+                                        sx={{
+                                            borderColor: greenPrimary,
                                             color: greenPrimary,
-                                            '&:hover': { 
-                                                borderColor: greenHover, 
-                                                color: greenHover 
-                                            } 
+                                            '&:hover': {
+                                                borderColor: greenHover,
+                                                color: greenHover
+                                            }
                                         }}
                                     >
                                         Project Icon
@@ -265,23 +266,14 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
                                 options={users}
-                                value={
-                                    // Handle both cases: null projectManager or projectManager with userId
-                                    formData.projectManager?.userId
-                                        ? users.find(user => user.userId === formData.projectManager.userId)
-                                        : null
-                                }
-                                getOptionLabel={(option) =>
-                                    option ? `${option.firstName} ${option.lastName}` : ''
-                                }
-                                isOptionEqualToValue={(option, value) =>
-                                    option?.userId === value?.userId
-                                }
+                                value={users.find(user => user.userId === formData.projectManager?.userId) || null}
+                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+                                isOptionEqualToValue={(option, value) => option?.userId === value?.userId}
                                 onChange={(e, value) => {
                                     console.log("Selected manager:", value);
                                     setFormData((prev) => ({
                                         ...prev,
-                                        // Store the entire user object or null
+                                        projectManagerId: value ? value.userId : null,
                                         projectManager: value || null,
                                     }));
                                 }}
@@ -400,11 +392,11 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                         <Button
                             onClick={onClose}
                             variant="outlined"
-                            sx={{ 
+                            sx={{
                                 borderColor: greenPrimary,
                                 color: greenPrimary,
                                 height: '42px',
-                                '&:hover': { 
+                                '&:hover': {
                                     borderColor: greenHover,
                                     color: greenHover
                                 }
@@ -415,11 +407,11 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                         <Button
                             onClick={handleReset}
                             variant="outlined"
-                            sx={{ 
+                            sx={{
                                 borderColor: greenPrimary,
                                 color: greenPrimary,
                                 height: '42px',
-                                '&:hover': { 
+                                '&:hover': {
                                     borderColor: greenHover,
                                     color: greenHover
                                 }
