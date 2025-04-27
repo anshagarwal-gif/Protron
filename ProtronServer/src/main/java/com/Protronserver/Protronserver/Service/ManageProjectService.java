@@ -36,7 +36,6 @@ public class ManageProjectService {
         project.setEndDate(request.getEndDate());
         project.setProjectCost(request.getProjectCost());
         project.setTenent(request.getTenent());
-        project.setSponsor(request.getSponsor());
         project.setUnit(request.getUnit());
 
         // fetch the actual User object from the DB
@@ -44,6 +43,10 @@ public class ManageProjectService {
         User manager = userRepository.findByUserIdAndEndTimestampIsNull(request.getProjectManagerId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         project.setProjectManager(manager);
+
+        User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsor())
+                        .orElseThrow(()-> new RuntimeException("User not found for sponsor"));
+        project.setSponsor(sponsor);
 
         project.setStartTimestamp(LocalDateTime.now());
         project.setEndTimestamp(null);
@@ -112,7 +115,7 @@ public class ManageProjectService {
                 request.getProjectCost() != null ? request.getProjectCost() : existingProject.getProjectCost());
         updatedProject.setStartTimestamp(LocalDateTime.now());
         updatedProject.setEndTimestamp(null);
-
+        updatedProject.setUnit(request.getUnit() != null ? request.getUnit() : existingProject.getUnit());
         // updatedProject.setProjectTeam(existingProject.getProjectTeam());
 
         // Set manager if ID is passed
@@ -122,6 +125,14 @@ public class ManageProjectService {
             updatedProject.setProjectManager(manager);
         } else {
             updatedProject.setProjectManager(existingProject.getProjectManager());
+        }
+
+        if(request.getSponsor() != null){
+            User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsor())
+                            .orElseThrow(() -> new RuntimeException("Sponsor not found"));
+            updatedProject.setSponsor(sponsor);
+        }else{
+            updatedProject.setSponsor(existingProject.getSponsor());
         }
 
         List<ProjectTeam> projectTeams = existingProject.getProjectTeam();

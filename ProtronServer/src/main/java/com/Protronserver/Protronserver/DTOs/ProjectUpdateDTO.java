@@ -15,6 +15,24 @@ public class ProjectUpdateDTO {
     private Date endDate;
     private Double projectCost;
     private Long projectManagerId;
+    private Long sponsor;
+    private String unit;
+
+    public Long getSponsor() {
+        return sponsor;
+    }
+
+    public void setSponsor(Long sponsor) {
+        this.sponsor = sponsor;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
 
     public String getProjectName() {
         return projectName;

@@ -28,7 +28,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
             
             const newFormData = {
                 pricing: member.pricing || '',
-                unit: member.unit || 'Dollar',
+                unit: member.unit || 'INR',
                 estimatedReleaseDate: member.estimatedReleaseDate || '',
                 // Use the member's taskType if it exists, otherwise default to 'developer'
                 taskType: member.taskType || 'developer'
@@ -153,9 +153,11 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                                 style={{ '--tw-ring-color': greenPrimary }}
                                 required
                             >
-                                <option value="Dollar">Dollar ($)</option>
-                                <option value="Rupees">Rupees (₹)</option>
-                                <option value="Euro">Euro (€)</option>
+                                <option value="USD">USD</option>
+                                <option value="INR">INR</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="JPY">JPY</option>
                             </select>
                         </div>
                     </div>

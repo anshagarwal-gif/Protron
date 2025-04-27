@@ -36,7 +36,7 @@ const ProjectManagement = () => {
         teamMembers: [],
         currency: 'USD',
         cost: '',
-        sponsor: '', 
+        sponsor: null, 
     });
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -51,6 +51,7 @@ const ProjectManagement = () => {
           });
             const sortedProjects = sortProjects(res.data, sortField, sortOrder);
             setProjects(sortedProjects);
+            console.log(sortedProjects)
             setFilteredProjects(sortedProjects);
         } catch (error) {
             console.log({ message: error });
@@ -218,12 +219,10 @@ const ProjectManagement = () => {
             projectCost: data.cost,
             projectManagerId: data.manager, // match backend DTO field
             sponsor: data.sponsor,
-          
+            unit: data.currency,
             projectTeam: data.teamMembers.map(userId => ({
               userId: userId,
               status: "active",
-              unit: data.currency === 'INR' ? 'Rupees' : 'Dollar',
-           
           }))
           };
           
@@ -483,6 +482,17 @@ const ProjectManagement = () => {
                           {renderSortIcon('teamSize')}
                         </div>
                       </th>
+
+                      <th 
+                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        onClick={() => handleSort('unit')}
+                      >
+                        <div className="flex items-center">
+                          Cost Unit
+                          {renderSortIcon('unit')}
+                        </div>
+                      </th>
+
                       <th 
                         className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
                         onClick={() => handleSort('projectCost')}
@@ -526,8 +536,9 @@ const ProjectManagement = () => {
                             <FiUsers className="mr-1" />
                             <span className="underline">{project.projectTeam?.length || 0}</span>
                           </td>
-                          <td className="py-2 px-4">₹{project.projectCost || ''}</td>
-                          <td className="py-2 px-4">{project.sponsor || ""}</td>
+                          <td className="py-2 px-4">{project.unit || ''}</td>
+                          <td className="py-2 px-4">{project.projectCost || ''}</td>
+                          <td className="py-2 px-4">{project.sponsor?.firstName} {project.sponsor?.lastName}</td>
                           <td className="py-2 px-4">
                             <button
                               className="bg-green-900 text-white px-3 py-1 rounded hover:bg-green-600"

@@ -20,13 +20,13 @@ public class ProjectRequestDTO {
 
     // Added last updated by field
     private String lastUpdatedBy;
-    private String sponsor;
+    private Long sponsor;
 
-    public String getSponsor() {
+    public Long getSponsor() {
         return sponsor;
     }
 
-    public void setSponsor(String sponsor) {
+    public void setSponsor(Long sponsor) {
         this.sponsor = sponsor;
     }
 

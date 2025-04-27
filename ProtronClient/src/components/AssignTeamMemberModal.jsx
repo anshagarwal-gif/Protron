@@ -161,8 +161,11 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMembe
                       className="w-full border rounded p-2"
                     >
                       <option value="" disabled>Select Unit</option>
-                      <option value="Rupees">Rupees</option>
-                      <option value="Dollar">Dollar</option>
+                      <option value="USD">USD</option>
+                      <option value="INR">INR</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="JPY">JPY</option>
                     </select>
                   </div>
                 </div>

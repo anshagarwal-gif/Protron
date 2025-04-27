@@ -233,6 +233,8 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
               : null,
             projectCost: updatedData.projectCost,
             projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
+            sponsor: updatedData.sponsor,
+            unit: updatedData.unit,
           };
           console.log("Project Data: ",projectData)
       
@@ -288,7 +290,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                 <div>
                     <p className="text-gray-500  text-sm">PM Name: <span className="font-medium text-gray-700">{project.projectManager?.firstName}{" "}
                         {project.projectManager?.lastName}</span></p>
-                    <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.sponsor || "N/A"}</span></p>
+                    <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.sponsor?.firstName} {project.sponsor?.lastName}</span></p>
                 </div>
                 <div>
                     <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{project.projectCost}</span></p>
@@ -320,6 +322,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Name</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Emp-Code</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Email</th>
+                                <th className="py-3 px-4 text-sm font-medium text-gray-600">Cost Unit</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Cost</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Est.Release</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Status</th>
@@ -348,8 +351,9 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                                     </td>
                                     <td className="py-3 px-4">{member.empCode}</td>
                                     <td className="py-3 px-4">{member.user.email}</td>
+                                    <td className="py-3 px-4">{member.unit}</td>
                                     <td className="py-3 px-4">
-                                        {member.unit === "Rupees" ? "₹" : member.unit === "Dollar" ? "$" : ""} {member.pricing}
+                                        {member.pricing}
                                     </td>
                                     <td className="py-3 px-4">{member.estimatedReleaseDate}</td>
                                     <td className="py-3 px-4">

@@ -364,18 +364,34 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                     {/* Row 4: Sponsor Name */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ flex: 1 }}>
-                            <TextField
-                                fullWidth
-                                label="Sponsor Name"
-                                placeholder="Enter sponsor or tenant"
-                                value={formData.sponsor}
-                                onChange={(e) =>
-                                    setFormData((prev) => ({ ...prev, sponsor: e.target.value }))
-                                }
-                                variant="outlined"
-                                InputProps={{
-                                    sx: { height: fieldHeight }
-                                }}
+                            <Autocomplete
+                                options={users}
+                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+                                isOptionEqualToValue={(option, value) => option.userId === value.userId}
+                                onChange={(e, value) => setFormData((prev) => ({
+                                    ...prev,
+                                    sponsor: value ? value.userId : null,
+                                }))}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select Sponsor"
+                                        placeholder="Search for a sponsor..."
+                                        fullWidth
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <>
+                                                    <InputAdornment position="start">
+                                                        <PersonIcon sx={{ color: greenPrimary }} />
+                                                    </InputAdornment>
+                                                    {params.InputProps.startAdornment}
+                                                </>
+                                            ),
+                                            sx: { height: fieldHeight }
+                                        }}
+                                    />
+                                )}
                             />
                         </Box>
                     </Box>

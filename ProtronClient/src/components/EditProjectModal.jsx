@@ -310,18 +310,49 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                     </Box>
 
                     {/* Sponsor Name */}
-                    <Box>
-                        <TextField
-                            fullWidth
-                            label="Sponsor Name"
-                            placeholder="Enter sponsor or tenant"
-                            value={formData.sponsor || ''}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, sponsor: e.target.value }))}
-                            variant="outlined"
-                            InputProps={{
-                                sx: { height: fieldHeight }
-                            }}
-                        />
+                    <Box sx={{ display: 'flex', gap: 3 }}>
+                        <Box sx={{ flex: 1 }}>
+                            <Autocomplete
+                                options={users}
+                                value={
+                                    formData.sponsor?.userId
+                                        ? users.find(user => user.userId === formData.sponsor.userId)
+                                        : null
+                                }
+                                getOptionLabel={(option) =>
+                                    option ? `${option.firstName} ${option.lastName}` : ''
+                                }
+                                isOptionEqualToValue={(option, value) =>
+                                    option?.userId === value?.userId
+                                }
+                                onChange={(e, value) => {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        sponsor: value.userId || null, // Store the selected user object or null
+                                    }));
+                                }}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select Sponsor"
+                                        placeholder="Search for a sponsor..."
+                                        fullWidth
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <>
+                                                    <InputAdornment position="start">
+                                                        <PersonIcon sx={{ color: greenPrimary }} />
+                                                    </InputAdornment>
+                                                    {params.InputProps.startAdornment}
+                                                </>
+                                            ),
+                                            sx: { height: fieldHeight },
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Box>
                     </Box>
 
                     {/* Row 4: Currency and Cost */}
@@ -330,8 +361,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             <FormControl fullWidth>
                                 <InputLabel>Currency</InputLabel>
                                 <Select
-                                    value={formData.currency || 'USD'}
-                                    onChange={handleChange('currency')}
+                                    value={formData.unit || 'USD'}
+                                    onChange={handleChange('unit')}
                                     label="Currency"
                                     sx={{ height: fieldHeight }}
                                 >

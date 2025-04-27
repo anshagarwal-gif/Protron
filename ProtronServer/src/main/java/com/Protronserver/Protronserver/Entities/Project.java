@@ -38,13 +38,17 @@ public class Project {
 
     // Added last updated by field
     private String lastUpdatedBy;
-    private String sponsor;
 
-    public String getSponsor() {
+    @ManyToOne
+    @JoinColumn(name = "sponsor")
+    @JsonIgnoreProperties({"projectsManaged", "projectTeams"})
+    private User sponsor;
+
+    public User getSponsor() {
         return sponsor;
     }
 
-    public void setSponsor(String sponsor) {
+    public void setSponsor(User sponsor) {
         this.sponsor = sponsor;
     }
 
