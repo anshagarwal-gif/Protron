@@ -111,13 +111,14 @@ public class ManageTeamService {
         if (principal instanceof User user) {
             team.setLastUpdatedBy(user.getEmail());
             team.setEndTimestamp(LocalDateTime.now());
+            team.setStatus("removed");
         }
         projectTeamRepository.save(team);
         // projectTeamRepository.delete(team);
     }
 
     public List<ProjectTeam> getProjectTeam(Long projectId) {
-        return projectTeamRepository.findByProjectProjectIdAndEndTimestampIsNull(projectId);
+        return projectTeamRepository.findActiveOrRemovedByProjectId(projectId);
     }
 
 }

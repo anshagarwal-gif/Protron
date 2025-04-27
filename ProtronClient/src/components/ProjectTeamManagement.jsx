@@ -107,7 +107,12 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
             });
             console.log("Deleted successfully:", response.data);
 
-            setTeamMembers((prevMembers) => prevMembers.filter((member) => member.projectTeamId !== id));
+            setTeamMembers((prevMembers) => prevMembers.map((member) => {
+                if (member.projectTeamId === id) {
+                    return { ...member, status: "removed" };
+                }
+                return member;
+            }));
 
         } catch (error) {
             alert("Failed to update status:", error);
@@ -155,6 +160,8 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                 return 'text-green-500';
             case 'hold':
                 return 'text-yellow-500';
+            case 'removed':
+                return 'text-red-500'; 
             default:
                 return 'text-gray-500';
         }
