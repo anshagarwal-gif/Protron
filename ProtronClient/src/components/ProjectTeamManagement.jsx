@@ -293,7 +293,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                     <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.sponsor?.firstName} {project.sponsor?.lastName}</span></p>
                 </div>
                 <div>
-                    <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{project.projectCost}</span></p>
+                    <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{project.projectCost} {project.unit}</span></p>
                     <p className="text-gray-500 text-sm mt-2">System Impacted: <span className="font-medium text-gray-700">Sys1, Sys2, Sys3</span></p>
                 </div>
             </div>
