@@ -17,9 +17,9 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
     const [actionsOpen, setActionsOpen] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProjectId, setSelectedProjectId] = useState(null)
+    const [projectFormData, setProjectFormData] = useState({...project});
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false)
-    const [projectFormData, setProjectFormData] = useState({...project});
     const [editProjectModalOpen, setEditProjectModalOpen] = useState(false)
     const [editingMember, setEditingMember] = useState(null);
 

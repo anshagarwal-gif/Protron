@@ -11,6 +11,7 @@ import {
     InputLabel,
     Autocomplete,
     Typography,
+    IconButton,
     Box,
     Grid,
     Paper,
@@ -276,89 +277,136 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             />
                         </Box>
 
-                        <Box sx={{ flex: 1 }}>
-                            <Autocomplete
-                                multiple
-                                options={users}
-                                value={users.filter((user) => formData.teamMembers.includes(user.userId))}
-                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
-                                isOptionEqualToValue={(option, value) => option.userId === value.userId}
-                                onChange={(e, selectedUsers) => setFormData((prev) => ({
-                                    ...prev,
-                                    teamMembers: selectedUsers.map((user) => user.userId),
-                                }))}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Select Team Members"
-                                        placeholder="Search for team members..."
-                                        fullWidth
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            startAdornment: (
-                                                <>
-                                                    <InputAdornment position="start">
-                                                        <PeopleAltIcon sx={{ color: greenPrimary }} />
-                                                    </InputAdornment>
-                                                    {params.InputProps.startAdornment}
-                                                </>
-                                            ),
-                                            sx: { height: fieldHeight }
-                                        }}
-                                    />
-                                )}
-                                renderOption={(props, option) => (
-                                    <li {...props}>
-                                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                                            <Avatar
-                                                sx={{
-                                                    width: 24,
-                                                    height: 24,
-                                                    mr: 1,
-                                                    fontSize: "12px",
-                                                    bgcolor: greenPrimary,
-                                                }}
-                                            >
-                                                {option.firstName?.charAt(0)}
-                                            </Avatar>
-                                            {option.firstName} {option.lastName}
-                                        </Box>
-                                    </li>
-                                )}
-                                renderTags={(value, getTagProps) =>
-                                    value.map((option, index) => (
-                                        <Box
-                                            component={Paper}
-                                            elevation={0}
-                                            sx={{
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                m: 0.5,
-                                                p: 0.5,
-                                                pl: 1,
-                                                borderRadius: 1,
-                                                bgcolor: greenHover,
-                                                color: "white",
-                                            }}
-                                            {...getTagProps({ index })}
-                                        >
-                                            <Avatar
-                                                sx={{
-                                                    width: 20,
-                                                    height: 20,
-                                                    fontSize: "10px",
-                                                    mr: 0.5,
-                                                    bgcolor: greenPrimary,
-                                                }}
-                                            >
-                                                {option.firstName?.charAt(0)}
-                                            </Avatar>
-                                            {option.firstName} {option.lastName}
-                                        </Box>
-                                    ))
-                                }
-                            />
-                        </Box>
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <Autocomplete
+        multiple
+        options={users}
+        value={users.filter((user) => formData.teamMembers.includes(user.userId))}
+        getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+        isOptionEqualToValue={(option, value) => option.userId === value.userId}
+        onChange={(e, selectedUsers) => setFormData((prev) => ({
+            ...prev,
+            teamMembers: selectedUsers.map((user) => user.userId),
+        }))}
+        renderInput={(params) => (
+            <TextField
+                {...params}
+                label="Select Team Members"
+                placeholder="Search for team members..."
+                fullWidth
+                InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                        <>
+                            <InputAdornment position="start">
+                                <PeopleAltIcon sx={{ color: greenPrimary }} />
+                            </InputAdornment>
+                            {params.InputProps.startAdornment}
+                        </>
+                    ),
+                    sx: { height: fieldHeight }
+                }}
+            />
+        )}
+        renderOption={(props, option) => (
+            <li {...props}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Avatar
+                        sx={{
+                            width: 24,
+                            height: 24,
+                            mr: 1,
+                            fontSize: "12px",
+                            bgcolor: greenPrimary,
+                        }}
+                    >
+                        {option.firstName?.charAt(0)}
+                    </Avatar>
+                    {option.firstName} {option.lastName}
+                </Box>
+            </li>
+        )}
+        renderTags={() => null} // Don't render tags inside the input
+    />
+    
+    {/* Display selected team members below the input field */}
+    {formData.teamMembers.length > 0 && (
+        <Paper
+            variant="outlined"
+            sx={{
+                mt: 1,
+                p: 1,
+                maxHeight: '150px',
+                overflow: 'auto',
+                borderColor: greenPrimary,
+                borderRadius: 1,
+            }}
+        >
+            <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
+                Selected Team Members ({formData.teamMembers.length})
+            </Typography>
+            
+            <Grid container spacing={1}>
+                {users
+                    .filter((user) => formData.teamMembers.includes(user.userId))
+                    .map((user) => (
+                        <Grid item xs={6} sm={4} md={3} key={user.userId}>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    bgcolor: greenHover,
+                                    color: 'white',
+                                    borderRadius: 1,
+                                    p: 0.5,
+                                    pl: 1,
+                                }}
+                            >
+                                <Avatar
+                                    sx={{
+                                        width: 24,
+                                        height: 24,
+                                        mr: 1,
+                                        fontSize: '12px',
+                                        bgcolor: greenPrimary,
+                                    }}
+                                >
+                                    {user.firstName?.charAt(0)}
+                                </Avatar>
+                                <Typography
+                                    noWrap
+                                    sx={{
+                                        flex: 1,
+                                        fontSize: '0.875rem',
+                                    }}
+                                >
+                                    {user.firstName} {user.lastName}
+                                </Typography>
+                                <IconButton
+                                    size="small"
+                                    onClick={() => {
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            teamMembers: prev.teamMembers.filter(id => id !== user.userId),
+                                        }));
+                                    }}
+                                    sx={{ 
+                                        color: 'white',
+                                        p: 0.5,
+                                        '&:hover': {
+                                            bgcolor: 'rgba(255, 255, 255, 0.2)'
+                                        }
+                                    }}
+                                >
+                                    {/* <CloseIcon fontSize="small" /> */}
+                                </IconButton>
+                            </Box>
+                        </Grid>
+                    ))}
+            </Grid>
+        </Paper>
+    )}
+</Box>
                     </Box>
 
                     {/* Row 4: Sponsor Name */}
