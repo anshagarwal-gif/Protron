@@ -82,11 +82,11 @@ const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
             <div className="hidden md:flex items-center justify-center flex-1">
               <div className="flex items-center space-x-10">
                 {[
-                  { key: 'dashboard', label: 'Dashboard', icon: <FiHome className="mr-2" /> },
-                  { key: 'projects', label: 'Projects', icon: <FiFolder className="mr-2" /> },
-                  { key: 'team', label: 'Team', icon: <FiUser className="mr-2" /> },
-                  { key: 'timesheet', label: 'Timesheet', icon: <FiClock className="mr-2" /> },
-                  { key: 'users', label: 'Users', icon: <FiUserCheck className="mr-2" /> },
+                  { key: 'dashboard', label: 'Dashboard' },
+                  { key: 'projects', label: 'Projects' },
+                  { key: 'team', label: 'Team'},
+                  { key: 'timesheet', label: 'Timesheet'},
+                  { key: 'users', label: 'Users' },
                 ].map((item) => (
                   <button
                     key={item.key}
@@ -155,11 +155,11 @@ const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
             <nav>
               <ul className="space-y-1">
                 {[
-                  { key: 'dashboard', label: 'Dashboard', icon: <FiHome className="mr-3" /> },
-                  { key: 'projects', label: 'Projects', icon: <FiFolder className="mr-3" /> },
-                  { key: 'team', label: 'Team', icon: <FiUser className="mr-3" /> },
-                  { key: 'timesheet', label: 'Timesheet', icon: <FiClock className="mr-3" /> },
-                  { key: 'users', label: 'Users', icon: <FiUserCheck className="mr-3" /> },
+                  { key: 'dashboard', label: 'Dashboard' },
+                  { key: 'projects', label: 'Projects'},
+                  { key: 'team', label: 'Team' },
+                  { key: 'timesheet', label: 'Timesheet' },
+                  { key: 'users', label: 'Users' },
                 ].map((item) => (
                   <li key={item.key}>
                     <button
