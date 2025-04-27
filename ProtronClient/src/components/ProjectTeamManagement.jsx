@@ -17,9 +17,9 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
     const [actionsOpen, setActionsOpen] = useState({});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProjectId, setSelectedProjectId] = useState(null)
+    const [projectFormData, setProjectFormData] = useState({...project});
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false)
-    const [projectFormData, setProjectFormData] = useState({...project});
     const [editProjectModalOpen, setEditProjectModalOpen] = useState(false)
     const [editingMember, setEditingMember] = useState(null);
 
@@ -107,7 +107,10 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
             });
             console.log("Deleted successfully:", response.data);
 
-            setTeamMembers((prevMembers) => prevMembers.filter((member) => member.projectTeamId !== id));
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
+            });
+            setTeamMembers(res.data);
 
         } catch (error) {
             alert("Failed to update status:", error);
@@ -155,6 +158,8 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                 return 'text-green-500';
             case 'hold':
                 return 'text-yellow-500';
+            case 'removed':
+                return 'text-red-500'; 
             default:
                 return 'text-gray-500';
         }
@@ -233,6 +238,8 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
               : null,
             projectCost: updatedData.projectCost,
             projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
+            sponsor: updatedData.sponsor,
+            unit: updatedData.unit,
           };
           console.log("Project Data: ",projectData)
       
@@ -288,10 +295,10 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                 <div>
                     <p className="text-gray-500  text-sm">PM Name: <span className="font-medium text-gray-700">{project.projectManager?.firstName}{" "}
                         {project.projectManager?.lastName}</span></p>
-                    <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.sponsor || "N/A"}</span></p>
+                    <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.sponsor?.firstName} {project.sponsor?.lastName}</span></p>
                 </div>
                 <div>
-                    <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{project.projectCost}</span></p>
+                    <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{project.projectCost} {project.unit}</span></p>
                     <p className="text-gray-500 text-sm mt-2">System Impacted: <span className="font-medium text-gray-700">Sys1, Sys2, Sys3</span></p>
                 </div>
             </div>
@@ -320,6 +327,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Name</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Emp-Code</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Email</th>
+                                <th className="py-3 px-4 text-sm font-medium text-gray-600">Cost Unit</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Cost</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Est.Release</th>
                                 <th className="py-3 px-4 text-sm font-medium text-gray-600">Status</th>
@@ -348,8 +356,9 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                                     </td>
                                     <td className="py-3 px-4">{member.empCode}</td>
                                     <td className="py-3 px-4">{member.user.email}</td>
+                                    <td className="py-3 px-4">{member.unit}</td>
                                     <td className="py-3 px-4">
-                                        {member.unit === "Rupees" ? "₹" : member.unit === "Dollar" ? "$" : ""} {member.pricing}
+                                        {member.pricing}
                                     </td>
                                     <td className="py-3 px-4">{member.estimatedReleaseDate}</td>
                                     <td className="py-3 px-4">

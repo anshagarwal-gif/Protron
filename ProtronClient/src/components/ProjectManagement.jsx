@@ -5,6 +5,7 @@ import { FiChevronDown, FiUsers, FiArrowUp, FiArrowDown } from "react-icons/fi"
 import AddProjectModal from "./AddProjectModal" // Adjust path if needed
 import GlobalSnackbar from './GlobalSnackbar';
 import ProjectTeamManagement from "./ProjectTeamManagement";
+import EditProjectModal from "./EditProjectModal"
 import * as XLSX from "xlsx";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -13,11 +14,13 @@ const ProjectManagement = () => {
     const [projects, setProjects] = useState([]);
     const [filteredProjects, setFilteredProjects] = useState([]);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [showTeamManagement, setShowTeamManagement] = useState(false);
     const [selectedProjectId, setSelectedProjectId] = useState(null);
+    const [selectedEditProjectId, setSelectedEditProjectId] = useState(null);
     const [selectedProject, setSelectedProject] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    
+    const [isLoading, setIsLoading] = useState(false)
     // Sorting state
     const [sortField, setSortField] = useState('startDate');
     const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc'
@@ -26,7 +29,7 @@ const ProjectManagement = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [projectsPerPage, setProjectsPerPage] = useState(10);
     const [showEntriesDropdown, setShowEntriesDropdown] = useState(false);
-
+    const [projectFormData, setProjectFormData] = useState({...selectedProject});
     const [formData, setFormData] = useState({
         projectName: '',
         projectIcon: null,
@@ -36,7 +39,7 @@ const ProjectManagement = () => {
         teamMembers: [],
         currency: 'USD',
         cost: '',
-        sponsor: '', 
+        sponsor: null, 
     });
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -51,6 +54,7 @@ const ProjectManagement = () => {
           });
             const sortedProjects = sortProjects(res.data, sortField, sortOrder);
             setProjects(sortedProjects);
+            console.log(sortedProjects)
             setFilteredProjects(sortedProjects);
         } catch (error) {
             console.log({ message: error });
@@ -182,7 +186,68 @@ const ProjectManagement = () => {
         setSelectedProject(project)
         setShowTeamManagement(true);
     };
+    const handleProjectUpdate = async (updatedData) => {
+      console.log("updatedData:", updatedData);
+    
+      if (!updatedData.projectName) {
+        console.error("Project name is required");
+        return;
+      }
+    
+      setIsLoading(true);
+    
+      try {
+        // Prepare the correct payload for backend
+        const projectData = {
+          projectName: updatedData.projectName,
+          projectIcon: updatedData.projectIcon,
+          startDate: updatedData.startDate
+            ? typeof updatedData.startDate === 'object'
+              ? updatedData.startDate.toISOString()
+              : updatedData.startDate
+            : null,
+          endDate: updatedData.endDate
+            ? typeof updatedData.endDate === 'object'
+              ? updatedData.endDate.toISOString()
+              : updatedData.endDate
+            : null,
+          projectCost: updatedData.projectCost,
+          projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
+          sponsor: updatedData.sponsor,
+          unit: updatedData.unit,
+        };
+        console.log("Project Data: ",projectData)
+    
+        const response = await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/projects/edit/${updatedData.projectId}`,
+          projectData,
+          {
+            headers: {
+              Authorization: `${sessionStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+    
+        console.log("Project updated successfully:", response.data);
 
+        fetchProjects();
+
+        setSelectedEditProjectId(null)
+    
+        if (typeof onProjectUpdated === 'function') {
+          onProjectUpdated();
+        }
+    
+      } catch (error) {
+        console.error("Failed to update project:", error);
+        const errorMessage = error.response?.data?.message || "Failed to update project";
+        // Optionally show toast here
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     const handleCloseTeamManagement = () => {
         setSelectedProjectId(null);
         setSelectedProject(null);
@@ -218,12 +283,10 @@ const ProjectManagement = () => {
             projectCost: data.cost,
             projectManagerId: data.manager, // match backend DTO field
             sponsor: data.sponsor,
-          
+            unit: data.currency,
             projectTeam: data.teamMembers.map(userId => ({
               userId: userId,
               status: "active",
-              unit: data.currency === 'INR' ? 'Rupees' : 'Dollar',
-           
           }))
           };
           
@@ -336,6 +399,7 @@ const ProjectManagement = () => {
     const indexOfLastProject = currentPage * projectsPerPage;
     const indexOfFirstProject = indexOfLastProject - projectsPerPage;
     const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
+    console.log(currentProjects)
     
     // Calculate total pages
     const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
@@ -352,6 +416,15 @@ const ProjectManagement = () => {
         const year = date.getFullYear();
         
         return `${day}-${month}-${year}`;
+    };
+    const handleView = (project) => {
+      setSelectedProject(project);
+      setIsModalOpen(true);
+    };
+  
+    const handleClose = () => {
+      setIsModalOpen(false);
+      setSelectedProject(null);
     };
 
     return (
@@ -483,6 +556,17 @@ const ProjectManagement = () => {
                           {renderSortIcon('teamSize')}
                         </div>
                       </th>
+
+                      <th 
+                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        onClick={() => handleSort('unit')}
+                      >
+                        <div className="flex items-center">
+                          Cost Unit
+                          {renderSortIcon('unit')}
+                        </div>
+                      </th>
+
                       <th 
                         className="py-2 px-4 font-medium  cursor-pointer select-none"
                         onClick={() => handleSort('projectCost')}
@@ -511,7 +595,7 @@ const ProjectManagement = () => {
                       currentProjects.map((project, index) => (
                         <tr key={project.projectId} className="border-t hover:bg-gray-50">
                           <td className="py-2 px-4">{indexOfFirstProject + index + 1}</td>
-                          <td className="py-2 px-4">{project.projectName}</td>
+                          <td className="py-2 px-4 cursor-pointer"onClick={()=>handleManageTeam(project.projectId,project)}>{project.projectName}</td>
                           <td className="py-2 px-4">
                             {project.startDate ? formatDate(project.startDate) : 'N/A'}
                           </td>
@@ -526,16 +610,32 @@ const ProjectManagement = () => {
                             <FiUsers className="mr-1" />
                             <span className="underline">{project.projectTeam?.length || 0}</span>
                           </td>
-                          <td className="py-2 px-4">₹{project.projectCost || ''}</td>
-                          <td className="py-2 px-4">{project.sponsor || ""}</td>
+                          <td className="py-2 px-4">{project.unit || ''}</td>
+                          <td className="py-2 px-4">{project.projectCost || ''}</td>
+                          <td className="py-2 px-4">{project.sponsor?.firstName} {project.sponsor?.lastName}</td>
                           <td className="py-2 px-4">
-                            <button
-                              className="bg-green-900 text-white px-3 py-1 rounded hover:bg-green-600"
-                              onClick={() => handleManageTeam(project.projectId, project)}
-                            >
-                              Manage Team
-                            </button>
-                          </td>
+  <select
+    className="bg-green-900 text-white px-3 py-1 rounded"
+    onChange={(e) => {
+      const action = e.target.value;
+      if (action === "view") {
+        handleView(project);
+      } else if (action === "edit") {
+        setSelectedEditProjectId(project.projectId)
+      } else if (action === "manageTeam") {
+        handleManageTeam(project.projectId, project);
+      }
+      // Reset back to default option
+      e.target.selectedIndex = 0;
+    }}
+  >
+    <option value="" className="bg-green-600 text-white">Actions</option>
+  <option value="view" className="bg-green-600 text-white">View</option>
+  <option value="edit" className="bg-green-600 text-white">Edit</option>
+  <option value="manageTeam" className="bg-green-600 text-white">Manage Team</option>
+  </select>
+</td>
+
                         </tr>
                       ))
                     ) : (
@@ -669,6 +769,251 @@ const ProjectManagement = () => {
               />
             </div>
           )}
+          {isModalOpen && selectedProject && (
+  <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.3)] z-50">
+
+
+
+    <div className="bg-white rounded-xl shadow-lg w-[90%] md:w-[800px] max-h-[90vh] overflow-hidden">
+      {/* Header */}
+      <div className="bg-gray-50 border-b border-gray-200 py-3 px-6">
+        <h2 className="text-xl font-semibold text-green-700">Project Details</h2>
+      </div>
+
+      {/* Content */}
+      <div className="p-6 overflow-y-auto max-h-[70vh]">
+        <div className="flex flex-col space-y-6">
+          
+          {/* Project Basic Info */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                    <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Project Name</span>
+              </div>
+              <h3 className="text-lg font-semibold">{selectedProject.projectName}</h3>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2h1v1H4v-1h1v-2a1 1 0 011-1h8a1 1 0 011 1z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Project ID</span>
+              </div>
+              <p className="text-lg">{selectedProject.projectId}</p>
+            </div>
+          </div>
+          
+          {/* Project Dates */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Start Date</span>
+              </div>
+              <p className="text-base">{new Date(selectedProject.startDate).toLocaleDateString()}</p>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">End Date</span>
+              </div>
+              <p className="text-base">{new Date(selectedProject.endDate).toLocaleDateString()}</p>
+            </div>
+          </div>
+
+          {/* Project Manager */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Project Manager</span>
+              </div>
+              <p className="text-base">
+                {selectedProject.projectManager ? 
+                  `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName} (${selectedProject.projectManager.empCode})` : 
+                  "Not assigned"}
+              </p>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Sponsor</span>
+              </div>
+              <p className="text-base">{selectedProject.sponsor ? 
+                  `${selectedProject.sponsor.firstName} ${selectedProject.sponsor.lastName} (${selectedProject.sponsor.empCode})` : 
+                  "Not assigned"}</p>
+            </div>
+          </div>
+
+          {/* Cost & Timestamp */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Project Cost</span>
+              </div>
+              <p className="text-base">₹{selectedProject.projectCost}</p>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Start Timestamp</span>
+              </div>
+              <p className="text-base">{selectedProject.startTimestamp ? new Date(selectedProject.startTimestamp).toLocaleString() : "Not available"}</p>
+            </div>
+          </div>
+
+          {/* Project Team */}
+          {selectedProject.projectTeam && selectedProject.projectTeam.length > 0 && (
+            <div>
+              <div className="flex items-center mb-3">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
+                  </svg>
+                </span>
+                <span className="text-gray-600 text-base font-medium">Project Team</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedProject.projectTeam.map((member, index) => (
+                    <div key={index} className="flex items-center">
+                      <div className="bg-green-100 text-green-700 rounded-full h-8 w-8 flex items-center justify-center mr-3">
+                        {member.user.firstName ? member.user.firstName.charAt(0) : "U"}
+                      </div>
+                      <div>
+                        <p className="font-medium">{member.user.firstName} {member.user.lastName}</p>
+                        <p className="text-sm text-gray-500">{member.empCode || "No ID"}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Timesheet Tasks */}
+          {selectedProject.timesheetTasks && selectedProject.timesheetTasks.length > 0 && (
+            <div>
+              <div className="flex items-center mb-3">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-600 text-base font-medium">Tasks</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-2">
+                  {selectedProject.timesheetTasks.map((task, index) => (
+                    <div key={index} className="flex items-center">
+                      <div className="bg-green-100 text-green-700 rounded-full h-6 w-6 flex items-center justify-center mr-3">
+                        {index + 1}
+                      </div>
+                      <span>{task.taskName || `Task ${task.taskId}`}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Additional Details */}
+          <div>
+            <div className="flex items-center mb-3">
+              <span className="text-green-700 mr-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </span>
+              <span className="text-gray-600 text-base font-medium">Additional Details</span>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Tenant</p>
+                  <p>{selectedProject.tenant || selectedProject.tenent || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Last Updated By</p>
+                  <p>{selectedProject.lastUpdatedBy || "Not available"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Unit</p>
+                  <p>{selectedProject.unit || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">End Timestamp</p>
+                  <p>{selectedProject.endTimestamp ? new Date(selectedProject.endTimestamp).toLocaleString() : "Not available"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer with buttons */}
+      <div className="bg-gray-50 border-t border-gray-200 py-3 px-6 flex justify-end gap-3">
+        <button
+          className="px-4 py-2 border border-green-600 text-green-600 rounded hover:border-green-700 hover:text-green-700 transition-colors"
+          onClick={handleClose}
+        >
+          Close
+        </button>
+        <button
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-medium"
+          onClick={() => {/* Add edit functionality here */}}
+        >
+          Edit Project
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+{selectedEditProjectId && (
+                <EditProjectModal
+                    open={true}
+                    projectId={selectedEditProjectId}
+                    onClose={() => setSelectedEditProjectId(null)}
+                    onSubmit={(updatedData) => handleProjectUpdate(updatedData)}
+                    formData={projectFormData}
+                    setFormData={setProjectFormData} 
+                />
+            )}
         </>
       );
 }
