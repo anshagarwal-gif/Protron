@@ -448,60 +448,60 @@ const ProjectManagement = () => {
                         #
                       </th>
                       <th 
-                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
                         onClick={() => handleSort('projectName')}
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center text-green-900 hover:text-green-500">
                           Project Name
                           {renderSortIcon('projectName')}
                         </div>
                       </th>
                       <th 
-                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
                         onClick={() => handleSort('startDate')}
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center text-green-900 hover:text-green-500">
                           Start Date
                           {renderSortIcon('startDate')}
                         </div>
                       </th>
                       <th 
-                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
                         onClick={() => handleSort('pmName')}
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center text-green-900 hover:text-green-500">
                           PM Name
                           {renderSortIcon('pmName')}
                         </div>
                       </th>
                       <th 
-                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
                         onClick={() => handleSort('teamSize')}
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center text-green-900 hover:text-green-500">
                           Team
                           {renderSortIcon('teamSize')}
                         </div>
                       </th>
                       <th 
-                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
                         onClick={() => handleSort('projectCost')}
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center text-green-900 hover:text-green-500">
                           Project Cost
                           {renderSortIcon('projectCost')}
                         </div>
                       </th>
                       <th 
-                        className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
+                        className="py-2 px-4 font-medium cursor-pointer select-none"
                         onClick={() => handleSort('sponsor')}
                       >
-                        <div className="flex items-center">
+                        <div className="flex items-center text-green-900 hover:text-green-500">
                           Sponsor
                           {renderSortIcon('sponsor')}
                         </div>
                       </th>
-                      <th className="py-2 px-4 font-medium text-gray-700">
+                      <th className="py-2 px-4 font-medium text-green-900 hover:text-green-500">
                         Actions
                       </th>
                     </tr>
