@@ -587,68 +587,80 @@ const TeamManagement = () => {
             </div>
             
             {isProfileOpen && selectedProfile && (
-                <div className={`fixed top-0 right-0 w-full md:w-[400px] h-full bg-white shadow-lg border-l z-50 p-6 overflow-y-auto`}>
-                    <button
-                        className="absolute top-4 right-4 text-gray-600 text-xl"
-                        onClick={() => setIsProfileOpen(false)}
-                    >
-                        ✖
-                    </button>
-                    <div className="flex flex-col items-center mb-6">
-                        <img
-                            src={selectedProfile.avatar ? selectedProfile.avatar : "./profilepic.jpg"}
-                            className="w-24 h-24 rounded-full mb-4"
-                            alt="Profile"
-                        />
-                        <div className="text-center">
-                            <h2 className="text-xl font-bold">
-                                {selectedProfile.firstName + selectedProfile.lastName}
-                            </h2>
-                            <p className="text-sm text-gray-500">{selectedProfile.empCode}</p>
-                            <p className="text-sm">
-                                {selectedProfile.dateOfJoining ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
-                            </p>
-                        </div>
-                    </div>
+  <>
+    {/* Modal Backdrop */}
+    <div 
+      className="fixed inset-0  bg-[rgba(0,0,0,0.3)] z-40 transition-opacity"
+      onClick={() => setIsProfileOpen(false)}
+    />
+    
+    {/* Modal Content */}
+    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[50vw] max-h-[80vh] overflow-y-auto bg-white rounded-lg shadow-xl z-50 p-6">
+      <button
+        className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
+        onClick={() => setIsProfileOpen(false)}
+      >
+        ✖
+      </button>
+      
+      <div className="flex flex-col items-center mb-6">
+        <img
+          src={selectedProfile.avatar ? selectedProfile.avatar : "./profilepic.jpg"}
+          className="w-24 h-24 rounded-full mb-4 object-cover"
+          alt="Profile"
+        />
+        <div className="text-center">
+          <h2 className="text-xl font-bold">
+            {selectedProfile.firstName} {selectedProfile.lastName}
+          </h2>
+          <p className="text-sm text-gray-500">{selectedProfile.empCode}</p>
+          <p className="text-sm">
+            {selectedProfile.dateOfJoining ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
+          </p>
+        </div>
+      </div>
 
+      <div className="mt-6">
+        <div className="mb-4 bg-gray-50 p-3 rounded">
+          <h3 className="text-sm font-semibold mb-2">Projects</h3>
+          <div className="flex justify-between border-b pb-2 mb-2">
+            <span>Completed:</span>
+            <span>{selectedProfile.projectsCompleted}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Ongoing:</span>
+            <span>{selectedProfile.ongoingProjects}</span>
+          </div>
+        </div>
 
-                    <div className="mt-6">
-                        <div className="mb-4 bg-gray-50 p-3 rounded">
-                            <h3 className="text-sm font-semibold mb-2">Projects</h3>
-                            <div className="flex justify-between border-b pb-2 mb-2">
-                                <span>Completed:</span>
-                                <span>{selectedProfile.projectsCompleted}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Ongoing:</span>
-                                <span>{selectedProfile.ongoingProjects}</span>
-                            </div>
-                        </div>
+        <div className="mb-4 bg-gray-50 p-3 rounded">
+          <h3 className="text-sm font-semibold mb-2">Certifications</h3>
+          {selectedProfile.certificates && selectedProfile.certificates.length > 0 ? (
+            <ul className="list-disc list-inside">
+              {selectedProfile.certificates.map((cert, i) => (
+                <li key={i}>{cert}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 text-sm">No certifications found</p>
+          )}
+        </div>
 
-                        <div className="mb-4 bg-gray-50 p-3 rounded">
-                            <h3 className="text-sm font-semibold mb-2">Certifications</h3>
-                            {selectedProfile.certificates && selectedProfile.certificates.length > 0 ? (
-                                <ul className="list-disc list-inside">
-                                    {selectedProfile.certificates.map((cert, i) => (
-                                        <li key={i}>{cert}</li>
-                                    ))}
-                                    </ul>
-                                ) : (
-                                    <p className="text-gray-500 text-sm">No certifications found</p>
-                            )}
-                        </div>
-
-                        <div className="mb-4 bg-gray-50 p-3 rounded">
-                            <h3 className="text-sm font-semibold mb-2">CV</h3>
-                            <a href={selectedProfile.cvLink} className="text-blue-600 underline block text-center" target="_blank" rel="noopener noreferrer">
-
-                                View CV
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            )}
-
+        <div className="mb-4 bg-gray-50 p-3 rounded">
+          <h3 className="text-sm font-semibold mb-2">CV</h3>
+          <a 
+            href={selectedProfile.cvLink} 
+            className="text-blue-600 hover:text-blue-800 underline block text-center" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            View CV
+          </a>
+        </div>
+      </div>
+    </div>
+  </>
+)}
         </div>
     )
 }
