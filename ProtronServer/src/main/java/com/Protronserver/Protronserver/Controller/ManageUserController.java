@@ -85,4 +85,23 @@ public class ManageUserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PostMapping("/logout/{userId}")
+    public ResponseEntity<?> logoutUser(@PathVariable Long userId, @RequestHeader("Authorization") String token) {
+        try {
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
+
+                userService.logoutUser(user); // new method
+
+                return ResponseEntity.ok("Logout successful");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
 }

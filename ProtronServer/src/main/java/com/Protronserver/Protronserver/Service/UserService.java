@@ -21,6 +21,8 @@ import java.util.*;
 
 @Service
 public class UserService {
+    @Autowired
+    private LoginAuditService loginAuditService;
 
     @Autowired
     private UserRepository userRepository;
@@ -116,11 +118,13 @@ public class UserService {
 
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                 String token = jwtUtil.generateToken(user.getEmail());
+                loginAuditService.recordLogin(user, user.getTenant());
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
                 response.put("email", user.getEmail());
                 response.put("empCode", user.getEmpCode());
                 response.put("tenantId", String.valueOf(user.getTenant().getTenantId()));
+                response.put("userId", String.valueOf(user.getUserId()));
                 return response;
             } else {
                 throw new RuntimeException("Invalid credentials");
@@ -129,4 +133,9 @@ public class UserService {
             throw new RuntimeException("User not found with this email");
         }
     }
+
+    public void logoutUser(User user) {
+        loginAuditService.recordLogout(user);
+    }
+
 }

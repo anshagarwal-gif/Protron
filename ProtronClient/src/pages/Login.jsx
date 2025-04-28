@@ -45,6 +45,7 @@ const Login = ({ onLogin, onSwitchToSignup }) => {
             sessionStorage.setItem('token', response.data.token);
             sessionStorage.setItem('email', response.data.email);
             sessionStorage.setItem('tenantId', response.data.tenantId);
+            sessionStorage.setItem('userId', response.data.userId);
             onLogin(true);
         } catch (error) {
             setSnackbar({

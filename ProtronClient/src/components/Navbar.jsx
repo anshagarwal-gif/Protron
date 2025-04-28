@@ -2,13 +2,71 @@ import { useState, useEffect, useRef } from "react";
 import { FiHome, FiUser, FiUserCheck, FiFolder, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
 import axios from "axios";
 
-const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
+const Navbar = ({ activeSection, setActiveSection }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [profile,setProfile] = useState(null)
   const email = sessionStorage.getItem("email")
   const userDropdownRef = useRef(null);
+  useEffect(() => {
+    const handleWindowClose = async (e) => {
+      const userId = sessionStorage.getItem('userId');
+      const token = sessionStorage.getItem('token');
+   
+      if (userId && token) {
+        try {
+          await fetch(`${import.meta.env.VITE_API_URL}/api/users/logout/${userId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `${token}`
+            },
+            keepalive: true
+          });
+          console.log("Logout recorded during window close.");
+        } catch (error) {
+          console.error("Window close logout failed:", error);
+        }
+      }
+    };
+  
+    window.addEventListener('beforeunload', handleWindowClose);
+  
+    return () => {
+      window.removeEventListener('beforeunload', handleWindowClose);
+    };
+  }, []);
+  const handleLogout = async () => {
+    const userId = sessionStorage.getItem('userId');
+    const token = sessionStorage.getItem('token');
+    
+    if (userId && token) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/users/logout/${userId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `${token}`
+          }
+        });
+        console.log("Logout recorded via button click");
+        
+        // Clear session/local storage
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('email');
+        sessionStorage.removeItem('userId');
+        sessionStorage.removeItem('isAuthenticated');
+       
+        
+        // Redirect to login page or handle as needed
+        window.location.href = '/login'; // or use your router navigation
+      } catch (error) {
+        console.error("Logout failed:", error);
+        // Handle error (show message to user, etc.)
+      }
+    }
+  };
 
   useEffect(() => {
     const checkIfMobile = () => {
