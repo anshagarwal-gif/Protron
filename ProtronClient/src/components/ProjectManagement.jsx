@@ -49,12 +49,11 @@ const ProjectManagement = () => {
 
   const fetchProjects = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/projects`, {
+      const res = await axios.get(`${API_BASE_URL}/api/projects`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
       const sortedProjects = sortProjects(res.data, sortField, sortOrder);
       setProjects(sortedProjects);
-      console.log(sortedProjects)
       setFilteredProjects(sortedProjects);
     } catch (error) {
       console.log({ message: error });
@@ -187,7 +186,6 @@ const ProjectManagement = () => {
     setShowTeamManagement(true);
   };
   const handleProjectUpdate = async (updatedData) => {
-    console.log("updatedData:", updatedData);
 
     if (!updatedData.projectName) {
       console.error("Project name is required");
@@ -216,7 +214,6 @@ const ProjectManagement = () => {
         sponsor: updatedData.sponsor,
         unit: updatedData.unit,
       };
-      console.log("Project Data: ", projectData)
 
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/projects/edit/${updatedData.projectId}`,
@@ -394,7 +391,6 @@ const ProjectManagement = () => {
   const indexOfLastProject = currentPage * projectsPerPage;
   const indexOfFirstProject = indexOfLastProject - projectsPerPage;
   const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
-  console.log(currentProjects)
 
   // Calculate total pages
   const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
@@ -413,6 +409,7 @@ const ProjectManagement = () => {
     return `${day}-${month}-${year}`;
   };
   const handleView = (project) => {
+    console.log(project)
     setSelectedProject(project);
     setIsModalOpen(true);
   };
@@ -437,37 +434,42 @@ const ProjectManagement = () => {
             <AiFillProject /> Project Management
           </h1>
 
-          <div className="flex justify-between items-center mt-5">
-            <h1>Project List</h1>
-            <div className="flex gap-4">
-              {/* Search Input */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search by project, PM or sponsor..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  className="border rounded px-3 py-2 pl-9 w-64"
-                />
-                <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
-              </div>
-              {/* Excel Download Button */}
-              <button
-                className="border px-4 py-2 rounded bg-green-900 text-white hover:bg-green-600 flex items-center"
-                onClick={downloadExcel}
-              >
-                <AiOutlineDownload className="mr-2" /> Download Excel
-              </button>
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5">
+  <h1 className="text-2xl font-bold text-green-800">Project List</h1>
+  
+  <div className="flex flex-col sm:flex-row gap-3">
+    {/* Search Input */}
+    <div className="relative w-full sm:w-64">
+      <input
+        type="text"
+        placeholder="Search projects..."
+        value={searchTerm}
+        onChange={handleSearchChange}
+        className="border rounded px-3 py-2 pl-9 w-full"
+      />
+      <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
+    </div>
+    
+    <div className="flex gap-2 w-full sm:w-auto">
+      {/* Excel Download Button */}
+      <button
+        className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
+        onClick={downloadExcel}
+      >
+        <AiOutlineDownload className="mr-1" /> 
+        <span className="sm:inline">Export</span>
+      </button>
 
-              <button
-                className="border px-4 py-2 rounded bg-green-900 text-white hover:bg-green-600"
-                onClick={() => setShowAddModal(true)}
-              >
-                Add Project
-              </button>
-            </div>
-          </div>
-
+      {/* Add Project Button */}
+      <button
+        className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none"
+        onClick={() => setShowAddModal(true)}
+      >
+        <span className="hidden sm:inline mr-1">+</span> Add Project
+      </button>
+    </div>
+  </div>
+</div>
           {/* Entries per page dropdown */}
           <div className="flex items-center mt-4 mb-2 text-gray-700">
             <span className="mr-2 font-medium">Show</span>
@@ -507,138 +509,225 @@ const ProjectManagement = () => {
           </div>
 
           {/* Projects Table */}
+          {/* Responsive Project Table */}
           <div className="border rounded overflow-hidden">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-green-700 text-white">
-                  <th className="py-3 px-4 font-medium border-r">
-                    #
-                  </th>
-                  <th
-                    className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                    onClick={() => handleSort('projectName')}
-                  >
-                    <div className="flex items-center">
-                      Project Name
-                      {renderSortIcon('projectName')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                    onClick={() => handleSort('startDate')}
-                  >
-                    <div className="flex items-center">
-                      Start Date
-                      {renderSortIcon('startDate')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                    onClick={() => handleSort('pmName')}
-                  >
-                    <div className="flex items-center">
-                      PM Name
-                      {renderSortIcon('pmName')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                    onClick={() => handleSort('teamSize')}
-                  >
-                    <div className="flex items-center">
-                      Team
-                      {renderSortIcon('teamSize')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                    onClick={() => handleSort('unit')}
-                  >
-                    <div className="flex items-center">
-                      Cost Unit
-                      {renderSortIcon('unit')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                    onClick={() => handleSort('projectCost')}
-                  >
-                    <div className="flex items-center">
-                      Project Cost
-                      {renderSortIcon('projectCost')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                    onClick={() => handleSort('sponsor')}
-                  >
-                    <div className="flex items-center">
-                      Sponsor
-                      {renderSortIcon('sponsor')}
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 font-medium">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentProjects.length > 0 ? (
-                  currentProjects.map((project, index) => (
-                    <tr key={project.projectId} className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-green-50`}>
-                      <td className="py-3 px-4 border-r">{indexOfFirstProject + index + 1}</td>
-                      <td className="py-3 px-4 border-r font-medium cursor-pointer hover:text-green-600" onClick={() => handleManageTeam(project.projectId, project)}>
-                        {project.projectName}
+            {/* Desktop Table - Hidden on small screens */}
+            <div className="hidden md:block">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-green-700 text-white">
+                    <th className="py-3 px-4 font-medium border-r">#</th>
+                    <th
+                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      onClick={() => handleSort('projectName')}
+                    >
+                      <div className="flex items-center">
+                        Project Name
+                        {renderSortIcon('projectName')}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      onClick={() => handleSort('startDate')}
+                    >
+                      <div className="flex items-center">
+                        Start Date
+                        {renderSortIcon('startDate')}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      onClick={() => handleSort('pmName')}
+                    >
+                      <div className="flex items-center">
+                        PM Name
+                        {renderSortIcon('pmName')}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      onClick={() => handleSort('teamSize')}
+                    >
+                      <div className="flex items-center">
+                        Team
+                        {renderSortIcon('teamSize')}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      onClick={() => handleSort('unit')}
+                    >
+                      <div className="flex items-center">
+                        Cost Unit
+                        {renderSortIcon('unit')}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      onClick={() => handleSort('projectCost')}
+                    >
+                      <div className="flex items-center">
+                        Project Cost
+                        {renderSortIcon('projectCost')}
+                      </div>
+                    </th>
+                    <th
+                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      onClick={() => handleSort('sponsor')}
+                    >
+                      <div className="flex items-center">
+                        Sponsor
+                        {renderSortIcon('sponsor')}
+                      </div>
+                    </th>
+                    <th className="py-3 px-4 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentProjects.length > 0 ? (
+                    currentProjects.map((project, index) => (
+                      <tr
+                        key={project.projectId}
+                        className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          } hover:bg-green-50`}
+                      >
+                        <td className="py-3 px-4 border-r">{indexOfFirstProject + index + 1}</td>
+                        <td
+                          className="py-3 px-4 border-r font-medium cursor-pointer hover:text-green-600"
+                          onClick={() => handleManageTeam(project.projectId, project)}
+                        >
+                          {project.projectName}
+                        </td>
+                        <td className="py-3 px-4 border-r">
+                          {project.startDate ? formatDate(project.startDate) : 'N/A'}
+                        </td>
+                        <td className="py-3 px-4 border-r">
+                          {project.projectManager?.firstName} {project.projectManager?.lastName}
+                        </td>
+                        <td
+                          className="py-3 px-4 text-blue-600 hover:text-green-600 cursor-pointer border-r flex items-center"
+                          onClick={() => handleManageTeam(project.projectId, project)}
+                        >
+                          <FiUsers className="mr-1" />
+                          <span className="underline">{project.projectTeam?.length || 0}</span>
+                        </td>
+                        <td className="py-3 px-4 border-r">{project.unit || '-'}</td>
+                        <td className="py-3 px-4 border-r">{project.projectCost || '-'}</td>
+                        <td className="py-3 px-4 border-r">
+                          {project.sponsor?.firstName} {project.sponsor?.lastName}
+                        </td>
+                        <td className="py-3 px-4">
+                          <select
+                            className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            onChange={(e) => {
+                              const action = e.target.value;
+                              if (action === "view") {
+                                handleView(project);
+                              } else if (action === "edit") {
+                                setSelectedEditProjectId(project.projectId);
+                              } else if (action === "manageTeam") {
+                                handleManageTeam(project.projectId, project);
+                              }
+                              // Reset back to default option
+                              e.target.selectedIndex = 0;
+                            }}
+                          >
+                            <option value="" className="bg-green-700 text-white">
+                              Actions
+                            </option>
+                            <option value="view" className="bg-green-700 text-white">
+                              View
+                            </option>
+                            <option value="edit" className="bg-green-700 text-white">
+                              Edit
+                            </option>
+                            <option value="manageTeam" className="bg-green-700 text-white">
+                              Manage Team
+                            </option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="9" className="py-6 text-center text-gray-500 border-t">
+                        No projects found
                       </td>
-                      <td className="py-3 px-4 border-r">
-                        {project.startDate ? formatDate(project.startDate) : 'N/A'}
-                      </td>
-                      <td className="py-3 px-4 border-r">
-                        {project.projectManager?.firstName} {project.projectManager?.lastName}
-                      </td>
-                      <td
-                        className="py-3 px-4 text-blue-600 hover:text-green-600 cursor-pointer border-r flex items-center"
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View - Visible only on small screens */}
+            <div className="md:hidden">
+              {currentProjects.length > 0 ? (
+                currentProjects.map((project, index) => (
+                  <div
+                    key={project.projectId}
+                    className={`border-b p-4 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-medium text-green-700">{project.projectName}</h3>
+                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                        #{indexOfFirstProject + index + 1}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-y-2 text-sm mb-3">
+                      <div className="text-gray-500">Start Date:</div>
+                      <div>{project.startDate ? formatDate(project.startDate) : 'N/A'}</div>
+
+                      <div className="text-gray-500">PM:</div>
+                      <div>{project.projectManager?.firstName} {project.projectManager?.lastName}</div>
+
+                      <div className="text-gray-500">Team Size:</div>
+                      <div
+                        className="text-blue-600 flex items-center"
                         onClick={() => handleManageTeam(project.projectId, project)}
                       >
                         <FiUsers className="mr-1" />
                         <span className="underline">{project.projectTeam?.length || 0}</span>
-                      </td>
-                      <td className="py-3 px-4 border-r">{project.unit || '-'}</td>
-                      <td className="py-3 px-4 border-r">{project.projectCost || '-'}</td>
-                      <td className="py-3 px-4 border-r">{project.sponsor?.firstName} {project.sponsor?.lastName}</td>
-                      <td className="py-3 px-4">
-                        <select
-                          className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-                          onChange={(e) => {
-                            const action = e.target.value;
-                            if (action === "view") {
-                              handleView(project);
-                            } else if (action === "edit") {
-                              setSelectedEditProjectId(project.projectId)
-                            } else if (action === "manageTeam") {
-                              handleManageTeam(project.projectId, project);
-                            }
-                            // Reset back to default option
-                            e.target.selectedIndex = 0;
-                          }}
-                        >
-                          <option value="" className="bg-green-700 text-white">Actions</option>
-                          <option value="view" className="bg-green-700 text-white">View</option>
-                          <option value="edit" className="bg-green-700 text-white">Edit</option>
-                          <option value="manageTeam" className="bg-green-700 text-white">Manage Team</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="9" className="py-6 text-center text-gray-500 border-t">
-                      No projects found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                      </div>
+
+                      <div className="text-gray-500">Cost Unit:</div>
+                      <div>{project.unit || '-'}</div>
+
+                      <div className="text-gray-500">Project Cost:</div>
+                      <div>{project.projectCost || '-'}</div>
+
+                      <div className="text-gray-500">Sponsor:</div>
+                      <div>{project.sponsor?.firstName} {project.sponsor?.lastName}</div>
+                    </div>
+
+                    <div className="mt-3 flex justify-end space-x-2">
+                      <button
+                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        onClick={() => handleView(project)}
+                      >
+                        View
+                      </button>
+                      <button
+                        className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+                        onClick={() => setSelectedEditProjectId(project.projectId)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="bg-purple-600 text-white px-3 py-1 rounded text-sm"
+                        onClick={() => handleManageTeam(project.projectId, project)}
+                      >
+                        Team
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-6 text-center text-gray-500">
+                  No projects found
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Pagination */}
@@ -952,7 +1041,7 @@ const ProjectManagement = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Tenant</p>
-                        <p>{selectedProject.tenant || selectedProject.tenent || "Not specified"}</p>
+                        <p>{selectedProject.tenant.tenantName || selectedProject.tenent || "Not specified"}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 mb-1">Last Updated By</p>

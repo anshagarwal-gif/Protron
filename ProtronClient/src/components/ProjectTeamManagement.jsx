@@ -320,93 +320,177 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
 
                 {/* Team Members Table */}
                 <div className="border rounded overflow-visible relative">
-                <table className="w-full border-collapse">
-    <thead>
+                {/* Responsive Team Members Table */}
+<div className="border rounded overflow-hidden">
+  {/* Desktop Table - Hidden on small screens */}
+  <div className="hidden md:block">
+    <table className="w-full border-collapse">
+      <thead>
         <tr className="bg-green-700 text-white">
-            <th className="py-3 px-4 text-sm font-medium border-r">#</th>
-            <th className="py-3 px-4 text-sm font-medium border-r">Name</th>
-            <th className="py-3 px-4 text-sm font-medium border-r">Emp-Code</th>
-            <th className="py-3 px-4 text-sm font-medium border-r">Email</th>
-            <th className="py-3 px-4 text-sm font-medium border-r">Cost Unit</th>
-            <th className="py-3 px-4 text-sm font-medium border-r">Cost</th>
-            <th className="py-3 px-4 text-sm font-medium border-r">Est.Release</th>
-            <th className="py-3 px-4 text-sm font-medium border-r">Status</th>
-            <th className="py-3 px-4 text-sm font-medium">Actions</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">#</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">Name</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">Emp-Code</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">Email</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">Cost Unit</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">Cost</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">Est.Release</th>
+          <th className="py-3 px-4 text-sm font-medium border-r">Status</th>
+          <th className="py-3 px-4 text-sm font-medium">Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {teamMembers.map((member, index) => (
-            <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                <td className="py-3 px-4 border-r border-t">{index + 1}</td>
-                <td className="py-3 px-4 border-r border-t">
-                    <div className="flex items-center">
-                        {member.user.profilePhoto ? (
-                            <img
-                                src={member.user.profilePhoto}
-                                alt={member.user.firstName + member.user.lastName}
-                                className="w-8 h-8 rounded-full mr-2"
-                            />
-                        ) : (
-                            <img
-                                src={"/profilepic.jpg"}
-                                alt="userprofile"
-                                className="w-8 h-8 rounded-full mr-2"
-                            />
-                        )}
-                        <span>{member.user.firstName + ' ' + member.user.lastName}</span>
-                    </div>
-                </td>
-                <td className="py-3 px-4 border-r border-t">{member.empCode}</td>
-                <td className="py-3 px-4 border-r border-t">{member.user.email}</td>
-                <td className="py-3 px-4 border-r border-t">{member.unit}</td>
-                <td className="py-3 px-4 border-r border-t">{member.pricing}</td>
-                <td className="py-3 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
-                <td className="py-3 px-4 border-r border-t">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
-                        {member.status}
-                    </span>
-                </td>
-                <td className="py-3 px-4 border-t relative">
-                    <button
-                        onClick={() => toggleActions(member.projectTeamId)}
-                        className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm flex items-center hover:bg-gray-300"
-                    >
-                        Actions
-                        <FiChevronDown size={14} className="ml-1" />
-                    </button>
+          <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+            <td className="py-3 px-4 border-r border-t">{index + 1}</td>
+            <td className="py-3 px-4 border-r border-t">
+              <div className="flex items-center">
+                {member.user.profilePhoto ? (
+                  <img
+                    src={member.user.profilePhoto}
+                    alt={member.user.firstName + member.user.lastName}
+                    className="w-8 h-8 rounded-full mr-2"
+                  />
+                ) : (
+                  <img
+                    src={"/profilepic.jpg"}
+                    alt="userprofile"
+                    className="w-8 h-8 rounded-full mr-2"
+                  />
+                )}
+                <span>{member.user.firstName + ' ' + member.user.lastName}</span>
+              </div>
+            </td>
+            <td className="py-3 px-4 border-r border-t">{member.empCode}</td>
+            <td className="py-3 px-4 border-r border-t">{member.user.email}</td>
+            <td className="py-3 px-4 border-r border-t">{member.unit}</td>
+            <td className="py-3 px-4 border-r border-t">{member.pricing}</td>
+            <td className="py-3 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
+            <td className="py-3 px-4 border-r border-t">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
+                {member.status}
+              </span>
+            </td>
+            <td className="py-3 px-4 border-t relative">
+              <button
+                onClick={() => toggleActions(member.projectTeamId)}
+                className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm flex items-center hover:bg-gray-300"
+              >
+                Actions
+                <FiChevronDown size={14} className="ml-1" />
+              </button>
 
-                    {actionsOpen[member.projectTeamId] && (
-                        <div className="absolute right-4 mt-1 bg-white shadow-lg border rounded z-10 w-32">
-                            <button
-                                onClick={() => handleEditMember(member)}
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                onClick={() =>
-                                    handleStatusChange(
-                                        member.projectTeamId,
-                                        member.status === "hold" ? "active" : "hold"
-                                    )
-                                }
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
-                            >
-                                {member.status === "hold" ? "Activate" : "Hold"}
-                            </button>
-                            <button
-                                onClick={() => handleRemoveMember(member.projectTeamId)}
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500 text-sm border-t"
-                            >
-                                Remove
-                            </button>
-                        </div>
-                    )}
-                </td>
-            </tr>
+              {actionsOpen[member.projectTeamId] && (
+                <div className="absolute right-4 mt-1 bg-white shadow-lg border rounded z-10 w-32">
+                  <button
+                    onClick={() => handleEditMember(member)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleStatusChange(
+                        member.projectTeamId,
+                        member.status === "hold" ? "active" : "hold"
+                      )
+                    }
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm border-t"
+                  >
+                    {member.status === "hold" ? "Activate" : "Hold"}
+                  </button>
+                  <button
+                    onClick={() => handleRemoveMember(member.projectTeamId)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500 text-sm border-t"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </td>
+          </tr>
         ))}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+
+  {/* Mobile Card View - Visible only on small screens */}
+  <div className="md:hidden">
+    {teamMembers.map((member, index) => (
+      <div 
+        key={index} 
+        className={`border-b p-4 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+      >
+        {/* Header with photo, name and status */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            {member.user.profilePhoto ? (
+              <img
+                src={member.user.profilePhoto}
+                alt={member.user.firstName + member.user.lastName}
+                className="w-10 h-10 rounded-full mr-3"
+              />
+            ) : (
+              <img
+                src={"/profilepic.jpg"}
+                alt="userprofile"
+                className="w-10 h-10 rounded-full mr-3"
+              />
+            )}
+            <div>
+              <div className="font-medium">{member.user.firstName + ' ' + member.user.lastName}</div>
+              <div className="text-xs text-gray-500">{member.empCode}</div>
+            </div>
+          </div>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
+            {member.status}
+          </span>
+        </div>
+
+        {/* Member details */}
+        <div className="grid grid-cols-2 gap-y-2 text-sm mb-4">
+          <div className="text-gray-500">Email:</div>
+          <div className="truncate">{member.user.email}</div>
+          
+          <div className="text-gray-500">Cost Unit:</div>
+          <div>{member.unit}</div>
+          
+          <div className="text-gray-500">Cost:</div>
+          <div>{member.pricing}</div>
+          
+          <div className="text-gray-500">Est. Release:</div>
+          <div>{member.estimatedReleaseDate}</div>
+        </div>
+        
+        {/* Action buttons */}
+        <div className="flex space-x-2 pt-2">
+          <button
+            onClick={() => handleEditMember(member)}
+            className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm flex-1 hover:bg-gray-300"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() =>
+              handleStatusChange(
+                member.projectTeamId,
+                member.status === "hold" ? "active" : "hold"
+              )
+            }
+            className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm flex-1 hover:bg-blue-200"
+          >
+            {member.status === "hold" ? "Activate" : "Hold"}
+          </button>
+          <button
+            onClick={() => handleRemoveMember(member.projectTeamId)}
+            className="bg-red-100 text-red-700 px-3 py-1 rounded text-sm flex-1 hover:bg-red-200"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
 
                     {/* Pagination */}
                     <div className="bg-gray-50 py-3 px-4 flex justify-between items-center border-t">

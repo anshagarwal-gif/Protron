@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { FiHome, FiUser, FiUserCheck, FiFolder, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
+import axios from "axios";
 
 const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [profile,setProfile] = useState(null)
+  const email = sessionStorage.getItem("email")
   const userDropdownRef = useRef(null);
 
   useEffect(() => {
@@ -21,7 +24,16 @@ const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
     // Cleanup
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
-
+  const handleProfileClick = async (email) => {
+    try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
+            headers: { Authorization: `${sessionStorage.getItem('token')}` }
+        }); // adjust your endpoint if needed
+        setProfile(res.data);
+    } catch (error) {
+        console.error("Error fetching profile", error);
+    }
+};
   // Handle clicks outside of dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,6 +77,11 @@ const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
       setIsOpen(false);
     }
   };
+  const handleButtonClick = (email) => {
+    toggleUserDropdown();
+    handleProfileClick(email); // pass the correct email
+};
+
 
   return (
     <div className="sticky top-0 z-50">
@@ -105,7 +122,8 @@ const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
             {/* User Profile - Right Side */}
             <div className="relative" ref={userDropdownRef}>
               <button
-                onClick={toggleUserDropdown}
+                onClick={() => handleButtonClick(email)}
+
                 className="flex items-center px-3 py-2 rounded hover:bg-green-800 transition-colors duration-200"
               >
                 <FiUser size={20} />
@@ -113,20 +131,45 @@ const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
               </button>
               
               {/* User Dropdown */}
-              {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                  <div className="px-4 py-3 text-sm text-gray-900 border-b border-gray-200">
-                    <div className="font-medium">John Doe</div>
-                    <div className="text-gray-500">john.doe@example.com</div>
+              {userDropdownOpen && profile && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50">
+                {/* User Profile Section */}
+                <div className="px-5 py-4 bg-gray-50">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-blue-100 rounded-full p-2">
+                      <span className="text-blue-600 text-lg font-semibold">
+                        {profile.firstName?.charAt(0)}{profile.lastName?.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-800">{`${profile.firstName} ${profile.lastName}`}</div>
+                      <div className="text-sm text-gray-500">{profile.email}</div>
+                    </div>
                   </div>
+                </div>
+                
+                {/* User Details Section */}
+                <div className="px-5 py-3 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="text-gray-500">Employee Code:</div>
+                    <div className="text-gray-700 font-medium">{profile.empCode}</div>
+                    <div className="text-gray-500">Mobile:</div>
+                    <div className="text-gray-700 font-medium">{profile.mobilePhone}</div>
+                  </div>
+                </div>
+                
+                {/* Actions Section */}
+                <div className="border-t border-gray-100">
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    className="flex w-full items-center px-5 py-3 text-gray-700 hover:bg-gray-50 transition duration-150"
                   >
-                    <FiLogOut className="mr-2" />
+                    <FiLogOut className="mr-3 text-gray-500" />
                     <span>Logout</span>
                   </button>
                 </div>
+              </div>
+              
               )}
             </div>
             
