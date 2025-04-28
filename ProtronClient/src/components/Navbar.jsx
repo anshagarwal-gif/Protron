@@ -91,8 +91,8 @@ const Navbar = ({ activeSection, setActiveSection, handleLogout }) => {
                   <button
                     key={item.key}
                     onClick={() => handleNavItemClick(item.key)}
-                    className={`flex items-center px-3 py-2 rounded hover:bg-orange-500 transition-colors duration-200 ${
-                      activeSection === item.key ? 'bg-orange-500' : ''
+                    className={`flex items-center px-3 py-2 rounded hover:underline cursor-pointer transition-colors duration-200 ${
+                      activeSection === item.key ? 'underline text-orange-500' : ''
                     }`}
                   >
                     {item.icon}
