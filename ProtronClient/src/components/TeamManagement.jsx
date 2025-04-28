@@ -158,7 +158,7 @@ const TeamManagement = () => {
     useEffect(() => {
         const fetchEmployees = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
                     headers: { Authorization: `${sessionStorage.getItem('token')}` }
                 })
                 setEmployees(res.data)
@@ -215,7 +215,7 @@ const TeamManagement = () => {
             console.log("Status updated successfully:", response.data);
 
             // Refetch updated list of employees
-            const updatedList = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+            const updatedList = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
                 headers: { Authorization: `${sessionStorage.getItem('token')}` }
             });
             setEmployees(updatedList.data);

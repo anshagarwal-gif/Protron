@@ -12,10 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -112,6 +109,7 @@ public class UserService {
                 response.put("token", token);
                 response.put("email", user.getEmail());
                 response.put("empCode", user.getEmpCode());
+                response.put("tenantId", String.valueOf(user.getTenant().getTenantId()));
                 return response;
             } else {
                 throw new RuntimeException("Invalid credentials");

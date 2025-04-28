@@ -13,5 +13,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     Optional<Project> findByProjectIdAndEndTimestampIsNull(Long id);
     List<Project> findByEndTimestampIsNull();
+    List<Project> findByTenantTenantIdAndEndTimestampIsNull(Long id);
 
 }

@@ -40,7 +40,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
     }, [])
     const fetchUsers = async()=>{
           try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
                 headers: { Authorization: `${sessionStorage.getItem('token')}` }
             })
             console.log(res.data)

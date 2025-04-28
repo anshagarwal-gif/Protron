@@ -123,6 +123,8 @@ public class User {
     private Role role;
     @ManyToOne
     @JoinColumn(name = "tenant_id")
+    @JsonManagedReference
+    @JsonIgnoreProperties("projects")
     private Tenant tenant;
 
     @OneToMany(mappedBy = "user")
@@ -344,5 +346,13 @@ public class User {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public Tenant getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
     }
 }

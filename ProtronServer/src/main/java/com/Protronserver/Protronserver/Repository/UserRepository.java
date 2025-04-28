@@ -16,5 +16,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     List<User> findByEndTimestampIsNull();
     Optional<User> findByUserIdAndEndTimestampIsNull(Long id);
+    List<User> findByTenantTenantIdAndEndTimestampIsNull(Long id);
 
 }

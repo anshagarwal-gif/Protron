@@ -31,6 +31,7 @@ public class ProjectTeam {
     private String lastUpdatedBy;
     @ManyToOne
     @JoinColumn(name = "tenant_id")
+    @JsonIgnoreProperties({"users", "projects"})
     private Tenant tenant;
 
     // Getters and setters for the new fields
@@ -63,7 +64,7 @@ public class ProjectTeam {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id", nullable = false)
-    @JsonIgnoreProperties({ "team", "projectManager" })
+    @JsonIgnoreProperties({ "team", "projectManager", "tenant", "sponsor" })
     private Project project;
 
     public LocalDate getEstimatedReleaseDate() {
@@ -141,5 +142,13 @@ public class ProjectTeam {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Tenant getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
     }
 }

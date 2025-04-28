@@ -43,7 +43,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     console.log(formData)
     const fetchUsers = async () => {
         try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users`, {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
                 headers: { Authorization: `${sessionStorage.getItem('token')}` }
             });
             console.log(res.data)

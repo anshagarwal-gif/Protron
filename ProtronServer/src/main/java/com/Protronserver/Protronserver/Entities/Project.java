@@ -41,7 +41,7 @@ public class Project {
 
     @ManyToOne
     @JoinColumn(name = "sponsor")
-    @JsonIgnoreProperties({"projectsManaged", "projectTeams"})
+    @JsonIgnoreProperties({"projectsManaged", "projectTeams", "tenant"})
     private User sponsor;
 
     public User getSponsor() {
@@ -95,7 +95,7 @@ public class Project {
 
     @ManyToOne
     @JoinColumn(name = "project_manager_id")
-    @JsonIgnoreProperties("projectsManaged")
+    @JsonIgnoreProperties({"projectsManaged", "tenant", "projectTeams"})
     private User projectManager;
 
     @OneToMany(mappedBy = "project")
@@ -105,8 +105,10 @@ public class Project {
     @Where(clause = "end_timestamp IS NULL")
     @JsonIgnoreProperties("project")
     private List<ProjectTeam> projectTeam;
+
     @ManyToOne
     @JoinColumn(name = "tenant_id")
+    @JsonIgnoreProperties({"users", "projects"})
     private Tenant tenant;
 
     public Long getProjectId() {
@@ -179,5 +181,13 @@ public class Project {
 
     public void setProjectTeam(List<ProjectTeam> projectTeam) {
         this.projectTeam = projectTeam;
+    }
+
+    public Tenant getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
     }
 }
