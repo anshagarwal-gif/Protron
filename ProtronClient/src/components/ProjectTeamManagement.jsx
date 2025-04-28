@@ -107,12 +107,10 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
             });
             console.log("Deleted successfully:", response.data);
 
-            setTeamMembers((prevMembers) => prevMembers.map((member) => {
-                if (member.projectTeamId === id) {
-                    return { ...member, status: "removed" };
-                }
-                return member;
-            }));
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
+            });
+            setTeamMembers(res.data);
 
         } catch (error) {
             alert("Failed to update status:", error);

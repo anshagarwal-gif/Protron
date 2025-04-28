@@ -422,134 +422,135 @@ const ProjectManagement = () => {
     setSelectedProject(null);
   };
 
-  return (
-    <>
-      {/* Conditional Rendering: Show either TeamManagement or ProjectManagement */}
-      {showTeamManagement && selectedProjectId ? (
-        <ProjectTeamManagement
-          projectId={selectedProjectId}
-          project={selectedProject}
-          onClose={handleCloseTeamManagement}
-        />
-      ) : (
-        <div>
-          <h1 className="flex items-center gap-2">
-            <AiFillProject /> Project Management
-          </h1>
-
-          <div className="flex justify-between items-center mt-5">
-            <h1>Project List</h1>
-            <div className="flex gap-4">
-              {/* Search Input */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search by project, PM or sponsor..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  className="border rounded px-3 py-2 pl-9 w-64"
-                />
-                <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
-              </div>
-              {/* Excel Download Button */}
-              <button
-                className="border px-4 py-2 rounded bg-green-900 text-white hover:bg-green-600 flex items-center"
-                onClick={downloadExcel}
-              >
-                <AiOutlineDownload className="mr-2" /> Download Excel
-              </button>
-
-              <button
-                className="border px-4 py-2 rounded bg-green-900 text-white hover:bg-green-600"
-                onClick={() => setShowAddModal(true)}
-              >
-                Add Project
-              </button>
-            </div>
-          </div>
-
-          {/* Entries per page dropdown */}
-          <div className="flex items-center mt-4 mb-2 text-gray-700">
-            <span className="mr-2 font-medium">Show</span>
-            <div className="relative entries-dropdown-container">
-              <button
-                className="flex items-center justify-between w-24 px-3 py-2 border border-green-700 rounded bg-white text-green-900 hover:border-green-900 focus:outline-none focus:ring-1 focus:ring-green-700"
-                onClick={() => setShowEntriesDropdown(!showEntriesDropdown)}
-                aria-expanded={showEntriesDropdown}
-                aria-haspopup="true"
-              >
-                <span className="font-medium">{projectsPerPage}</span>
-                <FiChevronDown className={`transition-transform duration-200 ${showEntriesDropdown ? 'transform rotate-180' : ''}`} />
-              </button>
-
-              {showEntriesDropdown && (
-                <div className="absolute top-full left-0 w-24 mt-1 bg-white border border-green-700 rounded shadow-lg z-10 overflow-hidden">
-                  {[10, 20, 50, 100].map((value) => (
-                    <button
-                      key={value}
-                      className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${projectsPerPage === value
-                          ? 'bg-green-900 text-white font-medium'
-                          : 'text-green-900 hover:bg-green-100'
-                        }`}
-                      onClick={() => handleEntriesChange(value)}
-                    >
-                      {value}
-                    </button>
-                  ))}
+    return (
+        <>
+          {/* Conditional Rendering: Show either TeamManagement or ProjectManagement */}
+          {showTeamManagement && selectedProjectId ? (
+            <ProjectTeamManagement
+              projectId={selectedProjectId}
+              project={selectedProject}
+              onClose={handleCloseTeamManagement}
+            />
+          ) : (
+            <div>
+              <h1 className="flex items-center gap-2">
+                <AiFillProject /> Project Management
+              </h1>
+      
+              <div className="flex justify-between items-center mt-5">
+                <h1>Project List</h1>
+                <div className="flex gap-4">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search by project, PM or sponsor..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="border rounded px-3 py-2 pl-9 w-64"
+                    />
+                    <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
+                  </div>
+                  {/* Excel Download Button */}
+                  <button
+                    className="border px-4 py-2 rounded bg-green-900 text-white hover:bg-green-600 flex items-center"
+                    onClick={downloadExcel}
+                  >
+                    <AiOutlineDownload className="mr-2" /> Download Excel
+                  </button>
+            
+                  <button
+                    className="border px-4 py-2 rounded bg-green-900 text-white hover:bg-green-600"
+                    onClick={() => setShowAddModal(true)}
+                  >
+                    Add Project
+                  </button>
                 </div>
-              )}
-            </div>
-            <span className="ml-2 font-medium">entries</span>
-
-            <div className="ml-auto text-sm text-green-800 bg-green-50 px-3 py-1 rounded border border-green-200">
-              Showing <span className="font-semibold">{filteredProjects.length > 0 ? indexOfFirstProject + 1 : 0}</span> to <span className="font-semibold">{Math.min(indexOfLastProject, filteredProjects.length)}</span> of <span className="font-semibold">{filteredProjects.length}</span> entries
-            </div>
-          </div>
-
-          {/* Projects Table */}
-          <div className="border rounded overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-100">
-                <tr className="text-left">
-                  <th className="py-2 px-4 font-medium text-gray-700">
-                    #
-                  </th>
-                  <th
-                    className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort('projectName')}
+              </div>
+      
+              {/* Entries per page dropdown */}
+              <div className="flex items-center mt-4 mb-2 text-gray-700">
+                <span className="mr-2 font-medium">Show</span>
+                <div className="relative entries-dropdown-container">
+                  <button
+                    className="flex items-center justify-between w-24 px-3 py-2 border border-green-700 rounded bg-white text-green-900 hover:border-green-900 focus:outline-none focus:ring-1 focus:ring-green-700"
+                    onClick={() => setShowEntriesDropdown(!showEntriesDropdown)}
+                    aria-expanded={showEntriesDropdown}
+                    aria-haspopup="true"
                   >
-                    <div className="flex items-center">
-                      Project Name
-                      {renderSortIcon('projectName')}
+                    <span className="font-medium">{projectsPerPage}</span>
+                    <FiChevronDown className={`transition-transform duration-200 ${showEntriesDropdown ? 'transform rotate-180' : ''}`} />
+                  </button>
+                  
+                  {showEntriesDropdown && (
+                    <div className="absolute top-full left-0 w-24 mt-1 bg-white border border-green-700 rounded shadow-lg z-10 overflow-hidden">
+                      {[10, 20, 50, 100].map((value) => (
+                        <button
+                          key={value}
+                          className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${
+                            projectsPerPage === value 
+                              ? 'bg-green-900 text-white font-medium' 
+                              : 'text-green-900 hover:bg-green-100'
+                          }`}
+                          onClick={() => handleEntriesChange(value)}
+                        >
+                          {value}
+                        </button>
+                      ))}
                     </div>
-                  </th>
-                  <th
-                    className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort('startDate')}
-                  >
-                    <div className="flex items-center">
-                      Start Date
-                      {renderSortIcon('startDate')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort('pmName')}
-                  >
-                    <div className="flex items-center">
-                      PM Name
-                      {renderSortIcon('pmName')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort('teamSize')}
-                  >
-                    <div className="flex items-center">
-                      Team
-                      {renderSortIcon('teamSize')}
-                    </div>
-                  </th>
+                  )}
+                </div>
+                <span className="ml-2 font-medium">entries</span>
+                
+                <div className="ml-auto text-sm text-green-800 bg-green-50 px-3 py-1 rounded border border-green-200">
+                  Showing <span className="font-semibold">{filteredProjects.length > 0 ? indexOfFirstProject + 1 : 0}</span> to <span className="font-semibold">{Math.min(indexOfLastProject, filteredProjects.length)}</span> of <span className="font-semibold">{filteredProjects.length}</span> entries
+                </div>
+              </div>
+      
+              {/* Projects Table */}
+              <div className="border rounded overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-100">
+                    <tr className="text-left">
+                      <th className="py-2 px-4 font-medium text-gray-700">
+                        #
+                      </th>
+                      <th 
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
+                        onClick={() => handleSort('projectName')}
+                      >
+                        <div className="flex items-center text-green-900 hover:text-green-500">
+                          Project Name
+                          {renderSortIcon('projectName')}
+                        </div>
+                      </th>
+                      <th 
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
+                        onClick={() => handleSort('startDate')}
+                      >
+                        <div className="flex items-center text-green-900 hover:text-green-500">
+                          Start Date
+                          {renderSortIcon('startDate')}
+                        </div>
+                      </th>
+                      <th 
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
+                        onClick={() => handleSort('pmName')}
+                      >
+                        <div className="flex items-center text-green-900 hover:text-green-500">
+                          PM Name
+                          {renderSortIcon('pmName')}
+                        </div>
+                      </th>
+                      <th 
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
+                        onClick={() => handleSort('teamSize')}
+                      >
+                        <div className="flex items-center text-green-900 hover:text-green-500">
+                          Team
+                          {renderSortIcon('teamSize')}
+                        </div>
+                      </th>
 
                   <th
                     className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
@@ -561,74 +562,74 @@ const ProjectManagement = () => {
                     </div>
                   </th>
 
-                  <th
-                    className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort('projectCost')}
-                  >
-                    <div className="flex items-center">
-                      Project Cost
-                      {renderSortIcon('projectCost')}
-                    </div>
-                  </th>
-                  <th
-                    className="py-2 px-4 font-medium text-gray-700 cursor-pointer select-none"
-                    onClick={() => handleSort('sponsor')}
-                  >
-                    <div className="flex items-center">
-                      Sponsor
-                      {renderSortIcon('sponsor')}
-                    </div>
-                  </th>
-                  <th className="py-2 px-4 font-medium text-gray-700">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentProjects.length > 0 ? (
-                  currentProjects.map((project, index) => (
-                    <tr key={project.projectId} className="border-t hover:bg-gray-50">
-                      <td className="py-2 px-4">{indexOfFirstProject + index + 1}</td>
-                      <td className="py-2 px-4 cursor-pointer" onClick={() => handleManageTeam(project.projectId, project)}>{project.projectName}</td>
-                      <td className="py-2 px-4">
-                        {project.startDate ? formatDate(project.startDate) : 'N/A'}
-                      </td>
-                      <td className="py-2 px-4">
-                        {project.projectManager?.firstName}{" "}
-                        {project.projectManager?.lastName}
-                      </td>
-                      <td
-                        className="py-2 px-4 text-blue-600 hover:text-green-900 cursor-pointer flex items-center"
-                        onClick={() => handleManageTeam(project.projectId, project)}
+                      <th 
+                        className="py-2 px-4 font-medium  cursor-pointer select-none"
+                        onClick={() => handleSort('projectCost')}
                       >
-                        <FiUsers className="mr-1" />
-                        <span className="underline">{project.projectTeam?.length || 0}</span>
-                      </td>
-                      <td className="py-2 px-4">{project.unit || ''}</td>
-                      <td className="py-2 px-4">{project.projectCost || ''}</td>
-                      <td className="py-2 px-4">{project.sponsor?.firstName} {project.sponsor?.lastName}</td>
-                      <td className="py-2 px-4">
-                        <select
-                          className="bg-green-900 text-white px-3 py-1 rounded"
-                          onChange={(e) => {
-                            const action = e.target.value;
-                            if (action === "view") {
-                              handleView(project);
-                            } else if (action === "edit") {
-                              setSelectedEditProjectId(project.projectId)
-                            } else if (action === "manageTeam") {
-                              handleManageTeam(project.projectId, project);
-                            }
-                            // Reset back to default option
-                            e.target.selectedIndex = 0;
-                          }}
-                        >
-                          <option value="" className="bg-green-600 text-white">Actions</option>
-                          <option value="view" className="bg-green-600 text-white">View</option>
-                          <option value="edit" className="bg-green-600 text-white">Edit</option>
-                          <option value="manageTeam" className="bg-green-600 text-white">Manage Team</option>
-                        </select>
-                      </td>
+                        <div className="flex items-center text-green-900 hover:text-green-500">
+                          Project Cost
+                          {renderSortIcon('projectCost')}
+                        </div>
+                      </th>
+                      <th 
+                        className="py-2 px-4 font-medium cursor-pointer select-none"
+                        onClick={() => handleSort('sponsor')}
+                      >
+                        <div className="flex items-center text-green-900 hover:text-green-500">
+                          Sponsor
+                          {renderSortIcon('sponsor')}
+                        </div>
+                      </th>
+                      <th className="py-2 px-4 font-medium text-green-900 hover:text-green-500">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentProjects.length > 0 ? (
+                      currentProjects.map((project, index) => (
+                        <tr key={project.projectId} className="border-t hover:bg-gray-50">
+                          <td className="py-2 px-4">{indexOfFirstProject + index + 1}</td>
+                          <td className="py-2 px-4 cursor-pointer"onClick={()=>handleManageTeam(project.projectId,project)}>{project.projectName}</td>
+                          <td className="py-2 px-4">
+                            {project.startDate ? formatDate(project.startDate) : 'N/A'}
+                          </td>
+                          <td className="py-2 px-4">
+                            {project.projectManager?.firstName}{" "}
+                            {project.projectManager?.lastName}
+                          </td>
+                          <td 
+                            className="py-2 px-4 text-blue-600 hover:text-green-900 cursor-pointer flex items-center" 
+                            onClick={() => handleManageTeam(project.projectId, project)}
+                          >
+                            <FiUsers className="mr-1" />
+                            <span className="underline">{project.projectTeam?.length || 0}</span>
+                          </td>
+                          <td className="py-2 px-4">{project.unit || ''}</td>
+                          <td className="py-2 px-4">{project.projectCost || ''}</td>
+                          <td className="py-2 px-4">{project.sponsor?.firstName} {project.sponsor?.lastName}</td>
+                          <td className="py-2 px-4">
+  <select
+    className="bg-green-900 text-white px-3 py-1 rounded"
+    onChange={(e) => {
+      const action = e.target.value;
+      if (action === "view") {
+        handleView(project);
+      } else if (action === "edit") {
+        setSelectedEditProjectId(project.projectId)
+      } else if (action === "manageTeam") {
+        handleManageTeam(project.projectId, project);
+      }
+      // Reset back to default option
+      e.target.selectedIndex = 0;
+    }}
+  >
+    <option value="" className="bg-green-600 text-white">Actions</option>
+  <option value="view" className="bg-green-600 text-white">View</option>
+  <option value="edit" className="bg-green-600 text-white">Edit</option>
+  <option value="manageTeam" className="bg-green-600 text-white">Manage Team</option>
+  </select>
+</td>
 
                     </tr>
                   ))
@@ -825,35 +826,37 @@ const ProjectManagement = () => {
                   </div>
                 </div>
 
-                {/* Project Manager */}
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Project Manager</span>
-                    </div>
-                    <p className="text-base">
-                      {selectedProject.projectManager ?
-                        `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName} (${selectedProject.projectManager.empCode})` :
-                        "Not assigned"}
-                    </p>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Sponsor</span>
-                    </div>
-                    <p className="text-base">{selectedProject.sponsor || "Not assigned"}</p>
-                  </div>
-                </div>
+          {/* Project Manager */}
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Project Manager</span>
+              </div>
+              <p className="text-base">
+                {selectedProject.projectManager ? 
+                  `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName} (${selectedProject.projectManager.empCode})` : 
+                  "Not assigned"}
+              </p>
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-500 text-sm font-medium">Sponsor</span>
+              </div>
+              <p className="text-base">{selectedProject.sponsor ? 
+                  `${selectedProject.sponsor.firstName} ${selectedProject.sponsor.lastName} (${selectedProject.sponsor.empCode})` : 
+                  "Not assigned"}</p>
+            </div>
+          </div>
 
                 {/* Cost & Timestamp */}
                 <div className="flex flex-col md:flex-row gap-6">
@@ -882,95 +885,95 @@ const ProjectManagement = () => {
                   </div>
                 </div>
 
-                {/* Project Team */}
-                {selectedProject.projectTeam && selectedProject.projectTeam.length > 0 && (
-                  <div>
-                    <div className="flex items-center mb-3">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-600 text-base font-medium">Project Team</span>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {selectedProject.projectTeam.map((member, index) => (
-                          <div key={index} className="flex items-center">
-                            <div className="bg-green-100 text-green-700 rounded-full h-8 w-8 flex items-center justify-center mr-3">
-                              {member.firstName ? member.firstName.charAt(0) : "U"}
-                            </div>
-                            <div>
-                              <p className="font-medium">{member.firstName} {member.lastName}</p>
-                              <p className="text-sm text-gray-500">{member.empCode || "No ID"}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Timesheet Tasks */}
-                {selectedProject.timesheetTasks && selectedProject.timesheetTasks.length > 0 && (
-                  <div>
-                    <div className="flex items-center mb-3">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                          <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-600 text-base font-medium">Tasks</span>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="space-y-2">
-                        {selectedProject.timesheetTasks.map((task, index) => (
-                          <div key={index} className="flex items-center">
-                            <div className="bg-green-100 text-green-700 rounded-full h-6 w-6 flex items-center justify-center mr-3">
-                              {index + 1}
-                            </div>
-                            <span>{task.taskName || `Task ${task.taskId}`}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Additional Details */}
-                <div>
-                  <div className="flex items-center mb-3">
-                    <span className="text-green-700 mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </span>
-                    <span className="text-gray-600 text-base font-medium">Additional Details</span>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Tenant</p>
-                        <p>{selectedProject.tenant || selectedProject.tenent || "Not specified"}</p>
+          {/* Project Team */}
+          {selectedProject.projectTeam && selectedProject.projectTeam.length > 0 && (
+            <div>
+              <div className="flex items-center mb-3">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
+                  </svg>
+                </span>
+                <span className="text-gray-600 text-base font-medium">Project Team</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selectedProject.projectTeam.map((member, index) => (
+                    <div key={index} className="flex items-center">
+                      <div className="bg-green-100 text-green-700 rounded-full h-8 w-8 flex items-center justify-center mr-3">
+                        {member.user.firstName ? member.user.firstName.charAt(0) : "U"}
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Last Updated By</p>
-                        <p>{selectedProject.lastUpdatedBy || "Not available"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Unit</p>
-                        <p>{selectedProject.unit || "Not specified"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">End Timestamp</p>
-                        <p>{selectedProject.endTimestamp ? new Date(selectedProject.endTimestamp).toLocaleString() : "Not available"}</p>
+                        <p className="font-medium">{member.user.firstName} {member.user.lastName}</p>
+                        <p className="text-sm text-gray-500">{member.empCode || "No ID"}</p>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
+          )}
+          
+          {/* Timesheet Tasks */}
+          {selectedProject.timesheetTasks && selectedProject.timesheetTasks.length > 0 && (
+            <div>
+              <div className="flex items-center mb-3">
+                <span className="text-green-700 mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                  </svg>
+                </span>
+                <span className="text-gray-600 text-base font-medium">Tasks</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-2">
+                  {selectedProject.timesheetTasks.map((task, index) => (
+                    <div key={index} className="flex items-center">
+                      <div className="bg-green-100 text-green-700 rounded-full h-6 w-6 flex items-center justify-center mr-3">
+                        {index + 1}
+                      </div>
+                      <span>{task.taskName || `Task ${task.taskId}`}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Additional Details */}
+          <div>
+            <div className="flex items-center mb-3">
+              <span className="text-green-700 mr-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </span>
+              <span className="text-gray-600 text-base font-medium">Additional Details</span>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Tenant</p>
+                  <p>{selectedProject.tenant || selectedProject.tenent || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Last Updated By</p>
+                  <p>{selectedProject.lastUpdatedBy || "Not available"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Unit</p>
+                  <p>{selectedProject.unit || "Not specified"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">End Timestamp</p>
+                  <p>{selectedProject.endTimestamp ? new Date(selectedProject.endTimestamp).toLocaleString() : "Not available"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
             {/* Footer with buttons */}
             <div className="bg-gray-50 border-t border-gray-200 py-3 px-6 flex justify-end gap-3">

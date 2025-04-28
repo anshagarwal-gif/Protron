@@ -391,7 +391,7 @@ const TeamManagement = () => {
                                 <tr className="text-left">
                                     <th className="py-2 px-4 text-sm font-medium text-gray-700">#</th>
                                     <th 
-                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        className="py-2 px-4 text-sm font-medium text-green-900 hover:text-green-500 cursor-pointer select-none"
                                         onClick={() => handleSort('firstName')}
                                     >
                                         <div className="flex items-center">
@@ -400,7 +400,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th 
-                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        className="py-2 px-4 text-sm font-medium text-green-900 hover:text-green-500 cursor-pointer select-none"
                                         onClick={() => handleSort('empCode')}
                                     >
                                         <div className="flex items-center">
@@ -409,7 +409,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th 
-                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        className="py-2 px-4 text-sm font-medium text-green-900 hover:text-green-500 cursor-pointer select-none"
                                         onClick={() => handleSort('email')}
                                     >
                                         <div className="flex items-center">
@@ -418,7 +418,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th 
-                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        className="py-2 px-4 text-sm font-medium text-green-900 hover:text-green-500 cursor-pointer select-none"
                                         onClick={() => handleSort('cost')}
                                     >
                                         <div className="flex items-center">
@@ -427,7 +427,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th 
-                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        className="py-2 px-4 text-sm font-medium text-green-900 hover:text-green-500 cursor-pointer select-none"
                                         onClick={() => handleSort('dateOfJoining')}
                                     >
                                         <div className="flex items-center">
@@ -436,7 +436,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th 
-                                        className="py-2 px-4 text-sm font-medium text-gray-700 cursor-pointer select-none"
+                                        className="py-2 px-4 text-sm font-medium text-green-900 hover:text-green-500 cursor-pointer select-none"
                                         onClick={() => handleSort('status')}
                                     >
                                         <div className="flex items-center">
