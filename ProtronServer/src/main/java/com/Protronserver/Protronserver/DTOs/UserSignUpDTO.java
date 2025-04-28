@@ -36,6 +36,7 @@ public class UserSignUpDTO {
     // Added timestamp fields
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
+    private long tenant;
 
     // Added last updated by field
     private String lastUpdatedBy;
@@ -87,6 +88,14 @@ public class UserSignUpDTO {
 
     public void setUnit(String unit) {
         this.unit = unit;
+    }
+
+    public Long getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(Long tenant) {
+        this.tenant = tenant;
     }
 
     public String getCost() {

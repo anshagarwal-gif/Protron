@@ -31,7 +31,6 @@ public class Project {
 
     private Double projectCost;
 
-    private String tenent;
     // Added timestamp fields
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
@@ -41,7 +40,7 @@ public class Project {
 
     @ManyToOne
     @JoinColumn(name = "sponsor")
-    @JsonIgnoreProperties({"projectsManaged", "projectTeams", "tenant"})
+    @JsonIgnoreProperties({ "projectsManaged", "projectTeams", "tenant" })
     private User sponsor;
 
     public User getSponsor() {
@@ -85,17 +84,9 @@ public class Project {
         this.lastUpdatedBy = lastUpdatedBy;
     }
 
-    public String getTenent() {
-        return tenent;
-    }
-
-    public void setTenent(String tenent) {
-        this.tenent = tenent;
-    }
-
     @ManyToOne
     @JoinColumn(name = "project_manager_id")
-    @JsonIgnoreProperties({"projectsManaged", "tenant", "projectTeams"})
+    @JsonIgnoreProperties({ "projectsManaged", "tenant", "projectTeams" })
     private User projectManager;
 
     @OneToMany(mappedBy = "project")
@@ -108,7 +99,7 @@ public class Project {
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({"users", "projects"})
+    @JsonIgnoreProperties({ "users", "projects" })
     private Tenant tenant;
 
     public Long getProjectId() {

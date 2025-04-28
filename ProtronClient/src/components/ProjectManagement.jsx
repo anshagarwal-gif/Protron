@@ -49,11 +49,12 @@ const ProjectManagement = () => {
 
   const fetchProjects = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/projects`, {
+      const res = await axios.get(`${API_BASE_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/projects`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
       const sortedProjects = sortProjects(res.data, sortField, sortOrder);
       setProjects(sortedProjects);
+      console.log(sortedProjects)
       setFilteredProjects(sortedProjects);
     } catch (error) {
       console.log({ message: error });
@@ -214,7 +215,7 @@ const ProjectManagement = () => {
         sponsor: updatedData.sponsor,
         unit: updatedData.unit,
       };
-
+console.log(projectData);
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/projects/edit/${updatedData.projectId}`,
         projectData,
@@ -273,20 +274,22 @@ const ProjectManagement = () => {
         endDate: data.endDate,
         projectCost: data.cost,
         projectManagerId: data.manager, // match backend DTO field
-        tenent: sessionStorage.getItem('tenentId'),
+        tenent: sessionStorage.getItem('tenantId'),
         sponsor: data.sponsor,
         unit: data.currency,
         projectTeam: data.teamMembers.map(userId => ({
           userId: userId,
           status: "active",
+
         }))
       };
-
+      console.log(payload);
       const response = await axios.post(`${API_BASE_URL}/api/projects/add`, payload, {
         headers: {
           Authorization: `${sessionStorage.getItem('token')}`, // or "Bearer " + token if needed
           'Content-Type': 'application/json',
         },
+
       });
       console.log('Project added successfully:', response.data);
 

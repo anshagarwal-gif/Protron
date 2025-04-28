@@ -12,7 +12,7 @@ public class ProjectRequestDTO {
     private String unit;
     private Double projectCost;
     private Long projectManagerId;
-    private String tenent;
+    private Long tenent;
     private List<TeamMemberRequestDTO> projectTeam;
     // Added timestamp fields
     private LocalDateTime startTimestamp;
@@ -79,11 +79,11 @@ public class ProjectRequestDTO {
         this.projectName = projectName;
     }
 
-    public String getTenent() {
+    public Long getTenent() {
         return tenent;
     }
 
-    public void setTenent(String tenent) {
+    public void setTenent(Long tenent) {
         this.tenent = tenent;
     }
 

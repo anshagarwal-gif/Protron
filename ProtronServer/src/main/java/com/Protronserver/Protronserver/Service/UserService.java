@@ -2,9 +2,14 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.LoginRequest;
 import com.Protronserver.Protronserver.DTOs.UserSignUpDTO;
+import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.Utils.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
+
+import org.hibernate.annotations.TenantId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -25,6 +30,9 @@ public class UserService {
 
     @Autowired
     private MailSender mailSender;
+
+    @Autowired
+    private TenantRepository tenantRepository;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -52,6 +60,9 @@ public class UserService {
         user.setDateOfJoining(new Date());
         user.setCost(dto.getCost());
         user.setUnit(dto.getUnit());
+        Tenant tenant = tenantRepository.findById(dto.getTenant())
+                .orElseThrow(() -> new EntityNotFoundException("Tenant Not found"));
+        user.setTenant(tenant);
         if (dto.getProfilePhoto() != null && !dto.getProfilePhoto().isEmpty()) {
             try {
                 user.setPhoto(dto.getProfilePhoto().getBytes());

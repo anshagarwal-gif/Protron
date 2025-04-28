@@ -5,10 +5,15 @@ import com.Protronserver.Protronserver.DTOs.ProjectUpdateDTO;
 import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.ProjectTeam;
+import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
 import com.Protronserver.Protronserver.Repository.ProjectTeamRepository;
+import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,9 @@ public class ManageProjectService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TenantRepository tenantRepository;
     @Autowired
     private ProjectTeamRepository projectTeamRepository;
 
@@ -35,18 +43,21 @@ public class ManageProjectService {
         project.setStartDate(request.getStartDate());
         project.setEndDate(request.getEndDate());
         project.setProjectCost(request.getProjectCost());
-        project.setTenent(request.getTenent());
+        Tenant tenant = tenantRepository.findById(request.getTenent())
+                .orElseThrow(() -> new EntityNotFoundException("Tenant Not found"));
+        project.setTenant(tenant);
         project.setUnit(request.getUnit());
+        if (request.getProjectManagerId() != null) {
+            User manager = userRepository.findByUserIdAndEndTimestampIsNull(request.getProjectManagerId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            project.setProjectManager(manager);
+        }
 
-        // fetch the actual User object from the DB
-        System.out.println(request.getProjectManagerId());
-        User manager = userRepository.findByUserIdAndEndTimestampIsNull(request.getProjectManagerId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        project.setProjectManager(manager);
-
-        User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsor())
-                        .orElseThrow(()-> new RuntimeException("User not found for sponsor"));
-        project.setSponsor(sponsor);
+        if (request.getSponsor() != null) {
+            User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsor())
+                    .orElseThrow(() -> new RuntimeException("User not found for sponsor"));
+            project.setSponsor(sponsor);
+        }
 
         project.setStartTimestamp(LocalDateTime.now());
         project.setEndTimestamp(null);
@@ -104,6 +115,7 @@ public class ManageProjectService {
 
         // Create a new version of the project with updated fields
         Project updatedProject = new Project();
+        updatedProject.setTenant(existingProject.getTenant());
         updatedProject.setProjectName(
                 request.getProjectName() != null ? request.getProjectName() : existingProject.getProjectName());
         updatedProject.setProjectIcon(
@@ -127,11 +139,11 @@ public class ManageProjectService {
             updatedProject.setProjectManager(existingProject.getProjectManager());
         }
 
-        if(request.getSponsor() != null){
+        if (request.getSponsor() != null) {
             User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsor())
-                            .orElseThrow(() -> new RuntimeException("Sponsor not found"));
+                    .orElseThrow(() -> new RuntimeException("Sponsor not found"));
             updatedProject.setSponsor(sponsor);
-        }else{
+        } else {
             updatedProject.setSponsor(existingProject.getSponsor());
         }
 

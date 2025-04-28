@@ -32,7 +32,8 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
         state: '',
         password: '',
         confirmPassword: '',
-        status:"active"
+        status:"active",
+        tenant:sessionStorage.getItem("tenantId")
     });
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
