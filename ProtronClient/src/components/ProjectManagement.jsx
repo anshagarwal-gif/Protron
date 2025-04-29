@@ -405,9 +405,9 @@ const ProjectManagement = () => {
   const formatDate = (dateString) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
     const date = new Date(dateString);
-    const day = date.getUTCDate().toString().padStart(2, '0');
-    const month = months[date.getUTCMonth()];
-    const year = date.getUTCFullYear();
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
   
     return `${day}-${month}-${year}`;
   };
@@ -908,7 +908,7 @@ const ProjectManagement = () => {
                       </span>
                       <span className="text-gray-500 text-sm font-medium">Start Date</span>
                     </div>
-                    <p className="text-base">{new Date(selectedProject.startDate).toLocaleDateString()}</p>
+                    <p className="text-base">{formatDate(selectedProject.startDate)}</p>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center mb-1">
