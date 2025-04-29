@@ -131,7 +131,7 @@ const TeamManagement = () => {
     // Helper function to render sort icons
     const renderSortIcon = (field) => {
         if (sortField !== field) {
-            return <FiChevronDown className="ml-1 text-gray-400 text-xs" />;
+            return <FiChevronDown className="ml-1 text-orange-500 text-xs" />;
         }
         return sortOrder === 'asc' ? 
             <FiArrowUp className="ml-1 text-green-900" /> : 
