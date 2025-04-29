@@ -52,7 +52,6 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
             console.log({ message: error });
         }
     };
-
     // Fetch project data when modal opens or projectId changes
     const fetchProjectData = async () => {
         if (!projectId) return;
@@ -306,11 +305,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
                                 options={users}
-                                value={
-                                    formData.sponsor?.userId
-                                        ? users.find(user => user.userId === formData.sponsor.userId)
-                                        : null
-                                }
+                                value={users.find(user => user.userId === formData.sponsor?.userId) || null}
                                 getOptionLabel={(option) =>
                                     option ? `${option.firstName} ${option.lastName}` : ''
                                 }
@@ -320,7 +315,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 onChange={(e, value) => {
                                     setFormData((prev) => ({
                                         ...prev,
-                                        sponsor: value.userId || null, // Store the selected user object or null
+                                        sponsorId: value ? value.userId : null,
+                                        sponsor: value || null,
                                     }));
                                 }}
                                 renderInput={(params) => (
