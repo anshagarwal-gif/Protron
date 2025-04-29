@@ -131,7 +131,7 @@ const TeamManagement = () => {
     // Helper function to render sort icons
     const renderSortIcon = (field) => {
         if (sortField !== field) {
-            return <FiChevronDown className="ml-1 text-orange-500 text-xs" />;
+            return <FiChevronDown className="ml-1 text-orange-500 text-md" />;
         }
         return sortOrder === 'asc' ? 
             <FiArrowUp className="ml-1 text-green-900" /> : 
@@ -451,7 +451,7 @@ const TeamManagement = () => {
             currentEmployees.map((member, index) => (
                 <tr key={member.userId} className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-green-50`}>
                     <td className="py-3 px-4 border-r">{indexOfFirstEmployee + index + 1}</td>
-                    <td className="py-3 px-4 border-r flex items-center cursor-pointer" onClick={() => handleProfileClick(member.email)}>
+                    <td className="py-3 px-4 border-r flex items-center cursor-pointer hover:text-green-700" onClick={() => handleProfileClick(member.email)}>
                         <img src={`${import.meta.env.VITE_API_URL}/api/users/${member.userId}/photo`} 
                              alt={member.name} 
                              className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2" 
