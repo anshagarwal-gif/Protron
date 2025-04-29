@@ -56,6 +56,9 @@ const App = () => {
     const handleLogout = () => {
         setIsAuthenticated(false);
         sessionStorage.removeItem('isAuthenticated');
+        sessionStorage.removeItem('token')
+        sessionStorage.removeItem('email')
+        sessionStorage.removeItem('tenantId')
         setCurrentPage('login');
     };
 

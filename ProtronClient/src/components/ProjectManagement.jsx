@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import axios from "axios"
 import { AiFillProject, AiOutlineSearch, AiOutlineDownload } from "react-icons/ai"
-import { FiChevronDown, FiUsers, FiArrowUp, FiArrowDown } from "react-icons/fi"
+import { FiChevronDown, FiUsers, FiArrowUp, FiArrowDown, FiEdit, FiEye } from "react-icons/fi"
 import AddProjectModal from "./AddProjectModal" // Adjust path if needed
 import GlobalSnackbar from './GlobalSnackbar';
 import ProjectTeamManagement from "./ProjectTeamManagement";
@@ -124,7 +124,7 @@ const ProjectManagement = () => {
   // Helper function to render sort icons
   const renderSortIcon = (field) => {
     if (sortField !== field) {
-      return <FiChevronDown className="ml-1 text-gray-400 text-xs" />;
+      return <FiChevronDown className="ml-1 text-orange-500 text-md" />;
     }
     return sortOrder === 'asc' ?
       <FiArrowUp className="ml-1 text-green-900" /> :
@@ -212,10 +212,10 @@ const ProjectManagement = () => {
           : null,
         projectCost: updatedData.projectCost,
         projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
-        sponsor: updatedData.sponsor,
+        sponsor: updatedData.sponsor.userId,
         unit: updatedData.unit,
       };
-console.log(projectData);
+      console.log(projectData);
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/projects/edit/${updatedData.projectId}`,
         projectData,
@@ -405,10 +405,10 @@ console.log(projectData);
   const formatDate = (dateString) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
     const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const month = months[date.getUTCMonth()];
+    const year = date.getUTCFullYear();
+  
     return `${day}-${month}-${year}`;
   };
   const handleView = (project) => {
@@ -438,41 +438,41 @@ console.log(projectData);
           </h1>
 
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5">
-  <h1 className="text-2xl font-bold text-green-800">Project List</h1>
-  
-  <div className="flex flex-col sm:flex-row gap-3">
-    {/* Search Input */}
-    <div className="relative w-full sm:w-64">
-      <input
-        type="text"
-        placeholder="Search projects..."
-        value={searchTerm}
-        onChange={handleSearchChange}
-        className="border rounded px-3 py-2 pl-9 w-full"
-      />
-      <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
-    </div>
-    
-    <div className="flex gap-2 w-full sm:w-auto">
-      {/* Excel Download Button */}
-      <button
-        className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
-        onClick={downloadExcel}
-      >
-        <AiOutlineDownload className="mr-1" /> 
-        <span className="sm:inline">Export</span>
-      </button>
+            <h1 className="text-2xl font-bold text-green-800">Project List</h1>
 
-      {/* Add Project Button */}
-      <button
-        className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none"
-        onClick={() => setShowAddModal(true)}
-      >
-        <span className="hidden sm:inline mr-1">+</span> Add Project
-      </button>
-    </div>
-  </div>
-</div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Search Input */}
+              <div className="relative w-full sm:w-64">
+                <input
+                  type="text"
+                  placeholder="Search projects..."
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className="border rounded px-3 py-2 pl-9 w-full"
+                />
+                <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
+              </div>
+
+              <div className="flex gap-2 w-full sm:w-auto">
+                {/* Excel Download Button */}
+                <button
+                  className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
+                  onClick={downloadExcel}
+                >
+                  <AiOutlineDownload className="mr-1" />
+                  <span className="sm:inline">Export</span>
+                </button>
+
+                {/* Add Project Button */}
+                <button
+                  className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none"
+                  onClick={() => setShowAddModal(true)}
+                >
+                  <span className="hidden sm:inline mr-1">+</span> Add Project
+                </button>
+              </div>
+            </div>
+          </div>
           {/* Entries per page dropdown */}
           <div className="flex items-center mt-4 mb-2 text-gray-700">
             <span className="mr-2 font-medium">Show</span>
@@ -493,8 +493,8 @@ console.log(projectData);
                     <button
                       key={value}
                       className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${projectsPerPage === value
-                          ? 'bg-green-900 text-white font-medium'
-                          : 'text-green-900 hover:bg-green-100'
+                        ? 'bg-green-900 text-white font-medium'
+                        : 'text-green-900 hover:bg-green-100'
                         }`}
                       onClick={() => handleEntriesChange(value)}
                     >
@@ -620,35 +620,36 @@ console.log(projectData);
                           {project.sponsor?.firstName} {project.sponsor?.lastName}
                         </td>
                         <td className="py-3 px-4">
-                          <select
-                            className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-                            onChange={(e) => {
-                              const action = e.target.value;
-                              if (action === "view") {
-                                handleView(project);
-                              } else if (action === "edit") {
-                                setSelectedEditProjectId(project.projectId);
-                              } else if (action === "manageTeam") {
-                                handleManageTeam(project.projectId, project);
-                              }
-                              // Reset back to default option
-                              e.target.selectedIndex = 0;
-                            }}
-                          >
-                            <option value="" className="bg-green-700 text-white">
-                              Actions
-                            </option>
-                            <option value="view" className="bg-green-700 text-white">
-                              View
-                            </option>
-                            <option value="edit" className="bg-green-700 text-white">
-                              Edit
-                            </option>
-                            <option value="manageTeam" className="bg-green-700 text-white">
-                              Manage Team
-                            </option>
-                          </select>
+                          <div className="flex justify-center gap-2">
+                            {/* View Project Button */}
+                            <button
+                              onClick={() => handleView(project)}
+                              className="p-2 rounded-full hover:bg-green-100"
+                              title="View"
+                            >
+                              <FiEye size={20} className="text-green-700" />
+                            </button>
+
+                            {/* Edit Project Button */}
+                            <button
+                              onClick={() => setSelectedEditProjectId(project.projectId)}
+                              className="p-2 rounded-full hover:bg-green-100"
+                              title="Edit"
+                            >
+                              <FiEdit size={20} className="text-green-700" />
+                            </button>
+
+                            {/* Manage Team Button */}
+                            <button
+                              onClick={() => handleManageTeam(project.projectId, project)}
+                              className="p-2 rounded-full hover:bg-green-100"
+                              title="Manage Team"
+                            >
+                              <FiUsers size={20} className="text-green-700" />
+                            </button>
+                          </div>
                         </td>
+
                       </tr>
                     ))
                   ) : (
@@ -705,22 +706,29 @@ console.log(projectData);
 
                     <div className="mt-3 flex justify-end space-x-2">
                       <button
-                        className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
                         onClick={() => handleView(project)}
+                        className="p-2 rounded-full hover:bg-green-100"
+                        title="View"
                       >
-                        View
+                        <FiEye size={20} className="text-green-700" />
                       </button>
+
+                      {/* Edit Project Button */}
                       <button
-                        className="bg-green-600 text-white px-3 py-1 rounded text-sm"
                         onClick={() => setSelectedEditProjectId(project.projectId)}
+                        className="p-2 rounded-full hover:bg-green-100"
+                        title="Edit"
                       >
-                        Edit
+                        <FiEdit size={20} className="text-green-700" />
                       </button>
+
+                      {/* Manage Team Button */}
                       <button
-                        className="bg-purple-600 text-white px-3 py-1 rounded text-sm"
                         onClick={() => handleManageTeam(project.projectId, project)}
+                        className="p-2 rounded-full hover:bg-green-100"
+                        title="Manage Team"
                       >
-                        Team
+                        <FiUsers size={20} className="text-green-700" />
                       </button>
                     </div>
                   </div>
