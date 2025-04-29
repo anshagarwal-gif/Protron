@@ -155,10 +155,10 @@ const ProjectManagement = () => {
           pmFullName.includes(searchTermLower);
 
         // Search in sponsor/tenant
-        const tenentMatch = (project.sponsor || '').toLowerCase().includes(searchTermLower);
+        // const tenentMatch = (project.sponsor || 'N/A').toLowerCase().includes(searchTermLower);
 
         // Return true if any of the fields match
-        return projectNameMatch || pmMatch || tenentMatch;
+        return projectNameMatch || pmMatch;
       });
     }
 
