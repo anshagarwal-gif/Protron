@@ -4,7 +4,7 @@ import GlobalSnackbar from '../components/GlobalSnackbar';
 import axios from 'axios';
 import ForgotPassword from './ForgotPassword'; // Import the new component
 
-const Login = ({ onLogin, onSwitchToSignup }) => {
+const Login = ({ onLogin }) => {
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -139,18 +139,6 @@ const Login = ({ onLogin, onSwitchToSignup }) => {
                         Sign in
                     </button>
                 </form>
-
-                <div className="mt-6 text-center">
-                    <p className="text-gray-600">
-                        Don't have an account?{" "}
-                        <button
-                            onClick={onSwitchToSignup}
-                            className="text-blue-600 hover:underline"
-                        >
-                            Sign up
-                        </button>
-                    </p>
-                </div>
             </div>
             <GlobalSnackbar
                 open={snackbar.open}

@@ -542,17 +542,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                             Create Account
                         </button>
 
-                        <div className="text-center md:text-right">
-                            <p className="text-gray-600">
-                                Already have an account?{" "}
-                                <button
-                                    onClick={onSwitchToLogin}
-                                    className="text-blue-600 hover:underline"
-                                >
-                                    Sign in
-                                </button>
-                            </p>
-                        </div>
+                        
                     </div>
                 </form>
             </div>
