@@ -212,7 +212,7 @@ const ProjectManagement = () => {
           : null,
         projectCost: updatedData.projectCost,
         projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
-        sponsor: updatedData.sponsor,
+        sponsor: updatedData.sponsor.userId,
         unit: updatedData.unit,
       };
 console.log(projectData);
@@ -405,10 +405,10 @@ console.log(projectData);
   const formatDate = (dateString) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
     const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const month = months[date.getUTCMonth()];
+    const year = date.getUTCFullYear();
+  
     return `${day}-${month}-${year}`;
   };
   const handleView = (project) => {
