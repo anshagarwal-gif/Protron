@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import "./App.css";
 
 import Sidebar from './components/sidebar';
@@ -18,6 +18,8 @@ const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
 
 const UserManagement = () => {
+    const navigate = useNavigate(); // Use the navigate hook
+
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
             <button
@@ -35,7 +37,7 @@ const UserManagement = () => {
                 }}
                 onMouseOver={(e) => (e.target.style.backgroundColor = '#2e7d32')}
                 onMouseOut={(e) => (e.target.style.backgroundColor = '#1b5e20')}
-                onClick={() => window.location.href = '/signup'}
+                onClick={() => navigate('/signup')} // Use navigate instead of href
             >
                 Create New User
             </button>
@@ -81,11 +83,11 @@ const App = () => {
                         {!isAuthenticated ? (
                             <>
                                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                                <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
                                 <Route path="*" element={<Navigate to="/login" />} />
                             </>
                         ) : (
                             <>
+                                <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/projects" element={<ProjectManagement />} />
                                 <Route path="/team" element={<TeamManagement />} />
