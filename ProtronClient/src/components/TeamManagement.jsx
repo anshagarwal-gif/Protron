@@ -264,14 +264,14 @@ const TeamManagement = () => {
                     <h3 className="font-medium">
                         {member.firstName + member.lastName}
                     </h3>
-                    <p className="text-sm text-gray-500">{member.empCode}</p>
+                    <p className="text-md text-gray-500">{member.empCode}</p>
                 </div>
             </div>
             
             <div className="mt-4">
                 <div className="flex justify-between border-b py-2">
                     <span className="font-medium text-gray-600">Email:</span>
-                    <span className="text-gray-800 text-sm truncate max-w-[60%] text-right">{member.email}</span>
+                    <span className="text-gray-800 text-md truncate max-w-[60%] text-right">{member.email}</span>
                 </div>
                 <div className="flex justify-between border-b py-2">
                     <span className="font-medium text-gray-600">Cost:</span>
@@ -371,7 +371,7 @@ const TeamManagement = () => {
                         </div>
                     </div>
                     
-                    <div className="text-sm text-green-800 bg-green-50 px-3 py-1 rounded border border-green-200">
+                    <div className="text-md text-green-800 bg-green-50 px-3 py-1 rounded border border-green-200">
                         Showing <span className="font-semibold">{filteredEmployees.length > 0 ? indexOfFirstEmployee + 1 : 0}</span> to <span className="font-semibold">{Math.min(indexOfLastEmployee, filteredEmployees.length)}</span> of <span className="font-semibold">{filteredEmployees.length}</span> entries
                     </div>
                 </div>
@@ -389,9 +389,9 @@ const TeamManagement = () => {
                         <table className="w-full min-w-[640px] border-collapse">
     <thead>
         <tr className="bg-green-700 text-white">
-            <th className="py-3 px-4 text-sm font-medium border-r">#</th>
+            <th className="py-3 px-4 text-md font-medium border-r">#</th>
             <th 
-                className="py-3 px-4 text-sm font-medium border-r cursor-pointer select-none"
+                className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
                 onClick={() => handleSort('firstName')}
             >
                 <div className="flex items-center">
@@ -400,7 +400,7 @@ const TeamManagement = () => {
                 </div>
             </th>
             <th 
-                className="py-3 px-4 text-sm font-medium border-r cursor-pointer select-none"
+                className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
                 onClick={() => handleSort('empCode')}
             >
                 <div className="flex items-center">
@@ -409,7 +409,7 @@ const TeamManagement = () => {
                 </div>
             </th>
             <th 
-                className="py-3 px-4 text-sm font-medium border-r cursor-pointer select-none"
+                className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
                 onClick={() => handleSort('email')}
             >
                 <div className="flex items-center">
@@ -418,7 +418,7 @@ const TeamManagement = () => {
                 </div>
             </th>
             <th 
-                className="py-3 px-4 text-sm font-medium border-r cursor-pointer select-none"
+                className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
                 onClick={() => handleSort('cost')}
             >
                 <div className="flex items-center">
@@ -427,7 +427,7 @@ const TeamManagement = () => {
                 </div>
             </th>
             <th 
-                className="py-3 px-4 text-sm font-medium border-r cursor-pointer select-none"
+                className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
                 onClick={() => handleSort('dateOfJoining')}
             >
                 <div className="flex items-center">
@@ -436,7 +436,7 @@ const TeamManagement = () => {
                 </div>
             </th>
             <th 
-                className="py-3 px-4 text-sm font-medium cursor-pointer select-none"
+                className="py-3 px-4 text-md font-medium cursor-pointer select-none"
                 onClick={() => handleSort('status')}
             >
                 <div className="flex items-center">
@@ -465,7 +465,7 @@ const TeamManagement = () => {
                         {member.dateOfJoining ? member.dateOfJoining.split('T')[0] : "N/A"}
                     </td>
                     <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
+                        <span className={`px-2 py-1 rounded-full text-md font-medium ${getStatusColor(member.status)}`}>
                             {member.status}
                         </span>
                     </td>
@@ -593,72 +593,116 @@ const TeamManagement = () => {
   <>
     {/* Modal Backdrop */}
     <div 
-      className="fixed inset-0  bg-[rgba(0,0,0,0.3)] z-40 transition-opacity"
+      className="fixed inset-0 bg-[rgba(0,0,0,0.3)] z-40 transition-opacity"
       onClick={() => setIsProfileOpen(false)}
     />
     
     {/* Modal Content */}
-    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[50vw] max-h-[80vh] overflow-y-auto bg-white rounded-lg shadow-xl z-50 p-6">
+    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[800px] bg-white rounded-lg shadow-xl z-50 p-5">
       <button
-        className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
+        className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
         onClick={() => setIsProfileOpen(false)}
       >
         ✖
       </button>
       
-      <div className="flex flex-col items-center mb-6">
+      {/* Header Section */}
+      <div className="flex items-start space-x-4 mb-4 pb-3 border-b">
         <img
-          src={selectedProfile.avatar ? selectedProfile.avatar : "./profilepic.jpg"}
-          className="w-24 h-24 rounded-full mb-4 object-cover"
+          src={selectedProfile.profilePhoto ? selectedProfile.profilePhoto : "./profilepic.jpg"}
+          className="w-20 h-20 rounded-full object-cover"
           alt="Profile"
         />
-        <div className="text-center">
-          <h2 className="text-xl font-bold">
-            {selectedProfile.firstName} {selectedProfile.lastName}
+        <div>
+          <h2 className="text-lg font-bold">
+            {selectedProfile.firstName} {selectedProfile.middleName ? selectedProfile.middleName + " " : ""}{selectedProfile.lastName}
           </h2>
-          <p className="text-sm text-gray-500">{selectedProfile.empCode}</p>
-          <p className="text-sm">
-            {selectedProfile.dateOfJoining ? selectedProfile.dateOfJoining.split("T")[0] : "N/A"}
+          <p className="text-md text-gray-500">{selectedProfile.empCode}</p>
+          <p className="text-md">
+            <span className="font-medium">Email:</span> {selectedProfile.email}
+          </p>
+          <p className="text-md">
+            <span className="font-medium">Joined:</span> {selectedProfile.dateOfJoining ? new Date(selectedProfile.dateOfJoining).toLocaleDateString() : "N/A"}
           </p>
         </div>
       </div>
-
-      <div className="mt-6">
-        <div className="mb-4 bg-gray-50 p-3 rounded">
-          <h3 className="text-sm font-semibold mb-2">Projects</h3>
-          <div className="flex justify-between border-b pb-2 mb-2">
-            <span>Completed:</span>
-            <span>{selectedProfile.projectsCompleted}</span>
+      
+      {/* Main Content - 3 Columns */}
+      <div className="grid grid-cols-3 gap-3">
+        {/* Column 1 */}
+        <div className="space-y-3">
+          {/* Contact Information */}
+          <div className="bg-gray-50 p-3 rounded">
+            <h3 className="text-md font-semibold mb-2">Contact Information</h3>
+            <div className="space-y-1 text-md">
+              <p><span className="font-medium">Mobile:</span> {selectedProfile.mobilePhone || "N/A"}</p>
+              <p><span className="font-medium">Office:</span> {selectedProfile.lanPhone || "N/A"}</p>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span>Ongoing:</span>
-            <span>{selectedProfile.ongoingProjects}</span>
+          
+          {/* Organization */}
+          <div className="bg-gray-50 p-3 rounded">
+            <h3 className="text-md font-semibold mb-2">Organization</h3>
+            <div className="space-y-1 text-md">
+              <p><span className="font-medium">Company:</span> {selectedProfile.tenant?.tenantName || "N/A"}</p>
+              <p><span className="font-medium">Role:</span> {selectedProfile.role || "N/A"}</p>
+              <p><span className="font-medium">Unit:</span> {selectedProfile.unit || "N/A"}</p>
+            </div>
           </div>
         </div>
-
-        <div className="mb-4 bg-gray-50 p-3 rounded">
-          <h3 className="text-sm font-semibold mb-2">Certifications</h3>
-          {selectedProfile.certificates && selectedProfile.certificates.length > 0 ? (
-            <ul className="list-disc list-inside">
-              {selectedProfile.certificates.map((cert, i) => (
-                <li key={i}>{cert}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500 text-sm">No certifications found</p>
-          )}
+        
+        {/* Column 2 */}
+        <div className="space-y-3">
+          {/* Location */}
+          <div className="bg-gray-50 p-3 rounded h-full">
+            <h3 className="text-md font-semibold mb-2">Location</h3>
+            <div className="text-md">
+              <p>{selectedProfile.addressLine1 || "N/A"}</p>
+              {selectedProfile.addressLine2 && <p>{selectedProfile.addressLine2}</p>}
+              {selectedProfile.addressLine3 && <p>{selectedProfile.addressLine3}</p>}
+              <p>
+                {selectedProfile.city && `${selectedProfile.city}, `}
+                {selectedProfile.state && `${selectedProfile.state}, `}
+                {selectedProfile.zipCode && `${selectedProfile.zipCode}`}
+              </p>
+              <p>{selectedProfile.country || "N/A"}</p>
+            </div>
+          </div>
         </div>
-
-        <div className="mb-4 bg-gray-50 p-3 rounded">
-          <h3 className="text-sm font-semibold mb-2">CV</h3>
-          <a 
-            href={selectedProfile.cvLink} 
-            className="text-blue-600 hover:text-blue-800 underline block text-center" 
-            target="_blank" 
-            rel="noopener noreferrer"
-          >
-            View CV
-          </a>
+        
+        {/* Column 3 */}
+        <div className="space-y-3">
+          {/* Project Teams */}
+          <div className="bg-gray-50 p-3 rounded">
+            <h3 className="text-md font-semibold mb-2">Project Teams ({selectedProfile.projectTeams?.length || 0})</h3>
+            {selectedProfile.projectTeams && selectedProfile.projectTeams.length > 0 ? (
+              <div className="text-md max-h-[100px] overflow-y-auto pr-1">
+                <ul className="list-disc list-inside">
+                  {selectedProfile.projectTeams.map((team, i) => (
+                    <li key={i} className="truncate" title={team.project.projectName}>
+                      {team.project.projectName || `Team ${i + 1}`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-md">Not part of any teams</p>
+            )}
+          </div>
+          
+          {/* Certifications */}
+          <div className="bg-gray-50 p-3 rounded">
+            <h3 className="text-md font-semibold mb-2">Certifications</h3>
+            {selectedProfile.certificates && selectedProfile.certificates.length > 0 ? (
+              <ul className="list-disc list-inside text-md">
+                {selectedProfile.certificates.map((cert, i) => (
+                  <li key={i}>{cert.name || cert}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-md">No certifications found</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -212,7 +212,7 @@ const ProjectManagement = () => {
           : null,
         projectCost: updatedData.projectCost,
         projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
-        sponsor: updatedData.sponsor.userId,
+        sponsor: updatedData.sponsor?.userId ??null,
         unit: updatedData.unit,
       };
       console.log(projectData);
@@ -408,7 +408,7 @@ const ProjectManagement = () => {
     const day = date.getUTCDate().toString().padStart(2, '0');
     const month = months[date.getUTCMonth()];
     const year = date.getUTCFullYear();
-  
+
     return `${day}-${month}-${year}`;
   };
   const handleView = (project) => {
@@ -596,8 +596,9 @@ const ProjectManagement = () => {
                       >
                         <td className="py-3 px-4 border-r">{indexOfFirstProject + index + 1}</td>
                         <td
-                          className="py-3 px-4 border-r font-medium cursor-pointer hover:text-green-600"
+                          className="py-3 px-4 border-r font-medium cursor-pointer hover:text-green-600 max-w-[200px] truncate"
                           onClick={() => handleManageTeam(project.projectId, project)}
+                          title={project.projectName} 
                         >
                           {project.projectName}
                         </td>
