@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { FiHome, FiUser, FiUserCheck, FiFolder, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const Navbar = ({ activeSection, setActiveSection }) => {
+const Navbar = ({ setIsAuthenticated }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [profile,setProfile] = useState(null)
   const email = sessionStorage.getItem("email")
   const userDropdownRef = useRef(null);
+  const navigate = useNavigate()
   useEffect(() => {
     const handleWindowClose = async (e) => {
       const userId = sessionStorage.getItem('userId');
@@ -56,6 +58,7 @@ const Navbar = ({ activeSection, setActiveSection }) => {
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('email');
         sessionStorage.removeItem('userId');
+        setIsAuthenticated(false);
         sessionStorage.removeItem('isAuthenticated');
        
         
@@ -130,10 +133,11 @@ const Navbar = ({ activeSection, setActiveSection }) => {
   };
 
   const handleNavItemClick = (section) => {
-    setActiveSection(section);
+    // setActiveSection(section);
     if (isMobile) {
       setIsOpen(false);
     }
+    navigate(`/${section}`); // Navigate to the selected section
   };
   const handleButtonClick = (email) => {
     toggleUserDropdown();
@@ -157,17 +161,17 @@ const Navbar = ({ activeSection, setActiveSection }) => {
             <div className="hidden md:flex items-center justify-center flex-1">
               <div className="flex items-center space-x-10">
                 {[
-                  { key: 'dashboard', label: 'Dashboard' },
-                  { key: 'projects', label: 'Projects' },
-                  { key: 'team', label: 'Team'},
-                  { key: 'timesheet', label: 'Timesheet'},
-                  { key: 'users', label: 'Users' },
+                  { key: 'dashboard', label: 'Dashboard', path: '/dashboard' },
+                  { key: 'projects', label: 'Projects', path: '/projects' },
+                  { key: 'team', label: 'Team', path: '/team' },
+                  { key: 'timesheet', label: 'Timesheet', path: '/timesheet' },
+                  { key: 'users', label: 'Users', path: '/users' },
                 ].map((item) => (
                   <button
                     key={item.key}
-                    onClick={() => handleNavItemClick(item.key)}
+                    onClick={() => navigate(item.path)} // Navigate using the path
                     className={`flex items-center px-3 py-2 rounded hover:underline cursor-pointer transition-colors duration-200 ${
-                      activeSection === item.key ? 'underline text-orange-500' : ''
+                      window.location.pathname === item.path ? 'underline text-orange-500' : ''
                     }`}
                   >
                     {item.icon}

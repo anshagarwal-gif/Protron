@@ -40,7 +40,7 @@ public class UserSignUpDTO {
 
     // Added last updated by field
     private String lastUpdatedBy;
-
+    
     // Getters and setters for the new fields
     public LocalDateTime getStartTimestamp() {
         return startTimestamp;

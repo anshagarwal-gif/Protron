@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import "./App.css";
+
 import Sidebar from './components/sidebar';
 import ProjectTeamManagement from './components/ProjectTeamManagement';
 import TeamManagement from './components/TeamManagement';
@@ -8,115 +10,102 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import axios from 'axios';
 import GlobalSnackbar from './components/GlobalSnackbar';
 import Navbar from './components/Navbar';
 
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
-const UserManagement = () => <div>User Management Content</div>;
+
+const UserManagement = () => {
+    const navigate = useNavigate(); // Use the navigate hook
+
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <button
+                style={{
+                    backgroundColor: '#1b5e20',
+                    color: 'white',
+                    padding: '10px 20px',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    transition: 'background-color 0.3s ease',
+                }}
+                onMouseOver={(e) => (e.target.style.backgroundColor = '#2e7d32')}
+                onMouseOut={(e) => (e.target.style.backgroundColor = '#1b5e20')}
+                onClick={() => navigate('/signup')} // Use navigate instead of href
+            >
+                Create New User
+            </button>
+        </div>
+    );
+};
 
 const App = () => {
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
-        severity: 'info', // 'success' | 'error' | 'warning' | 'info'
+        severity: 'info',
     });
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [currentPage, setCurrentPage] = useState('login'); // 'login', 'signup', or 'dashboard'
-    const [activeSection, setActiveSection] = useState('dashboard');
 
-    // Check for existing authentication on component mount
     useEffect(() => {
         const authStatus = sessionStorage.getItem('isAuthenticated');
         if (authStatus === 'true') {
             setIsAuthenticated(true);
-            setCurrentPage('dashboard');
         }
     }, []);
 
-    const handleLogin = async (isLoggedIn) => {
-        if (isLoggedIn) {
-            setIsAuthenticated(true);
-            sessionStorage.setItem('isAuthenticated', 'true');
-            setCurrentPage('dashboard');
-        }
+    const handleLogin = () => {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('isAuthenticated', 'true');
     };
 
-    const handleSignup = async (isSignUp) => {
-        if (isSignUp) {
-            // Mock successful registration and login
-            setIsAuthenticated(true);
-            sessionStorage.setItem('isAuthenticated', 'true');
-            setCurrentPage('dashboard');
-        }
+    const handleSignup = () => {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('isAuthenticated', 'true');
     };
 
-    const handleLogout = () => {
-        setIsAuthenticated(false);
-        sessionStorage.removeItem('isAuthenticated');
-        sessionStorage.removeItem('token')
-        sessionStorage.removeItem('email')
-        sessionStorage.removeItem('tenantId')
-        setCurrentPage('login');
-    };
-
-    const renderContent = () => {
-        switch (activeSection) {
-            case 'dashboard':
-                return <Dashboard />;
-            case 'projects':
-                return <ProjectManagement />;
-            case 'team':
-                return <TeamManagement />;
-            case 'timesheet':
-                return <ManageTimesheet />;
-            case 'users':
-                return <UserManagement />;
-            default:
-                return <div>Select an option</div>;
-        }
-    };
-
-    // Render login/signup pages if not authenticated
-    if (!isAuthenticated) {
-        if (currentPage === 'login') {
-            return (
-                <Login
-                    onLogin={handleLogin}
-                    onSwitchToSignup={() => setCurrentPage('signup')}
-                />
-            );
-        } else if (currentPage === 'signup') {
-            return (
-                <Signup
-                    onSignup={handleSignup}
-                    onSwitchToLogin={() => setCurrentPage('login')}
-                />
-            );
-        }
-    }
-
-    // Render main app layout if authenticated
     return (
-<LocalizationProvider dateAdapter={AdapterDayjs}>
-            <div className="flex flex-col h-screen">
-               
-                <Navbar 
-                    activeSection={activeSection} 
-                    setActiveSection={setActiveSection} 
-                    handleLogout={handleLogout} 
-                />
-                    <div className="flex-1 p-6 overflow-y-auto">{renderContent()}</div>
-              
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Router>
+                {isAuthenticated && (
+                    <Navbar
+                        setIsAuthenticated={setIsAuthenticated}
+                    />
+                )}
+                <div className="flex-1 p-6 overflow-y-auto">
+                    <Routes>
+                        {!isAuthenticated ? (
+                            <>
+                                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                                <Route path="*" element={<Navigate to="/login" />} />
+                            </>
+                        ) : (
+                            <>
+                                <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/projects" element={<ProjectManagement />} />
+                                <Route path="/team" element={<TeamManagement />} />
+                                <Route path="/timesheet" element={<ManageTimesheet />} />
+                                <Route path="/users" element={<UserManagement />} />
+                                <Route path="*" element={<Navigate to="/dashboard" />} />
+                            </>
+                        )}
+                    </Routes>
+                </div>
+
                 <GlobalSnackbar
                     open={snackbar.open}
                     message={snackbar.message}
                     severity={snackbar.severity}
                     onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
                 />
-            </div>
+            </Router>
         </LocalizationProvider>
     );
 };

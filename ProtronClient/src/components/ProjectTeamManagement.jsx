@@ -35,6 +35,17 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
         }
     }
 
+    const formatDate = (dateString) => {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+    
+      return `${day}-${month}-${year}`;
+    };
+    
+
     useEffect(() => {
         fetchTeammates()
     }, [])
@@ -290,7 +301,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
             <div className="grid grid-cols-3 gap-6 mb-8 bg-[#AECCE4] p-4 rounded-lg">
                 <div>
                     <p className="text-gray-500 text-sm">Project Name: <span className="font-medium text-gray-700">{project.projectName}</span></p>
-                    <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{project.startDate?.split("T")[0]}</span></p>
+                    <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{formatDate(project.startDate)}</span></p>
                 </div>
                 <div>
                     <p className="text-gray-500  text-sm">PM Name: <span className="font-medium text-gray-700">{project.projectManager?.firstName}{" "}
