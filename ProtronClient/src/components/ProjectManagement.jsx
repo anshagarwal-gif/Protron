@@ -27,7 +27,7 @@ const ProjectManagement = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [projectsPerPage, setProjectsPerPage] = useState(10);
+  const [projectsPerPage, setProjectsPerPage] = useState(5);
   const [showEntriesDropdown, setShowEntriesDropdown] = useState(false);
   const [projectFormData, setProjectFormData] = useState({ ...selectedProject });
   const [formData, setFormData] = useState({
@@ -403,14 +403,19 @@ const ProjectManagement = () => {
 
   // Function to format date as DD-MMM-YYYY (e.g., 12-Sept-2025)
   const formatDate = (dateString) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+    if (!dateString) return "";
+  
     const date = new Date(dateString);
+    if (isNaN(date)) return ""; // invalid date
+  
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
     const day = date.getDate().toString().padStart(2, '0');
     const month = months[date.getMonth()];
     const year = date.getFullYear();
   
     return `${day}-${month}-${year}`;
   };
+  
   const handleView = (project) => {
     console.log(project)
     setSelectedProject(project);
@@ -489,7 +494,7 @@ const ProjectManagement = () => {
 
               {showEntriesDropdown && (
                 <div className="absolute top-full left-0 w-24 mt-1 bg-white border border-green-700 rounded shadow-lg z-10 overflow-hidden">
-                  {[10, 20, 50, 100].map((value) => (
+                  {[5,10, 20, 50, 100].map((value) => (
                     <button
                       key={value}
                       className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${projectsPerPage === value
@@ -603,7 +608,7 @@ const ProjectManagement = () => {
                           {project.projectName}
                         </td>
                         <td className="py-3 px-4 border-r">
-                          {project.startDate ? formatDate(project.startDate) : 'N/A'}
+                          {formatDate(project.startDate)}
                         </td>
                         <td className="py-3 px-4 border-r">
                           {project.projectManager?.firstName} {project.projectManager?.lastName}
@@ -920,7 +925,7 @@ const ProjectManagement = () => {
                       </span>
                       <span className="text-gray-500 text-sm font-medium">End Date</span>
                     </div>
-                    <p className="text-base">{new Date(selectedProject.endDate).toLocaleDateString()}</p>
+                    <p className="text-base">{formatDate(selectedProject.endDate)}</p>
                   </div>
                 </div>
 

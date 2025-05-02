@@ -1,5 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { FiX, FiRefreshCw } from 'react-icons/fi';
+import { useState,useEffect } from 'react';
+import { 
+    Dialog, 
+    DialogContent, 
+    Box, 
+    Typography, 
+    TextField, 
+    InputAdornment, 
+    Button, 
+    Avatar,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+} from '@mui/material';
+import { 
+    Assignment as AssignmentIcon,
+    Badge as BadgeIcon,
+    CalendarToday as CalendarTodayIcon,
+    MonetizationOn as MonetizationOnIcon,
+    Refresh as RefreshIcon,
+} from '@mui/icons-material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import dayjs from 'dayjs';;
 
 const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
     const [formData, setFormData] = useState({
@@ -20,6 +42,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
     // Theme colors
     const greenPrimary = '#1b5e20'; // green-900
     const greenHover = '#2e7d32'; // green-600
+    const fieldHeight = '56px';
 
     useEffect(() => {
         if (member) {
@@ -62,158 +85,217 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg w-full max-w-md p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-bold" style={{ color: greenPrimary }}>Edit Team Member</h2>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-500 hover:text-gray-700"
-                    >
-                        <FiX size={20} />
-                    </button>
-                </div>
+        <Dialog
+    open={open}
+    onClose={onClose}
+    fullWidth
+    maxWidth="md"
+    PaperProps={{
+        sx: {
+            borderRadius: 2,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+        }
+    }}
+>
+    <Box
+        sx={{
+            bgcolor: '#f8f9fa',
+            borderBottom: '1px solid #e0e0e0',
+            py: 2.5,
+            px: 3
+        }}
+    >
+        <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
+            Edit Team Member
+        </Typography>
+    </Box>
 
-                <form onSubmit={handleSubmit}>
-                    {/* Display member info (non-editable) */}
-                    <div className="mb-4 flex items-center">
-                        <div className="w-10 h-10 rounded-full mr-3 flex items-center justify-center" style={{ backgroundColor: greenPrimary }}>
-                            {member?.user?.profilePhoto ? (
-                                <img
-                                    src={member.user.profilePhoto}
-                                    alt="Profile"
-                                    className="w-10 h-10 rounded-full"
-                                />
-                            ) : (
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: greenPrimary }}>
-                                    {member?.user?.firstName?.charAt(0) || ''}
-                                </div>
-                            )}
-                        </div>
-                        <div>
-                            <p className="font-medium">{`${member?.user?.firstName || ''} ${member?.user?.lastName || ''}`}</p>
-                            <p className="text-sm text-gray-500">{member?.user?.email || ''}</p>
-                        </div>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block text-gray-600 text-sm font-medium mb-1">
-                            Employee Code
-                        </label>
-                        <input
-                            type="text"
-                            value={member?.empCode || ''}
-                            className="w-full px-3 py-2 border rounded bg-gray-100 text-gray-600"
-                            disabled
+    <DialogContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ mr: 2 }}>
+                    {member?.user?.profilePhoto ? (
+                        <Avatar
+                            src={member.user.profilePhoto}
+                            alt="Profile"
+                            sx={{ width: 40, height: 40 }}
                         />
-                    </div>
+                    ) : (
+                        <Avatar
+                            sx={{ 
+                                width: 40, 
+                                height: 40, 
+                                bgcolor: greenPrimary 
+                            }}
+                        >
+                            {member?.user?.firstName?.charAt(0) || ''}
+                        </Avatar>
+                    )}
+                </Box>
+                <Box>
+                    <Typography variant="body1" fontWeight="500">
+                        {`${member?.user?.firstName || ''} ${member?.user?.lastName || ''}`}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        {member?.user?.email || ''}
+                    </Typography>
+                </Box>
+            </Box>
 
-                    <div className="mb-4">
-                        <label className="block text-gray-600 text-sm font-medium mb-1">
-                            Task Type *
-                        </label>
-                        <select
-                            name="taskType"
-                            value={formData.taskType}
+
+            <TextField
+                fullWidth
+                label="Employee Code"
+                value={member?.empCode || ''}
+                disabled
+                variant="outlined"
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <BadgeIcon sx={{ color: greenPrimary }} />
+                        </InputAdornment>
+                    ),
+                    sx: { height: fieldHeight, bgcolor: '#f5f5f5' }
+                }}
+            />
+
+            <FormControl fullWidth>
+                <InputLabel>Task Type</InputLabel>
+                <Select
+                    name="taskType"
+                    value={formData.taskType}
+                    onChange={handleChange}
+                    label="Task Type"
+                    sx={{ height: fieldHeight }}
+                    required
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <AssignmentIcon sx={{ color: greenPrimary }} />
+                            </InputAdornment>
+                        )
+                    }}
+                >
+                    <MenuItem value="developer">Developer</MenuItem>
+                    <MenuItem value="designer">Designer</MenuItem>
+                    <MenuItem value="test">Test</MenuItem>
+                </Select>
+            </FormControl>
+
+            <Box sx={{ display: 'flex', gap: 3 }}>
+                <Box sx={{ width: '50%' }}>
+                    <TextField
+                        fullWidth
+                        label="Cost"
+                        name="pricing"
+                        type="number"
+                        value={formData.pricing}
+                        onChange={handleChange}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                 
+                                </InputAdornment>
+                            ),
+                            sx: { height: fieldHeight }
+                        }}
+                    />
+                </Box>
+                <Box sx={{ width: '50%' }}>
+                    <FormControl fullWidth>
+                        <InputLabel>Unit</InputLabel>
+                        <Select
+                            name="unit"
+                            value={formData.unit}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                            style={{ '--tw-ring-color': greenPrimary }}
-                            required
+                            label="Unit"
+                            sx={{ height: fieldHeight }}
                         >
-                            <option value="developer">Developer</option>
-                            <option value="designer">Designer</option>
-                            <option value="test">Test</option>
-                        </select>
-                    </div>
+                            <MenuItem value="USD">USD</MenuItem>
+                            <MenuItem value="INR">INR</MenuItem>
+                            <MenuItem value="EUR">EUR</MenuItem>
+                            <MenuItem value="GBP">GBP</MenuItem>
+                            <MenuItem value="JPY">JPY</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
+            </Box>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block text-gray-600 text-sm font-medium mb-1">
-                                Cost *
-                            </label>
-                            <input
-                                type="number"
-                                name="pricing"
-                                value={formData.pricing}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                                style={{ '--tw-ring-color': greenPrimary }}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-gray-600 text-sm font-medium mb-1">
-                                Unit *
-                            </label>
-                            <select
-                                name="unit"
-                                value={formData.unit}
-                                onChange={handleChange}
-                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                                style={{ '--tw-ring-color': greenPrimary }}
-                                required
-                            >
-                                <option value="USD">USD</option>
-                                <option value="INR">INR</option>
-                                <option value="EUR">EUR</option>
-                                <option value="GBP">GBP</option>
-                                <option value="JPY">JPY</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="mb-6">
-                        <label className="block text-gray-600 text-sm font-medium mb-1">
-                            Estimated Release Date *
-                        </label>
-                        <input
-                            type="date"
-                            name="estimatedReleaseDate"
-                            value={formData.estimatedReleaseDate}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2"
-                            style={{ '--tw-ring-color': greenPrimary }}
-                            required
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 border rounded hover:bg-gray-50"
-                            style={{ 
-                                borderColor: greenPrimary, 
-                                color: greenPrimary 
-                            }}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleReset}
-                            className="px-4 py-2 border rounded flex items-center"
-                            style={{ 
-                                borderColor: greenPrimary, 
-                                color: greenPrimary 
-                            }}
-                        >
-                            <FiRefreshCw className="mr-1" /> Reset
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 text-white rounded hover:bg-opacity-90"
-                            style={{ 
-                                backgroundColor: greenPrimary,
-                                '--tw-hover-bg-opacity': 0.9
-                            }}
-                        >
-                            Update
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+            <DatePicker
+                label="Estimated Release Date"
+                value={formData.estimatedReleaseDate ? dayjs(formData.estimatedReleaseDate) : null}
+                onChange={(newDate) =>
+                    setFormData((prev) => ({ 
+                        ...prev, 
+                        estimatedReleaseDate: newDate ? newDate.format('YYYY-MM-DD') : '' 
+                    }))
+                }
+                slotProps={{
+                    textField: {
+                        fullWidth: true,
+                        required: true,
+                        InputProps: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <CalendarTodayIcon sx={{ color: greenPrimary }} />
+                                </InputAdornment>
+                            ),
+                            sx: { height: fieldHeight }
+                        }
+                    }
+                }}
+            />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                <Button
+                    onClick={onClose}
+                    variant="outlined"
+                    sx={{
+                        borderColor: greenPrimary,
+                        color: greenPrimary,
+                        height: '42px',
+                        '&:hover': {
+                            borderColor: greenHover,
+                            color: greenHover
+                        }
+                    }}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    onClick={handleReset}
+                    variant="outlined"
+                    startIcon={<RefreshIcon />}
+                    sx={{
+                        borderColor: greenPrimary,
+                        color: greenPrimary,
+                        height: '42px',
+                        '&:hover': {
+                            borderColor: greenHover,
+                            color: greenHover
+                        }
+                    }}
+                >
+                    Reset
+                </Button>
+                <Button
+                    onClick={handleSubmit}
+                    variant="contained"
+                    sx={{
+                        bgcolor: greenPrimary,
+                        color: 'white',
+                        height: '42px',
+                        fontWeight: 600,
+                        '&:hover': {
+                            bgcolor: greenHover
+                        }
+                    }}
+                >
+                    Update
+                </Button>
+            </Box>
+        </Box>
+    </DialogContent>
+</Dialog>
     );
 };
 

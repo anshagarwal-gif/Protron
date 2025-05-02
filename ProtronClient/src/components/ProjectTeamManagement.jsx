@@ -36,15 +36,18 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
     }
 
     const formatDate = (dateString) => {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+      if (!dateString) return "";
+    
       const date = new Date(dateString);
+      if (isNaN(date)) return ""; // invalid date
+    
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
       const day = date.getDate().toString().padStart(2, '0');
       const month = months[date.getMonth()];
       const year = date.getFullYear();
     
       return `${day}-${month}-${year}`;
     };
-    
 
     useEffect(() => {
         fetchTeammates()

@@ -269,9 +269,8 @@ const Navbar = ({ setIsAuthenticated }) => {
                   <li key={item.key}>
                     <button
                       onClick={() => handleNavItemClick(item.key)}
-                      className={`w-full text-left flex items-center px-2 py-3 rounded hover:bg-orange-500 ${
-                        activeSection === item.key ? 'bg-orange-500' : ''
-                      }`}
+                      className={`w-full text-left flex items-center px-2 py-3 rounded hover:bg-orange-500`
+                        }
                     >
                       {item.icon}
                       <span>{item.label}</span>
