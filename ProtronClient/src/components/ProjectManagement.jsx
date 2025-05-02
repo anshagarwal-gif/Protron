@@ -580,12 +580,12 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                      onClick={() => handleSort('sponsor')}
+                      className="py-3 px-4 font-medium border-r  select-none"
+                     
                     >
                       <div className="flex items-center">
                         Sponsor
-                        {renderSortIcon('sponsor')}
+                       
                       </div>
                     </th>
                     <th className="py-3 px-4 font-medium">Actions</th>
