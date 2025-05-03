@@ -360,19 +360,18 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
             <td className="py-3 px-4 border-r border-t">{index + 1}</td>
             <td className="py-3 px-4 border-r border-t">
               <div className="flex items-center">
-                {member.user.profilePhoto ? (
-                  <img
-                    src={member.user.profilePhoto}
-                    alt={member.user.firstName + member.user.lastName}
-                    className="w-8 h-8 rounded-full mr-2"
-                  />
-                ) : (
-                  <img
-                    src={"/profilepic.jpg"}
-                    alt="userprofile"
-                    className="w-8 h-8 rounded-full mr-2"
-                  />
-                )}
+              <img
+  src={
+    member.user.photo
+      ? `data:image/png;base64,${member.user.photo}` // Use Base64 string directly
+      : `${import.meta.env.VITE_API_URL}/api/users/${member.user.userId}/photo` // Fallback to API URL
+  }
+  alt={member.user.firstName + ' ' + member.user.lastName}
+  className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2"
+  onError={(e) => {
+    e.target.src = "/profilepic.jpg"; // Fallback image
+  }}
+/>
                 <span>{member.user.firstName + ' ' + member.user.lastName}</span>
               </div>
             </td>

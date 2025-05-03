@@ -74,7 +74,7 @@ public class UserService {
         }
         // No role assigned for now
         user.setRole(null);
-        user.setStatus("active");
+        user.setStatus("Active");
 
         User savedUser = userRepository.save(user);
 
