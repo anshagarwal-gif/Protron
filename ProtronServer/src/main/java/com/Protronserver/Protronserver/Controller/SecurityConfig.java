@@ -47,7 +47,6 @@ public class SecurityConfig {
                 .anyRequest().authenticated(); // Others need authentication
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
