@@ -73,6 +73,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     };
 
     const handleSubmit = () => {
+        // console.log('Form Data:', formData);
         onSubmit(formData);
     };
 
@@ -409,7 +410,109 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 </Box>
                     </Box>
 
-                    {/* Row 4: Sponsor Name */}
+                    {/* Row 4: Systems Impacted */}
+                    <Box sx={{ display: 'flex', gap: 3 }}>
+                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <Autocomplete
+                                multiple
+                                options={['System1', 'System2', 'System3']} // Hardcoded options
+                                value={formData.systemImpacted || []} // Ensure it's an array
+                                onChange={(e, selectedSystems) => setFormData((prev) => ({
+                                    ...prev,
+                                    systemImpacted: selectedSystems,
+                                }))}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select Systems Impacted"
+                                        placeholder="Search for systems..."
+                                        fullWidth
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <>
+                                                    <InputAdornment position="start">
+                                                        <PeopleAltIcon sx={{ color: greenPrimary }} />
+                                                    </InputAdornment>
+                                                    {params.InputProps.startAdornment}
+                                                </>
+                                            ),
+                                            sx: { height: fieldHeight }
+                                        }}
+                                    />
+                                )}
+                                renderTags={() => null} // Don't render tags inside the input
+                            />
+
+                            {/* Display selected systems below the input field */}
+                            {formData.systemImpacted?.length > 0 && (
+                                <Paper
+                                    variant="outlined"
+                                    sx={{
+                                        mt: 1,
+                                        p: 1,
+                                        maxHeight: '150px',
+                                        overflow: 'auto',
+                                        borderColor: greenPrimary,
+                                        borderRadius: 1,
+                                    }}
+                                >
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
+                                        Selected Systems Impacted ({formData.systemImpacted.length})
+                                    </Typography>
+
+                                    <Grid container spacing={1}>
+                                        {formData.systemImpacted.map((system, index) => (
+                                            <Grid item xs={6} sm={4} md={3} key={index}>
+                                                <Box
+                                                    sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        bgcolor: greenHover,
+                                                        color: 'white',
+                                                        borderRadius: 1,
+                                                        p: 0.5,
+                                                        pl: 1,
+                                                    }}
+                                                >
+                                                    <Typography
+                                                        noWrap
+                                                        sx={{
+                                                            flex: 1,
+                                                            fontSize: '0.875rem',
+                                                        }}
+                                                    >
+                                                        {system}
+                                                    </Typography>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                systemImpacted: prev.systemImpacted.filter((s) => s !== system),
+                                                            }));
+                                                        }}
+                                                        sx={{
+                                                            color: 'white',
+                                                            p: 0.5,
+                                                            '&:hover': {
+                                                                bgcolor: 'rgba(255, 255, 255, 0.2)',
+                                                            },
+                                                        }}
+                                                    >
+                                                        {/* Add an icon for removing the system */}
+                                                        <span style={{ fontSize: '12px', fontWeight: 'bold' }}>×</span>
+                                                    </IconButton>
+                                                </Box>
+                                            </Grid>
+                                        ))}
+                                    </Grid>
+                                </Paper>
+                            )}
+                        </Box>
+                    </Box>
+
+                    {/* Row 5: Sponsor Name */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
@@ -444,7 +547,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         </Box>
                     </Box>
 
-                    {/* Row 5: Currency and Cost */}
+                    {/* Row 6: Currency and Cost */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ width: '30%' }}>
                             <FormControl fullWidth>
@@ -484,7 +587,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         </Box>
                     </Box>
 
-                    {/* Row 6: Action Buttons (Right-aligned) */}
+                    {/* Row 7: Action Buttons (Right-aligned) */}
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
                         <Button
                             onClick={onClose}

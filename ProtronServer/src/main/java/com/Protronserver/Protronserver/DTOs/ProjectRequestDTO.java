@@ -14,6 +14,7 @@ public class ProjectRequestDTO {
     private Long projectManagerId;
     private Long tenent;
     private List<TeamMemberRequestDTO> projectTeam;
+    private List<String> systemImpacted;
     // Added timestamp fields
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
@@ -21,6 +22,14 @@ public class ProjectRequestDTO {
     // Added last updated by field
     private String lastUpdatedBy;
     private Long sponsor;
+
+    public List<String> getSystemImpacted() {
+        return systemImpacted;
+    }
+
+    public void setSystemImpacted(List<String> systemImpacted) {
+        this.systemImpacted = systemImpacted;
+    }
 
     public Long getSponsor() {
         return sponsor;

@@ -3,14 +3,8 @@ package com.Protronserver.Protronserver.Service;
 import com.Protronserver.Protronserver.DTOs.ProjectRequestDTO;
 import com.Protronserver.Protronserver.DTOs.ProjectUpdateDTO;
 import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
-import com.Protronserver.Protronserver.Entities.Project;
-import com.Protronserver.Protronserver.Entities.ProjectTeam;
-import com.Protronserver.Protronserver.Entities.Tenant;
-import com.Protronserver.Protronserver.Entities.User;
-import com.Protronserver.Protronserver.Repository.ProjectRepository;
-import com.Protronserver.Protronserver.Repository.ProjectTeamRepository;
-import com.Protronserver.Protronserver.Repository.TenantRepository;
-import com.Protronserver.Protronserver.Repository.UserRepository;
+import com.Protronserver.Protronserver.Entities.*;
+import com.Protronserver.Protronserver.Repository.*;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -20,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -35,6 +30,9 @@ public class ManageProjectService {
     private TenantRepository tenantRepository;
     @Autowired
     private ProjectTeamRepository projectTeamRepository;
+
+    @Autowired
+    private SystemImpactedRepository systemImpactedRepository;
 
     public Project addProject(ProjectRequestDTO request) {
         Project project = new Project();
@@ -89,6 +87,22 @@ public class ManageProjectService {
             // Update project with team members
             savedProject.setProjectTeam(teamMembers);
         }
+
+        if (request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()) {
+            List<Systemimpacted> systems = new ArrayList<>();
+
+            for (String systemName : request.getSystemImpacted()) {
+                Systemimpacted system = new Systemimpacted();
+                system.setSystemName(systemName);
+                system.setProject(savedProject);
+                system.setTenant(tenant);
+                system.setUsers(Collections.emptySet()); // Optional: initialize empty or populate if needed
+
+                systems.add(systemImpactedRepository.save(system));
+            }
+            // Optionally, update savedProject.setSystemImpacted(systems); if mapped bidirectionally
+        }
+
         return savedProject;
     }
 

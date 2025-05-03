@@ -40,6 +40,7 @@ const ProjectManagement = () => {
     currency: 'USD',
     cost: '',
     sponsor: null,
+    systemImpacted: []
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -281,7 +282,8 @@ const ProjectManagement = () => {
           userId: userId,
           status: "active",
 
-        }))
+        })),
+        systemImpacted: data.systemImpacted
       };
       console.log(payload);
       const response = await axios.post(`${API_BASE_URL}/api/projects/add`, payload, {
