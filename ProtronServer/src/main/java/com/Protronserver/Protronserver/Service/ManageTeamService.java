@@ -45,8 +45,10 @@ public class ManageTeamService {
         team.setEndTimestamp(dto.getEndTimestamp());
         team.setLastUpdatedBy(dto.getLastUpdatedBy());
 
-        Optional<Systemimpacted> systemimpacted = systemImpactedRepository.findById(dto.getSystemImpacted());
-        systemimpacted.ifPresent(team::setSystemimpacted);
+        if(dto.getSystemImpacted() != null){
+            Optional<Systemimpacted> systemimpacted = systemImpactedRepository.findById(dto.getSystemImpacted());
+            systemimpacted.ifPresent(team::setSystemimpacted);
+        }
 
         Optional<Project> project = projectRepository.findById(dto.getProjectId());
         Optional<User> user = userRepository.findById(dto.getUserId());
