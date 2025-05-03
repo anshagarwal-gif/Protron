@@ -439,6 +439,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                                     onChange={handleChange}
                                 >
                                     <option value="">Select country</option>
+                                    <option value="IN">India</option>
                                     <option value="US">United States</option>
                                     <option value="CA">Canada</option>
                                     <option value="UK">United Kingdom</option>
