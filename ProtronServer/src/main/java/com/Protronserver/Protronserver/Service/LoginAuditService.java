@@ -15,7 +15,7 @@ public class LoginAuditService {
     @Autowired
     private LoginAuditRepository loginAuditRepository;
 
-    public login_audit recordLogin(User user, Tenant tenant) {
+    public login_audit recordLogin(User user, Tenant tenant, String timezoneId) {
         login_audit audit = new login_audit();
         audit.setUser(user);
         audit.setTenant(tenant);

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { FiX, FiChevronDown, FiCalendar } from 'react-icons/fi';
+import { Autocomplete } from '@mui/material';
+import TextField from '@mui/material/TextField';
+
 
 const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMember }) => {
   const [error, setError] = useState(null);
@@ -90,15 +93,39 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMembe
             {/* Email Section */}
             <div className="mb-6">
               <label className="block text-gray-600 mb-2">Email</label>
-              <input
-                type="text"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter email"
-                className="w-full border rounded p-2"
+              <Autocomplete
+                options={users}
+                getOptionLabel={(option) => option.email}
+                isOptionEqualToValue={(option, value) => option.email === value.email}
+                onChange={(e, value) => {
+                  if (value) {
+                    setFormData({
+                      ...formData,
+                      email: value.email,
+                      name: `${value.firstName} ${value.lastName}`,
+                      employeeCode: value.empCode
+                    });
+                    setError(null);
+                  } else {
+                    setFormData({
+                      ...formData,
+                      email: '',
+                      name: '',
+                      employeeCode: ''
+                    });
+                    setError('User not found');
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search for an email..."
+                    fullWidth
+                    error={!!error}
+                    helperText={error}
+                  />
+                )}
               />
-              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
             </div>
 
             {/* Name Section */}
