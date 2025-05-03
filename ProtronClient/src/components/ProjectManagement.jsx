@@ -1063,16 +1063,14 @@ const ProjectManagement = () => {
                         <p>{selectedProject.tenant.tenantName || selectedProject.tenent || "Not specified"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Last Updated By</p>
-                        <p>{selectedProject.lastUpdatedBy || "Not available"}</p>
-                      </div>
-                      <div>
                         <p className="text-sm text-gray-500 mb-1">Unit</p>
                         <p>{selectedProject.unit || "Not specified"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">End Timestamp</p>
-                        <p>{selectedProject.endTimestamp ? new Date(selectedProject.endTimestamp).toLocaleString() : "Not available"}</p>
+                        <p className="text-sm text-gray-500 mb-1">System Impacted</p>
+                        <p>{selectedProject.systemImpacted?.map((system, index)=>{
+                          return <span key={index} className="block">{system.systemName}</span>
+                        })}</p>
                       </div>
                     </div>
                   </div>
