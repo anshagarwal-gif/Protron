@@ -127,8 +127,6 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 message: 'Signup successful!',
                 severity: 'success',
             });
-
-            setIsAuthenticated(true);
         
             navigate("/dashboard"); // Redirect to dashboard after successful signup
         } catch (error) {

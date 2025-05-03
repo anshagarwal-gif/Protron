@@ -410,41 +410,33 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 </Box>
                     </Box>
 
-                    {/* Row 4: Systems Impacted */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <Autocomplete
-                                multiple
-                                options={['System1', 'System2', 'System3']} // Hardcoded options
-                                value={formData.systemImpacted || []} // Ensure it's an array
-                                onChange={(e, selectedSystems) => setFormData((prev) => ({
+                            <TextField
+                                fullWidth
+                                label="Add Systems Impacted"
+                                placeholder="Type a system and press Enter"
+                                value={formData.newSystem || ''}
+                                onChange={(e) => setFormData((prev) => ({
                                     ...prev,
-                                    systemImpacted: selectedSystems,
+                                    newSystem: e.target.value,
                                 }))}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Select Systems Impacted"
-                                        placeholder="Search for systems..."
-                                        fullWidth
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            startAdornment: (
-                                                <>
-                                                    <InputAdornment position="start">
-                                                        <PeopleAltIcon sx={{ color: greenPrimary }} />
-                                                    </InputAdornment>
-                                                    {params.InputProps.startAdornment}
-                                                </>
-                                            ),
-                                            sx: { height: fieldHeight }
-                                        }}
-                                    />
-                                )}
-                                renderTags={() => null} // Don't render tags inside the input
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && formData.newSystem?.trim()) {
+                                        e.preventDefault();
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            systemImpacted: [...(prev.systemImpacted || []), prev.newSystem.trim()],
+                                            newSystem: '', // Clear the input
+                                        }));
+                                    }
+                                }}
+                                InputProps={{
+                                    sx: { height: fieldHeight },
+                                }}
                             />
 
-                            {/* Display selected systems below the input field */}
+                            {/* Display added systems below the input field */}
                             {formData.systemImpacted?.length > 0 && (
                                 <Paper
                                     variant="outlined"
@@ -458,7 +450,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     }}
                                 >
                                     <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
-                                        Selected Systems Impacted ({formData.systemImpacted.length})
+                                        Added Systems Impacted ({formData.systemImpacted.length})
                                     </Typography>
 
                                     <Grid container spacing={1}>
@@ -500,7 +492,6 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                                             },
                                                         }}
                                                     >
-                                                        {/* Add an icon for removing the system */}
                                                         <span style={{ fontSize: '12px', fontWeight: 'bold' }}>×</span>
                                                     </IconButton>
                                                 </Box>

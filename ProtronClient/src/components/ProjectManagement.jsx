@@ -1063,16 +1063,14 @@ const ProjectManagement = () => {
                         <p>{selectedProject.tenant.tenantName || selectedProject.tenent || "Not specified"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Last Updated By</p>
-                        <p>{selectedProject.lastUpdatedBy || "Not available"}</p>
-                      </div>
-                      <div>
                         <p className="text-sm text-gray-500 mb-1">Unit</p>
                         <p>{selectedProject.unit || "Not specified"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">End Timestamp</p>
-                        <p>{selectedProject.endTimestamp ? new Date(selectedProject.endTimestamp).toLocaleString() : "Not available"}</p>
+                        <p className="text-sm text-gray-500 mb-1">System Impacted</p>
+                        <p>{selectedProject.systemImpacted?.map((system, index)=>{
+                          return <span key={index} className="block">{system.systemName}</span>
+                        })}</p>
                       </div>
                     </div>
                   </div>
@@ -1087,12 +1085,6 @@ const ProjectManagement = () => {
                 onClick={handleClose}
               >
                 Close
-              </button>
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-medium"
-                onClick={() => {/* Add edit functionality here */ }}
-              >
-                Edit Project
               </button>
             </div>
           </div>

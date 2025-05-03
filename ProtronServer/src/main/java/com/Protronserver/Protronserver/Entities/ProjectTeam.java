@@ -34,6 +34,18 @@ public class ProjectTeam {
     @JsonIgnoreProperties({"users", "projects"})
     private Tenant tenant;
 
+    @ManyToOne
+    @JsonIgnoreProperties({"users", "project", "tenant"})
+    private Systemimpacted systemimpacted;
+
+    public Systemimpacted getSystemimpacted() {
+        return systemimpacted;
+    }
+
+    public void setSystemimpacted(Systemimpacted systemimpacted) {
+        this.systemimpacted = systemimpacted;
+    }
+
     // Getters and setters for the new fields
     public LocalDateTime getStartTimestamp() {
         return startTimestamp;

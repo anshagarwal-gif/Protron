@@ -148,6 +148,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                 taskType: memberData.tasktype,
                 unit: memberData.unit,
                 estimatedReleaseDate: memberData.releaseDate,
+                systemImpacted: memberData.systemImpacted,
             };
             console.log("Request Body:", requestBody);
             await axios.post(`${import.meta.env.VITE_API_URL}/api/project-team/add`, requestBody, {
@@ -537,6 +538,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                 onClose={() => setIsModalOpen(false)}
                 projectName={project.projectName}
                 onAddMember={handleAddMember}
+                project={project}
                 users={users} // Pass the users data to the modal
             />
 

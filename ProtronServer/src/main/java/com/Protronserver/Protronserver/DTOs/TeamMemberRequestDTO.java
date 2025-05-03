@@ -16,12 +16,21 @@ public class TeamMemberRequestDTO {
     private Long projectId;
     private String taskType;
     private String unit;
+    private Long systemImpacted;
     // Added timestamp fields
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
 
     // Added last updated by field
     private String lastUpdatedBy;
+
+    public Long getSystemImpacted() {
+        return systemImpacted;
+    }
+
+    public void setSystemImpacted(Long systemImpacted) {
+        this.systemImpacted = systemImpacted;
+    }
 
     // Getters and setters for the new fields
     public LocalDateTime getStartTimestamp() {
