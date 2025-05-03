@@ -88,6 +88,12 @@ public class ManageTeamService {
         newVersionMember.setProject(team.getProject());
         newVersionMember.setUser(team.getUser());
 
+        if(dto.getSystemImpacted() != null){
+            Systemimpacted systemimpacted = systemImpactedRepository.findById(dto.getSystemImpacted())
+                    .orElseThrow(()-> new RuntimeException("System not found"));
+            newVersionMember.setSystemimpacted(systemimpacted);
+        }
+
         return projectTeamRepository.save(newVersionMember);
 
     }

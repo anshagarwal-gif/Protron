@@ -23,12 +23,13 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';;
 
-const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
+const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => {
     const [formData, setFormData] = useState({
         pricing: '',
         unit: '',
         estimatedReleaseDate: '',
-        taskType: 'developer' // Default value
+        taskType: 'developer', // Default value
+        systemImpacted: member?.systemimpacted?.systemId || "" // Default value from member object
     });
     
     // Store initial data for reset functionality
@@ -36,7 +37,8 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
         pricing: '',
         unit: '',
         estimatedReleaseDate: '',
-        taskType: 'developer'
+        taskType: 'developer',
+        systemImpacted: member?.systemimpacted?.systemId || ""
     });
 
     // Theme colors
@@ -54,7 +56,8 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                 unit: member.unit || 'INR',
                 estimatedReleaseDate: member.estimatedReleaseDate || '',
                 // Use the member's taskType if it exists, otherwise default to 'developer'
-                taskType: member.taskType || 'developer'
+                taskType: member.taskType || 'developer',
+                systemImpacted: member?.systemimpacted?.systemId || "" // Default value from member object
             };
             
             setFormData(newFormData);
@@ -158,6 +161,26 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate }) => {
                     sx: { height: fieldHeight, bgcolor: '#f5f5f5' }
                 }}
             />
+
+<FormControl fullWidth>
+                        <InputLabel>System</InputLabel>
+                        <Select
+                            name="systemImpacted"
+                            value={formData.systemImpacted || ''}
+                            onChange={handleChange}
+                            label="System"
+                            sx={{ height: '56px' }}
+                        >
+                            <MenuItem value="" disabled>
+                                Select a system
+                            </MenuItem>
+                            {project.systemImpacted.map((system, index) => (
+                                <MenuItem key={index} value={system.systemId}>
+                                    {system.systemName}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
 
             <FormControl fullWidth>
                 <InputLabel>Task Type</InputLabel>
