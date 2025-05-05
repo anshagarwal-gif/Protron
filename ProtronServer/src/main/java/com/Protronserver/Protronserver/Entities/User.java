@@ -136,16 +136,6 @@ public class User {
     @OneToMany(mappedBy = "projectManager")
     @JsonIgnoreProperties("projectManager")
     private List<Project> projectsManaged; // Projects managed by the user
-    @ManyToMany(mappedBy = "users")
-    private Set<Systemimpacted> systems;
-
-    public Set<Systemimpacted> getSystems() {
-        return systems;
-    }
-
-    public void setSystems(Set<Systemimpacted> systems) {
-        this.systems = systems;
-    }
 
     public List<Project> getProjectsManaged() {
         return projectsManaged;

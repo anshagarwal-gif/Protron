@@ -35,7 +35,7 @@ public class ProjectTeam {
     private Tenant tenant;
 
     @ManyToOne
-    @JsonIgnoreProperties({"users", "project", "tenant"})
+    @JsonIgnoreProperties({"projectTeams", "project", "tenant"})
     private Systemimpacted systemimpacted;
 
     public Systemimpacted getSystemimpacted() {

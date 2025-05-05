@@ -40,19 +40,19 @@ const currencySymbols = {
 const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, projectId }) => {
     const [users, setUsers] = useState([]);
     const [initialFormData, setInitialFormData] = useState({});
-    console.log(formData)
+    const [newSystems, setNewSystems] = useState([]); // Track newly added systems
+
     const fetchUsers = async () => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
                 headers: { Authorization: `${sessionStorage.getItem('token')}` }
             });
-            console.log(res.data)
             setUsers(res.data);
         } catch (error) {
             console.log({ message: error });
         }
     };
-    // Fetch project data when modal opens or projectId changes
+
     const fetchProjectData = async () => {
         if (!projectId) return;
 
@@ -88,13 +88,63 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         }));
     };
 
+    const handleSystemNameChange = (index) => (e) => {
+        const updatedSystems = [...formData.systemImpacted];
+        const newName = e.target.value;
+
+        // Check if the system is a newly added system
+        console.log(index, updatedSystems[index]);
+        const isNewSystem = !updatedSystems[index].systemId; // Newly added systems won't have an ID
+
+        if (isNewSystem) {
+            // Update the name in the newSystems array
+            const oldName = updatedSystems[index].systemName;
+            const newSystemIndex = newSystems.findIndex((name) => name === oldName);
+            if (newSystemIndex !== -1) {
+                const updatedNewSystems = [...newSystems];
+                updatedNewSystems[newSystemIndex] = newName; // Update the name in newSystems
+                setNewSystems(updatedNewSystems);
+            }
+        }
+
+        // Update the system name in formData
+        updatedSystems[index].systemName = newName;
+        setFormData((prev) => ({
+            ...prev,
+            systemImpacted: updatedSystems
+        }));
+    };
+
+    const handleSystemAdd = (e) => {
+        if (e.key === 'Enter' && e.target.value.trim()) {
+            const newSystem = e.target.value.trim();
+            // setNewSystems((prev) => [...prev, newSystem]);
+            setFormData((prev) => ({
+                ...prev,
+                systemImpacted: [...(prev.systemImpacted || []), { systemId: null, systemName: newSystem }]
+            }));
+            e.target.value = ''; // Clear input
+        }
+    };
+
     const handleSubmit = () => {
-        console.log(formData)
-        onSubmit(formData);
+        const updatedSystemImpacted = [
+            ...formData.systemImpacted, // Existing systems (with updated names)
+            ...newSystems.map((name) => ({ systemName: name })) // Add new systems
+        ];
+
+        const payload = {
+            ...formData,
+            systemImpacted: updatedSystemImpacted // Single field for all systems
+        };
+
+        console.log('Payload:', payload);
+        onSubmit(payload);
     };
 
     const handleReset = () => {
         setFormData({ ...initialFormData });
+        setNewSystems([]);
     };
 
     // Common height for input fields
@@ -381,6 +431,38 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 }}
                             />
                         </Box>
+                    </Box>
+
+                    {/* Existing Systems Impacted */}
+                    <Box>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                            Systems Impacted
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {formData.systemImpacted?.map((system, index) => (
+                                <TextField
+                                    key={index}
+                                    fullWidth
+                                    value={system.systemName}
+                                    onChange={handleSystemNameChange(index)}
+                                    placeholder="Edit system name"
+                                    variant="outlined"
+                                    sx={{
+                                        bgcolor: '#f5f5f5',
+                                        borderRadius: 1
+                                    }}
+                                />
+                            ))}
+                        </Box>
+                        <TextField
+                            fullWidth
+                            placeholder="Add a new system and press Enter"
+                            onKeyDown={handleSystemAdd}
+                            sx={{ mt: 2 }}
+                        />
+                        <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                            Enter System Name and press Enter to add the system.
+                        </Typography>
                     </Box>
 
                     {/* Row 5: Action Buttons (Right-aligned) */}

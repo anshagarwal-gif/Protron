@@ -98,7 +98,7 @@ public class Project {
     private List<ProjectTeam> projectTeam;
 
     @OneToMany(mappedBy = "project")
-    @JsonIgnoreProperties({"project", "tenant"})
+    @JsonIgnoreProperties({"project", "tenant", "projectTeams"})
     private List<Systemimpacted> systemImpacted;
 
     @ManyToOne

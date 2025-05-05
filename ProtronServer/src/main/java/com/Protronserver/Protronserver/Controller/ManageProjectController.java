@@ -42,6 +42,7 @@ public class ManageProjectController {
 
     @PutMapping("/edit/{id}")
     public Project updateProject(@PathVariable("id") Long id, @RequestBody ProjectUpdateDTO projectUpdateDTO) {
+        System.out.println(projectUpdateDTO.getSystemImpacted());
         return manageProjectService.updateProject(id, projectUpdateDTO);
     }
 

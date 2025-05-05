@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.ProjectRequestDTO;
 import com.Protronserver.Protronserver.DTOs.ProjectUpdateDTO;
+import com.Protronserver.Protronserver.DTOs.SystemImpactedDTO;
 import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
@@ -96,11 +97,10 @@ public class ManageProjectService {
                 system.setSystemName(systemName);
                 system.setProject(savedProject);
                 system.setTenant(tenant);
-                system.setUsers(Collections.emptySet()); // Optional: initialize empty or populate if needed
 
                 systems.add(systemImpactedRepository.save(system));
             }
-            // Optionally, update savedProject.setSystemImpacted(systems); if mapped bidirectionally
+            savedProject.setSystemImpacted(systems);
         }
 
         return savedProject;
@@ -153,8 +153,8 @@ public class ManageProjectService {
             updatedProject.setProjectManager(existingProject.getProjectManager());
         }
 
-        if (request.getSponsor() != null) {
-            User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsor())
+        if (request.getSponsorId() != null) {
+            User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsorId())
                     .orElseThrow(() -> new RuntimeException("Sponsor not found"));
             updatedProject.setSponsor(sponsor);
         } else {
@@ -166,8 +166,34 @@ public class ManageProjectService {
             team.setProject(updatedProject);
         }
 
+        updatedProject = projectRepository.save(updatedProject);
+
+        if(request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()){
+            for(SystemImpactedDTO systemImpactedDTO: request.getSystemImpacted()){
+                if(systemImpactedDTO.getSystemId() != null){
+                    Systemimpacted system = systemImpactedRepository.findById(systemImpactedDTO.getSystemId())
+                            .orElseThrow(()->new RuntimeException("System Not found"));
+                    system.setSystemName(systemImpactedDTO.getSystemName());
+                    system.setProject(updatedProject);
+                    system.setTenant(updatedProject.getTenant());
+                    systemImpactedRepository.save(system);
+                }else{
+                    Systemimpacted newSystem = new Systemimpacted();
+                    newSystem.setSystemName(systemImpactedDTO.getSystemName());
+                    newSystem.setProject(updatedProject);
+                    newSystem.setTenant(updatedProject.getTenant());
+                    systemImpactedRepository.save(newSystem);
+                }
+            }
+        }else{
+            List<Systemimpacted> systems = existingProject.getSystemImpacted();
+            for(Systemimpacted system: systems){
+                system.setProject(updatedProject);
+            }
+        }
+
         // Save new project
-        return projectRepository.save(updatedProject);
+        return updatedProject;
     }
 
 }
