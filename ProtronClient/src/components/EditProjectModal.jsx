@@ -14,7 +14,8 @@ import {
     Box,
     Grid,
     Paper,
-    InputAdornment
+    InputAdornment,
+    IconButton
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -41,6 +42,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const [users, setUsers] = useState([]);
     const [initialFormData, setInitialFormData] = useState({});
     const [newSystems, setNewSystems] = useState([]); // Track newly added systems
+    const [removedSystems, setRemovedSystems] = useState([]);
 
     const fetchUsers = async () => {
         try {
@@ -127,6 +129,21 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         }
     };
 
+    const handleSystemRemove = (index) => {
+        const updatedSystems = [...formData.systemImpacted];
+        const removedSystem = updatedSystems.splice(index, 1)[0]; // Remove the system
+    
+        // If the system is not new, track it in removedSystems
+        if (removedSystem.systemId) {
+            setRemovedSystems((prev) => [...prev, removedSystem.systemId]);
+        }
+    
+        setFormData((prev) => ({
+            ...prev,
+            systemImpacted: updatedSystems
+        }));
+    };
+
     const handleSubmit = () => {
         const updatedSystemImpacted = [
             ...formData.systemImpacted, // Existing systems (with updated names)
@@ -135,7 +152,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
         const payload = {
             ...formData,
-            systemImpacted: updatedSystemImpacted // Single field for all systems
+            systemImpacted: updatedSystemImpacted,
+            removedSystems, // Single field for all systems
         };
 
         console.log('Payload:', payload);
@@ -145,6 +163,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const handleReset = () => {
         setFormData({ ...initialFormData });
         setNewSystems([]);
+        setRemovedSystems([]);
     };
 
     // Common height for input fields
@@ -440,18 +459,31 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                         </Typography>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             {formData.systemImpacted?.map((system, index) => (
-                                <TextField
-                                    key={index}
-                                    fullWidth
-                                    value={system.systemName}
-                                    onChange={handleSystemNameChange(index)}
-                                    placeholder="Edit system name"
-                                    variant="outlined"
-                                    sx={{
-                                        bgcolor: '#f5f5f5',
-                                        borderRadius: 1
-                                    }}
-                                />
+                                <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <TextField
+                                        fullWidth
+                                        value={system.systemName}
+                                        onChange={handleSystemNameChange(index)}
+                                        placeholder="Edit system name"
+                                        variant="outlined"
+                                        sx={{
+                                            bgcolor: '#f5f5f5',
+                                            borderRadius: 1
+                                        }}
+                                    />
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => handleSystemRemove(index)}
+                                        sx={{
+                                            color: 'red',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(255, 0, 0, 0.1)'
+                                            }
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '16px', fontWeight: 'bold' }}>×</span>
+                                    </IconButton>
+                                </Box>
                             ))}
                         </Box>
                         <TextField

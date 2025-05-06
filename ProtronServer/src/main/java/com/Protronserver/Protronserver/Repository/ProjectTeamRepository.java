@@ -15,6 +15,6 @@ public interface ProjectTeamRepository extends JpaRepository<ProjectTeam, Long> 
 
     @Query("SELECT pt FROM ProjectTeam pt WHERE pt.project.projectId = :projectId AND (pt.endTimestamp IS NULL OR pt.status = 'removed')")
     List<ProjectTeam> findActiveOrRemovedByProjectId(Long projectId);
-
+    List<ProjectTeam> findBySystemimpacted_SystemId(Long systemId);
 
 }

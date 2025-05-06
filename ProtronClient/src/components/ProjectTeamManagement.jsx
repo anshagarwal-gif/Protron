@@ -255,7 +255,8 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
         projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
         sponsorId: updatedData.sponsor.userId ?? null, // Send only the userId
         unit: updatedData.unit,
-        systemImpacted: updatedData.systemImpacted
+        systemImpacted: updatedData.systemImpacted,
+        removedSystems: updatedData.removedSystems,
       };
       console.log("Project Data: ", projectData)
 

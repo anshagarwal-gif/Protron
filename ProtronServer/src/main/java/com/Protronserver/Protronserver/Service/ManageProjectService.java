@@ -168,6 +168,22 @@ public class ManageProjectService {
 
         updatedProject = projectRepository.save(updatedProject);
 
+        if (request.getRemovedSystems() != null && !request.getRemovedSystems().isEmpty()) {
+            for (Long systemId : request.getRemovedSystems()) {
+                // Fetch all project team entries associated with the system
+                List<ProjectTeam> teamsWithSystem = projectTeamRepository.findBySystemimpacted_SystemId(systemId);
+
+                // Set their system reference to null
+                for (ProjectTeam team : teamsWithSystem) {
+                    team.setSystemimpacted(null);
+                }
+                projectTeamRepository.saveAll(teamsWithSystem);
+
+                // Now safely delete the system
+                systemImpactedRepository.deleteById(systemId);
+            }
+        }
+
         if(request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()){
             for(SystemImpactedDTO systemImpactedDTO: request.getSystemImpacted()){
                 if(systemImpactedDTO.getSystemId() != null){
