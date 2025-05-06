@@ -3,8 +3,8 @@ package com.Protronserver.Protronserver.Entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 public class Systemimpacted {
@@ -14,6 +14,9 @@ public class Systemimpacted {
     private Long systemId;
 
     private String systemName;
+    private LocalDateTime startTimestamp;
+    private LocalDateTime endTimestamp;
+    private String lastUpdatedBy;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
@@ -26,6 +29,30 @@ public class Systemimpacted {
     @ManyToMany(mappedBy = "systemimpacted")
     @JsonIgnoreProperties({"tenant", "project", "systemimpacted"})
     private List<ProjectTeam> projectTeams;
+
+    public LocalDateTime getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public void setStartTimestamp(LocalDateTime startTimestamp) {
+        this.startTimestamp = startTimestamp;
+    }
+
+    public LocalDateTime getEndTimestamp() {
+        return endTimestamp;
+    }
+
+    public void setEndTimestamp(LocalDateTime endTimestamp) {
+        this.endTimestamp = endTimestamp;
+    }
+
+    public String getLastUpdatedBy() {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy(String lastUpdatedBy) {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
 
     // Getters and Setters
     public Long getSystemId() {
