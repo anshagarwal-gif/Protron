@@ -253,7 +253,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
           : null,
         projectCost: updatedData.projectCost,
         projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
-        sponsorId: updatedData.sponsor.userId ?? null, // Send only the userId
+        sponsorId: updatedData.sponsor?.userId ?? null, // Send only the userId
         unit: updatedData.unit,
         systemImpacted: updatedData.systemImpacted
       };

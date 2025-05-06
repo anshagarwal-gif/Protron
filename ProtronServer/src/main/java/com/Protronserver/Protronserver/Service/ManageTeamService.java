@@ -45,7 +45,7 @@ public class ManageTeamService {
         team.setEndTimestamp(dto.getEndTimestamp());
         team.setLastUpdatedBy(dto.getLastUpdatedBy());
 
-        if(dto.getSystemImpacted() != null){
+        if (dto.getSystemImpacted() != null) {
             Optional<Systemimpacted> systemimpacted = systemImpactedRepository.findById(dto.getSystemImpacted());
             systemimpacted.ifPresent(team::setSystemimpacted);
         }
@@ -88,9 +88,9 @@ public class ManageTeamService {
         newVersionMember.setProject(team.getProject());
         newVersionMember.setUser(team.getUser());
 
-        if(dto.getSystemImpacted() != null){
+        if (dto.getSystemImpacted() != null) {
             Systemimpacted systemimpacted = systemImpactedRepository.findById(dto.getSystemImpacted())
-                    .orElseThrow(()-> new RuntimeException("System not found"));
+                    .orElseThrow(() -> new RuntimeException("System not found"));
             newVersionMember.setSystemimpacted(systemimpacted);
         }
 
@@ -117,19 +117,20 @@ public class ManageTeamService {
         newVersionMember.setStartTimestamp(LocalDateTime.now());
         newVersionMember.setProject(team.getProject());
         newVersionMember.setUser(team.getUser());
-
+        newVersionMember.setSystemimpacted(team.getSystemimpacted());
         return projectTeamRepository.save(newVersionMember);
     }
 
     public void deleteProjectTeam(Long id) {
-//        ProjectTeam team = getProjectTeamById(id);
-//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        if (principal instanceof User user) {
-//            team.setLastUpdatedBy(user.getEmail());
-//            team.setEndTimestamp(LocalDateTime.now());
-//            team.setStatus("removed");
-//        }
-//        projectTeamRepository.save(team);
+        // ProjectTeam team = getProjectTeamById(id);
+        // Object principal =
+        // SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        // if (principal instanceof User user) {
+        // team.setLastUpdatedBy(user.getEmail());
+        // team.setEndTimestamp(LocalDateTime.now());
+        // team.setStatus("removed");
+        // }
+        // projectTeamRepository.save(team);
         // projectTeamRepository.delete(team);
         updateStatus(id, "removed");
     }
