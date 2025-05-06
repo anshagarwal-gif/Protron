@@ -12,38 +12,11 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import GlobalSnackbar from './components/GlobalSnackbar';
 import Navbar from './components/Navbar';
-
+import UserManagement from './pages/UserManagement';
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
 
-const UserManagement = () => {
-    const navigate = useNavigate(); // Use the navigate hook
-
-    return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-            <button
-                style={{
-                    backgroundColor: '#1b5e20',
-                    color: 'white',
-                    padding: '10px 20px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                    transition: 'background-color 0.3s ease',
-                }}
-                onMouseOver={(e) => (e.target.style.backgroundColor = '#2e7d32')}
-                onMouseOut={(e) => (e.target.style.backgroundColor = '#1b5e20')}
-                onClick={() => navigate('/signup')} // Use navigate instead of href
-            >
-                Create New User
-            </button>
-        </div>
-    );
-};
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
