@@ -4,9 +4,11 @@ import com.Protronserver.Protronserver.DTOs.TeamMemberEditDTO;
 import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.ProjectTeam;
+import com.Protronserver.Protronserver.Entities.Systemimpacted;
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
 import com.Protronserver.Protronserver.Repository.ProjectTeamRepository;
+import com.Protronserver.Protronserver.Repository.SystemImpactedRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +30,9 @@ public class ManageTeamService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private SystemImpactedRepository systemImpactedRepository;
+
     public ProjectTeam createProjectTeam(TeamMemberRequestDTO dto) {
         ProjectTeam team = new ProjectTeam();
         team.setPricing(dto.getPricing());
@@ -39,6 +44,11 @@ public class ManageTeamService {
         team.setStartTimestamp(dto.getStartTimestamp() != null ? dto.getStartTimestamp() : LocalDateTime.now());
         team.setEndTimestamp(dto.getEndTimestamp());
         team.setLastUpdatedBy(dto.getLastUpdatedBy());
+
+        if(dto.getSystemImpacted() != null){
+            Optional<Systemimpacted> systemimpacted = systemImpactedRepository.findById(dto.getSystemImpacted());
+            systemimpacted.ifPresent(team::setSystemimpacted);
+        }
 
         Optional<Project> project = projectRepository.findById(dto.getProjectId());
         Optional<User> user = userRepository.findById(dto.getUserId());
@@ -77,6 +87,12 @@ public class ManageTeamService {
         newVersionMember.setStartTimestamp(LocalDateTime.now());
         newVersionMember.setProject(team.getProject());
         newVersionMember.setUser(team.getUser());
+
+        if(dto.getSystemImpacted() != null){
+            Systemimpacted systemimpacted = systemImpactedRepository.findById(dto.getSystemImpacted())
+                    .orElseThrow(()-> new RuntimeException("System not found"));
+            newVersionMember.setSystemimpacted(systemimpacted);
+        }
 
         return projectTeamRepository.save(newVersionMember);
 

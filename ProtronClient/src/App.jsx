@@ -19,6 +19,8 @@ const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
 
 
 const App = () => {
+
+
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,

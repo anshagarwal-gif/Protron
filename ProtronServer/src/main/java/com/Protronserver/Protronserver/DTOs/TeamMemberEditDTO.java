@@ -13,9 +13,18 @@ public class TeamMemberEditDTO {
     private Double pricing;
     private String unit;
     private String taskType;
+    private Long systemImpacted;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate estimatedReleaseDate;
+
+    public Long getSystemImpacted() {
+        return systemImpacted;
+    }
+
+    public void setSystemImpacted(Long systemImpacted) {
+        this.systemImpacted = systemImpacted;
+    }
 
     public Double getPricing() {
         return pricing;

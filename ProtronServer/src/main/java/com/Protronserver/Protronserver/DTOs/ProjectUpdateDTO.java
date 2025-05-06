@@ -1,9 +1,11 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import com.Protronserver.Protronserver.Entities.Systemimpacted;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,28 +17,14 @@ public class ProjectUpdateDTO {
     private Date endDate;
     private Double projectCost;
     private Long projectManagerId;
-    private Long sponsor;
+    private Long sponsorId;
     private String unit;
-
-    public Long getSponsor() {
-        return sponsor;
-    }
-
-    public void setSponsor(Long sponsor) {
-        this.sponsor = sponsor;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
+    private List<SystemImpactedDTO> systemImpacted;
 
     public String getProjectName() {
         return projectName;
     }
+
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
@@ -80,5 +68,29 @@ public class ProjectUpdateDTO {
 
     public void setProjectManagerId(Long projectManagerId) {
         this.projectManagerId = projectManagerId;
+    }
+
+    public Long getSponsorId() {
+        return sponsorId;
+    }
+
+    public void setSponsorId(Long sponsorId) {
+        this.sponsorId = sponsorId;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public List<SystemImpactedDTO> getSystemImpacted() {
+        return systemImpacted;
+    }
+
+    public void setSystemImpacted(List<SystemImpactedDTO> systemImpacted) {
+        this.systemImpacted = systemImpacted;
     }
 }

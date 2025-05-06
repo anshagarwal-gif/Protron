@@ -74,6 +74,7 @@ public class UserService {
         }
         // No role assigned for now
         user.setRole(null);
+        user.setStatus("Active");
 
         User savedUser = userRepository.save(user);
 
@@ -118,7 +119,7 @@ public class UserService {
 
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                 String token = jwtUtil.generateToken(user.getEmail());
-                loginAuditService.recordLogin(user, user.getTenant());
+                loginAuditService.recordLogin(user, user.getTenant(), loginRequest.getTimezoneId());
                 Map<String, String> response = new HashMap<>();
                 response.put("token", token);
                 response.put("email", user.getEmail());

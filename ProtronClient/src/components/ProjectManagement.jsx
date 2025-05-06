@@ -40,6 +40,7 @@ const ProjectManagement = () => {
     currency: 'USD',
     cost: '',
     sponsor: null,
+    systemImpacted: []
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -212,8 +213,9 @@ const ProjectManagement = () => {
           : null,
         projectCost: updatedData.projectCost,
         projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
-        sponsor: updatedData.sponsor?.userId ??null,
+        sponsorId: updatedData.sponsor?.userId ??null,
         unit: updatedData.unit,
+        systemImpacted: updatedData.systemImpacted,
       };
       console.log(projectData);
       const response = await axios.put(
@@ -281,7 +283,8 @@ const ProjectManagement = () => {
           userId: userId,
           status: "active",
 
-        }))
+        })),
+        systemImpacted: data.systemImpacted
       };
       console.log(payload);
       const response = await axios.post(`${API_BASE_URL}/api/projects/add`, payload, {
@@ -580,12 +583,12 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                      onClick={() => handleSort('sponsor')}
+                      className="py-3 px-4 font-medium border-r  select-none"
+                     
                     >
                       <div className="flex items-center">
                         Sponsor
-                        {renderSortIcon('sponsor')}
+                       
                       </div>
                     </th>
                     <th className="py-3 px-4 font-medium">Actions</th>
@@ -1061,16 +1064,14 @@ const ProjectManagement = () => {
                         <p>{selectedProject.tenant.tenantName || selectedProject.tenent || "Not specified"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">Last Updated By</p>
-                        <p>{selectedProject.lastUpdatedBy || "Not available"}</p>
-                      </div>
-                      <div>
                         <p className="text-sm text-gray-500 mb-1">Unit</p>
                         <p>{selectedProject.unit || "Not specified"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500 mb-1">End Timestamp</p>
-                        <p>{selectedProject.endTimestamp ? new Date(selectedProject.endTimestamp).toLocaleString() : "Not available"}</p>
+                        <p className="text-sm text-gray-500 mb-1">System Impacted</p>
+                        <p>{selectedProject.systemImpacted?.map((system, index)=>{
+                          return <span key={index} className="block">{system.systemName}</span>
+                        })}</p>
                       </div>
                     </div>
                   </div>
@@ -1085,12 +1086,6 @@ const ProjectManagement = () => {
                 onClick={handleClose}
               >
                 Close
-              </button>
-              <button
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors font-medium"
-                onClick={() => {/* Add edit functionality here */ }}
-              >
-                Edit Project
               </button>
             </div>
           </div>

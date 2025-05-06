@@ -2,15 +2,10 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.ProjectRequestDTO;
 import com.Protronserver.Protronserver.DTOs.ProjectUpdateDTO;
+import com.Protronserver.Protronserver.DTOs.SystemImpactedDTO;
 import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
-import com.Protronserver.Protronserver.Entities.Project;
-import com.Protronserver.Protronserver.Entities.ProjectTeam;
-import com.Protronserver.Protronserver.Entities.Tenant;
-import com.Protronserver.Protronserver.Entities.User;
-import com.Protronserver.Protronserver.Repository.ProjectRepository;
-import com.Protronserver.Protronserver.Repository.ProjectTeamRepository;
-import com.Protronserver.Protronserver.Repository.TenantRepository;
-import com.Protronserver.Protronserver.Repository.UserRepository;
+import com.Protronserver.Protronserver.Entities.*;
+import com.Protronserver.Protronserver.Repository.*;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -20,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -35,6 +31,9 @@ public class ManageProjectService {
     private TenantRepository tenantRepository;
     @Autowired
     private ProjectTeamRepository projectTeamRepository;
+
+    @Autowired
+    private SystemImpactedRepository systemImpactedRepository;
 
     public Project addProject(ProjectRequestDTO request) {
         Project project = new Project();
@@ -89,6 +88,21 @@ public class ManageProjectService {
             // Update project with team members
             savedProject.setProjectTeam(teamMembers);
         }
+
+        if (request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()) {
+            List<Systemimpacted> systems = new ArrayList<>();
+
+            for (String systemName : request.getSystemImpacted()) {
+                Systemimpacted system = new Systemimpacted();
+                system.setSystemName(systemName);
+                system.setProject(savedProject);
+                system.setTenant(tenant);
+
+                systems.add(systemImpactedRepository.save(system));
+            }
+            savedProject.setSystemImpacted(systems);
+        }
+
         return savedProject;
     }
 
@@ -139,8 +153,8 @@ public class ManageProjectService {
             updatedProject.setProjectManager(existingProject.getProjectManager());
         }
 
-        if (request.getSponsor() != null) {
-            User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsor())
+        if (request.getSponsorId() != null) {
+            User sponsor = userRepository.findByUserIdAndEndTimestampIsNull(request.getSponsorId())
                     .orElseThrow(() -> new RuntimeException("Sponsor not found"));
             updatedProject.setSponsor(sponsor);
         } else {
@@ -152,8 +166,34 @@ public class ManageProjectService {
             team.setProject(updatedProject);
         }
 
+        updatedProject = projectRepository.save(updatedProject);
+
+        if(request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()){
+            for(SystemImpactedDTO systemImpactedDTO: request.getSystemImpacted()){
+                if(systemImpactedDTO.getSystemId() != null){
+                    Systemimpacted system = systemImpactedRepository.findById(systemImpactedDTO.getSystemId())
+                            .orElseThrow(()->new RuntimeException("System Not found"));
+                    system.setSystemName(systemImpactedDTO.getSystemName());
+                    system.setProject(updatedProject);
+                    system.setTenant(updatedProject.getTenant());
+                    systemImpactedRepository.save(system);
+                }else{
+                    Systemimpacted newSystem = new Systemimpacted();
+                    newSystem.setSystemName(systemImpactedDTO.getSystemName());
+                    newSystem.setProject(updatedProject);
+                    newSystem.setTenant(updatedProject.getTenant());
+                    systemImpactedRepository.save(newSystem);
+                }
+            }
+        }else{
+            List<Systemimpacted> systems = existingProject.getSystemImpacted();
+            for(Systemimpacted system: systems){
+                system.setProject(updatedProject);
+            }
+        }
+
         // Save new project
-        return projectRepository.save(updatedProject);
+        return updatedProject;
     }
 
 }

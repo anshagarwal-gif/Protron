@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FiX, FiChevronDown, FiCalendar } from 'react-icons/fi';
+import { Autocomplete } from '@mui/material';
+import TextField from '@mui/material/TextField';
 
-const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMember }) => {
+
+const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName,project, onAddMember }) => {
   const [error, setError] = useState(null);
-
+  console.log(project)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,7 +15,8 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMembe
     unit: '',
     cost: 0,
     releaseDate: '',
-    tasktype: ''
+    tasktype: '',
+    systemImpacted: ''
   });
 
   const handleChange = (e) => {
@@ -54,13 +58,14 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMembe
       unit: '',
       cost: 0,
       releaseDate: '',
-      tasktype: ''
+      tasktype: '',
+      systemImpacted: 0
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // console.log('Form submitted:', formData);
+    console.log('Form submitted:', formData);
     onAddMember(formData);
     handleReset();
     onClose();
@@ -90,15 +95,39 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMembe
             {/* Email Section */}
             <div className="mb-6">
               <label className="block text-gray-600 mb-2">Email</label>
-              <input
-                type="text"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter email"
-                className="w-full border rounded p-2"
+              <Autocomplete
+                options={users}
+                getOptionLabel={(option) => option.email}
+                isOptionEqualToValue={(option, value) => option.email === value.email}
+                onChange={(e, value) => {
+                  if (value) {
+                    setFormData({
+                      ...formData,
+                      email: value.email,
+                      name: `${value.firstName} ${value.lastName}`,
+                      employeeCode: value.empCode
+                    });
+                    setError(null);
+                  } else {
+                    setFormData({
+                      ...formData,
+                      email: '',
+                      name: '',
+                      employeeCode: ''
+                    });
+                    setError('User not found');
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder="Search for an email..."
+                    fullWidth
+                    error={!!error}
+                    helperText={error}
+                  />
+                )}
               />
-              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
             </div>
 
             {/* Name Section */}
@@ -146,6 +175,22 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, onAddMembe
               </div>
             </div>
 
+            <div className="mb-6">
+              <label className="block text-gray-600 mb-2">System Impacted</label>
+              <select
+                name="systemImpacted"
+                value={formData.systemImpacted || ''}
+                onChange={(e) => setFormData({ ...formData, systemImpacted: parseInt(e.target.value, 10) })}
+                className="w-full border rounded p-2"
+              >
+                <option value="" disabled>Select a system</option>
+                {project.systemImpacted?.map((system, index) => (
+                  <option key={index} value={system.systemId}>
+                    {system.systemName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Pricing Section */}
             <div className="mb-6">

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { EyeIcon, EyeOffIcon, MailIcon, UserIcon, PhoneIcon, MapPinIcon, DollarSignIcon,UploadIcon } from 'lucide-react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import GlobalSnackbar from '../components/GlobalSnackbar';
 
 const Signup = ({ onSignup, onSwitchToLogin }) => {
+
+    const navigate = useNavigate();
+
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -123,8 +127,8 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 message: 'Signup successful!',
                 severity: 'success',
             });
-            sessionStorage.setItem('token', response.data.token);
-            onSignup(true);
+        
+            navigate("/dashboard"); // Redirect to dashboard after successful signup
         } catch (error) {
             console.error('Signup failed:', error.response?.data || error.message);
             setSnackbar({
@@ -433,6 +437,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                                     onChange={handleChange}
                                 >
                                     <option value="">Select country</option>
+                                    <option value="IN">India</option>
                                     <option value="US">United States</option>
                                     <option value="CA">Canada</option>
                                     <option value="UK">United Kingdom</option>

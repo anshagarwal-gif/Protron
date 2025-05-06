@@ -97,10 +97,22 @@ public class Project {
     @JsonIgnoreProperties("project")
     private List<ProjectTeam> projectTeam;
 
+    @OneToMany(mappedBy = "project")
+    @JsonIgnoreProperties({"project", "tenant", "projectTeams"})
+    private List<Systemimpacted> systemImpacted;
+
     @ManyToOne
     @JoinColumn(name = "tenant_id")
     @JsonIgnoreProperties({ "users", "projects" })
     private Tenant tenant;
+
+    public List<Systemimpacted> getSystemImpacted() {
+        return systemImpacted;
+    }
+
+    public void setSystemImpacted(List<Systemimpacted> systemImpacted) {
+        this.systemImpacted = systemImpacted;
+    }
 
     public Long getProjectId() {
         return projectId;

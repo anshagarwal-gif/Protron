@@ -452,10 +452,18 @@ const TeamManagement = () => {
                 <tr key={member.userId} className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-green-50`}>
                     <td className="py-3 px-4 border-r">{indexOfFirstEmployee + index + 1}</td>
                     <td className="py-3 px-4 border-r flex items-center cursor-pointer hover:text-green-700" onClick={() => handleProfileClick(member.email)}>
-                        <img src={`${import.meta.env.VITE_API_URL}/api/users/${member.userId}/photo`} 
-                             alt={member.name} 
-                             className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2" 
-                             onError={(e) => {e.target.src = "/profilepic.jpg"}} />
+                    <img
+  src={
+    member.photo
+      ? `data:image/png;base64,${member.photo}` // Use Base64 string directly
+      : `${import.meta.env.VITE_API_URL}/api/users/${member.userId}/photo` // Fallback to API URL
+  }
+  alt={member.name}
+  className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2"
+  onError={(e) => {
+    e.target.src = "/profilepic.jpg"; // Fallback image
+  }}
+/>
                         <span>{member.firstName + ' ' + member.lastName}</span>
                     </td>
                     <td className="py-3 px-4 border-r">{member.empCode}</td>
