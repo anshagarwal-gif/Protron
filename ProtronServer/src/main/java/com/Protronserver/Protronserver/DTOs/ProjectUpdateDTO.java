@@ -20,6 +20,15 @@ public class ProjectUpdateDTO {
     private Long sponsorId;
     private String unit;
     private List<SystemImpactedDTO> systemImpacted;
+    private List<Long> removedSystems;
+
+    public List<Long> getRemovedSystems() {
+        return removedSystems;
+    }
+
+    public void setRemovedSystems(List<Long> removedSystems) {
+        this.removedSystems = removedSystems;
+    }
 
     public String getProjectName() {
         return projectName;

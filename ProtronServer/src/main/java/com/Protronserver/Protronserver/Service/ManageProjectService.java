@@ -35,6 +35,9 @@ public class ManageProjectService {
     @Autowired
     private SystemImpactedRepository systemImpactedRepository;
 
+    @Autowired
+    private ManageSystemImpactedService manageSystemImpactedService;
+
     public Project addProject(ProjectRequestDTO request) {
         Project project = new Project();
         project.setProjectName(request.getProjectName());
@@ -168,29 +171,16 @@ public class ManageProjectService {
 
         updatedProject = projectRepository.save(updatedProject);
 
-        if(request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()){
-            for(SystemImpactedDTO systemImpactedDTO: request.getSystemImpacted()){
-                if(systemImpactedDTO.getSystemId() != null){
-                    Systemimpacted system = systemImpactedRepository.findById(systemImpactedDTO.getSystemId())
-                            .orElseThrow(()->new RuntimeException("System Not found"));
-                    system.setSystemName(systemImpactedDTO.getSystemName());
-                    system.setProject(updatedProject);
-                    system.setTenant(updatedProject.getTenant());
-                    systemImpactedRepository.save(system);
-                }else{
-                    Systemimpacted newSystem = new Systemimpacted();
-                    newSystem.setSystemName(systemImpactedDTO.getSystemName());
-                    newSystem.setProject(updatedProject);
-                    newSystem.setTenant(updatedProject.getTenant());
-                    systemImpactedRepository.save(newSystem);
-                }
-            }
-        }else{
-            List<Systemimpacted> systems = existingProject.getSystemImpacted();
-            for(Systemimpacted system: systems){
-                system.setProject(updatedProject);
-            }
+        if (request.getRemovedSystems() != null && !request.getRemovedSystems().isEmpty()) {
+            manageSystemImpactedService.handleRemovedSystems(request.getRemovedSystems());
         }
+
+        if (request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()) {
+            manageSystemImpactedService.handleUpdatedAndNewSystems(request.getSystemImpacted(), updatedProject);
+        } else {
+            manageSystemImpactedService.associateExistingSystemsWithNewProject(existingProject.getSystemImpacted(), updatedProject);
+        }
+
 
         // Save new project
         return updatedProject;

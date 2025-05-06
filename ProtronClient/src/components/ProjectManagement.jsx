@@ -216,6 +216,7 @@ const ProjectManagement = () => {
         sponsorId: updatedData.sponsor?.userId ??null,
         unit: updatedData.unit,
         systemImpacted: updatedData.systemImpacted,
+        removedSystems: updatedData.removedSystems,
       };
       console.log(projectData);
       const response = await axios.put(
