@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight, FiPlus, FiChevronDown, FiUser } from 'react-icons/fi';
+import { AiOutlineDownload } from 'react-icons/ai';
 import axios from 'axios';
 import EditTeamMemberModal from './EditTeamMemberModal';
+import * as XLSX from "xlsx";
 
 // Import the AssignTeamMemberModal component
 import AssignTeamMemberModal from './AssignTeamMemberModal';
@@ -28,7 +30,6 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       })
-      console.log(res.data)
       setTeamMembers(res.data)
     } catch (error) {
       console.log({ message: error })
@@ -57,7 +58,6 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       })
-      console.log(res.data)
       setUsers(res.data)
     } catch (error) {
       console.log(error)
@@ -114,7 +114,6 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
 
   const handleRemoveMember = async (id) => {
     setActionsOpen(!actionsOpen[id]);
-    console.log("remove function is called")
     try {
       const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/project-team/delete/${id}`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
@@ -222,7 +221,6 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
     }
   };
   const handleEditProject = (projectId) => {
-    console.log(projectId)
     setSelectedProjectId(projectId);
     setEditProjectModalOpen(true);
   };
@@ -287,7 +285,43 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
       setIsLoading(false);
     }
   };
+  const downloadExcel = () => {
+    try {
+      // Prepare data for Excel export with all project details
+      const excelData = teamMembers.map((employee, index) => ({
+        'No.': index + 1,
+        'Employee Name': employee.user.firstName + " " + employee.user.lastName,
+        'Employee Code': employee.empCode,
+        'Email': employee.user.email,
+        'DOJ': employee.user.dateOfJoining ? formatDate(employee.user.dateOfJoining) : 'N/A',
+        'cost': employee.pricing,
+        'Status': employee.status,
+      }));
 
+      // Create worksheet from data
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+      // Create workbook and add the worksheet
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Projects');
+
+      // Generate Excel file and trigger download
+      XLSX.writeFile(workbook, 'Project_Details.xlsx');
+
+      setSnackbar({
+        open: true,
+        message: 'Excel file downloaded successfully!',
+        severity: 'success',
+      });
+    } catch (error) {
+      console.error('Error downloading Excel:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to download Excel file. Please try again.',
+        severity: 'error',
+      });
+    }
+  };
   return (
     <div className="w-full bg-white rounded-lg shadow-md p-6">
       {/* Header */}
@@ -326,13 +360,20 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
       <div>
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-gray-800">Manage Team Member</h2>
-          <div className="flex items-center">
+          <div className="flex gap-10 items-center">
             <button
               className="bg-green-900 text-white px-3 py-2 rounded flex items-center text-sm hover:bg-green-600"
               onClick={() => setIsModalOpen(true)}
             >
               <FiPlus size={16} className="mr-1" />
               Add Member
+            </button>
+            <button
+              className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
+              onClick={downloadExcel}
+            >
+              <AiOutlineDownload className="mr-1" />
+              <span className="sm:inline">Export</span>
             </button>
           </div>
         </div>
@@ -343,19 +384,19 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
           <div className="border rounded overflow-hidden">
             {/* Desktop Table - Hidden on small screens */}
             <div className="hidden md:block">
-              <table className="w-full border-collapse">
+              <table className="w-full border-collapse text-lg">
                 <thead>
-                  <tr className="bg-green-700 text-white">
-                    <th className="py-3 px-4 text-sm font-medium border-r">#</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">Name</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">Emp-Code</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">Email</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">Cost Unit</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">Cost</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">System Impacted</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">Est.Release</th>
-                    <th className="py-3 px-4 text-sm font-medium border-r">Status</th>
-                    <th className="py-3 px-4 text-sm font-medium">Actions</th>
+                  <tr className="bg-green-700 text-white text-lg">
+                    <th className="py-3 px-4  font-medium border-r">#</th>
+                    <th className="py-3 px-4  font-medium border-r">Name</th>
+                    <th className="py-3 px-4  font-medium border-r">Emp-Code</th>
+                    <th className="py-3 px-4  font-medium border-r">Email</th>
+                    <th className="py-3 px-4  font-medium border-r">Cost Unit</th>
+                    <th className="py-3 px-4  font-medium border-r">Cost</th>
+                    <th className="py-3 px-4  font-medium border-r">System Impacted</th>
+                    <th className="py-3 px-4  font-medium border-r">Est.Release</th>
+                    <th className="py-3 px-4  font-medium border-r">Status</th>
+                    <th className="py-3 px-4  font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -386,7 +427,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                       <td className="py-3 px-4 border-r border-t">{member.systemimpacted?.systemName}</td>
                       <td className="py-3 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
                       <td className="py-3 px-4 border-r border-t">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
+                        <span className={`px-2 py-1 rounded-full font-medium ${getStatusColor(member.status)}`}>
                           {member.status}
                         </span>
                       </td>

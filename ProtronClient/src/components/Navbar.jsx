@@ -7,7 +7,7 @@ const Navbar = ({ setIsAuthenticated }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [profile,setProfile] = useState(null)
+  const [profile, setProfile] = useState(null)
   const email = sessionStorage.getItem("email")
   const userDropdownRef = useRef(null);
   const navigate = useNavigate()
@@ -15,7 +15,7 @@ const Navbar = ({ setIsAuthenticated }) => {
     const handleWindowClose = async (e) => {
       const userId = sessionStorage.getItem('userId');
       const token = sessionStorage.getItem('token');
-   
+
       if (userId && token) {
         try {
           await fetch(`${import.meta.env.VITE_API_URL}/api/users/logout/${userId}`, {
@@ -32,9 +32,9 @@ const Navbar = ({ setIsAuthenticated }) => {
         }
       }
     };
-  
+
     window.addEventListener('beforeunload', handleWindowClose);
-  
+
     return () => {
       window.removeEventListener('beforeunload', handleWindowClose);
     };
@@ -42,7 +42,7 @@ const Navbar = ({ setIsAuthenticated }) => {
   const handleLogout = async () => {
     const userId = sessionStorage.getItem('userId');
     const token = sessionStorage.getItem('token');
-    
+
     if (userId && token) {
       try {
         await fetch(`${import.meta.env.VITE_API_URL}/api/users/logout/${userId}`, {
@@ -53,15 +53,15 @@ const Navbar = ({ setIsAuthenticated }) => {
           }
         });
         console.log("Logout recorded via button click");
-        
+
         // Clear session/local storage
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('email');
         sessionStorage.removeItem('userId');
         setIsAuthenticated(false);
         sessionStorage.removeItem('isAuthenticated');
-       
-        
+
+
         // Redirect to login page or handle as needed
         window.location.href = '/login'; // or use your router navigation
       } catch (error) {
@@ -85,26 +85,41 @@ const Navbar = ({ setIsAuthenticated }) => {
     // Cleanup
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
+
   const handleProfileClick = async (email) => {
     try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
-            headers: { Authorization: `${sessionStorage.getItem('token')}` }
-        }); // adjust your endpoint if needed
-        setProfile(res.data);
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` }
+      }); // adjust your endpoint if needed
+      setProfile(res.data);
     } catch (error) {
-        console.error("Error fetching profile", error);
+      console.error("Error fetching profile", error);
     }
-};
+  };
+  const fetchProfile = async (email) => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` },
+      });;
+      setProfile(res.data);
+    } catch (error) {
+      console.error("Error fetching profile", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile(email)
+  }, []);
   // Handle clicks outside of dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Handle mobile navbar dropdown
       const navbar = document.querySelector(".navbar-dropdown");
       if (
-        isMobile && 
-        isOpen && 
-        navbar && 
-        !navbar.contains(event.target) && 
+        isMobile &&
+        isOpen &&
+        navbar &&
+        !navbar.contains(event.target) &&
         !event.target.classList.contains("hamburger-button")
       ) {
         setIsOpen(false);
@@ -142,7 +157,7 @@ const Navbar = ({ setIsAuthenticated }) => {
   const handleButtonClick = (email) => {
     toggleUserDropdown();
     handleProfileClick(email); // pass the correct email
-};
+  };
 
 
   return (
@@ -154,9 +169,15 @@ const Navbar = ({ setIsAuthenticated }) => {
             {/* Logo - Left Side */}
             <div className="flex items-center gap-3">
               <img src="./logo.png" className="h-8 w-8" alt="Logo" />
-              <span className="text-xl font-medium">ABC INC</span>
+              <span className="text-xl font-medium">
+                {profile && profile.tenant && profile.tenant.tenantName ? (
+                  profile.tenant.tenantName
+                ) : (
+                  "Loading Tenant Name..." // Or any other placeholder or empty string
+                )}
+              </span>
             </div>
-            
+
             {/* Desktop Navigation - Center */}
             <div className="hidden md:flex items-center justify-center flex-1">
               <div className="flex items-center space-x-10">
@@ -170,9 +191,8 @@ const Navbar = ({ setIsAuthenticated }) => {
                   <button
                     key={item.key}
                     onClick={() => navigate(item.path)} // Navigate using the path
-                    className={`flex items-center px-3 py-2 rounded hover:underline cursor-pointer transition-colors duration-200 ${
-                      window.location.pathname === item.path ? 'underline text-orange-500' : ''
-                    }`}
+                    className={`flex items-center px-3 py-2 rounded hover:underline cursor-pointer transition-colors duration-200 ${window.location.pathname === item.path ? 'underline text-orange-500' : ''
+                      }`}
                   >
                     {item.icon}
                     <span>{item.label}</span>
@@ -180,7 +200,7 @@ const Navbar = ({ setIsAuthenticated }) => {
                 ))}
               </div>
             </div>
-            
+
             {/* User Profile - Right Side */}
             <div className="relative" ref={userDropdownRef}>
               <button
@@ -191,53 +211,53 @@ const Navbar = ({ setIsAuthenticated }) => {
                 <FiUser size={20} />
                 <FiChevronDown className="ml-1" size={16} />
               </button>
-              
+
               {/* User Dropdown */}
               {userDropdownOpen && profile && (
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden z-50">
-                {/* User Profile Section */}
-                <div className="px-5 py-4 bg-gray-50">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-blue-100 rounded-full p-2">
-                      <span className="text-blue-600 text-lg font-semibold">
-                        {profile.firstName?.charAt(0)}{profile.lastName?.charAt(0)}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-800">{`${profile.firstName} ${profile.lastName}`}</div>
-                      <div className="text-sm text-gray-500">{profile.email}</div>
+                  {/* User Profile Section */}
+                  <div className="px-5 py-4 bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-blue-100 rounded-full p-2">
+                        <span className="text-blue-600 text-lg font-semibold">
+                          {profile.firstName?.charAt(0)}{profile.lastName?.charAt(0)}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-800">{`${profile.firstName} ${profile.lastName}`}</div>
+                        <div className="text-sm text-gray-500">{profile.email}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                {/* User Details Section */}
-                <div className="px-5 py-3 border-t border-gray-100">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="text-gray-500">Employee Code:</div>
-                    <div className="text-gray-700 font-medium">{profile.empCode}</div>
-                    <div className="text-gray-500">Mobile:</div>
-                    <div className="text-gray-700 font-medium">{profile.mobilePhone}</div>
+
+                  {/* User Details Section */}
+                  <div className="px-5 py-3 border-t border-gray-100">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-gray-500">Employee Code:</div>
+                      <div className="text-gray-700 font-medium">{profile.empCode}</div>
+                      <div className="text-gray-500">Mobile:</div>
+                      <div className="text-gray-700 font-medium">{profile.mobilePhone}</div>
+                    </div>
+                  </div>
+
+                  {/* Actions Section */}
+                  <div className="border-t border-gray-100">
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center px-5 py-3 text-gray-700 hover:bg-gray-50 transition duration-150"
+                    >
+                      <FiLogOut className="mr-3 text-gray-500" />
+                      <span>Logout</span>
+                    </button>
                   </div>
                 </div>
-                
-                {/* Actions Section */}
-                <div className="border-t border-gray-100">
-                  <button
-                    onClick={handleLogout}
-                    className="flex w-full items-center px-5 py-3 text-gray-700 hover:bg-gray-50 transition duration-150"
-                  >
-                    <FiLogOut className="mr-3 text-gray-500" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              </div>
-              
+
               )}
             </div>
-            
+
             {/* Mobile Menu Button */}
             <div className="md:hidden">
-              <button 
+              <button
                 className="hamburger-button text-white p-2 rounded-md"
                 onClick={toggleNavbar}
                 aria-label="Toggle menu"
@@ -248,20 +268,19 @@ const Navbar = ({ setIsAuthenticated }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile Navigation Dropdown */}
       {isMobile && (
-        <div 
-          className={`navbar-dropdown md:hidden bg-green-800 text-white overflow-hidden transition-all duration-300 ${
-            isOpen ? 'max-h-screen shadow-lg' : 'max-h-0'
-          }`}
+        <div
+          className={`navbar-dropdown md:hidden bg-green-800 text-white overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-screen shadow-lg' : 'max-h-0'
+            }`}
         >
           <div className="container mx-auto px-4 py-2">
             <nav>
               <ul className="space-y-1">
                 {[
                   { key: 'dashboard', label: 'Dashboard' },
-                  { key: 'projects', label: 'Projects'},
+                  { key: 'projects', label: 'Projects' },
                   { key: 'team', label: 'Team' },
                   { key: 'timesheet', label: 'Timesheet' },
                   { key: 'users', label: 'Users' },
@@ -270,7 +289,7 @@ const Navbar = ({ setIsAuthenticated }) => {
                     <button
                       onClick={() => handleNavItemClick(item.key)}
                       className={`w-full text-left flex items-center px-2 py-3 rounded hover:bg-orange-500`
-                        }
+                      }
                     >
                       {item.icon}
                       <span>{item.label}</span>

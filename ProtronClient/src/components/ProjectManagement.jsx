@@ -356,7 +356,10 @@ const ProjectManagement = () => {
   // Function to download project data as Excel file
   const downloadExcel = () => {
     try {
-      // Prepare data for Excel export with all project details
+      // Prepare data for Exce
+
+      // 
+      // l export with all project details
       const excelData = projects.map((project, index) => ({
         'No.': index + 1,
         'Project Name': project.projectName,
@@ -527,7 +530,7 @@ const ProjectManagement = () => {
             <div className="hidden md:block">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-green-700 text-white">
+                  <tr className="bg-green-700 text-white text-lg">
                     <th className="py-3 px-4 font-medium border-r">#</th>
                     <th
                       className="py-3 px-4 font-medium border-r cursor-pointer select-none"
@@ -601,7 +604,7 @@ const ProjectManagement = () => {
                       <tr
                         key={project.projectId}
                         className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } hover:bg-green-50`}
+                          } hover:bg-green-50 text-lg`}
                       >
                         <td className="py-3 px-4 border-r">{indexOfFirstProject + index + 1}</td>
                         <td
