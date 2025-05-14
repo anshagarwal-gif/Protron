@@ -1,0 +1,27 @@
+<configuration>
+    <!-- Define appender for request logs only -->
+    <appender name="REQUEST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/request-logs.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/request-logs.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Only log your request filter to that file -->
+    <logger name="com.Protronserver.Protronserver.Utils.RequestLoggingFilter" level="INFO" additivity="false">
+        <appender-ref ref="REQUEST_FILE" />
+    </logger>
+
+    <!-- Optional: root logs to console only (not in request-logs) -->
+    <root level="INFO">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </root>
+</configuration>
