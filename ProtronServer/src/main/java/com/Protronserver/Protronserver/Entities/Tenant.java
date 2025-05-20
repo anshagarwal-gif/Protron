@@ -47,17 +47,20 @@ public class Tenant {
 
     // Define relationships with other entities
     @OneToMany(mappedBy = "tenant")
-    @JsonIgnoreProperties({"tenant", "projects", "projectTeams", "projectsManaged"})
+    @JsonIgnoreProperties({"tenant", "projects", "projectTeams", "projectsManaged", "role"})
     @JsonBackReference
     private List<User> users;
 
     @OneToMany(mappedBy = "tenant")
+    @JsonIgnoreProperties("tenant")
     private List<Role> roles;
 
     @OneToMany(mappedBy = "tenant")
+    @JsonIgnoreProperties({"tenant"})
     private List<Project> projects;
 
     @OneToMany(mappedBy = "tenant")
+    @JsonIgnoreProperties("tenant")
     private List<AccessRight> roleAccesses;
 
     @OneToMany(mappedBy = "tenant")

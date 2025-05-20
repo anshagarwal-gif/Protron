@@ -3,8 +3,10 @@ import { EyeIcon, EyeOffIcon, MailIcon } from 'lucide-react';
 import GlobalSnackbar from '../components/GlobalSnackbar';
 import axios from 'axios';
 import ForgotPassword from './ForgotPassword'; // Import the new component
+import { useAccess } from '../Context/AccessContext';
 
 const Login = ({ onLogin }) => {
+    const { setAccessRights, setRole } = useAccess();
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -47,6 +49,8 @@ const Login = ({ onLogin }) => {
             sessionStorage.setItem('email', response.data.email);
             sessionStorage.setItem('tenantId', response.data.tenantId);
             sessionStorage.setItem('userId', response.data.userId);
+            setAccessRights(response.data.accessRights);
+            setRole(response.data.role);
             onLogin(true);
         } catch (error) {
             setSnackbar({

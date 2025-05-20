@@ -8,8 +8,10 @@ import * as XLSX from "xlsx";
 // Import the AssignTeamMemberModal component
 import AssignTeamMemberModal from './AssignTeamMemberModal';
 import EditProjectModal from './EditProjectModal';
+import { useAccess } from '../Context/AccessContext';
 
 const ProjectTeamManagement = ({ projectId, project, onClose }) => {
+  const { hasAccess } = useAccess();
   const [teamMembers, setTeamMembers] = useState([
 
   ]);
@@ -332,9 +334,10 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
           </div>
           <h1 className="text-green-900 text-lg font-bold ">Manage Projects</h1>
         </div>
+        {hasAccess('projects', 'edit') && (
         <button onClick={() => handleEditProject(projectId)} className="bg-green-900 text-white px-4 py-1 rounded text-sm hover:bg-green-600">
           Edit
-        </button>
+        </button>)}
       </div>
 
       {/* Project Details */}
@@ -451,11 +454,14 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                           }}
                         >
                           <option value="">Actions</option>
-                          <option value="edit">Edit</option>
+                          {hasAccess('project_team', 'edit') && (
+                          <>
+                            <option value="edit">Edit</option>
                           <option value="toggleStatus">
                             {member.status === "hold" ? "Activate" : "Hold"}
                           </option>
                           <option value="remove">Remove</option>
+                          </>)}
                         </select>
                       </td>
 

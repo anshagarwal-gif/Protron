@@ -13,6 +13,7 @@ import Signup from './pages/Signup';
 import GlobalSnackbar from './components/GlobalSnackbar';
 import Navbar from './components/Navbar';
 import UserManagement from './pages/UserManagement';
+import { AccessProvider } from './Context/AccessContext';
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
@@ -46,42 +47,44 @@ const App = () => {
     };
 
     return (
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Router>
-                {isAuthenticated && (
-                    <Navbar
-                        setIsAuthenticated={setIsAuthenticated}
-                    />
-                )}
-                <div className="flex-1 p-6 overflow-y-auto">
-                    <Routes>
-                        {!isAuthenticated ? (
-                            <>
-                                <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                                <Route path="*" element={<Navigate to="/login" />} />
-                            </>
-                        ) : (
-                            <>
-                                <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
-                                <Route path="/dashboard" element={<Dashboard />} />
-                                <Route path="/projects" element={<ProjectManagement />} />
-                                <Route path="/team" element={<TeamManagement />} />
-                                <Route path="/timesheet" element={<ManageTimesheet />} />
-                                <Route path="/users" element={<UserManagement />} />
-                                <Route path="*" element={<Navigate to="/dashboard" />} />
-                            </>
-                        )}
-                    </Routes>
-                </div>
+        <AccessProvider>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <Router>
+                    {isAuthenticated && (
+                        <Navbar
+                            setIsAuthenticated={setIsAuthenticated}
+                        />
+                    )}
+                    <div className="flex-1 p-6 overflow-y-auto">
+                        <Routes>
+                            {!isAuthenticated ? (
+                                <>
+                                    <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                                    <Route path="*" element={<Navigate to="/login" />} />
+                                </>
+                            ) : (
+                                <>
+                                    <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
+                                    <Route path="/dashboard" element={<Dashboard />} />
+                                    <Route path="/projects" element={<ProjectManagement />} />
+                                    <Route path="/team" element={<TeamManagement />} />
+                                    <Route path="/timesheet" element={<ManageTimesheet />} />
+                                    <Route path="/users" element={<UserManagement />} />
+                                    <Route path="*" element={<Navigate to="/dashboard" />} />
+                                </>
+                            )}
+                        </Routes>
+                    </div>
 
-                <GlobalSnackbar
-                    open={snackbar.open}
-                    message={snackbar.message}
-                    severity={snackbar.severity}
-                    onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-                />
-            </Router>
-        </LocalizationProvider>
+                    <GlobalSnackbar
+                        open={snackbar.open}
+                        message={snackbar.message}
+                        severity={snackbar.severity}
+                        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+                    />
+                </Router>
+            </LocalizationProvider>
+        </AccessProvider>
     );
 };
 

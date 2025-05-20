@@ -120,17 +120,20 @@ public class User {
 
     @ManyToOne
     @JoinColumn(name = "role_id")
+    @JsonManagedReference
+    @JsonIgnoreProperties({"users", "tenant", "accessRights"})
     private Role role;
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonManagedReference
-    @JsonIgnoreProperties("projects")
+    @JsonIgnoreProperties({"users", "projects", "roles", "roleAccesses"})
     private Tenant tenant;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnoreProperties("user")
     private List<TimesheetTask> timesheetTasks;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnoreProperties("user")
     private List<Certificate> certificates;
 
     @OneToMany(mappedBy = "projectManager")
