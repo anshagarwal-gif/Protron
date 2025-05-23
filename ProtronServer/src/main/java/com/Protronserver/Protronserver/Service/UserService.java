@@ -111,7 +111,7 @@ public class UserService {
         return savedUser;
     }
 
-    public Map<String, String> loginUser(LoginRequest loginRequest) {
+    public Map<String, Object> loginUser(LoginRequest loginRequest) {
         Optional<User> userOptional = userRepository.findByEmailAndEndTimestampIsNull(loginRequest.getEmail());
 
         if (userOptional.isPresent()) {
@@ -120,12 +120,29 @@ public class UserService {
             if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
                 String token = jwtUtil.generateToken(user.getEmail());
                 loginAuditService.recordLogin(user, user.getTenant(), loginRequest.getTimezoneId());
-                Map<String, String> response = new HashMap<>();
+
+                Map<String, Object> response = new HashMap<>();
                 response.put("token", token);
                 response.put("email", user.getEmail());
                 response.put("empCode", user.getEmpCode());
-                response.put("tenantId", String.valueOf(user.getTenant().getTenantId()));
-                response.put("userId", String.valueOf(user.getUserId()));
+                response.put("tenantId", user.getTenant().getTenantId());
+                response.put("userId", user.getUserId());
+                response.put("role", user.getRole().getRoleName());
+
+                // Get access rights for this user's role
+                List<Map<String, Object>> accessRightsList = user.getRole().getAccessRights().stream()
+                        .filter(ar -> ar.getTenant().getTenantId().equals(user.getTenant().getTenantId()))
+                        .map(ar -> {
+                            Map<String, Object> accessMap = new HashMap<>();
+                            accessMap.put("moduleName", ar.getModuleName());
+                            accessMap.put("canView", ar.isCanView());
+                            accessMap.put("canEdit", ar.isCanEdit());
+                            accessMap.put("canDelete", ar.isCanDelete());
+                            return accessMap;
+                        }).toList();
+
+                response.put("accessRights", accessRightsList);
+
                 return response;
             } else {
                 throw new RuntimeException("Invalid credentials");
@@ -134,6 +151,7 @@ public class UserService {
             throw new RuntimeException("User not found with this email");
         }
     }
+
 
     public void logoutUser(User user) {
         loginAuditService.recordLogout(user);

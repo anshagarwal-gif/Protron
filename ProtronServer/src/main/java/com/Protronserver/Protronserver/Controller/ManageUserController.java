@@ -39,7 +39,7 @@ public class ManageUserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
         try {
-            Map<String, String> response = userService.loginUser(loginRequest);
+            Map<String, Object> response = userService.loginUser(loginRequest);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());

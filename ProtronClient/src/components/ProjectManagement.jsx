@@ -7,10 +7,12 @@ import GlobalSnackbar from './GlobalSnackbar';
 import ProjectTeamManagement from "./ProjectTeamManagement";
 import EditProjectModal from "./EditProjectModal"
 import * as XLSX from "xlsx";
+import { useAccess } from "../Context/AccessContext"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const ProjectManagement = () => {
+  const { hasAccess } = useAccess();
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -644,13 +646,14 @@ const ProjectManagement = () => {
                             </button>
 
                             {/* Edit Project Button */}
+                            {hasAccess('projects', 'edit') && (
                             <button
                               onClick={() => setSelectedEditProjectId(project.projectId)}
                               className="p-2 rounded-full hover:bg-green-100"
                               title="Edit"
                             >
                               <FiEdit size={20} className="text-green-700" />
-                            </button>
+                            </button>)}
 
                             {/* Manage Team Button */}
                             <button

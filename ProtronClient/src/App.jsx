@@ -13,7 +13,6 @@ import Signup from './pages/Signup';
 import GlobalSnackbar from './components/GlobalSnackbar';
 import Navbar from './components/Navbar';
 import UserManagement from './pages/UserManagement';
-import ManageTimesheets from './components/ManageTimesheet';
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
@@ -67,7 +66,7 @@ const App = () => {
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/projects" element={<ProjectManagement />} />
                                 <Route path="/team" element={<TeamManagement />} />
-                                <Route path="/timesheet" element={<ManageTimesheets />} />
+                                <Route path="/timesheet" element={<ManageTimesheet />} />
                                 <Route path="/users" element={<UserManagement />} />
                                 <Route path="*" element={<Navigate to="/dashboard" />} />
                             </>
@@ -75,14 +74,15 @@ const App = () => {
                     </Routes>
                 </div>
 
-                <GlobalSnackbar
-                    open={snackbar.open}
-                    message={snackbar.message}
-                    severity={snackbar.severity}
-                    onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-                />
-            </Router>
-        </LocalizationProvider>
+                    <GlobalSnackbar
+                        open={snackbar.open}
+                        message={snackbar.message}
+                        severity={snackbar.severity}
+                        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+                    />
+                </Router>
+            </LocalizationProvider>
+        </AccessProvider>
     );
 };
 

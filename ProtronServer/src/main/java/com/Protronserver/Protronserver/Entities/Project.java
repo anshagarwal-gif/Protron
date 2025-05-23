@@ -103,7 +103,7 @@ public class Project {
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({ "users", "projects" })
+    @JsonIgnoreProperties({ "users", "projects", "roles", "roleAccesses" }) 
     private Tenant tenant;
 
     public List<Systemimpacted> getSystemImpacted() {
