@@ -8,12 +8,14 @@ import {
   Shield, 
   Plus, 
   Search,
-  Eye as FiEye,
-  Edit as FiEdit,
-  ArrowUp as FiArrowUp,
-  ArrowDown as FiArrowDown
+  Pause,
+  UserCog,
+  FileText,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
+import AddUserModal from "../components/AcccesModal"; // Import your AddUserModal
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -24,6 +26,8 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
+  const [selectedUser, setSelectedUser] = useState(null); // State for selected user
   const { hasAccess } = useAccess() // Assuming useAccess is imported from your context
 
   // Sample data for demonstration
@@ -110,25 +114,49 @@ const UserManagement = () => {
       return <ChevronDown className="ml-1 text-orange-500 text-md" />;
     }
     return sortOrder === 'asc' ?
-      <FiArrowUp className="ml-1 text-green-900" /> :
-      <FiArrowDown className="ml-1 text-green-900" />;
+      <ArrowUp className="ml-1 text-green-900" /> :
+      <ArrowDown className="ml-1 text-green-900" />;
   };
 
-  // Placeholder functions for actions
-  const handleView = (user) => {
-    console.log("Viewing user:", user);
+  // New action functions
+  const handleHold = (user) => {
+    console.log("Hold action for user:", user);
   };
 
-  const handleEdit = (userId) => {
-    console.log("Editing user:", userId);
+  const handleManageUser = (user) => {
+    console.log("Manage user:", user);
+    setSelectedUser(user); // Set the selected user
+    setIsModalOpen(true); // Open the modal
   };
 
-  const handleViewRole = (role) => {
-    console.log("Viewing role:", role);
+  const handleAuditTrail = (userId) => {
+    console.log("View audit trail for user:", userId);
   };
 
-  const handleEditRole = (roleId) => {
-    console.log("Editing role:", roleId);
+  const handleHoldRole = (role) => {
+    console.log("Hold action for role:", role);
+  };
+
+  const handleManageRole = (roleId) => {
+    console.log("Manage role:", roleId);
+  };
+
+  const handleAuditTrailRole = (roleId) => {
+    console.log("View audit trail for role:", roleId);
+  };
+
+  // Handle modal close
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  // Handle modal submit
+  const handleModalSubmit = (formData, permissions) => {
+    console.log("User data submitted:", formData);
+    console.log("Permissions:", permissions);
+    // Handle the form submission here
+    handleModalClose();
   };
   
   return (
@@ -286,23 +314,44 @@ const UserManagement = () => {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex justify-center gap-2">
-                            {/* View User Button */}
-                            <button
-                              onClick={() => handleView(user)}
-                              className="p-2 rounded-full hover:bg-green-100"
-                              title="View"
-                            >
-                              <FiEye size={20} className="text-green-700" />
-                            </button>
+                            {/* Hold Button */}
+                            <div className="relative group">
+                              <button
+                                onClick={() => handleHold(user)}
+                                className="p-2 rounded-full hover:bg-orange-100 transition-colors"
+                              >
+                                <Pause size={20} className="text-orange-600" />
+                              </button>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                Hold
+                              </div>
+                            </div>
 
-                            {/* Edit User Button */}
-                            <button
-                              onClick={() => handleEdit(user.id)}
-                              className="p-2 rounded-full hover:bg-green-100"
-                              title="Edit"
-                            >
-                              <FiEdit size={20} className="text-green-700" />
-                            </button>
+                            {/* Manage Users Button */}
+                            <div className="relative group">
+                              <button
+                                onClick={() => handleManageUser(user)}
+                                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                              >
+                                <UserCog size={20} className="text-blue-600" />
+                              </button>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                Manage Users
+                              </div>
+                            </div>
+
+                            {/* Audit Trail Button */}
+                            <div className="relative group">
+                              <button
+                                onClick={() => handleAuditTrail(user.id)}
+                                className="p-2 rounded-full hover:bg-purple-100 transition-colors"
+                              >
+                                <FileText size={20} className="text-purple-600" />
+                              </button>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                Audit Trail
+                              </div>
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -369,23 +418,22 @@ const UserManagement = () => {
                         <td className="py-3 px-4 border-r">{role.permissions}</td>
                         <td className="py-3 px-4">
                           <div className="flex justify-center gap-2">
-                            {/* View Role Button */}
-                            <button
-                              onClick={() => handleViewRole(role)}
-                              className="p-2 rounded-full hover:bg-green-100"
-                              title="View"
-                            >
-                              <FiEye size={20} className="text-green-700" />
-                            </button>
+                            {/* Hold Button */}
+                  
+                            {/* Manage Role Button */}
+                            <div className="relative group">
+                              <button
+                                onClick={() => handleManageRole(role.id)}
+                                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                              >
+                                <UserCog size={20} className="text-blue-600" />
+                              </button>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                Manage Role
+                              </div>
+                            </div>
 
-                            {/* Edit Role Button */}
-                            <button
-                              onClick={() => handleEditRole(role.id)}
-                              className="p-2 rounded-full hover:bg-green-100"
-                              title="Edit"
-                            >
-                              <FiEdit size={20} className="text-green-700" />
-                            </button>
+                           
                           </div>
                         </td>
                       </tr>
@@ -446,11 +494,21 @@ const UserManagement = () => {
               onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={30} />
             </button>
           </div>
         </div>
       </div>
+
+      {/* Render Modal when open */}
+      {isModalOpen && (
+        <AddUserModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          onSubmit={handleModalSubmit}
+          selectedUser={selectedUser} // Pass selected user data if editing
+        />
+      )}
     </div>
   );
 };

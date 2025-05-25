@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-
-const AddUserModal = () => {
-  const [isOpen, setIsOpen] = useState(true);
+const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   const [formData, setFormData] = useState({
     tenantName: '',
     firstName: '',
@@ -26,6 +24,45 @@ const AddUserModal = () => {
     viewManageTimesheets: false
   });
 
+  // Populate form data when editing a user
+  useEffect(() => {
+    if (selectedUser) {
+      setFormData({
+        tenantName: selectedUser.tenant || '',
+        firstName: selectedUser.name?.split(' ')[0] || '',
+        lastName: selectedUser.name?.split(' ').slice(1).join(' ') || '',
+        emailId: selectedUser.email || '',
+        role: selectedUser.role || '',
+        manageEmail: '',
+        status: selectedUser.status || 'Active'
+      });
+      // You might want to load user-specific permissions here as well
+    } else {
+      // Reset form for new user
+      setFormData({
+        tenantName: '',
+        firstName: '',
+        lastName: '',
+        emailId: '',
+        role: '',
+        manageEmail: '',
+        status: 'Active'
+      });
+      setPermissions({
+        dashboardAll: true,
+        selfOnly: false,
+        manageProjectsAll: true,
+        addNewProject: false,
+        mangeTeamForProjects: false,
+        manageTeamAll: true,
+        addNewTeam: false,
+        addTeamMembers: false,
+        timesheet: true,
+        viewManageTimesheets: false
+      });
+    }
+  }, [selectedUser]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -42,9 +79,12 @@ const AddUserModal = () => {
   };
 
   const handleSubmit = () => {
-    console.log('Form Data:', formData);
-    console.log('Permissions:', permissions);
-    // Handle form submission
+    // Pass both formData and permissions to parent component
+    onSubmit(formData, permissions);
+  };
+
+  const handleCancel = () => {
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -54,9 +94,11 @@ const AddUserModal = () => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Add New User</h2>
+          <h2 className="text-xl font-semibold text-gray-800">
+            {selectedUser ? 'Edit User' : 'Add New User'}
+          </h2>
           <button 
-            onClick={() => setIsOpen(false)}
+            onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X size={24} />
@@ -135,9 +177,11 @@ const AddUserModal = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500"
               >
                 <option value="">Select from list</option>
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="employee">Employee</option>
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+                <option value="User">User</option>
+                <option value="Guest">Guest</option>
+                <option value="Developer">Developer</option>
               </select>
             </div>
             <div>
@@ -318,7 +362,7 @@ const AddUserModal = () => {
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
           <button
-            onClick={() => setIsOpen(false)}
+            onClick={handleCancel}
             className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
           >
             Cancel
@@ -327,7 +371,7 @@ const AddUserModal = () => {
             onClick={handleSubmit}
             className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
           >
-            Submit
+            {selectedUser ? 'Update' : 'Submit'}
           </button>
         </div>
       </div>
