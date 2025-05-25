@@ -534,9 +534,9 @@ const ProjectManagement = () => {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-green-700 text-white text-lg">
-                    <th className="py-3 px-4 font-medium border-r">#</th>
+                    <th className="py-2 px-4 font-medium border-r">#</th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      className="py-2 px-4 font-medium border-r cursor-pointer select-none"
                       onClick={() => handleSort('projectName')}
                     >
                       <div className="flex items-center">
@@ -545,7 +545,7 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      className="py-2 px-4 font-medium border-r cursor-pointer select-none"
                       onClick={() => handleSort('startDate')}
                     >
                       <div className="flex items-center">
@@ -554,7 +554,7 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      className="py-2 px-4 font-medium border-r cursor-pointer select-none"
                       onClick={() => handleSort('pmName')}
                     >
                       <div className="flex items-center">
@@ -563,7 +563,7 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      className="py-2 px-4 font-medium border-r cursor-pointer select-none"
                       onClick={() => handleSort('teamSize')}
                     >
                       <div className="flex items-center">
@@ -572,7 +572,7 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      className="py-2 px-4 font-medium border-r cursor-pointer select-none"
                       onClick={() => handleSort('unit')}
                     >
                       <div className="flex items-center">
@@ -581,7 +581,7 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
+                      className="py-2 px-4 font-medium border-r cursor-pointer select-none"
                       onClick={() => handleSort('projectCost')}
                     >
                       <div className="flex items-center">
@@ -590,7 +590,7 @@ const ProjectManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r  select-none"
+                      className="py-2 px-4 font-medium border-r  select-none"
                      
                     >
                       <div className="flex items-center">
@@ -598,7 +598,7 @@ const ProjectManagement = () => {
                        
                       </div>
                     </th>
-                    <th className="py-3 px-4 font-medium">Actions</th>
+                    <th className="py-2 px-4 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -609,33 +609,33 @@ const ProjectManagement = () => {
                         className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"
                           } hover:bg-green-50 text-lg`}
                       >
-                        <td className="py-3 px-4 border-r">{indexOfFirstProject + index + 1}</td>
+                        <td className="py-2 px-4 border-r">{indexOfFirstProject + index + 1}</td>
                         <td
-                          className="py-3 px-4 border-r font-medium cursor-pointer hover:text-green-600 max-w-[200px] truncate"
+                          className="py-2 px-4 border-r font-medium cursor-pointer hover:text-green-600 max-w-[200px] truncate"
                           onClick={() => handleManageTeam(project.projectId, project)}
                           title={project.projectName} 
                         >
                           {project.projectName}
                         </td>
-                        <td className="py-3 px-4 border-r">
+                        <td className="py-2 px-4 border-r">
                           {formatDate(project.startDate)}
                         </td>
-                        <td className="py-3 px-4 border-r">
+                        <td className="py-2 px-4 border-r">
                           {project.projectManager?.firstName} {project.projectManager?.lastName}
                         </td>
                         <td
-                          className="py-3 px-4 text-blue-600 hover:text-green-600 cursor-pointer border-r flex items-center"
+                          className="py-2 px-4 text-blue-600 hover:text-green-600 cursor-pointer border-r flex items-center"
                           onClick={() => handleManageTeam(project.projectId, project)}
                         >
                           <FiUsers className="mr-1" />
                           <span className="underline">{project.projectTeam?.length || 0}</span>
                         </td>
-                        <td className="py-3 px-4 border-r">{project.unit || '-'}</td>
-                        <td className="py-3 px-4 border-r">{project.projectCost || '-'}</td>
-                        <td className="py-3 px-4 border-r">
+                        <td className="py-2 px-4 border-r">{project.unit || '-'}</td>
+                        <td className="py-2 px-4 border-r">{project.projectCost || '-'}</td>
+                        <td className="py-2 px-4 border-r">
                           {project.sponsor?.firstName} {project.sponsor?.lastName}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-2 px-4">
                           <div className="flex justify-center gap-2">
                             {/* View Project Button */}
                             <button
@@ -879,7 +879,7 @@ const ProjectManagement = () => {
 
           <div className="bg-white rounded-xl shadow-lg w-[90%] md:w-[800px] max-h-[90vh] overflow-hidden">
             {/* Header */}
-            <div className="bg-gray-50 border-b border-gray-200 py-3 px-6">
+            <div className="bg-gray-50 border-b border-gray-200 py-2 px-6">
               <h2 className="text-xl font-semibold text-green-700">Project Details</h2>
             </div>
 
@@ -1088,7 +1088,7 @@ const ProjectManagement = () => {
             </div>
 
             {/* Footer with buttons */}
-            <div className="bg-gray-50 border-t border-gray-200 py-3 px-6 flex justify-end gap-3">
+            <div className="bg-gray-50 border-t border-gray-200 py-2 px-6 flex justify-end gap-3">
               <button
                 className="px-4 py-2 border border-green-600 text-green-600 rounded hover:border-green-700 hover:text-green-700 transition-colors"
                 onClick={handleClose}

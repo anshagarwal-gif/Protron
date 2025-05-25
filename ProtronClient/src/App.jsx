@@ -13,6 +13,8 @@ import Signup from './pages/Signup';
 import GlobalSnackbar from './components/GlobalSnackbar';
 import Navbar from './components/Navbar';
 import UserManagement from './pages/UserManagement';
+import ManageTimesheets from './components/ManageTimesheet';
+import TimesheetDashboard from './components/EmployeeTimesheet';
 import { AccessProvider } from './Context/AccessContext';
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
@@ -48,33 +50,34 @@ const App = () => {
 
     return (
         <AccessProvider>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-                <Router>
-                    {isAuthenticated && (
-                        <Navbar
-                            setIsAuthenticated={setIsAuthenticated}
-                        />
-                    )}
-                    <div className="flex-1 p-6 overflow-y-auto">
-                        <Routes>
-                            {!isAuthenticated ? (
-                                <>
-                                    <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                                    <Route path="*" element={<Navigate to="/login" />} />
-                                </>
-                            ) : (
-                                <>
-                                    <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
-                                    <Route path="/dashboard" element={<Dashboard />} />
-                                    <Route path="/projects" element={<ProjectManagement />} />
-                                    <Route path="/team" element={<TeamManagement />} />
-                                    <Route path="/timesheet" element={<ManageTimesheet />} />
-                                    <Route path="/users" element={<UserManagement />} />
-                                    <Route path="*" element={<Navigate to="/dashboard" />} />
-                                </>
-                            )}
-                        </Routes>
-                    </div>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Router>
+                {isAuthenticated && (
+                    <Navbar
+                        setIsAuthenticated={setIsAuthenticated}
+                    />
+                )}
+                <div className="flex-1 p-6 overflow-y-auto">
+                    <Routes>
+                        {!isAuthenticated ? (
+                            <>
+                                <Route path="/login" element={<Login onLogin={handleLogin} />} />
+                                <Route path="*" element={<Navigate to="/login" />} />
+                            </>
+                        ) : (
+                            <>
+                                <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/projects" element={<ProjectManagement />} />
+                                <Route path="/team" element={<TeamManagement />} />
+                                <Route path="/timesheet" element={<ManageTimesheets   />} />
+                                <Route path="/employee-timesheet" element={<TimesheetDashboard />} />
+                                <Route path="/users" element={<UserManagement />} />
+                                <Route path="*" element={<Navigate to="/dashboard" />} />
+                            </>
+                        )}
+                    </Routes>
+                </div>
 
                     <GlobalSnackbar
                         open={snackbar.open}

@@ -447,9 +447,9 @@ const TeamManagement = () => {
                         <table className="w-full min-w-[640px] text-lg border-collapse">
                             <thead>
                                 <tr className="bg-green-700 text-white">
-                                    <th className="py-3 px-4 text-md font-medium border-r">#</th>
+                                    <th className="py-2 px-4 text-md font-medium border-r">#</th>
                                     <th
-                                        className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
+                                        className="py-2 px-4 text-md font-medium border-r cursor-pointer select-none"
                                         onClick={() => handleSort('firstName')}
                                     >
                                         <div className="flex items-center">
@@ -458,7 +458,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th
-                                        className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
+                                        className="py-2 px-4 text-md font-medium border-r cursor-pointer select-none"
                                         onClick={() => handleSort('empCode')}
                                     >
                                         <div className="flex items-center">
@@ -467,7 +467,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th
-                                        className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
+                                        className="py-2 px-4 text-md font-medium border-r cursor-pointer select-none"
                                         onClick={() => handleSort('email')}
                                     >
                                         <div className="flex items-center">
@@ -476,7 +476,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th
-                                        className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
+                                        className="py-2 px-4 text-md font-medium border-r cursor-pointer select-none"
                                         onClick={() => handleSort('cost')}
                                     >
                                         <div className="flex items-center">
@@ -485,7 +485,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th
-                                        className="py-3 px-4 text-md font-medium border-r cursor-pointer select-none"
+                                        className="py-2 px-4 text-md font-medium border-r cursor-pointer select-none"
                                         onClick={() => handleSort('dateOfJoining')}
                                     >
                                         <div className="flex items-center">
@@ -494,7 +494,7 @@ const TeamManagement = () => {
                                         </div>
                                     </th>
                                     <th
-                                        className="py-3 px-4 text-md font-medium cursor-pointer select-none"
+                                        className="py-2 px-4 text-md font-medium cursor-pointer select-none"
                                         onClick={() => handleSort('status')}
                                     >
                                         <div className="flex items-center">
@@ -508,8 +508,8 @@ const TeamManagement = () => {
                                 {currentEmployees.length > 0 ? (
                                     currentEmployees.map((member, index) => (
                                         <tr key={member.userId} className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-green-50`}>
-                                            <td className="py-3 px-4 border-r">{indexOfFirstEmployee + index + 1}</td>
-                                            <td className="py-3 px-4 border-r flex items-center cursor-pointer hover:text-green-700" onClick={() => handleProfileClick(member.email)}>
+                                            <td className="py-2 px-4 border-r">{indexOfFirstEmployee + index + 1}</td>
+                                            <td className="py-2 px-4 border-r flex items-center cursor-pointer hover:text-green-700" onClick={() => handleProfileClick(member.email)}>
                                                 <img
                                                     src={
                                                         member.photo
@@ -524,13 +524,13 @@ const TeamManagement = () => {
                                                 />
                                                 <span>{member.firstName + ' ' + member.lastName}</span>
                                             </td>
-                                            <td className="py-3 px-4 border-r">{member.empCode}</td>
-                                            <td className="py-3 px-4 border-r">{member.email}</td>
-                                            <td className="py-3 px-4 border-r">{member.cost || 'N/A'}</td>
-                                            <td className="py-3 px-4 border-r">
+                                            <td className="py-2 px-4 border-r">{member.empCode}</td>
+                                            <td className="py-2 px-4 border-r">{member.email}</td>
+                                            <td className="py-2 px-4 border-r">{member.cost || 'N/A'}</td>
+                                            <td className="py-2 px-4 border-r">
                                                 {member.dateOfJoining ? member.dateOfJoining.split('T')[0] : "N/A"}
                                             </td>
-                                            <td className="py-3 px-4">
+                                            <td className="py-2 px-4">
                                                 <span className={`px-2 py-1 rounded-full text-md font-medium ${getStatusColor(member.status)}`}>
                                                     {member.status}
                                                 </span>
