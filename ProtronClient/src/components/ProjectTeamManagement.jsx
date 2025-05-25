@@ -364,13 +364,14 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-gray-800">Manage Team Member</h2>
           <div className="flex gap-10 items-center">
+            {hasAccess('project_team', 'edit') && (
             <button
               className="bg-green-900 text-white px-3 py-2 rounded flex items-center text-sm hover:bg-green-600"
               onClick={() => setIsModalOpen(true)}
             >
               <FiPlus size={16} className="mr-1" />
               Add Member
-            </button>
+            </button>)}
             <button
               className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
               onClick={downloadExcel}

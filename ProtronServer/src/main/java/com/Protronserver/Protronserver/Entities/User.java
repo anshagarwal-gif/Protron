@@ -136,6 +136,18 @@ public class User {
     @JsonIgnoreProperties("user")
     private List<Certificate> certificates;
 
+    @OneToMany(mappedBy = "user")
+    @JsonIgnoreProperties("user")
+    private List<UserAccessRights> userAccessRights;
+
+    public List<UserAccessRights> getUserAccessRights() {
+        return userAccessRights;
+    }
+
+    public void setUserAccessRights(List<UserAccessRights> userAccessRights) {
+        this.userAccessRights = userAccessRights;
+    }
+
     @OneToMany(mappedBy = "projectManager")
     @JsonIgnoreProperties("projectManager")
     private List<Project> projectsManaged; // Projects managed by the user

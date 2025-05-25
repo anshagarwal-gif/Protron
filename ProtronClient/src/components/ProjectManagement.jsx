@@ -478,12 +478,13 @@ const ProjectManagement = () => {
                 </button>
 
                 {/* Add Project Button */}
+                {hasAccess('projects', 'edit') && (
                 <button
                   className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none"
                   onClick={() => setShowAddModal(true)}
                 >
                   <span className="hidden sm:inline mr-1">+</span> Add Project
-                </button>
+                </button>)}
               </div>
             </div>
           </div>

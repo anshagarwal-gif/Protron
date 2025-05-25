@@ -130,18 +130,31 @@ public class UserService {
                 response.put("role", user.getRole().getRoleName());
 
                 // Get access rights for this user's role
-                List<Map<String, Object>> accessRightsList = user.getRole().getAccessRights().stream()
-                        .filter(ar -> ar.getTenant().getTenantId().equals(user.getTenant().getTenantId()))
+                List<Map<String, Object>> accessRightsList = user.getRole().getRoleAccessRights().stream()
                         .map(ar -> {
                             Map<String, Object> accessMap = new HashMap<>();
-                            accessMap.put("moduleName", ar.getModuleName());
-                            accessMap.put("canView", ar.isCanView());
-                            accessMap.put("canEdit", ar.isCanEdit());
-                            accessMap.put("canDelete", ar.isCanDelete());
+                            accessMap.put("moduleName", ar.getAccessRight().getModuleName());
+                            accessMap.put("canView", ar.getAccessRight().isCanView());
+                            accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
+                            accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
                             return accessMap;
                         }).toList();
 
-                response.put("accessRights", accessRightsList);
+                response.put("roleAccessRights", accessRightsList);
+
+
+                    List<Map<String , Object>> userAccessRightsList = user.getUserAccessRights().stream()
+                            .map(ar -> {
+                                Map<String, Object> accessMap = new HashMap<>();
+                                accessMap.put("moduleName", ar.getAccessRight().getModuleName());
+                                accessMap.put("canView", ar.getAccessRight().isCanView());
+                                accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
+                                accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
+                                return accessMap;
+                            }).toList();
+
+                    response.put("userAccessRights", userAccessRightsList);
+
 
                 return response;
             } else {

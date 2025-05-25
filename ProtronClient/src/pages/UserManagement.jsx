@@ -13,6 +13,7 @@ import {
   ArrowUp as FiArrowUp,
   ArrowDown as FiArrowDown
 } from "lucide-react";
+import { useAccess } from "../Context/AccessContext";
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
+  const { hasAccess } = useAccess() // Assuming useAccess is imported from your context
 
   // Sample data for demonstration
   const tenants = ["All Tenants", "Tenant A", "Tenant B", "Tenant C"];
@@ -192,14 +194,14 @@ const UserManagement = () => {
             />
             <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
-
+          {hasAccess('users', 'edit') && (
           <button
             className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
             onClick={() => navigate('/signup')}
           >
             <Plus size={18} className="mr-2" />
             Create User
-          </button>
+          </button>)}
         </div>
 
         {/* Tables */}

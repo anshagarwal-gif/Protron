@@ -23,11 +23,6 @@ public class AccessRight {
     private boolean canDelete;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
-    @JsonIgnoreProperties("accessRights")
-    private Role role;
-
-    @ManyToOne
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
@@ -69,14 +64,6 @@ public class AccessRight {
 
     public void setCanDelete(boolean canDelete) {
         this.canDelete = canDelete;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
     }
 
     public Tenant getTenant() {

@@ -28,8 +28,9 @@ public class Role {
     private List<User> users;
 
     @OneToMany(mappedBy = "role")
-    @JsonIgnoreProperties({"role", "tenant"})
-    private List<AccessRight> accessRights;
+    @JsonIgnoreProperties({"role"})
+    private List<RoleAccessRights> roleAccessRights;
+
     @ManyToOne
     @JoinColumn(name = "tenant_id")
     @JsonIgnoreProperties({"roles", "roleAccesses"})
@@ -59,12 +60,12 @@ public class Role {
         this.users = users;
     }
 
-    public List<AccessRight> getAccessRights() {
-        return accessRights;
+    public List<RoleAccessRights> getRoleAccessRights() {
+        return roleAccessRights;
     }
 
-    public void setAccessRights(List<AccessRight> accessRights) {
-        this.accessRights = accessRights;
+    public void setRoleAccessRights(List<RoleAccessRights> roleAccessRights) {
+        this.roleAccessRights = roleAccessRights;
     }
 
     public Tenant getTenant() {

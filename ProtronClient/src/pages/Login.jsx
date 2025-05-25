@@ -49,7 +49,7 @@ const Login = ({ onLogin }) => {
             sessionStorage.setItem('email', response.data.email);
             sessionStorage.setItem('tenantId', response.data.tenantId);
             sessionStorage.setItem('userId', response.data.userId);
-            setAccessRights(response.data.accessRights);
+            setAccessRights([...response.data.roleAccessRights, ...response.data.userAccessRights]);
             setRole(response.data.role);
             onLogin(true);
         } catch (error) {
