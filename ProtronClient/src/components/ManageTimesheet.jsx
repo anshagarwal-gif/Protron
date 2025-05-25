@@ -1,321 +1,266 @@
-import React, { useState } from 'react';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Calendar, 
-  Download, 
-  Eye,
-  User,
-  ChevronDown,
-  SkipBack,
-  SkipForward
-} from 'lucide-react';
+"use client"
+
+import { useState } from "react"
+import { ChevronLeft, ChevronRight, Calendar, Download, SkipBack, SkipForward, ChevronDown } from "lucide-react"
+import { FiCalendar } from "react-icons/fi"
 
 const ManageTimesheets = () => {
-  const [currentWeek, setCurrentWeek] = useState('13/Jan/25 - 19/Jan/25');
-  const [showWeekend, setShowWeekend] = useState(false);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentWeek, setCurrentWeek] = useState("13/Jan/25 - 19/Jan/25")
+  const [showWeekend, setShowWeekend] = useState(false)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   // Sample timesheet data
   const timesheetData = [
     {
       id: 1,
-      name: '',
-      avatar: null,
-      mon: { hours: '3H', status: 'pending' },
-      tue: { hours: '0H', status: 'approved' },
-      wed: { hours: '0H', status: 'pending' },
-      thu: { hours: '0H', status: 'approved' },
-      fri: { hours: '0H', status: 'pending' },
-      total: { hours: '3H', total: '40H' }
+      name: "Unknown User",
+      initials: "UU",
+      mon: { hours: "3H", status: "pending" },
+      tue: { hours: "0H", status: "approved" },
+      wed: { hours: "0H", status: "pending" },
+      thu: { hours: "0H", status: "approved" },
+      fri: { hours: "0H", status: "pending" },
+      total: { hours: "3H", total: "40H" },
     },
     {
       id: 2,
-      name: 'Alfie Wood',
-      avatar: '👤',
-      mon: { hours: '8H', status: 'approved' },
-      tue: { hours: '0H', status: 'approved' },
-      wed: { hours: '8H', status: 'approved' },
-      thu: { hours: '0H', status: 'approved' },
-      fri: { hours: '8H', status: 'approved' },
-      total: { hours: '24H', total: '40H' }
+      name: "Alfie Wood",
+      initials: "AW",
+      mon: { hours: "8H", status: "approved" },
+      tue: { hours: "0H", status: "approved" },
+      wed: { hours: "8H", status: "approved" },
+      thu: { hours: "0H", status: "approved" },
+      fri: { hours: "8H", status: "approved" },
+      total: { hours: "24H", total: "40H" },
     },
     {
       id: 3,
-      name: 'Chinmay Sarasvati',
-      avatar: '👤',
-      mon: { hours: '3H', status: 'approved' },
-      tue: { hours: '0H', status: 'approved' },
-      wed: { hours: '0H', status: 'approved' },
-      thu: { hours: '0H', status: 'approved' },
-      fri: { hours: '0H', status: 'approved' },
-      total: { hours: '40H', total: '40H' }
+      name: "Chinmay Sarasvati",
+      initials: "CS",
+      mon: { hours: "3H", status: "approved" },
+      tue: { hours: "0H", status: "approved" },
+      wed: { hours: "0H", status: "approved" },
+      thu: { hours: "0H", status: "approved" },
+      fri: { hours: "0H", status: "approved" },
+      total: { hours: "40H", total: "40H" },
     },
     {
       id: 4,
-      name: 'Homayoun Shakibail',
-      avatar: '👤',
-      mon: { hours: '8H', status: 'approved' },
-      tue: { hours: '0H', status: 'approved' },
-      wed: { hours: '8H', status: 'approved' },
-      thu: { hours: '0H', status: 'approved' },
-      fri: { hours: '8H', status: 'approved' },
-      total: { hours: '24H', total: '40H' }
+      name: "Homayoun Shakibail",
+      initials: "HS",
+      mon: { hours: "8H", status: "approved" },
+      tue: { hours: "0H", status: "approved" },
+      wed: { hours: "8H", status: "approved" },
+      thu: { hours: "0H", status: "approved" },
+      fri: { hours: "8H", status: "approved" },
+      total: { hours: "24H", total: "40H" },
     },
     {
       id: 5,
-      name: 'Ingo Schimpff',
-      avatar: '👤',
-      mon: { hours: '8H', status: 'approved' },
-      tue: { hours: '0H', status: 'approved' },
-      wed: { hours: '8H', status: 'approved' },
-      thu: { hours: '0H', status: 'approved' },
-      fri: { hours: '8H', status: 'approved' },
-      total: { hours: '24H', total: '40H' }
-    }
-  ];
+      name: "Ingo Schimpff",
+      initials: "IS",
+      mon: { hours: "8H", status: "approved" },
+      tue: { hours: "0H", status: "approved" },
+      wed: { hours: "8H", status: "approved" },
+      thu: { hours: "0H", status: "approved" },
+      fri: { hours: "8H", status: "approved" },
+      total: { hours: "24H", total: "40H" },
+    },
+  ]
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'approved':
-        return 'text-green-600';
-      case 'pending':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
+  const getStatusBadge = (status, hours) => {
+    const baseClasses = "inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold"
+    const statusClasses = status === "approved" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+
+    return <span className={`${baseClasses} ${statusClasses}`}>{hours}/8H</span>
+  }
 
   const navigateWeek = (direction) => {
-    // This would normally update the week range
-    console.log(`Navigate ${direction}`);
-  };
+    console.log(`Navigate ${direction}`)
+  }
 
   const downloadExcel = () => {
-    console.log('Download Excel');
-  };
+    console.log("Download Excel")
+  }
 
   const viewDetails = (userId) => {
-    console.log(`View details for user ${userId}`);
-  };
+    console.log(`View details for user ${userId}`)
+  }
 
-  const totalPages = Math.ceil(timesheetData.length / rowsPerPage);
+  const totalPages = Math.ceil(timesheetData.length / rowsPerPage)
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-blue-600" />
-              <h1 className="text-xl font-semibold text-gray-900">Manage Timesheet</h1>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <User className="h-5 w-5 text-gray-500" />
-            <span className="text-sm text-gray-700">User</span>
-          </div>
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-6 py-6">
+          <h1 className='flex items-center gap-2 text-xl font-bold mb-4'><FiCalendar /> Timesheet Management</h1>
         </div>
       </div>
-
-      {/* Breadcrumb */}
-      <div className="px-6 py-3 bg-gray-100 border-b border-gray-200">
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <span>JIRA</span>
-          <span>-</span>
-          <span>Manage Timesheet</span>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <div className="px-6 py-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          {/* Header Section */}
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Admin Timesheet View</h2>
-            
-            {/* Controls */}
+      <div className="p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* Controls Header */}
+          <div className="px-6 py-5 border-b border-gray-200 bg-gray-50/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {/* Week Navigation */}
-                <div className="flex items-center space-x-2">
-                  <button 
-                    onClick={() => navigateWeek('prev')}
-                    className="p-1 hover:bg-gray-100 rounded"
+                <div className="flex items-center bg-white rounded-lg border border-gray-200 p-1 shadow-sm">
+                  <button
+                    onClick={() => navigateWeek("prev")}
+                    className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                   >
                     <ChevronLeft className="h-4 w-4 text-gray-600" />
                   </button>
-                  <span className="text-sm font-medium text-gray-900 min-w-[140px] text-center">
+                  <span className="text-sm font-semibold text-gray-900 min-w-[140px] text-center px-3">
                     {currentWeek}
                   </span>
-                  <button 
-                    onClick={() => navigateWeek('next')}
-                    className="p-1 hover:bg-gray-100 rounded"
+                  <button
+                    onClick={() => navigateWeek("next")}
+                    className="p-2 hover:bg-gray-100 rounded-md transition-colors"
                   >
                     <ChevronRight className="h-4 w-4 text-gray-600" />
                   </button>
-                  <button className="p-1 hover:bg-gray-100 rounded">
+                  <div className="w-px h-6 bg-gray-200 mx-1"></div>
+                  <button className="p-2 hover:bg-gray-100 rounded-md transition-colors">
                     <Calendar className="h-4 w-4 text-gray-600" />
                   </button>
                 </div>
               </div>
-
               <div className="flex items-center space-x-4">
                 {/* Show Weekend Toggle */}
-                <label className="flex items-center space-x-2">
+                <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={showWeekend}
                     onChange={(e) => setShowWeekend(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
                   />
-                  <span className="text-sm text-gray-700">Show Weekend</span>
+                  <span className="text-sm font-medium text-gray-700">Show Weekend</span>
                 </label>
-
                 {/* Download Excel Button */}
                 <button
                   onClick={downloadExcel}
-                  className="flex items-center space-x-2 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
+                  className="flex items-center space-x-2 px-4 py-2.5 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-sm font-medium"
                 >
                   <Download className="h-4 w-4" />
-                  <span className="text-sm font-medium">Download Excel</span>
+                  <span>Download Excel</span>
                 </button>
               </div>
             </div>
           </div>
-
           {/* Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                    #
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mon, 13 Jan
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tue, 14 Jan
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Wed, 15 Jan
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thu, 16 Jan
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fri, 17 Jan
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
-                    Actions
-                  </th>
+              <thead>
+                <tr className="bg-green-700 text-white">
+                  <th className="py-4 px-6 text-left font-semibold border-r border-green-600 text-sm">#</th>
+                  <th className="py-4 px-6 text-left font-semibold border-r border-green-600 text-sm">Name</th>
+                  <th className="py-4 px-6 text-center font-semibold border-r border-green-600 text-sm">Mon, 13 Jan</th>
+                  <th className="py-4 px-6 text-center font-semibold border-r border-green-600 text-sm">Tue, 14 Jan</th>
+                  <th className="py-4 px-6 text-center font-semibold border-r border-green-600 text-sm">Wed, 15 Jan</th>
+                  <th className="py-4 px-6 text-center font-semibold border-r border-green-600 text-sm">Thu, 16 Jan</th>
+                  <th className="py-4 px-6 text-center font-semibold border-r border-green-600 text-sm">Fri, 17 Jan</th>
+                  <th className="py-4 px-6 text-center font-semibold border-r border-green-600 text-sm">Total</th>
+                  <th className="py-4 px-6 text-center font-semibold text-sm">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody>
                 {timesheetData.map((row, index) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {index + 1}
+                  <tr
+                    key={row.id}
+                    className={`${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50/50"
+                    } hover:bg-gray-50 transition-colors border-b border-gray-100`}
+                  >
+                    <td className="py-4 px-6 border-r border-gray-200">
+                      <span className="text-sm font-medium text-gray-900">{index + 1}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="py-4 px-6 border-r border-gray-200">
                       <div className="flex items-center space-x-3">
-                        {row.avatar && (
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-sm">{row.avatar}</span>
-                          </div>
-                        )}
-                        <span className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer">
-                          {row.name || 'Unknown User'}
-                        </span>
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center border-2 border-green-200">
+                          <span className="text-sm font-semibold text-green-700">{row.initials}</span>
+                        </div>
+                        <span className="font-medium text-gray-900">{row.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`text-sm font-medium ${getStatusColor(row.mon.status)}`}>
-                        {row.mon.hours}/8H
-                      </span>
+                    <td className="py-4 px-6 border-r border-gray-200 text-center">
+                      {getStatusBadge(row.mon.status, row.mon.hours)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`text-sm font-medium ${getStatusColor(row.tue.status)}`}>
-                        {row.tue.hours}/8H
-                      </span>
+                    <td className="py-4 px-6 border-r border-gray-200 text-center">
+                      {getStatusBadge(row.tue.status, row.tue.hours)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`text-sm font-medium ${getStatusColor(row.wed.status)}`}>
-                        {row.wed.hours}/8H
-                      </span>
+                    <td className="py-4 px-6 border-r border-gray-200 text-center">
+                      {getStatusBadge(row.wed.status, row.wed.hours)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`text-sm font-medium ${getStatusColor(row.thu.status)}`}>
-                        {row.thu.hours}/8H
-                      </span>
+                    <td className="py-4 px-6 border-r border-gray-200 text-center">
+                      {getStatusBadge(row.thu.status, row.thu.hours)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className={`text-sm font-medium ${getStatusColor(row.fri.status)}`}>
-                        {row.fri.hours}/8H
-                      </span>
+                    <td className="py-4 px-6 border-r border-gray-200 text-center">
+                      {getStatusBadge(row.fri.status, row.fri.hours)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className="text-sm font-medium text-red-600">
+                    <td className="py-4 px-6 border-r border-gray-200 text-center">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800">
                         {row.total.hours}/{row.total.total}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <button
-                        onClick={() => viewDetails(row.id)}
-                        className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-900 mx-auto"
-                      >
-                        <span>View Details</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
+                    <td className="py-4 px-6 text-center">
+                      <div className="relative">
+                        <select
+                          className="appearance-none bg-green-700 text-white px-4 py-2 pr-8 rounded-lg hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-colors cursor-pointer text-sm font-medium"
+                          onChange={(e) => {
+                            const action = e.target.value
+                            if (action === "view") {
+                              viewDetails(row.id)
+                            }
+                            e.target.selectedIndex = 0
+                          }}
+                        >
+                          <option value="">Actions</option>
+                          <option value="view">View Details</option>
+                          <option value="edit">Edit</option>
+                          <option value="approve">Approve</option>
+                        </select>
+                        <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white pointer-events-none" />
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-gray-200">
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50/30">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700">Rows per page</span>
-                <select
-                  value={rowsPerPage}
-                  onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                  className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-                <ChevronDown className="h-4 w-4 text-gray-400" />
+              <div className="flex items-center space-x-3">
+                <span className="text-sm font-medium text-gray-700">Rows per page</span>
+                <div className="relative">
+                  <select
+                    value={rowsPerPage}
+                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  >
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                </div>
               </div>
-
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">
-                  1-10 of 80
-                </span>
+              <div className="flex items-center space-x-6">
+                <span className="text-sm font-medium text-gray-700">1-10 of 80</span>
                 <div className="flex items-center space-x-1">
-                  <button className="p-1 hover:bg-gray-100 rounded">
+                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <SkipBack className="h-4 w-4 text-gray-600" />
                   </button>
-                  <button className="p-1 hover:bg-gray-100 rounded">
+                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <ChevronLeft className="h-4 w-4 text-gray-600" />
                   </button>
-                  <button className="p-1 hover:bg-gray-100 rounded">
+                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <ChevronRight className="h-4 w-4 text-gray-600" />
                   </button>
-                  <button className="p-1 hover:bg-gray-100 rounded">
+                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <SkipForward className="h-4 w-4 text-gray-600" />
                   </button>
                 </div>
@@ -325,7 +270,6 @@ const ManageTimesheets = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-export default ManageTimesheets;
+  )
+}
+export default ManageTimesheets

@@ -390,23 +390,23 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
               <table className="w-full border-collapse text-lg">
                 <thead>
                   <tr className="bg-green-700 text-white text-lg">
-                    <th className="py-3 px-4  font-medium border-r">#</th>
-                    <th className="py-3 px-4  font-medium border-r">Name</th>
-                    <th className="py-3 px-4  font-medium border-r">Emp-Code</th>
-                    <th className="py-3 px-4  font-medium border-r">Email</th>
-                    <th className="py-3 px-4  font-medium border-r">Cost Unit</th>
-                    <th className="py-3 px-4  font-medium border-r">Cost</th>
-                    <th className="py-3 px-4  font-medium border-r">System Impacted</th>
-                    <th className="py-3 px-4  font-medium border-r">Est.Release</th>
-                    <th className="py-3 px-4  font-medium border-r">Status</th>
-                    <th className="py-3 px-4  font-medium">Actions</th>
+                    <th className="py-2 px-4  font-medium border-r">#</th>
+                    <th className="py-2 px-4  font-medium border-r">Name</th>
+                    <th className="py-2 px-4  font-medium border-r">Emp-Code</th>
+                    <th className="py-2 px-4  font-medium border-r">Email</th>
+                    <th className="py-2 px-4  font-medium border-r">Cost Unit</th>
+                    <th className="py-2 px-4  font-medium border-r">Cost</th>
+                    <th className="py-2 px-4  font-medium border-r">System Impacted</th>
+                    <th className="py-2 px-4  font-medium border-r">Est.Release</th>
+                    <th className="py-2 px-4  font-medium border-r">Status</th>
+                    <th className="py-2 px-4  font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {teamMembers.map((member, index) => (
                     <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="py-3 px-4 border-r border-t">{index + 1}</td>
-                      <td className="py-3 px-4 border-r border-t">
+                      <td className="py-2 px-4 border-r border-t">{index + 1}</td>
+                      <td className="py-2 px-4 border-r border-t">
                         <div className="flex items-center">
                           <img
                             src={
@@ -415,7 +415,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                                 : `${import.meta.env.VITE_API_URL}/api/users/${member.user.userId}/photo` // Fallback to API URL
                             }
                             alt={member.user.firstName + ' ' + member.user.lastName}
-                            className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2"
+                            className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2 max-w-[200px] truncate"
                             onError={(e) => {
                               e.target.src = "/profilepic.jpg"; // Fallback image
                             }}
@@ -423,18 +423,18 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                           <span>{member.user.firstName + ' ' + member.user.lastName}</span>
                         </div>
                       </td>
-                      <td className="py-3 px-4 border-r border-t">{member.empCode}</td>
-                      <td className="py-3 px-4 border-r border-t">{member.user.email}</td>
-                      <td className="py-3 px-4 border-r border-t">{member.unit}</td>
-                      <td className="py-3 px-4 border-r border-t">{member.pricing}</td>
-                      <td className="py-3 px-4 border-r border-t">{member.systemimpacted?.systemName}</td>
-                      <td className="py-3 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
-                      <td className="py-3 px-4 border-r border-t">
+                      <td className="py-2 px-4 border-r border-t">{member.empCode}</td>
+                      <td className="py-2 px-4 border-r border-t cursor-pointer max-w-[200px] truncate" title={member.user.email}>{member.user.email}</td>
+                      <td className="py-2 px-4 border-r border-t">{member.unit}</td>
+                      <td className="py-2 px-4 border-r border-t">{member.pricing}</td>
+                      <td className="py-2 px-4 border-r border-t">{member.systemimpacted?.systemName}</td>
+                      <td className="py-2 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
+                      <td className="py-2 px-4 border-r border-t">
                         <span className={`px-2 py-1 rounded-full font-medium ${getStatusColor(member.status)}`}>
                           {member.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 border-t">
+                      <td className="py-2 px-4 border-t">
                         <select
                           className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
                           onChange={(e) => {
