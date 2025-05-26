@@ -27,10 +27,11 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   // Populate form data when editing a user
   useEffect(() => {
     if (selectedUser) {
+      console.log(selectedUser)
       setFormData({
-        tenantName: selectedUser.tenant || '',
-        firstName: selectedUser.name?.split(' ')[0] || '',
-        lastName: selectedUser.name?.split(' ').slice(1).join(' ') || '',
+        tenantName: selectedUser.tenant.tenantName || '',
+        firstName: selectedUser.firstName?.split(' ')[0] || '',
+        lastName: selectedUser.lastName?.split(' ')[0] || '',
         emailId: selectedUser.email || '',
         role: selectedUser.role || '',
         manageEmail: '',

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ChevronDown, 
@@ -15,39 +15,27 @@ import {
   ArrowDown
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
-import AddUserModal from "../components/AcccesModal"; // Import your AddUserModal
+import AddUserModal from "../components/AcccesModal";
+import axios from "axios";
 
 const UserManagement = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("users"); // "users" or "roles"
+  
+  const [activeTab, setActiveTab] = useState("users");
   const [selectedTenant, setSelectedTenant] = useState("All Tenants");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState("name");
+  const [sortField, setSortField] = useState("firstName");
   const [sortOrder, setSortOrder] = useState("asc");
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
-  const [selectedUser, setSelectedUser] = useState(null); // State for selected user
-  const { hasAccess } = useAccess() // Assuming useAccess is imported from your context
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const { hasAccess } = useAccess();
+  const [tenants, setTenants] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Sample data for demonstration
-  const tenants = ["All Tenants", "Tenant A", "Tenant B", "Tenant C"];
-  
-  const users = [
-    { id: 1, name: "John Doe", email: "john@example.com", role: "Admin", tenant: "Tenant A", status: "Active" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", role: "User", tenant: "Tenant B", status: "Active" },
-    { id: 3, name: "Robert Johnson", email: "robert@example.com", role: "Manager", tenant: "Tenant A", status: "Inactive" },
-    { id: 4, name: "Lisa Brown", email: "lisa@example.com", role: "User", tenant: "Tenant C", status: "Active" },
-    { id: 5, name: "Michael Wilson", email: "michael@example.com", role: "Admin", tenant: "Tenant B", status: "Active" },
-    { id: 6, name: "Emily Davis", email: "emily@example.com", role: "User", tenant: "Tenant A", status: "Active" },
-    { id: 7, name: "David Martinez", email: "david@example.com", role: "Manager", tenant: "Tenant C", status: "Inactive" },
-    { id: 8, name: "Sarah Thompson", email: "sarah@example.com", role: "User", tenant: "Tenant B", status: "Active" },
-    { id: 9, name: "Alex Johnson", email: "alex@example.com", role: "Admin", tenant: "Tenant A", status: "Active" },
-    { id: 10, name: "Jessica White", email: "jessica@example.com", role: "User", tenant: "Tenant C", status: "Active" },
-    { id: 11, name: "Ryan Nelson", email: "ryan@example.com", role: "Manager", tenant: "Tenant B", status: "Inactive" },
-    { id: 12, name: "Olivia Lee", email: "olivia@example.com", role: "User", tenant: "Tenant A", status: "Active" },
-  ];
-  
   const roles = [
     { id: 1, name: "Admin", description: "Full system access", permissions: 10 },
     { id: 2, name: "Manager", description: "Limited administrative access", permissions: 7 },
@@ -56,19 +44,95 @@ const UserManagement = () => {
     { id: 5, name: "Developer", description: "Technical access", permissions: 6 },
   ];
 
-  // Filter users based on tenant and search query
-  const filteredUsers = users.filter(user => 
-    (selectedTenant === "All Tenants" || user.tenant === selectedTenant) && 
-    (user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-     user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     user.role.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const fetchEmployees = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const tenantId = sessionStorage.getItem("tenantId");
+      const token = sessionStorage.getItem('token');
+      
+      if (!tenantId || !token) {
+        throw new Error("Missing authentication credentials");
+      }
 
-  // Sort function for any collection
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, 
+        {
+          headers: { Authorization: `${token}` }
+        }
+      );
+      
+      console.log(res.data);
+      setUsers(res.data);
+
+      // Extract unique tenant names with null safety
+      const uniqueTenants = [...new Set(
+        res.data
+          .map(emp => emp.tenant?.tenantName)
+          .filter(Boolean)
+      )];
+      
+      setTenants(["All Tenants", ...uniqueTenants]);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      setError(error.message || "Failed to fetch users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  console.log(users)
+
+  // Helper function to get role name from role object or string
+  const getRoleName = (role) => {
+    if (!role) return 'N/A';
+    if (typeof role === 'string') return role;
+    if (typeof role === 'object') {
+      return role.roleName || role.name || 'N/A';
+    }
+    return 'N/A';
+  };
+
+  // Filter users based on tenant and search query with null safety
+  const filteredUsers = users.filter(user => {
+    const tenantMatch = selectedTenant === "All Tenants" || 
+                       user.tenant?.tenantName === selectedTenant;
+    
+    const roleName = getRoleName(user.role);
+    const searchMatch = searchQuery === "" || 
+      (user.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+       user.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       roleName.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return tenantMatch && searchMatch;
+  });
+
+  // Sort function with null safety
   const sortItems = (itemsToSort, field, order) => {
     return [...itemsToSort].sort((a, b) => {
-      let valueA = a[field]?.toString().toLowerCase() || '';
-      let valueB = b[field]?.toString().toLowerCase() || '';
+      let valueA, valueB;
+      
+      // Handle nested properties like tenant.tenantName
+      if (field === 'tenant') {
+        valueA = (a.tenant?.tenantName || '').toLowerCase();
+        valueB = (b.tenant?.tenantName || '').toLowerCase();
+      } else if (field === 'name') {
+        // Combine first and last name for sorting
+        valueA = `${a.firstName || ''} ${a.lastName || ''}`.toLowerCase().trim();
+        valueB = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase().trim();
+      } else if (field === 'role') {
+        // Handle role object or string
+        valueA = getRoleName(a.role).toLowerCase();
+        valueB = getRoleName(b.role).toLowerCase();
+      } else {
+        valueA = (a[field]?.toString() || '').toLowerCase();
+        valueB = (b[field]?.toString() || '').toLowerCase();
+      }
       
       if (order === 'asc') {
         return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
@@ -95,7 +159,12 @@ const UserManagement = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentUsers = sortedUsers.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedTenant, sortField, sortOrder]);
 
   // Handle pagination
   const handlePageChange = (pageNumber) => {
@@ -105,7 +174,7 @@ const UserManagement = () => {
   // Handle items per page change
   const handleItemsPerPageChange = (e) => {
     setItemsPerPage(Number(e.target.value));
-    setCurrentPage(1); // Reset to first page when changing items per page
+    setCurrentPage(1);
   };
 
   // Helper function to render sort icons
@@ -118,31 +187,26 @@ const UserManagement = () => {
       <ArrowDown className="ml-1 text-green-900" />;
   };
 
-  // New action functions
+  // Action functions
   const handleHold = (user) => {
     console.log("Hold action for user:", user);
+    // Implement hold logic here
   };
 
   const handleManageUser = (user) => {
     console.log("Manage user:", user);
-    setSelectedUser(user); // Set the selected user
-    setIsModalOpen(true); // Open the modal
+    setSelectedUser(user);
+    setIsModalOpen(true);
   };
 
   const handleAuditTrail = (userId) => {
     console.log("View audit trail for user:", userId);
-  };
-
-  const handleHoldRole = (role) => {
-    console.log("Hold action for role:", role);
+    // Implement audit trail navigation
   };
 
   const handleManageRole = (roleId) => {
     console.log("Manage role:", roleId);
-  };
-
-  const handleAuditTrailRole = (roleId) => {
-    console.log("View audit trail for role:", roleId);
+    // Implement role management
   };
 
   // Handle modal close
@@ -155,8 +219,24 @@ const UserManagement = () => {
   const handleModalSubmit = (formData, permissions) => {
     console.log("User data submitted:", formData);
     console.log("Permissions:", permissions);
-    // Handle the form submission here
+    // Refresh users after submission
+    fetchEmployees();
     handleModalClose();
+  };
+
+  // Helper function to get full name
+  const getFullName = (user) => {
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A';
+  };
+
+  // Helper function to get tenant name
+  const getTenantName = (user) => {
+    return user.tenant?.tenantName || 'N/A';
+  };
+
+  // Helper function to get user status
+  const getUserStatus = (user) => {
+    return user.status || user.isActive ? 'Active' : 'Inactive';
   };
   
   return (
@@ -208,6 +288,13 @@ const UserManagement = () => {
         </div>
       </div>
 
+      {/* Error display */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Content area */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         {/* Table header with search and create button */}
@@ -223,17 +310,25 @@ const UserManagement = () => {
             <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
           {hasAccess('users', 'edit') && (
-          <button
-            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
-            onClick={() => navigate('/signup')}
-          >
-            <Plus size={18} className="mr-2" />
-            Create User
-          </button>)}
+            <button
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={() => navigate('/signup')}
+            >
+              <Plus size={18} className="mr-2" />
+              Create User
+            </button>
+          )}
         </div>
 
+        {/* Loading state */}
+        {loading && (
+          <div className="p-8 text-center text-gray-500">
+            Loading...
+          </div>
+        )}
+
         {/* Tables */}
-        {activeTab === "users" ? (
+        {!loading && activeTab === "users" ? (
           <>
             {/* Users Table */}
             <div className="overflow-x-auto">
@@ -293,23 +388,23 @@ const UserManagement = () => {
                   {currentUsers.length > 0 ? (
                     currentUsers.map((user, index) => (
                       <tr
-                        key={user.id}
+                        key={user.userId || index}
                         className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-green-50`}
                       >
                         <td className="py-3 px-4 border-r">{indexOfFirstItem + index + 1}</td>
-                        <td className="py-3 px-4 border-r font-medium">{user.name}</td>
-                        <td className="py-3 px-4 border-r">{user.email}</td>
-                        <td className="py-3 px-4 border-r">{user.role}</td>
-                        <td className="py-3 px-4 border-r">{user.tenant}</td>
+                        <td className="py-3 px-4 border-r font-medium">{getFullName(user)}</td>
+                        <td className="py-3 px-4 border-r">{user.email || 'N/A'}</td>
+                        <td className="py-3 px-4 border-r">{getRoleName(user.role)}</td>
+                        <td className="py-3 px-4 border-r">{getTenantName(user)}</td>
                         <td className="py-3 px-4 border-r">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              user.status === "Active"
+                              getUserStatus(user) === "Active"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
                             }`}
                           >
-                            {user.status}
+                            {getUserStatus(user)}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -343,7 +438,7 @@ const UserManagement = () => {
                             {/* Audit Trail Button */}
                             <div className="relative group">
                               <button
-                                onClick={() => handleAuditTrail(user.id)}
+                                onClick={() => handleAuditTrail(user.userId)}
                                 className="p-2 rounded-full hover:bg-purple-100 transition-colors"
                               >
                                 <FileText size={20} className="text-purple-600" />
@@ -367,7 +462,7 @@ const UserManagement = () => {
               </table>
             </div>
           </>
-        ) : (
+        ) : !loading && activeTab === "roles" ? (
           <>
             {/* Roles Table */}
             <div className="overflow-x-auto">
@@ -418,8 +513,6 @@ const UserManagement = () => {
                         <td className="py-3 px-4 border-r">{role.permissions}</td>
                         <td className="py-3 px-4">
                           <div className="flex justify-center gap-2">
-                            {/* Hold Button */}
-                  
                             {/* Manage Role Button */}
                             <div className="relative group">
                               <button
@@ -432,8 +525,6 @@ const UserManagement = () => {
                                 Manage Role
                               </div>
                             </div>
-
-                           
                           </div>
                         </td>
                       </tr>
@@ -449,55 +540,60 @@ const UserManagement = () => {
               </table>
             </div>
           </>
-        )}
+        ) : null}
 
         {/* Pagination Controls */}
-        <div className="px-4 py-3 flex justify-between items-center bg-white border-t">
-          <div className="flex items-center">
-            <span className="text-sm text-gray-700 mr-2">
-              Rows per page:
-            </span>
-            <select
-              value={itemsPerPage}
-              onChange={handleItemsPerPageChange}
-              className="appearance-none bg-white border border-gray-300 rounded-md py-1 pl-3 pr-8 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              {[5, 10, 15, 20].map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
+        {!loading && activeTab === "users" && (
+          <div className="px-4 py-3 flex justify-between items-center bg-white border-t">
+            <div className="flex items-center">
+              <span className="text-sm text-gray-700 mr-2">
+                Rows per page:
+              </span>
+              <select
+                value={itemsPerPage}
+                onChange={handleItemsPerPageChange}
+                className="appearance-none bg-white border border-gray-300 rounded-md py-1 pl-3 pr-8 text-sm leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                {[5, 10, 15, 20].map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <div className="flex space-x-1 items-center">
-            <span className="text-sm text-gray-700">
-              {filteredUsers.length > 0 ? `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, filteredUsers.length)} of ${filteredUsers.length}` : '0-0 of 0'}
-            </span>
-            <button
-              className={`p-1 rounded-full ${
-                currentPage === 1 || filteredUsers.length === 0
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-green-700 hover:bg-green-100"
-              }`}
-              onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1 || filteredUsers.length === 0}
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              className={`p-1 rounded-full ${
-                currentPage === totalPages || totalPages === 0
-                  ? "text-gray-300 cursor-not-allowed"
-                  : "text-green-700 hover:bg-green-100"
-              }`}
-              onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
-            >
-              <ChevronRight size={30} />
-            </button>
+            <div className="flex space-x-1 items-center">
+              <span className="text-sm text-gray-700">
+                {sortedUsers.length > 0 ? 
+                  `${indexOfFirstItem + 1}-${Math.min(indexOfLastItem, sortedUsers.length)} of ${sortedUsers.length}` : 
+                  '0-0 of 0'
+                }
+              </span>
+              <button
+                className={`p-1 rounded-full ${
+                  currentPage === 1 || sortedUsers.length === 0
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-green-700 hover:bg-green-100"
+                }`}
+                onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || sortedUsers.length === 0}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                className={`p-1 rounded-full ${
+                  currentPage === totalPages || totalPages === 0
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-green-700 hover:bg-green-100"
+                }`}
+                onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Render Modal when open */}
@@ -506,7 +602,7 @@ const UserManagement = () => {
           isOpen={isModalOpen}
           onClose={handleModalClose}
           onSubmit={handleModalSubmit}
-          selectedUser={selectedUser} // Pass selected user data if editing
+          selectedUser={selectedUser}
         />
       )}
     </div>
