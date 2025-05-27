@@ -220,7 +220,7 @@ const UserManagement = () => {
     console.log("User data submitted:", formData);
     console.log("Permissions:", permissions);
     // Refresh users after submission
-    fetchEmployees();
+    // fetchEmployees();
     handleModalClose();
   };
 
