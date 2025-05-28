@@ -33,7 +33,7 @@ public class Role {
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({"roles", "roleAccesses"})
+    @JsonIgnoreProperties({"roles", "roleAccesses", "projects", "projectTeams", "certificates"})
     private Tenant tenant;
 
     public Long getRoleId() {
