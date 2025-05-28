@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+"use client"
+
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -12,49 +14,35 @@ import {
   Box,
   Paper,
   Switch,
-  FormControlLabel,
-  InputAdornment
-} from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
-import EmailIcon from '@mui/icons-material/Email';
-import BusinessIcon from '@mui/icons-material/Business';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import SettingsIcon from '@mui/icons-material/Settings';
-import axios from 'axios';
+  InputAdornment,
+} from "@mui/material"
+import PersonIcon from "@mui/icons-material/Person"
+import EmailIcon from "@mui/icons-material/Email"
+import BusinessIcon from "@mui/icons-material/Business"
+import SettingsIcon from "@mui/icons-material/Settings"
+import axios from "axios"
 
 const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   const [formData, setFormData] = useState({
-    tenantName: '',
-    firstName: '',
-    lastName: '',
-    emailId: '',
-    role: '',
-    manageEmail: '',
-    status: 'Active'
-  });
+    tenantName: "",
+    firstName: "",
+    lastName: "",
+    emailId: "",
+    role: "",
+    manageEmail: "",
+    status: "Active",
+  })
 
-  const [permissions, setPermissions] = useState({
-    dashboardAll: true,
-    selfOnly: false,
-    manageProjectsAll: true,
-    addNewProject: false,
-    mangeTeamForProjects: false,
-    manageTeamAll: true,
-    addNewTeam: false,
-    addTeamMembers: false,
-    timesheet: true,
-    viewManageTimesheets: false
-  });
+  const [permissions, setPermissions] = useState({})
   const [roles, setRoles] = useState([])
+  const [selectedRoleData, setSelectedRoleData] = useState(null)
+
   const fetchRoles = async () => {
     try {
-      const token = sessionStorage.getItem('token');
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/access/getRoles`,
-        {
-          headers: { Authorization: `${token}` }
-        }
-      );
+      const token = sessionStorage.getItem("token")
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/access/getRoles`, {
+        headers: { Authorization: `${token}` },
+      })
       console.log(res.data)
       setRoles(res.data)
     } catch (error) {
@@ -66,93 +54,103 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
     fetchRoles()
   }, [])
 
+  // Update permissions when role changes
+  useEffect(() => {
+    if (formData.role && roles.length > 0) {
+      const roleData = roles.find((role) => role.roleName === formData.role)
+      setSelectedRoleData(roleData)
+
+      if (roleData && roleData.roleAccessRights) {
+        const newPermissions = {}
+        roleData.roleAccessRights.forEach((accessRight) => {
+          const moduleName = accessRight.accessRight.moduleName
+          newPermissions[`${moduleName}_canView`] = accessRight.accessRight.canView
+          newPermissions[`${moduleName}_canEdit`] = accessRight.accessRight.canEdit
+          newPermissions[`${moduleName}_canDelete`] = accessRight.accessRight.canDelete
+        })
+        setPermissions(newPermissions)
+      }
+    } else {
+      setSelectedRoleData(null)
+      setPermissions({})
+    }
+  }, [formData.role, roles])
+
   // Populate form data when editing a user
   useEffect(() => {
     if (selectedUser) {
-      console.log(selectedUser);
+      console.log(selectedUser)
       setFormData({
-        tenantName: selectedUser.tenant?.tenantName || '',
-        firstName: selectedUser.firstName?.split(' ')[0] || '',
-        lastName: selectedUser.lastName?.split(' ')[0] || '',
-        emailId: selectedUser.email || '',
-        role: selectedUser.role.roleName || '',
-        manageEmail: '',
-        status: selectedUser.status || 'Active'
-      });
+        tenantName: selectedUser.tenant?.tenantName || "",
+        firstName: selectedUser.firstName?.split(" ")[0] || "",
+        lastName: selectedUser.lastName?.split(" ")[0] || "",
+        emailId: selectedUser.email || "",
+        role: selectedUser.role.roleName || "",
+        manageEmail: "",
+        status: selectedUser.status || "Active",
+      })
     } else {
       // Reset form for new user
       setFormData({
-        tenantName: '',
-        firstName: '',
-        lastName: '',
-        emailId: '',
-        role: '',
-        manageEmail: '',
-        status: 'Active'
-      });
-      setPermissions({
-        dashboardAll: true,
-        selfOnly: false,
-        manageProjectsAll: true,
-        addNewProject: false,
-        mangeTeamForProjects: false,
-        manageTeamAll: true,
-        addNewTeam: false,
-        addTeamMembers: false,
-        timesheet: true,
-        viewManageTimesheets: false
-      });
+        tenantName: "",
+        firstName: "",
+        lastName: "",
+        emailId: "",
+        role: "",
+        manageEmail: "",
+        status: "Active",
+      })
+      setPermissions({})
+      setSelectedRoleData(null)
     }
-  }, [selectedUser]);
+  }, [selectedUser])
 
   const handleInputChange = (field) => (event) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: event.target.value
-    }));
-  };
+      [field]: event.target.value,
+    }))
+  }
 
-  const handlePermissionToggle = (permission) => {
-    setPermissions(prev => ({
+  const handlePermissionToggle = (permissionKey) => {
+    setPermissions((prev) => ({
       ...prev,
-      [permission]: !prev[permission]
-    }));
-  };
+      [permissionKey]: !prev[permissionKey],
+    }))
+  }
 
   const handleSubmit = () => {
-    onSubmit(formData, permissions);
-  };
+    onSubmit(formData, permissions)
+  }
 
   const handleReset = () => {
     setFormData({
-      tenantName: '',
-      firstName: '',
-      lastName: '',
-      emailId: '',
-      role: '',
-      manageEmail: '',
-      status: 'Active'
-    });
-    setPermissions({
-      dashboardAll: true,
-      selfOnly: false,
-      manageProjectsAll: true,
-      addNewProject: false,
-      mangeTeamForProjects: false,
-      manageTeamAll: true,
-      addNewTeam: false,
-      addTeamMembers: false,
-      timesheet: true,
-      viewManageTimesheets: false
-    });
-  };
+      tenantName: "",
+      firstName: "",
+      lastName: "",
+      emailId: "",
+      role: "",
+      manageEmail: "",
+      status: "Active",
+    })
+    setPermissions({})
+    setSelectedRoleData(null)
+  }
+
+  // Helper function to format module names for display
+  const formatModuleName = (moduleName) => {
+    return moduleName
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+  }
 
   // Common height for input fields
-  const fieldHeight = '56px';
+  const fieldHeight = "56px"
 
   // Custom theme colors
-  const greenPrimary = '#1b5e20'; // green-900
-  const greenHover = '#2e7d32'; // green-600
+  const greenPrimary = "#1b5e20" // green-900
+  const greenHover = "#2e7d32" // green-600
 
   return (
     <Dialog
@@ -163,35 +161,34 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       PaperProps={{
         sx: {
           borderRadius: 2,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
-        }
+          boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+        },
       }}
     >
       <Box
         sx={{
-          bgcolor: '#f8f9fa',
-          borderBottom: '1px solid #e0e0e0',
+          bgcolor: "#f8f9fa",
+          borderBottom: "1px solid #e0e0e0",
           py: 2.5,
-          px: 3
+          px: 3,
         }}
       >
         <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
-          {selectedUser ? 'Edit User' : 'Add New User'}
+          {selectedUser ? "Edit User" : "Add New User"}
         </Typography>
       </Box>
 
       <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           {/* Row 1: Tenant Name */}
-          <Box sx={{ display: 'flex', gap: 3 }}>
+          <Box sx={{ display: "flex", gap: 3 }}>
             <Box sx={{ flex: 1 }}>
               <TextField
                 fullWidth
                 label="Tenant Name"
                 placeholder="Enter tenant name"
                 value={formData.tenantName}
-                onChange={handleInputChange('tenantName')}
+                onChange={handleInputChange("tenantName")}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -199,21 +196,21 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                       <BusinessIcon sx={{ color: greenPrimary }} />
                     </InputAdornment>
                   ),
-                  sx: { height: fieldHeight }
+                  sx: { height: fieldHeight },
                 }}
               />
             </Box>
           </Box>
 
           {/* Row 2: First Name, Last Name, and Email ID */}
-          <Box sx={{ display: 'flex', gap: 3 }}>
+          <Box sx={{ display: "flex", gap: 3 }}>
             <Box sx={{ flex: 1 }}>
               <TextField
                 fullWidth
                 label="First Name"
                 placeholder="Enter here"
                 value={formData.firstName}
-                onChange={handleInputChange('firstName')}
+                onChange={handleInputChange("firstName")}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -221,7 +218,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                       <PersonIcon sx={{ color: greenPrimary }} />
                     </InputAdornment>
                   ),
-                  sx: { height: fieldHeight }
+                  sx: { height: fieldHeight },
                 }}
               />
             </Box>
@@ -231,7 +228,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 label="Last Name"
                 placeholder="Enter here"
                 value={formData.lastName}
-                onChange={handleInputChange('lastName')}
+                onChange={handleInputChange("lastName")}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -239,7 +236,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                       <PersonIcon sx={{ color: greenPrimary }} />
                     </InputAdornment>
                   ),
-                  sx: { height: fieldHeight }
+                  sx: { height: fieldHeight },
                 }}
               />
             </Box>
@@ -250,7 +247,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 placeholder="Enter here"
                 type="email"
                 value={formData.emailId}
-                onChange={handleInputChange('emailId')}
+                onChange={handleInputChange("emailId")}
                 variant="outlined"
                 InputProps={{
                   startAdornment: (
@@ -258,20 +255,20 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                       <EmailIcon sx={{ color: greenPrimary }} />
                     </InputAdornment>
                   ),
-                  sx: { height: fieldHeight }
+                  sx: { height: fieldHeight },
                 }}
               />
             </Box>
           </Box>
 
           {/* Row 3: Role, Manage Email, and Status */}
-          <Box sx={{ display: 'flex', gap: 3 }}>
+          <Box sx={{ display: "flex", gap: 3 }}>
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
                 <InputLabel>Role</InputLabel>
                 <Select
                   value={formData.role}
-                  onChange={handleInputChange('role')}
+                  onChange={handleInputChange("role")}
                   label="Role"
                   sx={{ height: fieldHeight }}
                 >
@@ -290,7 +287,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 <InputLabel>Manage Email</InputLabel>
                 <Select
                   value={formData.manageEmail}
-                  onChange={handleInputChange('manageEmail')}
+                  onChange={handleInputChange("manageEmail")}
                   label="Manage Email"
                   startAdornment={
                     <InputAdornment position="start">
@@ -310,7 +307,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 <InputLabel>Status</InputLabel>
                 <Select
                   value={formData.status}
-                  onChange={handleInputChange('status')}
+                  onChange={handleInputChange("status")}
                   label="Status"
                   sx={{ height: fieldHeight }}
                 >
@@ -321,202 +318,122 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
             </Box>
           </Box>
 
-          {/* Access Details Section */}
+          {/* Dynamic Access Details Section */}
           <Paper
             variant="outlined"
             sx={{
               p: 3,
-              bgcolor: '#f8f9fa',
+              bgcolor: "#f8f9fa",
               borderColor: greenPrimary,
-              borderRadius: 2
+              borderRadius: 2,
             }}
           >
             <Typography variant="h6" sx={{ color: greenPrimary, mb: 3, fontWeight: 600 }}>
               Access Details
             </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {/* Dashboard Section */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
-                  <Typography variant="body1" fontWeight="500">Dashboard (All)</Typography>
-                  <Switch
-                    checked={permissions.dashboardAll}
-                    onChange={() => handlePermissionToggle('dashboardAll')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
-                  <Typography variant="body2" color="text.secondary">- Self only</Typography>
-                  <Switch
-                    checked={permissions.selfOnly}
-                    onChange={() => handlePermissionToggle('selfOnly')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-              </Box>
+            {selectedRoleData && selectedRoleData.roleAccessRights ? (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {selectedRoleData.roleAccessRights.map((accessRight, index) => {
+                  const moduleName = accessRight.accessRight.moduleName
+                  const formattedModuleName = formatModuleName(moduleName)
 
-              {/* Manage Projects Section */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
-                  <Typography variant="body1" fontWeight="500">Manage Projects (All)</Typography>
-                  <Switch
-                    checked={permissions.manageProjectsAll}
-                    onChange={() => handlePermissionToggle('manageProjectsAll')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
-                  <Typography variant="body2" color="text.secondary">- Add New Project</Typography>
-                  <Switch
-                    checked={permissions.addNewProject}
-                    onChange={() => handlePermissionToggle('addNewProject')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
-                  <Typography variant="body2" color="text.secondary">- Manage Team for projects</Typography>
-                  <Switch
-                    checked={permissions.mangeTeamForProjects}
-                    onChange={() => handlePermissionToggle('mangeTeamForProjects')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-              </Box>
+                  return (
+                    <Box key={index}>
+                      <Typography variant="h6" sx={{ color: greenPrimary, mb: 2, fontWeight: 600 }}>
+                        {formattedModuleName}
+                      </Typography>
 
-              {/* Manage Team Section */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
-                  <Typography variant="body1" fontWeight="500">Manage Team (All)</Typography>
-                  <Switch
-                    checked={permissions.manageTeamAll}
-                    onChange={() => handlePermissionToggle('manageTeamAll')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
-                  <Typography variant="body2" color="text.secondary">- Add New Team</Typography>
-                  <Switch
-                    checked={permissions.addNewTeam}
-                    onChange={() => handlePermissionToggle('addNewTeam')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
-                  <Typography variant="body2" color="text.secondary">- Add Team Members</Typography>
-                  <Switch
-                    checked={permissions.addTeamMembers}
-                    onChange={() => handlePermissionToggle('addTeamMembers')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-              </Box>
+                      {/* View Permission */}
+                      <Box
+                        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1, pl: 2 }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          - Can View
+                        </Typography>
+                        <Switch
+                          checked={permissions[`${moduleName}_canView`] || false}
+                          onChange={() => handlePermissionToggle(`${moduleName}_canView`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: greenPrimary,
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: greenPrimary,
+                            },
+                          }}
+                        />
+                      </Box>
 
-              {/* Timesheet Section */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
-                  <Typography variant="body1" fontWeight="500">Timesheet</Typography>
-                  <Switch
-                    checked={permissions.timesheet}
-                    onChange={() => handlePermissionToggle('timesheet')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
-                  <Typography variant="body2" color="text.secondary">- View & Manage all Timesheets</Typography>
-                  <Switch
-                    checked={permissions.viewManageTimesheets}
-                    onChange={() => handlePermissionToggle('viewManageTimesheets')}
-                    sx={{
-                      '& .MuiSwitch-switchBase.Mui-checked': {
-                        color: greenPrimary,
-                      },
-                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                        backgroundColor: greenPrimary,
-                      },
-                    }}
-                  />
-                </Box>
+                      {/* Edit Permission */}
+                      <Box
+                        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1, pl: 2 }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          - Can Edit
+                        </Typography>
+                        <Switch
+                          checked={permissions[`${moduleName}_canEdit`] || false}
+                          onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: greenPrimary,
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: greenPrimary,
+                            },
+                          }}
+                        />
+                      </Box>
+
+                      {/* Delete Permission */}
+                      <Box
+                        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1, pl: 2 }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          - Can Delete
+                        </Typography>
+                        <Switch
+                          checked={permissions[`${moduleName}_canDelete`] || false}
+                          onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: greenPrimary,
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: greenPrimary,
+                            },
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  )
+                })}
               </Box>
-            </Box>
+            ) : (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <Typography variant="body1" color="text.secondary">
+                  {formData.role
+                    ? "No access rights defined for this role"
+                    : "Please select a role to view access rights"}
+                </Typography>
+              </Box>
+            )}
           </Paper>
 
           {/* Action Buttons (Right-aligned) */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
             <Button
               onClick={onClose}
               variant="outlined"
               sx={{
                 borderColor: greenPrimary,
                 color: greenPrimary,
-                height: '42px',
-                '&:hover': {
+                height: "42px",
+                "&:hover": {
                   borderColor: greenHover,
-                  color: greenHover
-                }
+                  color: greenHover,
+                },
               }}
             >
               Cancel
@@ -527,11 +444,11 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
               sx={{
                 borderColor: greenPrimary,
                 color: greenPrimary,
-                height: '42px',
-                '&:hover': {
+                height: "42px",
+                "&:hover": {
                   borderColor: greenHover,
-                  color: greenHover
-                }
+                  color: greenHover,
+                },
               }}
             >
               Reset
@@ -541,21 +458,21 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
               variant="contained"
               sx={{
                 bgcolor: greenPrimary,
-                color: 'white',
-                height: '42px',
+                color: "white",
+                height: "42px",
                 fontWeight: 600,
-                '&:hover': {
-                  bgcolor: greenHover
-                }
+                "&:hover": {
+                  bgcolor: greenHover,
+                },
               }}
             >
-              {selectedUser ? 'Update User' : 'Create User'}
+              {selectedUser ? "Update User" : "Create User"}
             </Button>
           </Box>
         </Box>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default AddUserModal;
+export default AddUserModal
