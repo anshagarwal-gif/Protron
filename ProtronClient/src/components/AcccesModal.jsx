@@ -1,5 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  TextField,
+  Button,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Typography,
+  Box,
+  Paper,
+  Switch,
+  FormControlLabel,
+  InputAdornment
+} from '@mui/material';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import BusinessIcon from '@mui/icons-material/Business';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import SettingsIcon from '@mui/icons-material/Settings';
+import axios from 'axios';
+
 const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   const [formData, setFormData] = useState({
     tenantName: '',
@@ -23,21 +45,40 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
     timesheet: true,
     viewManageTimesheets: false
   });
+  const [roles, setRoles] = useState([])
+  const fetchRoles = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/access/getRoles`,
+        {
+          headers: { Authorization: `${token}` }
+        }
+      );
+      console.log(res.data)
+      setRoles(res.data)
+    } catch (error) {
+      console.error("Failed to fetch roles", error)
+    }
+  }
+
+  useEffect(() => {
+    fetchRoles()
+  }, [])
 
   // Populate form data when editing a user
   useEffect(() => {
     if (selectedUser) {
-      console.log(selectedUser)
+      console.log(selectedUser);
       setFormData({
-        tenantName: selectedUser.tenant.tenantName || '',
+        tenantName: selectedUser.tenant?.tenantName || '',
         firstName: selectedUser.firstName?.split(' ')[0] || '',
         lastName: selectedUser.lastName?.split(' ')[0] || '',
         emailId: selectedUser.email || '',
-        role: selectedUser.role || '',
+        role: selectedUser.role.roleName || '',
         manageEmail: '',
         status: selectedUser.status || 'Active'
       });
-      // You might want to load user-specific permissions here as well
     } else {
       // Reset form for new user
       setFormData({
@@ -64,11 +105,10 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
     }
   }, [selectedUser]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (field) => (event) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [field]: event.target.value
     }));
   };
 
@@ -80,303 +120,441 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   };
 
   const handleSubmit = () => {
-    // Pass both formData and permissions to parent component
     onSubmit(formData, permissions);
   };
 
-  const handleCancel = () => {
-    onClose();
+  const handleReset = () => {
+    setFormData({
+      tenantName: '',
+      firstName: '',
+      lastName: '',
+      emailId: '',
+      role: '',
+      manageEmail: '',
+      status: 'Active'
+    });
+    setPermissions({
+      dashboardAll: true,
+      selfOnly: false,
+      manageProjectsAll: true,
+      addNewProject: false,
+      mangeTeamForProjects: false,
+      manageTeamAll: true,
+      addNewTeam: false,
+      addTeamMembers: false,
+      timesheet: true,
+      viewManageTimesheets: false
+    });
   };
 
-  if (!isOpen) return null;
+  // Common height for input fields
+  const fieldHeight = '56px';
+
+  // Custom theme colors
+  const greenPrimary = '#1b5e20'; // green-900
+  const greenHover = '#2e7d32'; // green-600
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {selectedUser ? 'Edit User' : 'Add New User'}
-          </h2>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+        }
+      }}
+    >
+      <Box
+        sx={{
+          bgcolor: '#f8f9fa',
+          borderBottom: '1px solid #e0e0e0',
+          py: 2.5,
+          px: 3
+        }}
+      >
+        <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
+          {selectedUser ? 'Edit User' : 'Add New User'}
+        </Typography>
+      </Box>
 
-        {/* Form Content */}
-        <div className="p-6 space-y-6">
-          {/* Tenant Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tenant name
-            </label>
-            <input
-              type="text"
-              name="tenantName"
-              value={formData.tenantName}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+      <DialogContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
 
-          {/* First Row - Name and Email */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="firstName"
+          {/* Row 1: Tenant Name */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                label="Tenant Name"
+                placeholder="Enter tenant name"
+                value={formData.tenantName}
+                onChange={handleInputChange('tenantName')}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BusinessIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  ),
+                  sx: { height: fieldHeight }
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Row 2: First Name, Last Name, and Email ID */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                label="First Name"
+                placeholder="Enter here"
                 value={formData.firstName}
-                onChange={handleInputChange}
-                placeholder="Enter here"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                onChange={handleInputChange('firstName')}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  ),
+                  sx: { height: fieldHeight }
+                }}
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="lastName"
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                label="Last Name"
+                placeholder="Enter here"
                 value={formData.lastName}
-                onChange={handleInputChange}
-                placeholder="Enter here"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                onChange={handleInputChange('lastName')}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  ),
+                  sx: { height: fieldHeight }
+                }}
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Id
-              </label>
-              <input
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                label="Email ID"
+                placeholder="Enter here"
                 type="email"
-                name="emailId"
                 value={formData.emailId}
-                onChange={handleInputChange}
-                placeholder="Enter here"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400"
+                onChange={handleInputChange('emailId')}
+                variant="outlined"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  ),
+                  sx: { height: fieldHeight }
+                }}
               />
-            </div>
-          </div>
+            </Box>
+          </Box>
 
-          {/* Second Row - Role, Manage Email, Status */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role
-              </label>
-              <select
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500"
-              >
-                <option value="">Select from list</option>
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="User">User</option>
-                <option value="Guest">Guest</option>
-                <option value="Developer">Developer</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Manage Email
-              </label>
-              <select
-                name="manageEmail"
-                value={formData.manageEmail}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500"
-              >
-                <option value="">Select from list</option>
-                <option value="enabled">Enabled</option>
-                <option value="disabled">Disabled</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
+          {/* Row 3: Role, Manage Email, and Status */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={formData.role}
+                  onChange={handleInputChange('role')}
+                  label="Role"
+                  sx={{ height: fieldHeight }}
+                >
+                  <MenuItem value="">Select from list</MenuItem>
+                  {roles.map((role) => (
+                    <MenuItem key={role.roleId} value={role.roleName}>
+                      {role.roleName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ flex: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>Manage Email</InputLabel>
+                <Select
+                  value={formData.manageEmail}
+                  onChange={handleInputChange('manageEmail')}
+                  label="Manage Email"
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <SettingsIcon sx={{ color: greenPrimary, ml: 1 }} />
+                    </InputAdornment>
+                  }
+                  sx={{ height: fieldHeight }}
+                >
+                  <MenuItem value="">Select from list</MenuItem>
+                  <MenuItem value="enabled">Enabled</MenuItem>
+                  <MenuItem value="disabled">Disabled</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={formData.status}
+                  onChange={handleInputChange('status')}
+                  label="Status"
+                  sx={{ height: fieldHeight }}
+                >
+                  <MenuItem value="Active">Active</MenuItem>
+                  <MenuItem value="Inactive">Inactive</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
 
           {/* Access Details Section */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-medium text-blue-600 mb-4">Access Details</h3>
-            
-            <div className="space-y-4">
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 3,
+              bgcolor: '#f8f9fa',
+              borderColor: greenPrimary,
+              borderRadius: 2
+            }}
+          >
+            <Typography variant="h6" sx={{ color: greenPrimary, mb: 3, fontWeight: 600 }}>
+              Access Details
+            </Typography>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {/* Dashboard Section */}
-              <div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm font-medium text-gray-700">Dashboard (All)</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.dashboardAll}
-                      onChange={() => handlePermissionToggle('dashboardAll')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between py-2 pl-4">
-                  <span className="text-sm text-gray-600">- Self only</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.selfOnly}
-                      onChange={() => handlePermissionToggle('selfOnly')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-              </div>
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
+                  <Typography variant="body1" fontWeight="500">Dashboard (All)</Typography>
+                  <Switch
+                    checked={permissions.dashboardAll}
+                    onChange={() => handlePermissionToggle('dashboardAll')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
+                  <Typography variant="body2" color="text.secondary">- Self only</Typography>
+                  <Switch
+                    checked={permissions.selfOnly}
+                    onChange={() => handlePermissionToggle('selfOnly')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
 
               {/* Manage Projects Section */}
-              <div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm font-medium text-gray-700">Manage Projects (All)</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.manageProjectsAll}
-                      onChange={() => handlePermissionToggle('manageProjectsAll')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between py-2 pl-4">
-                  <span className="text-sm text-gray-600">- Add New Project</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.addNewProject}
-                      onChange={() => handlePermissionToggle('addNewProject')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between py-2 pl-4">
-                  <span className="text-sm text-gray-600">- Mange Team for projects</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.mangeTeamForProjects}
-                      onChange={() => handlePermissionToggle('mangeTeamForProjects')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-              </div>
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
+                  <Typography variant="body1" fontWeight="500">Manage Projects (All)</Typography>
+                  <Switch
+                    checked={permissions.manageProjectsAll}
+                    onChange={() => handlePermissionToggle('manageProjectsAll')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
+                  <Typography variant="body2" color="text.secondary">- Add New Project</Typography>
+                  <Switch
+                    checked={permissions.addNewProject}
+                    onChange={() => handlePermissionToggle('addNewProject')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
+                  <Typography variant="body2" color="text.secondary">- Manage Team for projects</Typography>
+                  <Switch
+                    checked={permissions.mangeTeamForProjects}
+                    onChange={() => handlePermissionToggle('mangeTeamForProjects')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
 
               {/* Manage Team Section */}
-              <div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm font-medium text-gray-700">Manage Team (All)</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.manageTeamAll}
-                      onChange={() => handlePermissionToggle('manageTeamAll')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between py-2 pl-4">
-                  <span className="text-sm text-gray-600">- Add New Team</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.addNewTeam}
-                      onChange={() => handlePermissionToggle('addNewTeam')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between py-2 pl-4">
-                  <span className="text-sm text-gray-600">- Add Team Members</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.addTeamMembers}
-                      onChange={() => handlePermissionToggle('addTeamMembers')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-              </div>
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
+                  <Typography variant="body1" fontWeight="500">Manage Team (All)</Typography>
+                  <Switch
+                    checked={permissions.manageTeamAll}
+                    onChange={() => handlePermissionToggle('manageTeamAll')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
+                  <Typography variant="body2" color="text.secondary">- Add New Team</Typography>
+                  <Switch
+                    checked={permissions.addNewTeam}
+                    onChange={() => handlePermissionToggle('addNewTeam')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
+                  <Typography variant="body2" color="text.secondary">- Add Team Members</Typography>
+                  <Switch
+                    checked={permissions.addTeamMembers}
+                    onChange={() => handlePermissionToggle('addTeamMembers')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
 
               {/* Timesheet Section */}
-              <div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm font-medium text-gray-700">Timesheet</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.timesheet}
-                      onChange={() => handlePermissionToggle('timesheet')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-                <div className="flex items-center justify-between py-2 pl-4">
-                  <span className="text-sm text-gray-600">- View & Manage all Timesheets</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={permissions.viewManageTimesheets}
-                      onChange={() => handlePermissionToggle('viewManageTimesheets')}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1 }}>
+                  <Typography variant="body1" fontWeight="500">Timesheet</Typography>
+                  <Switch
+                    checked={permissions.timesheet}
+                    onChange={() => handlePermissionToggle('timesheet')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 1, pl: 3 }}>
+                  <Typography variant="body2" color="text.secondary">- View & Manage all Timesheets</Typography>
+                  <Switch
+                    checked={permissions.viewManageTimesheets}
+                    onChange={() => handlePermissionToggle('viewManageTimesheets')}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: greenPrimary,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: greenPrimary,
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+            </Box>
+          </Paper>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <button
-            onClick={handleCancel}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
-          >
-            {selectedUser ? 'Update' : 'Submit'}
-          </button>
-        </div>
-      </div>
-    </div>
+          {/* Action Buttons (Right-aligned) */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+            <Button
+              onClick={onClose}
+              variant="outlined"
+              sx={{
+                borderColor: greenPrimary,
+                color: greenPrimary,
+                height: '42px',
+                '&:hover': {
+                  borderColor: greenHover,
+                  color: greenHover
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReset}
+              variant="outlined"
+              sx={{
+                borderColor: greenPrimary,
+                color: greenPrimary,
+                height: '42px',
+                '&:hover': {
+                  borderColor: greenHover,
+                  color: greenHover
+                }
+              }}
+            >
+              Reset
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              variant="contained"
+              sx={{
+                bgcolor: greenPrimary,
+                color: 'white',
+                height: '42px',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: greenHover
+                }
+              }}
+            >
+              {selectedUser ? 'Update User' : 'Create User'}
+            </Button>
+          </Box>
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 

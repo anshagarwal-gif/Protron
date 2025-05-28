@@ -36,13 +36,7 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const roles = [
-    { id: 1, name: "Admin", description: "Full system access", permissions: 10 },
-    { id: 2, name: "Manager", description: "Limited administrative access", permissions: 7 },
-    { id: 3, name: "User", description: "Standard user access", permissions: 4 },
-    { id: 4, name: "Guest", description: "View-only access", permissions: 2 },
-    { id: 5, name: "Developer", description: "Technical access", permissions: 6 },
-  ];
+  const [roles,setRoles ] = useState([])
 
   const fetchEmployees = async () => {
     setLoading(true);
@@ -84,8 +78,6 @@ const UserManagement = () => {
   useEffect(() => {
     fetchEmployees();
   }, []);
-
-  console.log(users)
 
   // Helper function to get role name from role object or string
   const getRoleName = (role) => {
