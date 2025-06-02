@@ -98,6 +98,7 @@ public class RoleAccessRightService {
         }
     }
 
+    @Transactional
     public void updateRoleAndAccess(Long userIdToUpdate, Long roleId, List<AccessRightDTO> updatedAccessRights) {
         checkEditUserAccessPermission();
 

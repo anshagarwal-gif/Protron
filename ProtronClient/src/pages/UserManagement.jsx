@@ -208,12 +208,54 @@ const UserManagement = () => {
   };
 
   // Handle modal submit
-  const handleModalSubmit = (formData, permissions) => {
+  const handleModalSubmit = async (formData, permissions, updatedRoleData) => {
     console.log("User data submitted:", formData);
-    console.log("Permissions:", permissions);
-    // Refresh users after submission
-    // fetchEmployees();
+    // console.log("Permissions:", permissions);
+
+    const modules = {};
+
+  Object.entries(permissions).forEach(([key, value]) => {
+    // key example: "project_team_canEdit"
+    const match = key.match(/^(.+)_can(View|Edit|Delete)$/);
+    if (match) {
+      const moduleName = match[1];
+      const right = match[2];
+      if (!modules[moduleName]) {
+        modules[moduleName] = { moduleName, canView: false, canEdit: false, canDelete: false };
+      }
+      modules[moduleName][`can${right}`] = value;
+    }
+  });
+
+  // Convert to array
+  const accessRights = Object.values(modules);
+  const isRoleUpdated = selectedUser?.role?.roleName !== formData.role;
+  console.log("Access rights to be submitted:", accessRights, isRoleUpdated);
+  console.log("Updated role data:", updatedRoleData);
+  console.log("Selected user:", selectedUser);
+  try {
+    const token = sessionStorage.getItem('token');
+    // Determine if role is updated and include roleId if so
+    let apiUrl = `${import.meta.env.VITE_API_URL}/api/access/edit?userIdToUpdate=${selectedUser.userId}&roleId=${updatedRoleData.roleId}`;
+    await axios.put(
+      apiUrl,
+      accessRights,
+      {
+        headers: {
+          Authorization: `${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
     handleModalClose();
+    // Optionally refresh users after submission
+    await fetchEmployees();
+  } catch (err) {
+    console.error("Failed to update access rights:", err);
+    alert("Failed to update access rights. Please try again.");
+    // Optionally show error to user
+  }
   };
 
   // Helper function to get full name

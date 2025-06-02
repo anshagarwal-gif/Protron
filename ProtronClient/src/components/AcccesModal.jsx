@@ -56,25 +56,44 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
 
   // Update permissions when role changes
   useEffect(() => {
-    if (formData.role && roles.length > 0) {
-      const roleData = roles.find((role) => role.roleName === formData.role)
-      setSelectedRoleData(roleData)
+  if (formData.role && roles.length > 0) {
+    const roleData = roles.find((role) => role.roleName === formData.role)
+    setSelectedRoleData(roleData)
 
-      if (roleData && roleData.roleAccessRights) {
-        const newPermissions = {}
-        roleData.roleAccessRights.forEach((accessRight) => {
-          const moduleName = accessRight.accessRight.moduleName
-          newPermissions[`${moduleName}_canView`] = accessRight.accessRight.canView
-          newPermissions[`${moduleName}_canEdit`] = accessRight.accessRight.canEdit
-          newPermissions[`${moduleName}_canDelete`] = accessRight.accessRight.canDelete
+    if (roleData && roleData.roleAccessRights) {
+      const newPermissions = {}
+
+      // Step 1: Load permissions from role
+      roleData.roleAccessRights.forEach((accessRight) => {
+        const moduleName = accessRight.accessRight.moduleName
+        newPermissions[`${moduleName}_canView`] = accessRight.accessRight.canView
+        newPermissions[`${moduleName}_canEdit`] = accessRight.accessRight.canEdit
+        newPermissions[`${moduleName}_canDelete`] = accessRight.accessRight.canDelete
+      })
+
+      // Step 2: Apply userAccessRights ONLY if role has NOT changed from selectedUser
+      if (
+        selectedUser.role.roleName === formData.role &&
+        selectedUser.userAccessRights &&
+        selectedUser.userAccessRights.length > 0
+      ) {
+        selectedUser.userAccessRights.forEach((userAccess) => {
+          const access = userAccess.accessRight
+          const moduleName = access.moduleName
+
+          if (newPermissions.hasOwnProperty(`${moduleName}_canView`)) {
+            newPermissions[`${moduleName}_canView`] = access.canView
+            newPermissions[`${moduleName}_canEdit`] = access.canEdit
+            newPermissions[`${moduleName}_canDelete`] = access.canDelete
+          }
         })
-        setPermissions(newPermissions)
       }
-    } else {
-      setSelectedRoleData(null)
-      setPermissions({})
+
+      // Step 3: Set final permissions
+      setPermissions(newPermissions)
     }
-  }, [formData.role, roles])
+  }
+}, [formData.role, roles, selectedUser])
 
   // Populate form data when editing a user
   useEffect(() => {
@@ -120,7 +139,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   }
 
   const handleSubmit = () => {
-    onSubmit(formData, permissions)
+    onSubmit(formData, permissions, selectedRoleData)
   }
 
   const handleReset = () => {
