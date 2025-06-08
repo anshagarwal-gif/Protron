@@ -28,9 +28,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
     firstName: "",
     lastName: "",
     emailId: "",
-    role: "",
-    manageEmail: "",
-    status: "Active",
+    role: ""
   })
 
   const [permissions, setPermissions] = useState({})
@@ -105,8 +103,6 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
         lastName: selectedUser.lastName?.split(" ")[0] || "",
         emailId: selectedUser.email || "",
         role: selectedUser.role.roleName || "",
-        manageEmail: "",
-        status: selectedUser.status || "Active",
       })
     } else {
       // Reset form for new user
@@ -116,8 +112,6 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
         lastName: "",
         emailId: "",
         role: "",
-        manageEmail: "",
-        status: "Active",
       })
       setPermissions({})
       setSelectedRoleData(null)
@@ -149,8 +143,6 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       lastName: "",
       emailId: "",
       role: "",
-      manageEmail: "",
-      status: "Active",
     })
     setPermissions({})
     setSelectedRoleData(null)
@@ -209,6 +201,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 value={formData.tenantName}
                 onChange={handleInputChange("tenantName")}
                 variant="outlined"
+                disabled={'true'}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -260,29 +253,6 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
               />
             </Box>
             <Box sx={{ flex: 1 }}>
-              <TextField
-                fullWidth
-                label="Email ID"
-                placeholder="Enter here"
-                type="email"
-                value={formData.emailId}
-                onChange={handleInputChange("emailId")}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon sx={{ color: greenPrimary }} />
-                    </InputAdornment>
-                  ),
-                  sx: { height: fieldHeight },
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* Row 3: Role, Manage Email, and Status */}
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
                 <InputLabel>Role</InputLabel>
                 <Select
@@ -300,40 +270,28 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 </Select>
               </FormControl>
             </Box>
+          </Box>
 
+          <Box sx={{ display: "flex", gap: 3 }}>
             <Box sx={{ flex: 1 }}>
-              <FormControl fullWidth>
-                <InputLabel>Manage Email</InputLabel>
-                <Select
-                  value={formData.manageEmail}
-                  onChange={handleInputChange("manageEmail")}
-                  label="Manage Email"
-                  startAdornment={
+              <TextField
+                fullWidth
+                label="Email ID"
+                placeholder="Enter here"
+                type="email"
+                value={formData.emailId}
+                onChange={handleInputChange("emailId")}
+                variant="outlined"
+                disabled={'true'}
+                InputProps={{
+                  startAdornment: (
                     <InputAdornment position="start">
-                      <SettingsIcon sx={{ color: greenPrimary, ml: 1 }} />
+                      <EmailIcon sx={{ color: greenPrimary }} />
                     </InputAdornment>
-                  }
-                  sx={{ height: fieldHeight }}
-                >
-                  <MenuItem value="">Select from list</MenuItem>
-                  <MenuItem value="enabled">Enabled</MenuItem>
-                  <MenuItem value="disabled">Disabled</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
-                <Select
-                  value={formData.status}
-                  onChange={handleInputChange("status")}
-                  label="Status"
-                  sx={{ height: fieldHeight }}
-                >
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Inactive">Inactive</MenuItem>
-                </Select>
-              </FormControl>
+                  ),
+                  sx: { height: fieldHeight },
+                }}
+              />
             </Box>
           </Box>
 
