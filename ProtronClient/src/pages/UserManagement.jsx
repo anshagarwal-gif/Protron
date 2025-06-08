@@ -12,7 +12,8 @@ import {
   UserCog,
   FileText,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  ShieldCheck
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
 import AddUserModal from "../components/AcccesModal";
@@ -180,9 +181,63 @@ const UserManagement = () => {
   };
 
   // Action functions
-  const handleHold = (user) => {
-    console.log("Hold action for user:", user);
-    // Implement hold logic here
+  const handleHold = async (user) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        alert("Authentication required.");
+        return;
+      }
+      // Call the backend API to hold the user
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/users/status/hold/${user.userId}`,
+        {},
+        {
+          headers: { Authorization: `${token}` }
+        }
+      );
+      // Optionally show a success message
+      // alert("User put on hold successfully.");
+      // Refresh the user list to update the UI
+      setUsers((prevUsers)=>{
+        return prevUsers.map(u => 
+          u.userId === user.userId ? { ...u, status: 'hold' } : u
+        );
+      })
+    } catch (err) {
+      console.error("Failed to hold user:", err);
+      alert("Failed to put user on hold. Please try again.");
+    }
+  };
+
+  const handleActivate = async (user) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        alert("Authentication required.");
+        return;
+      }
+      // Call the backend API to activate the user
+      await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/users/status/activate/${user.userId}`,
+        {},
+        {
+          headers: { Authorization: `${token}` }
+        }
+      );
+      // Optionally show a success message
+      // alert("User activated successfully.");
+      // Refresh the user list to update the UI
+      setUsers((prevUsers)=>{
+        return prevUsers.map(u => 
+          u.userId === user.userId ? { ...u, status: 'active' } : u
+        );
+      }
+      )
+    } catch (err) {
+      console.error("Failed to activate user:", err);
+      alert("Failed to activate user. Please try again.");
+    }
   };
 
   const handleManageUser = (user) => {
@@ -270,7 +325,7 @@ const UserManagement = () => {
 
   // Helper function to get user status
   const getUserStatus = (user) => {
-    return user.status || user.isActive ? 'Active' : 'Inactive';
+    return user.status;
   };
   
   return (
@@ -433,7 +488,7 @@ const UserManagement = () => {
                         <td className="py-3 px-4 border-r">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              getUserStatus(user) === "Active"
+                              getUserStatus(user) === "active"
                                 ? "bg-green-100 text-green-800"
                                 : "bg-red-100 text-red-800"
                             }`}
@@ -444,7 +499,10 @@ const UserManagement = () => {
                         <td className="py-3 px-4">
                           <div className="flex justify-center gap-2">
                             {/* Hold Button */}
-                            <div className="relative group">
+                            {hasAccess('users', 'edit') && (
+                              user.status == 'active' ? (
+
+                                <div className="relative group">
                               <button
                                 onClick={() => handleHold(user)}
                                 className="p-2 rounded-full hover:bg-orange-100 transition-colors"
@@ -455,8 +513,24 @@ const UserManagement = () => {
                                 Hold
                               </div>
                             </div>
+                            ) : (
+                              <div className="relative group">
+                              <button
+                              onClick={() => handleActivate(user)}
+                                className="p-2 rounded-full hover:bg-orange-100 transition-colors"
+                              >
+                                {/* <Pause size={20} className="text-orange-600" /> */}
+                                <ShieldCheck size={20} className="text-green-400"/>
+                              </button>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                Activate
+                              </div>
+                            </div>
+                            )
+                          )}
 
                             {/* Manage Users Button */}
+                            {hasAccess('users', 'edit') && (
                             <div className="relative group">
                               <button
                                 onClick={() => handleManageUser(user)}
@@ -467,7 +541,7 @@ const UserManagement = () => {
                               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                                 Manage Users
                               </div>
-                            </div>
+                            </div>)}
 
                             {/* Audit Trail Button */}
                             <div className="relative group">

@@ -170,4 +170,20 @@ public class UserService {
         loginAuditService.recordLogout(user);
     }
 
+    public void holdUser(Long userId){
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("UserId: "+ userId+ " Not found"));
+
+        existingUser.setStatus("hold");
+        userRepository.save(existingUser);
+    }
+
+    public void activateUser(Long userId){
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(()-> new RuntimeException("UserId: "+ userId+ " Not found"));
+
+        existingUser.setStatus("active");
+        userRepository.save(existingUser);
+    }
+
 }

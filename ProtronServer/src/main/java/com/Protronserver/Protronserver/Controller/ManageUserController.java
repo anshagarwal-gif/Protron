@@ -104,4 +104,16 @@ public class ManageUserController {
         }
     }
 
+    @PutMapping("/status/hold/{userId}")
+    public ResponseEntity<?> holdUser(@PathVariable Long userId){
+        userService.holdUser(userId);
+        return ResponseEntity.ok("Status Updated: User Hold");
+    }
+
+    @PutMapping("/status/activate/{userId}")
+    public ResponseEntity<?> activateUser(@PathVariable Long userId){
+        userService.activateUser(userId);
+        return ResponseEntity.ok("Status Updated: User Activated");
+    }
+
 }
