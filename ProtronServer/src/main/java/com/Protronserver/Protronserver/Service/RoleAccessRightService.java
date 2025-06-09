@@ -124,5 +124,41 @@ public class RoleAccessRightService {
 
         return rolesRepository.findAll();
     }
+
+    @Transactional
+    public void updateRoleAccessRights(Long roleId, List<AccessRightDTO> updatedRoleAccess) {
+        checkEditUserAccessPermission();
+
+        Role existingRole = rolesRepository.findByRoleId(roleId)
+                .orElseThrow(() -> new RuntimeException("Role: " + roleId + " Not found"));
+
+        // Remove existing access rights for the role
+        roleAccessRightsRepository.deleteByRole(existingRole);
+
+        for (AccessRightDTO dto : updatedRoleAccess) {
+            // Try to find an existing access right with the same properties
+            Optional<AccessRight> existingAccessRight = accessRightRepository
+                    .findByModuleNameAndCanViewAndCanEditAndCanDelete(
+                            dto.getModuleName(),
+                            dto.isCanView(),
+                            dto.isCanEdit(),
+                            dto.isCanDelete());
+
+            // If not found, create and save a new one
+            AccessRight accessRight = existingAccessRight.orElseGet(() -> {
+                AccessRight newAccessRight = new AccessRight();
+                newAccessRight.setModuleName(dto.getModuleName());
+                newAccessRight.setCanView(dto.isCanView());
+                newAccessRight.setCanEdit(dto.isCanEdit());
+                newAccessRight.setCanDelete(dto.isCanDelete());
+                return accessRightRepository.save(newAccessRight);
+            });
+
+            // Create the RoleAccessRights entity and save it
+            RoleAccessRights roleAccessRights = new RoleAccessRights(existingRole, accessRight);
+            roleAccessRightsRepository.save(roleAccessRights);
+        }
+    }
+
 }
 

@@ -18,10 +18,14 @@ import {
 import { useAccess } from "../Context/AccessContext";
 import AddUserModal from "../components/AcccesModal";
 import axios from "axios";
+import ManageRoleModal from "../components/ManageRoleModal";
 
 const UserManagement = () => {
   const navigate = useNavigate();
   
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [rolePermissions, setRolePermissions] = useState({});
   const [activeTab, setActiveTab] = useState("users");
   const [selectedTenant, setSelectedTenant] = useState("All Tenants");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,7 +42,7 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
 
   const [roles,setRoles ] = useState([])
-
+  console.log(roles)
   const fetchEmployees = async () => {
     setLoading(true);
     setError(null);
@@ -76,8 +80,22 @@ const UserManagement = () => {
     }
   };
 
+  const fetchRoles = async () => {
+      try {
+        const token = sessionStorage.getItem("token")
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/access/getRoles`, {
+          headers: { Authorization: `${token}` },
+        })
+        console.log(res.data)
+        setRoles(res.data)
+      } catch (error) {
+        console.error("Failed to fetch roles", error)
+      }
+    }
+
   useEffect(() => {
     fetchEmployees();
+    fetchRoles();
   }, []);
 
   // Helper function to get role name from role object or string
@@ -252,9 +270,73 @@ const UserManagement = () => {
   };
 
   const handleManageRole = (roleId) => {
-    console.log("Manage role:", roleId);
-    // Implement role management
-  };
+  const role = roles.find(r => r.roleId === roleId);
+  setSelectedRole(role);
+  const perms = {};
+  if (role && role.roleAccessRights) {
+    role.roleAccessRights.forEach(accessRight => {
+      const ar = accessRight.accessRight;
+      perms[`${ar.moduleName}_canView`] = ar.canView;
+      perms[`${ar.moduleName}_canEdit`] = ar.canEdit;
+      perms[`${ar.moduleName}_canDelete`] = ar.canDelete;
+    });
+  }
+  setRolePermissions(perms);
+  setIsRoleModalOpen(true);
+};
+
+const handleRolePermissionToggle = (permissionKey) => {
+  setRolePermissions(prev => ({
+    ...prev,
+    [permissionKey]: !prev[permissionKey]
+  }));
+};
+
+const handleRoleModalSave = async () => {
+  // Convert rolePermissions to array of { moduleName, canView, canEdit, canDelete }
+  const modules = {};
+  Object.entries(rolePermissions).forEach(([key, value]) => {
+    const match = key.match(/^(.+)_can(View|Edit|Delete)$/);
+    if (match) {
+      const moduleName = match[1];
+      const right = match[2];
+      if (!modules[moduleName]) {
+        modules[moduleName] = { moduleName, canView: false, canEdit: false, canDelete: false };
+      }
+      modules[moduleName][`can${right}`] = value;
+    }
+  });
+  const requestBody = Object.values(modules);
+
+  try {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      alert("Authentication required.");
+      return;
+    }
+    
+    await axios.put(
+      `${import.meta.env.VITE_API_URL}/api/access/role/edit?roleId=${selectedRole.roleId}`,
+      requestBody,
+      {
+        headers: {
+          Authorization: `${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    // Optionally show a success message or refresh roles
+    await fetchRoles();
+    alert("Role access rights updated successfully.");
+  } catch (err) {
+    console.error("Failed to update role access rights:", err);
+    alert("Failed to update role access rights. Please try again.");
+  }
+
+  setIsRoleModalOpen(false);
+  setSelectedRole(null);
+  setRolePermissions({});
+};
 
   // Handle modal close
   const handleModalClose = () => {
@@ -327,7 +409,32 @@ const UserManagement = () => {
   const getUserStatus = (user) => {
     return user.status;
   };
-  
+
+  const getPermissionsNumber = (permissions) => {
+  if (!permissions || permissions.length === 0) {
+    return "No Access Rights";
+  }
+
+  // Render each module and its permissions as a styled block
+  return (
+    <div className="space-y-1">
+      {permissions.map((perm, idx) => {
+        const ar = perm.accessRight || {};
+        const permsArr = [];
+        if (ar.canView) permsArr.push(<span key="view" className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs mr-1">View</span>);
+        if (ar.canEdit) permsArr.push(<span key="edit" className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs mr-1">Edit</span>);
+        if (ar.canDelete) permsArr.push(<span key="delete" className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs mr-1">Delete</span>);
+        return (
+          <div key={ar.moduleName || idx} className="flex items-center flex-wrap">
+            <span className="font-semibold mr-2">{ar.moduleName}:</span>
+            {permsArr.length > 0 ? permsArr : <span className="text-gray-400 text-xs">No Permissions</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
   return (
     <div className="w-full p-6 bg-white">
       {/* Header with toggle and tenant selector */}
@@ -398,7 +505,7 @@ const UserManagement = () => {
             />
             <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
-          {hasAccess('users', 'edit') && (
+          {(hasAccess('users', 'edit') && activeTab === "users") && (
             <button
               className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
               onClick={() => navigate('/signup')}
@@ -588,20 +695,11 @@ const UserManagement = () => {
                       </div>
                     </th>
                     <th
-                      className="py-3 px-4 font-medium border-r cursor-pointer select-none"
-                      onClick={() => handleSort('description')}
-                    >
-                      <div className="flex items-center">
-                        Description
-                        {renderSortIcon('description')}
-                      </div>
-                    </th>
-                    <th
                       className="py-3 px-4 font-medium cursor-pointer select-none"
                       onClick={() => handleSort('permissions')}
                     >
                       <div className="flex items-center">
-                        Permissions
+                        Access Rights
                         {renderSortIcon('permissions')}
                       </div>
                     </th>
@@ -616,15 +714,14 @@ const UserManagement = () => {
                         className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-green-50`}
                       >
                         <td className="py-3 px-4 border-r">{index + 1}</td>
-                        <td className="py-3 px-4 border-r font-medium">{role.name}</td>
-                        <td className="py-3 px-4 border-r">{role.description}</td>
-                        <td className="py-3 px-4 border-r">{role.permissions}</td>
+                        <td className="py-3 px-4 border-r font-medium">{role.roleName}</td>
+                        <td className="py-3 px-4 border-r">{getPermissionsNumber(role.roleAccessRights)}</td>
                         <td className="py-3 px-4">
                           <div className="flex justify-center gap-2">
                             {/* Manage Role Button */}
                             <div className="relative group">
                               <button
-                                onClick={() => handleManageRole(role.id)}
+                                onClick={() => handleManageRole(role.roleId)}
                                 className="p-2 rounded-full hover:bg-blue-100 transition-colors"
                               >
                                 <UserCog size={20} className="text-blue-600" />
@@ -713,6 +810,14 @@ const UserManagement = () => {
           selectedUser={selectedUser}
         />
       )}
+      <ManageRoleModal
+  open={isRoleModalOpen}
+  onClose={() => setIsRoleModalOpen(false)}
+  role={selectedRole}
+  rolePermissions={rolePermissions}
+  onPermissionToggle={handleRolePermissionToggle}
+  onSave={handleRoleModalSave}
+/>
     </div>
   );
 };

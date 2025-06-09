@@ -28,6 +28,11 @@ public class RoleAccessRights {
     @JsonIgnoreProperties("tenant")
     private AccessRight accessRight;
 
+    public RoleAccessRights(Role existingRole, AccessRight accessRight) {
+        this.role = existingRole;
+        this.accessRight = accessRight;
+    }
+
     public Long getRoleAccessRightsId() {
         return roleAccessRightsId;
     }

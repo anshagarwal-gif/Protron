@@ -25,4 +25,8 @@ public class RoleAndAccessRightsController {
         return roleAccessRightService.getRoles();
     }
 
+    @PutMapping("/role/edit")
+    public void changeRoleAccess(@RequestParam Long roleId, @RequestBody List<AccessRightDTO> updatedRoleAccess){
+        roleAccessRightService.updateRoleAccessRights(roleId, updatedRoleAccess);
+    }
 }
