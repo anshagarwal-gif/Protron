@@ -84,8 +84,8 @@ public class RoleAccessRightService {
                     roleAR.isCanDelete() != dto.isCanDelete();
 
             if (isDiff) {
-                Optional<AccessRight> existing = accessRightRepository.findByModuleNameAndCanViewAndCanEditAndCanDelete(
-                        dto.getModuleName(), dto.isCanView(), dto.isCanEdit(), dto.isCanDelete());
+                Optional<AccessRight> existing = accessRightRepository.findByModuleNameAndCanViewAndCanEditAndCanDeleteAndTenant_TenantId(
+                        dto.getModuleName(), dto.isCanView(), dto.isCanEdit(), dto.isCanDelete(), tenantId);
 
                 AccessRight accessRight = existing.orElseGet(() -> {
                     AccessRight newAr = new AccessRight();
@@ -113,7 +113,7 @@ public class RoleAccessRightService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (userToUpdate.getRole() == null || !userToUpdate.getRole().getRoleId().equals(roleId)) {
-            Role role = rolesRepository.findByRoleId(roleId)
+            Role role = rolesRepository.findByRoleIdAndTenant_TenantId(roleId, tenantId)
                     .orElseThrow(() -> new RuntimeException("Role Not Found"));
             userToUpdate.setRole(role);
             userRepository.save(userToUpdate);
@@ -129,14 +129,14 @@ public class RoleAccessRightService {
             throw new RuntimeException("Unauthorized access");
         }
 
-        return rolesRepository.findAll();
+        return rolesRepository.findByTenant_TenantId(loggedInUser.getTenant().getTenantId());
     }
 
     @Transactional
     public void updateRoleAccessRights(Long roleId, List<AccessRightDTO> updatedRoleAccess) {
         Long tenantId = checkEditUserAccessPermission();
 
-        Role existingRole = rolesRepository.findByRoleId(roleId)
+        Role existingRole = rolesRepository.findByRoleIdAndTenant_TenantId(roleId, tenantId)
                 .orElseThrow(() -> new RuntimeException("Role: " + roleId + " Not found"));
 
         // Remove existing access rights for the role
@@ -145,11 +145,12 @@ public class RoleAccessRightService {
         for (AccessRightDTO dto : updatedRoleAccess) {
             // Try to find an existing access right with the same properties
             Optional<AccessRight> existingAccessRight = accessRightRepository
-                    .findByModuleNameAndCanViewAndCanEditAndCanDelete(
+                    .findByModuleNameAndCanViewAndCanEditAndCanDeleteAndTenant_TenantId(
                             dto.getModuleName(),
                             dto.isCanView(),
                             dto.isCanEdit(),
-                            dto.isCanDelete());
+                            dto.isCanDelete(),
+                            tenantId);
 
             // If not found, create and save a new one
             AccessRight accessRight = existingAccessRight.orElseGet(() -> {
@@ -174,7 +175,7 @@ public class RoleAccessRightService {
         Long tenantId = checkEditUserAccessPermission();
 
         // Step 1: Check for existing role
-        Role existingRole = rolesRepository.findByRoleName(newRole);
+        Role existingRole = rolesRepository.findByRoleNameAndTenant_TenantId(newRole, tenantId);
         if (existingRole != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
@@ -193,8 +194,8 @@ public class RoleAccessRightService {
         List<RoleAccessRights> accessRightsList = new ArrayList<>();
         for (AccessRightDTO dto : roleAccessRights) {
             // Try to find the AccessRight based on moduleName and permissions
-            Optional<AccessRight> existing = accessRightRepository.findByModuleNameAndCanViewAndCanEditAndCanDelete(
-                    dto.getModuleName(), dto.isCanView(), dto.isCanEdit(), dto.isCanDelete());
+            Optional<AccessRight> existing = accessRightRepository.findByModuleNameAndCanViewAndCanEditAndCanDeleteAndTenant_TenantId(
+                    dto.getModuleName(), dto.isCanView(), dto.isCanEdit(), dto.isCanDelete(), tenantId);
 
             AccessRight accessRight = existing.orElseGet(() -> {
                 AccessRight newAr = new AccessRight();
