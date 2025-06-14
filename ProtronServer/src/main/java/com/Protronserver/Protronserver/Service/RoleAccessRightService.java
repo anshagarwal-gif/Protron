@@ -1,17 +1,16 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.AccessRightDTO;
-import com.Protronserver.Protronserver.Entities.AccessRight;
-import com.Protronserver.Protronserver.Entities.RoleAccessRights;
-import com.Protronserver.Protronserver.Entities.UserAccessRights;
-import com.Protronserver.Protronserver.Entities.Role;
-import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +34,10 @@ public class RoleAccessRightService {
     @Autowired
     private RolesRepository rolesRepository;
 
-    private void checkEditUserAccessPermission() {
+    @Autowired
+    private TenantRepository tenantRepository;
+
+    private Long checkEditUserAccessPermission() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!(principal instanceof User loggedInUser)) {
@@ -52,10 +54,12 @@ public class RoleAccessRightService {
         if (!isTenantAdmin && !hasEditAccessToUsers) {
             throw new RuntimeException("You do not have permission to edit user access rights");
         }
+
+        return loggedInUser.getTenant().getTenantId();
     }
 
     @Transactional
-    public void updateUserAccessRights(Long userIdToUpdate, List<AccessRightDTO> updatedAccessRights) {
+    public void updateUserAccessRights(Long tenantId, Long userIdToUpdate, List<AccessRightDTO> updatedAccessRights) {
         // Only called internally after permission check
         User userToUpdate = userRepository.findById(userIdToUpdate)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -89,6 +93,9 @@ public class RoleAccessRightService {
                     newAr.setCanView(dto.isCanView());
                     newAr.setCanEdit(dto.isCanEdit());
                     newAr.setCanDelete(dto.isCanDelete());
+                    Tenant existingTenant = tenantRepository.findById(tenantId)
+                            .orElseThrow(()-> new RuntimeException("Tenant Not found..!!"));
+                    newAr.setTenant(existingTenant);
                     return accessRightRepository.save(newAr);
                 });
 
@@ -100,7 +107,7 @@ public class RoleAccessRightService {
 
     @Transactional
     public void updateRoleAndAccess(Long userIdToUpdate, Long roleId, List<AccessRightDTO> updatedAccessRights) {
-        checkEditUserAccessPermission();
+        Long tenantId = checkEditUserAccessPermission();
 
         User userToUpdate = userRepository.findById(userIdToUpdate)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -112,7 +119,7 @@ public class RoleAccessRightService {
             userRepository.save(userToUpdate);
         }
 
-        updateUserAccessRights(userIdToUpdate, updatedAccessRights);
+        updateUserAccessRights(tenantId, userIdToUpdate, updatedAccessRights);
     }
 
     public List<Role> getRoles(){
@@ -127,7 +134,7 @@ public class RoleAccessRightService {
 
     @Transactional
     public void updateRoleAccessRights(Long roleId, List<AccessRightDTO> updatedRoleAccess) {
-        checkEditUserAccessPermission();
+        Long tenantId = checkEditUserAccessPermission();
 
         Role existingRole = rolesRepository.findByRoleId(roleId)
                 .orElseThrow(() -> new RuntimeException("Role: " + roleId + " Not found"));
@@ -151,6 +158,9 @@ public class RoleAccessRightService {
                 newAccessRight.setCanView(dto.isCanView());
                 newAccessRight.setCanEdit(dto.isCanEdit());
                 newAccessRight.setCanDelete(dto.isCanDelete());
+                Tenant existingTenant = tenantRepository.findById(tenantId)
+                        .orElseThrow(()-> new RuntimeException("Tenant Not found..!!"));
+                newAccessRight.setTenant(existingTenant);
                 return accessRightRepository.save(newAccessRight);
             });
 
@@ -159,6 +169,58 @@ public class RoleAccessRightService {
             roleAccessRightsRepository.save(roleAccessRights);
         }
     }
+
+    public ResponseEntity<Role> addRole(String newRole, List<AccessRightDTO> roleAccessRights) {
+        Long tenantId = checkEditUserAccessPermission();
+
+        // Step 1: Check for existing role
+        Role existingRole = rolesRepository.findByRoleName(newRole);
+        if (existingRole != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        }
+
+        // Step 2: Create new role
+        Role role = new Role();
+        role.setRoleName(newRole);
+
+        Tenant tenant = tenantRepository.findById(tenantId)
+                        .orElseThrow(()-> new RuntimeException("Tenant Not found..!!"));
+
+        role.setTenant(tenant);
+        Role savedRole = rolesRepository.save(role);
+
+        // Step 3: Assign access rights
+        List<RoleAccessRights> accessRightsList = new ArrayList<>();
+        for (AccessRightDTO dto : roleAccessRights) {
+            // Try to find the AccessRight based on moduleName and permissions
+            Optional<AccessRight> existing = accessRightRepository.findByModuleNameAndCanViewAndCanEditAndCanDelete(
+                    dto.getModuleName(), dto.isCanView(), dto.isCanEdit(), dto.isCanDelete());
+
+            AccessRight accessRight = existing.orElseGet(() -> {
+                AccessRight newAr = new AccessRight();
+                newAr.setModuleName(dto.getModuleName());
+                newAr.setCanView(dto.isCanView());
+                newAr.setCanEdit(dto.isCanEdit());
+                newAr.setCanDelete(dto.isCanDelete());
+                Tenant existingTenant = tenantRepository.findById(tenantId)
+                        .orElseThrow(()-> new RuntimeException("Tenant Not found..!!"));
+                newAr.setTenant(existingTenant);
+                return accessRightRepository.save(newAr);
+            });
+
+            // Create RoleAccessRights mapping
+            RoleAccessRights rar = new RoleAccessRights(savedRole, accessRight);
+
+            accessRightsList.add(rar);
+        }
+
+
+        roleAccessRightsRepository.saveAll(accessRightsList);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedRole);
+    }
+
+
 
 }
 

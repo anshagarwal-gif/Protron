@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.DTOs.AccessRightDTO;
 import com.Protronserver.Protronserver.Entities.Role;
 import com.Protronserver.Protronserver.Service.RoleAccessRightService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,5 +29,10 @@ public class RoleAndAccessRightsController {
     @PutMapping("/role/edit")
     public void changeRoleAccess(@RequestParam Long roleId, @RequestBody List<AccessRightDTO> updatedRoleAccess){
         roleAccessRightService.updateRoleAccessRights(roleId, updatedRoleAccess);
+    }
+
+    @PostMapping("/role/add")
+    public ResponseEntity<Role> addnewRole(@RequestParam String roleName, @RequestBody List<AccessRightDTO> roleAccessRights){
+        return roleAccessRightService.addRole(roleName, roleAccessRights);
     }
 }

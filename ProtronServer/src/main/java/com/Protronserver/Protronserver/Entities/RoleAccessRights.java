@@ -10,8 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "role_access_rights")
 public class RoleAccessRights {
 
@@ -28,8 +26,11 @@ public class RoleAccessRights {
     @JsonIgnoreProperties("tenant")
     private AccessRight accessRight;
 
-    public RoleAccessRights(Role existingRole, AccessRight accessRight) {
-        this.role = existingRole;
+    public RoleAccessRights() {
+    }
+
+    public RoleAccessRights(Role role, AccessRight accessRight) {
+        this.role = role;
         this.accessRight = accessRight;
     }
 
