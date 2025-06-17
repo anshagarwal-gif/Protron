@@ -2,8 +2,10 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.LoginRequest;
 import com.Protronserver.Protronserver.DTOs.UserSignUpDTO;
+import com.Protronserver.Protronserver.Entities.ProjectTeam;
 import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Repository.ProjectTeamRepository;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.Utils.JwtUtil;
@@ -35,6 +37,12 @@ public class UserService {
 
     @Autowired
     private TenantRepository tenantRepository;
+
+    @Autowired
+    private ProjectTeamRepository projectTeamRepository;
+
+    @Autowired
+    private ManageTeamService manageTeamService;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -176,6 +184,13 @@ public class UserService {
 
         existingUser.setStatus("hold");
         userRepository.save(existingUser);
+
+        List<ProjectTeam> memberInTeams = projectTeamRepository.findByUser_UserIdAndEndTimestampIsNull(userId);
+        for(ProjectTeam pt : memberInTeams){
+            ProjectTeam updatedMember = manageTeamService.updateStatus(pt.getProjectTeamId(), "hold");
+            projectTeamRepository.save(updatedMember);
+        }
+
     }
 
     public void activateUser(Long userId){
@@ -184,6 +199,12 @@ public class UserService {
 
         existingUser.setStatus("active");
         userRepository.save(existingUser);
+
+        List<ProjectTeam> memberInTeams = projectTeamRepository.findByUser_UserIdAndEndTimestampIsNull(userId);
+        for(ProjectTeam pt : memberInTeams){
+            ProjectTeam updatedMember = manageTeamService.updateStatus(pt.getProjectTeamId(), "active");
+            projectTeamRepository.save(updatedMember);
+        }
     }
 
 }

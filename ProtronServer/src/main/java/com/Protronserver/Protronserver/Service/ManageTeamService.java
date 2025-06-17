@@ -101,6 +101,10 @@ public class ManageTeamService {
     public ProjectTeam updateStatus(Long teamMemberId, String status) {
         ProjectTeam team = getProjectTeamById(teamMemberId);
 
+        if(team.getUser().getStatus().equals("hold") && status.equals("active")){
+            throw new RuntimeException("Cannot activate User. Reason: User is overall on hold.!");
+        }
+
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof User user) {
             team.setLastUpdatedBy(user.getEmail());
