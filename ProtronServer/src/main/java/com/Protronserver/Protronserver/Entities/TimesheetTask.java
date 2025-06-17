@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,13 +21,16 @@ public class TimesheetTask {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"timesheetTasks", "certificates", "userAccessRights", "role", "tenant", "projectTeams", "projectsManaged"})
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
+    @JsonIgnoreProperties({"sponsor", "tenant", "systemImpacted", "projectTeam", "timesheetTasks", "projectManager"})
     private Project project;
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
+    @JsonIgnoreProperties({"certificates", "projectTeams", "roleAccesses", "projects", "roles", "users"})
     private Tenant tenant;
 }
