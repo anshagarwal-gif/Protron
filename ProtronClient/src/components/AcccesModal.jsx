@@ -102,7 +102,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
         firstName: selectedUser.firstName?.split(" ")[0] || "",
         lastName: selectedUser.lastName?.split(" ")[0] || "",
         emailId: selectedUser.email || "",
-        role: selectedUser.role.roleName || "",
+        role: selectedUser.role?.roleName || "",
       })
     } else {
       // Reset form for new user

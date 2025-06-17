@@ -13,7 +13,8 @@ import {
   FileText,
   ArrowUp,
   ArrowDown,
-  ShieldCheck
+  ShieldCheck,
+  Download
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
 import AddUserModal from "../components/AcccesModal";
@@ -45,6 +46,108 @@ const UserManagement = () => {
 
   const [roles, setRoles] = useState([])
   console.log(roles)
+
+  // Excel download functions
+  const downloadUsersExcel = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = filteredUsers.map((user, index) => ({
+        'S.No': index + 1,
+        'Name': getFullName(user),
+        'Email': user.email || 'N/A',
+        'Role': getRoleName(user.role),
+        'Tenant': getTenantName(user),
+        'Status': getUserStatus(user),
+        'User ID': user.userId || 'N/A'
+      }));
+
+      // Convert to CSV format
+      const headers = Object.keys(excelData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...excelData.map(row => 
+          headers.map(header => {
+            const value = row[header] || '';
+            // Escape quotes and wrap in quotes if contains comma
+            return typeof value === 'string' && value.includes(',') 
+              ? `"${value.replace(/"/g, '""')}"` 
+              : value;
+          }).join(',')
+        )
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `users_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Error downloading users Excel:', error);
+      alert('Failed to download Excel file. Please try again.');
+    }
+  };
+
+  const downloadRolesExcel = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = roles.map((role, index) => {
+        // Convert access rights to readable format
+        const accessRights = role.roleAccessRights?.map(ar => {
+          const permissions = [];
+          if (ar.accessRight?.canView) permissions.push('View');
+          if (ar.accessRight?.canEdit) permissions.push('Edit');
+          if (ar.accessRight?.canDelete) permissions.push('Delete');
+          return `${ar.accessRight?.moduleName}: ${permissions.join(', ') || 'No Permissions'}`;
+        }).join(' | ') || 'No Access Rights';
+
+        return {
+          'S.No': index + 1,
+          'Role Name': role.roleName || 'N/A',
+          'Role ID': role.roleId || 'N/A',
+          'Access Rights': accessRights
+        };
+      });
+
+      // Convert to CSV format
+      const headers = Object.keys(excelData[0] || {});
+      const csvContent = [
+        headers.join(','),
+        ...excelData.map(row => 
+          headers.map(header => {
+            const value = row[header] || '';
+            // Escape quotes and wrap in quotes if contains comma or pipe
+            return typeof value === 'string' && (value.includes(',') || value.includes('|'))
+              ? `"${value.replace(/"/g, '""')}"` 
+              : value;
+          }).join(',')
+        )
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `roles_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Error downloading roles Excel:', error);
+      alert('Failed to download Excel file. Please try again.');
+    }
+  };
+
   const fetchEmployees = async () => {
     setLoading(true);
     setError(null);
@@ -543,24 +646,37 @@ const UserManagement = () => {
             />
             <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
-          {(hasAccess('users', 'edit') && activeTab === "users") && (
+          
+          <div className="flex items-center gap-2">
+            {/* Download Excel Button */}
             <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
-              onClick={() => navigate('/signup')}
+              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={activeTab === "users" ? downloadUsersExcel : downloadRolesExcel}
             >
-              <Plus size={18} className="mr-2" />
-              Create User
+              <Download size={18} className="mr-2" />
+              Download Excel
             </button>
-          )}
-          {activeTab === "roles" && hasAccess('users', 'edit') && (
-            <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
-              onClick={() => setIsAddRoleModalOpen(true)}
-            >
-              <Plus size={18} className="mr-2" />
-              Add New Role
-            </button>
-          )}
+
+            {/* Create User/Role Button */}
+            {(hasAccess('users', 'edit') && activeTab === "users") && (
+              <button
+                className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+                onClick={() => navigate('/signup')}
+              >
+                <Plus size={18} className="mr-2" />
+                Create User
+              </button>
+            )}
+            {activeTab === "roles" && hasAccess('users', 'edit') && (
+              <button
+                className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+                onClick={() => setIsAddRoleModalOpen(true)}
+              >
+                <Plus size={18} className="mr-2" />
+                Add New Role
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Loading state */}

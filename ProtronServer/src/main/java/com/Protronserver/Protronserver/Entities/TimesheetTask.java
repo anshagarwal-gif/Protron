@@ -19,18 +19,23 @@ public class TimesheetTask {
     private Integer hoursSpent;
     private String description;
 
+    @Lob
+    @Column(name = "attachment", columnDefinition = "LONGBLOB")
+    private byte[] attachment;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnoreProperties({"timesheetTasks", "certificates", "userAccessRights", "role", "tenant", "projectTeams", "projectsManaged"})
+    @JsonIgnoreProperties({ "timesheetTasks", "certificates", "userAccessRights", "role", "tenant", "projectTeams",
+            "projectsManaged" })
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
-    @JsonIgnoreProperties({"sponsor", "tenant", "systemImpacted", "projectTeam", "timesheetTasks", "projectManager"})
+    @JsonIgnoreProperties({ "sponsor", "tenant", "systemImpacted", "projectTeam", "timesheetTasks", "projectManager" })
     private Project project;
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({"certificates", "projectTeams", "roleAccesses", "projects", "roles", "users"})
+    @JsonIgnoreProperties({ "certificates", "projectTeams", "roleAccesses", "projects", "roles", "users" })
     private Tenant tenant;
 }

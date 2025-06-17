@@ -10,11 +10,14 @@ import {
   FaClock,
   FaEdit
 } from 'react-icons/fa';
+import LogTimeModal from './LogTimeModal'; // Import the modal component
 
 export default function TimesheetApp() {
   const [currentView, setCurrentView] = useState('Monthly');
   const [currentWeek, setCurrentWeek] = useState('01/Jan/25 - 31/Jan/25');
   const [showWeekend, setShowWeekend] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
   const [timeEntries, setTimeEntries] = useState({
     'Mon, 1 Jan': [
       {
@@ -40,7 +43,13 @@ export default function TimesheetApp() {
   const weekdays = showWeekend ? days : days.slice(0, 5);
 
   const handleAddEntry = (day) => {
-    console.log('Adding entry for', day);
+    setSelectedDate(day);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedDate('');
   };
 
   return (
@@ -208,6 +217,13 @@ export default function TimesheetApp() {
           </button>
         </div>
       </div>
+
+      {/* Log Time Modal */}
+      <LogTimeModal 
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 }
