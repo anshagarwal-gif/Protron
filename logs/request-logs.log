@@ -157,3 +157,6 @@
 2025-06-18 14:50:20 INFO  - [2025-06-18 14:50:19] GET /api/users/email/anshagarwal.rishikesh@gmail.com anshagarwal.rishikesh@gmail.com - Status 200
 2025-06-18 14:50:20 INFO  - [2025-06-18 14:50:20] GET /api/users/email/anshagarwal.rishikesh@gmail.com anshagarwal.rishikesh@gmail.com - Status 200
 2025-06-18 14:50:21 INFO  - [2025-06-18 14:50:21] POST /api/users/logout/1 anshagarwal.rishikesh@gmail.com - Status 200
+2025-06-20 00:34:55 INFO  - [2025-06-20 00:34:54] POST /api/users/login Anonymous - Status 200
+2025-06-20 00:34:57 INFO  - [2025-06-20 00:34:55] GET /api/users/email/anshagarwal.rishikesh@gmail.com anshagarwal.rishikesh@gmail.com - Status 200
+2025-06-20 00:34:58 INFO  - [2025-06-20 00:34:57] GET /api/users/email/anshagarwal.rishikesh@gmail.com anshagarwal.rishikesh@gmail.com - Status 200

@@ -21,6 +21,7 @@ import AddUserModal from "../components/AcccesModal";
 import axios from "axios";
 import ManageRoleModal from "../components/ManageRoleModal";
 import AddRoleModal from "../components/AddRoleModal";
+import GlobalSnackbar from "../components/GlobalSnackbar"; // Adjust import path as needed
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -45,6 +46,26 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
 
   const [roles, setRoles] = useState([])
+
+  // Global snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info"
+  });
+
+  const showSnackbar = (message, severity = "info") => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
+
   console.log(roles)
 
   // Excel download functions
@@ -90,7 +111,7 @@ const UserManagement = () => {
       }
     } catch (error) {
       console.error('Error downloading users Excel:', error);
-      alert('Failed to download Excel file. Please try again.');
+      showSnackbar('Failed to download Excel file. Please try again.', 'error');
     }
   };
 
@@ -144,7 +165,7 @@ const UserManagement = () => {
       }
     } catch (error) {
       console.error('Error downloading roles Excel:', error);
-      alert('Failed to download Excel file. Please try again.');
+      showSnackbar('Failed to download Excel file. Please try again.', 'error');
     }
   };
 
@@ -217,7 +238,7 @@ const UserManagement = () => {
   try {
     const token = sessionStorage.getItem('token');
     if (!token) {
-      alert("Authentication required.");
+      showSnackbar("Authentication required.", "error");
       return;
     }
     // API expects roleName as param, accessRights as body
@@ -233,10 +254,10 @@ const UserManagement = () => {
     );
     // Optionally refresh roles after adding
     await fetchRoles();
-    alert("Role added successfully.");
+    showSnackbar("Role added successfully.", "success");
   } catch (err) {
     console.error("Failed to add new role:", err);
-    alert("Failed to add new role. Please try again.");
+    showSnackbar("Failed to add new role. Please try again.", "error");
   }
   setIsAddRoleModalOpen(false);
 };
@@ -346,7 +367,7 @@ const UserManagement = () => {
     try {
       const token = sessionStorage.getItem('token');
       if (!token) {
-        alert("Authentication required.");
+        showSnackbar("Authentication required.", "error");
         return;
       }
       // Call the backend API to hold the user
@@ -367,7 +388,7 @@ const UserManagement = () => {
       })
     } catch (err) {
       console.error("Failed to hold user:", err);
-      alert("Failed to put user on hold. Please try again.");
+      showSnackbar("Failed to put user on hold. Please try again.", "error");
     }
   };
 
@@ -375,7 +396,7 @@ const UserManagement = () => {
     try {
       const token = sessionStorage.getItem('token');
       if (!token) {
-        alert("Authentication required.");
+        showSnackbar("Authentication required.", "error");
         return;
       }
       // Call the backend API to activate the user
@@ -397,7 +418,7 @@ const UserManagement = () => {
       )
     } catch (err) {
       console.error("Failed to activate user:", err);
-      alert("Failed to activate user. Please try again.");
+      showSnackbar("Failed to activate user. Please try again.", "error");
     }
   };
 
@@ -454,7 +475,7 @@ const UserManagement = () => {
     try {
       const token = sessionStorage.getItem('token');
       if (!token) {
-        alert("Authentication required.");
+        showSnackbar("Authentication required.", "error");
         return;
       }
 
@@ -470,10 +491,10 @@ const UserManagement = () => {
       );
       // Optionally show a success message or refresh roles
       await fetchRoles();
-      alert("Role access rights updated successfully.");
+      showSnackbar("Role access rights updated successfully.", "success");
     } catch (err) {
       console.error("Failed to update role access rights:", err);
-      alert("Failed to update role access rights. Please try again.");
+      showSnackbar("Failed to update role access rights. Please try again.", "error");
     }
 
     setIsRoleModalOpen(false);
@@ -533,7 +554,7 @@ const UserManagement = () => {
       await fetchEmployees();
     } catch (err) {
       console.error("Failed to update access rights:", err);
-      alert("Failed to update access rights. Please try again.");
+      showSnackbar("Failed to update access rights. Please try again.", "error");
       // Optionally show error to user
     }
   };
@@ -984,6 +1005,14 @@ const UserManagement = () => {
         onClose={() => setIsAddRoleModalOpen(false)}
         modulesList={getAllModuleNames()}
         onSubmit={handleAddRoleSubmit}
+      />
+
+      {/* Global Snackbar */}
+      <GlobalSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={handleSnackbarClose}
       />
     </div>
   );
