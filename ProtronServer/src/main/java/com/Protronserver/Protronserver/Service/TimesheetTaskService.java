@@ -97,7 +97,7 @@ public class TimesheetTaskService {
         }
     }
 
-    public int calculateTotalHours(Date startDate, Date endDate) {
+    public double calculateTotalHours(Date startDate, Date endDate) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!(principal instanceof User user)) {
@@ -106,7 +106,7 @@ public class TimesheetTaskService {
 
         return timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, user)
                 .stream()
-                .mapToInt(TimesheetTask::getHoursSpent)
+                .mapToDouble(TimesheetTask::getHoursSpent)
                 .sum();
     }
 
@@ -171,12 +171,12 @@ public class TimesheetTaskService {
             List<TimesheetTask> tasks = timesheetTaskRepository
                     .findByDateBetweenAndUserAndIsSubmittedTrue(startDate, endDate, user);
 
-            Map<String, Integer> dailyHoursMap = new TreeMap<>();
+            Map<String, Double> dailyHoursMap = new TreeMap<>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
             for (TimesheetTask task : tasks) {
                 String dateKey = sdf.format(task.getDate());
-                dailyHoursMap.put(dateKey, dailyHoursMap.getOrDefault(dateKey, 0) + task.getHoursSpent());
+                dailyHoursMap.put(dateKey, dailyHoursMap.getOrDefault(dateKey, 0.0) + task.getHoursSpent());
             }
 
             // Fill missing days
@@ -184,11 +184,11 @@ public class TimesheetTaskService {
             cal.setTime(startDate);
             while (!cal.getTime().after(endDate)) {
                 String dateKey = sdf.format(cal.getTime());
-                dailyHoursMap.putIfAbsent(dateKey, 0);
+                dailyHoursMap.putIfAbsent(dateKey, 0.0);
                 cal.add(Calendar.DATE, 1);
             }
 
-            int total = dailyHoursMap.values().stream().mapToInt(Integer::intValue).sum();
+            double total = dailyHoursMap.values().stream().mapToDouble(Double::doubleValue).sum();
 
             AdminTimesheetSummaryDTO dto = new AdminTimesheetSummaryDTO();
             dto.setUserId(user.getUserId());

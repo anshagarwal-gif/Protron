@@ -15,8 +15,8 @@ public class AdminTimesheetSummaryDTO {
     private Long userId;
     private String name;
     private String email;
-    private Map<String, Integer> dailyHours; // Date string -> hours worked
-    private int totalHours;
+    private Map<String, Double> dailyHours; // Date string -> hours worked
+    private double totalHours;
 
     // Constructors, Getters, Setters
 
@@ -45,19 +45,19 @@ public class AdminTimesheetSummaryDTO {
         this.name = name;
     }
 
-    public Map<String, Integer> getDailyHours() {
+    public Map<String, Double> getDailyHours() {
         return dailyHours;
     }
 
-    public void setDailyHours(Map<String, Integer> dailyHours) {
+    public void setDailyHours(Map<String, Double> dailyHours) {
         this.dailyHours = dailyHours;
     }
 
-    public int getTotalHours() {
+    public double getTotalHours() {
         return totalHours;
     }
 
-    public void setTotalHours(int totalHours) {
+    public void setTotalHours(double totalHours) {
         this.totalHours = totalHours;
     }
 }

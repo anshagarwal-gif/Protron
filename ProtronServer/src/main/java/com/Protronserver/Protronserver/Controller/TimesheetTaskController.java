@@ -54,10 +54,10 @@ public class TimesheetTaskController {
     }
 
     @GetMapping("/total-hours")
-    public ResponseEntity<Integer> getTotalHours(
+    public ResponseEntity<Double> getTotalHours(
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
-        int totalHours = timesheetTaskService.calculateTotalHours(start, end);
+        double totalHours = timesheetTaskService.calculateTotalHours(start, end);
         return ResponseEntity.ok(totalHours);
     }
 
