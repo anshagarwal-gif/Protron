@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Controller;
 
+import com.Protronserver.Protronserver.DTOs.AdminTimesheetSummaryDTO;
 import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
 import com.Protronserver.Protronserver.Entities.TimesheetTask;
 import com.Protronserver.Protronserver.Service.TimesheetTaskService;
@@ -73,5 +74,23 @@ public class TimesheetTaskController {
         timesheetTaskService.deleteTask(taskId);
         return ResponseEntity.ok("Task deleted successfully.");
     }
+
+    @PostMapping("/submit")
+    public ResponseEntity<String> submitTimesheet(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end
+    ) {
+        String message = timesheetTaskService.submitPendingTasks(start, end);
+        return ResponseEntity.ok(message);
+    }
+
+    @GetMapping("/admin/summary")
+    public ResponseEntity<List<AdminTimesheetSummaryDTO>> getAdminTimesheetSummary(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
+        List<AdminTimesheetSummaryDTO> summary = timesheetTaskService.getTimesheetSummaryForAllUsers(start, end);
+        return ResponseEntity.ok(summary);
+    }
+
 
 }

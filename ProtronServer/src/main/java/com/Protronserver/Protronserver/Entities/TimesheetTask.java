@@ -18,6 +18,7 @@ public class TimesheetTask {
     private Date date;
     private Integer hoursSpent;
     private String description;
+    private boolean isSubmitted = false;
 
     @Lob
     @Column(name = "attachment", columnDefinition = "LONGBLOB")
@@ -109,5 +110,13 @@ public class TimesheetTask {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
+    }
+
+    public boolean isSubmitted() {
+        return isSubmitted;
+    }
+
+    public void setSubmitted(boolean submitted) {
+        isSubmitted = submitted;
     }
 }

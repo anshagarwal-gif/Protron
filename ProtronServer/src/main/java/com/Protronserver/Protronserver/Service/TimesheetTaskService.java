@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Service;
 
+import com.Protronserver.Protronserver.DTOs.AdminTimesheetSummaryDTO;
 import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
@@ -7,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class TimesheetTaskService {
@@ -113,6 +114,10 @@ public class TimesheetTaskService {
         TimesheetTask task = timesheetTaskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
+        if (task.isSubmitted()) {
+            throw new RuntimeException("Submitted tasks cannot be edited.");
+        }
+
         task.setTaskType(dto.getTaskType());
         task.setDescription(dto.getDescription());
         task.setHoursSpent(dto.getHoursSpent());
@@ -132,4 +137,71 @@ public class TimesheetTaskService {
         }
         timesheetTaskRepository.deleteById(taskId);
     }
+
+    public String submitPendingTasks(Date startDate, Date endDate) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof User user)) throw new RuntimeException("Invalid session");
+
+        List<TimesheetTask> unsubmittedTasks = timesheetTaskRepository.findByDateBetweenAndUserAndIsSubmittedFalse(startDate, endDate, user);
+
+        if (unsubmittedTasks.isEmpty()) {
+            return "No tasks to submit.";
+        }
+
+        for (TimesheetTask task : unsubmittedTasks) {
+            task.setSubmitted(true);
+        }
+
+        timesheetTaskRepository.saveAll(unsubmittedTasks);
+
+        return "Submitted " + unsubmittedTasks.size() + " tasks.";
+    }
+
+    public List<AdminTimesheetSummaryDTO> getTimesheetSummaryForAllUsers(Date startDate, Date endDate) {
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof User loggedInUser)) throw new RuntimeException("Invalid session");
+
+        List<User> allUsers = userRepository.findByTenantTenantIdAndEndTimestampIsNull(loggedInUser.getTenant().getTenantId());
+
+        List<AdminTimesheetSummaryDTO> summaryList = new ArrayList<>();
+
+        for (User user : allUsers) {
+            // ⛳ Only submitted tasks considered
+            List<TimesheetTask> tasks = timesheetTaskRepository
+                    .findByDateBetweenAndUserAndIsSubmittedTrue(startDate, endDate, user);
+
+            Map<String, Integer> dailyHoursMap = new TreeMap<>();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+            for (TimesheetTask task : tasks) {
+                String dateKey = sdf.format(task.getDate());
+                dailyHoursMap.put(dateKey, dailyHoursMap.getOrDefault(dateKey, 0) + task.getHoursSpent());
+            }
+
+            // Fill missing days
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(startDate);
+            while (!cal.getTime().after(endDate)) {
+                String dateKey = sdf.format(cal.getTime());
+                dailyHoursMap.putIfAbsent(dateKey, 0);
+                cal.add(Calendar.DATE, 1);
+            }
+
+            int total = dailyHoursMap.values().stream().mapToInt(Integer::intValue).sum();
+
+            AdminTimesheetSummaryDTO dto = new AdminTimesheetSummaryDTO();
+            dto.setUserId(user.getUserId());
+            dto.setName(user.getFirstName() + user.getLastName());
+            dto.setEmail(user.getEmail());
+            dto.setDailyHours(dailyHoursMap);
+            dto.setTotalHours(total);
+
+            summaryList.add(dto);
+        }
+
+        return summaryList;
+    }
+
+
 }
