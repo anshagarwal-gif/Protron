@@ -8,6 +8,7 @@ import com.Protronserver.Protronserver.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 
@@ -66,6 +67,16 @@ public class ManageUserController {
     @GetMapping("/empcode/{empCode}")
     public Optional<User> getUserByEmpCode(@PathVariable String empCode) {
         return userRepository.findByEmpCodeAndEndTimestampIsNull(empCode);
+    }
+
+    @GetMapping("/loggedInUser")
+    public Optional<User> getLoggedInUser() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!(principal instanceof User user)) {
+            throw new RuntimeException("Invalid user session");
+        }
+        return userRepository.findByEmailAndEndTimestampIsNull(user.getEmail());
     }
 
     // In your UserController.java
