@@ -73,5 +73,4 @@ public class TimesheetTaskController {
         timesheetTaskService.deleteTask(taskId);
         return ResponseEntity.ok("Task deleted successfully.");
     }
-
 }

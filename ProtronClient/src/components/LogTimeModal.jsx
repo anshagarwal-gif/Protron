@@ -1,5 +1,30 @@
 import React, { useState } from 'react';
-import { FaChevronLeft, FaChevronRight, FaCalendarAlt, FaTimes, FaUpload } from 'react-icons/fa';
+import {
+    Dialog,
+    DialogContent,
+    TextField,
+    Button,
+    MenuItem,
+    Select,
+    FormControl,
+    InputLabel,
+    Typography,
+    Box,
+    InputAdornment,
+    IconButton,
+    Paper
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import FolderIcon from '@mui/icons-material/Folder';
+import TaskIcon from '@mui/icons-material/Task';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import DescriptionIcon from '@mui/icons-material/Description';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import dayjs from 'dayjs';
 
 const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
   const [formData, setFormData] = useState({
@@ -8,14 +33,21 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
     hours: '',
     minutes: '',
     description: '',
-    attachment: null
+    attachment: null,
+    date: selectedDate ? dayjs(selectedDate) : dayjs()
   });
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const handleInputChange = (field) => (event) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [field]: event.target.value
+    }));
+  };
+
+  const handleDateChange = (newDate) => {
+    setFormData(prev => ({
+      ...prev,
+      date: newDate
     }));
   };
 
@@ -34,7 +66,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
       hours: '',
       minutes: '',
       description: '',
-      attachment: null
+      attachment: null,
+      date: selectedDate ? dayjs(selectedDate) : dayjs()
     });
   };
 
@@ -45,177 +78,324 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
     handleReset();
   };
 
-  if (!isOpen) return null;
+  const handleDateNavigation = (direction) => {
+    const newDate = direction === 'prev' 
+      ? formData.date.subtract(1, 'day')
+      : formData.date.add(1, 'day');
+    setFormData(prev => ({ ...prev, date: newDate }));
+  };
+
+  // Common height for input fields
+  const fieldHeight = '56px';
+
+  // Custom theme colors (matching EditProjectModal)
+  const greenPrimary = '#1b5e20'; // green-900
+  const greenHover = '#2e7d32'; // green-600
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4">
-          <h2 className="text-lg font-semibold text-gray-800">Log Time</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <FaTimes size={20} />
-          </button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+        }
+      }}
+    >
+      <Box
+        sx={{
+          bgcolor: '#f8f9fa',
+          borderBottom: '1px solid #e0e0e0',
+          py: 2.5,
+          px: 3
+        }}
+      >
+        <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
+          Log Time
+        </Typography>
+      </Box>
 
-        {/* Date Selector */}
-        <div className="px-4 pb-4">
-          <div className="flex items-center justify-center gap-2">
-            <button className="p-1 hover:bg-gray-100 rounded">
-              <FaChevronLeft size={16} />
-            </button>
-            <div className="flex items-center gap-2 px-3 py-1 bg-gray-50 rounded">
-              <span className="font-medium">{selectedDate || '01/Jan/25'}</span>
-              <FaCalendarAlt size={14} className="text-gray-500" />
-            </div>
-            <button className="p-1 hover:bg-gray-100 rounded">
-              <FaChevronRight size={16} />
-            </button>
-          </div>
-        </div>
+      <DialogContent sx={{ p: 3 }}>
+        {/* Main container with flex-col */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
 
-        {/* Form Content */}
-        <div className="p-4 space-y-4">
-          {/* Project Dropdown */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Project
-            </label>
-            <select
-              name="project"
-              value={formData.project}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          {/* Date Selector */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
+            <IconButton 
+              onClick={() => handleDateNavigation('prev')}
+              sx={{ 
+                color: greenPrimary,
+                '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
+              }}
             >
-              <option value="">Select form list</option>
-              <option value="ireframe P1">ireframe P1</option>
-              <option value="Project Alpha">Project Alpha</option>
-              <option value="Project Beta">Project Beta</option>
-            </select>
-          </div>
+              <ChevronLeftIcon />
+            </IconButton>
 
-          {/* Task Type and Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Task Type
-              </label>
-              <select
-                name="taskType"
-                value={formData.taskType}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select form list</option>
-                <option value="Design">Design</option>
-                <option value="Development">Development</option>
-                <option value="Testing">Testing</option>
-                <option value="Documentation">Documentation</option>
-              </select>
-            </div>
+            <Paper 
+              elevation={0}
+              sx={{ 
+                px: 3, 
+                py: 1, 
+                bgcolor: '#f5f5f5',
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              <Typography variant="subtitle1" fontWeight="500">
+                {formData.date.format('DD/MMM/YY')}
+              </Typography>
+              <CalendarTodayIcon sx={{ color: greenPrimary, fontSize: 18 }} />
+            </Paper>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Time
-              </label>
-              <div className="flex gap-2">
-                <input
+            <IconButton 
+              onClick={() => handleDateNavigation('next')}
+              sx={{ 
+                color: greenPrimary,
+                '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
+              }}
+            >
+              <ChevronRightIcon />
+            </IconButton>
+          </Box>
+
+          {/* Row 1: Project */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>Project</InputLabel>
+                <Select
+                  value={formData.project}
+                  onChange={handleInputChange('project')}
+                  label="Project"
+                  sx={{ height: fieldHeight }}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <FolderIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  }
+                >
+                  <MenuItem value="">
+                    <em>Select from list</em>
+                  </MenuItem>
+                  <MenuItem value="ireframe P1">ireframe P1</MenuItem>
+                  <MenuItem value="Project Alpha">Project Alpha</MenuItem>
+                  <MenuItem value="Project Beta">Project Beta</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
+
+          {/* Row 2: Task Type and Time */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>Task Type</InputLabel>
+                <Select
+                  value={formData.taskType}
+                  onChange={handleInputChange('taskType')}
+                  label="Task Type"
+                  sx={{ height: fieldHeight }}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <TaskIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  }
+                >
+                  <MenuItem value="">
+                    <em>Select from list</em>
+                  </MenuItem>
+                  <MenuItem value="Design">Design</MenuItem>
+                  <MenuItem value="Development">Development</MenuItem>
+                  <MenuItem value="Testing">Testing</MenuItem>
+                  <MenuItem value="Documentation">Documentation</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <TextField
                   type="number"
-                  name="hours"
+                  label="Hours"
                   value={formData.hours}
-                  onChange={handleInputChange}
+                  onChange={handleInputChange('hours')}
                   placeholder="HH"
-                  min="0"
-                  max="23"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                  inputProps={{ min: 0, max: 23 }}
+                  sx={{ flex: 1 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccessTimeIcon sx={{ color: greenPrimary }} />
+                      </InputAdornment>
+                    ),
+                    sx: { height: fieldHeight }
+                  }}
                 />
-                <span className="flex items-center text-gray-500">:</span>
-                <input
+                <Typography variant="h6" sx={{ color: 'text.secondary', mx: 1 }}>
+                  :
+                </Typography>
+                <TextField
                   type="number"
-                  name="minutes"
+                  label="Minutes"
                   value={formData.minutes}
-                  onChange={handleInputChange}
+                  onChange={handleInputChange('minutes')}
                   placeholder="MM"
-                  min="0"
-                  max="59"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                  inputProps={{ min: 0, max: 59 }}
+                  sx={{ flex: 1 }}
+                  InputProps={{
+                    sx: { height: fieldHeight }
+                  }}
                 />
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Box>
+          </Box>
 
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Enter here"
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            />
-          </div>
+          {/* Row 3: Description */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Description"
+                placeholder="Enter description here..."
+                value={formData.description}
+                onChange={handleInputChange('description')}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 2 }}>
+                      <DescriptionIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Box>
+          </Box>
 
-          {/* Attachment */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          {/* Row 4: Attachment */}
+          <Box>
+            <Typography variant="subtitle1" sx={{ mb: 1, color: 'text.primary' }}>
               Attachment
-            </label>
-            <div className="relative">
+            </Typography>
+            <Box sx={{
+              border: '2px dashed #aaa',
+              borderRadius: 1,
+              p: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: '#fafafa',
+              minHeight: '120px',
+              cursor: 'pointer',
+              '&:hover': {
+                borderColor: greenPrimary,
+                bgcolor: 'rgba(27, 94, 32, 0.02)'
+              }
+            }}>
               <input
                 type="file"
                 onChange={handleFileChange}
                 accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
-                className="hidden"
+                style={{ display: 'none' }}
                 id="file-upload"
               />
-              <label
-                htmlFor="file-upload"
-                className="flex items-center justify-center w-full px-3 py-8 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition-colors"
-              >
-                <div className="text-center">
-                  <FaUpload className="mx-auto mb-2 text-gray-400" size={24} />
-                  <span className="text-sm text-gray-500">
-                    {formData.attachment ? formData.attachment.name : 'Upload here'}
-                  </span>
-                </div>
+              <label htmlFor="file-upload" style={{ cursor: 'pointer', textAlign: 'center', width: '100%' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                  {formData.attachment ? (
+                    <>
+                      <AttachFileIcon sx={{ color: greenPrimary, fontSize: 32 }} />
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                        {formData.attachment.name}
+                      </Typography>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          borderColor: greenPrimary,
+                          color: greenPrimary,
+                          '&:hover': {
+                            borderColor: greenHover,
+                            color: greenHover
+                          }
+                        }}
+                      >
+                        Change File
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <CloudUploadIcon sx={{ color: greenPrimary, fontSize: 32 }} />
+                      <Typography variant="body1" sx={{ color: 'text.primary' }}>
+                        Upload here
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        *PDF, JPG, PNG, XLS
+                      </Typography>
+                    </>
+                  )}
+                </Box>
               </label>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">*PDF, JPG, PNG, XLS</p>
-          </div>
-        </div>
+            </Box>
+          </Box>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between p-4 bg-gray-50">
-          <button
-            onClick={handleReset}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
-            Reset
-          </button>
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+          {/* Row 5: Action Buttons (Right-aligned) */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+            <Button
+              onClick={handleReset}
+              variant="text"
+              sx={{
+                color: 'text.secondary',
+                '&:hover': {
+                  color: 'text.primary',
+                  bgcolor: 'rgba(0, 0, 0, 0.04)'
+                }
+              }}
             >
-              Cancel
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
-            >
-              Add
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+              Reset
+            </Button>
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button
+                onClick={onClose}
+                variant="outlined"
+                sx={{
+                  borderColor: greenPrimary,
+                  color: greenPrimary,
+                  height: '42px',
+                  '&:hover': {
+                    borderColor: greenHover,
+                    color: greenHover
+                  }
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmit}
+                variant="contained"
+                sx={{
+                  bgcolor: greenPrimary,
+                  color: 'white',
+                  height: '42px',
+                  fontWeight: 600,
+                  '&:hover': {
+                    bgcolor: greenHover
+                  }
+                }}
+              >
+                Add Entry
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 
