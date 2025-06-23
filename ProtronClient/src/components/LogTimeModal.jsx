@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Dialog,
-    DialogContent,
-    TextField,
-    Button,
-    MenuItem,
-    Select,
-    FormControl,
-    InputLabel,
-    Typography,
-    Box,
-    InputAdornment,
-    IconButton,
-    Paper
+  Dialog,
+  DialogContent,
+  TextField,
+  Button,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Typography,
+  Box,
+  InputAdornment,
+  IconButton,
+  Paper
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -24,18 +24,46 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import dayjs from 'dayjs';
-
-const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
+import axios from 'axios';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave }) => {
   const [formData, setFormData] = useState({
-    project: '',
-    taskType: '',
-    hours: '',
-    minutes: '',
-    description: '',
-    attachment: null,
-    date: selectedDate ? dayjs(selectedDate) : dayjs()
+    taskType: '',       // string
+    date: '',           // ISO string or Date object
+    hoursSpent: '',     // number
+    description: '',    // string
+    projectId: '',      // number (Long)
+    attachment: null    // base64 or byte[] if uploading files
+  }
+  );
+
+  const [projects, setProjects] = useState([])
+  const fetchProjects = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/projects`, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` }
+      });
+      setProjects(res.data); // No `.projectName` – set full array
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProjects()
+  })
+  const fileToByteArray = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const arrayBuffer = reader.result;
+      const byteArray = Array.from(new Uint8Array(arrayBuffer));
+      resolve(byteArray);
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
   });
+};
 
   const handleInputChange = (field) => (event) => {
     setFormData(prev => ({
@@ -61,25 +89,52 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
 
   const handleReset = () => {
     setFormData({
-      project: '',
-      taskType: '',
-      hours: '',
-      minutes: '',
-      description: '',
-      attachment: null,
-      date: selectedDate ? dayjs(selectedDate) : dayjs()
+      taskType: '',       // string
+      date: '',           // ISO string or Date object
+      hoursSpent: '',     // number
+      description: '',    // string
+      projectId: '',      // number (Long)
+      attachment: null    // base64 or byte[] if uploading files
     });
   };
 
-  const handleSubmit = () => {
-    // Handle form submission here
-    console.log('Form submitted:', formData);
+  const handleSubmit = async () => {
+  try {
+    let attachmentBytes = null;
+
+    if (formData.attachment instanceof File) {
+      attachmentBytes = await fileToByteArray(formData.attachment);
+    }
+
+    const payload = {
+      taskType: formData.taskType,
+      date: formData.date, // should be ISO or Date object
+      hoursSpent: parseFloat(formData.hoursSpent),
+      description: formData.description,
+      projectId: parseInt(formData.projectId),
+      attachment: attachmentBytes,
+    };
+
+    const response = await axios.post(
+      `${API_BASE_URL}/api/timesheet-tasks/add`,
+      payload,
+      {
+        headers: {
+          Authorization: sessionStorage.getItem("token"),
+        },
+      }
+    );
+
+    console.log("Task saved:", response.data);
     onClose();
     handleReset();
-  };
+  } catch (err) {
+    console.error("Failed to save task:", err);
+  }
+};
 
   const handleDateNavigation = (direction) => {
-    const newDate = direction === 'prev' 
+    const newDate = direction === 'prev'
       ? formData.date.subtract(1, 'day')
       : formData.date.add(1, 'day');
     setFormData(prev => ({ ...prev, date: newDate }));
@@ -124,9 +179,9 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
 
           {/* Date Selector */}
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-            <IconButton 
+            <IconButton
               onClick={() => handleDateNavigation('prev')}
-              sx={{ 
+              sx={{
                 color: greenPrimary,
                 '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
               }}
@@ -134,11 +189,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
               <ChevronLeftIcon />
             </IconButton>
 
-            <Paper 
+            <Paper
               elevation={0}
-              sx={{ 
-                px: 3, 
-                py: 1, 
+              sx={{
+                px: 3,
+                py: 1,
                 bgcolor: '#f5f5f5',
                 borderRadius: 2,
                 display: 'flex',
@@ -147,14 +202,19 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
               }}
             >
               <Typography variant="subtitle1" fontWeight="500">
-                {formData.date.format('DD/MMM/YY')}
+                {new Date(formData.date).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: '2-digit',
+                })}
               </Typography>
+
               <CalendarTodayIcon sx={{ color: greenPrimary, fontSize: 18 }} />
             </Paper>
 
-            <IconButton 
+            <IconButton
               onClick={() => handleDateNavigation('next')}
-              sx={{ 
+              sx={{
                 color: greenPrimary,
                 '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
               }}
@@ -169,8 +229,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
               <FormControl fullWidth>
                 <InputLabel>Project</InputLabel>
                 <Select
-                  value={formData.project}
-                  onChange={handleInputChange('project')}
+                  value={formData.projectId} // note: changed from formData.project to formData.projectId
+                  onChange={handleInputChange('projectId')}
                   label="Project"
                   sx={{ height: fieldHeight }}
                   startAdornment={
@@ -182,14 +242,15 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate }) => {
                   <MenuItem value="">
                     <em>Select from list</em>
                   </MenuItem>
-                  <MenuItem value="ireframe P1">ireframe P1</MenuItem>
-                  <MenuItem value="Project Alpha">Project Alpha</MenuItem>
-                  <MenuItem value="Project Beta">Project Beta</MenuItem>
+                  {projects.map((project) => (
+                    <MenuItem key={project.projectId} value={project.projectId}>
+                      {project.projectName}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Box>
           </Box>
-
           {/* Row 2: Task Type and Time */}
           <Box sx={{ display: 'flex', gap: 3 }}>
             <Box sx={{ flex: 1 }}>

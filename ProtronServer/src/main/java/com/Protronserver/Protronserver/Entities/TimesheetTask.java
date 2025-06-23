@@ -16,8 +16,9 @@ public class TimesheetTask {
     private Long taskId;
     private String taskType;
     private Date date;
-    private Integer hoursSpent;
+    private Double hoursSpent;
     private String description;
+    private boolean isSubmitted = false;
 
     @Lob
     @Column(name = "attachment", columnDefinition = "LONGBLOB")
@@ -63,11 +64,11 @@ public class TimesheetTask {
         this.date = date;
     }
 
-    public Integer getHoursSpent() {
+    public Double getHoursSpent() {
         return hoursSpent;
     }
 
-    public void setHoursSpent(Integer hoursSpent) {
+    public void setHoursSpent(Double hoursSpent) {
         this.hoursSpent = hoursSpent;
     }
 
@@ -109,5 +110,13 @@ public class TimesheetTask {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
+    }
+
+    public boolean isSubmitted() {
+        return isSubmitted;
+    }
+
+    public void setSubmitted(boolean submitted) {
+        isSubmitted = submitted;
     }
 }

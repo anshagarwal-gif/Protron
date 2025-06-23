@@ -102,9 +102,9 @@ const getTotalHours = async () => {
   }
 };
 
-useEffect(() => {
-  getTotalHours();
-}, []);
+// useEffect(() => {
+//   getTotalHours();
+// }, []);
 
   const getMonthDates = () => {
     const dates = []
@@ -408,11 +408,11 @@ useEffect(() => {
           <div className="flex items-center space-x-4">
             <span className="text-sm font-medium text-gray-700">0 Hrs</span>
             <div className="flex-1 bg-gray-200 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min((getTotalHours() / 40) * 100, 100)}%` }}></div>
+              {/* <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min((getTotalHours() / 40) * 100, 100)}%` }}></div> */}
             </div>
             <span className="text-sm font-medium text-gray-700">40 Hrs</span>
             <span className="text-sm font-medium text-green-600">
-              {getTotalHours()} Hrs
+              {/* {getTotalHours()} Hrs */}
             </span>
           </div>
         </div>
