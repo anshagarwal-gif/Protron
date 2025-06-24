@@ -18,6 +18,7 @@ import TimesheetDashboard from './components/EmployeeTimesheet';
 import TimesheetManager from './components/EmployeeTimesheet';
 import { AccessProvider } from './Context/AccessContext';
 import TimesheetApp from './components/EmployeeTimesheet';
+import AdminTimesheet from './components/TimesheetAdmin';
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
@@ -76,6 +77,7 @@ const App = () => {
                                 <Route path="/employee-timesheet" element={<TimesheetManager />} />
                                 <Route path="/users" element={<UserManagement />} />
                                 <Route path="*" element={<Navigate to="/dashboard" />} />
+                                <Route path="/Admin" element={<AdminTimesheet/>}/>
                             </>
                         )}
                     </Routes>
