@@ -1,3 +1,5 @@
+
+// LogTimeModal.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Dialog,
@@ -12,7 +14,8 @@ import {
   Box,
   InputAdornment,
   IconButton,
-  Paper
+  Paper,
+  Tooltip
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -26,6 +29,13 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+// Truncate function for project names
+const truncateText = (text, maxLength = 20) => {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
+};
 
 const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) => {
   const [formData, setFormData] = useState({
@@ -279,13 +289,24 @@ const getDisplayDate = () => {
                       <FolderIcon sx={{ color: greenPrimary }} />
                     </InputAdornment>
                   }
+                  renderValue={(selected) => {
+                    if (!selected) return <em>Select from list</em>;
+                    const selectedProject = projects.find(p => p.projectId === selected);
+                    return selectedProject ? (
+                      <Tooltip title={selectedProject.projectName} placement="top">
+                        <span>{truncateText(selectedProject.projectName, 25)}</span>
+                      </Tooltip>
+                    ) : '';
+                  }}
                 >
                   <MenuItem value="">
                     <em>Select from list</em>
                   </MenuItem>
                   {projects.map((project) => (
                     <MenuItem key={project.projectId} value={project.projectId}>
-                      {project.projectName}
+                      <Tooltip title={project.projectName} placement="right">
+                        <span>{truncateText(project.projectName, 35)}</span>
+                      </Tooltip>
                     </MenuItem>
                   ))}
                 </Select>

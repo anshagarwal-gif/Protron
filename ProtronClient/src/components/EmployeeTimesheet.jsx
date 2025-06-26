@@ -1,6 +1,7 @@
+// TimesheetManager.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon } from "lucide-react";
 import LogTimeModal from "./LogTimeModal";
 import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from "lucide-react";
 
@@ -12,6 +13,13 @@ const formatDate = (date) =>
 const formatDateKey = (date) => date.toISOString().split("T")[0];
 const formatDateDisplay = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
+
+// Truncate function for project names
+const truncateText = (text, maxLength = 15) => {
+  if (!text) return "";
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "...";
+};
 
 const getCurrentMondayStart = () => {
   const today = new Date();
@@ -34,6 +42,40 @@ const getCurrentMonthRange = () => {
   return { start: startMonday, end: lastDay };
 };
 
+// Toast Component
+const Toast = ({ message, type, isVisible, onClose }) => {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 4000); // Auto-hide after 4 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  if (!isVisible) return null;
+
+  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+
+  return (
+    <div className={`fixed top-4 right-4 z-50 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out ${
+      isVisible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+    }`}>
+      <div className="flex items-center space-x-3">
+        <span className="text-lg">{icon}</span>
+        <span className="font-medium">{message}</span>
+        <button
+          onClick={onClose}
+          className="ml-4 text-white hover:text-gray-200 transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const TimesheetManager = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [viewMode, setViewMode] = useState("Weekly");
@@ -45,7 +87,166 @@ const TimesheetManager = () => {
   const [hoveredCell, setHoveredCell] = useState(null);
   const [timesheetData, setTimesheetData] = useState({});
   const [taskDetail, setTaskDetail] = useState(null); // For modal
+  
+  // Toast state
+  const [toast, setToast] = useState({
+    isVisible: false,
+    message: '',
+    type: 'info' // 'success', 'error', 'info'
+  });
 
+  // Dynamic hour targets based on view mode
+  const getTargetHours = () => {
+    return viewMode === "Weekly" ? 40 : 184;
+  };
+
+  // Toast helper function
+  const showToast = (message, type = 'info') => {
+    setToast({
+      isVisible: true,
+      message,
+      type
+    });
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }));
+  };
+
+  // Attachment handling functions with better error handling
+  const handleViewAttachment = async (taskId) => {
+    try {
+      showToast("Loading attachment...", "info");
+      
+      const response = await axios.get(
+        `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`,
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("token"),
+          },
+          responseType: 'blob',
+          timeout: 30000 // 30 second timeout
+        }
+      );
+      
+      if (!response.data || response.data.size === 0) {
+        showToast("Attachment file is empty or not found", "error");
+        return;
+      }
+
+      // Get content type from response headers or default to octet-stream
+      const contentType = response.headers['content-type'] || 'application/octet-stream';
+      
+      // Create blob URL and open in new tab
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Try to open in new tab
+      const newWindow = window.open(url, '_blank');
+      
+      if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+        // If popup blocked, provide download fallback
+        showToast("Popup blocked. Starting download instead...", "info");
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `attachment_${taskId}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        showToast("Attachment opened successfully!", "success");
+      }
+      
+      // Clean up the URL after a delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 5000);
+      
+    } catch (error) {
+      console.error("Failed to view attachment:", error);
+      
+      if (error.response?.status === 404) {
+        showToast("Attachment not found or has been deleted", "error");
+      } else if (error.response?.status === 403) {
+        showToast("Access denied to attachment", "error");
+      } else if (error.response?.status === 500) {
+        showToast("Server error while retrieving attachment. Please contact support.", "error");
+      } else if (error.code === 'ECONNABORTED') {
+        showToast("Request timeout. Attachment might be too large.", "error");
+      } else {
+        showToast("Failed to open attachment. Please try downloading instead.", "error");
+      }
+    }
+  };
+
+  const handleDownloadAttachment = async (taskId, fileName = null) => {
+    try {
+      showToast("Downloading attachment...", "info");
+      
+      const response = await axios.get(
+        `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`,
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("token"),
+          },
+          responseType: 'blob',
+          timeout: 60000 // 60 second timeout for downloads
+        }
+      );
+      
+      if (!response.data || response.data.size === 0) {
+        showToast("Attachment file is empty or not found", "error");
+        return;
+      }
+
+      // Get filename from content-disposition header if available
+      const contentDisposition = response.headers['content-disposition'];
+      let downloadFileName = fileName || `attachment_${taskId}`;
+      
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          downloadFileName = fileNameMatch[1].replace(/['"]/g, '');
+        }
+      }
+
+      // Get content type from response headers
+      const contentType = response.headers['content-type'] || 'application/octet-stream';
+      
+      // Create download link
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = downloadFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+      
+      showToast("Attachment downloaded successfully!", "success");
+    } catch (error) {
+      console.error("Failed to download attachment:", error);
+      
+      if (error.response?.status === 404) {
+        showToast("Attachment not found or has been deleted", "error");
+      } else if (error.response?.status === 403) {
+        showToast("Access denied to attachment", "error");
+      } else if (error.response?.status === 500) {
+        showToast("Server error while downloading attachment. Please contact support.", "error");
+      } else if (error.code === 'ECONNABORTED') {
+        showToast("Download timeout. Attachment might be too large.", "error");
+      } else {
+        showToast("Failed to download attachment", "error");
+      }
+    }
+  };
+
+  // Enhanced fetchTasks with attachment debugging
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length) return;
@@ -65,6 +266,14 @@ const TimesheetManager = () => {
       res.data.forEach((task) => {
         const dateKey = task.date.split("T")[0];
         if (!grouped[dateKey]) grouped[dateKey] = [];
+        
+        // Debug attachment data
+        console.log("Task attachment data:", {
+          taskId: task.taskId,
+          hasAttachment: !!task.attachment,
+          attachmentData: task.attachment
+        });
+        
         grouped[dateKey].push({
           id: task.taskId,
           hours: task.hoursSpent,
@@ -73,12 +282,16 @@ const TimesheetManager = () => {
           project: task.project?.projectName || "",
           submitted: task.submitted,
           attachment: task.attachment,
+          attachmentUrl: task.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachment` : null,
+          // Add fallback attachment info
+          attachmentInfo: task.attachmentInfo || null, // If backend provides file metadata
           fullTask: task,
         });
       });
       setTimesheetData(grouped);
     } catch (err) {
       console.error("Failed to fetch tasks", err);
+      showToast("Failed to fetch tasks", "error");
     }
   };
 
@@ -234,13 +447,15 @@ const TimesheetManager = () => {
                 project: res.data.project?.projectName || "",
                 submitted: res.data.submitted,
                 attachment: res.data.attachment,
+                attachmentUrl: res.data.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${res.data.taskId}/attachment` : null,
                 fullTask: res.data,
               }
             : entry
         ),
       }));
+      showToast("Task updated successfully!", "success");
     } catch (err) {
-      alert("Failed to update task.");
+      showToast("Failed to update task", "error");
     }
     setEditingTask(null);
     setShowLogTimeModal(false);
@@ -259,10 +474,12 @@ const TimesheetManager = () => {
           project: taskData.project?.projectName || "",
           submitted: taskData.submitted,
           attachment: taskData.attachment,
+          attachmentUrl: taskData.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${taskData.taskId}/attachment` : null,
           fullTask: taskData,
         },
       ],
     }));
+    showToast("Task added successfully!", "success");
     setShowLogTimeModal(false);
     setSelectedCell(null);
   }
@@ -280,8 +497,9 @@ const TimesheetManager = () => {
         ...prev,
         [dateKey]: prev[dateKey]?.filter((entry) => entry.id !== entryId) || [],
       }));
+      showToast("Task deleted successfully!", "success");
     } catch (error) {
-      alert("Failed to delete entry. Please try again.");
+      showToast("Failed to delete task", "error");
     }
   };
 
@@ -304,6 +522,7 @@ const TimesheetManager = () => {
       );
       // Option 1: Refetch tasks for real-time update (recommended for accuracy)
       fetchTasks();
+      showToast("Timesheet submitted successfully! 🎉", "success");
       // Option 2: If you want to update manually for performance, you could do:
       // setTimesheetData(prev => {
       //   const updated = { ...prev };
@@ -316,7 +535,7 @@ const TimesheetManager = () => {
       //   return updated;
       // });
     } catch (error) {
-      alert("Failed to submit timesheet. Please try again.");
+      showToast("Failed to submit timesheet", "error");
     }
   };
 
@@ -334,7 +553,7 @@ const TimesheetManager = () => {
   const handleCopyLastWeek = async () => {
     // Only allow in Weekly view
     if (viewMode !== "Weekly") {
-      alert("Copy Last Week is only available in Weekly view.");
+      showToast("Copy Last Week is only available in Weekly view", "error");
       return;
     }
     // Calculate last week's start and end dates
@@ -361,18 +580,19 @@ const TimesheetManager = () => {
         // Give backend a moment to process, then refetch
         fetchTasks();
       }, 500);
+      showToast("Last week's tasks copied successfully!", "success");
     } catch (error) {
-      alert("Failed to copy last week. Please try again.");
+      showToast("Failed to copy last week's tasks", "error");
     }
   };
 
-  // Download as CSV
+  // Download as CSV with attachment information
   const downloadExcel = () => {
     try {
       const dates = getVisibleDates();
       const periodType = viewMode === "Weekly" ? "week" : "month";
       const BOM = "\uFEFF";
-      const headers = ["Date", "Task", "Hours", "Description"];
+      const headers = ["Date", "Task", "Hours", "Description", "Project", "Attachment URL"];
       let csvContent = BOM + headers.map((h) => `"${h}"`).join(",") + "\r\n";
       dates.forEach((date) => {
         const entries = getTimeEntries(date);
@@ -382,6 +602,8 @@ const TimesheetManager = () => {
             `"${entry.task}"`,
             `"${entry.hours}h"`,
             `"${entry.description}"`,
+            `"${entry.project}"`,
+            `"${entry.attachmentUrl || 'No attachment'}"`,
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -399,13 +621,22 @@ const TimesheetManager = () => {
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
       }, 100);
+      showToast("Timesheet downloaded successfully!", "success");
     } catch (error) {
-      alert("Download failed. Please try again.");
+      showToast("Download failed", "error");
     }
   };
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
         <div className="px-6 py-4">
@@ -519,13 +750,13 @@ const TimesheetManager = () => {
               <div
                 className="bg-green-500 h-2 rounded-full transition-all duration-300"
                 style={{
-                  width: `${Math.min((getTotalHoursForPeriod() / 40) * 100, 100)}%`
+                  width: `${Math.min((getTotalHoursForPeriod() / getTargetHours()) * 100, 100)}%`
                 }}
               ></div>
             </div>
-            <span className="text-sm font-medium text-gray-700">40 Hrs</span>
+            <span className="text-sm font-medium text-gray-700">{getTargetHours()} Hrs</span>
             <span className="text-sm font-medium text-green-600">
-              {getTotalHoursForPeriod() >= 40 ? "✅" : ""}
+              {getTotalHoursForPeriod() >= getTargetHours() ? "✅" : ""}
             </span>
           </div>
         </div>
@@ -605,8 +836,12 @@ const TimesheetManager = () => {
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-semibold text-blue-600">{entry.task}</span>
                                   {entry.project && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-semibold">
-                                      <Folder className="h-3 w-3 mr-1" /> {entry.project}
+                                    <span 
+                                      className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-semibold cursor-help"
+                                      title={entry.project} // Full project name on hover
+                                    >
+                                      <Folder className="h-3 w-3 mr-1" /> 
+                                      {truncateText(entry.project, 12)}
                                     </span>
                                   )}
                                 </div>
@@ -616,7 +851,7 @@ const TimesheetManager = () => {
                                   {entry.description ? entry.description : "No description"}
                                 </div>
                               </div>
-                              <div className="mt-2 flex items-center gap-2">
+                              <div className="mt-2 flex items-center gap-2 flex-wrap">
                                 {entry.submitted ? (
                                   <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-200 text-green-800 text-xs font-semibold">
                                     <CheckCircle className="h-3 w-3 mr-1" /> Submitted
@@ -627,9 +862,25 @@ const TimesheetManager = () => {
                                   </span>
                                 )}
                                 {entry.attachment && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold ml-2">
-                                    <FileText className="h-3 w-3 mr-1" /> Attachment
-                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
+                                      <FileText className="h-3 w-3 mr-1" /> Attachment
+                                    </span>
+                                    <button
+                                      onClick={e => { e.stopPropagation(); handleViewAttachment(entry.id); }}
+                                      className="text-blue-500 hover:text-blue-700 p-1 rounded transition-colors"
+                                      title="View Attachment"
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      onClick={e => { e.stopPropagation(); handleDownloadAttachment(entry.id, `attachment_${entry.id}`); }}
+                                      className="text-green-500 hover:text-green-700 p-1 rounded transition-colors"
+                                      title="Download Attachment"
+                                    >
+                                      <DownloadIcon className="h-3 w-3" />
+                                    </button>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -709,7 +960,12 @@ const TimesheetManager = () => {
               <div className="flex items-center gap-2">
                 <Folder className="h-4 w-4 text-green-600" />
                 <span className="font-semibold">Project:</span>
-                <span>{taskDetail.project?.projectName || "-"}</span>
+                <span 
+                  className="cursor-help" 
+                  title={taskDetail.project?.projectName || "-"} // Full project name on hover
+                >
+                  {taskDetail.project?.projectName ? truncateText(taskDetail.project.projectName, 25) : "-"}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold">Hours:</span>
@@ -734,11 +990,25 @@ const TimesheetManager = () => {
                 )}
               </div>
               {taskDetail.attachment && (
-                <div>
+                <div className="flex items-center gap-2">
                   <span className="font-semibold">Attachment:</span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold ml-2">
-                    [File Attached]
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
+                      <FileText className="h-3 w-3 mr-1" /> File Attached
+                    </span>
+                    <button
+                      onClick={() => handleViewAttachment(taskDetail.taskId)}
+                      className="inline-flex items-center px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                    >
+                      <Eye className="h-3 w-3 mr-1" /> View
+                    </button>
+                    <button
+                      onClick={() => handleDownloadAttachment(taskDetail.taskId, `attachment_${taskDetail.taskId}`)}
+                      className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                    >
+                      <DownloadIcon className="h-3 w-3 mr-1" /> Download
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
