@@ -110,6 +110,11 @@ public class TimesheetTaskService {
                 .sum();
     }
 
+    public TimesheetTask findTaskById(Long taskId) {
+        return timesheetTaskRepository.findById(taskId)
+                .orElse(null); // Return null instead of throwing exception for 404 handling
+    }
+
     public TimesheetTask updateTask(Long taskId, TimesheetTaskRequestDTO dto) {
         TimesheetTask task = timesheetTaskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
@@ -140,9 +145,11 @@ public class TimesheetTaskService {
 
     public String submitPendingTasks(Date startDate, Date endDate) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(principal instanceof User user)) throw new RuntimeException("Invalid session");
+        if (!(principal instanceof User user))
+            throw new RuntimeException("Invalid session");
 
-        List<TimesheetTask> unsubmittedTasks = timesheetTaskRepository.findByDateBetweenAndUserAndIsSubmittedFalse(startDate, endDate, user);
+        List<TimesheetTask> unsubmittedTasks = timesheetTaskRepository
+                .findByDateBetweenAndUserAndIsSubmittedFalse(startDate, endDate, user);
 
         if (unsubmittedTasks.isEmpty()) {
             return "No tasks to submit.";
@@ -160,9 +167,11 @@ public class TimesheetTaskService {
     public List<AdminTimesheetSummaryDTO> getTimesheetSummaryForAllUsers(Date startDate, Date endDate) {
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(principal instanceof User loggedInUser)) throw new RuntimeException("Invalid session");
+        if (!(principal instanceof User loggedInUser))
+            throw new RuntimeException("Invalid session");
 
-        List<User> allUsers = userRepository.findByTenantTenantIdAndEndTimestampIsNull(loggedInUser.getTenant().getTenantId());
+        List<User> allUsers = userRepository
+                .findByTenantTenantIdAndEndTimestampIsNull(loggedInUser.getTenant().getTenantId());
 
         List<AdminTimesheetSummaryDTO> summaryList = new ArrayList<>();
 
@@ -202,6 +211,5 @@ public class TimesheetTaskService {
 
         return summaryList;
     }
-
 
 }
