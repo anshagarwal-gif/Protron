@@ -30,6 +30,27 @@ public class login_audit {
 
     // Getters and Setters
 
+
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
+    }
+
+    public LocalDateTime getLastloginTimestamp() {
+        return lastloginTimestamp;
+    }
+
+    public void setLastloginTimestamp(LocalDateTime lastloginTimestamp) {
+        this.lastloginTimestamp = lastloginTimestamp;
+    }
+
+    public String getTask() {
+        return task;
+    }
+
+    public void setTask(String task) {
+        this.task = task;
+    }
+
     public Long getAuditId() {
         return auditId;
     }

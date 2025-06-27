@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface AccessRightRepository extends JpaRepository<AccessRight, Long> {
-    Optional<AccessRight> findByModuleNameAndCanViewAndCanEditAndCanDelete(
-            String moduleName, boolean canView, boolean canEdit, boolean canDelete);
+    Optional<AccessRight> findByModuleNameAndCanViewAndCanEditAndCanDeleteAndTenant_TenantId(
+            String moduleName, boolean canView, boolean canEdit, boolean canDelete, Long tenantId);
 }

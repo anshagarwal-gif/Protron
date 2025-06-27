@@ -15,7 +15,10 @@ import Navbar from './components/Navbar';
 import UserManagement from './pages/UserManagement';
 import ManageTimesheets from './components/ManageTimesheet';
 import TimesheetDashboard from './components/EmployeeTimesheet';
+import TimesheetManager from './components/EmployeeTimesheet';
 import { AccessProvider } from './Context/AccessContext';
+import TimesheetApp from './components/EmployeeTimesheet';
+import AdminTimesheet from './components/TimesheetAdmin';
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
@@ -70,10 +73,11 @@ const App = () => {
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/projects" element={<ProjectManagement />} />
                                 <Route path="/team" element={<TeamManagement />} />
-                                <Route path="/timesheet" element={<ManageTimesheets   />} />
-                                <Route path="/employee-timesheet" element={<TimesheetDashboard />} />
+                                <Route path="/timesheet" element={<TimesheetApp   />} />
+                                <Route path="/employee-timesheet" element={<TimesheetManager />} />
                                 <Route path="/users" element={<UserManagement />} />
                                 <Route path="*" element={<Navigate to="/dashboard" />} />
+                                <Route path="/Admin" element={<AdminTimesheet/>}/>
                             </>
                         )}
                     </Routes>
