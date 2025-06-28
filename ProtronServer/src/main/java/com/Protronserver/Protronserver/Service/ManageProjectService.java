@@ -88,6 +88,9 @@ public class ManageProjectService {
                 teamMember.setTaskType(memberDTO.getTaskType());
                 teamMember.setUnit(memberDTO.getUnit());
                 teamMember.setEstimatedReleaseDate(memberDTO.getEstimatedReleaseDate());
+                teamMember.setStartTimestamp(LocalDateTime.now());
+                teamMember.setEndTimestamp(null);
+                teamMember.setLastUpdatedBy(null);
 
                 teamMembers.add(projectTeamRepository.save(teamMember));
             }

@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -45,6 +47,9 @@ public class TimesheetTaskService {
         task.setHoursSpent(dto.getHoursSpent());
         task.setDescription(dto.getDescription());
         task.setAttachment(dto.getAttachment());
+        task.setStartTimestamp(LocalDateTime.now());
+        task.setEndTimestamp(null);
+        task.setLastUpdatedBy(null);
 
         task.setUser(targetUser);
         task.setTenant(user.getTenant());
@@ -67,13 +72,13 @@ public class TimesheetTaskService {
             throw new RuntimeException("Unauthorized access");
         }
 
-        return timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, user);
+        return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, user);
     }
 
     public List<TimesheetTask> getTasksBetweenDatesForUser(Date startDate, Date endDate, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, user);
+        return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, user);
     }
 
     public void copyTasksToNextWeek(Date startDate, Date endDate, Long userId) {
@@ -85,7 +90,7 @@ public class TimesheetTaskService {
 
         User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
 
-        List<TimesheetTask> lastWeekTasks = timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, targetUser);
+        List<TimesheetTask> lastWeekTasks = timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser);
 
         for (TimesheetTask oldTask : lastWeekTasks) {
             TimesheetTask newTask = new TimesheetTask();
@@ -100,6 +105,9 @@ public class TimesheetTaskService {
             newTask.setUser(targetUser);
             newTask.setTenant(targetUser.getTenant());
             newTask.setProject(oldTask.getProject());
+            newTask.setStartTimestamp(LocalDateTime.now());
+            newTask.setEndTimestamp(null);
+            newTask.setLastUpdatedBy(null);
 
             timesheetTaskRepository.save(newTask);
         }
@@ -114,7 +122,7 @@ public class TimesheetTaskService {
 
         User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
 
-        return timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, targetUser)
+        return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser)
                 .stream()
                 .mapToDouble(TimesheetTask::getHoursSpent)
                 .sum();
@@ -126,31 +134,52 @@ public class TimesheetTaskService {
     }
 
     public TimesheetTask updateTask(Long taskId, TimesheetTaskRequestDTO dto) {
-        TimesheetTask task = timesheetTaskRepository.findById(taskId)
+        TimesheetTask existingTask = timesheetTaskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        if (task.isSubmitted()) {
+        if (existingTask.isSubmitted()) {
             throw new RuntimeException("Submitted tasks cannot be edited.");
         }
 
-        task.setTaskType(dto.getTaskType());
-        task.setDescription(dto.getDescription());
-        task.setHoursSpent(dto.getHoursSpent());
-        task.setDate(dto.getDate());
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            existingTask.setLastUpdatedBy(user.getEmail());
+            existingTask.setEndTimestamp(LocalDateTime.now());
+        }
+        timesheetTaskRepository.save(existingTask);
+
+        TimesheetTask newTask = new TimesheetTask();
+
+        newTask.setTaskType(dto.getTaskType());
+        newTask.setDescription(dto.getDescription());
+        newTask.setHoursSpent(dto.getHoursSpent());
+        newTask.setDate(dto.getDate());
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
-        task.setProject(project);
+        newTask.setProject(project);
+        newTask.setStartTimestamp(LocalDateTime.now());
+        newTask.setEndTimestamp(null);
+        newTask.setLastUpdatedBy(null);
 
-        return timesheetTaskRepository.save(task);
+        System.out.println("Project: " + dto.getProjectId());
+        System.out.println("Task Id: " + newTask.getTaskId());
+        System.out.println("Project: " + project);
+
+        return timesheetTaskRepository.save(newTask);
     }
 
     public void deleteTask(Long taskId) {
-        if (!timesheetTaskRepository.existsById(taskId)) {
-            throw new RuntimeException("Task not found");
+        TimesheetTask existingTask = timesheetTaskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            existingTask.setLastUpdatedBy(user.getEmail());
+            existingTask.setEndTimestamp(LocalDateTime.now());
         }
-        timesheetTaskRepository.deleteById(taskId);
+        timesheetTaskRepository.save(existingTask);
     }
 
     public String submitPendingTasks(Date startDate, Date endDate, Long userId) {
@@ -161,7 +190,7 @@ public class TimesheetTaskService {
         User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
 
         List<TimesheetTask> unsubmittedTasks = timesheetTaskRepository
-                .findByDateBetweenAndUserAndIsSubmittedFalse(startDate, endDate, targetUser);
+                .findByDateBetweenAndUserAndIsSubmittedFalseAndEndTimestampIsNull(startDate, endDate, targetUser);
 
         if (unsubmittedTasks.isEmpty()) {
             return "No tasks to submit.";
@@ -190,7 +219,7 @@ public class TimesheetTaskService {
         for (User user : allUsers) {
             // ⛳ Only submitted tasks considered
             List<TimesheetTask> tasks = timesheetTaskRepository
-                    .findByDateBetweenAndUserAndIsSubmittedTrue(startDate, endDate, user);
+                    .findByDateBetweenAndUserAndIsSubmittedTrueAndEndTimestampIsNull(startDate, endDate, user);
 
             Map<String, Double> dailyHoursMap = new TreeMap<>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
