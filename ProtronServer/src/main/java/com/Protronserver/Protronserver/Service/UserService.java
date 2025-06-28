@@ -3,9 +3,11 @@ package com.Protronserver.Protronserver.Service;
 import com.Protronserver.Protronserver.DTOs.LoginRequest;
 import com.Protronserver.Protronserver.DTOs.UserSignUpDTO;
 import com.Protronserver.Protronserver.Entities.ProjectTeam;
+import com.Protronserver.Protronserver.Entities.Role;
 import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.ProjectTeamRepository;
+import com.Protronserver.Protronserver.Repository.RolesRepository;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.Utils.JwtUtil;
@@ -44,6 +46,9 @@ public class UserService {
     @Autowired
     private ManageTeamService manageTeamService;
 
+    @Autowired
+    private RolesRepository rolesRepository;
+
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public User signupUser(UserSignUpDTO dto) {
@@ -80,9 +85,11 @@ public class UserService {
                 throw new IllegalArgumentException("Failed to process photo upload", e);
             }
         }
-        // No role assigned for now
-        user.setRole(null);
-        user.setStatus("Active");
+
+        Role role = rolesRepository.findById(dto.getRole())
+                .orElseThrow(() -> new EntityNotFoundException("Role Not found"));
+        user.setRole(role);
+        user.setStatus("active");
 
         User savedUser = userRepository.save(user);
 

@@ -95,7 +95,7 @@ const getDisplayDate = () => {
 
   const fetchProjects = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/projects`, {
+      const res = await axios.get(`${API_BASE_URL}/api/projects/user/active-projects`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
       setProjects(res.data);

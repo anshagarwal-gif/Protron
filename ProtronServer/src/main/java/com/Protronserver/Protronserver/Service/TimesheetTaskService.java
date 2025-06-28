@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.AdminTimesheetSummaryDTO;
 import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,17 @@ public class TimesheetTaskService {
     @Autowired
     private TenantRepository tenantRepository;
 
-    public TimesheetTask addTask(TimesheetTaskRequestDTO dto) {
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
+
+    public TimesheetTask addTask(TimesheetTaskRequestDTO dto, Long userId) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!(principal instanceof User user)) {
             throw new RuntimeException("Invalid user session");
         }
+
+        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
 
         TimesheetTask task = new TimesheetTask();
         task.setTaskType(dto.getTaskType());
@@ -40,7 +46,7 @@ public class TimesheetTaskService {
         task.setDescription(dto.getDescription());
         task.setAttachment(dto.getAttachment());
 
-        task.setUser(user);
+        task.setUser(targetUser);
         task.setTenant(user.getTenant());
 
         Project project = projectRepository.findById(dto.getProjectId())
@@ -70,14 +76,16 @@ public class TimesheetTaskService {
         return timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, user);
     }
 
-    public void copyTasksToNextWeek(Date startDate, Date endDate) {
+    public void copyTasksToNextWeek(Date startDate, Date endDate, Long userId) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!(principal instanceof User user)) {
             throw new RuntimeException("Invalid user session");
         }
 
-        List<TimesheetTask> lastWeekTasks = timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, user);
+        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+
+        List<TimesheetTask> lastWeekTasks = timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, targetUser);
 
         for (TimesheetTask oldTask : lastWeekTasks) {
             TimesheetTask newTask = new TimesheetTask();
@@ -89,22 +97,24 @@ public class TimesheetTaskService {
             Date newDate = new Date(oldTask.getDate().getTime() + (7 * 24 * 60 * 60 * 1000L));
             newTask.setDate(newDate);
 
-            newTask.setUser(user);
-            newTask.setTenant(user.getTenant());
+            newTask.setUser(targetUser);
+            newTask.setTenant(targetUser.getTenant());
             newTask.setProject(oldTask.getProject());
 
             timesheetTaskRepository.save(newTask);
         }
     }
 
-    public double calculateTotalHours(Date startDate, Date endDate) {
+    public double calculateTotalHours(Date startDate, Date endDate, Long userId) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!(principal instanceof User user)) {
             throw new RuntimeException("Invalid user session");
         }
 
-        return timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, user)
+        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+
+        return timesheetTaskRepository.findByDateBetweenAndUser(startDate, endDate, targetUser)
                 .stream()
                 .mapToDouble(TimesheetTask::getHoursSpent)
                 .sum();
@@ -143,13 +153,15 @@ public class TimesheetTaskService {
         timesheetTaskRepository.deleteById(taskId);
     }
 
-    public String submitPendingTasks(Date startDate, Date endDate) {
+    public String submitPendingTasks(Date startDate, Date endDate, Long userId) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof User user))
             throw new RuntimeException("Invalid session");
 
+        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+
         List<TimesheetTask> unsubmittedTasks = timesheetTaskRepository
-                .findByDateBetweenAndUserAndIsSubmittedFalse(startDate, endDate, user);
+                .findByDateBetweenAndUserAndIsSubmittedFalse(startDate, endDate, targetUser);
 
         if (unsubmittedTasks.isEmpty()) {
             return "No tasks to submit.";

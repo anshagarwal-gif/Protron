@@ -46,4 +46,10 @@ public class ManageProjectController {
         return manageProjectService.updateProject(id, projectUpdateDTO);
     }
 
+    @GetMapping("/user/active-projects")
+    public ResponseEntity<List<Project>> getUserActiveProjects(@RequestParam(value = "userId", required = false) Long userId) {
+        List<Project> projects = manageProjectService.getActiveProjectsInSameTenantByUser(userId);
+        return ResponseEntity.ok(projects);
+    }
+
 }

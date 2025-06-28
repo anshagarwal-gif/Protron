@@ -7,6 +7,7 @@ import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
 
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,9 @@ public class ManageProjectService {
 
     @Autowired
     private ManageSystemImpactedService manageSystemImpactedService;
+
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
 
     public Project addProject(ProjectRequestDTO request) {
         Project project = new Project();
@@ -184,6 +188,19 @@ public class ManageProjectService {
 
         // Save new project
         return updatedProject;
+    }
+
+    public List<Project> getActiveProjectsInSameTenantByUser(Long userId) {
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!(principal instanceof User user)) {
+            throw new RuntimeException("Invalid user session");
+        }
+
+        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+
+        return projectRepository.findActiveProjectsByUserInSameTenant(targetUser.getUserId());
     }
 
 }
