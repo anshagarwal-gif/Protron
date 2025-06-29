@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import com.Protronserver.Protronserver.Entities.Role;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +41,20 @@ public class UserSignUpDTO {
 
     // Added last updated by field
     private String lastUpdatedBy;
-    
+    private Long roleId;
+
+    public void setTenant(long tenant) {
+        this.tenant = tenant;
+    }
+
+    public Long getRole() {
+        return roleId;
+    }
+
+    public void setRole(Long role) {
+        this.roleId = role;
+    }
+
     // Getters and setters for the new fields
     public LocalDateTime getStartTimestamp() {
         return startTimestamp;

@@ -26,7 +26,7 @@ export const AccessProvider = ({ children }) => {
   ...(data.role?.roleAccessRights?.map(r => r.accessRight) || []),
   ...(data.userAccessRights?.map(u => u.accessRight) || []),
 ]);
-        setRole(data.role);
+        setRole(data.role.roleName);
       })
       .catch((error) => {
         console.error('Error fetching logged-in user:', error);
