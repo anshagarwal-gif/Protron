@@ -46,6 +46,7 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
 
   const [roles, setRoles] = useState([])
+  const [modules, setModules] = useState([]); // Add state for modules
 
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -86,12 +87,12 @@ const UserManagement = () => {
       const headers = Object.keys(excelData[0] || {});
       const csvContent = [
         headers.join(','),
-        ...excelData.map(row => 
+        ...excelData.map(row =>
           headers.map(header => {
             const value = row[header] || '';
             // Escape quotes and wrap in quotes if contains comma
-            return typeof value === 'string' && value.includes(',') 
-              ? `"${value.replace(/"/g, '""')}"` 
+            return typeof value === 'string' && value.includes(',')
+              ? `"${value.replace(/"/g, '""')}"`
               : value;
           }).join(',')
         )
@@ -140,12 +141,12 @@ const UserManagement = () => {
       const headers = Object.keys(excelData[0] || {});
       const csvContent = [
         headers.join(','),
-        ...excelData.map(row => 
+        ...excelData.map(row =>
           headers.map(header => {
             const value = row[header] || '';
             // Escape quotes and wrap in quotes if contains comma or pipe
             return typeof value === 'string' && (value.includes(',') || value.includes('|'))
-              ? `"${value.replace(/"/g, '""')}"` 
+              ? `"${value.replace(/"/g, '""')}"`
               : value;
           }).join(',')
         )
@@ -219,48 +220,37 @@ const UserManagement = () => {
     }
   }
 
+  // Fetch modules from the new API
+  const fetchModules = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/modules/`, {
+        headers: { Authorization: `${token}` },
+      });
+      console.log(res.data);
+      setModules(res.data);
+    } catch (error) {
+      console.error("Failed to fetch modules", error);
+    }
+  };
+
+  // Fetch data when the component mounts
   useEffect(() => {
     fetchEmployees();
     fetchRoles();
+    fetchModules();
   }, []);
 
+  // Update getAllModuleNames to include modules from the new API
   const getAllModuleNames = () => {
-    const modules = new Set();
-    roles.forEach(role => {
-      (role.roleAccessRights || []).forEach(ar => {
-        if (ar.accessRight?.moduleName) modules.add(ar.accessRight.moduleName);
+    const moduleNames = new Set(modules.map((module) => module.moduleName)); // Add modules from API
+    roles.forEach((role) => {
+      (role.roleAccessRights || []).forEach((ar) => {
+        if (ar.accessRight?.moduleName) moduleNames.add(ar.accessRight.moduleName);
       });
     });
-    return Array.from(modules);
+    return Array.from(moduleNames);
   };
-
-  const handleAddRoleSubmit = async (roleName, accessRights) => {
-  try {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      showSnackbar("Authentication required.", "error");
-      return;
-    }
-    // API expects roleName as param, accessRights as body
-    const res = await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/access/role/add?roleName=${encodeURIComponent(roleName)}`,
-      accessRights,
-      {
-        headers: {
-          Authorization: `${token}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    // Optionally refresh roles after adding
-    await fetchRoles();
-    showSnackbar("Role added successfully.", "success");
-  } catch (err) {
-    console.error("Failed to add new role:", err);
-    showSnackbar("Failed to add new role. Please try again.", "error");
-  }
-  setIsAddRoleModalOpen(false);
-};
 
   // Helper function to get role name from role object or string
   const getRoleName = (role) => {
@@ -422,11 +412,18 @@ const UserManagement = () => {
     }
   };
 
-  const handleManageUser = (user) => {
-    console.log("Manage user:", user);
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
+ const handleManageUser = (user) => {
+  const loggedInUserId = sessionStorage.getItem("userId"); // Assuming userId is stored in sessionStorage
+  console.log("Logged in user ID:", loggedInUserId, "user ID:", user.userId);
+  if (user.userId == loggedInUserId) {
+    showSnackbar("You cannot edit your own information.", "error");
+    return;
+  }
+
+  console.log("Manage user:", user);
+  setSelectedUser(user);
+  setIsModalOpen(true);
+};
 
   const handleAuditTrail = (userId) => {
     console.log("View audit trail for user:", userId);
@@ -434,17 +431,31 @@ const UserManagement = () => {
   };
 
   const handleManageRole = (roleId) => {
-    const role = roles.find(r => r.roleId === roleId);
+    const role = roles.find((r) => r.roleId === roleId);
     setSelectedRole(role);
+
     const perms = {};
+
+    // Include existing access rights
     if (role && role.roleAccessRights) {
-      role.roleAccessRights.forEach(accessRight => {
+      role.roleAccessRights.forEach((accessRight) => {
         const ar = accessRight.accessRight;
         perms[`${ar.moduleName}_canView`] = ar.canView;
         perms[`${ar.moduleName}_canEdit`] = ar.canEdit;
         perms[`${ar.moduleName}_canDelete`] = ar.canDelete;
       });
     }
+
+    // Include new modules that are not part of existing access rights
+    modules.forEach((module) => {
+      const moduleName = module.moduleName;
+      if (!perms.hasOwnProperty(`${moduleName}_canView`)) {
+        perms[`${moduleName}_canView`] = false;
+        perms[`${moduleName}_canEdit`] = false;
+        perms[`${moduleName}_canDelete`] = false;
+      }
+    });
+
     setRolePermissions(perms);
     setIsRoleModalOpen(true);
   };
@@ -457,23 +468,23 @@ const UserManagement = () => {
   };
 
   const handleRoleModalSave = async () => {
-    // Convert rolePermissions to array of { moduleName, canView, canEdit, canDelete }
-    const modules = {};
+    const modulesMap = {};
     Object.entries(rolePermissions).forEach(([key, value]) => {
       const match = key.match(/^(.+)_can(View|Edit|Delete)$/);
       if (match) {
         const moduleName = match[1];
         const right = match[2];
-        if (!modules[moduleName]) {
-          modules[moduleName] = { moduleName, canView: false, canEdit: false, canDelete: false };
+        if (!modulesMap[moduleName]) {
+          modulesMap[moduleName] = { moduleName, canView: false, canEdit: false, canDelete: false };
         }
-        modules[moduleName][`can${right}`] = value;
+        modulesMap[moduleName][`can${right}`] = value;
       }
     });
-    const requestBody = Object.values(modules);
+
+    const requestBody = Object.values(modulesMap);
 
     try {
-      const token = sessionStorage.getItem('token');
+      const token = sessionStorage.getItem("token");
       if (!token) {
         showSnackbar("Authentication required.", "error");
         return;
@@ -485,12 +496,11 @@ const UserManagement = () => {
         {
           headers: {
             Authorization: `${token}`,
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      // Optionally show a success message or refresh roles
-      await fetchRoles();
+      await fetchRoles(); // Refresh roles after saving
       showSnackbar("Role access rights updated successfully.", "success");
     } catch (err) {
       console.error("Failed to update role access rights:", err);
@@ -599,6 +609,31 @@ const UserManagement = () => {
     );
   };
 
+  const handleAddRoleSubmit = async (roleName, accessRights) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        showSnackbar("Authentication required.", "error");
+        return;
+      }
+
+
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/access/role/add?roleName=${roleName}`, accessRights, {
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      showSnackbar("Role created successfully.", "success");
+      await fetchRoles(); // Refresh roles after adding a new role
+      setIsAddRoleModalOpen(false); // Close the modal
+    } catch (error) {
+      console.error("Failed to create role:", error);
+      showSnackbar("Failed to create role. Please try again.", "error");
+    }
+  };
+
   return (
     <div className="w-full p-6 bg-white">
       {/* Header with toggle and tenant selector */}
@@ -667,7 +702,7 @@ const UserManagement = () => {
             />
             <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
-          
+
           <div className="flex items-center gap-2">
             {/* Download Excel Button */}
             <button
@@ -705,9 +740,10 @@ const UserManagement = () => {
           <div className="p-8 text-center text-gray-500">
             Loading...
           </div>
-        )}
+        )
 
-        {/* Tables */}
+          /* Tables */
+        }
         {!loading && activeTab === "users" ? (
           <>
             {/* Users Table */}
@@ -779,8 +815,8 @@ const UserManagement = () => {
                         <td className="py-3 px-4 border-r">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getUserStatus(user) === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
                               }`}
                           >
                             {getUserStatus(user)}
@@ -831,7 +867,8 @@ const UserManagement = () => {
                                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
                                   Manage Users
                                 </div>
-                              </div>)}
+                              </div>
+                            )}
 
                             {/* Audit Trail Button */}
                             <div className="relative group">
@@ -886,7 +923,9 @@ const UserManagement = () => {
                         {renderSortIcon('permissions')}
                       </div>
                     </th>
-                    <th className="py-3 px-4 font-medium">Actions</th>
+                    {hasAccess('users', 'edit') && (
+                      <th className="py-3 px-4 font-medium">Actions</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -899,22 +938,24 @@ const UserManagement = () => {
                         <td className="py-3 px-4 border-r">{index + 1}</td>
                         <td className="py-3 px-4 border-r font-medium">{role.roleName}</td>
                         <td className="py-3 px-4 border-r">{getPermissionsNumber(role.roleAccessRights)}</td>
-                        <td className="py-3 px-4">
-                          <div className="flex justify-center gap-2">
-                            {/* Manage Role Button */}
-                            <div className="relative group">
-                              <button
-                                onClick={() => handleManageRole(role.roleId)}
-                                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-                              >
-                                <UserCog size={20} className="text-blue-600" />
-                              </button>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                                Manage Role
+                        {hasAccess('users', 'edit') && (
+                          <td className="py-3 px-4">
+                            <div className="flex justify-center gap-2">
+                              {/* Manage Role Button */}
+                              <div className="relative group">
+                                <button
+                                  onClick={() => handleManageRole(role.roleId)}
+                                  className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                                >
+                                  <UserCog size={20} className="text-blue-600" />
+                                </button>
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                  Manage Role
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : (
@@ -959,8 +1000,8 @@ const UserManagement = () => {
               </span>
               <button
                 className={`p-1 rounded-full ${currentPage === 1 || sortedUsers.length === 0
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-green-700 hover:bg-green-100"
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-green-700 hover:bg-green-100"
                   }`}
                 onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1 || sortedUsers.length === 0}
@@ -969,8 +1010,8 @@ const UserManagement = () => {
               </button>
               <button
                 className={`p-1 rounded-full ${currentPage === totalPages || totalPages === 0
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-green-700 hover:bg-green-100"
+                  ? "text-gray-300 cursor-not-allowed"
+                  : "text-green-700 hover:bg-green-100"
                   }`}
                 onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || totalPages === 0}
@@ -998,12 +1039,13 @@ const UserManagement = () => {
         rolePermissions={rolePermissions}
         onPermissionToggle={handleRolePermissionToggle}
         onSave={handleRoleModalSave}
+        modules={getAllModuleNames()} // Updated to include modules from API
       />
 
       <AddRoleModal
         open={isAddRoleModalOpen}
         onClose={() => setIsAddRoleModalOpen(false)}
-        modulesList={getAllModuleNames()}
+        modulesList={getAllModuleNames()} // Updated to include modules from API
         onSubmit={handleAddRoleSubmit}
       />
 

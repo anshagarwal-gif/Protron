@@ -34,6 +34,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   const [permissions, setPermissions] = useState({})
   const [roles, setRoles] = useState([])
   const [selectedRoleData, setSelectedRoleData] = useState(null)
+  const [modules, setModules] = useState([])
 
   const fetchRoles = async () => {
     try {
@@ -48,25 +49,49 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
     }
   }
 
+  // Fetch modules from the new API
+  const fetchModules = async () => {
+    try {
+      const token = sessionStorage.getItem("token")
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/modules/`, {
+        headers: { Authorization: `${token}` },
+      })
+      console.log(res.data)
+      setModules(res.data)
+    } catch (error) {
+      console.error("Failed to fetch modules", error)
+    }
+  }
+
   useEffect(() => {
     fetchRoles()
+    fetchModules()
   }, [])
 
   // Update permissions when role changes
   useEffect(() => {
-  if (formData.role && roles.length > 0) {
+  if (formData.role && roles.length > 0 && modules.length > 0) {
     const roleData = roles.find((role) => role.roleName === formData.role)
     setSelectedRoleData(roleData)
 
-    if (roleData && roleData.roleAccessRights) {
-      const newPermissions = {}
+    const newPermissions = {}
 
-      // Step 1: Load permissions from role
-      roleData.roleAccessRights.forEach((accessRight) => {
-        const moduleName = accessRight.accessRight.moduleName
-        newPermissions[`${moduleName}_canView`] = accessRight.accessRight.canView
-        newPermissions[`${moduleName}_canEdit`] = accessRight.accessRight.canEdit
-        newPermissions[`${moduleName}_canDelete`] = accessRight.accessRight.canDelete
+    if (roleData && roleData.roleAccessRights) {
+      // Step 1: Compare modules with role access rights
+      modules.forEach((module) => {
+        const accessRight = roleData.roleAccessRights.find(
+          (right) => right.accessRight.moduleName === module.moduleName
+        )
+
+        newPermissions[`${module.moduleName}_canView`] = accessRight
+          ? accessRight.accessRight.canView
+          : false
+        newPermissions[`${module.moduleName}_canEdit`] = accessRight
+          ? accessRight.accessRight.canEdit
+          : false
+        newPermissions[`${module.moduleName}_canDelete`] = accessRight
+          ? accessRight.accessRight.canDelete
+          : false
       })
 
       // Step 2: Apply userAccessRights ONLY if role has NOT changed from selectedUser
@@ -86,12 +111,12 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
           }
         })
       }
-
-      // Step 3: Set final permissions
-      setPermissions(newPermissions)
     }
+
+    // Step 3: Set final permissions
+    setPermissions(newPermissions)
   }
-}, [formData.role, roles, selectedUser])
+}, [formData.role, roles, modules, selectedUser])
 
   // Populate form data when editing a user
   useEffect(() => {
@@ -309,10 +334,10 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
               Access Details
             </Typography>
 
-            {selectedRoleData && selectedRoleData.roleAccessRights ? (
+            {modules.length > 0 ? (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {selectedRoleData.roleAccessRights.map((accessRight, index) => {
-                  const moduleName = accessRight.accessRight.moduleName
+                {modules.map((module, index) => {
+                  const moduleName = module.moduleName
                   const formattedModuleName = formatModuleName(moduleName)
 
                   return (
