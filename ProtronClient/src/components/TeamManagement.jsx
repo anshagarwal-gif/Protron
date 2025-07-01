@@ -7,7 +7,7 @@ import axios from 'axios'
 const TeamManagement = () => {
     const [employees, setEmployees] = useState([])
     const [filteredEmployees, setFilteredEmployees] = useState([])
-    const [snackbar,setSnackbar] = useState("")
+    const [snackbar, setSnackbar] = useState("")
     const [actionsOpen, setActionsOpen] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedProfile, setSelectedProfile] = useState(null);
@@ -123,19 +123,19 @@ const TeamManagement = () => {
             }
         });
     };
-      const formatDate = (dateString) => {
-    if (!dateString) return "";
-  
-    const date = new Date(dateString);
-    if (isNaN(date)) return ""; // invalid date
-  
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-  
-    return `${day}-${month}-${year}`;
-  };
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+
+        const date = new Date(dateString);
+        if (isNaN(date)) return ""; // invalid date
+
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = months[date.getMonth()];
+        const year = date.getFullYear();
+
+        return `${day}-${month}-${year}`;
+    };
     // Function to handle column header click for sorting
     const downloadExcel = () => {
         try {
@@ -204,7 +204,7 @@ const TeamManagement = () => {
     };
 
     const handleStatusFilterChange = (status) => {
-        setStatusFilter(status);
+        setStatusFilter(status.toLowerCase()); // Convert to lowercase for consistency
         setShowStatusFilterDropdown(false);
     };
 
@@ -372,8 +372,8 @@ const TeamManagement = () => {
                                         <button
                                             key={value}
                                             className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${employeesPerPage === value
-                                                    ? 'bg-green-900 text-white font-medium'
-                                                    : 'text-green-900 hover:bg-green-100'
+                                                ? 'bg-green-900 text-white font-medium'
+                                                : 'text-green-900 hover:bg-green-100'
                                                 }`}
                                             onClick={() => handleEntriesChange(value)}
                                         >
@@ -412,16 +412,16 @@ const TeamManagement = () => {
 
                             {showStatusFilterDropdown && (
                                 <div className="absolute top-full left-0 w-32 mt-1 bg-white border border-green-700 rounded shadow-lg z-10 overflow-hidden">
-                                    {['All', 'Active', 'On Hold', 'Removed'].map((status) => (
+                                    {['All', 'Active', 'Hold', 'Removed'].map((status) => (
                                         <button
                                             key={status}
-                                            className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${statusFilter === status
-                                                    ? 'bg-green-900 text-white font-medium'
-                                                    : 'text-green-900 hover:bg-green-100'
+                                            className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${statusFilter === status.toLowerCase()
+                                                ? 'bg-green-900 text-white font-medium'
+                                                : 'text-green-900 hover:bg-green-100'
                                                 }`}
                                             onClick={() => handleStatusFilterChange(status)}
                                         >
-                                            {status}
+                                            {status} {/* Display with proper formatting */}
                                         </button>
                                     ))}
                                 </div>
@@ -557,8 +557,8 @@ const TeamManagement = () => {
                                 onClick={() => goToPage(currentPage - 1)}
                                 disabled={currentPage === 1}
                                 className={`mx-1 px-3 py-1 rounded ${currentPage === 1
-                                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                        : 'bg-green-900 text-white hover:bg-green-600'
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                    : 'bg-green-900 text-white hover:bg-green-600'
                                     }`}
                             >
                                 Prev
@@ -572,8 +572,8 @@ const TeamManagement = () => {
                                             key={number + 1}
                                             onClick={() => goToPage(number + 1)}
                                             className={`mx-1 px-3 py-1 rounded ${currentPage === number + 1
-                                                    ? 'bg-green-900 text-white'
-                                                    : 'bg-gray-200 hover:bg-gray-300'
+                                                ? 'bg-green-900 text-white'
+                                                : 'bg-gray-200 hover:bg-gray-300'
                                                 }`}
                                         >
                                             {number + 1}
@@ -586,8 +586,8 @@ const TeamManagement = () => {
                                         <button
                                             onClick={() => goToPage(1)}
                                             className={`mx-1 px-3 py-1 rounded ${currentPage === 1
-                                                    ? 'bg-green-900 text-white'
-                                                    : 'bg-gray-200 hover:bg-gray-300'
+                                                ? 'bg-green-900 text-white'
+                                                : 'bg-gray-200 hover:bg-gray-300'
                                                 }`}
                                         >
                                             1
@@ -609,8 +609,8 @@ const TeamManagement = () => {
                                                     key={number + 1}
                                                     onClick={() => goToPage(number + 1)}
                                                     className={`mx-1 px-3 py-1 rounded ${currentPage === number + 1
-                                                            ? 'bg-green-900 text-white'
-                                                            : 'bg-gray-200 hover:bg-gray-300'
+                                                        ? 'bg-green-900 text-white'
+                                                        : 'bg-gray-200 hover:bg-gray-300'
                                                         }`}
                                                 >
                                                     {number + 1}
@@ -624,8 +624,8 @@ const TeamManagement = () => {
                                         <button
                                             onClick={() => goToPage(totalPages)}
                                             className={`mx-1 px-3 py-1 rounded ${currentPage === totalPages
-                                                    ? 'bg-green-900 text-white'
-                                                    : 'bg-gray-200 hover:bg-gray-300'
+                                                ? 'bg-green-900 text-white'
+                                                : 'bg-gray-200 hover:bg-gray-300'
                                                 }`}
                                         >
                                             {totalPages}
@@ -638,8 +638,8 @@ const TeamManagement = () => {
                                 onClick={() => goToPage(currentPage + 1)}
                                 disabled={currentPage === totalPages || totalPages === 0}
                                 className={`mx-1 px-3 py-1 rounded ${currentPage === totalPages || totalPages === 0
-                                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                                        : 'bg-green-900 text-white hover:bg-green-600'
+                                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                                    : 'bg-green-900 text-white hover:bg-green-600'
                                     }`}
                             >
                                 Next
@@ -705,7 +705,7 @@ const TeamManagement = () => {
                                     <h3 className="text-md font-semibold mb-2">Organization</h3>
                                     <div className="space-y-1 text-md">
                                         <p><span className="font-medium">Company:</span> {selectedProfile.tenant?.tenantName || "N/A"}</p>
-                                        <p><span className="font-medium">Role:</span> {selectedProfile.role || "N/A"}</p>
+                                        <p><span className="font-medium">Role:</span> {selectedProfile.role?.roleName || "N/A"}</p>
                                         <p><span className="font-medium">Unit:</span> {selectedProfile.unit || "N/A"}</p>
                                     </div>
                                 </div>
