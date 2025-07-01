@@ -160,12 +160,13 @@ public class TimesheetTaskService {
 
         newTask.setProject(project);
         newTask.setStartTimestamp(LocalDateTime.now());
+
+        User taskUser = userRepository.findById(existingTask.getUser().getUserId())
+                        .orElseThrow(()->new RuntimeException("User Not found"));
+        newTask.setUser(taskUser);
+
         newTask.setEndTimestamp(null);
         newTask.setLastUpdatedBy(null);
-
-        System.out.println("Project: " + dto.getProjectId());
-        System.out.println("Task Id: " + newTask.getTaskId());
-        System.out.println("Project: " + project);
 
         return timesheetTaskRepository.save(newTask);
     }
