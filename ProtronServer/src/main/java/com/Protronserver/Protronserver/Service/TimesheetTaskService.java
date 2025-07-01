@@ -90,7 +90,8 @@ public class TimesheetTaskService {
 
         User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
 
-        List<TimesheetTask> lastWeekTasks = timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser);
+        List<TimesheetTask> lastWeekTasks = timesheetTaskRepository
+                .findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser);
 
         for (TimesheetTask oldTask : lastWeekTasks) {
             TimesheetTask newTask = new TimesheetTask();
@@ -154,6 +155,8 @@ public class TimesheetTaskService {
         newTask.setDescription(dto.getDescription());
         newTask.setHoursSpent(dto.getHoursSpent());
         newTask.setDate(dto.getDate());
+        // Add this line to handle attachment updates
+        newTask.setAttachment(dto.getAttachment());
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -162,7 +165,7 @@ public class TimesheetTaskService {
         newTask.setStartTimestamp(LocalDateTime.now());
 
         User taskUser = userRepository.findById(existingTask.getUser().getUserId())
-                        .orElseThrow(()->new RuntimeException("User Not found"));
+                .orElseThrow(() -> new RuntimeException("User Not found"));
         newTask.setUser(taskUser);
 
         newTask.setEndTimestamp(null);

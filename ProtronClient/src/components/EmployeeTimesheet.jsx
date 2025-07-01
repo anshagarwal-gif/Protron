@@ -593,7 +593,7 @@ const TimesheetManager = () => {
       const dates = getVisibleDates();
       const periodType = viewMode === "Weekly" ? "week" : "month";
       const BOM = "\uFEFF";
-      const headers = ["Date", "Task", "Hours", "Description", "Project", "Attachment URL"];
+      const headers = ["Date", "Task", "Hours", "Description", "Project"  ];
       let csvContent = BOM + headers.map((h) => `"${h}"`).join(",") + "\r\n";
       dates.forEach((date) => {
         const entries = getTimeEntries(date);
@@ -604,7 +604,7 @@ const TimesheetManager = () => {
             `"${entry.hours}h"`,
             `"${entry.description}"`,
             `"${entry.project}"`,
-            `"${entry.attachmentUrl || 'No attachment'}"`,
+          
           ];
           csvContent += row.join(",") + "\r\n";
         });
