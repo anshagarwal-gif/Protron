@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ public class ProjectTeam {
 
     @ManyToOne
     @JsonIgnoreProperties({"projectTeams", "project", "tenant"})
+    @Where(clause = "end_timestamp IS NULL")
     private Systemimpacted systemimpacted;
 
     public Systemimpacted getSystemimpacted() {

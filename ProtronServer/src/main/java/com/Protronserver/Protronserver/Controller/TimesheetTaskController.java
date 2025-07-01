@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/timesheet-tasks")
@@ -24,8 +24,8 @@ public class TimesheetTaskController {
     private TimesheetTaskService timesheetTaskService;
 
     @PostMapping("/add")
-    public ResponseEntity<TimesheetTask> addTimesheetTask(@RequestBody TimesheetTaskRequestDTO dto) {
-        TimesheetTask savedTask = timesheetTaskService.addTask(dto);
+    public ResponseEntity<TimesheetTask> addTimesheetTask(@RequestBody TimesheetTaskRequestDTO dto, @RequestParam(value = "userId", required = false) Long userId) {
+        TimesheetTask savedTask = timesheetTaskService.addTask(dto, userId);
         return ResponseEntity.ok(savedTask);
     }
 
@@ -50,16 +50,18 @@ public class TimesheetTaskController {
     @PostMapping("/copy-last-week")
     public ResponseEntity<String> copyLastWeekTasks(
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
-        timesheetTaskService.copyTasksToNextWeek(start, end);
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end,
+            @RequestParam(value = "userId", required = false) Long userId) {
+        timesheetTaskService.copyTasksToNextWeek(start, end, userId);
         return ResponseEntity.ok("Tasks copied to next week successfully.");
     }
 
     @GetMapping("/total-hours")
     public ResponseEntity<Double> getTotalHours(
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
-        double totalHours = timesheetTaskService.calculateTotalHours(start, end);
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end,
+            @RequestParam(value = "userId", required = false) Long userId) {
+        double totalHours = timesheetTaskService.calculateTotalHours(start, end, userId);
         return ResponseEntity.ok(totalHours);
     }
 
@@ -67,6 +69,7 @@ public class TimesheetTaskController {
     public ResponseEntity<TimesheetTask> editTask(
             @PathVariable Long taskId,
             @RequestBody TimesheetTaskRequestDTO dto) {
+        System.out.println(taskId);
         TimesheetTask updated = timesheetTaskService.updateTask(taskId, dto);
         return ResponseEntity.ok(updated);
     }
@@ -80,8 +83,9 @@ public class TimesheetTaskController {
     @PostMapping("/submit")
     public ResponseEntity<String> submitTimesheet(
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
-        String message = timesheetTaskService.submitPendingTasks(start, end);
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end,
+            @RequestParam(value = "userId", required = false) Long userId) {
+        String message = timesheetTaskService.submitPendingTasks(start, end, userId);
         return ResponseEntity.ok(message);
     }
 

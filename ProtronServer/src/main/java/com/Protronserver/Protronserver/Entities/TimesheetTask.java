@@ -2,13 +2,19 @@ package com.Protronserver.Protronserver.Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "timesheet_tasks")
 public class TimesheetTask {
     @Id
@@ -19,6 +25,11 @@ public class TimesheetTask {
     private Double hoursSpent;
     private String description;
     private boolean isSubmitted = false;
+
+    private LocalDateTime startTimestamp;
+    private LocalDateTime endTimestamp;
+
+    private String lastUpdatedBy;
 
     @Lob
     @Column(name = "attachment", columnDefinition = "LONGBLOB")
@@ -118,5 +129,29 @@ public class TimesheetTask {
 
     public void setSubmitted(boolean submitted) {
         isSubmitted = submitted;
+    }
+
+    public LocalDateTime getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public void setStartTimestamp(LocalDateTime startTimestamp) {
+        this.startTimestamp = startTimestamp;
+    }
+
+    public LocalDateTime getEndTimestamp() {
+        return endTimestamp;
+    }
+
+    public void setEndTimestamp(LocalDateTime endTimestamp) {
+        this.endTimestamp = endTimestamp;
+    }
+
+    public String getLastUpdatedBy() {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy(String lastUpdatedBy) {
+        this.lastUpdatedBy = lastUpdatedBy;
     }
 }

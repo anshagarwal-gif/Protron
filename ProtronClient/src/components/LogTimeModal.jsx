@@ -50,38 +50,38 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
-  if (isOpen) {
-    fetchProjects();
-    console.log(editingTask)
-    if (editingTask) {
-      // Pre-fill fields from editingTask
-      const totalMinutes = Math.round((editingTask.hours || editingTask.hoursSpent || 0) * 60);
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
-      setFormData({
-        taskType: editingTask.taskType || editingTask.task || '',
-        hours: hours ? String(hours) : '',
-        minutes: minutes ? String(minutes) : '',
-        description: editingTask.description || '',
-        projectId: editingTask.projectId?.toString() || editingTask.project?.projectId?.toString() || '',
-        attachment: null // Don't prefill file input for security reasons
-      });
-    } else {
-      // Reset form for new task
-      setFormData({
-        taskType: '',
-        hours: '',
-        minutes: '',
-        description: '',
-        projectId: '',
-        attachment: null
-      });
+    if (isOpen) {
+      fetchProjects();
+      console.log(editingTask)
+      if (editingTask) {
+        // Pre-fill fields from editingTask
+        const totalMinutes = Math.round((editingTask.hours || editingTask.hoursSpent || 0) * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        setFormData({
+          taskType: editingTask.taskType || editingTask.task || '',
+          hours: hours ? String(hours) : '',
+          minutes: minutes ? String(minutes) : '',
+          description: editingTask.description || '',
+          projectId: editingTask.projectId?.toString() || editingTask.project?.projectId?.toString() || '',
+          attachment: null // Don't prefill file input for security reasons
+        });
+      } else {
+        // Reset form for new task
+        setFormData({
+          taskType: '',
+          hours: '',
+          minutes: '',
+          description: '',
+          projectId: '',
+          attachment: null
+        });
+      }
     }
-  }
-  // eslint-disable-next-line
-}, [isOpen, editingTask]);
+    // eslint-disable-next-line
+  }, [isOpen, editingTask]);
 
-const getDisplayDate = () => {
+  const getDisplayDate = () => {
     let dateObj = null;
     if (editingTask?.date) {
       dateObj = new Date(editingTask.date);
@@ -95,7 +95,7 @@ const getDisplayDate = () => {
 
   const fetchProjects = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/projects`, {
+      const res = await axios.get(`${API_BASE_URL}/api/projects/user/active-projects`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
       setProjects(res.data);
@@ -163,20 +163,25 @@ const getDisplayDate = () => {
         attachment: attachmentBytes,
       };
 
-      const response = await axios.post(
-        `${API_BASE_URL}/api/timesheet-tasks/add`,
-        payload,
-        {
-          headers: {
-            Authorization: sessionStorage.getItem("token"),
-          },
+      if (editingTask) {
+        if (onSave) {
+          onSave(payload);
         }
-      );
-
-      // Call onSave with the new task (response.data)
-      if (onSave) {
-        onSave(response.data);
+      } else {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/timesheet-tasks/add`,
+          payload,
+          {
+            headers: {
+              Authorization: sessionStorage.getItem("token"),
+            },
+          }
+        );
+        if(onSave) {
+          onSave(response.data);
+        }
       }
+
 
       onClose();
       handleReset();
@@ -230,48 +235,48 @@ const getDisplayDate = () => {
           {/* Date Selector */}
           {!editingTask && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              onClick={() => handleDateNavigation('prev')}
-              sx={{
-                color: greenPrimary,
-                '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
-              }}
-            >
-              <ChevronLeftIcon />
-            </IconButton>
-            <Paper
-              elevation={0}
-              sx={{
-                px: 3,
-                py: 1,
-                bgcolor: '#f5f5f5',
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}
-            >
-              <Typography variant="subtitle1" fontWeight="500">
-                {selectedDate
-                  ? new Date(selectedDate).toLocaleDateString('en-GB', {
+              <IconButton
+                onClick={() => handleDateNavigation('prev')}
+                sx={{
+                  color: greenPrimary,
+                  '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
+                }}
+              >
+                <ChevronLeftIcon />
+              </IconButton>
+              <Paper
+                elevation={0}
+                sx={{
+                  px: 3,
+                  py: 1,
+                  bgcolor: '#f5f5f5',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <Typography variant="subtitle1" fontWeight="500">
+                  {selectedDate
+                    ? new Date(selectedDate).toLocaleDateString('en-GB', {
                       day: '2-digit',
                       month: '2-digit',
                       year: '2-digit',
                     })
-                  : ''}
-              </Typography>
-              <CalendarTodayIcon sx={{ color: greenPrimary, fontSize: 18 }} />
-            </Paper>
-            <IconButton
-              onClick={() => handleDateNavigation('next')}
-              sx={{
-                color: greenPrimary,
-                '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
-              }}
-            >
-              <ChevronRightIcon />
-            </IconButton>
-          </Box>
+                    : ''}
+                </Typography>
+                <CalendarTodayIcon sx={{ color: greenPrimary, fontSize: 18 }} />
+              </Paper>
+              <IconButton
+                onClick={() => handleDateNavigation('next')}
+                sx={{
+                  color: greenPrimary,
+                  '&:hover': { bgcolor: 'rgba(27, 94, 32, 0.1)' }
+                }}
+              >
+                <ChevronRightIcon />
+              </IconButton>
+            </Box>
           )}
 
           {/* Row 1: Project */}
@@ -501,20 +506,20 @@ const getDisplayDate = () => {
                 Cancel
               </Button>
               <Button
-              onClick={handleSubmit}
-              variant="contained"
-              sx={{
-                bgcolor: greenPrimary,
-                color: 'white',
-                height: '42px',
-                fontWeight: 600,
-                '&:hover': {
-                  bgcolor: greenHover
-                }
-              }}
-            >
-              {editingTask ? "Edit Task" : "Add Entry"}
-            </Button>
+                onClick={handleSubmit}
+                variant="contained"
+                sx={{
+                  bgcolor: greenPrimary,
+                  color: 'white',
+                  height: '42px',
+                  fontWeight: 600,
+                  '&:hover': {
+                    bgcolor: greenHover
+                  }
+                }}
+              >
+                {editingTask ? "Edit Task" : "Add Entry"}
+              </Button>
             </Box>
           </Box>
         </Box>

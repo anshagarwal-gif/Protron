@@ -422,7 +422,7 @@ const TimesheetManager = () => {
           taskType: taskData.taskType,
           hoursSpent: taskData.hoursSpent,
           description: taskData.description,
-          projectId: taskData.project?.projectId || null, // Ensure projectId is passed correctly
+          projectId: taskData.projectId || null, // Ensure projectId is passed correctly
           attachment: taskData.attachment || null, // Handle optional attachment
           date: new Date(editingTask.date), // or use taskData.date if you allow editing date
         },
@@ -441,6 +441,7 @@ const TimesheetManager = () => {
             ? {
                 ...entry,
                 ...res.data,
+                id: res.data.taskId,
                 hours: res.data.hoursSpent,
                 description: res.data.description,
                 task: res.data.taskType,

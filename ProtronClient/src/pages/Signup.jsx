@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { EyeIcon, EyeOffIcon, MailIcon, UserIcon, PhoneIcon, MapPinIcon, DollarSignIcon,UploadIcon } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import GlobalSnackbar from '../components/GlobalSnackbar';
 
 const Signup = ({ onSignup, onSwitchToLogin }) => {
-
     const navigate = useNavigate();
 
+    const [roles, setRoles] = useState([]); // State to store roles
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -37,10 +37,28 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
         password: '',
         confirmPassword: '',
         status:"active",
-        tenant:sessionStorage.getItem("tenantId")
+        tenant:sessionStorage.getItem("tenantId"),
+        roleId: null, // New field for role
     });
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+
+    useEffect(() => {
+        // Fetch roles from the API
+        const token = sessionStorage.getItem("token");
+
+        const fetchRoles = async () => {
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/access/getRoles`, {
+        headers: { Authorization: `${token}` },
+      });
+                setRoles(response.data); // Assuming response.data is an array of role objects
+            } catch (error) {
+                console.error('Failed to fetch roles:', error);
+            }
+        };
+        fetchRoles();
+    }, []);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -48,28 +66,20 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+
+    // Handle role dropdown separately
+    if (name === "role") {
+        const selectedRole = roles.find(role => role.roleName === value);
+        setFormData(prev => ({
+            ...prev,
+            roleId: selectedRole?.roleId || null // Send roleId instead of the entire role object
+        }));
+    } else {
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
-
-        // Auto-populate city and state based on zip code (simplified example)
-        if (name === 'zipCode' && value.length === 5) {
-            // In a real app, you would call an API to get city/state from zip
-            if (value === '10001') {
-                setFormData(prev => ({
-                    ...prev,
-                    city: 'New York',
-                    state: 'NY'
-                }));
-            } else if (value === '90001') {
-                setFormData(prev => ({
-                    ...prev,
-                    city: 'Los Angeles',
-                    state: 'CA'
-                }));
-            }
-        }
+    }
     };
   const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -86,9 +96,9 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     };
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+console.log(formData)
         // Basic validation
-        if (!formData.email || !formData.firstName || !formData.lastName) {
+        if (!formData.email || !formData.firstName || !formData.lastName || !formData.roleId) {
             setError('Please fill in all required fields');
             return;
         }
@@ -99,10 +109,13 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
         }
         const submissionData = new FormData();
         
-        // Add all form fields to FormData
         Object.keys(formData).forEach(key => {
+        if (key === "role") {
+            submissionData.append(key, JSON.stringify(formData[key])); // Add the entire role object as a JSON string
+        } else {
             submissionData.append(key, formData[key]);
-        });
+        }
+    });
         
         // Add combined phone numbers
         submissionData.append('mobilePhone', formData.mobileNumber ? `${formData.mobileCountryCode}${formData.mobileNumber}` : '');
@@ -128,7 +141,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 severity: 'success',
             });
         
-            navigate("/dashboard"); // Redirect to dashboard after successful signup
+            navigate("/users"); // Redirect to dashboard after successful signup
         } catch (error) {
             console.error('Signup failed:', error.response?.data || error.message);
             setSnackbar({
@@ -137,6 +150,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 severity: 'error',
             });
         }
+
     };
 
     return (
@@ -153,6 +167,24 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Role Dropdown */}
+                        <div className="md:col-span-3">
+                            <label htmlFor="role" className="block text-gray-700 mb-2">Role <span className="text-red-500">*</span></label>
+                            <select
+                                id="role"
+                                name="role"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                value={roles.find(role => role.roleId === formData.roleId)?.roleName || ''}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value="">Select a role</option>
+                                {roles.map(role => (
+                                    <option key={role.id} value={role.roleName}>{role.roleName}</option>
+                                ))}
+                            </select>
+                        </div>
+
                         {/* Email Address - Mandatory */}
                         <div className="md:col-span-2">
                             <label htmlFor="email" className="block text-gray-700 mb-2">Email Address <span className="text-red-500">*</span></label>
