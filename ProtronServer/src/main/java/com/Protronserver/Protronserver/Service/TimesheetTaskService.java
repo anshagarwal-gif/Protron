@@ -127,6 +127,8 @@ public class TimesheetTaskService {
         task.setDescription(dto.getDescription());
         task.setHoursSpent(dto.getHoursSpent());
         task.setDate(dto.getDate());
+        // Add this line to handle attachment updates
+        task.setAttachment(dto.getAttachment());
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
