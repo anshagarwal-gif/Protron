@@ -245,8 +245,6 @@ const TimesheetManager = () => {
       }
     }
   };
-
-  // Enhanced fetchTasks with attachment debugging
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length) return;
