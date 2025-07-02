@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { EyeIcon, EyeOffIcon, MailIcon, UserIcon, PhoneIcon, MapPinIcon, DollarSignIcon,UploadIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, MailIcon, UserIcon, PhoneIcon, MapPinIcon, DollarSignIcon, UploadIcon, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import GlobalSnackbar from '../components/GlobalSnackbar';
@@ -8,6 +8,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     const navigate = useNavigate();
 
     const [roles, setRoles] = useState([]); // State to store roles
+    const [loading, setLoading] = useState(false); // Loading state
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -42,6 +43,20 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     });
     const [photo, setPhoto] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
+
+    // Currency symbols mapping
+    const currencySymbols = {
+        USD: '$',
+        EUR: '€',
+        GBP: '£',
+        INR: '₹',
+        AUD: 'A$'
+    };
+
+    // Get current currency symbol
+    const getCurrentCurrencySymbol = () => {
+        return currencySymbols[formData.costUnit] || '$';
+    };
 
     useEffect(() => {
         // Fetch roles from the API
@@ -96,15 +111,20 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     };
     const handleSubmit = async (e) => {
         e.preventDefault();
-console.log(formData)
+        setLoading(true); // Start loading
+        setError(''); // Clear previous errors
+        
+        console.log(formData)
         // Basic validation
         if (!formData.email || !formData.firstName || !formData.lastName || !formData.roleId) {
             setError('Please fill in all required fields');
+            setLoading(false);
             return;
         }
 
         if (formData.password !== formData.confirmPassword) {
             setError('Passwords do not match');
+            setLoading(false);
             return;
         }
         const submissionData = new FormData();
@@ -149,8 +169,9 @@ console.log(formData)
                 message: error.response?.data || 'Signup failed!',
                 severity: 'error',
             });
+        } finally {
+            setLoading(false); // Stop loading
         }
-
     };
 
     return (
@@ -177,6 +198,7 @@ console.log(formData)
                                 value={roles.find(role => role.roleId === formData.roleId)?.roleName || ''}
                                 onChange={handleChange}
                                 required
+                                disabled={loading}
                             >
                                 <option value="">Select a role</option>
                                 {roles.map(role => (
@@ -201,6 +223,7 @@ console.log(formData)
                                     value={formData.email}
                                     onChange={handleChange}
                                     required
+                                    disabled={loading}
                                 />
                             </div>
                         </div>
@@ -217,6 +240,7 @@ console.log(formData)
                                 value={formData.firstName}
                                 onChange={handleChange}
                                 required
+                                disabled={loading}
                             />
                         </div>
 
@@ -231,6 +255,7 @@ console.log(formData)
                                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                 value={formData.middleName}
                                 onChange={handleChange}
+                                disabled={loading}
                             />
                         </div>
 
@@ -246,6 +271,7 @@ console.log(formData)
                                 value={formData.lastName}
                                 onChange={handleChange}
                                 required
+                                disabled={loading}
                             />
                         </div>
 
@@ -264,11 +290,12 @@ console.log(formData)
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.displayName}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 />
                             </div>
                         </div>
 
-                        {/* Cost - New Field with Unit Before Cost */}
+                        {/* Cost - Updated with dynamic currency symbol */}
                         <div>
                             <label htmlFor="cost" className="block text-gray-700 mb-2">Cost</label>
                             <div className="flex">
@@ -278,6 +305,7 @@ console.log(formData)
                                     className="w-20 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.costUnit}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 >
                                     <option value="USD">USD</option>
                                     <option value="EUR">EUR</option>
@@ -287,7 +315,9 @@ console.log(formData)
                                 </select>
                                 <div className="relative flex-1">
                                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                        <DollarSignIcon className="h-5 w-5 text-gray-400" />
+                                        <span className="text-gray-400 font-medium">
+                                            {getCurrentCurrencySymbol()}
+                                        </span>
                                     </div>
                                     <input
                                         id="cost"
@@ -297,6 +327,7 @@ console.log(formData)
                                         className="w-full pl-10 pr-2 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500"
                                         value={formData.cost}
                                         onChange={handleChange}
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
@@ -312,6 +343,7 @@ console.log(formData)
                                     className="w-20 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.mobileCountryCode}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 >
                                     <option value="+1">+1</option>
                                     <option value="+44">+44</option>
@@ -330,6 +362,7 @@ console.log(formData)
                                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500"
                                         value={formData.mobileNumber}
                                         onChange={handleChange}
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
@@ -349,6 +382,7 @@ console.log(formData)
                                     className="w-20 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.landlineCountryCode}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 >
                                     <option value="+1">+1</option>
                                     <option value="+44">+44</option>
@@ -363,6 +397,7 @@ console.log(formData)
                                     className="w-full px-4 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.landlineNumber}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 />
                             </div>
                             {/* Preview of combined phone number */}
@@ -392,10 +427,11 @@ console.log(formData)
                                     className="hidden"
                                     accept="image/*"
                                     onChange={handleFileChange}
+                                    disabled={loading}
                                 />
                                 <label 
                                     htmlFor="photo-upload"
-                                    className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 cursor-pointer"
+                                    className={`flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     <UploadIcon className="h-5 w-5 mr-2" />
                                     Upload Photo
@@ -426,6 +462,7 @@ console.log(formData)
                                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                         value={formData.addressLine1}
                                         onChange={handleChange}
+                                        disabled={loading}
                                     />
                                 </div>
                             </div>
@@ -441,6 +478,7 @@ console.log(formData)
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.addressLine2}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 />
                             </div>
 
@@ -455,6 +493,7 @@ console.log(formData)
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.addressLine3}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 />
                             </div>
 
@@ -467,6 +506,7 @@ console.log(formData)
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.country}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 >
                                     <option value="">Select country</option>
                                     <option value="IN">India</option>
@@ -488,6 +528,7 @@ console.log(formData)
                                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                     value={formData.zipCode}
                                     onChange={handleChange}
+                                    disabled={loading}
                                 />
                             </div>
 
@@ -503,6 +544,7 @@ console.log(formData)
                                     value={formData.city}
                                     onChange={handleChange}
                                     readOnly={formData.zipCode.length === 5}
+                                    disabled={loading}
                                 />
                             </div>
 
@@ -518,6 +560,7 @@ console.log(formData)
                                     value={formData.state}
                                     onChange={handleChange}
                                     readOnly={formData.zipCode.length === 5}
+                                    disabled={loading}
                                 />
                             </div>
                         </div>
@@ -538,11 +581,13 @@ console.log(formData)
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
+                                    disabled={loading}
                                 />
                                 <button
                                     type="button"
                                     className="absolute inset-y-0 right-0 flex items-center pr-3"
                                     onClick={togglePasswordVisibility}
+                                    disabled={loading}
                                 >
                                     {showPassword ? (
                                         <EyeOffIcon className="h-5 w-5 text-gray-400" />
@@ -566,6 +611,7 @@ console.log(formData)
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     required
+                                    disabled={loading}
                                 />
                             </div>
                         </div>
@@ -574,12 +620,18 @@ console.log(formData)
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-4">
                         <button
                             type="submit"
-                            className="w-full md:w-auto bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            disabled={loading}
+                            className="w-full md:w-auto bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
-                            Create Account
+                            {loading ? (
+                                <>
+                                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                                    Creating Account...
+                                </>
+                            ) : (
+                                'Create Account'
+                            )}
                         </button>
-
-                        
                     </div>
                 </form>
             </div>
