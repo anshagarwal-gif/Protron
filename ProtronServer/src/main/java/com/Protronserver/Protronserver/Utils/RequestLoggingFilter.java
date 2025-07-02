@@ -11,8 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -27,8 +27,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
 
         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
@@ -38,6 +38,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
         String user = "Anonymous";
+        String ipAddress = request.getRemoteAddr();
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()
@@ -53,7 +54,8 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(wrappedRequest, wrappedResponse);
         } catch (Exception ex) {
-            logger.error("[{}] ERROR during {} {} by {} - {}", timestamp, method, path, user, ex.getMessage(), ex);
+            logger.error("[{}] User: {} | Action: {} | Endpoint: {} | IP: {} | ERROR: {}",
+                    timestamp, user, method, path, ipAddress, ex.getMessage(), ex);
             throw ex;
         } finally {
             int status = wrappedResponse.getStatus();
@@ -62,18 +64,17 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 String responseBody = new String(wrappedResponse.getContentAsByteArray(), StandardCharsets.UTF_8);
                 String errorMessage = extractErrorMessage(responseBody);
 
-                logger.warn("[{}] {} {} {} - Status {} - Error: {}", timestamp, method, path, user, status,
-                        errorMessage);
+                logger.warn("[{}] User: {} | Action: {} | Endpoint: {} | IP: {} | Status: {} | Error: {}",
+                        timestamp, user, method, path, ipAddress, status, errorMessage);
             } else {
-                logger.info("[{}] {} {} {} - Status {}", timestamp, method, path, user, status);
+                logger.info("[{}] User: {} | Action: {} | Endpoint: {} | IP: {} | Status: {}",
+                        timestamp, user, method, path, ipAddress, status);
             }
 
             wrappedResponse.copyBodyToResponse(); // send response to client
         }
-
     }
 
-    // 🔽 Add this method below doFilterInternal
     private String extractErrorMessage(String responseBody) {
         if (responseBody == null || responseBody.isEmpty()) {
             return "No response body";

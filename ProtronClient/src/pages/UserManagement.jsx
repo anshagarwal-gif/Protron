@@ -425,9 +425,36 @@ const UserManagement = () => {
   setIsModalOpen(true);
 };
 
-  const handleAuditTrail = (userId) => {
-    console.log("View audit trail for user:", userId);
-    // Implement audit trail navigation
+  const handleAuditTrail = async (userEmail) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        showSnackbar("Authentication required.", "error");
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/audit/user/${userEmail}`,
+        {
+          headers: { Authorization: `${token}` },
+          responseType: "blob", // Ensure the response is treated as a file
+        }
+      );
+
+      // Create a download link for the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `audit-trail-${userEmail}.log`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showSnackbar("Audit trail downloaded successfully.", "success");
+    } catch (error) {
+      console.error("Failed to download audit trail:", error);
+      showSnackbar("Failed to download audit trail. Please try again.", "error");
+    }
   };
 
   const handleManageRole = (roleId) => {
@@ -873,7 +900,7 @@ const UserManagement = () => {
                             {/* Audit Trail Button */}
                             <div className="relative group">
                               <button
-                                onClick={() => handleAuditTrail(user.userId)}
+                                onClick={() => handleAuditTrail(user.email)}
                                 className="p-2 rounded-full hover:bg-purple-100 transition-colors"
                               >
                                 <FileText size={20} className="text-purple-600" />
