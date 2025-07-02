@@ -1,10 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { FiX, FiChevronDown, FiCalendar } from 'react-icons/fi';
-import { Autocomplete } from '@mui/material';
-import TextField from '@mui/material/TextField';
+import {
+  Dialog,
+  DialogContent,
+  TextField,
+  Button,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Autocomplete,
+  Typography,
+  Box,
+  InputAdornment,
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import BadgeIcon from '@mui/icons-material/Badge';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import ComputerIcon from '@mui/icons-material/Computer';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import dayjs from 'dayjs';
 
-
-const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName,project, onAddMember }) => {
+const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, onAddMember }) => {
   const [error, setError] = useState(null);
   console.log(project)
   const [formData, setFormData] = useState({
@@ -18,7 +37,6 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName,project, on
     tasktype: '',
     systemImpacted: ''
   });
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -73,30 +91,63 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName,project, on
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-md shadow-lg w-full max-w-3xl">
-        {/* Modal Header */}
-        <div className="bg-gray-100 px-6 py-4 flex justify-between items-center border-b">
-          <h2 className="text-lg font-medium text-gray-800">
-            Assign Team Member | {projectName}
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <FiX size={20} />
-          </button>
-        </div>
+  // Common height for input fields
+  const fieldHeight = '56px';
 
-        {/* Modal Body */}
-        <div className="p-6">
-          <form onSubmit={handleSubmit}>
-            {/* Email Section */}
-            <div className="mb-6">
-              <label className="block text-gray-600 mb-2">Email</label>
+  // Custom theme colors
+  const greenPrimary = '#1b5e20'; // green-900
+  const greenHover = '#2e7d32'; // green-600
+
+  // Currency symbols mapping
+  const currencySymbols = {
+    USD: '$',
+    INR: '₹',
+    EUR: '€',
+    GBP: '£',
+    JPY: '¥'
+  };
+
+  return (
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      PaperProps={{
+        sx: {
+          borderRadius: 2,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+        }
+      }}
+    >
+      <Box
+        sx={{
+          bgcolor: '#f8f9fa',
+          borderBottom: '1px solid #e0e0e0',
+          py: 2.5,
+          px: 3
+        }}
+      >
+        <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
+          Assign Team Member | {projectName}
+        </Typography>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          
+          {/* Email Section */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
               <Autocomplete
-                options={users}
+                options={users.filter(
+                  (user) =>
+                    !project.projectTeam?.some(
+                      (member) =>
+                        member.status === "active" &&
+                        member.user?.email?.toLowerCase() === user.email?.toLowerCase()
+                    )
+                )}
                 getOptionLabel={(option) => option.email}
                 isOptionEqualToValue={(option, value) => option.email === value.email}
                 onChange={(e, value) => {
@@ -121,182 +172,260 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName,project, on
                 renderInput={(params) => (
                   <TextField
                     {...params}
+                    label="Email"
                     placeholder="Search for an email..."
                     fullWidth
                     error={!!error}
                     helperText={error}
+                    InputProps={{
+                      ...params.InputProps,
+                      startAdornment: (
+                        <>
+                          <InputAdornment position="start">
+                            <EmailIcon sx={{ color: greenPrimary }} />
+                          </InputAdornment>
+                          {params.InputProps.startAdornment}
+                        </>
+                      ),
+                      sx: { height: fieldHeight }
+                    }}
                   />
                 )}
               />
-            </div>
+            </Box>
+          </Box>
 
-            {/* Name Section */}
-            <div className='flex justify-between items-center w-full'>
-              <div className="mb-6">
-                <label className="block text-gray-600 mb-2">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  disabled
-                  placeholder="Name will be auto-filled"
-                  className="w-full border rounded p-2 bg-gray-100"
-                />
-              </div>
+          {/* Name, Employee Code, and Task Type Row */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                label="Name"
+                name="name"
+                value={formData.name}
+                disabled
+                placeholder="Name will be auto-filled"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  ),
+                  sx: { height: fieldHeight }
+                }}
+                sx={{
+                  bgcolor: '#f5f5f5',
+                  borderRadius: 1
+                }}
+              />
+            </Box>
 
-              {/* Employee Code Section */}
-              <div className="mb-6">
-                <label className="block text-gray-600 mb-2">Employee Code</label>
-                <input
-                  type="text"
-                  name="employeeCode"
-                  value={formData.employeeCode}
-                  disabled
-                  placeholder="Employee Code will be auto-filled"
-                  className="w-full border rounded p-2 bg-gray-100"
-                />
-              </div>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                label="Employee Code"
+                name="employeeCode"
+                value={formData.employeeCode}
+                disabled
+                placeholder="Employee Code will be auto-filled"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <BadgeIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  ),
+                  sx: { height: fieldHeight }
+                }}
+                sx={{
+                  bgcolor: '#f5f5f5',
+                  borderRadius: 1
+                }}
+              />
+            </Box>
 
-              <div className='mb-6'>
-                <label className="block text-gray-600 mb-2">Task Type</label>
-                <div className="">
-                  <select
-                    name="tasktype"
-                    value={formData.tasktype}
+            <Box sx={{ flex: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>Task Type</InputLabel>
+                <Select
+                  name="tasktype"
+                  value={formData.tasktype}
+                  onChange={handleChange}
+                  label="Task Type"
+                  sx={{ height: fieldHeight }}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <AssignmentIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  }
+                >
+                  <MenuItem value="" disabled>Select Task Type</MenuItem>
+                  <MenuItem value="Develop">Develop</MenuItem>
+                  <MenuItem value="Design">Design</MenuItem>
+                  <MenuItem value="Test">Test</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
+
+          {/* System Impacted */}
+          <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ flex: 1 }}>
+              <FormControl fullWidth>
+                <InputLabel>System Impacted</InputLabel>
+                <Select
+                  name="systemImpacted"
+                  value={formData.systemImpacted || ''}
+                  onChange={(e) => setFormData({ ...formData, systemImpacted: parseInt(e.target.value, 10) })}
+                  label="System Impacted"
+                  sx={{ height: fieldHeight }}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <ComputerIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  }
+                >
+                  <MenuItem value="" disabled>Select a system</MenuItem>
+                  {project.systemImpacted?.map((system, index) => (
+                    <MenuItem key={index} value={system.systemId}>
+                      {system.systemName}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
+
+          {/* Pricing Section */}
+          <Box>
+            <Typography variant="subtitle1" sx={{ mb: 2, color: greenPrimary, fontWeight: 600 }}>
+              Pricing
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 3 }}>
+              <Box sx={{ width: '30%' }}>
+                <FormControl fullWidth>
+                  <InputLabel>Currency</InputLabel>
+                  <Select
+                    name="unit"
+                    value={formData.unit}
                     onChange={handleChange}
-                    className="w-full border rounded p-2"
+                    label="Currency"
+                    sx={{ height: fieldHeight }}
                   >
-                    <option value="" disabled>Select Task Type</option>
-                    <option value="Develop">Develop</option>
-                    <option value="Design">Design</option>
-                    <option value="Test">Test</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+                    <MenuItem value="" disabled>Select Unit</MenuItem>
+                    <MenuItem value="USD">USD</MenuItem>
+                    <MenuItem value="INR">INR</MenuItem>
+                    <MenuItem value="EUR">EUR</MenuItem>
+                    <MenuItem value="GBP">GBP</MenuItem>
+                    <MenuItem value="JPY">JPY</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ width: '70%' }}>
+                <TextField
+                  fullWidth
+                  label="Cost"
+                  name="cost"
+                  type="number"
+                  value={formData.cost}
+                  onChange={handleChange}
+                  placeholder="Enter amount"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        {formData.unit ? currencySymbols[formData.unit] : ''}
+                      </InputAdornment>
+                    ),
+                    sx: { height: fieldHeight }
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
 
-            <div className="mb-6">
-              <label className="block text-gray-600 mb-2">System Impacted</label>
-              <select
-                name="systemImpacted"
-                value={formData.systemImpacted || ''}
-                onChange={(e) => setFormData({ ...formData, systemImpacted: parseInt(e.target.value, 10) })}
-                className="w-full border rounded p-2"
-              >
-                <option value="" disabled>Select a system</option>
-                {project.systemImpacted?.map((system, index) => (
-                  <option key={index} value={system.systemId}>
-                    {system.systemName}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Release Details Section */}
+          <Box>
+            <Typography variant="subtitle1" sx={{ mb: 2, color: greenPrimary, fontWeight: 600 }}>
+              Release Details
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 3 }}>
+              <Box sx={{ flex: 1 }}>
+                <DatePicker
+                  label="Estimated Release Date"
+                  value={formData.releaseDate ? dayjs(formData.releaseDate) : null}
+                  onChange={(newDate) =>
+                    setFormData({ ...formData, releaseDate: newDate ? newDate.format('YYYY-MM-DD') : '' })
+                  }
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      InputProps: {
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarTodayIcon sx={{ color: greenPrimary }} />
+                          </InputAdornment>
+                        ),
+                        sx: { height: fieldHeight }
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
 
-            {/* Pricing Section */}
-            <div className="mb-6">
-              <h3 className="text-gray-700 font-medium mb-4">Pricing</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-600 mb-2">Unit</label>
-                  <div className="relative">
-                    <select
-                      name="unit"
-                      value={formData.unit}
-                      onChange={handleChange}
-                      className="w-full border rounded p-2"
-                    >
-                      <option value="" disabled>Select Unit</option>
-                      <option value="USD">USD</option>
-                      <option value="INR">INR</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                      <option value="JPY">JPY</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-gray-600 mb-2">Cost</label>
-                  <input
-                    type="number"
-                    name="cost"
-                    value={formData.cost}
-                    onChange={handleChange}
-                    placeholder="Enter text"
-                    className="w-full border rounded p-2"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Release Details Section */}
-            <div className="mb-8">
-              <h3 className="text-gray-700 font-medium mb-4">Release Details</h3>
-              <div>
-                <label className="block text-gray-600 mb-2">Estimated Release Date</label>
-                <div className="relative">
-                  <input
-                    type="date"
-                    name="releaseDate"
-                    value={formData.releaseDate}
-                    onChange={handleChange}
-                    className="w-full border rounded p-2"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-2">
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-6 py-2 text-green-900 hover:text-gray-800"
-              >
-                Reset
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-6 py-2 border border-gray-300 rounded hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 bg-green-900 text-white rounded hover:bg-green-600"
-              >
-                Add
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Example of how to use this component in a parent component
-const ParentComponent = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleAddMember = (memberData) => {
-    console.log('New team member data:', memberData);
-    // Process the data as needed
-  };
-
-  return (
-    <div>
-      <button onClick={() => setIsModalOpen(true)}>
-        Add Team Member
-      </button>
-
-      <AssignTeamMemberModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        projectName="Project Name"
-        onAddMember={handleAddMember}
-      />
-    </div>
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="outlined"
+              sx={{
+                borderColor: greenPrimary,
+                color: greenPrimary,
+                height: '42px',
+                '&:hover': {
+                  borderColor: greenHover,
+                  color: greenHover
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleReset}
+              variant="outlined"
+              sx={{
+                borderColor: greenPrimary,
+                color: greenPrimary,
+                height: '42px',
+                '&:hover': {
+                  borderColor: greenHover,
+                  color: greenHover
+                }
+              }}
+            >
+              Reset
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                bgcolor: greenPrimary,
+                color: 'white',
+                height: '42px',
+                fontWeight: 600,
+                '&:hover': {
+                  bgcolor: greenHover
+                }
+              }}
+            >
+              Add
+            </Button>
+          </Box>
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 

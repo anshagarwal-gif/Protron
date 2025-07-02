@@ -335,9 +335,9 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
           <h1 className="text-green-900 text-lg font-bold ">Manage Projects</h1>
         </div>
         {hasAccess('projects', 'edit') && (
-        <button onClick={() => handleEditProject(projectId)} className="bg-green-900 text-white px-4 py-1 rounded text-sm hover:bg-green-600">
-          Edit
-        </button>)}
+          <button onClick={() => handleEditProject(projectId)} className="bg-green-900 text-white px-4 py-1 rounded text-sm hover:bg-green-600">
+            Edit
+          </button>)}
       </div>
 
       {/* Project Details */}
@@ -365,13 +365,13 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
           <h2 className="font-bold text-gray-800">Manage Team Member</h2>
           <div className="flex gap-10 items-center">
             {hasAccess('project_team', 'edit') && (
-            <button
-              className="bg-green-900 text-white px-3 py-2 rounded flex items-center text-sm hover:bg-green-600"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <FiPlus size={16} className="mr-1" />
-              Add Member
-            </button>)}
+              <button
+                className="bg-green-900 text-white px-3 py-2 rounded flex items-center text-sm hover:bg-green-600"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <FiPlus size={16} className="mr-1" />
+                Add Member
+              </button>)}
             <button
               className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
               onClick={downloadExcel}
@@ -400,7 +400,8 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                     <th className="py-2 px-4  font-medium border-r">System Impacted</th>
                     <th className="py-2 px-4  font-medium border-r">Est.Release</th>
                     <th className="py-2 px-4  font-medium border-r">Status</th>
-                    <th className="py-2 px-4  font-medium">Actions</th>
+                    {hasAccess('project_team', 'edit') && (
+                      <th className="py-2 px-4  font-medium">Actions</th>)}
                   </tr>
                 </thead>
                 <tbody>
@@ -435,36 +436,35 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
                           {member.status}
                         </span>
                       </td>
-                      <td className="py-2 px-4 border-t">
-                        <select
-                          className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-                          onChange={(e) => {
-                            const action = e.target.value;
-                            if (action === "edit") {
-                              handleEditMember(member);
-                            } else if (action === "toggleStatus") {
-                              handleStatusChange(
-                                member.projectTeamId,
-                                member.status === "hold" ? "active" : "hold"
-                              );
-                            } else if (action === "remove") {
-                              handleRemoveMember(member.projectTeamId);
-                            }
-                            // Reset back to default
-                            e.target.selectedIndex = 0;
-                          }}
-                        >
-                          <option value="">Actions</option>
-                          {hasAccess('project_team', 'edit') && (
-                          <>
+                      {hasAccess('project_team', 'edit') && (
+                        <td className="py-2 px-4 border-t">
+                          <select
+                            className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            onChange={(e) => {
+                              const action = e.target.value;
+                              if (action === "edit") {
+                                handleEditMember(member);
+                              } else if (action === "toggleStatus") {
+                                handleStatusChange(
+                                  member.projectTeamId,
+                                  member.status === "hold" ? "active" : "hold"
+                                );
+                              } else if (action === "remove") {
+                                handleRemoveMember(member.projectTeamId);
+                              }
+                              e.target.selectedIndex = 0; // Reset
+                            }}
+                          >
+                            <option value="">Actions</option>
                             <option value="edit">Edit</option>
-                          <option value="toggleStatus">
-                            {member.status === "hold" ? "Activate" : "Hold"}
-                          </option>
-                          <option value="remove">Remove</option>
-                          </>)}
-                        </select>
-                      </td>
+                            <option value="toggleStatus">
+                              {member.status === "hold" ? "Activate" : "Hold"}
+                            </option>
+                            <option value="remove">Remove</option>
+                          </select>
+                        </td>
+                      )}
+
 
                     </tr>
                   ))}
