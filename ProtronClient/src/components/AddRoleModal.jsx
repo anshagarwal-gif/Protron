@@ -11,7 +11,7 @@ const formatModuleName = (moduleName) =>
 const AddRoleModal = ({
   open,
   onClose,
-  modulesList,
+  modulesList, // List of modules fetched from the API
   onSubmit,
 }) => {
   const [roleName, setRoleName] = useState("");
@@ -48,7 +48,7 @@ const AddRoleModal = ({
     });
     const accessRights = Object.values(modules);
 
-    // Console log as per your request
+    // Console log for debugging
     console.log("New Role Name:", roleName);
     console.log("Access Rights:", accessRights);
 

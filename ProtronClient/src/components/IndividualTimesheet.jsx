@@ -1,14 +1,22 @@
-// TimesheetManager.jsx
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon } from "lucide-react";
-import LogTimeModal from "./LogTimeModal";
-import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from "lucide-react";
-import {Link} from "react-router-dom";
-
+import React, { use } from 'react'
+import { useEffect, useState } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  X,
+  Plus,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Folder,
+  Eye,
+  DownloadIcon,
+  CalendarIcon
+} from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom'
+import axios from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-// Helper functions
 const formatDate = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
 const formatDateKey = (date) => date.toISOString().split("T")[0];
@@ -60,9 +68,8 @@ const Toast = ({ message, type, isVisible, onClose }) => {
   const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
 
   return (
-    <div className={`fixed top-4 right-4 z-50 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out ${
-      isVisible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
-    }`}>
+    <div className={`fixed top-4 right-4 z-50 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+      }`}>
       <div className="flex items-center space-x-3">
         <span className="text-lg">{icon}</span>
         <span className="font-medium">{message}</span>
@@ -76,32 +83,26 @@ const Toast = ({ message, type, isVisible, onClose }) => {
     </div>
   );
 };
-
-const TimesheetManager = () => {
-  const [editingTask, setEditingTask] = useState(null);
+const IndividualTimesheet = () => {
+  const location = useLocation();
+  const { employee } = location.state || {};
   const [viewMode, setViewMode] = useState("Weekly");
   const [currentWeekStart, setCurrentWeekStart] = useState(getCurrentMondayStart());
   const [currentMonthRange, setCurrentMonthRange] = useState(getCurrentMonthRange());
   const [showWeekend, setShowWeekend] = useState(false);
-  const [showLogTimeModal, setShowLogTimeModal] = useState(false);
-  const [selectedCell, setSelectedCell] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
   const [timesheetData, setTimesheetData] = useState({});
-  const [taskDetail, setTaskDetail] = useState(null); // For modal
-  
-  // Toast state
+  const [taskDetail, setTaskDetail] = useState(null);
   const [toast, setToast] = useState({
     isVisible: false,
     message: '',
     type: 'info' // 'success', 'error', 'info'
   });
-
-  // Dynamic hour targets based on view mode
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const getTargetHours = () => {
     return viewMode === "Weekly" ? 40 : 184;
   };
-
-  // Toast helper function
   const showToast = (message, type = 'info') => {
     setToast({
       isVisible: true,
@@ -109,16 +110,14 @@ const TimesheetManager = () => {
       type
     });
   };
-
+  console.log(employee)
   const hideToast = () => {
     setToast(prev => ({ ...prev, isVisible: false }));
   };
-
-  // Attachment handling functions with better error handling
   const handleViewAttachment = async (taskId) => {
     try {
       showToast("Loading attachment...", "info");
-      
+
       const response = await axios.get(
         `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`,
         {
@@ -129,24 +128,17 @@ const TimesheetManager = () => {
           timeout: 30000 // 30 second timeout
         }
       );
-      
+
       if (!response.data || response.data.size === 0) {
         showToast("Attachment file is empty or not found", "error");
         return;
       }
-
-      // Get content type from response headers or default to octet-stream
       const contentType = response.headers['content-type'] || 'application/octet-stream';
-      
-      // Create blob URL and open in new tab
       const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
-      
-      // Try to open in new tab
       const newWindow = window.open(url, '_blank');
-      
+
       if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-        // If popup blocked, provide download fallback
         showToast("Popup blocked. Starting download instead...", "info");
         const link = document.createElement('a');
         link.href = url;
@@ -157,15 +149,13 @@ const TimesheetManager = () => {
       } else {
         showToast("Attachment opened successfully!", "success");
       }
-      
-      // Clean up the URL after a delay
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
       }, 5000);
-      
+
     } catch (error) {
       console.error("Failed to view attachment:", error);
-      
+
       if (error.response?.status === 404) {
         showToast("Attachment not found or has been deleted", "error");
       } else if (error.response?.status === 403) {
@@ -179,11 +169,10 @@ const TimesheetManager = () => {
       }
     }
   };
-
   const handleDownloadAttachment = async (taskId, fileName = null) => {
     try {
       showToast("Downloading attachment...", "info");
-      
+
       const response = await axios.get(
         `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`,
         {
@@ -194,7 +183,7 @@ const TimesheetManager = () => {
           timeout: 60000 // 60 second timeout for downloads
         }
       );
-      
+
       if (!response.data || response.data.size === 0) {
         showToast("Attachment file is empty or not found", "error");
         return;
@@ -203,7 +192,7 @@ const TimesheetManager = () => {
       // Get filename from content-disposition header if available
       const contentDisposition = response.headers['content-disposition'];
       let downloadFileName = fileName || `attachment_${taskId}`;
-      
+
       if (contentDisposition) {
         const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
         if (fileNameMatch && fileNameMatch[1]) {
@@ -213,7 +202,7 @@ const TimesheetManager = () => {
 
       // Get content type from response headers
       const contentType = response.headers['content-type'] || 'application/octet-stream';
-      
+
       // Create download link
       const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
@@ -223,16 +212,16 @@ const TimesheetManager = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       // Clean up
       setTimeout(() => {
         window.URL.revokeObjectURL(url);
       }, 1000);
-      
+
       showToast("Attachment downloaded successfully!", "success");
     } catch (error) {
       console.error("Failed to download attachment:", error);
-      
+
       if (error.response?.status === 404) {
         showToast("Attachment not found or has been deleted", "error");
       } else if (error.response?.status === 403) {
@@ -248,31 +237,34 @@ const TimesheetManager = () => {
   };
   const fetchTasks = async () => {
     const dates = getVisibleDates();
-    if (!dates.length) return;
+    if (!dates.length || !employee?.rawData?.userId) return;
+
     const start = dates[0].toISOString().split("T")[0];
     const end = dates[dates.length - 1].toISOString().split("T")[0];
+    const userId = employee.rawData.userId;
+
     try {
       const res = await axios.get(
-        `${API_BASE_URL}/api/timesheet-tasks/between?start=${start}&end=${end}`,
+        `${API_BASE_URL}/api/timesheet-tasks/admin-between?start=${start}&end=${end}&userId=${userId}`,
         {
           headers: {
             Authorization: sessionStorage.getItem("token"),
           },
         }
       );
+
       // Group tasks by date
       const grouped = {};
       res.data.forEach((task) => {
         const dateKey = task.date.split("T")[0];
         if (!grouped[dateKey]) grouped[dateKey] = [];
-        
-        // Debug attachment data
+
         console.log("Task attachment data:", {
           taskId: task.taskId,
           hasAttachment: !!task.attachment,
-          attachmentData: task.attachment
+          attachmentData: task.attachment,
         });
-        
+
         grouped[dateKey].push({
           id: task.taskId,
           hours: task.hoursSpent,
@@ -281,25 +273,27 @@ const TimesheetManager = () => {
           project: task.project?.projectName || "",
           submitted: task.submitted,
           attachment: task.attachment,
-          attachmentUrl: task.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachment` : null,
-          // Add fallback attachment info
-          attachmentInfo: task.attachmentInfo || null, // If backend provides file metadata
+          attachmentUrl: task.attachment
+            ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachment`
+            : null,
+          attachmentInfo: task.attachmentInfo || null,
           fullTask: task,
         });
       });
+
       setTimesheetData(grouped);
     } catch (err) {
       console.error("Failed to fetch tasks", err);
       showToast("Failed to fetch tasks", "error");
     }
   };
-
-  // Update useEffect to use fetchTasks
   useEffect(() => {
-    fetchTasks();
-    // eslint-disable-next-line
-  }, [viewMode, currentWeekStart, currentMonthRange, showWeekend]);
-
+    // Fetch tasks when component mounts or view mode changes
+    setLoading(true);
+    fetchTasks().finally(() => {
+      setLoading(false);
+    });
+  }, [viewMode, currentWeekStart, currentMonthRange, employee?.rawData?.userId]);
   const getWeekDates = (startDate) => {
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -405,151 +399,6 @@ const TimesheetManager = () => {
   const handleCellHover = (date, isHovering) => {
     setHoveredCell(isHovering ? { date } : null);
   };
-
-  // Save handler for LogTimeModal
-  const handleLogTimeSave = async (taskData) => {
-  if (editingTask) {
-    console.log({
-          ...taskData,
-          date: editingTask.date.toISOString().split("T")[0], // or use taskData.date if you allow editing date
-        })
-    // Edit mode
-    try {
-      const res = await axios.put(
-        `${API_BASE_URL}/api/timesheet-tasks/edit/${editingTask.id}`,
-        {
-          taskType: taskData.taskType,
-          hoursSpent: taskData.hoursSpent,
-          description: taskData.description,
-          projectId: taskData.projectId || null, // Ensure projectId is passed correctly
-          attachment: taskData.attachment || null, // Handle optional attachment
-          date: new Date(editingTask.date), // or use taskData.date if you allow editing date
-        },
-        {
-          headers: {
-            Authorization: sessionStorage.getItem("token"),
-          },
-        }
-      );
-      // Update UI
-      const dateKey = editingTask.date.toISOString().split("T")[0];
-      setTimesheetData((prev) => ({
-        ...prev,
-        [dateKey]: prev[dateKey].map((entry) =>
-          entry.id === editingTask.id
-            ? {
-                ...entry,
-                ...res.data,
-                id: res.data.taskId,
-                hours: res.data.hoursSpent,
-                description: res.data.description,
-                task: res.data.taskType,
-                project: res.data.project?.projectName || "",
-                submitted: res.data.submitted,
-                attachment: res.data.attachment,
-                attachmentUrl: res.data.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${res.data.taskId}/attachment` : null,
-                fullTask: res.data,
-              }
-            : entry
-        ),
-      }));
-      showToast("Task updated successfully!", "success");
-    } catch (err) {
-      showToast("Failed to update task", "error");
-    }
-    setEditingTask(null);
-    setShowLogTimeModal(false);
-    setSelectedCell(null);
-  } else {
-    const dateKey = taskData.date.split("T")[0];
-    setTimesheetData((prev) => ({
-      ...prev,
-      [dateKey]: [
-        ...(prev[dateKey] || []),
-        {
-          id: taskData.taskId,
-          hours: taskData.hoursSpent,
-          description: taskData.description,
-          task: taskData.taskType,
-          project: taskData.project?.projectName || "",
-          submitted: taskData.submitted,
-          attachment: taskData.attachment,
-          attachmentUrl: taskData.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${taskData.taskId}/attachment` : null,
-          fullTask: taskData,
-        },
-      ],
-    }));
-    showToast("Task added successfully!", "success");
-    setShowLogTimeModal(false);
-    setSelectedCell(null);
-  }
-};
-
-  const deleteTimeEntry = async (date, entryId) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/api/timesheet-tasks/delete/${entryId}`, {
-        headers: {
-          Authorization: sessionStorage.getItem("token"),
-        },
-      });
-      const dateKey = formatDateKey(date);
-      setTimesheetData((prev) => ({
-        ...prev,
-        [dateKey]: prev[dateKey]?.filter((entry) => entry.id !== entryId) || [],
-      }));
-      showToast("Task deleted successfully!", "success");
-    } catch (error) {
-      showToast("Failed to delete task", "error");
-    }
-  };
-
-  const handleSubmitTimesheet = async () => {
-    // Get visible dates for the current period
-    const dates = getVisibleDates();
-    if (!dates.length) return;
-    const start = dates[0].toISOString().split("T")[0];
-    const end = dates[dates.length - 1].toISOString().split("T")[0];
-
-    try {
-      await axios.post(
-        `${API_BASE_URL}/api/timesheet-tasks/submit?start=${start}&end=${end}`,
-        {},
-        {
-          headers: {
-            Authorization: sessionStorage.getItem("token"),
-          },
-        }
-      );
-      // Option 1: Refetch tasks for real-time update (recommended for accuracy)
-      fetchTasks();
-      showToast("Timesheet submitted successfully! 🎉", "success");
-      // Option 2: If you want to update manually for performance, you could do:
-      // setTimesheetData(prev => {
-      //   const updated = { ...prev };
-      //   dates.forEach(date => {
-      //     const key = date.toISOString().split("T")[0];
-      //     if (updated[key]) {
-      //       updated[key] = updated[key].map(entry => ({ ...entry, submitted: true }));
-      //     }
-      //   });
-      //   return updated;
-      // });
-    } catch (error) {
-      showToast("Failed to submit timesheet", "error");
-    }
-  };
-
-  const hasUnsubmittedTasks = () => {
-    const dates = getVisibleDates();
-    for (const date of dates) {
-      const entries = getTimeEntries(date);
-      if (entries.some(entry => !entry.submitted)) {
-        return true;
-      }
-    }
-    return false;
-  };
-
   const handleCopyLastWeek = async () => {
     // Only allow in Weekly view
     if (viewMode !== "Weekly") {
@@ -585,14 +434,13 @@ const TimesheetManager = () => {
       showToast("Failed to copy last week's tasks", "error");
     }
   };
-
   // Download as CSV with attachment information
   const downloadExcel = () => {
     try {
       const dates = getVisibleDates();
       const periodType = viewMode === "Weekly" ? "week" : "month";
       const BOM = "\uFEFF";
-      const headers = ["Date", "Task", "Hours", "Description", "Project"  ];
+      const headers = ["Date", "Task", "Hours", "Description", "Project"];
       let csvContent = BOM + headers.map((h) => `"${h}"`).join(",") + "\r\n";
       dates.forEach((date) => {
         const entries = getTimeEntries(date);
@@ -603,7 +451,7 @@ const TimesheetManager = () => {
             `"${entry.hours}h"`,
             `"${entry.description}"`,
             `"${entry.project}"`,
-          
+
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -626,7 +474,6 @@ const TimesheetManager = () => {
       showToast("Download failed", "error");
     }
   };
-
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Toast Notification */}
@@ -638,23 +485,30 @@ const TimesheetManager = () => {
       />
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-green-700 rounded flex items-center justify-center">
-                  <Calendar className="h-4 w-4 text-white" />
-                </div>
-                <h1 className="text-xl font-semibold text-gray-900">Manage Timesheet</h1>
-              </div>
-            </div>
-            <div className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded">
-              Admin
-            </div>
-          </div>
+       <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0 p-6">
+      <div className="flex items-center space-x-4 mb-4">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate(-1)}
+          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+        >
+          ← Back
+        </button>
+      </div>
+
+      <div className="flex items-center space-x-4">
+        {/* Avatar */}
+        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+          {employee.avatar}
+        </div>
+
+        {/* Employee Info */}
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">{employee.name}</h3>
+          <p className="text-sm text-gray-600">{employee.email}</p>
         </div>
       </div>
+    </div>
 
       {/* Navigation and Controls */}
       <div className="bg-white border-b border-gray-200 flex-shrink-0">
@@ -836,11 +690,11 @@ const TimesheetManager = () => {
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-semibold text-blue-600">{entry.task}</span>
                                   {entry.project && (
-                                    <span 
+                                    <span
                                       className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-semibold cursor-help"
                                       title={entry.project} // Full project name on hover
                                     >
-                                      <Folder className="h-3 w-3 mr-1" /> 
+                                      <Folder className="h-3 w-3 mr-1" />
                                       {truncateText(entry.project, 12)}
                                     </span>
                                   )}
@@ -885,18 +739,6 @@ const TimesheetManager = () => {
                               </div>
                             </div>
                           ))}
-
-                          {/* Add New Entry Button */}
-                          <div className="flex items-center justify-center">
-                            {isHovered && (
-                              <button
-                                onClick={() => handleCellClick(date)}
-                                className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
-                              >
-                                <Plus className="h-5 w-5" />
-                              </button>
-                            )}
-                          </div>
                         </div>
                       </td>
                     );
@@ -905,33 +747,8 @@ const TimesheetManager = () => {
               </tbody>
             </table>
           </div>
-
-          {/* Submit Button */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end flex-shrink-0">
-            <button
-              className="flex items-center space-x-2 px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleSubmitTimesheet}
-              disabled={!hasUnsubmittedTasks()}
-            >
-              <span>📤</span>
-              <span>Submit Timesheet</span>
-            </button>
-          </div>
         </div>
       </div>
-
-      {/* Log Time Modal */}
-      <LogTimeModal
-        isOpen={showLogTimeModal}
-        onClose={() => {
-          setShowLogTimeModal(false);
-          setSelectedCell(null);
-          setEditingTask(null);
-        }}
-        selectedDate={selectedCell ? selectedCell.date : null}
-        onSave={handleLogTimeSave}
-        editingTask={editingTask?.fullTask? editingTask.fullTask : null}
-      />
 
       {taskDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/60 backdrop-blur-sm backdrop-brightness-95">
@@ -960,8 +777,8 @@ const TimesheetManager = () => {
               <div className="flex items-center gap-2">
                 <Folder className="h-4 w-4 text-green-600" />
                 <span className="font-semibold">Project:</span>
-                <span 
-                  className="cursor-help" 
+                <span
+                  className="cursor-help"
                   title={taskDetail.project?.projectName || "-"} // Full project name on hover
                 >
                   {taskDetail.project?.projectName ? truncateText(taskDetail.project.projectName, 25) : "-"}
@@ -1017,6 +834,6 @@ const TimesheetManager = () => {
       )}
     </div>
   );
-};
+}
 
-export default TimesheetManager;
+export default IndividualTimesheet

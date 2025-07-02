@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -130,6 +131,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     @JsonIgnoreProperties("user")
+    @Where(clause = "end_timestamp IS NULL")
     private List<TimesheetTask> timesheetTasks;
 
     @OneToMany(mappedBy = "user")
@@ -150,6 +152,7 @@ public class User {
 
     @OneToMany(mappedBy = "projectManager")
     @JsonIgnoreProperties("projectManager")
+    @Where(clause = "end_timestamp IS NULL")
     private List<Project> projectsManaged; // Projects managed by the user
 
     public List<Project> getProjectsManaged() {
@@ -162,6 +165,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     @JsonIgnoreProperties("user")
+    @Where(clause = "end_timestamp IS NULL")
     private List<ProjectTeam> projectTeams; // Projects user is part of as a team member
 
     public List<ProjectTeam> getProjectTeams() {

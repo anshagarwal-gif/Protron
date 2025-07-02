@@ -1,13 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, Typography, Box, Paper, Switch, Button } from "@mui/material";
 import GlobalSnackbar from "./GlobalSnackbar"; // Adjust import path as needed
-
-// Helper to format module names
-const formatModuleName = (moduleName) =>
-  moduleName
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+import axios from "axios"; // Import axios for API calls
 
 const ManageRoleModal = ({
   open,
@@ -16,11 +10,12 @@ const ManageRoleModal = ({
   rolePermissions,
   onPermissionToggle,
   onSave,
+  modules
 }) => {
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "info"
+    severity: "info",
   });
 
   const handleSave = async () => {
@@ -29,7 +24,7 @@ const ManageRoleModal = ({
       setSnackbar({
         open: true,
         message: "Role permissions updated successfully!",
-        severity: "success"
+        severity: "success",
       });
       // Optional: Close modal after successful save
       // setTimeout(() => onClose(), 1500);
@@ -37,13 +32,13 @@ const ManageRoleModal = ({
       setSnackbar({
         open: true,
         message: "Failed to update role permissions. Please try again.",
-        severity: "error"
+        severity: "error",
       });
     }
   };
 
   const handleSnackbarClose = () => {
-    setSnackbar(prev => ({ ...prev, open: false }));
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
   return (
@@ -85,12 +80,11 @@ const ManageRoleModal = ({
               borderRadius: 2,
             }}
           >
-            {role && role.roleAccessRights ? (
+            {modules.length > 0 ? (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {role.roleAccessRights.map((accessRight, index) => {
-                  const ar = accessRight.accessRight;
-                  const moduleName = ar.moduleName;
-                  const formattedModuleName = formatModuleName(moduleName);
+                {modules.map((module, index) => {
+                  const moduleName = module;
+                  const formattedModuleName = moduleName
                   return (
                     <Box key={index} sx={{ mb: 2 }}>
                       <Typography variant="h6" sx={{ color: "#1b5e20", mb: 1, fontWeight: 600 }}>
@@ -156,7 +150,7 @@ const ManageRoleModal = ({
             ) : (
               <Box sx={{ textAlign: "center", py: 4 }}>
                 <Typography variant="body1" color="text.secondary">
-                  No access rights defined for this role.
+                  No modules available.
                 </Typography>
               </Box>
             )}
@@ -198,7 +192,7 @@ const ManageRoleModal = ({
 
       <GlobalSnackbar
         open={snackbar.open}
-        message={snackbar.message}  
+        message={snackbar.message}
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
       />

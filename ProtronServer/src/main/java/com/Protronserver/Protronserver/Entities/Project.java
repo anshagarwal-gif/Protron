@@ -90,15 +90,18 @@ public class Project {
     private User projectManager;
 
     @OneToMany(mappedBy = "project")
+    @JsonIgnoreProperties({ "project", "user", "tenant" })
+    @Where(clause = "end_timestamp IS NULL")
     private List<TimesheetTask> timesheetTasks;
 
     @OneToMany(mappedBy = "project")
-    @Where(clause = "end_timestamp IS NULL")
     @JsonIgnoreProperties("project")
+    @Where(clause = "end_timestamp IS NULL")
     private List<ProjectTeam> projectTeam;
 
     @OneToMany(mappedBy = "project")
     @JsonIgnoreProperties({"project", "tenant", "projectTeams"})
+    @Where(clause = "end_timestamp IS NULL")
     private List<Systemimpacted> systemImpacted;
 
     @ManyToOne
