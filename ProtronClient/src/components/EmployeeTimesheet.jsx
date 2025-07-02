@@ -4,6 +4,7 @@ import axios from "axios";
 import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon } from "lucide-react";
 import LogTimeModal from "./LogTimeModal";
 import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from "lucide-react";
+import {Link} from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -245,8 +246,6 @@ const TimesheetManager = () => {
       }
     }
   };
-
-  // Enhanced fetchTasks with attachment debugging
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length) return;

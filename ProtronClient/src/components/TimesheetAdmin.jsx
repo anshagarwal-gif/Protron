@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Calendar, 
-  Download, 
-  ChevronDown, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Download,
+  ChevronDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   Menu,
   X
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const TimesheetManager = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
@@ -33,11 +34,11 @@ const TimesheetManager = () => {
     const diff = start.getDate() - day + (day === 0 ? -6 : 1);
     start.setDate(diff);
     start.setHours(0, 0, 0, 0);
-    
+
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
     end.setHours(23, 59, 59, 999);
-    
+
     return { start, end };
   };
 
@@ -45,9 +46,9 @@ const TimesheetManager = () => {
 
   // Format date for display
   const formatDate = (date) => {
-    return date.toLocaleDateString('en-GB', { 
-      day: '2-digit', 
-      month: 'short' 
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short'
     });
   };
 
@@ -55,13 +56,13 @@ const TimesheetManager = () => {
   const getWeekdays = () => {
     const days = [];
     const current = new Date(weekStart);
-    
+
     const totalDays = showWeekend ? 7 : 5;
     for (let i = 0; i < totalDays; i++) {
       days.push(new Date(current));
       current.setDate(current.getDate() + 1);
     }
-    
+
     return days;
   };
 
@@ -71,9 +72,9 @@ const TimesheetManager = () => {
     try {
       const startParam = weekStart.toISOString().split('T')[0];
       const endParam = weekEnd.toISOString().split('T')[0];
-      
+
       console.log('Fetching timesheet data for:', { startParam, endParam, showWeekend });
-      
+
       const response = await fetch(`${API_BASE_URL}/api/timesheet-tasks/admin/summary?start=${startParam}&end=${endParam}`, {
         headers: {
           Authorization: `${sessionStorage.getItem('token')}`,
@@ -87,12 +88,12 @@ const TimesheetManager = () => {
 
       const data = await response.json();
       console.log('API Response:', data);
-      
+
       // Transform data to match UI structure
       const transformedData = data.map((user, index) => {
         // Get current weekdays based on showWeekend state
         const currentWeekdays = getWeekdays();
-        
+
         // Get daily hours for the current week
         const dailyHours = currentWeekdays.map(day => {
           const dayKey = day.toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -121,11 +122,11 @@ const TimesheetManager = () => {
           rawData: user // Keep original data for Excel export
         };
       });
-      
+
       setTimesheetData(transformedData);
     } catch (error) {
       console.error('Error fetching timesheet data:', error);
-      
+
       // Show user-friendly error message based on error type
       if (error.message.includes('401')) {
         alert('Authentication failed. Please log in again.');
@@ -138,7 +139,7 @@ const TimesheetManager = () => {
       } else {
         alert('Failed to load timesheet data. Please try again.');
       }
-      
+
       setTimesheetData([]);
     }
     setLoading(false);
@@ -227,13 +228,13 @@ const TimesheetManager = () => {
     try {
       const startParam = weekStart.toISOString().split('T')[0];
       const endParam = weekEnd.toISOString().split('T')[0];
-      
+
       // Create CSV headers
       const headers = [
         'Employee ID',
         'Name',
         'Email',
-        ...weekdays.map(day => 
+        ...weekdays.map(day =>
           day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
         ),
         'Total Hours',
@@ -274,7 +275,7 @@ const TimesheetManager = () => {
   const getCellColor = (dayData) => {
     const worked = dayData.worked;
     const expected = dayData.expected;
-    
+
     if (worked === 0) return 'text-red-600';
     if (worked >= expected) return 'text-green-600';
     return 'text-yellow-600';
@@ -306,11 +307,11 @@ const TimesheetManager = () => {
     const maxVisible = 5;
     let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     let end = Math.min(totalPages, start + maxVisible - 1);
-    
+
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1);
     }
-    
+
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
@@ -337,12 +338,12 @@ const TimesheetManager = () => {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-             
+
               <h1 className="text-lg font-semibold text-gray-900">Manage Timesheet</h1>
             </div>
           </div>
           <div className="hidden sm:block text-sm text-gray-600">User</div>
-          <button 
+          <button
             className="sm:hidden p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -353,13 +354,13 @@ const TimesheetManager = () => {
         {/* Admin Timesheet View Header */}
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Admin Timesheet View</h2>
-          
+
           <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:block`}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
                 {/* Week Navigation */}
                 <div className="flex items-center space-x-2 relative">
-                  <button 
+                  <button
                     onClick={goToPreviousWeek}
                     className="p-2 hover:bg-gray-100 rounded"
                   >
@@ -368,7 +369,7 @@ const TimesheetManager = () => {
                   <span className="text-sm font-medium whitespace-nowrap">
                     {formatDate(weekStart)} - {formatDate(weekEnd)}
                   </span>
-                  <button 
+                  <button
                     onClick={goToNextWeek}
                     className="p-2 hover:bg-gray-100 rounded"
                   >
@@ -381,7 +382,7 @@ const TimesheetManager = () => {
                   >
                     <Calendar className="w-4 h-4 text-gray-400" />
                   </button>
-                  
+
                   {/* Date Picker Dropdown */}
                   {showDatePicker && (
                     <div className="absolute top-12 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
@@ -451,7 +452,7 @@ const TimesheetManager = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
                   #
                 </th>
-                <th 
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('name')}
                 >
@@ -465,7 +466,7 @@ const TimesheetManager = () => {
                     {day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
                   </th>
                 ))}
-                <th 
+                <th
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                   onClick={() => handleSort('totalHours')}
                 >
@@ -499,7 +500,9 @@ const TimesheetManager = () => {
                         </div>
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer">
-                            {employee.name}
+                            <Link to="/individual-timesheet" state={{ employee }}>
+                              {employee.name}
+                            </Link>
                           </span>
                           <span className="text-xs text-gray-500">
                             {employee.email}
@@ -556,12 +559,12 @@ const TimesheetManager = () => {
                       {employee.totalHours}H/{employee.expectedHours}H
                     </div>
                   </div>
-                  
+
                   <div className={`grid gap-2 ${showWeekend ? 'grid-cols-7' : 'grid-cols-5'} sm:${showWeekend ? 'grid-cols-7' : 'grid-cols-5'}`}>
                     {employee.dailyHours.map((dayData, index) => {
                       const dayDate = weekdays[index];
                       if (!dayDate) return null; // Skip if weekday is undefined
-                      
+
                       return (
                         <div key={index} className="text-center">
                           <div className="text-xs text-gray-500 mb-1">
@@ -574,7 +577,7 @@ const TimesheetManager = () => {
                       );
                     })}
                   </div>
-                  
+
                   <div className="mt-3 flex justify-end">
                     <button className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800">
                       <span>View Details</span>
@@ -589,132 +592,131 @@ const TimesheetManager = () => {
 
         {/* Enhanced Footer with Better Pagination */}
         {showPagination && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-gray-200 space-y-3 sm:space-y-0">
-          <div className="flex items-center justify-center sm:justify-start space-x-2">
-            <span className="text-sm text-gray-700">Rows per page</span>
-            <div className="relative">
-              <select
-                value={rowsPerPage}
-                onChange={(e) => {
-                  setRowsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-gray-200 space-y-3 sm:space-y-0">
+            <div className="flex items-center justify-center sm:justify-start space-x-2">
+              <span className="text-sm text-gray-700">Rows per page</span>
+              <div className="relative">
+                <select
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center justify-center sm:justify-end space-x-4">
-            <span className="text-sm text-gray-700">
-              {startIndex + 1}-{Math.min(endIndex, sortedData.length)} of {sortedData.length}
-            </span>
-            
-            <div className="flex items-center space-x-1">
-              {/* First Page */}
-              <button
-                onClick={() => goToPage(1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="First page"
-              >
-                <div className="flex items-center">
+            <div className="flex items-center justify-center sm:justify-end space-x-4">
+              <span className="text-sm text-gray-700">
+                {startIndex + 1}-{Math.min(endIndex, sortedData.length)} of {sortedData.length}
+              </span>
+
+              <div className="flex items-center space-x-1">
+                {/* First Page */}
+                <button
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="First page"
+                >
+                  <div className="flex items-center">
+                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4 -ml-1" />
+                  </div>
+                </button>
+
+                {/* Previous Page */}
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Previous page"
+                >
                   <ChevronLeft className="w-4 h-4" />
-                  <ChevronLeft className="w-4 h-4 -ml-1" />
+                </button>
+
+                {/* Page Numbers */}
+                <div className="hidden sm:flex items-center space-x-1">
+                  {getPageNumbers().map(page => (
+                    <button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      className={`px-3 py-1 rounded text-sm ${page === currentPage
+                          ? 'bg-blue-600 text-white'
+                          : 'hover:bg-gray-100 text-gray-700'
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
                 </div>
-              </button>
-              
-              {/* Previous Page */}
-              <button
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Previous page"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
 
-              {/* Page Numbers */}
-              <div className="hidden sm:flex items-center space-x-1">
-                {getPageNumbers().map(page => (
-                  <button
-                    key={page}
-                    onClick={() => goToPage(page)}
-                    className={`px-3 py-1 rounded text-sm ${
-                      page === currentPage 
-                        ? 'bg-blue-600 text-white' 
-                        : 'hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
+                {/* Mobile page indicator */}
+                <div className="sm:hidden px-3 py-1 text-sm text-gray-700">
+                  {currentPage} / {totalPages}
+                </div>
 
-              {/* Mobile page indicator */}
-              <div className="sm:hidden px-3 py-1 text-sm text-gray-700">
-                {currentPage} / {totalPages}
-              </div>
-              
-              {/* Next Page */}
-              <button
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Next page"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              
-              {/* Last Page */}
-              <button
-                onClick={() => goToPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Last page"
-              >
-                <div className="flex items-center">
+                {/* Next Page */}
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Next page"
+                >
                   <ChevronRight className="w-4 h-4" />
-                  <ChevronRight className="w-4 h-4 -ml-1" />
-                </div>
-              </button>
+                </button>
+
+                {/* Last Page */}
+                <button
+                  onClick={() => goToPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Last page"
+                >
+                  <div className="flex items-center">
+                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4 -ml-1" />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         )}
 
         {/* Simple footer when no pagination needed */}
         {!showPagination && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">Rows per page</span>
-            <div className="relative">
-              <select
-                value={rowsPerPage}
-                onChange={(e) => {
-                  setRowsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700">Rows per page</span>
+              <div className="relative">
+                <select
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
+
+            <span className="text-sm text-gray-700">
+              Showing {sortedData.length} of {sortedData.length} entries
+            </span>
           </div>
-          
-          <span className="text-sm text-gray-700">
-            Showing {sortedData.length} of {sortedData.length} entries
-          </span>
-        </div>
         )}
       </div>
     </div>
