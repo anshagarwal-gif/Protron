@@ -524,7 +524,9 @@ const TimesheetManager = () => {
                     </td>
                     <td className="px-4 py-4">
                       <button className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800">
-                        <span className="hidden xl:inline">View Details</span>
+                        <span className="hidden xl:inline cursor-pointer">
+                           <Link to="/individual-timesheet" state={{ employee }}>
+                          View Details</Link></span>
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </td>
