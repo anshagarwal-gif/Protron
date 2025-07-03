@@ -61,11 +61,12 @@ const AddRoleModal = ({
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="sm"
+      maxWidth="lg"
       PaperProps={{
         sx: {
           borderRadius: 2,
           boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+          maxHeight: "90vh",
         },
       }}
     >
@@ -81,7 +82,7 @@ const AddRoleModal = ({
           Add New Role
         </Typography>
       </Box>
-      <DialogContent sx={{ p: 3 }}>
+      <DialogContent sx={{ p: 3, overflow: "hidden" }}>
         <TextField
           label="Role Name"
           value={roleName}
@@ -89,25 +90,47 @@ const AddRoleModal = ({
           fullWidth
           sx={{ mb: 3 }}
         />
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 3,
-            bgcolor: "#f8f9fa",
-            borderColor: "#1b5e20",
-            borderRadius: 2,
-          }}
-        >
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {modulesList.length > 0 ? (
+          <Box 
+            sx={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 2,
+              maxHeight: "50vh",
+              overflowY: "auto",
+              pr: 1
+            }}
+          >
             {modulesList.map((moduleName, idx) => (
-              <Box key={moduleName} sx={{ mb: 2 }}>
-                <Typography variant="h6" sx={{ color: "#1b5e20", mb: 1, fontWeight: 600 }}>
+              <Paper
+                key={moduleName}
+                variant="outlined"
+                sx={{
+                  p: 2.5,
+                  bgcolor: "#f8f9fa",
+                  borderColor: "#1b5e20",
+                  borderRadius: 2,
+                  height: "fit-content",
+                  minHeight: "160px",
+                }}
+              >
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    color: "#1b5e20", 
+                    mb: 2, 
+                    fontWeight: 600,
+                    textAlign: "center",
+                    pb: 1,
+                    borderBottom: "1px solid #e0e0e0"
+                  }}
+                >
                   {formatModuleName(moduleName)}
                 </Typography>
-                <Box sx={{ display: "flex", gap: 3, pl: 2 }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   {["View", "Edit", "Delete"].map((perm) => (
-                    <Box key={perm} sx={{ display: "flex", alignItems: "center" }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                    <Box key={perm} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                         {perm}
                       </Typography>
                       <Switch
@@ -135,11 +158,17 @@ const AddRoleModal = ({
                     </Box>
                   ))}
                 </Box>
-              </Box>
+              </Paper>
             ))}
           </Box>
-        </Paper>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
+        ) : (
+          <Box sx={{ textAlign: "center", py: 4 }}>
+            <Typography variant="body1" color="text.secondary">
+              No modules available.
+            </Typography>
+          </Box>
+        )}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3, pt: 2, borderTop: "1px solid #e0e0e0" }}>
           <Button
             onClick={onClose}
             variant="outlined"
