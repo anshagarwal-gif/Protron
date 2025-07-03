@@ -178,11 +178,14 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
             open={open}
             onClose={onClose}
             fullWidth
-            maxWidth="md"
+            maxWidth="lg"
             PaperProps={{
                 sx: {
                     borderRadius: 2,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    maxHeight: '90vh',
+                    width: '95%',
+                    maxWidth: '1200px'
                 }
             }}
         >
@@ -190,7 +193,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                 sx={{
                     bgcolor: '#f8f9fa',
                     borderBottom: '1px solid #e0e0e0',
-                    py: 2.5,
+                    py: 2,
                     px: 3
                 }}
             >
@@ -199,9 +202,9 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                 </Typography>
             </Box>
 
-            <DialogContent sx={{ p: 3 }}>
+            <DialogContent sx={{ p: 3, overflow: 'visible' }}>
                 {/* Main container with flex-col */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
 
                     {/* Row 1: Project Name and Project Icon */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
@@ -329,7 +332,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                         </Box>
                     </Box>
 
-                    {/* Row 3: Project Manager */}
+                    {/* Row 3: Project Manager and Sponsor in same row */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
@@ -367,10 +370,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 )}
                             />
                         </Box>
-                    </Box>
 
-                    {/* Sponsor Name */}
-                    <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
                                 options={users}
@@ -452,12 +452,12 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                         </Box>
                     </Box>
 
-                    {/* Existing Systems Impacted */}
+                    {/* Systems Impacted - Compact Version */}
                     <Box>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                        <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                             Systems Impacted
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: '120px', overflowY: 'auto' }}>
                             {formData.systemImpacted?.map((system, index) => (
                                 <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <TextField
@@ -466,6 +466,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                         onChange={handleSystemNameChange(index)}
                                         placeholder="Edit system name"
                                         variant="outlined"
+                                        size="small"
                                         sx={{
                                             bgcolor: '#f5f5f5',
                                             borderRadius: 1
@@ -490,15 +491,16 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             fullWidth
                             placeholder="Add a new system and press Enter"
                             onKeyDown={handleSystemAdd}
-                            sx={{ mt: 2 }}
+                            size="small"
+                            sx={{ mt: 1 }}
                         />
-                        <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                        <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary', display: 'block' }}>
                             Enter System Name and press Enter to add the system.
                         </Typography>
                     </Box>
 
                     {/* Row 5: Action Buttons (Right-aligned) */}
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1 }}>
                         <Button
                             onClick={onClose}
                             variant="outlined"

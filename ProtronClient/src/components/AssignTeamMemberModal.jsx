@@ -92,7 +92,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
   if (!isOpen) return null;
 
   // Common height for input fields
-  const fieldHeight = '56px';
+  const fieldHeight = '48px';
 
   // Custom theme colors
   const greenPrimary = '#1b5e20'; // green-900
@@ -112,11 +112,14 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
       open={isOpen}
       onClose={onClose}
       fullWidth
-      maxWidth="md"
+      maxWidth="lg"
       PaperProps={{
         sx: {
           borderRadius: 2,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+          boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+          width: '90vw',
+          maxWidth: '1200px',
+          maxHeight: '90vh'
         }
       }}
     >
@@ -124,7 +127,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
         sx={{
           bgcolor: '#f8f9fa',
           borderBottom: '1px solid #e0e0e0',
-          py: 2.5,
+          py: 2,
           px: 3
         }}
       >
@@ -133,11 +136,11 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
         </Typography>
       </Box>
 
-      <DialogContent sx={{ p: 3 }}>
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <DialogContent sx={{ p: 3, overflow: 'hidden' }}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           
-          {/* Email Section */}
-          <Box sx={{ display: 'flex', gap: 3 }}>
+          {/* First Row: Email, Name, Employee Code */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <Box sx={{ flex: 1 }}>
               <Autocomplete
                 options={users.filter(
@@ -193,10 +196,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
                 )}
               />
             </Box>
-          </Box>
-
-          {/* Name, Employee Code, and Task Type Row */}
-          <Box sx={{ display: 'flex', gap: 3 }}>
+            
             <Box sx={{ flex: 1 }}>
               <TextField
                 fullWidth
@@ -242,7 +242,10 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
                 }}
               />
             </Box>
+          </Box>
 
+          {/* Second Row: Task Type and System Impacted */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
                 <InputLabel>Task Type</InputLabel>
@@ -265,10 +268,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
                 </Select>
               </FormControl>
             </Box>
-          </Box>
 
-          {/* System Impacted */}
-          <Box sx={{ display: 'flex', gap: 3 }}>
             <Box sx={{ flex: 1 }}>
               <FormControl fullWidth>
                 <InputLabel>System Impacted</InputLabel>
@@ -295,86 +295,85 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
             </Box>
           </Box>
 
-          {/* Pricing Section */}
-          <Box>
-            <Typography variant="subtitle1" sx={{ mb: 2, color: greenPrimary, fontWeight: 600 }}>
-              Pricing
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 3 }}>
-              <Box sx={{ width: '30%' }}>
-                <FormControl fullWidth>
-                  <InputLabel>Currency</InputLabel>
-                  <Select
-                    name="unit"
-                    value={formData.unit}
+          {/* Third Row: Pricing and Release Date */}
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {/* Pricing Section */}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: greenPrimary, fontWeight: 600 }}>
+                Pricing
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
+                <Box sx={{ width: '40%' }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Currency</InputLabel>
+                    <Select
+                      name="unit"
+                      value={formData.unit}
+                      onChange={handleChange}
+                      label="Currency"
+                      sx={{ height: fieldHeight }}
+                    >
+                      <MenuItem value="" disabled>Select Unit</MenuItem>
+                      <MenuItem value="USD">USD</MenuItem>
+                      <MenuItem value="INR">INR</MenuItem>
+                      <MenuItem value="EUR">EUR</MenuItem>
+                      <MenuItem value="GBP">GBP</MenuItem>
+                      <MenuItem value="JPY">JPY</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+                <Box sx={{ width: '60%' }}>
+                  <TextField
+                    fullWidth
+                    label="Cost"
+                    name="cost"
+                    type="number"
+                    value={formData.cost}
                     onChange={handleChange}
-                    label="Currency"
-                    sx={{ height: fieldHeight }}
-                  >
-                    <MenuItem value="" disabled>Select Unit</MenuItem>
-                    <MenuItem value="USD">USD</MenuItem>
-                    <MenuItem value="INR">INR</MenuItem>
-                    <MenuItem value="EUR">EUR</MenuItem>
-                    <MenuItem value="GBP">GBP</MenuItem>
-                    <MenuItem value="JPY">JPY</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-              <Box sx={{ width: '70%' }}>
-                <TextField
-                  fullWidth
-                  label="Cost"
-                  name="cost"
-                  type="number"
-                  value={formData.cost}
-                  onChange={handleChange}
-                  placeholder="Enter amount"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        {formData.unit ? currencySymbols[formData.unit] : ''}
-                      </InputAdornment>
-                    ),
-                    sx: { height: fieldHeight }
-                  }}
-                />
+                    placeholder="Enter amount"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          {formData.unit ? currencySymbols[formData.unit] : ''}
+                        </InputAdornment>
+                      ),
+                      sx: { height: fieldHeight }
+                    }}
+                  />
+                </Box>
               </Box>
             </Box>
-          </Box>
 
-          {/* Release Details Section */}
-          <Box>
-            <Typography variant="subtitle1" sx={{ mb: 2, color: greenPrimary, fontWeight: 600 }}>
-              Release Details
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 3 }}>
-              <Box sx={{ flex: 1 }}>
-                <DatePicker
-                  label="Estimated Release Date"
-                  value={formData.releaseDate ? dayjs(formData.releaseDate) : null}
-                  onChange={(newDate) =>
-                    setFormData({ ...formData, releaseDate: newDate ? newDate.format('YYYY-MM-DD') : '' })
-                  }
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      InputProps: {
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <CalendarTodayIcon sx={{ color: greenPrimary }} />
-                          </InputAdornment>
-                        ),
-                        sx: { height: fieldHeight }
-                      }
+            {/* Release Details Section */}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: greenPrimary, fontWeight: 600 }}>
+                Release Details
+              </Typography>
+              <DatePicker
+                label="Estimated Release Date"
+                value={formData.releaseDate ? dayjs(formData.releaseDate) : null}
+                onChange={(newDate) =>
+                  setFormData({ ...formData, releaseDate: newDate ? newDate.format('YYYY-MM-DD') : '' })
+                }
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    InputProps: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <CalendarTodayIcon sx={{ color: greenPrimary }} />
+                        </InputAdornment>
+                      ),
+                      sx: { height: fieldHeight }
                     }
-                  }}
-                />
-              </Box>
+                  }
+                }}
+              />
             </Box>
           </Box>
 
           {/* Action Buttons */}
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
             <Button
               type="button"
               onClick={onClose}
@@ -382,7 +381,8 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
               sx={{
                 borderColor: greenPrimary,
                 color: greenPrimary,
-                height: '42px',
+                height: '40px',
+                minWidth: '80px',
                 '&:hover': {
                   borderColor: greenHover,
                   color: greenHover
@@ -398,7 +398,8 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
               sx={{
                 borderColor: greenPrimary,
                 color: greenPrimary,
-                height: '42px',
+                height: '40px',
+                minWidth: '80px',
                 '&:hover': {
                   borderColor: greenHover,
                   color: greenHover
@@ -413,7 +414,8 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
               sx={{
                 bgcolor: greenPrimary,
                 color: 'white',
-                height: '42px',
+                height: '40px',
+                minWidth: '80px',
                 fontWeight: 600,
                 '&:hover': {
                   bgcolor: greenHover

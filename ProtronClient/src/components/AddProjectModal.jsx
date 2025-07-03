@@ -93,11 +93,14 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             open={open}
             onClose={onClose}
             fullWidth
-            maxWidth="md"
+            maxWidth="xl"
             PaperProps={{
                 sx: {
                     borderRadius: 2,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                    width: '95vw',
+                    maxWidth: '1400px',
+                    maxHeight: '90vh'
                 }
             }}
         >
@@ -105,7 +108,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                 sx={{
                     bgcolor: '#f8f9fa',
                     borderBottom: '1px solid #e0e0e0',
-                    py: 2.5,
+                    py: 2,
                     px: 3
                 }}
             >
@@ -114,12 +117,12 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                 </Typography>
             </Box>
 
-            <DialogContent sx={{ p: 3 }}>
+            <DialogContent sx={{ p: 3, overflow: 'hidden' }}>
                 {/* Main container with flex-col */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
 
-                    {/* Row 1: Project Name and Project Icon */}
-                    <Box sx={{ display: 'flex', gap: 3 }}>
+                    {/* Row 1: Project Name, Project Icon, and Start/End Dates */}
+                    <Box sx={{ display: 'flex', gap: 2 }}>
                         <Box sx={{ flex: 1 }}>
                             <TextField
                                 fullWidth
@@ -139,7 +142,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             />
                         </Box>
 
-                        <Box sx={{ flex: 1 }}>
+                        <Box sx={{ flex: 0.8 }}>
                             <Box sx={{
                                 border: '1px dashed #aaa',
                                 borderRadius: 1,
@@ -154,7 +157,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         <Avatar
                                             src={formData.projectIcon}
                                             alt="Project Icon"
-                                            sx={{ width: 40, height: 40, mr: 1 }}
+                                            sx={{ width: 32, height: 32, mr: 1 }}
                                         />
                                         <Button
                                             component="label"
@@ -163,6 +166,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             sx={{
                                                 borderColor: greenPrimary,
                                                 color: greenPrimary,
+                                                fontSize: '0.75rem',
                                                 '&:hover': {
                                                     borderColor: greenHover,
                                                     color: greenHover
@@ -176,11 +180,13 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 ) : (
                                     <Button
                                         component="label"
-                                        startIcon={<CloudUploadIcon sx={{ color: greenPrimary }} />}
+                                        startIcon={<CloudUploadIcon sx={{ color: greenPrimary, fontSize: '16px' }} />}
                                         variant="outlined"
+                                        size="small"
                                         sx={{
                                             borderColor: greenPrimary,
                                             color: greenPrimary,
+                                            fontSize: '0.75rem',
                                             '&:hover': {
                                                 borderColor: greenHover,
                                                 color: greenHover
@@ -193,13 +199,10 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 )}
                             </Box>
                         </Box>
-                    </Box>
 
-                    {/* Row 2: Start Date and End Date */}
-                    <Box sx={{ display: 'flex', gap: 3, width: '100%' }}>
-                        <Box sx={{ flex: 1 }}>
+                        <Box sx={{ flex: 0.8 }}>
                             <DatePicker
-                                label="Project Start Date"
+                                label="Start Date"
                                 value={formData.startDate}
                                 onChange={(newDate) =>
                                     setFormData((prev) => ({ ...prev, startDate: newDate }))
@@ -220,9 +223,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             />
                         </Box>
 
-                        <Box sx={{ flex: 1 }}>
+                        <Box sx={{ flex: 0.8 }}>
                             <DatePicker
-                                label="Project End Date"
+                                label="End Date"
                                 value={formData.endDate}
                                 onChange={(newDate) =>
                                     setFormData((prev) => ({ ...prev, endDate: newDate }))
@@ -244,8 +247,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         </Box>
                     </Box>
 
-                    {/* Row 3: Project Manager and Team Members */}
-                    <Box sx={{ display: 'flex', gap: 3 }}>
+                    {/* Row 2: Project Manager, Sponsor, Currency, and Cost */}
+                    <Box sx={{ display: 'flex', gap: 2 }}>
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
                                 options={users}
@@ -258,7 +261,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        label="Select Project Manager"
+                                        label="Project Manager"
                                         placeholder="Search for a manager..."
                                         fullWidth
                                         InputProps={{
@@ -278,6 +281,78 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             />
                         </Box>
 
+                        <Box sx={{ flex: 1 }}>
+                            <Autocomplete
+                                options={users}
+                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+                                isOptionEqualToValue={(option, value) => option.userId === value.userId}
+                                onChange={(e, value) => setFormData((prev) => ({
+                                    ...prev,
+                                    sponsor: value ? value.userId : null,
+                                }))}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Sponsor"
+                                        placeholder="Search for a sponsor..."
+                                        fullWidth
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <>
+                                                    <InputAdornment position="start">
+                                                        <PersonIcon sx={{ color: greenPrimary }} />
+                                                    </InputAdornment>
+                                                    {params.InputProps.startAdornment}
+                                                </>
+                                            ),
+                                            sx: { height: fieldHeight }
+                                        }}
+                                    />
+                                )}
+                            />
+                        </Box>
+
+                        <Box sx={{ flex: 0.6 }}>
+                            <FormControl fullWidth>
+                                <InputLabel>Currency</InputLabel>
+                                <Select
+                                    value={formData.currency}
+                                    onChange={handleChange('currency')}
+                                    label="Currency"
+                                    sx={{ height: fieldHeight }}
+                                >
+                                    {currencies.map((currency) => (
+                                        <MenuItem key={currency} value={currency}>
+                                            <Typography variant="body1">{currency}</Typography>
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Box>
+
+                        <Box sx={{ flex: 0.8 }}>
+                            <TextField
+                                fullWidth
+                                label="Project Cost"
+                                placeholder="Enter amount"
+                                type="number"
+                                value={formData.cost}
+                                onChange={handleChange('cost')}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            {formData.currency ? currencySymbols[formData.currency] : ''}
+                                        </InputAdornment>
+                                    ),
+                                    sx: { height: fieldHeight }
+                                }}
+                            />
+                        </Box>
+                    </Box>
+
+                    {/* Row 3: Team Members and Systems Impacted */}
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
                         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <Autocomplete
                                 multiple
@@ -292,7 +367,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
-                                        label="Select Team Members"
+                                        label="Team Members"
                                         placeholder="Search for team members..."
                                         fullWidth
                                         InputProps={{
@@ -337,7 +412,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     sx={{
                                         mt: 1,
                                         p: 1,
-                                        maxHeight: '150px',
+                                        maxHeight: '120px',
                                         overflow: 'auto',
                                         borderColor: greenPrimary,
                                         borderRadius: 1,
@@ -347,70 +422,72 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         Selected Team Members ({formData.teamMembers.length})
                                     </Typography>
 
-                                    <Grid container spacing={1}>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                         {users
                                             .filter((user) => formData.teamMembers.includes(user.userId))
                                             .map((user) => (
-                                                <Grid item xs={6} sm={4} md={3} key={user.userId}>
-                                                    <Box
+                                                <Box
+                                                    key={user.userId}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        bgcolor: greenHover,
+                                                        color: 'white',
+                                                        borderRadius: 1,
+                                                        p: 0.5,
+                                                        pl: 1,
+                                                        fontSize: '0.75rem',
+                                                        minWidth: 0,
+                                                        maxWidth: '150px'
+                                                    }}
+                                                >
+                                                    <Avatar
                                                         sx={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            bgcolor: greenHover,
-                                                            color: 'white',
-                                                            borderRadius: 1,
-                                                            p: 0.5,
-                                                            pl: 1,
+                                                            width: 16,
+                                                            height: 16,
+                                                            mr: 0.5,
+                                                            fontSize: '10px',
+                                                            bgcolor: greenPrimary,
                                                         }}
                                                     >
-                                                        <Avatar
-                                                            sx={{
-                                                                width: 24,
-                                                                height: 24,
-                                                                mr: 1,
-                                                                fontSize: '12px',
-                                                                bgcolor: greenPrimary,
-                                                            }}
-                                                        >
-                                                            {user.firstName?.charAt(0)}
-                                                        </Avatar>
-                                                        <Typography
-                                                            noWrap
-                                                            sx={{
-                                                                flex: 1,
-                                                                fontSize: '0.875rem',
-                                                            }}
-                                                        >
-                                                            {user.firstName} {user.lastName}
-                                                        </Typography>
-                                                        <IconButton
-                                                            size="small"
-                                                            onClick={() => {
-                                                                setFormData((prev) => ({
-                                                                    ...prev,
-                                                                    teamMembers: prev.teamMembers.filter(id => id !== user.userId),
-                                                                }));
-                                                            }}
-                                                            sx={{
-                                                                color: 'white',
-                                                                p: 0.5,
-                                                                '&:hover': {
-                                                                    bgcolor: 'rgba(255, 255, 255, 0.2)'
-                                                                }
-                                                            }}
-                                                        >
-                                                            {/* <CloseIcon fontSize="small" /> */}
-                                                        </IconButton>
-                                                    </Box>
-                                                </Grid>
+                                                        {user.firstName?.charAt(0)}
+                                                    </Avatar>
+                                                    <Typography
+                                                        noWrap
+                                                        sx={{
+                                                            flex: 1,
+                                                            fontSize: '0.75rem',
+                                                            minWidth: 0
+                                                        }}
+                                                    >
+                                                        {user.firstName} {user.lastName}
+                                                    </Typography>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setFormData((prev) => ({
+                                                                ...prev,
+                                                                teamMembers: prev.teamMembers.filter(id => id !== user.userId),
+                                                            }));
+                                                        }}
+                                                        sx={{
+                                                            color: 'white',
+                                                            p: 0.25,
+                                                            ml: 0.5,
+                                                            '&:hover': {
+                                                                bgcolor: 'rgba(255, 255, 255, 0.2)'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <span style={{ fontSize: '10px', fontWeight: 'bold' }}>×</span>
+                                                    </IconButton>
+                                                </Box>
                                             ))}
-                                    </Grid>
+                                    </Box>
                                 </Paper>
                             )}
                         </Box>
-                    </Box>
 
-                    <Box sx={{ display: 'flex', gap: 3 }}>
                         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                             <TextField
                                 fullWidth
@@ -437,7 +514,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             />
 
                             {/* Note for the user */}
-                            <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                            <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary' }}>
                                 Enter System Name and press Enter to add the system.
                             </Typography>
 
@@ -448,7 +525,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     sx={{
                                         mt: 1,
                                         p: 1,
-                                        maxHeight: '150px',
+                                        maxHeight: '120px',
                                         overflow: 'auto',
                                         borderColor: greenPrimary,
                                         borderRadius: 1,
@@ -458,140 +535,70 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         Added Systems Impacted ({formData.systemImpacted.length})
                                     </Typography>
 
-                                    <Grid container spacing={1}>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                         {formData.systemImpacted.map((system, index) => (
-                                            <Grid item xs={6} sm={4} md={3} key={index}>
-                                                <Box
+                                            <Box
+                                                key={index}
+                                                sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    bgcolor: greenHover,
+                                                    color: 'white',
+                                                    borderRadius: 1,
+                                                    p: 0.5,
+                                                    pl: 1,
+                                                    fontSize: '0.75rem',
+                                                    minWidth: 0,
+                                                    maxWidth: '150px'
+                                                }}
+                                            >
+                                                <Typography
+                                                    noWrap
                                                     sx={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        bgcolor: greenHover,
-                                                        color: 'white',
-                                                        borderRadius: 1,
-                                                        p: 0.5,
-                                                        pl: 1,
+                                                        flex: 1,
+                                                        fontSize: '0.75rem',
+                                                        minWidth: 0
                                                     }}
                                                 >
-                                                    <Typography
-                                                        noWrap
-                                                        sx={{
-                                                            flex: 1,
-                                                            fontSize: '0.875rem',
-                                                        }}
-                                                    >
-                                                        {system}
-                                                    </Typography>
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => {
-                                                            setFormData((prev) => ({
-                                                                ...prev,
-                                                                systemImpacted: prev.systemImpacted.filter((s) => s !== system),
-                                                            }));
-                                                        }}
-                                                        sx={{
-                                                            color: 'white',
-                                                            p: 0.5,
-                                                            '&:hover': {
-                                                                bgcolor: 'rgba(255, 255, 255, 0.2)',
-                                                            },
-                                                        }}
-                                                    >
-                                                        <span style={{ fontSize: '12px', fontWeight: 'bold' }}>×</span>
-                                                    </IconButton>
-                                                </Box>
-                                            </Grid>
+                                                    {system}
+                                                </Typography>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => {
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            systemImpacted: prev.systemImpacted.filter((s) => s !== system),
+                                                        }));
+                                                    }}
+                                                    sx={{
+                                                        color: 'white',
+                                                        p: 0.25,
+                                                        ml: 0.5,
+                                                        '&:hover': {
+                                                            bgcolor: 'rgba(255, 255, 255, 0.2)',
+                                                        },
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: '10px', fontWeight: 'bold' }}>×</span>
+                                                </IconButton>
+                                            </Box>
                                         ))}
-                                    </Grid>
+                                    </Box>
                                 </Paper>
                             )}
                         </Box>
                     </Box>
 
-                    {/* Row 5: Sponsor Name */}
-                    <Box sx={{ display: 'flex', gap: 3 }}>
-                        <Box sx={{ flex: 1 }}>
-                            <Autocomplete
-                                options={users}
-                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
-                                isOptionEqualToValue={(option, value) => option.userId === value.userId}
-                                onChange={(e, value) => setFormData((prev) => ({
-                                    ...prev,
-                                    sponsor: value ? value.userId : null,
-                                }))}
-                                renderInput={(params) => (
-                                    <TextField
-                                        {...params}
-                                        label="Select Sponsor"
-                                        placeholder="Search for a sponsor..."
-                                        fullWidth
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            startAdornment: (
-                                                <>
-                                                    <InputAdornment position="start">
-                                                        <PersonIcon sx={{ color: greenPrimary }} />
-                                                    </InputAdornment>
-                                                    {params.InputProps.startAdornment}
-                                                </>
-                                            ),
-                                            sx: { height: fieldHeight }
-                                        }}
-                                    />
-                                )}
-                            />
-                        </Box>
-                    </Box>
-
-                    {/* Row 6: Currency and Cost */}
-                    <Box sx={{ display: 'flex', gap: 3 }}>
-                        <Box sx={{ width: '30%' }}>
-                            <FormControl fullWidth>
-                                <InputLabel>Currency</InputLabel>
-                                <Select
-                                    value={formData.currency}
-                                    onChange={handleChange('currency')}
-                                    label="Currency"
-                                    sx={{ height: fieldHeight }}
-                                >
-                                    {currencies.map((currency) => (
-                                        <MenuItem key={currency} value={currency}>
-                                            <Typography variant="body1">{currency}</Typography>
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                        </Box>
-
-                        <Box sx={{ width: '70%' }}>
-                            <TextField
-                                fullWidth
-                                label="Project Cost"
-                                placeholder="Enter amount"
-                                type="number"
-                                value={formData.cost}
-                                onChange={handleChange('cost')}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            {formData.currency ? currencySymbols[formData.currency] : ''}
-                                        </InputAdornment>
-                                    ),
-                                    sx: { height: fieldHeight }
-                                }}
-                            />
-                        </Box>
-                    </Box>
-
-                    {/* Row 7: Action Buttons (Right-aligned) */}
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+                    {/* Action Buttons */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1.5, pt: 2, borderTop: '1px solid #e0e0e0' }}>
                         <Button
                             onClick={onClose}
                             variant="outlined"
                             sx={{
                                 borderColor: greenPrimary,
                                 color: greenPrimary,
-                                height: '42px',
+                                height: '40px',
+                                minWidth: '80px',
                                 '&:hover': {
                                     borderColor: greenHover,
                                     color: greenHover
@@ -606,7 +613,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             sx={{
                                 borderColor: greenPrimary,
                                 color: greenPrimary,
-                                height: '42px',
+                                height: '40px',
+                                minWidth: '80px',
                                 '&:hover': {
                                     borderColor: greenHover,
                                     color: greenHover
@@ -621,7 +629,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             sx={{
                                 bgcolor: greenPrimary,
                                 color: 'white',
-                                height: '42px',
+                                height: '40px',
+                                minWidth: '120px',
                                 fontWeight: 600,
                                 '&:hover': {
                                     bgcolor: greenHover

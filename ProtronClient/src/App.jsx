@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import "./App.css";
+import toast,{ Toaster } from 'react-hot-toast';
 
 import Sidebar from './components/sidebar';
 import ProjectTeamManagement from './components/ProjectTeamManagement';
@@ -13,7 +14,6 @@ import Signup from './pages/Signup';
 import GlobalSnackbar from './components/GlobalSnackbar';
 import Navbar from './components/Navbar';
 import UserManagement from './pages/UserManagement';
-import ManageTimesheets from './components/ManageTimesheet';
 import TimesheetDashboard from './components/EmployeeTimesheet';
 import TimesheetManager from './components/EmployeeTimesheet';
 import { AccessProvider, useAccess } from './Context/AccessContext';
@@ -92,6 +92,7 @@ const App = () => {
                     />
                 </Router>
             </LocalizationProvider>
+
         // </AccessProvider>
     );
 };
