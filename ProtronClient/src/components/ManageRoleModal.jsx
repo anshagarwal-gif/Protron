@@ -41,13 +41,21 @@ const ManageRoleModal = ({
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
+  // Helper function to format module names for display
+  const formatModuleName = (moduleName) => {
+    return moduleName
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   return (
     <>
       <Dialog
         open={open}
         onClose={onClose}
         fullWidth
-        maxWidth="lg"
+        maxWidth="md"
         PaperProps={{
           sx: {
             borderRadius: 2,
@@ -75,8 +83,8 @@ const ManageRoleModal = ({
           {modules.length > 0 ? (
             <Box 
               sx={{ 
-                display: "grid", 
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                display: "flex",
+                flexDirection: "column",
                 gap: 2,
                 maxHeight: "60vh",
                 overflowY: "auto",
@@ -85,39 +93,47 @@ const ManageRoleModal = ({
             >
               {modules.map((module, index) => {
                 const moduleName = module;
-                const formattedModuleName = moduleName;
+                const formattedModuleName = formatModuleName(moduleName);
+                
                 return (
                   <Paper
                     key={index}
                     variant="outlined"
                     sx={{
-                      p: 2.5,
-                      bgcolor: "#f8f9fa",
-                      borderColor: "#1b5e20",
+                      p: 2,
+                      bgcolor: "#ffffff",
+                      borderColor: "#e0e0e0",
                       borderRadius: 2,
-                      height: "fit-content",
-                      minHeight: "160px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      minHeight: "60px",
+                      "&:hover": {
+                        borderColor: "#1b5e20",
+                        boxShadow: "0 2px 8px rgba(27,94,32,0.1)",
+                      },
                     }}
                   >
                     <Typography 
                       variant="h6" 
                       sx={{ 
                         color: "#1b5e20", 
-                        mb: 2, 
                         fontWeight: 600,
-                        textAlign: "center",
-                        pb: 1,
-                        borderBottom: "1px solid #e0e0e0"
+                        fontSize: "1rem",
+                        minWidth: "150px",
                       }}
                     >
                       {formattedModuleName}
                     </Typography>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      {/* View Permission */}
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.9rem", minWidth: "40px" }}>
                           View
                         </Typography>
                         <Switch
+                          size="small"
                           checked={rolePermissions[`${moduleName}_canView`] || false}
                           onChange={() => onPermissionToggle(`${moduleName}_canView`)}
                           sx={{
@@ -130,11 +146,14 @@ const ManageRoleModal = ({
                           }}
                         />
                       </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+
+                      {/* Edit Permission */}
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.9rem", minWidth: "40px" }}>
                           Edit
                         </Typography>
                         <Switch
+                          size="small"
                           checked={rolePermissions[`${moduleName}_canEdit`] || false}
                           onChange={() => onPermissionToggle(`${moduleName}_canEdit`)}
                           sx={{
@@ -147,11 +166,14 @@ const ManageRoleModal = ({
                           }}
                         />
                       </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+
+                      {/* Delete Permission */}
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.9rem", minWidth: "40px" }}>
                           Delete
                         </Typography>
                         <Switch
+                          size="small"
                           checked={rolePermissions[`${moduleName}_canDelete`] || false}
                           onChange={() => onPermissionToggle(`${moduleName}_canDelete`)}
                           sx={{
