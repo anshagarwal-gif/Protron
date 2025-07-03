@@ -1,31 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
   Calendar,
   Download,
-  ChevronDown,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
   Menu,
   X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AgGridReact } from 'ag-grid-react';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+// Register AG Grid modules
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 const TimesheetManager = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [showWeekend, setShowWeekend] = useState(false);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
   const [timesheetData, setTimesheetData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [gridApi, setGridApi] = useState(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+  // Custom AG Grid theme styles
+  const gridStyle = {
+    '--ag-header-background-color': '#15803d',
+    '--ag-header-foreground-color': '#ffffff',
+    '--ag-border-color': '#e5e7eb',
+    '--ag-row-hover-color': '#f0fdf4',
+    '--ag-selected-row-background-color': '#dcfce7',
+    '--ag-odd-row-background-color': '#f9fafb',
+    '--ag-even-row-background-color': '#ffffff',
+    '--ag-font-family': 'inherit',
+    '--ag-font-size': '14px',
+    '--ag-row-height': '60px',
+    '--ag-header-height': '50px',
+    '--ag-header-column-resize-handle-color': '#ffffff',
+    '--ag-header-column-separator-color': '#ffffff',
+    '--ag-header-cell-hover-background-color': '#166534',
+    '--ag-header-cell-moving-background-color': '#166534',
+    '--ag-header-column-filter-icon-color': '#ffffff',
+    '--ag-header-column-menu-button-color': '#ffffff',
+    '--ag-header-column-menu-button-hover-color': '#f3f4f6',
+  };
 
   // Get week start (Monday) and end (Sunday)
   const getWeekDates = (date) => {
@@ -56,15 +78,195 @@ const TimesheetManager = () => {
   const getWeekdays = () => {
     const days = [];
     const current = new Date(weekStart);
-
     const totalDays = showWeekend ? 7 : 5;
+    
     for (let i = 0; i < totalDays; i++) {
       days.push(new Date(current));
       current.setDate(current.getDate() + 1);
     }
-
     return days;
   };
+
+  // Name cell renderer with avatar
+  const NameCellRenderer = (params) => {
+    const { data } = params;
+    return (
+      <div className="flex items-center">
+        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium text-blue-600 mr-3">
+          {data.avatar}
+        </div>
+        <div className="flex flex-col">
+          <Link 
+            to="/individual-timesheet" 
+            state={{ employee: data }}
+            className="text-sm font-medium text-blue-600 hover:text-blue-800"
+          >
+            {data.name}
+          </Link>
+          <span className="text-xs text-gray-500">{data.email}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Day cell renderer with hours
+  const DayCellRenderer = (params) => {
+    const { value } = params;
+    if (!value) return <span className="text-sm text-gray-400">0H/8H</span>;
+
+    const getCellColor = (dayData) => {
+      const worked = dayData.worked;
+      const expected = dayData.expected;
+
+      if (worked === 0) return 'text-red-600';
+      if (worked >= expected) return 'text-green-600';
+      return 'text-yellow-600';
+    };
+
+    return (
+      <span className={`text-sm font-medium ${getCellColor(value)}`}>
+        {value.display}
+      </span>
+    );
+  };
+
+  // Total hours cell renderer
+  const TotalCellRenderer = (params) => {
+    const { data } = params;
+    const getTotalColor = (total, expected) => {
+      if (total === 0) return 'text-red-600';
+      if (total >= expected) return 'text-green-600';
+      return 'text-yellow-600';
+    };
+
+    return (
+      <span className={`text-sm font-bold ${getTotalColor(data.totalHours, data.expectedHours)}`}>
+        {data.totalHours}H/{data.expectedHours}H
+      </span>
+    );
+  };
+
+  // Actions cell renderer
+  const ActionsCellRenderer = (params) => {
+    const { data } = params;
+    return (
+      <Link 
+        to="/individual-timesheet" 
+        state={{ employee: data }}
+        className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800"
+      >
+        <span className="hidden xl:inline">View Details</span>
+        <ChevronRight className="w-4 h-4" />
+      </Link>
+    );
+  };
+
+  // AG Grid column definitions
+  const columnDefs = useMemo(() => {
+    const weekdays = getWeekdays();
+    
+    const dayColumns = weekdays.map((day, index) => ({
+      headerName: day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }),
+      field: `day${index}`,
+      cellRenderer: DayCellRenderer,
+      valueGetter: (params) => params.data.dailyHours?.[index],
+      sortable: false,
+      filter: false,
+      resizable: true,
+      width: 120,
+      suppressMenu: true,
+    }));
+
+    return [
+      {
+        headerName: "#",
+        valueGetter: (params) => params.node.rowIndex + 1,
+        sortable: false,
+        filter: false,
+        resizable: false,
+        width: 60,
+        suppressMenu: true,
+        pinned: 'left',
+      },
+      {
+        headerName: "Name",
+        field: "name",
+        cellRenderer: NameCellRenderer,
+        sortable: true,
+        filter: true,
+        resizable: true,
+        width: 250,
+        pinned: 'left',
+      },
+      ...dayColumns,
+      {
+        headerName: "Total",
+        field: "totalHours",
+        cellRenderer: TotalCellRenderer,
+        sortable: true,
+        filter: false,
+        resizable: true,
+        width: 130,
+        pinned: 'right',
+      },
+      {
+        headerName: "Actions",
+        field: "actions",
+        cellRenderer: ActionsCellRenderer,
+        sortable: false,
+        filter: false,
+        resizable: false,
+        width: 120,
+        suppressMenu: true,
+        pinned: 'right',
+      }
+    ];
+  }, [showWeekend, currentWeek]);
+
+  // AG Grid default column definition
+  const defaultColDef = useMemo(() => ({
+    sortable: true,
+    filter: true,
+    resizable: true,
+    minWidth: 100,
+    floatingFilter: false,
+    filterParams: {
+      buttons: ['reset', 'apply'],
+      closeOnApply: true,
+      debounceMs: 200,
+      suppressAndOrCondition: false,
+      filterOptions: ['contains', 'notContains', 'startsWith', 'endsWith', 'equals', 'notEqual'],
+      defaultOption: 'contains',
+      caseSensitive: false,
+    },
+    suppressMenu: false,
+    menuTabs: ['filterMenuTab'],
+  }), []);
+
+  // Grid options
+  const gridOptions = useMemo(() => ({
+    pagination: true,
+    paginationPageSize: 10,
+    paginationPageSizeSelector: [10, 20, 50, 100],
+    suppressCellFocus: true,
+    rowHeight: 60,
+    headerHeight: 50,
+    animateRows: true,
+    suppressRowClickSelection: true,
+    getRowStyle: (params) => {
+      if (params.node.rowIndex % 2 === 0) {
+        return { background: '#ffffff' };
+      } else {
+        return { background: '#f9fafb' };
+      }
+    },
+  }), []);
+
+  // Grid ready callback
+  const onGridReady = useCallback((params) => {
+    setGridApi(params.api);
+    params.api.sizeColumnsToFit();
+  }, []);
 
   // Fetch timesheet data
   const fetchTimesheetData = async () => {
@@ -91,15 +293,13 @@ const TimesheetManager = () => {
 
       // Transform data to match UI structure
       const transformedData = data.map((user, index) => {
-        // Get current weekdays based on showWeekend state
         const currentWeekdays = getWeekdays();
 
-        // Get daily hours for the current week
         const dailyHours = currentWeekdays.map(day => {
-          const dayKey = day.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+          const dayKey = day.toISOString().split('T')[0];
           const hoursWorked = user.dailyHours?.[dayKey] || 0;
-          const workedRounded = Math.round((parseFloat(hoursWorked) || 0) * 100) / 100; // Round to 2 decimal places
-          const expectedDaily = 8; // Standard 8 hours per day
+          const workedRounded = Math.round((parseFloat(hoursWorked) || 0) * 100) / 100;
+          const expectedDaily = 8;
           return {
             worked: workedRounded,
             expected: expectedDaily,
@@ -107,9 +307,8 @@ const TimesheetManager = () => {
           };
         });
 
-        // Calculate total hours for the current period (weekdays or including weekend)
         const totalWorkedHours = dailyHours.reduce((sum, day) => sum + day.worked, 0);
-        const totalExpectedHours = dailyHours.length * 8; // 8 hours per day
+        const totalExpectedHours = dailyHours.length * 8;
 
         return {
           id: user.userId || index + 1,
@@ -119,7 +318,7 @@ const TimesheetManager = () => {
           dailyHours: dailyHours,
           totalHours: Math.round(totalWorkedHours * 100) / 100,
           expectedHours: totalExpectedHours,
-          rawData: user // Keep original data for Excel export
+          rawData: user
         };
       });
 
@@ -127,7 +326,6 @@ const TimesheetManager = () => {
     } catch (error) {
       console.error('Error fetching timesheet data:', error);
 
-      // Show user-friendly error message based on error type
       if (error.message.includes('401')) {
         alert('Authentication failed. Please log in again.');
       } else if (error.message.includes('403')) {
@@ -147,7 +345,6 @@ const TimesheetManager = () => {
 
   useEffect(() => {
     fetchTimesheetData();
-    setCurrentPage(1); // Reset pagination when data changes
   }, [currentWeek, showWeekend]);
 
   // Close date picker when clicking outside
@@ -163,9 +360,6 @@ const TimesheetManager = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showDatePicker]);
-
-  // Get weekdays for rendering - this will update when showWeekend changes
-  const weekdays = getWeekdays();
 
   // Navigation functions
   const goToPreviousWeek = () => {
@@ -189,47 +383,13 @@ const TimesheetManager = () => {
   // Get today's date for calendar
   const today = new Date().toISOString().split('T')[0];
 
-  // Sorting functionality
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-    setCurrentPage(1);
-  };
-
-  const getSortIcon = (field) => {
-    if (sortField !== field) return <ArrowUpDown className="w-4 h-4" />;
-    return sortDirection === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />;
-  };
-
-  // Sort data
-  const sortedData = [...timesheetData].sort((a, b) => {
-    let aValue = a[sortField];
-    let bValue = b[sortField];
-
-    if (sortField === 'name') {
-      aValue = aValue.toLowerCase();
-      bValue = bValue.toLowerCase();
-    }
-
-    if (sortDirection === 'asc') {
-      return aValue > bValue ? 1 : -1;
-    } else {
-      return aValue < bValue ? 1 : -1;
-    }
-  });
-
   // Frontend-only Excel download functionality
   const downloadExcel = () => {
-    const weekdays = getWeekdays(); // Move this inside the function
+    const weekdays = getWeekdays();
     try {
       const startParam = weekStart.toISOString().split('T')[0];
       const endParam = weekEnd.toISOString().split('T')[0];
 
-      // Create CSV headers
       const headers = [
         'Employee ID',
         'Name',
@@ -241,20 +401,18 @@ const TimesheetManager = () => {
         'Expected Hours'
       ];
 
-      // Create CSV content
       const csvContent = [
         headers.join(','),
-        ...sortedData.map((emp, index) => [
-          index + 1, // Sequential number instead of user ID
+        ...timesheetData.map((emp, index) => [
+          index + 1,
           `"${emp.name}"`,
           emp.email,
-          ...emp.dailyHours.map(h => Math.round(h.worked * 100) / 100), // Round to 2 decimal places
+          ...emp.dailyHours.map(h => Math.round(h.worked * 100) / 100),
           emp.totalHours,
           emp.expectedHours
         ].join(','))
       ].join('\n');
 
-      // Create and download the file
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
@@ -271,65 +429,13 @@ const TimesheetManager = () => {
     }
   };
 
-  // Get cell color based on hours
-  const getCellColor = (dayData) => {
-    const worked = dayData.worked;
-    const expected = dayData.expected;
-
-    if (worked === 0) return 'text-red-600';
-    if (worked >= expected) return 'text-green-600';
-    return 'text-yellow-600';
-  };
-
-  // Get total color
-  const getTotalColor = (total, expected) => {
-    if (total === 0) return 'text-red-600';
-    if (total >= expected) return 'text-green-600';
-    return 'text-yellow-600';
-  };
-
-  // Pagination
-  const totalPages = Math.ceil(sortedData.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const currentData = sortedData.slice(startIndex, endIndex);
-
-  // Don't show pagination if there's only one page or no data
-  const showPagination = totalPages > 1;
-
-  // Pagination helpers
-  const goToPage = (page) => {
-    setCurrentPage(Math.max(1, Math.min(totalPages, page)));
-  };
-
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(totalPages, start + maxVisible - 1);
-
-    if (end - start + 1 < maxVisible) {
-      start = Math.max(1, end - maxVisible + 1);
-    }
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    return pages;
-  };
-
-  if (loading) {
-    return (
-      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading timesheet data...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Loading component
+  const LoadingSpinner = () => (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div>
+      <p className="ml-4 text-gray-600 text-lg">Loading timesheet data...</p>
+    </div>
+  );
 
   return (
     <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
@@ -338,7 +444,6 @@ const TimesheetManager = () => {
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-
               <h1 className="text-lg font-semibold text-gray-900">Manage Timesheet</h1>
             </div>
           </div>
@@ -444,280 +549,126 @@ const TimesheetManager = () => {
           </div>
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                  #
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('name')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Name</span>
-                    {getSortIcon('name')}
-                  </div>
-                </th>
-                {weekdays.map((day, index) => (
-                  <th key={index} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                    {day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
-                  </th>
-                ))}
-                <th
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('totalHours')}
-                >
-                  <div className="flex items-center space-x-1">
-                    <span>Total</span>
-                    {getSortIcon('totalHours')}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentData.length === 0 ? (
-                <tr>
-                  <td colSpan={weekdays.length + 4} className="px-4 py-8 text-center text-gray-500">
-                    No timesheet data available for the selected period
-                  </td>
-                </tr>
-              ) : (
-                currentData.map((employee, index) => (
-                  <tr key={employee.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 text-sm text-gray-900">
-                      {startIndex + index + 1}
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium text-blue-600">
-                          {employee.avatar}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-blue-600 hover:text-blue-800 cursor-pointer">
-                            <Link to="/individual-timesheet" state={{ employee }}>
-                              {employee.name}
-                            </Link>
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {employee.email}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-                    {employee.dailyHours.slice(0, weekdays.length).map((dayData, index) => (
-                      <td key={index} className="px-4 py-4">
-                        <span className={`text-sm font-medium ${getCellColor(dayData)}`}>
-                          {dayData.display}
-                        </span>
-                      </td>
-                    ))}
-                    <td className="px-4 py-4">
-                      <span className={`text-sm font-bold ${getTotalColor(employee.totalHours, employee.expectedHours)}`}>
-                        {employee.totalHours}H/{employee.expectedHours}H
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <button className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800">
-                        <span className="hidden xl:inline cursor-pointer">
-                           <Link to="/individual-timesheet" state={{ employee }}>
-                          View Details</Link></span>
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile/Tablet Card View */}
-        <div className="lg:hidden">
-          {currentData.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              No timesheet data available for the selected period
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {currentData.map((employee) => (
-                <div key={employee.id} className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-sm font-medium text-blue-600">
-                        {employee.avatar}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{employee.name}</div>
-                        <div className="text-sm text-gray-500">{employee.email}</div>
-                      </div>
-                    </div>
-                    <div className={`text-sm font-bold ${getTotalColor(employee.totalHours, employee.expectedHours)}`}>
-                      {employee.totalHours}H/{employee.expectedHours}H
-                    </div>
-                  </div>
-
-                  <div className={`grid gap-2 ${showWeekend ? 'grid-cols-7' : 'grid-cols-5'} sm:${showWeekend ? 'grid-cols-7' : 'grid-cols-5'}`}>
-                    {employee.dailyHours.map((dayData, index) => {
-                      const dayDate = weekdays[index];
-                      if (!dayDate) return null; // Skip if weekday is undefined
-
-                      return (
-                        <div key={index} className="text-center">
-                          <div className="text-xs text-gray-500 mb-1">
-                            {dayDate.toLocaleDateString('en-US', { weekday: 'short' })}
-                          </div>
-                          <div className={`text-sm font-medium ${getCellColor(dayData)}`}>
-                            {Math.round(dayData.worked * 100) / 100}H
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-3 flex justify-end">
-                    <button className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-800">
-                      <span>View Details</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Enhanced Footer with Better Pagination */}
-        {showPagination && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 border-t border-gray-200 space-y-3 sm:space-y-0">
-            <div className="flex items-center justify-center sm:justify-start space-x-2">
-              <span className="text-sm text-gray-700">Rows per page</span>
-              <div className="relative">
-                <select
-                  value={rowsPerPage}
-                  onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center sm:justify-end space-x-4">
-              <span className="text-sm text-gray-700">
-                {startIndex + 1}-{Math.min(endIndex, sortedData.length)} of {sortedData.length}
-              </span>
-
-              <div className="flex items-center space-x-1">
-                {/* First Page */}
-                <button
-                  onClick={() => goToPage(1)}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="First page"
-                >
-                  <div className="flex items-center">
-                    <ChevronLeft className="w-4 h-4" />
-                    <ChevronLeft className="w-4 h-4 -ml-1" />
-                  </div>
-                </button>
-
-                {/* Previous Page */}
-                <button
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Previous page"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                {/* Page Numbers */}
-                <div className="hidden sm:flex items-center space-x-1">
-                  {getPageNumbers().map(page => (
-                    <button
-                      key={page}
-                      onClick={() => goToPage(page)}
-                      className={`px-3 py-1 rounded text-sm ${page === currentPage
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-gray-100 text-gray-700'
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Mobile page indicator */}
-                <div className="sm:hidden px-3 py-1 text-sm text-gray-700">
-                  {currentPage} / {totalPages}
-                </div>
-
-                {/* Next Page */}
-                <button
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Next page"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-
-                {/* Last Page */}
-                <button
-                  onClick={() => goToPage(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Last page"
-                >
-                  <div className="flex items-center">
-                    <ChevronRight className="w-4 h-4" />
-                    <ChevronRight className="w-4 h-4 -ml-1" />
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Simple footer when no pagination needed */}
-        {!showPagination && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">Rows per page</span>
-              <div className="relative">
-                <select
-                  value={rowsPerPage}
-                  onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-
-            <span className="text-sm text-gray-700">
-              Showing {sortedData.length} of {sortedData.length} entries
-            </span>
+        {/* Loading State */}
+        {loading ? (
+          <LoadingSpinner />
+        ) : (
+          /* AG Grid Table */
+          <div className="ag-theme-alpine" style={{ height: '600px', width: '100%', ...gridStyle }}>
+            <style>{`
+              .ag-theme-alpine {
+                --ag-header-background-color: #15803d !important;
+                --ag-header-foreground-color: #ffffff !important;
+              }
+              
+              .ag-theme-alpine .ag-header {
+                background-color: #15803d !important;
+                border-bottom: 2px solid #166534 !important;
+              }
+              
+              .ag-theme-alpine .ag-header-cell {
+                background-color: #15803d !important;
+                color: #ffffff !important;
+                border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
+                font-weight: 600 !important;
+              }
+              
+              .ag-theme-alpine .ag-header-cell:hover {
+                background-color: #166534 !important;
+              }
+              
+              .ag-theme-alpine .ag-header-cell-text {
+                color: #ffffff !important;
+                font-weight: 500;
+              }
+              
+              .ag-theme-alpine .ag-header-cell-label {
+                color: #ffffff !important;
+              }
+              
+              .ag-theme-alpine .ag-header-cell-sortable .ag-header-cell-label {
+                cursor: pointer;
+              }
+              
+              .ag-theme-alpine .ag-header-cell-sortable .ag-header-cell-label:hover {
+                color: #f3f4f6 !important;
+              }
+              
+              .ag-theme-alpine .ag-menu {
+                box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+                overflow: hidden;
+              }
+              
+              .ag-theme-alpine .ag-header-cell .ag-header-cell-label {
+                justify-content: flex-start;
+              }
+              
+              .ag-theme-alpine .ag-cell {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                text-align: left;
+              }
+              
+              .ag-theme-alpine .ag-header-cell-menu-button {
+                color: #ffffff !important;
+                opacity: 0.8;
+              }
+              
+              .ag-theme-alpine .ag-header-cell-menu-button:hover {
+                opacity: 1;
+              }
+              
+              .ag-theme-alpine .ag-header-cell-menu-button .ag-icon {
+                color: #ffffff !important;
+              }
+              
+              .ag-theme-alpine .ag-icon-menu,
+              .ag-theme-alpine .ag-icon-filter,
+              .ag-theme-alpine .ag-icon-asc,
+              .ag-theme-alpine .ag-icon-desc,
+              .ag-theme-alpine .ag-icon-none {
+                color: #ffffff !important;
+              }
+              
+              .ag-theme-alpine .ag-row {
+                border-bottom: 1px solid #e5e7eb;
+              }
+              
+              .ag-theme-alpine .ag-row:hover {
+                background-color: #f0fdf4 !important;
+              }
+              
+              .ag-theme-alpine .ag-paging-panel {
+                border-top: 1px solid #d1d5db;
+                background-color: #f9fafb;
+              }
+              
+              .ag-theme-alpine .ag-paging-button {
+                color: #15803d;
+              }
+              
+              .ag-theme-alpine .ag-paging-button:hover {
+                background-color: #dcfce7;
+              }
+              
+              .ag-theme-alpine .ag-paging-button.ag-disabled {
+                color: #9ca3af;
+              }
+            `}</style>
+            <AgGridReact
+              rowData={timesheetData}
+              columnDefs={columnDefs}
+              defaultColDef={defaultColDef}
+              gridOptions={gridOptions}
+              onGridReady={onGridReady}
+              suppressMenuHide={true}
+              enableCellTextSelection={true}
+              ensureDomOrder={true}
+              suppressRowTransform={true}
+            />
           </div>
         )}
       </div>
