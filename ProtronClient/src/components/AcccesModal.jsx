@@ -320,7 +320,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
             </Box>
           </Box>
 
-         {/* Dynamic Access Details Section */}
+          {/* Dynamic Access Details Section */}
           <Paper
             variant="outlined"
             sx={{
@@ -341,8 +341,8 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
             {modules.length > 0 ? (
               <Box 
                 sx={{ 
-                  display: "flex",
-                  flexDirection: "column",
+                  display: "grid", 
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                   gap: 2,
                   overflowY: "auto",
                   pr: 1,
@@ -362,28 +362,28 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                         bgcolor: "#ffffff",
                         borderColor: greenPrimary,
                         borderRadius: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        minHeight: "60px",
+                        height: "fit-content",
+                        minHeight: "140px",
                       }}
                     >
                       <Typography 
                         variant="h6" 
                         sx={{ 
                           color: greenPrimary, 
+                          mb: 1.5, 
                           fontWeight: 600,
-                          fontSize: "1rem",
-                          minWidth: "120px",
+                          textAlign: "center",
+                          pb: 1,
+                          borderBottom: "1px solid #e0e0e0",
+                          fontSize: "0.9rem",
                         }}
                       >
                         {formattedModuleName}
                       </Typography>
-                      
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                         {/* View Permission */}
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.9rem", minWidth: "40px" }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
                             View
                           </Typography>
                           <Switch
@@ -402,8 +402,8 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                         </Box>
 
                         {/* Edit Permission */}
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.9rem", minWidth: "40px" }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
                             Edit
                           </Typography>
                           <Switch
@@ -422,8 +422,8 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                         </Box>
 
                         {/* Delete Permission */}
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.9rem", minWidth: "40px" }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
                             Delete
                           </Typography>
                           <Switch
