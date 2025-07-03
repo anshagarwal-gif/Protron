@@ -47,11 +47,12 @@ const ManageRoleModal = ({
         open={open}
         onClose={onClose}
         fullWidth
-        maxWidth="sm"
+        maxWidth="lg"
         PaperProps={{
           sx: {
             borderRadius: 2,
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+            maxHeight: "90vh",
           },
         }}
       >
@@ -70,92 +71,112 @@ const ManageRoleModal = ({
             {role?.roleName}
           </Typography>
         </Box>
-        <DialogContent sx={{ p: 3 }}>
-          <Paper
-            variant="outlined"
-            sx={{
-              p: 3,
-              bgcolor: "#f8f9fa",
-              borderColor: "#1b5e20",
-              borderRadius: 2,
-            }}
-          >
-            {modules.length > 0 ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {modules.map((module, index) => {
-                  const moduleName = module;
-                  const formattedModuleName = moduleName
-                  return (
-                    <Box key={index} sx={{ mb: 2 }}>
-                      <Typography variant="h6" sx={{ color: "#1b5e20", mb: 1, fontWeight: 600 }}>
-                        {formattedModuleName}
-                      </Typography>
-                      <Box sx={{ display: "flex", gap: 3, pl: 2 }}>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                            View
-                          </Typography>
-                          <Switch
-                            checked={rolePermissions[`${moduleName}_canView`] || false}
-                            onChange={() => onPermissionToggle(`${moduleName}_canView`)}
-                            sx={{
-                              "& .MuiSwitch-switchBase.Mui-checked": {
-                                color: "#1b5e20",
-                              },
-                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                                backgroundColor: "#1b5e20",
-                              },
-                            }}
-                          />
-                        </Box>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                            Edit
-                          </Typography>
-                          <Switch
-                            checked={rolePermissions[`${moduleName}_canEdit`] || false}
-                            onChange={() => onPermissionToggle(`${moduleName}_canEdit`)}
-                            sx={{
-                              "& .MuiSwitch-switchBase.Mui-checked": {
-                                color: "#fbc02d",
-                              },
-                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                                backgroundColor: "#fbc02d",
-                              },
-                            }}
-                          />
-                        </Box>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                            Delete
-                          </Typography>
-                          <Switch
-                            checked={rolePermissions[`${moduleName}_canDelete`] || false}
-                            onChange={() => onPermissionToggle(`${moduleName}_canDelete`)}
-                            sx={{
-                              "& .MuiSwitch-switchBase.Mui-checked": {
-                                color: "#c62828",
-                              },
-                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                                backgroundColor: "#c62828",
-                              },
-                            }}
-                          />
-                        </Box>
+        <DialogContent sx={{ p: 3, overflow: "hidden" }}>
+          {modules.length > 0 ? (
+            <Box 
+              sx={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 2,
+                maxHeight: "60vh",
+                overflowY: "auto",
+                pr: 1
+              }}
+            >
+              {modules.map((module, index) => {
+                const moduleName = module;
+                const formattedModuleName = moduleName;
+                return (
+                  <Paper
+                    key={index}
+                    variant="outlined"
+                    sx={{
+                      p: 2.5,
+                      bgcolor: "#f8f9fa",
+                      borderColor: "#1b5e20",
+                      borderRadius: 2,
+                      height: "fit-content",
+                      minHeight: "160px",
+                    }}
+                  >
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: "#1b5e20", 
+                        mb: 2, 
+                        fontWeight: 600,
+                        textAlign: "center",
+                        pb: 1,
+                        borderBottom: "1px solid #e0e0e0"
+                      }}
+                    >
+                      {formattedModuleName}
+                    </Typography>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                          View
+                        </Typography>
+                        <Switch
+                          checked={rolePermissions[`${moduleName}_canView`] || false}
+                          onChange={() => onPermissionToggle(`${moduleName}_canView`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: "#1b5e20",
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: "#1b5e20",
+                            },
+                          }}
+                        />
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                          Edit
+                        </Typography>
+                        <Switch
+                          checked={rolePermissions[`${moduleName}_canEdit`] || false}
+                          onChange={() => onPermissionToggle(`${moduleName}_canEdit`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: "#fbc02d",
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: "#fbc02d",
+                            },
+                          }}
+                        />
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                          Delete
+                        </Typography>
+                        <Switch
+                          checked={rolePermissions[`${moduleName}_canDelete`] || false}
+                          onChange={() => onPermissionToggle(`${moduleName}_canDelete`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: "#c62828",
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: "#c62828",
+                            },
+                          }}
+                        />
                       </Box>
                     </Box>
-                  );
-                })}
-              </Box>
-            ) : (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                <Typography variant="body1" color="text.secondary">
-                  No modules available.
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
+                  </Paper>
+                );
+              })}
+            </Box>
+          ) : (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Typography variant="body1" color="text.secondary">
+                No modules available.
+              </Typography>
+            </Box>
+          )}
+          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3, pt: 2, borderTop: "1px solid #e0e0e0" }}>
             <Button
               onClick={onClose}
               variant="outlined"

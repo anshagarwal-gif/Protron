@@ -193,11 +193,13 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       open={isOpen}
       onClose={onClose}
       fullWidth
-      maxWidth="md"
+      maxWidth="lg"
       PaperProps={{
         sx: {
           borderRadius: 2,
           boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+          maxHeight: "90vh",
+          height: "90vh", // Fixed height to maintain consistency
         },
       }}
     >
@@ -205,8 +207,9 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
         sx={{
           bgcolor: "#f8f9fa",
           borderBottom: "1px solid #e0e0e0",
-          py: 2.5,
+          py: 2,
           px: 3,
+          flexShrink: 0,
         }}
       >
         <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
@@ -214,9 +217,9 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
         </Typography>
       </Box>
 
-      <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          {/* Row 1: Tenant Name */}
+      <DialogContent sx={{ p: 3, overflow: "hidden", display: "flex", flexDirection: "column", flex: 1 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, flex: 1 }}>
+          {/* Row 1: Tenant Name and Email ID */}
           <Box sx={{ display: "flex", gap: 3 }}>
             <Box sx={{ flex: 1 }}>
               <TextField
@@ -237,9 +240,29 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 }}
               />
             </Box>
+            <Box sx={{ flex: 1 }}>
+              <TextField
+                fullWidth
+                label="Email ID"
+                placeholder="Enter here"
+                type="email"
+                value={formData.emailId}
+                onChange={handleInputChange("emailId")}
+                variant="outlined"
+                disabled={'true'}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon sx={{ color: greenPrimary }} />
+                    </InputAdornment>
+                  ),
+                  sx: { height: fieldHeight },
+                }}
+              />
+            </Box>
           </Box>
 
-          {/* Row 2: First Name, Last Name, and Email ID */}
+          {/* Row 2: First Name, Last Name, and Role */}
           <Box sx={{ display: "flex", gap: 3 }}>
             <Box sx={{ flex: 1 }}>
               <TextField
@@ -297,123 +320,133 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Box sx={{ flex: 1 }}>
-              <TextField
-                fullWidth
-                label="Email ID"
-                placeholder="Enter here"
-                type="email"
-                value={formData.emailId}
-                onChange={handleInputChange("emailId")}
-                variant="outlined"
-                disabled={'true'}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon sx={{ color: greenPrimary }} />
-                    </InputAdornment>
-                  ),
-                  sx: { height: fieldHeight },
-                }}
-              />
-            </Box>
-          </Box>
-
           {/* Dynamic Access Details Section */}
           <Paper
             variant="outlined"
             sx={{
-              p: 3,
+              p: 2.5,
               bgcolor: "#f8f9fa",
               borderColor: greenPrimary,
               borderRadius: 2,
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              minHeight: 0, // Important for flex child with overflow
             }}
           >
-            <Typography variant="h6" sx={{ color: greenPrimary, mb: 3, fontWeight: 600 }}>
+            <Typography variant="h6" sx={{ color: greenPrimary, mb: 2, fontWeight: 600 }}>
               Access Details
             </Typography>
 
             {modules.length > 0 ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <Box 
+                sx={{ 
+                  display: "grid", 
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                  gap: 2,
+                  overflowY: "auto",
+                  pr: 1,
+                  flex: 1,
+                }}
+              >
                 {modules.map((module, index) => {
                   const moduleName = module.moduleName
                   const formattedModuleName = formatModuleName(moduleName)
 
                   return (
-                    <Box key={index}>
-                      <Typography variant="h6" sx={{ color: greenPrimary, mb: 2, fontWeight: 600 }}>
+                    <Paper
+                      key={index}
+                      variant="outlined"
+                      sx={{
+                        p: 2,
+                        bgcolor: "#ffffff",
+                        borderColor: greenPrimary,
+                        borderRadius: 2,
+                        height: "fit-content",
+                        minHeight: "140px",
+                      }}
+                    >
+                      <Typography 
+                        variant="h6" 
+                        sx={{ 
+                          color: greenPrimary, 
+                          mb: 1.5, 
+                          fontWeight: 600,
+                          textAlign: "center",
+                          pb: 1,
+                          borderBottom: "1px solid #e0e0e0",
+                          fontSize: "0.9rem",
+                        }}
+                      >
                         {formattedModuleName}
                       </Typography>
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                        {/* View Permission */}
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
+                            View
+                          </Typography>
+                          <Switch
+                            size="small"
+                            checked={permissions[`${moduleName}_canView`] || false}
+                            onChange={() => handlePermissionToggle(`${moduleName}_canView`)}
+                            sx={{
+                              "& .MuiSwitch-switchBase.Mui-checked": {
+                                color: "#1b5e20",
+                              },
+                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                backgroundColor: "#1b5e20",
+                              },
+                            }}
+                          />
+                        </Box>
 
-                      {/* View Permission */}
-                      <Box
-                        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1, pl: 2 }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          - Can View
-                        </Typography>
-                        <Switch
-                          checked={permissions[`${moduleName}_canView`] || false}
-                          onChange={() => handlePermissionToggle(`${moduleName}_canView`)}
-                          sx={{
-                            "& .MuiSwitch-switchBase.Mui-checked": {
-                              color: greenPrimary,
-                            },
-                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                              backgroundColor: greenPrimary,
-                            },
-                          }}
-                        />
-                      </Box>
+                        {/* Edit Permission */}
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
+                            Edit
+                          </Typography>
+                          <Switch
+                            size="small"
+                            checked={permissions[`${moduleName}_canEdit`] || false}
+                            onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
+                            sx={{
+                              "& .MuiSwitch-switchBase.Mui-checked": {
+                                color: "#fbc02d",
+                              },
+                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                backgroundColor: "#fbc02d",
+                              },
+                            }}
+                          />
+                        </Box>
 
-                      {/* Edit Permission */}
-                      <Box
-                        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1, pl: 2 }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          - Can Edit
-                        </Typography>
-                        <Switch
-                          checked={permissions[`${moduleName}_canEdit`] || false}
-                          onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
-                          sx={{
-                            "& .MuiSwitch-switchBase.Mui-checked": {
-                              color: greenPrimary,
-                            },
-                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                              backgroundColor: greenPrimary,
-                            },
-                          }}
-                        />
+                        {/* Delete Permission */}
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
+                            Delete
+                          </Typography>
+                          <Switch
+                            size="small"
+                            checked={permissions[`${moduleName}_canDelete`] || false}
+                            onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
+                            sx={{
+                              "& .MuiSwitch-switchBase.Mui-checked": {
+                                color: "#c62828",
+                              },
+                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                backgroundColor: "#c62828",
+                              },
+                            }}
+                          />
+                        </Box>
                       </Box>
-
-                      {/* Delete Permission */}
-                      <Box
-                        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1, pl: 2 }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          - Can Delete
-                        </Typography>
-                        <Switch
-                          checked={permissions[`${moduleName}_canDelete`] || false}
-                          onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
-                          sx={{
-                            "& .MuiSwitch-switchBase.Mui-checked": {
-                              color: greenPrimary,
-                            },
-                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                              backgroundColor: greenPrimary,
-                            },
-                          }}
-                        />
-                      </Box>
-                    </Box>
+                    </Paper>
                   )
                 })}
               </Box>
             ) : (
-              <Box sx={{ textAlign: "center", py: 4 }}>
+              <Box sx={{ textAlign: "center", py: 4, flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Typography variant="body1" color="text.secondary">
                   {formData.role
                     ? "No access rights defined for this role"
@@ -424,7 +457,14 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
           </Paper>
 
           {/* Action Buttons (Right-aligned) */}
-          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
+          <Box sx={{ 
+            display: "flex", 
+            justifyContent: "flex-end", 
+            gap: 2, 
+            pt: 2, 
+            borderTop: "1px solid #e0e0e0",
+            flexShrink: 0,
+          }}>
             <Button
               onClick={onClose}
               variant="outlined"
