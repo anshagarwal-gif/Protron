@@ -95,7 +95,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
           hours: '',
           minutes: '',
           description: '',
-          projectId: '',
+          projectId: projects.length === 1 ? projects[0].projectId.toString() : '',
           attachment: null
         });
       }
@@ -121,6 +121,15 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
       setProjects(res.data);
+
+      if (res.data.length === 0) {
+        showSnackbar("No active projects found. Please create a project first.", 'warning');
+      }
+
+      if (res.data.length === 1) {
+        formData.projectId = res.data[0].projectId;
+      }
+
     } catch (error) {
       console.error("Failed to fetch projects:", error);
       showSnackbar("Failed to fetch projects", 'error');
@@ -212,7 +221,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
       hours: '',
       minutes: '',
       description: '',
-      projectId: '',
+      projectId: projects.length === 1 ? projects[0].projectId.toString() : '',
       attachment: null
     });
     showSnackbar("Form reset successfully", 'success');
