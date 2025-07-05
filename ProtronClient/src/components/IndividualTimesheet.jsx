@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios';
+import { useAccess } from '../Context/AccessContext';
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const formatDate = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
@@ -84,6 +85,7 @@ const Toast = ({ message, type, isVisible, onClose }) => {
   );
 };
 const IndividualTimesheet = () => {
+  const {hasAccess} = useAccess();
   const location = useLocation();
   const { employee } = location.state || {};
   const [viewMode, setViewMode] = useState("Weekly");
@@ -575,13 +577,15 @@ const IndividualTimesheet = () => {
               </label>
 
               {/* Action Buttons */}
-              <button
-                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                onClick={handleCopyLastWeek}
-              >
-                <span>📋</span>
-                <span>Copy Last Week</span>
-              </button>
+              {hasAccess("timesheet", "edit") && (
+                <button
+                  className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={handleCopyLastWeek}
+                >
+                  <span>📋</span>
+                  <span>Copy Last Week</span>
+                </button>
+              )}
 
               <button
                 onClick={downloadExcel}
@@ -666,20 +670,44 @@ const IndividualTimesheet = () => {
                             >
                               {!entry.submitted && (
                                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={e => { e.stopPropagation(); deleteTimeEntry(date, entry.id); }}
-                                    className="text-red-500 hover:text-red-700"
-                                    title="Delete"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); setEditingTask({ ...entry, date }); setShowLogTimeModal(true); }}
-                                    className="text-blue-500 hover:text-blue-700"
-                                    title="Edit"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                  </button>
+                                  {hasAccess("timesheet", "delete") && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteTimeEntry(date, entry.id);
+                                      }}
+                                      className="text-red-500 hover:text-red-700"
+                                      title="Delete"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  )}
+                                  {hasAccess("timesheet", "edit") && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingTask({ ...entry.fullTask, date });
+                                        setShowLogTimeModal(true);
+                                      }}
+                                      className="text-blue-500 hover:text-blue-700"
+                                      title="Edit"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </div>
                               )}
                               <div className="flex items-center justify-between mb-2">

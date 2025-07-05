@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download a
 import LogTimeModal from "./LogTimeModal";
 import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAccess } from "../Context/AccessContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -87,6 +88,7 @@ const TimesheetManager = () => {
   const [hoveredCell, setHoveredCell] = useState(null);
   const [timesheetData, setTimesheetData] = useState({});
   const [taskDetail, setTaskDetail] = useState(null); // For modal
+  const { hasAccess } = useAccess();
 
   // Toast state
   const [toast, setToast] = useState({
@@ -720,14 +722,15 @@ const TimesheetManager = () => {
               </label>
 
               {/* Action Buttons */}
-              <button
-                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                onClick={handleCopyLastWeek}
-              >
-                <span>📋</span>
-                <span>Copy Last Week</span>
-              </button>
-
+              {hasAccess("timesheet", "edit") && (
+                <button
+                  className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={handleCopyLastWeek}
+                >
+                  <span>📋</span>
+                  <span>Copy Last Week</span>
+                </button>
+              )}
               <button
                 onClick={downloadExcel}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
@@ -811,20 +814,44 @@ const TimesheetManager = () => {
                             >
                               {!entry.submitted && (
                                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button
-                                    onClick={e => { e.stopPropagation(); deleteTimeEntry(date, entry.id); }}
-                                    className="text-red-500 hover:text-red-700"
-                                    title="Delete"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={e => { e.stopPropagation(); setEditingTask({ ...entry.fullTask, date }); setShowLogTimeModal(true); }}
-                                    className="text-blue-500 hover:text-blue-700"
-                                    title="Edit"
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                                  </button>
+                                  {hasAccess("timesheet", "delete") && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteTimeEntry(date, entry.id);
+                                      }}
+                                      className="text-red-500 hover:text-red-700"
+                                      title="Delete"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  )}
+                                  {hasAccess("timesheet", "edit") && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingTask({ ...entry.fullTask, date });
+                                        setShowLogTimeModal(true);
+                                      }}
+                                      className="text-blue-500 hover:text-blue-700"
+                                      title="Edit"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </div>
                               )}
                               <div className="flex items-center justify-between mb-2">
@@ -887,7 +914,7 @@ const TimesheetManager = () => {
 
                           {/* Add New Entry Button */}
                           <div className="flex items-center justify-center">
-                            {isHovered && (
+                            {(isHovered && hasAccess("timesheet", "edit")) && (
                               <button
                                 onClick={() => handleCellClick(date)}
                                 className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
@@ -907,14 +934,16 @@ const TimesheetManager = () => {
 
           {/* Submit Button */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end flex-shrink-0">
-            <button
-              className="flex items-center space-x-2 px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleSubmitTimesheet}
-              disabled={!hasUnsubmittedTasks()}
-            >
-              <span>📤</span>
-              <span>Submit Timesheet</span>
-            </button>
+            {hasAccess("timesheet", "edit") && (
+              <button
+                className="flex items-center space-x-2 px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleSubmitTimesheet}
+                disabled={!hasUnsubmittedTasks()}
+              >
+                <span>📤</span>
+                <span>Submit Timesheet</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -1014,26 +1043,30 @@ const TimesheetManager = () => {
             </div>
             {/* Edit and Delete Buttons */}
             <div className="mt-6 flex justify-end gap-4">
-              <button
-                onClick={() => {
-                  console.log("Editing task:", taskDetail);
-                  setEditingTask({ ...taskDetail, date: new Date(taskDetail.date) });
-                  setShowLogTimeModal(true);
-                  setTaskDetail(null);
-                }}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  deleteTimeEntry(new Date(taskDetail.date), taskDetail.taskId);
-                  setTaskDetail(null);
-                }}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-              >
-                Delete
-              </button>
+              {hasAccess("timesheet", "edit") && (
+                <button
+                  onClick={() => {
+                    console.log("Editing task:", taskDetail);
+                    setEditingTask({ ...taskDetail, date: new Date(taskDetail.date) });
+                    setShowLogTimeModal(true);
+                    setTaskDetail(null);
+                  }}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Edit
+                </button>
+              )}
+              {hasAccess("timesheet", "delete") && (
+                <button
+                  onClick={() => {
+                    deleteTimeEntry(new Date(taskDetail.date), taskDetail.taskId);
+                    setTaskDetail(null);
+                  }}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Delete
+                </button>
+              )}
             </div>
           </div>
         </div>
