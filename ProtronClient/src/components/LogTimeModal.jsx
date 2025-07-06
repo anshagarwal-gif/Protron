@@ -49,7 +49,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
 
   const [projects, setProjects] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Snackbar state
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -86,7 +86,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
           minutes: minutes ? String(minutes) : '',
           description: editingTask.description || '',
           projectId: editingTask.projectId?.toString() || editingTask.project?.projectId?.toString() || '',
-          attachment: null // Don't prefill file input for security reasons
+          attachment: editingTask.attachment // Don't prefill file input for security reasons
         });
       } else {
         // Reset form for new task
@@ -95,7 +95,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
           hours: '',
           minutes: '',
           description: '',
-          projectId: '',
+          projectId: projects.length === 1 ? projects[0].projectId.toString() : '',
           attachment: null
         });
       }
@@ -121,6 +121,15 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
       setProjects(res.data);
+
+      if (res.data.length === 0) {
+        showSnackbar("No active projects found. Please create a project first.", 'warning');
+      }
+
+      if (res.data.length === 1) {
+        formData.projectId = res.data[0].projectId;
+      }
+
     } catch (error) {
       console.error("Failed to fetch projects:", error);
       showSnackbar("Failed to fetch projects", 'error');
@@ -185,7 +194,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
       // Validate file size (optional - limit to 10MB)
       const maxSizeInMB = 10;
       const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-      
+
       if (file.size > maxSizeInBytes) {
         showSnackbar(`File size must be less than ${maxSizeInMB}MB`, 'error');
         return;
@@ -212,7 +221,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
       hours: '',
       minutes: '',
       description: '',
-      projectId: '',
+      projectId: projects.length === 1 ? projects[0].projectId.toString() : '',
       attachment: null
     });
     showSnackbar("Form reset successfully", 'success');
@@ -225,13 +234,13 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
     }
 
     setIsSubmitting(true);
-    
+
     try {
       let attachmentBytes = null;
       if (formData.attachment instanceof File) {
         attachmentBytes = await fileToByteArray(formData.attachment);
       }
-      
+
       // Calculate hoursSpent as decimal
       const hours = parseInt(formData.hours, 10) || 0;
       const minutes = parseInt(formData.minutes, 10) || 0;
@@ -271,7 +280,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
       handleReset();
     } catch (err) {
       console.error("Failed to save task:", err);
-      
+
       // Handle specific error messages
       if (err.response?.data?.message) {
         showSnackbar(err.response.data.message, 'error');
@@ -397,19 +406,19 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onSave, editingTask }) =>
                     }
                     renderValue={(selected) => {
                       if (!selected) return <em>Select from list</em>;
-                      const selectedProject = projects.find(p => p.projectId === selected);
+                      const selectedProject = projects.find((p) => p.projectId.toString() === selected.toString());
                       return selectedProject ? (
                         <Tooltip title={selectedProject.projectName} placement="top">
                           <span>{truncateText(selectedProject.projectName, 25)}</span>
                         </Tooltip>
-                      ) : '';
+                      ) : <em>Select from list</em>;
                     }}
                   >
                     <MenuItem value="">
                       <em>Select from list</em>
                     </MenuItem>
                     {projects.map((project) => (
-                      <MenuItem key={project.projectId} value={project.projectId}>
+                      <MenuItem key={project.projectId} value={project.projectId.toString()}>
                         <Tooltip title={project.projectName} placement="right">
                           <span>{truncateText(project.projectName, 35)}</span>
                         </Tooltip>

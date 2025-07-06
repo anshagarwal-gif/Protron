@@ -151,11 +151,26 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   }
 
   const handlePermissionToggle = (permissionKey) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [permissionKey]: !prev[permissionKey],
-    }))
-  }
+  setPermissions((prev) => {
+    const updatedPermissions = { ...prev };
+
+    // Prevent toggling "Edit" or "Delete" if "View" is not checked
+    if ((permissionKey.endsWith("_canEdit") || permissionKey.endsWith("_canDelete")) && !prev[permissionKey.replace(/_can(Edit|Delete)/, "_canView")]) {
+      return prev; // No changes
+    }
+
+    updatedPermissions[permissionKey] = !updatedPermissions[permissionKey];
+
+    // If "View" is unchecked, also uncheck "Edit" and "Delete"
+    if (permissionKey.endsWith("_canView") && !updatedPermissions[permissionKey]) {
+      const moduleName = permissionKey.replace("_canView", "");
+      updatedPermissions[`${moduleName}_canEdit`] = false;
+      updatedPermissions[`${moduleName}_canDelete`] = false;
+    }
+
+    return updatedPermissions;
+  });
+};
 
   const handleSubmit = () => {
     onSubmit(formData, permissions, selectedRoleData)

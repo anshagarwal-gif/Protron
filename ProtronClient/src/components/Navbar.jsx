@@ -2,8 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { FiHome, FiUser, FiUserCheck, FiFolder, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAccess } from "../Context/AccessContext"; // Import AccessContext
 
 const Navbar = ({ setIsAuthenticated }) => {
+  const { hasAccess } = useAccess(); // Get access checking function
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -159,6 +162,13 @@ const Navbar = ({ setIsAuthenticated }) => {
     handleProfileClick(email); // pass the correct email
   };
 
+  const modules = [
+    { key: "dashboard", label: "Dashboard", path: "/dashboard", moduleName: "dashboard" },
+    { key: "projects", label: "Projects", path: "/projects", moduleName: "projects" },
+    { key: "team", label: "Team", path: "/team", moduleName: "teams" },
+    { key: "timesheet", label: "Timesheet", path: "/timesheet", moduleName: "timesheet" },
+    { key: "users", label: "Users", path: "/users", moduleName: "users" },
+  ];
 
   return (
     <div className="sticky top-0 z-50">
@@ -181,23 +191,19 @@ const Navbar = ({ setIsAuthenticated }) => {
             {/* Desktop Navigation - Center */}
             <div className="hidden md:flex items-center justify-center flex-1">
               <div className="flex items-center space-x-10">
-                {[
-                  { key: 'dashboard', label: 'Dashboard', path: '/dashboard' },
-                  { key: 'projects', label: 'Projects', path: '/projects' },
-                  { key: 'team', label: 'Team', path: '/team' },
-                  { key: 'timesheet', label: 'Timesheet', path: '/timesheet' },
-                  { key: 'users', label: 'Users', path: '/users' },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    onClick={() => navigate(item.path)} // Navigate using the path
-                    className={`flex items-center px-3 py-2 rounded hover:underline cursor-pointer transition-colors duration-200 ${window.location.pathname === item.path ? 'underline text-orange-500' : ''
+                {modules.map((item) =>
+                  hasAccess(item.moduleName, "view") ? ( // Check view access for each module
+                    <button
+                      key={item.key}
+                      onClick={() => navigate(item.path)} // Navigate using the path
+                      className={`flex items-center px-3 py-2 rounded hover:underline cursor-pointer transition-colors duration-200 ${
+                        window.location.pathname === item.path ? "underline text-orange-500" : ""
                       }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                ))}
+                    >
+                      <span>{item.label}</span>
+                    </button>
+                  ) : null
+                )}
               </div>
             </div>
 
@@ -278,24 +284,18 @@ const Navbar = ({ setIsAuthenticated }) => {
           <div className="container mx-auto px-4 py-2">
             <nav>
               <ul className="space-y-1">
-                {[
-                  { key: 'dashboard', label: 'Dashboard' },
-                  { key: 'projects', label: 'Projects' },
-                  { key: 'team', label: 'Team' },
-                  { key: 'timesheet', label: 'Timesheet' },
-                  { key: 'users', label: 'Users' },
-                ].map((item) => (
-                  <li key={item.key}>
-                    <button
-                      onClick={() => handleNavItemClick(item.key)}
-                      className={`w-full text-left flex items-center px-2 py-3 rounded hover:bg-orange-500`
-                      }
-                    >
-                      {item.icon}
-                      <span>{item.label}</span>
-                    </button>
-                  </li>
-                ))}
+                {modules.map((item) =>
+                  hasAccess(item.moduleName, "view") ? ( // Check view access for each module
+                    <li key={item.key}>
+                      <button
+                        onClick={() => handleNavItemClick(item.key)}
+                        className="w-full text-left flex items-center px-2 py-3 rounded hover:bg-orange-500"
+                      >
+                        <span>{item.label}</span>
+                      </button>
+                    </li>
+                  ) : null
+                )}
                 <li className="border-t border-green-700 mt-2 pt-2">
                   <div className="px-2 py-3 text-sm">
                     <div className="font-medium">John Doe</div>
