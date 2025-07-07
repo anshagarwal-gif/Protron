@@ -29,9 +29,8 @@ export const AccessProvider = ({ children }) => {
         const roleAccessRights = data.role?.roleAccessRights?.map(r => r.accessRight) || [];
         const userAccessRights = data.userAccessRights?.map(u => u.accessRight) || [];
 
-        const finalAccessRights = getFinalAccessRights(roleAccessRights, userAccessRights);
-
-        setAccessRights(finalAccessRights);
+        setRoleAccessRights(roleAccessRights);
+        setUserAccessRights(userAccessRights);
         setRole(data.role.roleName);
       })
       .catch((error) => {
@@ -77,10 +76,8 @@ export const AccessProvider = ({ children }) => {
   const hasAccess = (moduleName, action) => {
 
     const finalAccessRights = getFinalAccessRights(roleAccessRights, userAccessRights);
-
     const accessesForModule = finalAccessRights.filter(a => a.moduleName === moduleName);
     if (accessesForModule.length === 0) return false;
-    console.log(`Access rights for module ${moduleName}:`, accessesForModule);
 
     switch (action) {
       case 'view': return accessesForModule.some(a => a.canView);

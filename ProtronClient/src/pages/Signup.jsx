@@ -306,523 +306,559 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-md w-full max-w-4xl p-8 my-8">
-        <h1 className="text-2xl font-bold text-center text-gray-800">Create Account</h1>
-        <p className="text-gray-600 text-center mb-8">Please fill in your information</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 w-full max-w-7xl p-8 my-8">
+    <div className="text-center mb-8">
+      <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        Create Account
+      </h1>
+      <p className="text-slate-600 mt-2">Please fill in your information to get started</p>
+    </div>
 
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+    {error && (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
+        <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+        {error}
+      </div>
+    )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Role Dropdown */}
-            <div className="md:col-span-3">
-              <label htmlFor="role" className="block text-gray-700 mb-2">
-                Role <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="role"
-                name="role"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={roles.find((role) => role.roleId === formData.roleId)?.roleName || ""}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              >
-                <option value="">Select a role</option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.roleName}>
-                    {role.roleName}
-                  </option>
-                ))}
-              </select>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Role Dropdown */}
+        <div className="md:col-span-3">
+          <label htmlFor="role" className="block text-slate-700 font-medium mb-3">
+            Role <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="role"
+            name="role"
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+            value={roles.find((role) => role.roleId === formData.roleId)?.roleName || ""}
+            onChange={handleChange}
+            required
+            disabled={loading}
+          >
+            <option value="">Select a role</option>
+            {roles.map((role) => (
+              <option key={role.id} value={role.roleName}>
+                {role.roleName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Email Address */}
+        <div className="md:col-span-2">
+          <label htmlFor="email" className="block text-slate-700 font-medium mb-3">
+            Email Address <span className="text-red-500">*</span>
+          </label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+              <MailIcon className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
             </div>
-
-            {/* Email Address - Mandatory */}
-            <div className="md:col-span-2">
-              <label htmlFor="email" className="block text-gray-700 mb-2">
-                Email Address <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MailIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            {/* First Name - Mandatory */}
-            <div>
-              <label htmlFor="firstName" className="block text-gray-700 mb-2">
-                First Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="firstName"
-                name="firstName"
-                type="text"
-                placeholder="First name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={formData.firstName}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            {/* Middle Name */}
-            <div>
-              <label htmlFor="middleName" className="block text-gray-700 mb-2">
-                Middle Name
-              </label>
-              <input
-                id="middleName"
-                name="middleName"
-                type="text"
-                placeholder="Middle name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={formData.middleName}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
-
-            {/* Last Name - Mandatory */}
-            <div>
-              <label htmlFor="lastName" className="block text-gray-700 mb-2">
-                Last Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="lastName"
-                name="lastName"
-                type="text"
-                placeholder="Last name"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                value={formData.lastName}
-                onChange={handleChange}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            {/* Display Name */}
-            <div>
-              <label htmlFor="displayName" className="block text-gray-700 mb-2">
-                Display Name
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="displayName"
-                  name="displayName"
-                  type="text"
-                  placeholder="Display name"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.displayName}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
-            {/* Cost - Updated with dynamic currency symbol */}
-            <div>
-              <label htmlFor="cost" className="block text-gray-700 mb-2">
-                Cost
-              </label>
-              <div className="flex">
-                <select
-                  id="costUnit"
-                  name="costUnit"
-                  className="w-20 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.costUnit}
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="INR">INR</option>
-                  <option value="AUD">AUD</option>
-                </select>
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <span className="text-gray-400 font-medium">{getCurrentCurrencySymbol()}</span>
-                  </div>
-                  <input
-                    id="cost"
-                    name="cost"
-                    type="number"
-                    placeholder="0.00"
-                    className="w-full pl-10 pr-2 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.cost}
-                    onChange={handleChange}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Phone - Fixed to accept only numbers */}
-            <div className="md:col-span-2">
-              <label htmlFor="mobileNumber" className="block text-gray-700 mb-2">
-                Mobile Phone
-              </label>
-              <div className="flex">
-                <select
-                  id="mobileCountryCode"
-                  name="mobileCountryCode"
-                  className="w-20 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.mobileCountryCode}
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  <option value="+1">+1</option>
-                  <option value="+44">+44</option>
-                  <option value="+91">+91</option>
-                  <option value="+61">+61</option>
-                </select>
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <PhoneIcon className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="mobileNumber"
-                    name="mobileNumber"
-                    type="tel"
-                    placeholder="Mobile number"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.mobileNumber}
-                    onChange={(e) => handleNumericInput(e, "mobileNumber")}
-                    disabled={loading}
-                    maxLength={15}
-                  />
-                </div>
-              </div>
-              {/* Preview of combined phone number */}
-              {formData.mobileNumber && (
-                <p className="text-xs text-gray-600 mt-1">
-                  Will be submitted as: {formData.mobileCountryCode}
-                  {formData.mobileNumber}
-                </p>
-              )}
-            </div>
-
-            {/* Landline Phone - Fixed to accept only numbers */}
-            <div className="md:col-span-1">
-              <label htmlFor="landlineNumber" className="block text-gray-700 mb-2">
-                Landline
-              </label>
-              <div className="flex">
-                <select
-                  id="landlineCountryCode"
-                  name="landlineCountryCode"
-                  className="w-20 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.landlineCountryCode}
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  <option value="+1">+1</option>
-                  <option value="+44">+44</option>
-                  <option value="+91">+91</option>
-                  <option value="+61">+61</option>
-                </select>
-                <input
-                  id="landlineNumber"
-                  name="landlineNumber"
-                  type="tel"
-                  placeholder="Landline"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.landlineNumber}
-                  onChange={(e) => handleNumericInput(e, "landlineNumber")}
-                  disabled={loading}
-                  maxLength={15}
-                />
-              </div>
-              {/* Preview of combined phone number */}
-              {formData.landlineNumber && (
-                <p className="text-xs text-gray-600 mt-1">
-                  Will be submitted as: {formData.landlineCountryCode}
-                  {formData.landlineNumber}
-                </p>
-              )}
-            </div>
-
-            {/* Profile Picture */}
-            <div className="md:col-span-3">
-              <label className="block text-gray-700 mb-2">Profile Picture</label>
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                  {photoPreview ? (
-                    <img
-                      src={photoPreview || "/placeholder.svg"}
-                      alt="Profile preview"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <UserIcon className="h-8 w-8 text-gray-500" />
-                  )}
-                </div>
-                <input
-                  type="file"
-                  id="photo-upload"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  disabled={loading}
-                />
-                <label
-                  htmlFor="photo-upload"
-                  className={`flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 cursor-pointer ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-                >
-                  <UploadIcon className="h-5 w-5 mr-2" />
-                  Upload Photo
-                </label>
-                {photo && <span className="text-sm text-gray-600">{photo.name}</span>}
-              </div>
-            </div>
-          </div>
-
-          {/* Address Fields */}
-          <div className="border-t border-b border-gray-200 py-6">
-            <h2 className="text-lg font-medium mb-4">Address Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-
-              {/* Country - Comprehensive dropdown */}
-              <div>
-                <label htmlFor="country" className="block text-gray-700 mb-2">
-                  Country
-                </label>
-                <select
-                  id="country"
-                  name="country"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.country}
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  <option value="">Select country</option>
-                  {countries.map((country) => (
-                    <option key={country.code} value={country.code}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Zip Code - Triggers Zippopotam API */}
-              <div>
-                <label htmlFor="zipCode" className="block text-gray-700 mb-2">
-                  Zip Code
-                  {zipLoading && <Loader2 className="inline h-4 w-4 animate-spin ml-2" />}
-                </label>
-                <input
-                  id="zipCode"
-                  name="zipCode"
-                  type="text"
-                  placeholder="Zip code"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-              </div>
-
-              {/* City - Auto-filled from Zippopotam */}
-              <div>
-                <label htmlFor="city" className="block text-gray-700 mb-2">
-                  City
-                </label>
-                <input
-                  id="city"
-                  name="city"
-                  type="text"
-                  placeholder="City"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                  value={formData.city}
-                  onChange={handleChange}
-                  readOnly={formData.zipCode && formData.country}
-                  disabled={loading}
-                />
-                {formData.zipCode && formData.country && (
-                  <p className="text-xs text-blue-600 mt-1">Auto-filled from zip code</p>
-                )}
-              </div>
-
-              {/* State - Auto-filled from Zippopotam */}
-              <div>
-                <label htmlFor="state" className="block text-gray-700 mb-2">
-                  State
-                </label>
-                <input
-                  id="state"
-                  name="state"
-                  type="text"
-                  placeholder="State"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
-                  value={formData.state}
-                  onChange={handleChange}
-                  readOnly={formData.zipCode && formData.country}
-                  disabled={loading}
-                />
-                {formData.zipCode && formData.country && (
-                  <p className="text-xs text-blue-600 mt-1">Auto-filled from zip code</p>
-                )}
-              </div>
-              {/* Address Line 1 - Character limit added */}
-              <div className="md:col-span-3">
-                <label htmlFor="addressLine1" className="block text-gray-700 mb-2">
-                  Address Line 1<span className="text-sm text-gray-500 ml-2">({formData.addressLine1.length}/100)</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MapPinIcon className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="addressLine1"
-                    name="addressLine1"
-                    type="text"
-                    placeholder="Address line 1"
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    value={formData.addressLine1}
-                    onChange={handleChange}
-                    disabled={loading}
-                    maxLength={100}
-                  />
-                </div>
-              </div>
-
-              {/* Address Line 2 - Character limit added */}
-              <div className="md:col-span-3">
-                <label htmlFor="addressLine2" className="block text-gray-700 mb-2">
-                  Address Line 2<span className="text-sm text-gray-500 ml-2">({formData.addressLine2.length}/100)</span>
-                </label>
-                <input
-                  id="addressLine2"
-                  name="addressLine2"
-                  type="text"
-                  placeholder="Address line 2"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.addressLine2}
-                  onChange={handleChange}
-                  disabled={loading}
-                  maxLength={100}
-                />
-              </div>
-
-              {/* Address Line 3 - Character limit added */}
-              <div className="md:col-span-3">
-                <label htmlFor="addressLine3" className="block text-gray-700 mb-2">
-                  Address Line 3<span className="text-sm text-gray-500 ml-2">({formData.addressLine3.length}/100)</span>
-                </label>
-                <input
-                  id="addressLine3"
-                  name="addressLine3"
-                  type="text"
-                  placeholder="Address line 3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.addressLine3}
-                  onChange={handleChange}
-                  disabled={loading}
-                  maxLength={100}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Password Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Password */}
-            <div>
-              <label htmlFor="password" className="block text-gray-700 mb-2">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
-                  onClick={togglePasswordVisibility}
-                  disabled={loading}
-                >
-                  {showPassword ? (
-                    <EyeOffIcon className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5 text-gray-400" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Confirm Password */}
-            <div>
-              <label htmlFor="confirmPassword" className="block text-gray-700 mb-2">
-                Confirm Password <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Confirm password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-4">
-            <button
-              type="submit"
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Enter your email"
+              className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.email}
+              onChange={handleChange}
+              required
               disabled={loading}
-              className="w-full md:w-auto bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            />
+          </div>
+        </div>
+
+        {/* First Name */}
+        <div>
+          <label htmlFor="firstName" className="block text-slate-700 font-medium mb-3">
+            First Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="firstName"
+            name="firstName"
+            type="text"
+            placeholder="First name"
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+            value={formData.firstName}
+            onChange={handleChange}
+            required
+            disabled={loading}
+          />
+        </div>
+
+        {/* Middle Name */}
+        <div>
+          <label htmlFor="middleName" className="block text-slate-700 font-medium mb-3">
+            Middle Name
+          </label>
+          <input
+            id="middleName"
+            name="middleName"
+            type="text"
+            placeholder="Middle name"
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+            value={formData.middleName}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
+
+        {/* Last Name */}
+        <div>
+          <label htmlFor="lastName" className="block text-slate-700 font-medium mb-3">
+            Last Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="lastName"
+            name="lastName"
+            type="text"
+            placeholder="Last name"
+            className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+            value={formData.lastName}
+            onChange={handleChange}
+            required
+            disabled={loading}
+          />
+        </div>
+
+        {/* Display Name */}
+        <div>
+          <label htmlFor="displayName" className="block text-slate-700 font-medium mb-3">
+            Display Name
+          </label>
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+              <UserIcon className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            </div>
+            <input
+              id="displayName"
+              name="displayName"
+              type="text"
+              placeholder="Display name"
+              className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.displayName}
+              onChange={handleChange}
+              disabled={loading}
+            />
+          </div>
+        </div>
+
+        {/* Cost */}
+        <div>
+          <label htmlFor="cost" className="block text-slate-700 font-medium mb-3">
+            Cost
+          </label>
+          <div className="flex rounded-xl overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
+            <select
+              id="costUnit"
+              name="costUnit"
+              className="w-20 border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+              value={formData.costUnit}
+              onChange={handleChange}
+              disabled={loading}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  Creating Account...
-                </>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="INR">INR</option>
+              <option value="AUD">AUD</option>
+            </select>
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <span className="text-slate-400 font-medium">{getCurrentCurrencySymbol()}</span>
+              </div>
+              <input
+                id="cost"
+                name="cost"
+                type="number"
+                placeholder="0.00"
+                className="w-full pl-10 pr-3 py-3 border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
+                value={formData.cost}
+                onChange={handleChange}
+                disabled={loading}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Phone */}
+        <div className="md:col-span-2">
+          <label htmlFor="mobileNumber" className="block text-slate-700 font-medium mb-3">
+            Mobile Phone
+          </label>
+          <div className="flex rounded-xl overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
+            <select
+              id="mobileCountryCode"
+              name="mobileCountryCode"
+              className="w-20 border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+              value={formData.mobileCountryCode}
+              onChange={handleChange}
+              disabled={loading}
+            >
+              <option value="+1">+1</option>
+              <option value="+44">+44</option>
+              <option value="+91">+91</option>
+              <option value="+61">+61</option>
+            </select>
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <PhoneIcon className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="mobileNumber"
+                name="mobileNumber"
+                type="tel"
+                placeholder="Mobile number"
+                className="w-full pl-10 pr-4 py-3 border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
+                value={formData.mobileNumber}
+                onChange={(e) => handleNumericInput(e, "mobileNumber")}
+                disabled={loading}
+                maxLength={15}
+              />
+            </div>
+          </div>
+          {formData.mobileNumber && (
+            <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+              <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+              Will be submitted as: {formData.mobileCountryCode}{formData.mobileNumber}
+            </p>
+          )}
+        </div>
+
+        {/* Landline Phone */}
+        <div className="md:col-span-1">
+          <label htmlFor="landlineNumber" className="block text-slate-700 font-medium mb-3">
+            Landline
+          </label>
+          <div className="flex rounded-xl overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
+            <select
+              id="landlineCountryCode"
+              name="landlineCountryCode"
+              className="w-20 border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+              value={formData.landlineCountryCode}
+              onChange={handleChange}
+              disabled={loading}
+            >
+              <option value="+1">+1</option>
+              <option value="+44">+44</option>
+              <option value="+91">+91</option>
+              <option value="+61">+61</option>
+            </select>
+            <input
+              id="landlineNumber"
+              name="landlineNumber"
+              type="tel"
+              placeholder="Landline"
+              className="w-full px-4 py-3 border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
+              value={formData.landlineNumber}
+              onChange={(e) => handleNumericInput(e, "landlineNumber")}
+              disabled={loading}
+              maxLength={15}
+            />
+          </div>
+          {formData.landlineNumber && (
+            <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+              <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+              Will be submitted as: {formData.landlineCountryCode}{formData.landlineNumber}
+            </p>
+          )}
+        </div>
+
+        {/* Profile Picture */}
+        <div className="md:col-span-3">
+          <label className="block text-slate-700 font-medium mb-3">Profile Picture</label>
+          <div className="flex items-center space-x-6">
+            <div className="relative">
+              <div className="w-20 h-20 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center overflow-hidden shadow-inner">
+                {photoPreview ? (
+                  <img
+                    src={photoPreview || "/placeholder.svg"}
+                    alt="Profile preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <UserIcon className="h-10 w-10 text-slate-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <UploadIcon className="h-3 w-3 text-white" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <input
+                type="file"
+                id="photo-upload"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={loading}
+              />
+              <label
+                htmlFor="photo-upload"
+                className={`inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-xl hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200 border border-blue-200 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <UploadIcon className="h-5 w-5 mr-2" />
+                Upload Photo
+              </label>
+              {photo && <span className="text-sm text-slate-600 ml-3">{photo.name}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Address Section */}
+      <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl p-8 border border-slate-200">
+        <h2 className="text-xl font-semibold mb-6 text-slate-700 flex items-center gap-2">
+          <MapPinIcon className="h-5 w-5 text-blue-500" />
+          Address Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Country */}
+          <div>
+            <label htmlFor="country" className="block text-slate-700 font-medium mb-3">
+              Country
+            </label>
+            <select
+              id="country"
+              name="country"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.country}
+              onChange={handleChange}
+              disabled={loading}
+            >
+              <option value="">Select country</option>
+              {countries.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Zip Code */}
+          <div>
+            <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-3">
+              Zip Code
+              {zipLoading && <Loader2 className="inline h-4 w-4 animate-spin ml-2 text-blue-500" />}
+            </label>
+            <input
+              id="zipCode"
+              name="zipCode"
+              type="text"
+              placeholder="Zip code"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.zipCode}
+              onChange={handleChange}
+              disabled={loading}
+            />
+          </div>
+
+          {/* City */}
+          <div>
+            <label htmlFor="city" className="block text-slate-700 font-medium mb-3">
+              City
+            </label>
+            <input
+              id="city"
+              name="city"
+              type="text"
+              placeholder="City"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.city}
+              onChange={handleChange}
+              readOnly={formData.zipCode && formData.country}
+              disabled={loading}
+            />
+            {formData.zipCode && formData.country && (
+              <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                Auto-filled from zip code
+              </p>
+            )}
+          </div>
+
+          {/* State */}
+          <div>
+            <label htmlFor="state" className="block text-slate-700 font-medium mb-3">
+              State
+            </label>
+            <input
+              id="state"
+              name="state"
+              type="text"
+              placeholder="State"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.state}
+              onChange={handleChange}
+              readOnly={formData.zipCode && formData.country}
+              disabled={loading}
+            />
+            {formData.zipCode && formData.country && (
+              <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
+                Auto-filled from zip code
+              </p>
+            )}
+          </div>
+
+          {/* Address Line 1 */}
+          <div className="md:col-span-3">
+            <label htmlFor="addressLine1" className="block text-slate-700 font-medium mb-3">
+              Address Line 1
+              <span className="text-sm text-slate-500 ml-2 font-normal">
+                ({formData.addressLine1.length}/100)
+              </span>
+            </label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                <MapPinIcon className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+              </div>
+              <input
+                id="addressLine1"
+                name="addressLine1"
+                type="text"
+                placeholder="Address line 1"
+                className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                value={formData.addressLine1}
+                onChange={handleChange}
+                disabled={loading}
+                maxLength={100}
+              />
+            </div>
+          </div>
+
+          {/* Address Line 2 */}
+          <div className="md:col-span-3">
+            <label htmlFor="addressLine2" className="block text-slate-700 font-medium mb-3">
+              Address Line 2
+              <span className="text-sm text-slate-500 ml-2 font-normal">
+                ({formData.addressLine2.length}/100)
+              </span>
+            </label>
+            <input
+              id="addressLine2"
+              name="addressLine2"
+              type="text"
+              placeholder="Address line 2"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.addressLine2}
+              onChange={handleChange}
+              disabled={loading}
+              maxLength={100}
+            />
+          </div>
+
+          {/* Address Line 3 */}
+          <div className="md:col-span-3">
+            <label htmlFor="addressLine3" className="block text-slate-700 font-medium mb-3">
+              Address Line 3
+              <span className="text-sm text-slate-500 ml-2 font-normal">
+                ({formData.addressLine3.length}/100)
+              </span>
+            </label>
+            <input
+              id="addressLine3"
+              name="addressLine3"
+              type="text"
+              placeholder="Address line 3"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.addressLine3}
+              onChange={handleChange}
+              disabled={loading}
+              maxLength={100}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Password Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Password */}
+        <div>
+          <label htmlFor="password" className="block text-slate-700 font-medium mb-3">
+            Password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition-colors"
+              onClick={togglePasswordVisibility}
+              disabled={loading}
+            >
+              {showPassword ? (
+                <EyeOffIcon className="h-5 w-5" />
               ) : (
-                "Create Account"
+                <EyeIcon className="h-5 w-5" />
               )}
             </button>
           </div>
-        </form>
+        </div>
+
+        {/* Confirm Password */}
+        <div>
+          <label htmlFor="confirmPassword" className="block text-slate-700 font-medium mb-3">
+            Confirm Password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm password"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
+          </div>
+        </div>
       </div>
 
-      <GlobalSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      />
-    </div>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6">
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              Creating Account...
+            </>
+          ) : (
+            <>
+              <span className="font-medium">Create Account</span>
+              <div className="ml-2 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <GlobalSnackbar
+    open={snackbar.open}
+    message={snackbar.message}
+    severity={snackbar.severity}
+    onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+  />
+</div>
   )
 }
 

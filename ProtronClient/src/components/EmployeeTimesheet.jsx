@@ -82,7 +82,7 @@ const TimesheetManager = () => {
   const [viewMode, setViewMode] = useState("Weekly");
   const [currentWeekStart, setCurrentWeekStart] = useState(getCurrentMondayStart());
   const [currentMonthRange, setCurrentMonthRange] = useState(getCurrentMonthRange());
-  const [showWeekend, setShowWeekend] = useState(false);
+  const [showWeekend, setShowWeekend] = useState(true);
   const [showLogTimeModal, setShowLogTimeModal] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
@@ -406,7 +406,6 @@ const TimesheetManager = () => {
   const handleCellHover = (date, isHovering) => {
     setHoveredCell(isHovering ? { date } : null);
   };
-
   // Save handler for LogTimeModal
   const handleLogTimeSave = async (taskData) => {
     if (editingTask) {
@@ -417,7 +416,7 @@ const TimesheetManager = () => {
       // Edit mode
       try {
         const res = await axios.put(
-          `${API_BASE_URL}/api/timesheet-tasks/edit/${editingTask.id}`,
+          `${API_BASE_URL}/api/timesheet-tasks/edit/${editingTask.taskId}`,
           {
             taskType: taskData.taskType,
             hoursSpent: taskData.hoursSpent,
@@ -437,7 +436,7 @@ const TimesheetManager = () => {
         setTimesheetData((prev) => ({
           ...prev,
           [dateKey]: prev[dateKey].map((entry) =>
-            entry.id === editingTask.id
+            entry.id === editingTask.taskId
               ? {
                 ...entry,
                 ...res.data,
@@ -766,13 +765,14 @@ const TimesheetManager = () => {
       <div className="flex-1 overflow-hidden p-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
           <div className="flex-1 overflow-auto">
-            <table className="w-full min-w-max">
+            <table className="w-full table-fixed">
               <thead className="sticky top-0 z-10">
                 <tr className="bg-gray-50 border-b border-gray-200">
                   {getVisibleDates().map((date) => (
                     <th
                       key={date.toISOString()}
-                      className="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]"
+                      className="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      style={{ width: "150px" }} // Fixed width for columns
                     >
                       <div className="flex flex-col items-center">
                         <span>
@@ -794,21 +794,22 @@ const TimesheetManager = () => {
                     return (
                       <td
                         key={date.toISOString()}
-                        className={`px-4 py-6 text-center relative min-w-[200px] align-top ${isToday ? "bg-blue-50" : ""
-                          } border-r border-gray-100`}
+                        className={`px-4 py-6 text-center relative align-top ${isToday ? "bg-blue-50" : ""} border-r border-gray-100`}
+                        style={{ width: "150px", height: "200px" }} // Fixed width and height for cells
                         onMouseEnter={() => handleCellHover(date, true)}
                         onMouseLeave={() => handleCellHover(date, false)}
                       >
-                        <div className="space-y-3 min-h-[400px]">
+                        <div className="space-y-3 h-full">
                           {/* Existing Time Entries */}
                           {entries.map((entry) => (
                             <div
                               key={entry.id}
-                              className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-between min-h-[110px]
-      ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}
-    `}
+                              className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+                              style={{
+                                boxSizing: "border-box",
+                                height: "150px", // Fixed height for task boxes
+                              }}
                               onClick={() => setTaskDetail(entry.fullTask)}
-                              style={{ boxSizing: "border-box" }}
                             >
                               {!entry.submitted && (
                                 <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -852,16 +853,15 @@ const TimesheetManager = () => {
                                   )}
                                 </div>
                               )}
-                              <div className="flex items-center justify-between mb-2">
+                              
                                 <div className="flex items-center gap-2">
                                   <FileText className="h-4 w-4 text-blue-500" />
                                   <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-semibold text-blue-600">{entry.task}</span>
                                   {entry.project && (
                                     <span
-                                      className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-semibold cursor-help"
+                                      className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
                                       title={entry.project} // Full project name on hover
                                     >
                                       <Folder className="h-3 w-3 mr-1" />
@@ -869,22 +869,21 @@ const TimesheetManager = () => {
                                     </span>
                                   )}
                                 </div>
-                              </div>
-                              <div className="flex-1 flex items-end">
-                                <div className={`w-full text-xs text-gray-600 rounded px-2 py-1 mt-1 min-h-[32px] ${!entry.description ? "italic text-gray-400" : ""}`}>
+                              
+                              <div className="w-full">
+                                <div
+                                  className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""}`}
+                                  style={{
+                                    maxHeight: "50px", // Set a maximum height for the description box
+                                    overflow: "hidden", // Hide overflowing content
+                                    textOverflow: "ellipsis", // Add ellipsis for truncated text
+                                    whiteSpace: "normal", // Allow text wrapping
+                                  }}
+                                >
                                   {entry.description ? entry.description : "No description"}
                                 </div>
                               </div>
-                              <div className="mt-2 flex items-center gap-2 flex-wrap">
-                                {entry.submitted ? (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-200 text-green-800 text-xs font-semibold">
-                                    <CheckCircle className="h-3 w-3 mr-1" /> Submitted
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-red-200 text-red-800 text-xs font-semibold">
-                                    <XCircle className="h-3 w-3 mr-1" /> Not Submitted
-                                  </span>
-                                )}
+                              {/* <div className="mt-2 flex items-center gap-2 flex-wrap">
                                 {entry.attachment && (
                                   <div className="flex items-center gap-1">
                                     <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
@@ -906,9 +905,10 @@ const TimesheetManager = () => {
                                     </button>
                                   </div>
                                 )}
-                              </div>
+                              </div> */}
                             </div>
                           ))}
+
 
                           {/* Add New Entry Button */}
                           <div className="flex items-center justify-center">
