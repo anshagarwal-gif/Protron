@@ -26,56 +26,7 @@ const TeamManagement = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [showStatusFilterDropdown, setShowStatusFilterDropdown] = useState(false);
 
-    // Custom AG Grid theme styles
-    const gridStyle = {
-        '--ag-header-background-color': '#15803d',
-        '--ag-header-foreground-color': '#ffffff',
-        '--ag-border-color': '#e5e7eb',
-        '--ag-row-hover-color': '#f0fdf4',
-        '--ag-selected-row-background-color': '#dcfce7',
-        '--ag-odd-row-background-color': '#f9fafb',
-        '--ag-even-row-background-color': '#ffffff',
-        '--ag-font-family': 'inherit',
-        '--ag-font-size': '16px',
-        '--ag-row-height': '60px',
-        '--ag-header-height': '50px',
-        '--ag-icon-font-family': 'inherit',
-        // Make filter, pagination and sorting icons white
-        '--ag-header-column-resize-handle-color': '#ffffff',
-        '--ag-header-column-separator-color': '#ffffff',
-        '--ag-icon-font-code-ascending': '"▲"',
-        '--ag-icon-font-code-descending': '"▼"',
-        '--ag-icon-font-code-none': '"↕"',
-        '--ag-icon-font-code-filter': '"⚲"',
-        '--ag-header-cell-hover-background-color': '#166534',
-        '--ag-header-cell-moving-background-color': '#166534',
-        // Filter icon styling
-        '--ag-icon-size': '12px',
-        '--ag-header-column-filter-icon-color': '#ffffff',
-        // Filter menu styling
-        '--ag-menu-background-color': '#ffffff',
-        '--ag-menu-border-color': '#e5e7eb',
-        '--ag-menu-separator-color': '#e5e7eb',
-        '--ag-menu-option-hover-color': '#f0fdf4',
-        '--ag-menu-option-selected-color': '#dcfce7',
-        '--ag-input-border-color': '#d1d5db',
-        '--ag-input-border-color-invalid': '#ef4444',
-        '--ag-input-focus-border-color': '#15803d',
-        '--ag-input-focus-box-shadow': '0 0 0 3px rgba(21, 128, 61, 0.1)',
-        '--ag-button-background-color': '#15803d',
-        '--ag-button-border-color': '#15803d',
-        '--ag-button-text-color': '#ffffff',
-        '--ag-button-hover-background-color': '#166534',
-        '--ag-button-hover-border-color': '#166534',
-        '--ag-secondary-button-background-color': '#ffffff',
-        '--ag-secondary-button-border-color': '#d1d5db',
-        '--ag-secondary-button-text-color': '#374151',
-        '--ag-secondary-button-hover-background-color': '#f9fafb',
-        '--ag-secondary-button-hover-border-color': '#9ca3af',
-        '--ag-header-column-menu-button-color': '#ffffff',
-        '--ag-header-column-menu-button-hover-color': '#f3f4f6',
-    };
-
+    
     useEffect(() => {
         const handleResize = () => {
             setIsMobileView(window.innerWidth < 768);
@@ -417,18 +368,25 @@ const TeamManagement = () => {
     return (
         <div className="max-w-full px-4 sm:px-6 pb-6">
             <div>
-                <h1 className='flex items-center gap-2 text-2xl font-bold mb-4'><FiUser /> Team Management</h1>
-                <h1 className='mt-5 mb-4 font-semibold text-center md:text-left text-lg'>Team Member List</h1>
+
+                   <div className="flex items-center bg-green-700 justify-between p-4 border-b border-gray-200">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                             <h1 className="text-lg text-white"><FiUser /></h1> <h1 className="text-lg font-semibold text-white">Team Management</h1>
+                            </div>
+                          </div>
+                        </div>
 
                 {/* Status filter and export row */}
-                <div className="flex flex-wrap items-center justify-between mt-4 mb-4">
+                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5 mb-3">
+            <h1 className="text-2xl font-bold text-green-800">Team List</h1>
 
                     <button
                         className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center text-base"
                         onClick={downloadExcel}
                     >
                         <AiOutlineDownload className="mr-1" />
-                        <span>Export</span>
+                        <span>Download Excel</span>
                     </button>
                 </div>
 
@@ -446,7 +404,7 @@ const TeamManagement = () => {
                             </div>
                         ) : (
                             /* Desktop View with AG Grid */
-                            <div className="ag-theme-alpine" style={{ height: '600px', width: '100%', ...gridStyle }}>
+                            <div className="ag-theme-alpine" style={{ height: '600px', width: '100%' }}>
                                 <style>{`
                                     .ag-theme-alpine {
                                         --ag-header-background-color: #15803d !important;
@@ -678,12 +636,90 @@ const TeamManagement = () => {
                                     .ag-theme-alpine .ag-paging-button.ag-disabled {
                                         color: #9ca3af;
                                     }
+                                           /* Paging Panel Container */
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 2px solid #e5e7eb;
+  background-color: #f0fdf4;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  border-radius: 0 0 8px 8px;
+  box-shadow: inset 0 1px 0 #d1d5db;
+}
+
+/* Paging Buttons */
+.ag-theme-alpine .ag-paging-button {
+  background: linear-gradient(to bottom right, #10b981, #059669);
+  color: white;
+  margin: 0 4px;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  height:24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.ag-theme-alpine .ag-paging-button:hover {
+  background: linear-gradient(to bottom right, #059669, #047857);
+  transform: scale(1.05);
+}
+
+.ag-theme-alpine .ag-paging-button[disabled] {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Page Size Dropdown Label */
+.ag-theme-alpine .ag-paging-panel::before {
+  margin-right: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Page Size Selector */
+.ag-theme-alpine select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.ag-theme-alpine select:hover,
+.ag-theme-alpine select:focus {
+  border-color: #10b981;
+  outline: none;
+  background-color: #ecfdf5;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+/* Page info text (e.g., 1 to 10 of 16) */
+.ag-theme-alpine .ag-paging-row-summary-panel {
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
                                 `}</style>
                                 <AgGridReact
                                     rowData={filteredEmployees}
                                     columnDefs={columnDefs}
                                     defaultColDef={defaultColDef}
                                     gridOptions={gridOptions}
+                                     paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
                                     onGridReady={onGridReady}
                                     suppressMenuHide={true}
                                     enableCellTextSelection={true}

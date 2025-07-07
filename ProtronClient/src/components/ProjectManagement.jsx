@@ -135,7 +135,7 @@ const ProjectManagement = () => {
     {
       headerName: '#',
       valueGetter: (params) => params.node.rowIndex + 1,
-      width: 80,
+      width: 50,
       pinned: 'left',
       suppressMenu: true,
       sortable: false,
@@ -147,7 +147,7 @@ const ProjectManagement = () => {
       field: 'projectName',
       cellRenderer: ProjectNameRenderer,
       flex: 1,
-      minWidth: 250,
+      minWidth: 200,
       filter: 'agTextColumnFilter',
       filterParams: {
         filterOptions: ['contains', 'startsWith', 'endsWith'],
@@ -159,7 +159,7 @@ const ProjectManagement = () => {
       headerName: 'Start Date',
       field: 'startDate',
       valueFormatter: (params) => formatDate(params.value),
-      width: 130,
+      width: 100,
       filter: 'agDateColumnFilter',
       cellStyle: { textAlign: 'center' }
     },
@@ -185,7 +185,7 @@ const ProjectManagement = () => {
       headerName: 'Cost Unit',
       field: 'unit',
       valueFormatter: (params) => params.value || '-',
-      width: 120,
+      width: 89,
       filter: 'agTextColumnFilter',
       cellStyle: { textAlign: 'center' }
     },
@@ -558,9 +558,16 @@ const ProjectManagement = () => {
         />
       ) : (
         <div>
-          <h1 className="flex items-center gap-2">
-            <AiFillProject /> Project Management
-          </h1>
+     
+        <div className="flex items-center bg-green-700 justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+             <h1 className="text-lg text-white"><AiFillProject /></h1> <h1 className="text-lg font-semibold text-white">Project Management</h1>
+            </div>
+          </div>
+        </div>
+             
+         
 
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5">
             <h1 className="text-2xl font-bold text-green-800">Project List</h1>
@@ -585,7 +592,7 @@ const ProjectManagement = () => {
                   onClick={downloadExcel}
                 >
                   <AiOutlineDownload className="mr-1" />
-                  <span className="sm:inline">Export</span>
+                  <span className="sm:inline">Download Excel</span>
                 </button>
 
                 {/* Add Project Button */}
@@ -605,17 +612,17 @@ const ProjectManagement = () => {
             {isLoading ? (
               <LoadingSpinner />
             ) : (
-              <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '600px', width: '100%' }}>
+              <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '540px', width: '100%' }}>
                 <style jsx>{`
                   .ag-theme-alpine .ag-header {
-                    background-color: #065f46;
+                    background-color: #15803d!important;
                     color: white;
                     font-weight: 600;
                     
                     border-bottom: 2px solid #047857;
                   }
                   .ag-theme-alpine .ag-header-cell {
-                    background-color: #065f46;
+                    
                     color: white;
                     border-right: 1px solid #047857;
                     font-weight: 600;
@@ -716,6 +723,84 @@ const ProjectManagement = () => {
                     background-color: #d1d5db;
                     color: #6b7280;
                   }
+                    /* Paging Panel Container */
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 2px solid #e5e7eb;
+  background-color: #f0fdf4;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  border-radius: 0 0 8px 8px;
+  box-shadow: inset 0 1px 0 #d1d5db;
+}
+
+/* Paging Buttons */
+.ag-theme-alpine .ag-paging-button {
+  background: linear-gradient(to bottom right, #10b981, #059669);
+  color: white;
+  margin: 0 4px;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  height:24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.ag-theme-alpine .ag-paging-button:hover {
+  background: linear-gradient(to bottom right, #059669, #047857);
+  transform: scale(1.05);
+}
+
+.ag-theme-alpine .ag-paging-button[disabled] {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Page Size Dropdown Label */
+.ag-theme-alpine .ag-paging-panel::before {
+  margin-right: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Page Size Selector */
+.ag-theme-alpine select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.ag-theme-alpine select:hover,
+.ag-theme-alpine select:focus {
+  border-color: #10b981;
+  outline: none;
+  background-color: #ecfdf5;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+/* Page info text (e.g., 1 to 10 of 16) */
+.ag-theme-alpine .ag-paging-row-summary-panel {
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
+
                 `}</style>
                 <AgGridReact
                   columnDefs={columnDefs}

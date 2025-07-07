@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -22,8 +22,10 @@ const TimesheetManager = () => {
   const [timesheetData, setTimesheetData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [gridApi, setGridApi] = useState(null);
+
+  // Ref for hidden date input
+  const hiddenDateInputRef = useRef(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -174,19 +176,23 @@ const TimesheetManager = () => {
       filter: false,
       resizable: true,
       width: 120,
+      minWidth: 100,
+      maxWidth: 150,
       suppressMenu: true,
     }));
 
     return [
-      {
+   {
         headerName: "#",
-        valueGetter: (params) => params.node.rowIndex + 1,
+        valueGetter: "node.rowIndex + 1",
+       
+    minWidth:30,
+    maxWidth:50,
+        pinned: "left",
         sortable: false,
         filter: false,
-        resizable: false,
-        width: 60,
         suppressMenu: true,
-        pinned: 'left',
+        cellStyle: { textAlign: 'center' }
       },
       {
         headerName: "Name",
@@ -196,6 +202,8 @@ const TimesheetManager = () => {
         filter: true,
         resizable: true,
         width: 250,
+        minWidth: 200,
+        maxWidth: 350,
         pinned: 'left',
       },
       ...dayColumns,
@@ -207,6 +215,8 @@ const TimesheetManager = () => {
         filter: false,
         resizable: true,
         width: 130,
+        minWidth: 120,
+        maxWidth: 180,
         pinned: 'right',
       },
       {
@@ -217,6 +227,8 @@ const TimesheetManager = () => {
         filter: false,
         resizable: false,
         width: 120,
+        minWidth: 100,
+        maxWidth: 150,
         suppressMenu: true,
         pinned: 'right',
       }
@@ -229,6 +241,7 @@ const TimesheetManager = () => {
     filter: true,
     resizable: true,
     minWidth: 100,
+    maxWidth: 400,
     floatingFilter: false,
     filterParams: {
       buttons: ['reset', 'apply'],
@@ -241,6 +254,7 @@ const TimesheetManager = () => {
     },
     suppressMenu: false,
     menuTabs: ['filterMenuTab'],
+    suppressSizeToFit: false,
   }), []);
 
   // Grid options
@@ -253,6 +267,9 @@ const TimesheetManager = () => {
     headerHeight: 50,
     animateRows: true,
     suppressRowClickSelection: true,
+    suppressColumnVirtualisation: false,
+    suppressAutoSize: false,
+    suppressSizeToFit: false,
     getRowStyle: (params) => {
       if (params.node.rowIndex % 2 === 0) {
         return { background: '#ffffff' };
@@ -267,6 +284,13 @@ const TimesheetManager = () => {
     setGridApi(params.api);
     params.api.sizeColumnsToFit();
   }, []);
+
+  // Auto-size columns when data changes
+  useEffect(() => {
+    if (gridApi) {
+      gridApi.sizeColumnsToFit();
+    }
+  }, [timesheetData, showWeekend, gridApi]);
 
   // Fetch timesheet data
   const fetchTimesheetData = async () => {
@@ -347,20 +371,6 @@ const TimesheetManager = () => {
     fetchTimesheetData();
   }, [currentWeek, showWeekend]);
 
-  // Close date picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showDatePicker && !event.target.closest('.relative')) {
-        setShowDatePicker(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showDatePicker]);
-
   // Navigation functions
   const goToPreviousWeek = () => {
     const newDate = new Date(currentWeek);
@@ -377,11 +387,28 @@ const TimesheetManager = () => {
   // Handle date selection from calendar
   const handleDateSelect = (selectedDate) => {
     setCurrentWeek(new Date(selectedDate));
-    setShowDatePicker(false);
   };
 
-  // Get today's date for calendar
-  const today = new Date().toISOString().split('T')[0];
+  // Function to trigger calendar
+  const openCalendar = () => {
+    if (hiddenDateInputRef.current) {
+      try {
+        // Try showPicker first (modern browsers)
+        if (typeof hiddenDateInputRef.current.showPicker === 'function') {
+          hiddenDateInputRef.current.showPicker();
+        } else {
+          // Fallback: focus and click
+          hiddenDateInputRef.current.focus();
+          hiddenDateInputRef.current.click();
+        }
+      } catch (error) {
+        // If showPicker fails, try focus and click
+        console.log('showPicker not supported, using fallback');
+        hiddenDateInputRef.current.focus();
+        hiddenDateInputRef.current.click();
+      }
+    }
+  };
 
   // Frontend-only Excel download functionality
   const downloadExcel = () => {
@@ -438,28 +465,19 @@ const TimesheetManager = () => {
   );
 
   return (
-    <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+    <div className=" bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-sm">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center bg-green-700 justify-between p-4 border-b border-gray-200">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <h1 className="text-lg font-semibold text-gray-900">Manage Timesheet</h1>
+              <h1 className="text-lg font-semibold text-white">Timesheet-Admin View</h1>
             </div>
           </div>
-          <div className="hidden sm:block text-sm text-gray-600">User</div>
-          <button
-            className="sm:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
         </div>
 
         {/* Admin Timesheet View Header */}
         <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Admin Timesheet View</h2>
-
           <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:block`}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -480,44 +498,17 @@ const TimesheetManager = () => {
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
-                  <button
-                    onClick={() => setShowDatePicker(!showDatePicker)}
-                    className="p-2 hover:bg-gray-100 rounded"
-                    title="Select date"
-                  >
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                  </button>
-
-                  {/* Date Picker Dropdown */}
-                  {showDatePicker && (
-                    <div className="absolute top-12 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
-                      <div className="mb-2">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Select a date (week will be calculated automatically)
-                        </label>
-                        <input
-                          type="date"
-                          value={currentWeek.toISOString().split('T')[0]}
-                          onChange={(e) => handleDateSelect(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <button
-                          onClick={() => handleDateSelect(today)}
-                          className="text-xs text-blue-600 hover:text-blue-800"
-                        >
-                          Go to Today
-                        </button>
-                        <button
-                          onClick={() => setShowDatePicker(false)}
-                          className="text-xs text-gray-500 hover:text-gray-700"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  
+                  {/* Alternative: Direct visible date input */}
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={currentWeek.toISOString().split('T')[0]}
+                      onChange={(e) => handleDateSelect(e.target.value)}
+                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
+                      title="Select date"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -584,6 +575,7 @@ const TimesheetManager = () => {
               
               .ag-theme-alpine .ag-header-cell-label {
                 color: #ffffff !important;
+                justify-content: flex-start;
               }
               
               .ag-theme-alpine .ag-header-cell-sortable .ag-header-cell-label {
@@ -599,10 +591,6 @@ const TimesheetManager = () => {
                 border-radius: 8px;
                 border: 1px solid #e5e7eb;
                 overflow: hidden;
-              }
-              
-              .ag-theme-alpine .ag-header-cell .ag-header-cell-label {
-                justify-content: flex-start;
               }
               
               .ag-theme-alpine .ag-cell {
@@ -641,28 +629,152 @@ const TimesheetManager = () => {
                 background-color: #f0fdf4 !important;
               }
               
-              .ag-theme-alpine .ag-paging-panel {
-                border-top: 1px solid #d1d5db;
-                background-color: #f9fafb;
+
+
+              .ag-theme-alpine .ag-filter-panel {
+                padding: 16px;
+                background: #ffffff;
               }
               
-              .ag-theme-alpine .ag-paging-button {
-                color: #15803d;
+              .ag-theme-alpine .ag-filter-panel .ag-filter-body input {
+                padding: 8px 12px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: all 0.2s ease;
               }
               
-              .ag-theme-alpine .ag-paging-button:hover {
-                background-color: #dcfce7;
+              .ag-theme-alpine .ag-filter-panel .ag-filter-body input:focus {
+                outline: none;
+                border-color: #15803d;
+                box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
               }
               
-              .ag-theme-alpine .ag-paging-button.ag-disabled {
-                color: #9ca3af;
+              .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel {
+                padding: 16px 0 0 0;
+                border-top: 1px solid #e5e7eb;
+                margin-top: 16px;
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
               }
+              
+              .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button {
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                border: 1px solid transparent;
+                cursor: pointer;
+              }
+              
+              .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button:not(.ag-button-secondary) {
+                background: #15803d;
+                color: #ffffff;
+                border-color: #15803d;
+              }
+              
+              .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button:not(.ag-button-secondary):hover {
+                background: #166534;
+                border-color: #166534;
+              }
+              
+              .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button.ag-button-secondary {
+                background: #ffffff;
+                color: #374151;
+                border-color: #d1d5db;
+              }
+              
+              .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button.ag-button-secondary:hover {
+                background: #f9fafb;
+                border-color: #9ca3af;
+              }
+                   /* Paging Panel Container */
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 2px solid #e5e7eb;
+  background-color: #f0fdf4;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  border-radius: 0 0 8px 8px;
+  box-shadow: inset 0 1px 0 #d1d5db;
+}
+
+/* Paging Buttons */
+.ag-theme-alpine .ag-paging-button {
+  background: linear-gradient(to bottom right, #10b981, #059669);
+  color: white;
+  margin: 0 4px;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  height:24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.ag-theme-alpine .ag-paging-button:hover {
+  background: linear-gradient(to bottom right, #059669, #047857);
+  transform: scale(1.05);
+}
+
+.ag-theme-alpine .ag-paging-button[disabled] {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Page Size Dropdown Label */
+.ag-theme-alpine .ag-paging-panel::before {
+  margin-right: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Page Size Selector */
+.ag-theme-alpine select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.ag-theme-alpine select:hover,
+.ag-theme-alpine select:focus {
+  border-color: #10b981;
+  outline: none;
+  background-color: #ecfdf5;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+/* Page info text (e.g., 1 to 10 of 16) */
+.ag-theme-alpine .ag-paging-row-summary-panel {
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
+                
             `}</style>
             <AgGridReact
               rowData={timesheetData}
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
               gridOptions={gridOptions}
+                  paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
               onGridReady={onGridReady}
               suppressMenuHide={true}
               enableCellTextSelection={true}

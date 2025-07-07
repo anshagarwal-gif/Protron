@@ -62,37 +62,7 @@
       setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    // Custom AG Grid theme styles
-    const gridStyle = {
-      '--ag-header-background-color': '#15803d',
-      '--ag-header-foreground-color': '#ffffff',
-      '--ag-border-color': '#e5e7eb',
-      '--ag-row-hover-color': '#f0fdf4',
-      '--ag-selected-row-background-color': '#dcfce7',
-      '--ag-odd-row-background-color': '#f9fafb',
-      '--ag-even-row-background-color': '#ffffff',
-      '--ag-font-family': 'inherit',
-      '--ag-font-size': '14px',
-      '--ag-row-height': '48px',
-      '--ag-header-height': '48px',
-      '--ag-icon-font-family': 'inherit',
-      // Make filter, pagination and sorting icons white
-      '--ag-header-column-resize-handle-color': '#ffffff',
-      '--ag-header-column-separator-color': '#ffffff',
-      '--ag-icon-font-code-ascending': '"▲"',
-      '--ag-icon-font-code-descending': '"▼"',
-      '--ag-icon-font-code-none': '"↕"',
-      '--ag-icon-font-code-filter': '"⚲"',
-      '--ag-header-cell-hover-background-color': '#166534',
-      '--ag-header-cell-moving-background-color': '#166534',
-      // Remove floating filter row
-      '--ag-header-column-separator-display': 'block',
-      '--ag-header-column-separator-height': '100%',
-      '--ag-header-column-separator-width': '1px',
-      // Filter icon styling
-      '--ag-icon-size': '12px',
-      '--ag-header-column-filter-icon-color': '#ffffff',
-    };
+   
 
     // Custom loading overlay component
     const LoadingOverlay = () => (
@@ -585,7 +555,9 @@
       {
         headerName: "#",
         valueGetter: "node.rowIndex + 1",
-        width: 70,
+       
+    minWidth:10,
+    maxWidth:50,
         pinned: "left",
         sortable: false,
         filter: false,
@@ -597,7 +569,9 @@
         field: "name",
         valueGetter: params => getFullName(params.data),
         flex: 1,
-        minWidth: 150,
+        
+     
+      
         sortable: true,
         filter: true,
         cellStyle: { fontWeight: 'bold' }
@@ -616,7 +590,8 @@
         field: "role",
         valueGetter: params => getRoleName(params.data.role),
         flex: 1,
-        minWidth: 120,
+        minWidth: 70,
+        maxWidth:170,
         sortable: true,
         filter: true
       },
@@ -658,66 +633,50 @@
         sortable: false,
         filter: false,
         suppressMenu: true,
-        cellRenderer: params => {
-          const user = params.data;
-          return (
-            <div className="flex justify-center gap-2 h-full items-center">
-              {hasAccess('users', 'edit') && (
-                user.status === 'active' ? (
-                  <div className="relative group">
-                    <button
-                      onClick={() => handleHold(user)}
-                      className="p-2 rounded-full hover:bg-orange-100 transition-colors"
-                    >
-                      <Pause size={16} className="text-orange-600" />
-                    </button>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                      Hold
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative group">
-                    <button
-                      onClick={() => handleActivate(user)}
-                      className="p-2 rounded-full hover:bg-green-100 transition-colors"
-                    >
-                      <ShieldCheck size={16} className="text-green-600" />
-                    </button>
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                      Activate
-                    </div>
-                  </div>
-                )
-              )}
+    cellRenderer: params => {
+  const user = params.data;
+  return (
+    <div className="flex justify-center gap-2 h-full items-center">
+      {hasAccess('users', 'edit') && (
+        user.status === 'active' ? (
+          <button
+            onClick={() => handleHold(user)}
+            className="p-2 rounded-full hover:bg-orange-100 transition-colors"
+            title="Put user on hold"
+          >
+            <Pause size={16} className="text-orange-600" />
+          </button>
+        ) : (
+          <button
+            onClick={() => handleActivate(user)}
+            className="p-2 rounded-full hover:bg-green-100 transition-colors"
+            title="Activate user account"
+          >
+            <ShieldCheck size={16} className="text-green-600" />
+          </button>
+        )
+      )}
 
-              {hasAccess('users', 'edit') && (
-                <div className="relative group">
-                  <button
-                    onClick={() => handleManageUser(user)}
-                    className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-                  >
-                    <UserCog size={16} className="text-blue-600" />
-                  </button>
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                    Manage User
-                  </div>
-                </div>
-              )}
+      {hasAccess('users', 'edit') && (
+        <button
+          onClick={() => handleManageUser(user)}
+          className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+          title="Edit user permissions"
+        >
+          <UserCog size={16} className="text-blue-600" />
+        </button>
+      )}
 
-              <div className="relative group">
-                <button
-                  onClick={() => handleAuditTrail(user.email)}
-                  className="p-2 rounded-full hover:bg-purple-100 transition-colors"
-                >
-                  <FileText size={16} className="text-purple-600" />
-                </button>
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                  Audit Trail
-                </div>
-              </div>
-            </div>
-          );
-        }
+      <button
+        onClick={() => handleAuditTrail(user.email)}
+        className="p-2 rounded-full hover:bg-purple-100 transition-colors"
+        title="Download audit trail"
+      >
+        <FileText size={16} className="text-purple-600" />
+      </button>
+    </div>
+  );
+}
       }
     ], [hasAccess, users]);
 
@@ -765,24 +724,22 @@
         sortable: false,
         filter: false,
         suppressMenu: true,
-        cellRenderer: params => {
-          const role = params.data;
-          return (
-            <div className="flex justify-center gap-2 h-full items-center">
-              <div className="relative group">
-                <button
-                  onClick={() => handleManageRole(role.roleId)}
-                  className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-                >
-                  <UserCog size={16} className="text-blue-600" />
-                </button>
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                  Manage Role
-                </div>
-              </div>
-            </div>
-          );
-        }
+        // REPLACE YOUR ROLE ACTIONS CELL RENDERER WITH THIS:
+
+cellRenderer: params => {
+  const role = params.data;
+  return (
+    <div className="flex justify-center gap-2 h-full items-center">
+      <button
+        onClick={() => handleManageRole(role.roleId)}
+        className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+        title="Manage Role Permissions"
+      >
+        <UserCog size={16} className="text-blue-600" />
+      </button>
+    </div>
+  );
+}
       }] : [])
     ], [hasAccess, roles]);
 
@@ -828,25 +785,6 @@
                 Manage Roles
               </div>
             </button>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <select
-                value={selectedTenant}
-                onChange={(e) => setSelectedTenant(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-md py-2 pl-4 pr-10 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {tenants.map((tenant) => (
-                  <option key={tenant} value={tenant}>
-                    {tenant}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <ChevronDown size={16} />
-              </div>
-            </div>
           </div>
         </div>
 
@@ -905,8 +843,8 @@
           </div>
 
           {/* AG Grid Tables */}
-          <div className="ag-theme-alpine" style={{ height: '600px', width: '100%', ...gridStyle }}>
-             <style>{`
+          <div className="ag-theme-alpine" style={{ height: '600px', width: '100%'}}>
+             <style>{`    
                                     .ag-theme-alpine {
                                         --ag-header-background-color: #15803d !important;
                                         --ag-header-foreground-color: #ffffff !important;
@@ -1122,23 +1060,84 @@
                                     .ag-theme-alpine .ag-row:hover {
                                         background-color: #f0fdf4 !important;
                                     }
-                                    
-                                    .ag-theme-alpine .ag-paging-panel {
-                                        border-top: 1px solid #d1d5db;
-                                        background-color: #f9fafb;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-paging-button {
-                                        color: #15803d;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-paging-button:hover {
-                                        background-color: #dcfce7;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-paging-button.ag-disabled {
-                                        color: #9ca3af;
-                                    }
+                                      /* Paging Panel Container */
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 2px solid #e5e7eb;
+  background-color: #f0fdf4;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  border-radius: 0 0 8px 8px;
+  box-shadow: inset 0 1px 0 #d1d5db;
+}
+
+/* Paging Buttons */
+.ag-theme-alpine .ag-paging-button {
+  background: linear-gradient(to bottom right, #10b981, #059669);
+  color: white;
+  margin: 0 4px;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  height:24px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.ag-theme-alpine .ag-paging-button:hover {
+  background: linear-gradient(to bottom right, #059669, #047857);
+  transform: scale(1.05);
+}
+
+.ag-theme-alpine .ag-paging-button[disabled] {
+  background-color: #e5e7eb;
+  color:rgb(255, 255, 255);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Page Size Dropdown Label */
+.ag-theme-alpine .ag-paging-panel::before {
+  margin-right: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Page Size Selector */
+.ag-theme-alpine select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease-in-out;
+}
+
+.ag-theme-alpine select:hover,
+.ag-theme-alpine select:focus {
+  border-color: #10b981;
+  outline: none;
+  background-color: #ecfdf5;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+/* Page info text (e.g., 1 to 10 of 16) */
+.ag-theme-alpine .ag-paging-row-summary-panel {
+  font-weight: 500;
+  font-size: 14px;
+  color: #374151;
+}
+                                        
                                 `}</style>
             {activeTab === "users" ? (
               <AgGridReact

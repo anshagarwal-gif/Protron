@@ -640,7 +640,7 @@ const TimesheetManager = () => {
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
-        <div className="px-6 py-4">
+        <div className="px-6 py-1">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
@@ -650,9 +650,7 @@ const TimesheetManager = () => {
                 <h1 className="text-xl font-semibold text-gray-900">Manage Timesheet</h1>
               </div>
             </div>
-            <div className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded">
-              Admin
-            </div>
+          
           </div>
         </div>
       </div>
