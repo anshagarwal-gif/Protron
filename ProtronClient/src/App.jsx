@@ -61,7 +61,7 @@ const App = () => {
                         setIsAuthenticated={setIsAuthenticated}
                     />
                 )}
-                <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto">
                     <Routes>
                         {!isAuthenticated ? (
                             <>
