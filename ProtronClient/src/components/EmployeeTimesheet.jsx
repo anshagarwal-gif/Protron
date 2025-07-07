@@ -721,23 +721,6 @@ const TimesheetManager = () => {
       />
       
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
-        <div className="px-6 py-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-green-700 rounded flex items-center justify-center">
-                  <Calendar className="h-4 w-4 text-white" />
-                </div>
-                <h1 className="text-xl font-semibold text-gray-900">Manage Timesheet</h1>
-              </div>
-            </div>
-          
-          </div>
-        </div>
-      </div>
-
       {/* Navigation and Controls */}
       <div className="bg-white border-b border-gray-200 flex-shrink-0">
         <div className="px-6 py-4">
