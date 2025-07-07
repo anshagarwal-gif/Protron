@@ -719,7 +719,7 @@ const TimesheetManager = () => {
         isVisible={toast.isVisible}
         onClose={hideToast}
       />
-      />
+      
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
