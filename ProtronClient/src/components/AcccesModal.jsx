@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,14 +16,18 @@ import {
   Paper,
   Switch,
   InputAdornment,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material"
 import PersonIcon from "@mui/icons-material/Person"
 import EmailIcon from "@mui/icons-material/Email"
-import BusinessIcon from "@mui/icons-material/Business"
-import SettingsIcon from "@mui/icons-material/Settings"
 import axios from "axios"
 
 const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'))
+
   const [formData, setFormData] = useState({
     tenantName: "",
     firstName: "",
@@ -176,18 +181,6 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
     onSubmit(formData, permissions, selectedRoleData)
   }
 
-  const handleReset = () => {
-    setFormData({
-      tenantName: "",
-      firstName: "",
-      lastName: "",
-      emailId: "",
-      role: "",
-    })
-    setPermissions({})
-    setSelectedRoleData(null)
-  }
-
   // Helper function to format module names for display
   const formatModuleName = (moduleName) => {
     return moduleName
@@ -196,12 +189,19 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       .join(" ")
   }
 
-  // Common height for input fields
-  const fieldHeight = "56px"
+  // Responsive field height
+  const fieldHeight = isMobile ? "48px" : "56px"
 
   // Custom theme colors
   const greenPrimary = "#1b5e20" // green-900
   const greenHover = "#2e7d32" // green-600
+
+  // Responsive grid columns for access rights
+  const getGridColumns = () => {
+    if (isMobile) return "1fr"
+    if (isTablet) return "repeat(2, 1fr)"
+    return "repeat(auto-fit, minmax(180px, 1fr))"
+  }
 
   return (
     <Dialog
@@ -209,323 +209,374 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       onClose={onClose}
       fullWidth
       maxWidth="lg"
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          borderRadius: 2,
+          borderRadius: isMobile ? 0 : 2,
           boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-          maxHeight: "90vh",
-          height: "90vh", // Fixed height to maintain consistency
+          // Remove fixed height - let it adjust to content
+          maxHeight: isMobile ? "100vh" : "95vh",
+          height: isMobile ? "100vh" : "auto",
+          m: isMobile ? 0 : 2,
+          display: 'flex',
+          flexDirection: 'column',
         },
       }}
     >
+      {/* Header */}
       <Box
         sx={{
           bgcolor: "#f8f9fa",
           borderBottom: "1px solid #e0e0e0",
-          py: 2,
-          px: 3,
+          py: isMobile ? 1.5 : 2,
+          px: isMobile ? 2 : 3,
           flexShrink: 0,
         }}
       >
-        <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
+        <Typography 
+          variant={isMobile ? "h6" : "h5"} 
+          fontWeight="600" 
+          sx={{ color: greenPrimary }}
+        >
           {selectedUser ? "Edit User" : "Add New User"}
         </Typography>
-      </Box>
-
-      <DialogContent sx={{ p: 3, overflow: "hidden", display: "flex", flexDirection: "column", flex: 1 }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, flex: 1 }}>
-          {/* Row 1: Tenant Name and Email ID */}
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Box sx={{ flex: 1 }}>
-              <TextField
-                fullWidth
-                label="Tenant Name"
-                placeholder="Enter tenant name"
-                value={formData.tenantName}
-                onChange={handleInputChange("tenantName")}
-                variant="outlined"
-                disabled={'true'}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <BusinessIcon sx={{ color: greenPrimary }} />
-                    </InputAdornment>
-                  ),
-                  sx: { height: fieldHeight },
-                }}
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <TextField
-                fullWidth
-                label="Email ID"
-                placeholder="Enter here"
-                type="email"
-                value={formData.emailId}
-                onChange={handleInputChange("emailId")}
-                variant="outlined"
-                disabled={'true'}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon sx={{ color: greenPrimary }} />
-                    </InputAdornment>
-                  ),
-                  sx: { height: fieldHeight },
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* Row 2: First Name, Last Name, and Role */}
-          <Box sx={{ display: "flex", gap: 3 }}>
-            <Box sx={{ flex: 1 }}>
-              <TextField
-                fullWidth
-                label="First Name"
-                placeholder="Enter here"
-                value={formData.firstName}
-                onChange={handleInputChange("firstName")}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon sx={{ color: greenPrimary }} />
-                    </InputAdornment>
-                  ),
-                  sx: { height: fieldHeight },
-                }}
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <TextField
-                fullWidth
-                label="Last Name"
-                placeholder="Enter here"
-                value={formData.lastName}
-                onChange={handleInputChange("lastName")}
-                variant="outlined"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon sx={{ color: greenPrimary }} />
-                    </InputAdornment>
-                  ),
-                  sx: { height: fieldHeight },
-                }}
-              />
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <FormControl fullWidth>
-                <InputLabel>Role</InputLabel>
-                <Select
-                  value={formData.role}
-                  onChange={handleInputChange("role")}
-                  label="Role"
-                  sx={{ height: fieldHeight }}
-                >
-                  <MenuItem value="">Select from list</MenuItem>
-                  {roles.map((role) => (
-                    <MenuItem key={role.roleId} value={role.roleName}>
-                      {role.roleName}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-          </Box>
-
-          {/* Dynamic Access Details Section */}
-          <Paper
-            variant="outlined"
-            sx={{
-              p: 2.5,
-              bgcolor: "#f8f9fa",
-              borderColor: greenPrimary,
-              borderRadius: 2,
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              minHeight: 0, // Important for flex child with overflow
+        {/* Add tenant name as subtitle only when editing */}
+        {selectedUser && formData.tenantName && (
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: "#666", 
+              mt: 0.5, 
+              fontSize: isMobile ? "0.8rem" : "0.875rem",
+              fontWeight: 400 
             }}
           >
-            <Typography variant="h6" sx={{ color: greenPrimary, mb: 2, fontWeight: 600 }}>
-              Access Details
-            </Typography>
+            {formData.tenantName}
+          </Typography>
+        )}
+      </Box>
 
-            {modules.length > 0 ? (
-              <Box 
+      <DialogContent 
+        sx={{ 
+          p: 0,
+          overflow: "hidden", 
+          display: "flex", 
+          flexDirection: "column", 
+          flex: 1,
+          minHeight: 0, // Important for proper flexbox behavior
+        }}
+      >
+        {/* Scrollable Content Area */}
+        <Box 
+          sx={{ 
+            p: isMobile ? 2 : 3,
+            overflowY: "auto",
+            flex: 1,
+            minHeight: 0, // Important for proper flexbox behavior
+          }}
+        >
+          <Box sx={{ display: "flex", flexDirection: "column", gap: isMobile ? 2 : 2.5 }}>
+            {/* Row 1: Email ID only */}
+            <Box sx={{ display: "flex", gap: isMobile ? 2 : 3 }}>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Email ID"
+                  placeholder="Enter here"
+                  type="email"
+                  value={formData.emailId}
+                  onChange={handleInputChange("emailId")}
+                  variant="outlined"
+                  disabled={true}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon sx={{ color: greenPrimary }} />
+                      </InputAdornment>
+                    ),
+                    sx: { height: fieldHeight },
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Row 2: First Name, Last Name, and Role */}
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: isMobile ? "column" : "row",
+              gap: isMobile ? 2 : 3 
+            }}>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  label="First Name"
+                  placeholder="Enter here"
+                  value={formData.firstName}
+                  onChange={handleInputChange("firstName")}
+                  variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: greenPrimary }} />
+                      </InputAdornment>
+                    ),
+                    sx: { height: fieldHeight },
+                  }}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Last Name"
+                  placeholder="Enter here"
+                  value={formData.lastName}
+                  onChange={handleInputChange("lastName")}
+                  variant="outlined"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: greenPrimary }} />
+                      </InputAdornment>
+                    ),
+                    sx: { height: fieldHeight },
+                  }}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <FormControl fullWidth>
+                  <InputLabel>Role</InputLabel>
+                  <Select
+                    value={formData.role}
+                    onChange={handleInputChange("role")}
+                    label="Role"
+                    sx={{ height: fieldHeight }}
+                  >
+                    <MenuItem value="">Select from list</MenuItem>
+                    {roles.map((role) => (
+                      <MenuItem key={role.roleId} value={role.roleName}>
+                        {role.roleName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
+
+            {/* Dynamic Access Details Section */}
+            <Paper
+              variant="outlined"
+              sx={{
+                p: isMobile ? 1.5 : 2.5,
+                bgcolor: "#f8f9fa",
+                borderColor: greenPrimary,
+                borderRadius: 2,
+                // Remove flex: 1 to allow natural sizing
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <Typography 
+                variant={isMobile ? "subtitle1" : "h6"} 
                 sx={{ 
-                  display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                  gap: 2,
-                  overflowY: "auto",
-                  pr: 1,
-                  flex: 1,
+                  color: greenPrimary, 
+                  mb: isMobile ? 1.5 : 2, 
+                  fontWeight: 600 
                 }}
               >
-                {modules.map((module, index) => {
-                  const moduleName = module.moduleName
-                  const formattedModuleName = formatModuleName(moduleName)
+                Access Details
+              </Typography>
 
-                  return (
-                    <Paper
-                      key={index}
-                      variant="outlined"
-                      sx={{
-                        p: 2,
-                        bgcolor: "#ffffff",
-                        borderColor: greenPrimary,
-                        borderRadius: 2,
-                        height: "fit-content",
-                        minHeight: "140px",
-                      }}
-                    >
-                      <Typography 
-                        variant="h6" 
-                        sx={{ 
-                          color: greenPrimary, 
-                          mb: 1.5, 
-                          fontWeight: 600,
-                          textAlign: "center",
-                          pb: 1,
-                          borderBottom: "1px solid #e0e0e0",
-                          fontSize: "0.9rem",
+              {modules.length > 0 ? (
+                <Box 
+                  sx={{ 
+                    display: "grid", 
+                    gridTemplateColumns: getGridColumns(),
+                    gap: isMobile ? 1.5 : 2,
+                    // Remove fixed height constraints
+                  }}
+                >
+                  {modules.map((module, index) => {
+                    const moduleName = module.moduleName
+                    const formattedModuleName = formatModuleName(moduleName)
+
+                    return (
+                      <Paper
+                        key={index}
+                        variant="outlined"
+                        sx={{
+                          p: isMobile ? 1.5 : 2,
+                          bgcolor: "#ffffff",
+                          borderColor: greenPrimary,
+                          borderRadius: 2,
+                          height: "fit-content",
+                          minHeight: isMobile ? "120px" : "140px",
                         }}
                       >
-                        {formattedModuleName}
-                      </Typography>
-                      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        {/* View Permission */}
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
-                            View
-                          </Typography>
-                          <Switch
-                            size="small"
-                            checked={permissions[`${moduleName}_canView`] || false}
-                            onChange={() => handlePermissionToggle(`${moduleName}_canView`)}
-                            sx={{
-                              "& .MuiSwitch-switchBase.Mui-checked": {
-                                color: "#1b5e20",
-                              },
-                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                                backgroundColor: "#1b5e20",
-                              },
-                            }}
-                          />
-                        </Box>
+                        <Typography 
+                          variant={isMobile ? "body1" : "h6"} 
+                          sx={{ 
+                            color: greenPrimary, 
+                            mb: isMobile ? 1 : 1.5, 
+                            fontWeight: 600,
+                            textAlign: "center",
+                            pb: 1,
+                            borderBottom: "1px solid #e0e0e0",
+                            fontSize: isMobile ? "0.8rem" : "0.9rem",
+                          }}
+                        >
+                          {formattedModuleName}
+                        </Typography>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: isMobile ? 0.5 : 1 }}>
+                          {/* View Permission */}
+                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <Typography 
+                              variant="body2" 
+                              color="text.secondary" 
+                              sx={{ 
+                                fontWeight: 500, 
+                                fontSize: isMobile ? "0.75rem" : "0.8rem" 
+                              }}
+                            >
+                              View
+                            </Typography>
+                            <Switch
+                              size="small"
+                              checked={permissions[`${moduleName}_canView`] || false}
+                              onChange={() => handlePermissionToggle(`${moduleName}_canView`)}
+                              sx={{
+                                "& .MuiSwitch-switchBase.Mui-checked": {
+                                  color: "#1b5e20",
+                                },
+                                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                  backgroundColor: "#1b5e20",
+                                },
+                              }}
+                            />
+                          </Box>
 
-                        {/* Edit Permission */}
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
-                            Edit
-                          </Typography>
-                          <Switch
-                            size="small"
-                            checked={permissions[`${moduleName}_canEdit`] || false}
-                            onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
-                            sx={{
-                              "& .MuiSwitch-switchBase.Mui-checked": {
-                                color: "#fbc02d",
-                              },
-                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                                backgroundColor: "#fbc02d",
-                              },
-                            }}
-                          />
-                        </Box>
+                          {/* Edit Permission */}
+                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <Typography 
+                              variant="body2" 
+                              color="text.secondary" 
+                              sx={{ 
+                                fontWeight: 500, 
+                                fontSize: isMobile ? "0.75rem" : "0.8rem" 
+                              }}
+                            >
+                              Edit
+                            </Typography>
+                            <Switch
+                              size="small"
+                              checked={permissions[`${moduleName}_canEdit`] || false}
+                              onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
+                              sx={{
+                                "& .MuiSwitch-switchBase.Mui-checked": {
+                                  color: "#fbc02d",
+                                },
+                                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                  backgroundColor: "#fbc02d",
+                                },
+                              }}
+                            />
+                          </Box>
 
-                        {/* Delete Permission */}
-                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, fontSize: "0.8rem" }}>
-                            Delete
-                          </Typography>
-                          <Switch
-                            size="small"
-                            checked={permissions[`${moduleName}_canDelete`] || false}
-                            onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
-                            sx={{
-                              "& .MuiSwitch-switchBase.Mui-checked": {
-                                color: "#c62828",
-                              },
-                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                                backgroundColor: "#c62828",
-                              },
-                            }}
-                          />
+                          {/* Delete Permission */}
+                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <Typography 
+                              variant="body2" 
+                              color="text.secondary" 
+                              sx={{ 
+                                fontWeight: 500, 
+                                fontSize: isMobile ? "0.75rem" : "0.8rem" 
+                              }}
+                            >
+                              Delete
+                            </Typography>
+                            <Switch
+                              size="small"
+                              checked={permissions[`${moduleName}_canDelete`] || false}
+                              onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
+                              sx={{
+                                "& .MuiSwitch-switchBase.Mui-checked": {
+                                  color: "#c62828",
+                                },
+                                "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                  backgroundColor: "#c62828",
+                                },
+                              }}
+                            />
+                          </Box>
                         </Box>
-                      </Box>
-                    </Paper>
-                  )
-                })}
-              </Box>
-            ) : (
-              <Box sx={{ textAlign: "center", py: 4, flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Typography variant="body1" color="text.secondary">
-                  {formData.role
-                    ? "No access rights defined for this role"
-                    : "Please select a role to view access rights"}
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-
-          {/* Action Buttons (Right-aligned) */}
-          <Box sx={{ 
-            display: "flex", 
-            justifyContent: "flex-end", 
-            gap: 2, 
-            pt: 2, 
-            borderTop: "1px solid #e0e0e0",
-            flexShrink: 0,
-          }}>
-            <Button
-              onClick={onClose}
-              variant="outlined"
-              sx={{
-                borderColor: greenPrimary,
-                color: greenPrimary,
-                height: "42px",
-                "&:hover": {
-                  borderColor: greenHover,
-                  color: greenHover,
-                },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleReset}
-              variant="outlined"
-              sx={{
-                borderColor: greenPrimary,
-                color: greenPrimary,
-                height: "42px",
-                "&:hover": {
-                  borderColor: greenHover,
-                  color: greenHover,
-                },
-              }}
-            >
-              Reset
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              variant="contained"
-              sx={{
-                bgcolor: greenPrimary,
-                color: "white",
-                height: "42px",
-                fontWeight: 600,
-                "&:hover": {
-                  bgcolor: greenHover,
-                },
-              }}
-            >
-              {selectedUser ? "Update User" : "Create User"}
-            </Button>
+                      </Paper>
+                    )
+                  })}
+                </Box>
+              ) : (
+                <Box sx={{ 
+                  textAlign: "center", 
+                  py: isMobile ? 3 : 4,
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center" 
+                }}>
+                  <Typography variant="body1" color="text.secondary">
+                    {formData.role
+                      ? "No access rights defined for this role"
+                      : "Please select a role to view access rights"}
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
           </Box>
+        </Box>
+
+        {/* Fixed Action Buttons at Bottom */}
+        <Box sx={{ 
+          display: "flex", 
+          flexDirection: isMobile ? "column" : "row",
+          justifyContent: "flex-end", 
+          gap: isMobile ? 1.5 : 2, 
+          p: isMobile ? 2 : 3,
+          pt: 2,
+          borderTop: "1px solid #e0e0e0",
+          flexShrink: 0,
+          bgcolor: "#ffffff", // Ensure white background
+        }}>
+          <Button
+            onClick={onClose}
+            variant="outlined"
+            fullWidth={isMobile}
+            sx={{
+              borderColor: greenPrimary,
+              color: greenPrimary,
+              height: isMobile ? "48px" : "42px",
+              minWidth: isMobile ? "auto" : "120px",
+              "&:hover": {
+                borderColor: greenHover,
+                color: greenHover,
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            fullWidth={isMobile}
+            sx={{
+              bgcolor: greenPrimary,
+              color: "white",
+              height: isMobile ? "48px" : "42px",
+              minWidth: isMobile ? "auto" : "150px",
+              fontWeight: 600,
+              "&:hover": {
+                bgcolor: greenHover,
+              },
+            }}
+          >
+            {selectedUser ? "Update User" : "Create User"}
+          </Button>
         </Box>
       </DialogContent>
     </Dialog>
