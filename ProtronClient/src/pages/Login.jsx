@@ -6,7 +6,7 @@ import ForgotPassword from './ForgotPassword'; // Import the new component
 import { useAccess } from '../Context/AccessContext';
 
 const Login = ({ onLogin }) => {
-    const { setAccessRights, setRole } = useAccess();
+    const { setAccessRights, setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -49,7 +49,8 @@ const Login = ({ onLogin }) => {
             sessionStorage.setItem('email', response.data.email);
             sessionStorage.setItem('tenantId', response.data.tenantId);
             sessionStorage.setItem('userId', response.data.userId);
-            setAccessRights([...response.data.roleAccessRights, ...response.data.userAccessRights]);
+            setRoleAccessRights(response.data.roleAccessRights);
+            setUserAccessRights(response.data.userAccessRights);
             setRole(response.data.role);
             onLogin(true);
         } catch (error) {

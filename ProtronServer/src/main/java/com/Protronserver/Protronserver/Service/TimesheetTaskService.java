@@ -223,7 +223,7 @@ public class TimesheetTaskService {
         for (User user : allUsers) {
             // ⛳ Only submitted tasks considered
             List<TimesheetTask> tasks = timesheetTaskRepository
-                    .findByDateBetweenAndUserAndIsSubmittedTrueAndEndTimestampIsNull(startDate, endDate, user);
+                    .findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, user);
 
             Map<String, Double> dailyHoursMap = new TreeMap<>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

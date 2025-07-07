@@ -4,6 +4,8 @@ import axios from 'axios';
 const AccessContext = createContext();
 
 export const AccessProvider = ({ children }) => {
+  const [roleAccessRights, setRoleAccessRights] = useState([]);
+  const [userAccessRights, setUserAccessRights] = useState([]);
   const [accessRights, setAccessRights] = useState([]);
   const [role, setRole] = useState('');
   const [loading, setLoading] = useState(true);
@@ -22,10 +24,14 @@ export const AccessProvider = ({ children }) => {
     })
       .then((response) => {
         const data = response.data;
-        setAccessRights([
-  ...(data.role?.roleAccessRights?.map(r => r.accessRight) || []),
-  ...(data.userAccessRights?.map(u => u.accessRight) || []),
-]);
+
+        // Combine role access rights and user access rights
+        const roleAccessRights = data.role?.roleAccessRights?.map(r => r.accessRight) || [];
+        const userAccessRights = data.userAccessRights?.map(u => u.accessRight) || [];
+
+        const finalAccessRights = getFinalAccessRights(roleAccessRights, userAccessRights);
+
+        setAccessRights(finalAccessRights);
         setRole(data.role.roleName);
       })
       .catch((error) => {
@@ -37,9 +43,44 @@ export const AccessProvider = ({ children }) => {
       });
   }, []);
 
+  const getFinalAccessRights = (roleAccessRights, userAccessRights) => {
+  // Create a map for user access rights for quick lookup
+  const userAccessMap = userAccessRights.reduce((map, access) => {
+    map[access.moduleName] = access;
+    return map;
+  }, {});
+
+  // Merge role access rights with user access rights (user access overrides role access)
+  const finalAccessRights = roleAccessRights.map(roleAccess => {
+    const userAccess = userAccessMap[roleAccess.moduleName];
+    if (userAccess) {
+      return {
+        moduleName: roleAccess.moduleName,
+        canView: userAccess.canView,
+        canEdit: userAccess.canEdit,
+        canDelete: userAccess.canDelete,
+      };
+    }
+    return roleAccess;
+  });
+
+  // Add any user-specific access rights that are not in role access rights
+  userAccessRights.forEach(userAccess => {
+    if (!finalAccessRights.some(access => access.moduleName === userAccess.moduleName)) {
+      finalAccessRights.push(userAccess);
+    }
+  });
+
+  return finalAccessRights;
+};
+
   const hasAccess = (moduleName, action) => {
-    const accessesForModule = accessRights.filter(a => a.moduleName === moduleName);
+
+    const finalAccessRights = getFinalAccessRights(roleAccessRights, userAccessRights);
+
+    const accessesForModule = finalAccessRights.filter(a => a.moduleName === moduleName);
     if (accessesForModule.length === 0) return false;
+    console.log(`Access rights for module ${moduleName}:`, accessesForModule);
 
     switch (action) {
       case 'view': return accessesForModule.some(a => a.canView);
@@ -50,7 +91,7 @@ export const AccessProvider = ({ children }) => {
   };
 
   return (
-    <AccessContext.Provider value={{ accessRights, setAccessRights, role, setRole, hasAccess, loading }}>
+    <AccessContext.Provider value={{ accessRights, setAccessRights, role, setRole, hasAccess, loading, setUserAccessRights, setRoleAccessRights, roleAccessRights, userAccessRights }}>
       {!loading && children}
     </AccessContext.Provider>
   );

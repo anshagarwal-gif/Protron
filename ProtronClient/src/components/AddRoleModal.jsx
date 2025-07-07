@@ -26,11 +26,26 @@ const AddRoleModal = ({
   }, [open]);
 
   const handleToggle = (key) => {
-    setPermissions((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
+  setPermissions((prev) => {
+    const updatedPermissions = { ...prev };
+
+    // Prevent toggling "Edit" or "Delete" if "View" is not checked
+    if ((key.endsWith("_canEdit") || key.endsWith("_canDelete")) && !prev[key.replace(/_can(Edit|Delete)/, "_canView")]) {
+      return prev; // No changes
+    }
+
+    updatedPermissions[key] = !updatedPermissions[key];
+
+    // If "View" is unchecked, also uncheck "Edit" and "Delete"
+    if (key.endsWith("_canView") && !updatedPermissions[key]) {
+      const moduleName = key.replace("_canView", "");
+      updatedPermissions[`${moduleName}_canEdit`] = false;
+      updatedPermissions[`${moduleName}_canDelete`] = false;
+    }
+
+    return updatedPermissions;
+  });
+};
 
   const handleSave = () => {
     // Convert permissions to array of { moduleName, canView, canEdit, canDelete }
