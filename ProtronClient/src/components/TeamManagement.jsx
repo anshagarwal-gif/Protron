@@ -26,7 +26,7 @@ const TeamManagement = () => {
     const [statusFilter, setStatusFilter] = useState('All');
     const [showStatusFilterDropdown, setShowStatusFilterDropdown] = useState(false);
 
-    
+
     useEffect(() => {
         const handleResize = () => {
             setIsMobileView(window.innerWidth < 768);
@@ -140,6 +140,8 @@ const TeamManagement = () => {
             resizable: true,
             width: 200,
             valueGetter: (params) => `${params.data.firstName} ${params.data.lastName}`,
+            cellClass: 'ag-cell-truncate',
+            tooltipValueGetter: (params) => `${params.data.firstName} ${params.data.lastName}`,
         },
         {
             headerName: "Emp-Code",
@@ -148,6 +150,7 @@ const TeamManagement = () => {
             filter: true,
             resizable: true,
             width: 150,
+            cellClass: 'ag-cell-truncate',
         },
         {
             headerName: "Email",
@@ -156,6 +159,46 @@ const TeamManagement = () => {
             filter: true,
             resizable: true,
             width: 250,
+            cellClass: 'ag-cell-truncate',
+            tooltipValueGetter: (params) => params.data.email,
+        },
+        {
+            headerName: "Mobile Number",
+            field: "mobilePhone",
+            sortable: true,
+            filter: true,
+            resizable: true,
+            width: 150,
+            cellClass: 'ag-cell-truncate',
+        },
+        {
+            headerName: "City",
+            field: "city",
+            sortable: true,
+            filter: true,
+            resizable: true,
+            width: 100,
+            cellClass: 'ag-cell-truncate',
+            tooltipValueGetter: (params) => params.data.city || 'N/A',
+        },
+        {
+            headerName: "State",
+            field: "state",
+            sortable: true,
+            filter: true,
+            resizable: true,
+            width: 120,
+            cellClass: 'ag-cell-truncate',
+            tooltipValueGetter: (params) => params.data.state || 'N/A',
+        },
+        {
+            headerName: "Country",
+            field: "country",
+            sortable: true,
+            filter: true,
+            resizable: true,
+            width: 20,
+            cellClass: 'ag-cell-truncate',
         },
         {
             headerName: "Cost",
@@ -165,6 +208,7 @@ const TeamManagement = () => {
             resizable: true,
             width: 120,
             valueFormatter: (params) => params.value || 'N/A',
+            cellClass: 'ag-cell-truncate',
         },
         {
             headerName: "DOJ",
@@ -174,6 +218,7 @@ const TeamManagement = () => {
             filter: 'agDateColumnFilter',
             resizable: true,
             width: 150,
+            cellClass: 'ag-cell-truncate',
         },
         {
             headerName: "Status",
@@ -183,6 +228,7 @@ const TeamManagement = () => {
             filter: true,
             resizable: true,
             width: 120,
+            cellClass: 'ag-cell-truncate',
         },
     ], []);
 
@@ -290,7 +336,7 @@ const TeamManagement = () => {
 
         fetchEmployees();
     }, []);
-
+    console.log(employees)
     const handleProfileClick = async (email) => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
@@ -369,17 +415,17 @@ const TeamManagement = () => {
         <div className="max-w-full px-4 sm:px-6 pb-6">
             <div>
 
-                   <div className="flex items-center bg-green-700 justify-between p-4 border-b border-gray-200">
-                          <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-2">
-                             <h1 className="text-lg text-white"><FiUser /></h1> <h1 className="text-lg font-semibold text-white">Team Management</h1>
-                            </div>
-                          </div>
+                <div className="flex items-center bg-green-700 justify-between p-4 border-b border-gray-200">
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                            <h1 className="text-lg text-white"><FiUser /></h1> <h1 className="text-lg font-semibold text-white">Team Management</h1>
                         </div>
+                    </div>
+                </div>
 
                 {/* Status filter and export row */}
-                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5 mb-3">
-            <h1 className="text-2xl font-bold text-green-800">Team List</h1>
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5 mb-3">
+                    <h1 className="text-2xl font-bold text-green-800">Team List</h1>
 
                     <button
                         className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center text-base"
@@ -404,12 +450,19 @@ const TeamManagement = () => {
                             </div>
                         ) : (
                             /* Desktop View with AG Grid */
-                            <div className="ag-theme-alpine" style={{ height: '600px', width: '100%' }}>
+                            <div className="ag-theme-alpine ag-cell-truncate" style={{ height: '600px', width: '100%' }}>
                                 <style>{`
                                     .ag-theme-alpine {
                                         --ag-header-background-color: #15803d !important;
                                         --ag-header-foreground-color: #ffffff !important;
                                     }
+                                        .ag-cell-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;        
+  width: 100%;           
+}
                                     
                                     .ag-theme-alpine .ag-header {
                                         background-color: #15803d !important;
@@ -522,7 +575,7 @@ const TeamManagement = () => {
                                     }
                                     
                                     .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button:not(.ag-button-secondary) {
-                                        background: #15803d;
+                                        background:rgb(168, 177, 171);
                                         color: #ffffff;
                                         border-color: #15803d;
                                     }
@@ -719,7 +772,7 @@ const TeamManagement = () => {
                                     columnDefs={columnDefs}
                                     defaultColDef={defaultColDef}
                                     gridOptions={gridOptions}
-                                     paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
+                                    paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
                                     onGridReady={onGridReady}
                                     suppressMenuHide={true}
                                     enableCellTextSelection={true}
