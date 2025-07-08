@@ -628,7 +628,7 @@ const TimesheetManager = () => {
     }
   };
 
-  const renderMonthlyView = () => {
+const renderMonthlyView = () => {
     let dates = getMonthDates();
 
     // Filter out weekend dates if showWeekend is false
@@ -662,13 +662,19 @@ const TimesheetManager = () => {
           const isToday = date.toDateString() === new Date().toDateString();
           const maxVisibleTasks = 5;
           const visibleTasks = entries.slice(0, maxVisibleTasks);
-          const overflowTasks = entries.length > maxVisibleTasks ? { date, tasks: entries.slice(maxVisibleTasks) } : null;
-          const remainingTasksCount = entries.length - maxVisibleTasks;
+          const overflowTasks = entries.slice(maxVisibleTasks);
+          const remainingTasksCount = overflowTasks.length;
+          const dateKey = date.toISOString();
+          const isOverflowOpen = showOverflowTasks && overflowTasksDate === dateKey;
 
           return (
             <div
-              key={date.toISOString()}
-              className={`relative cursor-pointer border border-gray-200 p-2 ${isToday ? "bg-blue-50" : "bg-white"}`}
+              key={dateKey}
+              className={`relative cursor-pointer border p-2 transition-all duration-200 ${
+                isOverflowOpen 
+                  ? "border-blue-400 bg-blue-50 shadow-md z-20" 
+                  : `border-gray-200 ${isToday ? "bg-blue-50" : "bg-white"}`
+              }`}
               style={{
                 aspectRatio: showWeekend ? "5/6" : "11 / 12", // Maintain square shape
               }}
@@ -681,34 +687,85 @@ const TimesheetManager = () => {
               <div className="text-xs font-medium text-gray-500">
                 {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
               </div>
+              
               <div className="space-y-1 mt-2">
+                {/* Visible tasks */}
                 {visibleTasks.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
                     title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
-                    onClick={(e) => { e.stopPropagation(); console.log(entry); setTaskDetail(entry.fullTask); }}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setTaskDetail(entry.fullTask); 
+                    }}
                   >
                     <span className="font-semibold">{entry.task}</span>
                     <span className="text-gray-500">{entry.hours}h</span>
                   </div>
                 ))}
+                
+                {/* Show more button */}
                 {remainingTasksCount > 0 && (
                   <div
-                    className="border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); setShowOverflowTasks(true);}}
+                    className="task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors"
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setShowOverflowTasks(!isOverflowOpen);
+                      setOverflowTasksDate(isOverflowOpen ? null : dateKey);
+                    }}
                   >
-                    <span className="font-semibold">+ {remainingTasksCount} tasks</span>
+                    <span className="font-semibold">
+                      {isOverflowOpen ? `- Hide ${remainingTasksCount} tasks` : `+ ${remainingTasksCount} more tasks`}
+                    </span>
                   </div>
                 )}
               </div>
+
+              {/* Overflow tasks dropdown */}
+              {isOverflowOpen && (
+                <div 
+                  className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
+                  style={{
+                    // Position dropdown above if it's in the last few rows, below otherwise
+                    ...(index >= gridCells.length - (showWeekend ? 22 : 20) 
+                      ? { bottom: '100%', marginBottom: '8px' } 
+                      : { top: '100%', marginTop: '8px' })
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="pb-3">
+                    <div className="text-xs font-semibold text-blue-700 mb-2 border-b border-blue-200 pb-2 bg-blue-50 p-3 rounded-t-lg flex items-center justify-between">
+                      <span>Additional tasks for {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}</span>
+                    </div>
+                    <div className="space-y-2 px-2">
+                      {overflowTasks.map((entry) => (
+                        <div
+                    key={entry.id}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
+                    title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setTaskDetail(entry.fullTask); 
+                    }}
+                  >
+                    <span className="font-semibold">{entry.task}</span>
+                    <span className="text-gray-500">{entry.hours}h</span>
+                  </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
     );
+};
 
-  };
+const [showOverflowTasks, setShowOverflowTasks] = useState(false);
+  const [overflowTasksDate, setOverflowTasksDate] = useState(null);
 
   return (
     <div className="h-[92vh] bg-gray-50 flex flex-col overflow-hidden">
