@@ -477,14 +477,14 @@ const IndividualTimesheet = () => {
     }
   };
 
- const renderMonthlyView = () => {
+  const renderMonthlyView = () => {
     let dates = getMonthDates();
 
     // Filter out weekend dates if showWeekend is false
     if (!showWeekend) {
       dates = dates.filter((date) => {
         const dayOfWeek = date.getDay();
-        return dayOfWeek !== 0 && dayOfWeek !== 6; 
+        return dayOfWeek !== 0 && dayOfWeek !== 6;
       });
     }
 
@@ -519,11 +519,10 @@ const IndividualTimesheet = () => {
           return (
             <div
               key={dateKey}
-              className={`relative cursor-pointer border p-2 transition-all duration-200 ${
-                isOverflowOpen 
-                  ? "border-blue-400 bg-blue-50 shadow-md z-20" 
+              className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
+                  ? "border-blue-400 bg-blue-50 shadow-md z-20"
                   : `border-gray-200 ${isToday ? "bg-blue-50" : "bg-white"}`
-              }`}
+                }`}
               style={{
                 aspectRatio: showWeekend ? "5/6" : "11 / 12", // Maintain square shape
               }}
@@ -536,7 +535,7 @@ const IndividualTimesheet = () => {
               <div className="text-xs font-medium text-gray-500">
                 {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
               </div>
-              
+
               <div className="space-y-1 mt-2">
                 {/* Visible tasks */}
                 {visibleTasks.map((entry) => (
@@ -544,22 +543,22 @@ const IndividualTimesheet = () => {
                     key={entry.id}
                     className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
                     title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      setTaskDetail(entry.fullTask); 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTaskDetail(entry.fullTask);
                     }}
                   >
                     <span className="font-semibold">{entry.task}</span>
                     <span className="text-gray-500">{entry.hours}h</span>
                   </div>
                 ))}
-                
+
                 {/* Show more button */}
                 {remainingTasksCount > 0 && (
                   <div
                     className="task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors"
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setShowOverflowTasks(!isOverflowOpen);
                       setOverflowTasksDate(isOverflowOpen ? null : dateKey);
                     }}
@@ -573,12 +572,12 @@ const IndividualTimesheet = () => {
 
               {/* Overflow tasks dropdown */}
               {isOverflowOpen && (
-                <div 
+                <div
                   className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
                   style={{
                     // Position dropdown above if it's in the last few rows, below otherwise
-                    ...(index >= gridCells.length - (showWeekend ? 22 : 20) 
-                      ? { bottom: '100%', marginBottom: '8px' } 
+                    ...(index >= gridCells.length - (showWeekend ? 22 : 20)
+                      ? { bottom: '100%', marginBottom: '8px' }
                       : { top: '100%', marginTop: '8px' })
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -590,17 +589,17 @@ const IndividualTimesheet = () => {
                     <div className="space-y-2 px-2">
                       {overflowTasks.map((entry) => (
                         <div
-                    key={entry.id}
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
-                    title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      setTaskDetail(entry.fullTask); 
-                    }}
-                  >
-                    <span className="font-semibold">{entry.task}</span>
-                    <span className="text-gray-500">{entry.hours}h</span>
-                  </div>
+                          key={entry.id}
+                          className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
+                          title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTaskDetail(entry.fullTask);
+                          }}
+                        >
+                          <span className="font-semibold">{entry.task}</span>
+                          <span className="text-gray-500">{entry.hours}h</span>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -611,7 +610,7 @@ const IndividualTimesheet = () => {
         })}
       </div>
     );
-};
+  };
 
   const [showOverflowTasks, setShowOverflowTasks] = useState(false);
   const [overflowTasksDate, setOverflowTasksDate] = useState(null);
@@ -807,7 +806,7 @@ const IndividualTimesheet = () => {
                                   onClick={() => setTaskDetail(entry.fullTask)}
                                 >
                                   {!entry.submitted && (
-                                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                                       {hasAccess("timesheet", "delete") && (
                                         <button
                                           onClick={(e) => {
@@ -841,7 +840,7 @@ const IndividualTimesheet = () => {
                                               strokeLinecap="round"
                                               strokeLinejoin="round"
                                               strokeWidth={2}
-                                              d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                              d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 002 2v6a2 2 0 002 2z"
                                             />
                                           </svg>
                                         </button>
@@ -849,58 +848,48 @@ const IndividualTimesheet = () => {
                                     </div>
                                   )}
 
-                                  <div className="flex items-center gap-2">
-                                    <FileText className="h-4 w-4 text-blue-500" />
-                                    <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    {entry.project && (
-                                      <span
-                                        className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                                        title={entry.project} // Full project name on hover
-                                      >
-                                        <Folder className="h-3 w-3 mr-1" />
-                                        {truncateText(entry.project, 12)}
-                                      </span>
-                                    )}
-                                  </div>
+                                  {/* Main content with blur effect on hover */}
+                                  <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="h-4 w-4 text-blue-500" />
+                                      <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {entry.project && (
+                                        <span
+                                          className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
+                                          title={entry.project} // Full project name on hover
+                                        >
+                                          <Folder className="h-3 w-3 mr-1" />
+                                          {truncateText(entry.project, 12)}
+                                        </span>
+                                      )}
+                                    </div>
 
-                                  <div className="w-full">
-                                    <div
-                                      className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""}`}
-                                      style={{
-                                        maxHeight: "50px", // Set a maximum height for the description box
-                                        overflow: "hidden", // Hide overflowing content
-                                        textOverflow: "ellipsis", // Add ellipsis for truncated text
-                                        whiteSpace: "normal", // Allow text wrapping
-                                      }}
-                                    >
-                                      {entry.description ? entry.description : "No description"}
+                                    <div className="w-full">
+                                      <div
+                                        className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""}`}
+                                        style={{
+                                          maxHeight: "50px", // Set a maximum height for the description box
+                                          overflow: "hidden", // Hide overflowing content
+                                          textOverflow: "ellipsis", // Add ellipsis for truncated text
+                                          whiteSpace: "normal", // Allow text wrapping
+                                        }}
+                                      >
+                                        {entry.description ? entry.description : "No description"}
+                                      </div>
                                     </div>
                                   </div>
-                                  {/* <div className="mt-2 flex items-center gap-2 flex-wrap">
-                                                                  {entry.attachment && (
-                                                                    <div className="flex items-center gap-1">
-                                                                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
-                                                                        <FileText className="h-3 w-3 mr-1" /> Attachment
-                                                                      </span>
-                                                                      <button
-                                                                        onClick={e => { e.stopPropagation(); handleViewAttachment(entry.id); }}
-                                                                        className="text-blue-500 hover:text-blue-700 p-1 rounded transition-colors"
-                                                                        title="View Attachment"
-                                                                      >
-                                                                        <Eye className="h-3 w-3" />
-                                                                      </button>
-                                                                      <button
-                                                                        onClick={e => { e.stopPropagation(); handleDownloadAttachment(entry.id, `attachment_${entry.id}`); }}
-                                                                        className="text-green-500 hover:text-green-700 p-1 rounded transition-colors"
-                                                                        title="Download Attachment"
-                                                                      >
-                                                                        <DownloadIcon className="h-3 w-3" />
-                                                                      </button>
-                                                                    </div>
-                                                                  )}
-                                                                </div> */}
+
+                                  {/* Eye icon overlay - appears on hover */}
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                                    <div className="bg-white bg-opacity-90 rounded-full p-3 shadow-lg">
+                                      <Eye className="h-6 w-6 text-blue-600" />
+                                    </div>
+                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-8 text-gray-800 text-xs px-2 py-1 rounded whitespace-nowrap">
+                                      Click to view details
+                                    </div>
+                                  </div>
                                 </div>
                               ))}
                             </div>
