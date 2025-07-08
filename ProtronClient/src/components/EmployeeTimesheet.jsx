@@ -387,6 +387,7 @@ const TimesheetManager = () => {
       const lastDay = new Date(newYear, newMonth + 1, 0);
       setCurrentMonthRange({ start: firstDay, end: lastDay });
     }
+    fetchTasks();
   };
 
   const goToCurrentPeriod = () => {
@@ -627,8 +628,90 @@ const TimesheetManager = () => {
     }
   };
 
+  const renderMonthlyView = () => {
+    let dates = getMonthDates();
+
+    // Filter out weekend dates if showWeekend is false
+    if (!showWeekend) {
+      dates = dates.filter((date) => {
+        const dayOfWeek = date.getDay();
+        return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
+      });
+    }
+
+    // Create an array for grid cells (including empty cells for alignment)
+    const gridCells = [null].concat(dates);
+
+    return (
+      <div className={`grid ${showWeekend ? "grid-cols-11" : "grid-cols-10"} gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
+        {gridCells.map((date, index) => {
+          if (!date) {
+            // Render the single empty cell
+            return (
+              <div
+                key={index}
+                className="border border-gray-200 bg-gray-50"
+                style={{
+                  aspectRatio: showWeekend ? "5/6" : "11 / 12", // Maintain square shape
+                }}
+              ></div>
+            );
+          }
+
+          const entries = getTimeEntries(date);
+          const isToday = date.toDateString() === new Date().toDateString();
+          const maxVisibleTasks = 5;
+          const visibleTasks = entries.slice(0, maxVisibleTasks);
+          const overflowTasks = entries.length > maxVisibleTasks ? { date, tasks: entries.slice(maxVisibleTasks) } : null;
+          const remainingTasksCount = entries.length - maxVisibleTasks;
+
+          return (
+            <div
+              key={date.toISOString()}
+              className={`relative cursor-pointer border border-gray-200 p-2 ${isToday ? "bg-blue-50" : "bg-white"}`}
+              style={{
+                aspectRatio: showWeekend ? "5/6" : "11 / 12", // Maintain square shape
+              }}
+              onClick={(e) => {
+                // Prevent modal opening if clicking on a task
+                if (e.target.closest(".task-entry")) return;
+                handleCellClick(date);
+              }}
+            >
+              <div className="text-xs font-medium text-gray-500">
+                {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
+              </div>
+              <div className="space-y-1 mt-2">
+                {visibleTasks.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className={`border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
+                    title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
+                    onClick={(e) => { e.stopPropagation(); console.log(entry); setTaskDetail(entry.fullTask); }}
+                  >
+                    <span className="font-semibold">{entry.task}</span>
+                    <span className="text-gray-500">{entry.hours}h</span>
+                  </div>
+                ))}
+                {remainingTasksCount > 0 && (
+                  <div
+                    className="border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer"
+                    onClick={(e) => { e.stopPropagation(); setShowOverflowTasks(true);}}
+                  >
+                    <span className="font-semibold">+ {remainingTasksCount} tasks</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+
+  };
+
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-[92vh] bg-gray-50 flex flex-col overflow-hidden">
       {/* Toast Notification */}
       <Toast
         message={toast.message}
@@ -636,23 +719,7 @@ const TimesheetManager = () => {
         isVisible={toast.isVisible}
         onClose={hideToast}
       />
-
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
-        <div className="px-6 py-1">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-green-700 rounded flex items-center justify-center">
-                  <Calendar className="h-4 w-4 text-white" />
-                </div>
-                <h1 className="text-xl font-semibold text-gray-900">Manage Timesheet</h1>
-              </div>
-            </div>
-          
-          </div>
-        </div>
-      </div>
+      
 
       {/* Navigation and Controls */}
       <div className="bg-white border-b border-gray-200 flex-shrink-0">
@@ -728,6 +795,15 @@ const TimesheetManager = () => {
                   <span>Copy Last Week</span>
                 </button>
               )}
+              {hasAccess("timesheet", "edit") && (
+                <button
+                  className="flex items-center space-x-2 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleSubmitTimesheet}
+                  disabled={!hasUnsubmittedTasks()}
+                >
+                  <span>📤</span>
+                  <span>Submit Timesheet</span>
+                </button>)}
               <button
                 onClick={downloadExcel}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
@@ -762,188 +838,178 @@ const TimesheetManager = () => {
       </div>
 
       {/* Timesheet Table */}
-      <div className="flex-1 overflow-hidden p-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
-          <div className="flex-1 overflow-auto">
-            <table className="w-full table-fixed">
-              <thead className="sticky top-0 z-10">
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  {getVisibleDates().map((date) => (
-                    <th
-                      key={date.toISOString()}
-                      className="px-4 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{ width: "150px" }} // Fixed width for columns
-                    >
-                      <div className="flex flex-col items-center">
-                        <span>
-                          {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
-                        </span>
-                        <span className="text-xs text-gray-400 mt-1">{getDayTotalHours(date)}H/8H</span>
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white">
-                <tr>
-                  {getVisibleDates().map((date) => {
-                    const entries = getTimeEntries(date);
-                    const isToday = date.toDateString() === new Date().toDateString();
-                    const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
-
-                    return (
-                      <td
-                        key={date.toISOString()}
-                        className={`px-4 py-6 text-center relative align-top ${isToday ? "bg-blue-50" : ""} border-r border-gray-100`}
-                        style={{ width: "150px", height: "200px" }} // Fixed width and height for cells
-                        onMouseEnter={() => handleCellHover(date, true)}
-                        onMouseLeave={() => handleCellHover(date, false)}
-                      >
-                        <div className="space-y-3 h-full">
-                          {/* Existing Time Entries */}
-                          {entries.map((entry) => (
-                            <div
-                              key={entry.id}
-                              className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
-                              style={{
-                                boxSizing: "border-box",
-                                height: "150px", // Fixed height for task boxes
-                              }}
-                              onClick={() => setTaskDetail(entry.fullTask)}
-                            >
-                              {!entry.submitted && (
-                                <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  {hasAccess("timesheet", "delete") && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        deleteTimeEntry(date, entry.id);
-                                      }}
-                                      className="text-red-500 hover:text-red-700"
-                                      title="Delete"
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </button>
-                                  )}
-                                  {hasAccess("timesheet", "edit") && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setEditingTask({ ...entry.fullTask, date });
-                                        setShowLogTimeModal(true);
-                                      }}
-                                      className="text-blue-500 hover:text-blue-700"
-                                      title="Edit"
-                                    >
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-4 w-4"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z"
-                                        />
-                                      </svg>
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-                              
-                                <div className="flex items-center gap-2">
-                                  <FileText className="h-4 w-4 text-blue-500" />
-                                  <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  {entry.project && (
-                                    <span
-                                      className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                                      title={entry.project} // Full project name on hover
-                                    >
-                                      <Folder className="h-3 w-3 mr-1" />
-                                      {truncateText(entry.project, 12)}
-                                    </span>
-                                  )}
-                                </div>
-                              
-                              <div className="w-full">
-                                <div
-                                  className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""}`}
-                                  style={{
-                                    maxHeight: "50px", // Set a maximum height for the description box
-                                    overflow: "hidden", // Hide overflowing content
-                                    textOverflow: "ellipsis", // Add ellipsis for truncated text
-                                    whiteSpace: "normal", // Allow text wrapping
-                                  }}
-                                >
-                                  {entry.description ? entry.description : "No description"}
-                                </div>
-                              </div>
-                              {/* <div className="mt-2 flex items-center gap-2 flex-wrap">
-                                {entry.attachment && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
-                                      <FileText className="h-3 w-3 mr-1" /> Attachment
-                                    </span>
-                                    <button
-                                      onClick={e => { e.stopPropagation(); handleViewAttachment(entry.id); }}
-                                      className="text-blue-500 hover:text-blue-700 p-1 rounded transition-colors"
-                                      title="View Attachment"
-                                    >
-                                      <Eye className="h-3 w-3" />
-                                    </button>
-                                    <button
-                                      onClick={e => { e.stopPropagation(); handleDownloadAttachment(entry.id, `attachment_${entry.id}`); }}
-                                      className="text-green-500 hover:text-green-700 p-1 rounded transition-colors"
-                                      title="Download Attachment"
-                                    >
-                                      <DownloadIcon className="h-3 w-3" />
-                                    </button>
-                                  </div>
-                                )}
-                              </div> */}
-                            </div>
-                          ))}
-
-
-                          {/* Add New Entry Button */}
-                          <div className="flex items-center justify-center">
-                            {(isHovered && hasAccess("timesheet", "edit")) && (
-                              <button
-                                onClick={() => handleCellClick(date)}
-                                className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
-                              >
-                                <Plus className="h-5 w-5" />
-                              </button>
-                            )}
+      <div className="flex-1 py-6 overflow-hidden">
+        {viewMode === "Monthly" ? renderMonthlyView() : (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
+            <div className="flex-1 overflow-hidden">
+              <div className="overflow-auto h-full">
+                <table className="w-full table-fixed">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      {getVisibleDates().map((date) => (
+                        <th
+                          key={date.toISOString()}
+                          className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          style={{ width: "150px" }} // Fixed width for columns
+                        >
+                          <div className={`px-4 py-4 flex flex-col items-center ${date.toDateString() === new Date().toDateString() ? "bg-blue-100" : ""}`}>
+                            <span>
+                              {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
+                            </span>
+                            <span className="text-xs text-gray-400 mt-1">{getDayTotalHours(date)}H/8H</span>
                           </div>
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white">
+                    <tr>
+                      {getVisibleDates().map((date) => {
+                        const entries = getTimeEntries(date);
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
 
-          {/* Submit Button */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end flex-shrink-0">
-            {hasAccess("timesheet", "edit") && (
-              <button
-                className="flex items-center space-x-2 px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={handleSubmitTimesheet}
-                disabled={!hasUnsubmittedTasks()}
-              >
-                <span>📤</span>
-                <span>Submit Timesheet</span>
-              </button>
-            )}
+                        return (
+                          <td
+                            key={date.toISOString()}
+                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100`}
+                            style={{ width: "150px", height: "200px" }} // Fixed width and height for cells
+                            onMouseEnter={() => handleCellHover(date, true)}
+                            onMouseLeave={() => handleCellHover(date, false)}
+                          >
+                            <div className="space-y-3 h-full">
+                              {/* Existing Time Entries */}
+                              {entries.map((entry) => (
+                                <div
+                                  key={entry.id}
+                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+                                  style={{
+                                    boxSizing: "border-box",
+                                    height: "150px", // Fixed height for task boxes
+                                  }}
+                                  onClick={() => setTaskDetail(entry.fullTask)}
+                                >
+                                  {!entry.submitted && (
+                                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      {hasAccess("timesheet", "delete") && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteTimeEntry(date, entry.id);
+                                          }}
+                                          className="text-red-500 hover:text-red-700"
+                                          title="Delete"
+                                        >
+                                          <X className="h-4 w-4" />
+                                        </button>
+                                      )}
+                                      {hasAccess("timesheet", "edit") && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingTask({ ...entry.fullTask, date });
+                                            setShowLogTimeModal(true);
+                                          }}
+                                          className="text-blue-500 hover:text-blue-700"
+                                          title="Edit"
+                                        >
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              strokeWidth={2}
+                                              d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                            />
+                                          </svg>
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-blue-500" />
+                                    <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {entry.project && (
+                                      <span
+                                        className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
+                                        title={entry.project} // Full project name on hover
+                                      >
+                                        <Folder className="h-3 w-3 mr-1" />
+                                        {truncateText(entry.project, 12)}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="w-full">
+                                    <div
+                                      className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""}`}
+                                      style={{
+                                        maxHeight: "50px", // Set a maximum height for the description box
+                                        overflow: "hidden", // Hide overflowing content
+                                        textOverflow: "ellipsis", // Add ellipsis for truncated text
+                                        whiteSpace: "normal", // Allow text wrapping
+                                      }}
+                                    >
+                                      {entry.description ? entry.description : "No description"}
+                                    </div>
+                                  </div>
+                                  {/* <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                    {entry.attachment && (
+                                      <div className="flex items-center gap-1">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
+                                          <FileText className="h-3 w-3 mr-1" /> Attachment
+                                        </span>
+                                        <button
+                                          onClick={e => { e.stopPropagation(); handleViewAttachment(entry.id); }}
+                                          className="text-blue-500 hover:text-blue-700 p-1 rounded transition-colors"
+                                          title="View Attachment"
+                                        >
+                                          <Eye className="h-3 w-3" />
+                                        </button>
+                                        <button
+                                          onClick={e => { e.stopPropagation(); handleDownloadAttachment(entry.id, `attachment_${entry.id}`); }}
+                                          className="text-green-500 hover:text-green-700 p-1 rounded transition-colors"
+                                          title="Download Attachment"
+                                        >
+                                          <DownloadIcon className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div> */}
+                                </div>
+                              ))}
+
+
+                              {/* Add New Entry Button */}
+                              <div className="flex items-center justify-center">
+                                {(isHovered && hasAccess("timesheet", "edit")) && (
+                                  <button
+                                    onClick={() => handleCellClick(date)}
+                                    className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
+                                  >
+                                    <Plus className="h-5 w-5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Log Time Modal */}
@@ -962,7 +1028,7 @@ const TimesheetManager = () => {
       {/* Task Details Modal */}
       {taskDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/60 backdrop-blur-sm backdrop-brightness-95">
-          <div className="bg-white rounded-xl shadow-2xl p-8 min-w-[350px] max-w-[90vw] border border-gray-100">
+          <div className="bg-white rounded-xl shadow-2xl p-8 min-w-[350px] max-w-[70vw] border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
                 <FileText className="h-6 w-6 text-blue-500" />
@@ -1000,9 +1066,9 @@ const TimesheetManager = () => {
                   {taskDetail.hoursSpent}
                 </span>
               </div>
-              <div>
+              <div className="w-full">
                 <span className="font-semibold">Description:</span>
-                <div className="text-gray-700 mt-1">{taskDetail.description}</div>
+                <div className="text-gray-700 mt-1 break-words whitespace-pre-wrap">{taskDetail.description}</div>
               </div>
               <div>
                 <span className="font-semibold">Status:</span>
