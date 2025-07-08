@@ -860,7 +860,7 @@ const IndividualTimesheet = () => {
 
       {taskDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/60 backdrop-blur-sm backdrop-brightness-95">
-          <div className="bg-white rounded-xl shadow-2xl p-8 min-w-[350px] max-w-[90vw] border border-gray-100">
+          <div className="bg-white rounded-xl shadow-2xl p-8 min-w-[350px] max-w-[70vw] border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
                 <FileText className="h-6 w-6 text-blue-500" />
@@ -898,9 +898,9 @@ const IndividualTimesheet = () => {
                   {taskDetail.hoursSpent}
                 </span>
               </div>
-              <div>
+              <div className='w-full'>
                 <span className="font-semibold">Description:</span>
-                <div className="text-gray-700 mt-1">{taskDetail.description}</div>
+                <div className="text-gray-700 mt-1 break-words whitespace-pre-wrap">{taskDetail.description}</div>
               </div>
               <div>
                 <span className="font-semibold">Status:</span>
