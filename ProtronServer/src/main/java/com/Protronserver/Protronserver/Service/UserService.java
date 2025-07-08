@@ -74,6 +74,7 @@ public class UserService {
         user.setCountry(dto.getCountry());
         user.setDateOfJoining(new Date());
         user.setCost(dto.getCost());
+        user.setCost_time(dto.getCost_time());
         user.setUnit(dto.getUnit());
         Tenant tenant = tenantRepository.findById(dto.getTenant())
                 .orElseThrow(() -> new EntityNotFoundException("Tenant Not found"));
@@ -157,19 +158,17 @@ public class UserService {
 
                 response.put("roleAccessRights", accessRightsList);
 
+                List<Map<String, Object>> userAccessRightsList = user.getUserAccessRights().stream()
+                        .map(ar -> {
+                            Map<String, Object> accessMap = new HashMap<>();
+                            accessMap.put("moduleName", ar.getAccessRight().getModuleName());
+                            accessMap.put("canView", ar.getAccessRight().isCanView());
+                            accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
+                            accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
+                            return accessMap;
+                        }).toList();
 
-                    List<Map<String , Object>> userAccessRightsList = user.getUserAccessRights().stream()
-                            .map(ar -> {
-                                Map<String, Object> accessMap = new HashMap<>();
-                                accessMap.put("moduleName", ar.getAccessRight().getModuleName());
-                                accessMap.put("canView", ar.getAccessRight().isCanView());
-                                accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
-                                accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
-                                return accessMap;
-                            }).toList();
-
-                    response.put("userAccessRights", userAccessRightsList);
-
+                response.put("userAccessRights", userAccessRightsList);
 
                 return response;
             } else {
@@ -180,35 +179,34 @@ public class UserService {
         }
     }
 
-
     public void logoutUser(User user) {
         loginAuditService.recordLogout(user);
     }
 
-    public void holdUser(Long userId){
+    public void holdUser(Long userId) {
         User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("UserId: "+ userId+ " Not found"));
+                .orElseThrow(() -> new RuntimeException("UserId: " + userId + " Not found"));
 
         existingUser.setStatus("hold");
         userRepository.save(existingUser);
 
         List<ProjectTeam> memberInTeams = projectTeamRepository.findByUser_UserIdAndEndTimestampIsNull(userId);
-        for(ProjectTeam pt : memberInTeams){
+        for (ProjectTeam pt : memberInTeams) {
             ProjectTeam updatedMember = manageTeamService.updateStatus(pt.getProjectTeamId(), "hold");
             projectTeamRepository.save(updatedMember);
         }
 
     }
 
-    public void activateUser(Long userId){
+    public void activateUser(Long userId) {
         User existingUser = userRepository.findById(userId)
-                .orElseThrow(()-> new RuntimeException("UserId: "+ userId+ " Not found"));
+                .orElseThrow(() -> new RuntimeException("UserId: " + userId + " Not found"));
 
         existingUser.setStatus("active");
         userRepository.save(existingUser);
 
         List<ProjectTeam> memberInTeams = projectTeamRepository.findByUser_UserIdAndEndTimestampIsNull(userId);
-        for(ProjectTeam pt : memberInTeams){
+        for (ProjectTeam pt : memberInTeams) {
             ProjectTeam updatedMember = manageTeamService.updateStatus(pt.getProjectTeamId(), "active");
             projectTeamRepository.save(updatedMember);
         }

@@ -29,6 +29,7 @@ public class UserSignUpDTO {
     private String zipCode;
     private String country;
     private String cost;
+    private String cost_time;
     private String unit;
     private MultipartFile profilePhoto;
     // private Date dateOfJoining;
@@ -118,6 +119,14 @@ public class UserSignUpDTO {
 
     public void setCost(String cost) {
         this.cost = cost;
+    }
+
+    public String getCost_time() {
+        return cost_time;
+    }
+
+    public void setCost_time(String cost_time) {
+        this.cost_time = cost_time;
     }
 
     public String getMiddleName() {
