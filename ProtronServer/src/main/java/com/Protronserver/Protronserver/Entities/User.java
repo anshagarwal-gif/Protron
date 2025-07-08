@@ -31,6 +31,7 @@ public class User {
     private String lastName;
     private String displayName;
     private String cost;
+    private String cost_time;
     private String unit;
     @Lob
     private byte[] photo;
@@ -99,6 +100,14 @@ public class User {
         this.cost = cost;
     }
 
+    public String getCost_time() {
+        return cost_time;
+    }
+
+    public void setCost_time(String cost_time) {
+        this.cost_time = cost_time;
+    }
+
     @Column(unique = true)
     private String email;
 
@@ -122,11 +131,11 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "role_id")
     @JsonManagedReference
-    @JsonIgnoreProperties({"users", "tenant", "accessRights"})
+    @JsonIgnoreProperties({ "users", "tenant", "accessRights" })
     private Role role;
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({"users", "projects", "roles", "roleAccesses"})
+    @JsonIgnoreProperties({ "users", "projects", "roles", "roleAccesses" })
     private Tenant tenant;
 
     @OneToMany(mappedBy = "user")
