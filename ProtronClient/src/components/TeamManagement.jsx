@@ -704,6 +704,96 @@ const TeamManagement = () => {
   box-shadow: inset 0 1px 0 #d1d5db;
 }
 
+.ag-theme-alpine .ag-header-cell-menu-button {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    background: transparent !important;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button:hover {
+    opacity: 0.8 !important;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button .ag-icon-menu {
+    color: #ffffff !important;
+    font-size: 16px !important;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button .ag-icon-filter {
+    color: #ffffff !important;
+    font-size: 16px !important;
+}
+
+/* Style for the filter icon */
+.ag-theme-alpine .ag-icon-filter {
+    color: #ffffff !important;
+    background: transparent !important;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+/* Active filter indicator */
+.ag-theme-alpine .ag-header-cell-filtered .ag-header-cell-menu-button {
+    opacity: 1 !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 3px;
+}
+
+/* Filter popup menu styling */
+.ag-theme-alpine .ag-menu {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.ag-theme-alpine .ag-menu-header {
+    background-color: #f9fafb;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ag-theme-alpine .ag-filter-condition {
+    padding: 8px 12px;
+}
+
+/* Filter buttons in popup */
+.ag-theme-alpine .ag-filter-apply-panel button {
+    background: #15803d !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+}
+
+.ag-theme-alpine .ag-filter-apply-panel button:hover {
+    background: #166534 !important;
+}
+
+.ag-theme-alpine .ag-filter-wrapper .ag-filter-body .ag-input-wrapper::before {
+    display: none !important;
+}
+
+/* Style the filter input */
+.ag-theme-alpine .ag-filter-wrapper .ag-filter-body input {
+    padding: 8px 12px !important;
+    padding-left: 12px !important; /* Remove extra padding for icon */
+    width: 100% !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    background-image: none !important; /* Remove any background images */
+}
+
+/* Focus state for filter input */
+.ag-theme-alpine .ag-filter-wrapper .ag-filter-body input:focus {
+    border-color: #15803d !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1) !important;
+}
+
 /* Paging Buttons */
 .ag-theme-alpine .ag-paging-button {
   background: linear-gradient(to bottom right, #10b981, #059669);
