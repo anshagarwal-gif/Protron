@@ -1,7 +1,7 @@
 // TimesheetManager.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon, Trash2, SquarePen } from "lucide-react";
 import LogTimeModal from "./LogTimeModal";
 import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -82,12 +82,11 @@ const TimesheetManager = () => {
   const [viewMode, setViewMode] = useState("Weekly");
   const [currentWeekStart, setCurrentWeekStart] = useState(getCurrentMondayStart());
   const [currentMonthRange, setCurrentMonthRange] = useState(getCurrentMonthRange());
-  const [showWeekend, setShowWeekend] = useState(true);
   const [showLogTimeModal, setShowLogTimeModal] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
   const [hoveredCell, setHoveredCell] = useState(null);
   const [timesheetData, setTimesheetData] = useState({});
-  const [taskDetail, setTaskDetail] = useState(null); // For modal
+  const [taskDetail, setTaskDetail] = useState(null);
   const { hasAccess } = useAccess();
 
   // Toast state
@@ -299,7 +298,7 @@ const TimesheetManager = () => {
   useEffect(() => {
     fetchTasks();
     // eslint-disable-next-line
-  }, [viewMode, currentWeekStart, currentMonthRange, showWeekend]);
+  }, [viewMode, currentWeekStart, currentMonthRange]);
 
   const getWeekDates = (startDate) => {
     const dates = [];
@@ -335,11 +334,7 @@ const TimesheetManager = () => {
 
   const getVisibleDates = () => {
     const allDates = getCurrentDates();
-    if (showWeekend) return allDates;
-    return allDates.filter((date) => {
-      const dayOfWeek = date.getDay();
-      return dayOfWeek !== 0 && dayOfWeek !== 6;
-    });
+    return allDates
   };
 
   const getDayName = (date) => date.toLocaleDateString("en-GB", { weekday: "short" });
@@ -631,19 +626,11 @@ const TimesheetManager = () => {
   const renderMonthlyView = () => {
     let dates = getMonthDates();
 
-    // Filter out weekend dates if showWeekend is false
-    if (!showWeekend) {
-      dates = dates.filter((date) => {
-        const dayOfWeek = date.getDay();
-        return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
-      });
-    }
-
     // Create an array for grid cells (including empty cells for alignment)
     const gridCells = [null].concat(dates);
 
     return (
-      <div className={`grid ${showWeekend ? "grid-cols-11" : "grid-cols-10"} gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
+      <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
         {gridCells.map((date, index) => {
           if (!date) {
             // Render the single empty cell
@@ -652,7 +639,7 @@ const TimesheetManager = () => {
                 key={index}
                 className="border border-gray-200 bg-gray-50"
                 style={{
-                  aspectRatio: showWeekend ? "5/6" : "11 / 12", // Maintain square shape
+                  aspectRatio: "5/6",
                 }}
               ></div>
             );
@@ -671,11 +658,11 @@ const TimesheetManager = () => {
             <div
               key={dateKey}
               className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
-                  ? "border-blue-400 bg-blue-50 shadow-md z-20"
-                  : `border-gray-200 ${isToday ? "bg-blue-50" : "bg-white"}`
+                ? "border-blue-400 bg-blue-50 shadow-md z-20"
+                : `border-gray-200 ${isToday ? "bg-blue-50" : "bg-white"}`
                 }`}
               style={{
-                aspectRatio: showWeekend ? "5/6" : "11 / 12", // Maintain square shape
+                aspectRatio: "5/6"
               }}
               onClick={(e) => {
                 // Prevent modal opening if clicking on a task
@@ -727,7 +714,7 @@ const TimesheetManager = () => {
                   className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
                   style={{
                     // Position dropdown above if it's in the last few rows, below otherwise
-                    ...(index >= gridCells.length - (showWeekend ? 22 : 20)
+                    ...(index >= gridCells.length - 22
                       ? { bottom: '100%', marginBottom: '8px' }
                       : { top: '100%', marginTop: '8px' })
                   }}
@@ -783,21 +770,21 @@ const TimesheetManager = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               {/* View Mode Toggle */}
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="relative bg-gray-200 p-1 rounded-full flex w-fit">
+                <div
+                  className={`absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out ${viewMode === "Weekly" ? "left-1 right-1/2" : "left-1/2 right-1"
+                    }`}
+                />
                 <button
                   onClick={() => setViewMode("Weekly")}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${viewMode === "Weekly"
-                    ? "bg-green-700 text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 ${viewMode === "Weekly" ? "text-green-600" : "text-gray-600"
                     }`}
                 >
                   Weekly
                 </button>
                 <button
                   onClick={() => setViewMode("Monthly")}
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${viewMode === "Monthly"
-                    ? "bg-green-700 text-white shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
+                  className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 ${viewMode === "Monthly" ? "text-green-600" : "text-gray-600"
                     }`}
                 >
                   Monthly
@@ -818,6 +805,31 @@ const TimesheetManager = () => {
                 >
                   {getCurrentDateString()}
                 </button>
+                <div className="relative cursor-pointer">
+                  <input
+                    type="date"
+                    onChange={(e) => {
+                      // Add timezone offset to handle UTC conversion
+                      const selectedDate = e.target.value;
+                      const [year, month, day] = selectedDate.split('-');
+                      const newDate = new Date(year, month - 1, day); // month is 0-indexed
+
+                      if (viewMode === "Weekly") {
+                        const dayOfWeek = newDate.getDay();
+                        const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                        const monday = new Date(newDate);
+                        monday.setDate(newDate.getDate() + daysToMonday);
+                        setCurrentWeekStart(monday);
+                      } else {
+                        const firstDay = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
+                        const lastDay = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
+                        setCurrentMonthRange({ start: firstDay, end: lastDay });
+                      }
+                    }}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <Calendar className="h-4 w-4 text-gray-600 hover:text-gray-800 transition-colors ml-2" />
+                </div>
                 <button
                   onClick={() => navigatePeriod("next")}
                   className="p-2 hover:bg-white rounded-md transition-colors"
@@ -830,16 +842,6 @@ const TimesheetManager = () => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Show Weekend Toggle */}
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={showWeekend}
-                  onChange={(e) => setShowWeekend(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm font-medium text-gray-700">Show Weekend</span>
-              </label>
 
               {/* Action Buttons */}
               {hasAccess("timesheet", "edit") && (
@@ -946,7 +948,7 @@ const TimesheetManager = () => {
                                   onClick={() => setTaskDetail(entry.fullTask)}
                                 >
                                   {!entry.submitted && (
-                                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                    <div className="absolute top-2 right-2 flex gap-2 transition-opacity z-20">
                                       {hasAccess("timesheet", "delete") && (
                                         <button
                                           onClick={(e) => {
@@ -956,7 +958,7 @@ const TimesheetManager = () => {
                                           className="text-red-500 hover:text-red-700"
                                           title="Delete"
                                         >
-                                          <X className="h-4 w-4" />
+                                          <Trash2 className="h-3 w-3" />
                                         </button>
                                       )}
                                       {hasAccess("timesheet", "edit") && (
@@ -969,20 +971,7 @@ const TimesheetManager = () => {
                                           className="text-blue-500 hover:text-blue-700"
                                           title="Edit"
                                         >
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              strokeWidth={2}
-                                              d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6a2 2 0 002-2v-6a2 2 0 00-2-2h-6a2 2 0 002 2v6a2 2 0 002 2z"
-                                            />
-                                          </svg>
+                                          <SquarePen className="h-3 w-3" />
                                         </button>
                                       )}
                                     </div>

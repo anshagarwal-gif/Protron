@@ -616,8 +616,8 @@ const UserManagement = () => {
         return (
           <span
             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${status === "active"
-                ? "bg-green-100 text-green-800"
-                : "bg-red-100 text-red-800"
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
               }`}
           >
             {status}
@@ -760,10 +760,15 @@ const UserManagement = () => {
   return (
     <div className="w-full p-6 bg-white">
       {/* Header with toggle and tenant selector */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4 md:mb-0">
+      <div className="flex justify-between items-center mb-6">
+        {/* Toggle buttons on left side */}
+        <div className="relative bg-gray-200 p-1 rounded-full flex">
+          <div
+            className={`absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out ${activeTab === "users" ? "left-1 right-1/2" : "left-1/2 right-1"
+              }`}
+          />
           <button
-            className={`px-4 py-2 rounded-md transition-colors ${activeTab === "users" ? "bg-white shadow-sm" : "hover:bg-gray-200"
+            className={`relative z-10 px-6 py-2 rounded-full transition-colors duration-300 ${activeTab === "users" ? "text-green-600" : "text-gray-600"
               }`}
             onClick={() => setActiveTab("users")}
           >
@@ -773,7 +778,7 @@ const UserManagement = () => {
             </div>
           </button>
           <button
-            className={`px-4 py-2 rounded-md transition-colors ${activeTab === "roles" ? "bg-white shadow-sm" : "hover:bg-gray-200"
+            className={`relative z-10 px-6 py-2 rounded-full transition-colors duration-300 ${activeTab === "roles" ? "text-green-600" : "text-gray-600"
               }`}
             onClick={() => setActiveTab("roles")}
           >
@@ -782,6 +787,50 @@ const UserManagement = () => {
               Manage Roles
             </div>
           </button>
+        </div>
+
+        {/* Search and action buttons on right side */}
+        <div className="flex items-center gap-4">
+          {/* Search input */}
+          <div className="relative w-64">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
+          </div>
+
+          {/* Download Excel Button */}
+          <button
+            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            onClick={activeTab === "users" ? downloadUsersExcel : downloadRolesExcel}
+          >
+            <Download size={18} className="mr-2" />
+            Download Excel
+          </button>
+
+          {/* Create User/Role Button */}
+          {(hasAccess('users', 'edit') && activeTab === "users") && (
+            <button
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={() => navigate('/signup')}
+            >
+              <Plus size={18} className="mr-2" />
+              Create User
+            </button>
+          )}
+          {activeTab === "roles" && hasAccess('users', 'edit') && (
+            <button
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={() => setIsAddRoleModalOpen(true)}
+            >
+              <Plus size={18} className="mr-2" />
+              Add New Role
+            </button>
+          )}
         </div>
       </div>
 
@@ -794,109 +843,124 @@ const UserManagement = () => {
 
       {/* Content area */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        {/* Table header with search and create button */}
-        <div className="p-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-center">
-          <div className="relative w-full md:w-64 mb-4 md:mb-0">
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* Download Excel Button */}
-            <button
-              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
-              onClick={activeTab === "users" ? downloadUsersExcel : downloadRolesExcel}
-            >
-              <Download size={18} className="mr-2" />
-              Download Excel
-            </button>
-
-            {/* Create User/Role Button */}
-            {(hasAccess('users', 'edit') && activeTab === "users") && (
-              <button
-                className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
-                onClick={() => navigate('/signup')}
-              >
-                <Plus size={18} className="mr-2" />
-                Create User
-              </button>
-            )}
-            {activeTab === "roles" && hasAccess('users', 'edit') && (
-              <button
-                className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
-                onClick={() => setIsAddRoleModalOpen(true)}
-              >
-                <Plus size={18} className="mr-2" />
-                Add New Role
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* AG Grid Tables */}
-        <div className="ag-theme-alpine" style={{ height: '600px', width: '100%' }}>
-          <style>{`    
-                                    .ag-theme-alpine {
-                                        --ag-header-background-color: #15803d !important;
-                                        --ag-header-foreground-color: #ffffff !important;
+        <div className="ag-theme-alpine" style={{ height: '76vh', width: '100%' }}>
+          <style jsx>{`
+                  .ag-theme-alpine .ag-header {
+                    background-color: #15803d!important;
+                    color: white;
+                    font-weight: 600;
+                    
+                    border-bottom: 2px solid #047857;
+                  }
+                  .ag-theme-alpine .ag-header-cell {
+                    
+                    color: white;
+                    border-right: 1px solid #047857;
+                    font-weight: 600;
+                    font-size: 14px;
+                  }
+                          .ag-theme-alpine .ag-sort-ascending-icon,
+                                    .ag-theme-alpine .ag-sort-descending-icon,
+                                    .ag-theme-alpine .ag-sort-none-icon {
+                                        color:rgb(246, 246, 246) !important;
+                                        font-size: 20px !important;
+                                        width: 20px !important;
+                                        height: 20px !important;
+                                        transform: scale(1.2) !important;
                                     }
-                                    
-                                    .ag-theme-alpine .ag-header {
-                                        background-color: #15803d !important;
-                                        border-bottom: 2px solid #166534 !important;
+                                        .ag-theme-alpine .ag-icon {
+                                        color:rgb(246, 246, 246) !important;
+                                        font-size: 20px !important;
+                                        width: 20px !important;
+                                        height: 20px !important;
+                                        transform: scale(1.2) !important;
                                     }
-                                    
-                                    .ag-theme-alpine .ag-header-cell {
-                                        background-color: #15803d !important;
-                                        color: #ffffff !important;
-                                        border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
-                                        font-weight: 600 !important;
+                                    .ag-theme-alpine .ag-header-cell .ag-icon {
+                                        color:rgb(223, 223, 223) !important;
+                                        font-size: 20px !important;
+                                        width: 20px !important;
+                                        height: 20px !important;
+                                        transform: scale(1.2) !important;
                                     }
-                                    
-                                    .ag-theme-alpine .ag-header-cell:hover {
-                                        background-color: #166534 !important;
+                                    .ag-theme-alpine .ag-header-cell-menu-button {
+                                        color:rgb(244, 240, 236) !important;
+                                        padding: 4px !important;
                                     }
-                                    
-                                    .ag-theme-alpine .ag-header-cell-text {
-                                        color: #ffffff !important;
-                                        font-weight: 500;
+                                    .ag-theme-alpine .ag-header-cell-menu-button .ag-icon {
+                                        font-size: 20px !important;
+                                        width: 20px !important;
+                                        height: 20px !important;
+                                        transform: scale(1.2) !important;
                                     }
-                                    
-                                    .ag-theme-alpine .ag-header-cell-label {
-                                        color: #ffffff !important;
+                  .ag-theme-alpine .ag-header-cell:hover {
+                    background-color: #047857;
+                  }
+                  .ag-theme-alpine .ag-row {
+                    border-bottom: 1px solid #e5e7eb;
+                  }
+                  .ag-theme-alpine .ag-row:hover {
+                    background-color: #f0fdf4;
+                  }
+                                          .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button.ag-button-secondary:hover {
+                                        background: #f9fafb;
+                                        border-color: #9ca3af;
                                     }
-                                    
-                                    .ag-theme-alpine .ag-header-cell-sortable .ag-header-cell-label {
-                                        cursor: pointer;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-header-cell-sortable .ag-header-cell-label:hover {
-                                        color: #f3f4f6 !important;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-menu {
-                                        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-                                        border-radius: 8px;
-                                        border: 1px solid #e5e7eb;
-                                        overflow: hidden;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-menu .ag-menu-list {
-                                        padding: 8px 0;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-menu .ag-menu-separator {
-                                        margin: 4px 0;
-                                        border-color: #e5e7eb;
-                                    }
+/* Left-align header labels */
+.ag-theme-alpine .ag-header-cell .ag-header-cell-label {
+    justify-content: flex-start;
+}
 
-                                    
+
+                  .ag-theme-alpine .ag-row-even {
+                    background-color: #ffffff;
+                  }
+                  .ag-theme-alpine .ag-row-odd {
+                    background-color: #f9fafb;
+                  }
+.ag-theme-alpine .ag-cell {
+  display: block !important;           /* Override AG Grid's flex */
+  text-align: left !important;         /* Ensure text is left-aligned */
+  white-space: nowrap;                 /* Prevent wrap */
+  overflow: hidden;                    /* Hide overflow */
+  text-overflow: ellipsis;            /* Show ... when content is too long */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+
+  border-right: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+
+                  .ag-theme-alpine .ag-pinned-left-cols-container {
+                    border-right: 2px solid #d1d5db;
+                  }
+                  .ag-theme-alpine .ag-pinned-right-cols-container {
+                    border-left: 2px solid #d1d5db;
+                  }
+                  .ag-theme-alpine .ag-paging-panel {
+                    border-top: 2px solid #e5e7eb;
+                    background-color: #f9fafb;
+                    padding: 12px;
+                  }
+                    /* Paging Panel Container */
+.ag-theme-alpine .ag-paging-panel {
+  border-top: 2px solid #e5e7eb;
+  background-color: #f0fdf4;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  border-radius: 0 0 8px 8px;
+  box-shadow: inset 0 1px 0 #d1d5db;
+}
+
+
 .ag-theme-alpine .ag-header-cell-menu-button {
     color: #ffffff !important;
     opacity: 1 !important;
@@ -986,208 +1050,82 @@ const UserManagement = () => {
     outline: none !important;
     box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1) !important;
 }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel {
-                                        padding: 16px;
-                                        background: #ffffff;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-body {
-                                        padding: 0;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-body .ag-filter-condition {
-                                        margin: 8px 0;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-body input {
-                                        padding: 8px 12px;
-                                        border: 1px solid #d1d5db;
-                                        border-radius: 6px;
-                                        font-size: 14px;
-                                        transition: all 0.2s ease;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-body input:focus {
-                                        outline: none;
-                                        border-color: #15803d;
-                                        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-body select {
-                                        padding: 8px 12px;
-                                        border: 1px solid #d1d5db;
-                                        border-radius: 6px;
-                                        font-size: 14px;
-                                        background: #ffffff;
-                                        transition: all 0.2s ease;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-body select:focus {
-                                        outline: none;
-                                        border-color: #15803d;
-                                        box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel {
-                                        padding: 16px 0 0 0;
-                                        border-top: 1px solid #e5e7eb;
-                                        margin-top: 16px;
-                                        display: flex;
-                                        justify-content: flex-end;
-                                        gap: 8px;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button {
-                                        padding: 8px 16px;
-                                        border-radius: 6px;
-                                        font-size: 14px;
-                                        font-weight: 500;
-                                        transition: all 0.2s ease;
-                                        border: 1px solid transparent;
-                                        cursor: pointer;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button:not(.ag-button-secondary) {
-                                        background: #15803d;
-                                        color: #ffffff;
-                                        border-color: #15803d;
-                                    }
-                                                          .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button.ag-button-secondary:hover {
-                                        background: #f9fafb;
-                                        border-color: #9ca3af;
-                                    }
- /* Left-align header labels */
-.ag-theme-alpine .ag-header-cell .ag-header-cell-label {
-    justify-content: flex-start;
-}
 
-/* Left-align all cell content */
-.ag-theme-alpine .ag-cell {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    text-align: left;
-}
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button:not(.ag-button-secondary):hover {
-                                        background: #166534;
-                                        border-color: #166534;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button.ag-button-secondary {
-                                        background: #ffffff;
-                                        color: #374151;
-                                        border-color: #d1d5db;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button.ag-button-secondary:hover {
-                                        background: #f9fafb;
-                                        border-color: #9ca3af;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-header-cell-menu-button {
-                                        color: #ffffff !important;
-                                        opacity: 0.8;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-header-cell-menu-button:hover {
-                                        opacity: 1;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-header-cell-menu-button .ag-icon {
-                                        color: #ffffff !important;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-icon-menu {
-                                        color: #ffffff !important;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-icon-filter {
-                                        color: #ffffff !important;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-icon-asc,
-                                    .ag-theme-alpine .ag-icon-desc,
-                                    .ag-theme-alpine .ag-icon-none {
-                                        color: #ffffff !important;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-sort-ascending-icon,
-                                    .ag-theme-alpine .ag-sort-descending-icon,
-                                    .ag-theme-alpine .ag-sort-none-icon {
-                                        color: #ffffff !important;
-                                        font-size: 16px !important;
-                                        width: 16px !important;
-                                        height: 16px !important;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-header-cell .ag-icon {
-                                        color: #ffffff !important;
-                                        font-size: 16px !important;
-                                        width: 16px !important;
-                                        height: 16px !important;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-menu-option-text {
-                                        color: #374151;
-                                        font-size: 14px;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-menu-option:hover {
-                                        background: #f0fdf4;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-menu-option-active {
-                                        background: #dcfce7;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-row {
-                                        border-bottom: 1px solid #e5e7eb;
-                                    }
-                                    
-                                    .ag-theme-alpine .ag-row:hover {
-                                        background-color: #f0fdf4 !important;
-                                    }
-                                      /* Paging Panel Container */
-.ag-theme-alpine .ag-paging-panel {
-  border-top: 2px solid #e5e7eb;
-  background-color: #f0fdf4;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-  border-radius: 0 0 8px 8px;
-  box-shadow: inset 0 1px 0 #d1d5db;
-}
-
-/* Paging Buttons */
+/* Enhanced Pagination Buttons */
 .ag-theme-alpine .ag-paging-button {
-  background: linear-gradient(to bottom right, #10b981, #059669);
+  background: linear-gradient(135deg, #15803d, #166534);
   color: white;
-  margin: 0 4px;
   border: none;
-  border-radius: 6px;
-  padding: 4px 10px;
-  height:24px;
+  border-radius: 4px;
+  margin: 0 4px;
+  min-width: 30px;
+  height: 26px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  font-size: 14px;
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(21, 128, 61, 0.2);
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ag-theme-alpine .ag-paging-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .ag-theme-alpine .ag-paging-button:hover {
-  background: linear-gradient(to bottom right, #059669, #047857);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #166534, #14532d);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(21, 128, 61, 0.3);
+}
+
+.ag-theme-alpine .ag-paging-button:hover::before {
+  left: 100%;
+}
+
+.ag-theme-alpine .ag-paging-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(21, 128, 61, 0.2);
 }
 
 .ag-theme-alpine .ag-paging-button[disabled] {
-  background-color: #e5e7eb;
-  color:rgb(255, 255, 255);
+  background: #e5e7eb;
+  color: #9ca3af;
   cursor: not-allowed;
+  transform: none;
   box-shadow: none;
+}
+
+.ag-theme-alpine .ag-paging-button[disabled]:hover {
+  background: #e5e7eb;
+  transform: none;
+  box-shadow: none;
+}
+
+.ag-theme-alpine .ag-paging-button[disabled]::before {
+  display: none;
+}
+
+/* First/Last page buttons */
+.ag-theme-alpine .ag-paging-button:first-child,
+.ag-theme-alpine .ag-paging-button:last-child {
+  background: linear-gradient(135deg, #047857, #065f46);
+  font-weight: 600;
+}
+
+.ag-theme-alpine .ag-paging-button:first-child:hover,
+.ag-theme-alpine .ag-paging-button:last-child:hover {
+  background: linear-gradient(135deg, #065f46, #064e3b);
 }
 
 /* Page Size Dropdown Label */
@@ -1199,24 +1137,30 @@ const UserManagement = () => {
 
 /* Page Size Selector */
 .ag-theme-alpine select {
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
   background-color: #ffffff;
   color: #111827;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease-in-out;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 8px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 32px;
 }
 
 .ag-theme-alpine select:hover,
 .ag-theme-alpine select:focus {
-  border-color: #10b981;
+  border-color: #15803d;
   outline: none;
   background-color: #ecfdf5;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
 }
 
 /* Page info text (e.g., 1 to 10 of 16) */
@@ -1224,9 +1168,29 @@ const UserManagement = () => {
   font-weight: 500;
   font-size: 14px;
   color: #374151;
+  padding: 8px 12px;
+
 }
-                                        
-                                `}</style>
+
+/* Pagination container improvements */
+.ag-theme-alpine .ag-paging-panel .ag-paging-button-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Current page indicator */
+.ag-theme-alpine .ag-paging-button.ag-paging-button-current {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.ag-theme-alpine .ag-paging-button.ag-paging-button-current:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
+}
+
+                `}</style>
           {activeTab === "users" ? (
             <AgGridReact
               columnDefs={userColumnDefs}
