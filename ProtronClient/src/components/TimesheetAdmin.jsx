@@ -18,7 +18,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const TimesheetManager = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [showWeekend, setShowWeekend] = useState(false);
+  const [showWeekend, setShowWeekend] = useState(true);
   const [timesheetData, setTimesheetData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -81,7 +81,7 @@ const TimesheetManager = () => {
     const days = [];
     const current = new Date(weekStart);
     const totalDays = showWeekend ? 7 : 5;
-    
+
     for (let i = 0; i < totalDays; i++) {
       days.push(new Date(current));
       current.setDate(current.getDate() + 1);
@@ -98,8 +98,8 @@ const TimesheetManager = () => {
           {data.avatar}
         </div>
         <div className="flex flex-col">
-          <Link 
-            to="/individual-timesheet" 
+          <Link
+            to="/individual-timesheet"
             state={{ employee: data }}
             className="text-sm font-medium text-blue-600 hover:text-blue-800"
           >
@@ -152,8 +152,8 @@ const TimesheetManager = () => {
   const ActionsCellRenderer = (params) => {
     const { data } = params;
     return (
-      <Link 
-        to="/individual-timesheet" 
+      <Link
+        to="/individual-timesheet"
         state={{ employee: data }}
         className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800"
       >
@@ -166,7 +166,7 @@ const TimesheetManager = () => {
   // AG Grid column definitions
   const columnDefs = useMemo(() => {
     const weekdays = getWeekdays();
-    
+
     const dayColumns = weekdays.map((day, index) => ({
       headerName: day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }),
       field: `day${index}`,
@@ -182,12 +182,12 @@ const TimesheetManager = () => {
     }));
 
     return [
-   {
+      {
         headerName: "#",
         valueGetter: "node.rowIndex + 1",
-       
-    minWidth:30,
-    maxWidth:50,
+
+        minWidth: 30,
+        maxWidth: 50,
         pinned: "left",
         sortable: false,
         filter: false,
@@ -498,7 +498,7 @@ const TimesheetManager = () => {
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
-                  
+
                   {/* Alternative: Direct visible date input */}
                   <div className="relative">
                     <input
@@ -577,6 +577,97 @@ const TimesheetManager = () => {
                 color: #ffffff !important;
                 justify-content: flex-start;
               }
+
+              
+.ag-theme-alpine .ag-header-cell-menu-button {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    background: transparent !important;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button:hover {
+    opacity: 0.8 !important;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button .ag-icon-menu {
+    color: #ffffff !important;
+    font-size: 16px !important;
+}
+
+.ag-theme-alpine .ag-header-cell-menu-button .ag-icon-filter {
+    color: #ffffff !important;
+    font-size: 16px !important;
+}
+
+/* Style for the filter icon */
+.ag-theme-alpine .ag-icon-filter {
+    color: #ffffff !important;
+    background: transparent !important;
+    padding: 2px;
+    border-radius: 3px;
+}
+
+/* Active filter indicator */
+.ag-theme-alpine .ag-header-cell-filtered .ag-header-cell-menu-button {
+    opacity: 1 !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 3px;
+}
+
+/* Filter popup menu styling */
+.ag-theme-alpine .ag-menu {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.ag-theme-alpine .ag-menu-header {
+    background-color: #f9fafb;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ag-theme-alpine .ag-filter-condition {
+    padding: 8px 12px;
+}
+
+/* Filter buttons in popup */
+.ag-theme-alpine .ag-filter-apply-panel button {
+    background: #15803d !important;
+    color: white !important;
+    border: none !important;
+    padding: 6px 12px !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: background-color 0.2s !important;
+}
+
+.ag-theme-alpine .ag-filter-apply-panel button:hover {
+    background: #166534 !important;
+}
+
+.ag-theme-alpine .ag-filter-wrapper .ag-filter-body .ag-input-wrapper::before {
+    display: none !important;
+}
+
+/* Style the filter input */
+.ag-theme-alpine .ag-filter-wrapper .ag-filter-body input {
+    padding: 8px 12px !important;
+    padding-left: 12px !important; /* Remove extra padding for icon */
+    width: 100% !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 6px !important;
+    font-size: 14px !important;
+    background-image: none !important; /* Remove any background images */
+}
+
+/* Focus state for filter input */
+.ag-theme-alpine .ag-filter-wrapper .ag-filter-body input:focus {
+    border-color: #15803d !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1) !important;
+}
               
               .ag-theme-alpine .ag-header-cell-sortable .ag-header-cell-label {
                 cursor: pointer;
@@ -774,7 +865,7 @@ const TimesheetManager = () => {
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
               gridOptions={gridOptions}
-                  paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
+              paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
               onGridReady={onGridReady}
               suppressMenuHide={true}
               enableCellTextSelection={true}
