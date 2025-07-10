@@ -809,7 +809,7 @@ const loadExistingAttachments = async (task) => {
                   onChange={handleInputChange('description')}
                   multiline
                   rows={4}
-                  inputProps={{ maxLength: 1000 }}
+                  inputProps={{ maxLength: 500 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
@@ -819,7 +819,7 @@ const loadExistingAttachments = async (task) => {
                   }}
                   helperText={
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      {`${formData.description.length} / 1000`}
+                      {`${formData.description.length} / 500`}
                     </Box>
                   }
                   FormHelperTextProps={{ sx: { margin: 0, paddingRight: 1 } }}

@@ -20,12 +20,20 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios';
 import { useAccess } from '../Context/AccessContext';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 const formatDate = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
 const formatDateKey = (date) => date.toISOString().split("T")[0];
 const formatDateDisplay = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
+
+// Helper function to check if a date is weekend
+const isWeekend = (date) => {
+  const day = date.getDay();
+  return day === 0 || day === 6; // Sunday (0) or Saturday (6)
+};
 
 // Truncate function for project names
 const truncateText = (text, maxLength = 15) => {
@@ -87,6 +95,7 @@ const Toast = ({ message, type, isVisible, onClose }) => {
     </div>
   );
 };
+
 const IndividualTimesheet = () => {
   const { hasAccess } = useAccess();
   const location = useLocation();
@@ -103,10 +112,14 @@ const IndividualTimesheet = () => {
     type: 'info' // 'success', 'error', 'info'
   });
   const [loading, setLoading] = useState(false);
+  const [showOverflowTasks, setShowOverflowTasks] = useState(false);
+  const [overflowTasksDate, setOverflowTasksDate] = useState(null);
   const navigate = useNavigate();
+
   const getTargetHours = () => {
     return viewMode === "Weekly" ? 40 : 184;
   };
+
   const showToast = (message, type = 'info') => {
     setToast({
       isVisible: true,
@@ -114,10 +127,13 @@ const IndividualTimesheet = () => {
       type
     });
   };
+
   console.log(employee)
+
   const hideToast = () => {
     setToast(prev => ({ ...prev, isVisible: false }));
   };
+
   const handleViewAttachment = async (taskId) => {
     try {
       showToast("Loading attachment...", "info");
@@ -173,6 +189,7 @@ const IndividualTimesheet = () => {
       }
     }
   };
+
   const handleDownloadAttachment = async (taskId, fileName = null) => {
     try {
       showToast("Downloading attachment...", "info");
@@ -239,6 +256,7 @@ const IndividualTimesheet = () => {
       }
     }
   };
+
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length || !employee?.rawData?.userId) return;
@@ -291,6 +309,7 @@ const IndividualTimesheet = () => {
       showToast("Failed to fetch tasks", "error");
     }
   };
+
   useEffect(() => {
     // Fetch tasks when component mounts or view mode changes
     setLoading(true);
@@ -298,6 +317,7 @@ const IndividualTimesheet = () => {
       setLoading(false);
     });
   }, [viewMode, currentWeekStart, currentMonthRange, employee?.rawData?.userId]);
+
   const getWeekDates = (startDate) => {
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -399,6 +419,7 @@ const IndividualTimesheet = () => {
   const handleCellHover = (date, isHovering) => {
     setHoveredCell(isHovering ? { date } : null);
   };
+
   const handleCopyLastWeek = async () => {
     // Only allow in Weekly view
     if (viewMode !== "Weekly") {
@@ -434,6 +455,7 @@ const IndividualTimesheet = () => {
       showToast("Failed to copy last week's tasks", "error");
     }
   };
+
   // Download as CSV with attachment information
   const downloadExcel = () => {
     try {
@@ -451,7 +473,6 @@ const IndividualTimesheet = () => {
             `"${entry.hours}h"`,
             `"${entry.description}"`,
             `"${entry.project}"`,
-
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -499,6 +520,7 @@ const IndividualTimesheet = () => {
 
           const entries = getTimeEntries(date);
           const isToday = date.toDateString() === new Date().toDateString();
+          const isWeekendDay = isWeekend(date);
           const maxVisibleTasks = 5;
           const visibleTasks = entries.slice(0, maxVisibleTasks);
           const overflowTasks = entries.slice(maxVisibleTasks);
@@ -509,10 +531,17 @@ const IndividualTimesheet = () => {
           return (
             <div
               key={dateKey}
-              className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
-                ? "border-blue-400 bg-blue-50 shadow-md z-20"
-                : `border-gray-200 ${isToday ? "bg-blue-50" : "bg-white"}`
-                }`}
+              className={`relative cursor-pointer border p-2 transition-all duration-200 ${
+                isOverflowOpen
+                  ? "border-blue-400 bg-blue-50 shadow-md z-20"
+                  : `border-gray-200 ${
+                      isToday 
+                        ? "bg-blue-50" 
+                        : isWeekendDay 
+                          ? "bg-gray-100" 
+                          : "bg-white"
+                    }`
+              }`}
               style={{
                 aspectRatio: "5/6"
               }}
@@ -522,7 +551,7 @@ const IndividualTimesheet = () => {
                 handleCellClick(date);
               }}
             >
-              <div className="text-xs font-medium text-gray-500">
+              <div className={`text-xs font-medium ${isWeekendDay ? 'text-gray-600' : 'text-gray-500'}`}>
                 {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
               </div>
 
@@ -531,7 +560,9 @@ const IndividualTimesheet = () => {
                 {visibleTasks.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${
+                      entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
+                    } ${isWeekendDay ? 'opacity-90' : ''}`}
                     title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -546,7 +577,9 @@ const IndividualTimesheet = () => {
                 {/* Show more button */}
                 {remainingTasksCount > 0 && (
                   <div
-                    className="task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors"
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${
+                      isWeekendDay ? 'opacity-90' : ''
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowOverflowTasks(!isOverflowOpen);
@@ -602,9 +635,6 @@ const IndividualTimesheet = () => {
     );
   };
 
-  const [showOverflowTasks, setShowOverflowTasks] = useState(false);
-  const [overflowTasksDate, setOverflowTasksDate] = useState(null);
-
   return (
     <div className="h-[92vh] bg-gray-50 flex flex-col overflow-hidden">
       {/* Toast Notification */}
@@ -631,12 +661,10 @@ const IndividualTimesheet = () => {
                   </button>
                 </div>
 
-
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">{employee.name}</h3>
                   <p className="text-sm text-gray-600">{employee.email}</p>
                 </div>
-
               </div>
             </div>
 
@@ -767,20 +795,31 @@ const IndividualTimesheet = () => {
                 <table className="w-full table-fixed">
                   <thead className="sticky top-0 z-10">
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      {getVisibleDates().map((date) => (
-                        <th
-                          key={date.toISOString()}
-                          className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          style={{ width: "150px" }} // Fixed width for columns
-                        >
-                          <div className={`px-4 py-4 flex flex-col items-center ${date.toDateString() === new Date().toDateString() ? "bg-blue-100" : ""}`}>
-                            <span>
-                              {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
-                            </span>
-                            <span className="text-xs text-gray-400 mt-1">{getDayTotalHours(date)}H/8H</span>
-                          </div>
-                        </th>
-                      ))}
+                      {getVisibleDates().map((date) => {
+                        const isWeekendDay = isWeekend(date);
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        
+                        return (
+                          <th
+                            key={date.toISOString()}
+                            className={`text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                              isWeekendDay ? 'bg-gray-200' : ''
+                            }`}
+                            style={{ width: "150px" }}
+                          >
+                            <div className={`px-4 py-4 flex flex-col items-center ${
+                              isToday ? "bg-blue-100" : isWeekendDay ? "bg-gray-200" : ""
+                            }`}>
+                              <span className={isWeekendDay ? 'text-gray-600' : ''}>
+                                {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
+                              </span>
+                              <span className={`text-xs mt-1 ${isWeekendDay ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {getDayTotalHours(date)}H/8H
+                              </span>
+                            </div>
+                          </th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody className="bg-white">
@@ -789,11 +828,14 @@ const IndividualTimesheet = () => {
                         const entries = getTimeEntries(date);
                         const isToday = date.toDateString() === new Date().toDateString();
                         const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
+                        const isWeekendDay = isWeekend(date);
 
                         return (
                           <td
                             key={date.toISOString()}
-                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100`}
+                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${
+                              isWeekendDay ? 'bg-gray-50' : ''
+                            }`}
                             onMouseEnter={() => handleCellHover(date, true)}
                             onMouseLeave={() => handleCellHover(date, false)}
                           >
@@ -802,10 +844,12 @@ const IndividualTimesheet = () => {
                               {entries.map((entry) => (
                                 <div
                                   key={entry.id}
-                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
+                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${
+                                    entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                                  } ${isWeekendDay ? 'opacity-90' : ''}`}
                                   style={{
                                     boxSizing: "border-box",
-                                    height: "150px", // Fixed height for task boxes
+                                    height: "150px",
                                   }}
                                   onClick={() => setTaskDetail(entry.fullTask)}
                                 >
@@ -825,7 +869,7 @@ const IndividualTimesheet = () => {
                                       {entry.project && (
                                         <span
                                           className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                                          title={entry.project} // Full project name on hover
+                                          title={entry.project}
                                         >
                                           <Folder className="h-3 w-3 mr-1" />
                                           {truncateText(entry.project, 12)}
@@ -837,10 +881,10 @@ const IndividualTimesheet = () => {
                                       <div
                                         className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""}`}
                                         style={{
-                                          maxHeight: "50px", // Set a maximum height for the description box
-                                          overflow: "hidden", // Hide overflowing content
-                                          textOverflow: "ellipsis", // Add ellipsis for truncated text
-                                          whiteSpace: "normal", // Allow text wrapping
+                                          maxHeight: "50px",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          whiteSpace: "normal",
                                         }}
                                       >
                                         {entry.description ? entry.description : "No description"}
@@ -900,7 +944,7 @@ const IndividualTimesheet = () => {
                 <span className="font-semibold">Project:</span>
                 <span
                   className="cursor-help"
-                  title={taskDetail.project?.projectName || "-"} // Full project name on hover
+                  title={taskDetail.project?.projectName || "-"}
                 >
                   {taskDetail.project?.projectName ? truncateText(taskDetail.project.projectName, 25) : "-"}
                 </span>

@@ -22,7 +22,10 @@ const truncateText = (text, maxLength = 15) => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + "...";
 };
-
+const isWeekend = (date) => {
+  const day = date.getDay();
+  return day === 0 || day === 6; // Sunday (0) or Saturday (6)
+};
 const getCurrentMondayStart = () => {
   const today = new Date();
   const dayOfWeek = today.getDay();
@@ -609,8 +612,7 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
 
     // Create an array for grid cells (including empty cells for alignment)
     const gridCells = [null].concat(dates);
-
-    return (
+ return (
       <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
         {gridCells.map((date, index) => {
           if (!date) {
@@ -628,6 +630,7 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
 
           const entries = getTimeEntries(date);
           const isToday = date.toDateString() === new Date().toDateString();
+          const isWeekendDay = isWeekend(date);
           const maxVisibleTasks = 5;
           const visibleTasks = entries.slice(0, maxVisibleTasks);
           const overflowTasks = entries.slice(maxVisibleTasks);
@@ -638,10 +641,17 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
           return (
             <div
               key={dateKey}
-              className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
-                ? "border-blue-400 bg-blue-50 shadow-md z-20"
-                : `border-gray-200 ${isToday ? "bg-blue-50" : "bg-white"}`
-                }`}
+              className={`relative cursor-pointer border p-2 transition-all duration-200 ${
+                isOverflowOpen
+                  ? "border-blue-400 bg-blue-50 shadow-md z-20"
+                  : `border-gray-200 ${
+                      isToday 
+                        ? "bg-blue-50" 
+                        : isWeekendDay 
+                          ? "bg-gray-100" 
+                          : "bg-white"
+                    }`
+              }`}
               style={{
                 aspectRatio: "5/6"
               }}
@@ -651,7 +661,7 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                 handleCellClick(date);
               }}
             >
-              <div className="text-xs font-medium text-gray-500">
+              <div className={`text-xs font-medium ${isWeekendDay ? 'text-gray-600' : 'text-gray-500'}`}>
                 {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
               </div>
 
@@ -660,7 +670,9 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                 {visibleTasks.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"}`}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${
+                      entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
+                    } ${isWeekendDay ? 'opacity-90' : ''}`}
                     title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -675,7 +687,9 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                 {/* Show more button */}
                 {remainingTasksCount > 0 && (
                   <div
-                    className="task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors"
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${
+                      isWeekendDay ? 'opacity-90' : ''
+                    }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowOverflowTasks(!isOverflowOpen);
@@ -730,7 +744,6 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
       </div>
     );
   };
-
   const [showOverflowTasks, setShowOverflowTasks] = useState(false);
   const [overflowTasksDate, setOverflowTasksDate] = useState(null);
 
@@ -883,144 +896,160 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
             <div className="flex-1 overflow-hidden">
               <div className="overflow-auto h-full">
                 <table className="w-full table-fixed">
-                  <thead className="sticky top-0 z-10">
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      {getVisibleDates().map((date) => (
-                        <th
-                          key={date.toISOString()}
-                          className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                          style={{ width: "150px" }} // Fixed width for columns
-                        >
-                          <div className={`px-4 py-4 flex flex-col items-center ${date.toDateString() === new Date().toDateString() ? "bg-blue-100" : ""}`}>
-                            <span>
-                              {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
-                            </span>
-                            <span className="text-xs text-gray-400 mt-1">{getDayTotalHours(date)}H/8H</span>
-                          </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
+                 <thead className="sticky top-0 z-10">
+  <tr className="bg-gray-50 border-b border-gray-200">
+    {getVisibleDates().map((date) => {
+      const isWeekendDay = isWeekend(date);
+      const isToday = date.toDateString() === new Date().toDateString();
+      
+      return (
+        <th
+          key={date.toISOString()}
+          className={`text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${
+            isWeekendDay ? 'bg-gray-200' : ''
+          }`}
+          style={{ width: "150px" }}
+        >
+          <div className={`px-4 py-4 flex flex-col items-center ${
+            isToday ? "bg-blue-100" : isWeekendDay ? "bg-gray-200" : ""
+          }`}>
+            <span className={isWeekendDay ? 'text-gray-600' : ''}>
+              {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
+            </span>
+            <span className={`text-xs mt-1 ${isWeekendDay ? 'text-gray-500' : 'text-gray-400'}`}>
+              {getDayTotalHours(date)}H/8H
+            </span>
+          </div>
+        </th>
+      );
+    })}
+  </tr>
+</thead>
                   <tbody className="bg-white">
-                    <tr>
-                      {getVisibleDates().map((date) => {
-                        const entries = getTimeEntries(date);
-                        const isToday = date.toDateString() === new Date().toDateString();
-                        const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
+  <tr>
+    {getVisibleDates().map((date) => {
+      const entries = getTimeEntries(date);
+      const isToday = date.toDateString() === new Date().toDateString();
+      const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
+      const isWeekendDay = isWeekend(date);
 
-                        return (
-                          <td
-                            key={date.toISOString()}
-                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100`}
-                            style={{ width: "150px", height: "200px" }} // Fixed width and height for cells
-                            onMouseEnter={() => handleCellHover(date, true)}
-                            onMouseLeave={() => handleCellHover(date, false)}
-                          >
-                            <div className="space-y-3 h-full">
-                              {/* Existing Time Entries */}
-                              {entries.map((entry) => (
-                                <div
-                                  key={entry.id}
-                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}
-                                  style={{
-                                    boxSizing: "border-box",
-                                    height: "150px", // Fixed height for task boxes
-                                  }}
-                                  onClick={() => setTaskDetail(entry.fullTask)}
-                                >
-                                  {!entry.submitted && (
-                                    <div className="absolute top-2 right-2 flex gap-2 transition-opacity z-20">
-                                      {hasAccess("timesheet", "delete") && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            deleteTimeEntry(date, entry.id);
-                                          }}
-                                          className="text-red-500 hover:text-red-700"
-                                          title="Delete"
-                                        >
-                                          <Trash2 className="h-3 w-3" />
-                                        </button>
-                                      )}
-                                      {hasAccess("timesheet", "edit") && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingTask({ ...entry.fullTask, date });
-                                            setShowLogTimeModal(true);
-                                          }}
-                                          className="text-blue-500 hover:text-blue-700"
-                                          title="Edit"
-                                        >
-                                          <SquarePen className="h-3 w-3" />
-                                        </button>
-                                      )}
-                                    </div>
-                                  )}
-
+      return (
+        <td
+          key={date.toISOString()}
+          className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${
+            isWeekendDay ? 'bg-gray-50' : ''
+          }`}
+          style={{ width: "150px", height: "200px" }}
+          onMouseEnter={() => handleCellHover(date, true)}
+          onMouseLeave={() => handleCellHover(date, false)}
+        >
+          <div className="space-y-3 h-full">
+            {/* Existing Time Entries */}
+            {entries.map((entry) => (
+              <div
+                key={entry.id}
+                className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${
+                  entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                } ${isWeekendDay ? 'opacity-90' : ''}`}
+                style={{
+                  boxSizing: "border-box",
+                  height: "150px",
+                }}
+                onClick={() => setTaskDetail(entry.fullTask)}
+              >
+                {/* Rest of the entry content remains the same */}
+                {!entry.submitted && (
+                  <div className="absolute top-2 right-2 flex gap-2 transition-opacity z-20">
+                    {hasAccess("timesheet", "delete") && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTimeEntry(date, entry.id);
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
+                    {hasAccess("timesheet", "edit") && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingTask({ ...entry.fullTask, date });
+                          setShowLogTimeModal(true);
+                        }}
+                        className="text-blue-500 hover:text-blue-700"
+                        title="Edit"
+                      >
+                        <SquarePen className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                )}
                                   {/* Main content with blur effect on hover */}
-                                  <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
-                                    <div className="flex items-center gap-2">
-                                      <FileText className="h-4 w-4 text-blue-500" />
-                                      <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      {entry.project && (
-                                        <span
-                                          className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                                          title={entry.project} // Full project name on hover
-                                        >
-                                          <Folder className="h-3 w-3 mr-1" />
-                                          {truncateText(entry.project, 12)}
-                                        </span>
-                                      )}
-                                    </div>
+                <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-blue-500" />
+                    <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {entry.project && (
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
+                        title={entry.project}
+                      >
+                        <Folder className="h-3 w-3 mr-1" />
+                        {truncateText(entry.project, 12)}
+                      </span>
+                    )}
+                  </div>
 
-                                    <div className="w-full">
-                                      <div
-                                        className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""}`}
-                                        style={{
-                                          maxHeight: "50px", // Set a maximum height for the description box
-                                          overflow: "hidden", // Hide overflowing content
-                                          textOverflow: "ellipsis", // Add ellipsis for truncated text
-                                          whiteSpace: "normal", // Allow text wrapping
-                                        }}
-                                      >
-                                        {entry.description ? entry.description : "No description"}
-                                      </div>
-                                    </div>
-                                  </div>
+                  <div className="w-full">
+                    <div
+                      className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${
+                        !entry.description ? "italic text-gray-400" : ""
+                      }`}
+                      style={{
+                        maxHeight: "50px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {entry.description ? entry.description : "No description"}
+                    </div>
+                  </div>
+                </div>
 
-                                  {/* Eye icon overlay - appears on hover */}
-                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                                    <div className="bg-opacity-90 rounded-full p-3">
-                                      <Eye className="h-6 w-6 text-blue-600" />
-                                    </div>
-                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-8 text-gray-800 text-xs px-2 py-1 rounded whitespace-nowrap">
-                                      Click to view details
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-
-
-                              {/* Add New Entry Button */}
-                              <div className="flex items-center justify-center">
-                                {(isHovered && hasAccess("timesheet", "edit")) && (
-                                  <button
-                                    onClick={() => handleCellClick(date)}
-                                    className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
-                                  >
-                                    <Plus className="h-5 w-5" />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  </tbody>
+                {/* Eye icon overlay - appears on hover */}
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                  <div className="bg-opacity-90 rounded-full p-3">
+                    <Eye className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-8 text-gray-800 text-xs px-2 py-1 rounded whitespace-nowrap">
+                    Click to view details
+                  </div>
+                </div>
+              </div>
+            ))}
+                               {/* Add New Entry Button */}
+            <div className="flex items-center justify-center">
+              {(isHovered && hasAccess("timesheet", "edit")) && (
+                <button
+                  onClick={() => handleCellClick(date)}
+                  className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </td>
+      );
+    })}
+  </tr>
+</tbody>
                 </table>
               </div>
             </div>
