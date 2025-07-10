@@ -18,7 +18,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 const TimesheetManager = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [showWeekend, setShowWeekend] = useState(true);
   const [timesheetData, setTimesheetData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -76,11 +75,10 @@ const TimesheetManager = () => {
     });
   };
 
-  // Get weekdays based on showWeekend toggle
   const getWeekdays = () => {
     const days = [];
     const current = new Date(weekStart);
-    const totalDays = showWeekend ? 7 : 5;
+    const totalDays = 7
 
     for (let i = 0; i < totalDays; i++) {
       days.push(new Date(current));
@@ -233,7 +231,7 @@ const TimesheetManager = () => {
         pinned: 'right',
       }
     ];
-  }, [showWeekend, currentWeek]);
+  }, [currentWeek]);
 
   // AG Grid default column definition
   const defaultColDef = useMemo(() => ({
@@ -290,7 +288,7 @@ const TimesheetManager = () => {
     if (gridApi) {
       gridApi.sizeColumnsToFit();
     }
-  }, [timesheetData, showWeekend, gridApi]);
+  }, [timesheetData, gridApi]);
 
   // Fetch timesheet data
   const fetchTimesheetData = async () => {
@@ -299,7 +297,7 @@ const TimesheetManager = () => {
       const startParam = weekStart.toISOString().split('T')[0];
       const endParam = weekEnd.toISOString().split('T')[0];
 
-      console.log('Fetching timesheet data for:', { startParam, endParam, showWeekend });
+      console.log('Fetching timesheet data for:', { startParam, endParam });
 
       const response = await fetch(`${API_BASE_URL}/api/timesheet-tasks/admin/summary?start=${startParam}&end=${endParam}`, {
         headers: {
@@ -369,7 +367,7 @@ const TimesheetManager = () => {
 
   useEffect(() => {
     fetchTimesheetData();
-  }, [currentWeek, showWeekend]);
+  }, [currentWeek]);
 
   // Navigation functions
   const goToPreviousWeek = () => {
@@ -465,22 +463,17 @@ const TimesheetManager = () => {
   );
 
   return (
-    <div className=" bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-sm">
-        {/* Header */}
-        <div className="flex items-center bg-green-700 justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-lg font-semibold text-white">Timesheet-Admin View</h1>
-            </div>
-          </div>
-        </div>
+    <div className=" bg-gray-50 px-7">
+      <div className="rounded-lg">
+        
 
         {/* Admin Timesheet View Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="py-6 border-b border-gray-200">
           <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:block`}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <div className='text-2xl font-bold text-green-800'>Admin Timesheet</div>
+              <div className='flex justify-center items-center space-x-10'>
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
                 {/* Week Navigation */}
                 <div className="flex items-center space-x-2 relative">
                   <button
@@ -513,20 +506,6 @@ const TimesheetManager = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                {/* Show Weekend Toggle */}
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={showWeekend}
-                    onChange={(e) => {
-                      console.log('Weekend toggle changed:', e.target.checked);
-                      setShowWeekend(e.target.checked);
-                    }}
-                    className="rounded border-gray-300"
-                  />
-                  <span className="text-sm text-gray-700">Show Weekend</span>
-                </label>
-
                 {/* Download Excel Button */}
                 <button
                   onClick={downloadExcel}
@@ -535,6 +514,7 @@ const TimesheetManager = () => {
                   <Download className="w-4 h-4" />
                   <span>Download Excel</span>
                 </button>
+              </div>
               </div>
             </div>
           </div>
@@ -545,7 +525,7 @@ const TimesheetManager = () => {
           <LoadingSpinner />
         ) : (
           /* AG Grid Table */
-          <div className="ag-theme-alpine" style={{ height: '600px', width: '100%', ...gridStyle }}>
+          <div className="ag-theme-alpine" style={{ height: '78vh', width: '100%', ...gridStyle }}>
             <style>{`
               .ag-theme-alpine {
                 --ag-header-background-color: #15803d !important;

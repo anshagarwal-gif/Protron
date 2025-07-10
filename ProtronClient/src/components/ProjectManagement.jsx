@@ -30,12 +30,12 @@ const ProjectManagement = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false)
-  
+
   // Pagination state for mobile view
   const [currentPage, setCurrentPage] = useState(1);
   const [projectsPerPage, setProjectsPerPage] = useState(5);
   const [showEntriesDropdown, setShowEntriesDropdown] = useState(false);
-  
+
   const [projectFormData, setProjectFormData] = useState({ ...selectedProject });
   const [formData, setFormData] = useState({
     projectName: '',
@@ -58,22 +58,22 @@ const ProjectManagement = () => {
   // Function to format date as DD-MMM-YYYY (e.g., 12-Sept-2025)
   const formatDate = (dateString) => {
     if (!dateString) return "";
-  
+
     const date = new Date(dateString);
     if (isNaN(date)) return ""; // invalid date
-  
+
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
     const day = date.getDate().toString().padStart(2, '0');
     const month = months[date.getMonth()];
     const year = date.getFullYear();
-  
+
     return `${day}-${month}-${year}`;
   };
 
   // Custom cell renderers for AgGrid
   const ProjectNameRenderer = (params) => {
     return (
-      <span 
+      <span
         className="font-medium cursor-pointer hover:text-green-600 truncate"
         onClick={() => handleManageTeam(params.data.projectId, params.data)}
         title={params.value}
@@ -86,7 +86,7 @@ const ProjectManagement = () => {
   const TeamSizeRenderer = (params) => {
     const teamSize = params.data.projectTeam?.length || 0;
     return (
-      <span 
+      <span
         className="text-blue-600 hover:text-green-600 cursor-pointer flex items-center"
         onClick={() => handleManageTeam(params.data.projectId, params.data)}
       >
@@ -110,13 +110,13 @@ const ProjectManagement = () => {
 
         {/* Edit Project Button */}
         {hasAccess('projects', 'edit') && (
-        <button
-          onClick={() => setSelectedEditProjectId(params.data.projectId)}
-          className="p-2 rounded-full hover:bg-green-100"
-          title="Edit"
-        >
-          <FiEdit size={20} className="text-green-700" />
-        </button>)}
+          <button
+            onClick={() => setSelectedEditProjectId(params.data.projectId)}
+            className="p-2 rounded-full hover:bg-green-100"
+            title="Edit"
+          >
+            <FiEdit size={20} className="text-green-700" />
+          </button>)}
 
         {/* Manage Team Button */}
         <button
@@ -140,7 +140,7 @@ const ProjectManagement = () => {
       suppressMenu: true,
       sortable: false,
       filter: false,
-     
+
     },
     {
       headerName: 'Project Name',
@@ -231,8 +231,8 @@ const ProjectManagement = () => {
   // Grid options
   const gridOptions = useMemo(() => ({
     pagination: true,
-    paginationPageSize: 10,
-    paginationPageSizeSelector: [5, 10, 20, 50, 100],
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [10, 20, 50, 100],
     suppressRowClickSelection: true,
     rowSelection: 'single',
     animateRows: true,
@@ -344,7 +344,7 @@ const ProjectManagement = () => {
           : null,
         projectCost: updatedData.projectCost,
         projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
-        sponsorId: updatedData.sponsor?.userId ??null,
+        sponsorId: updatedData.sponsor?.userId ?? null,
         unit: updatedData.unit,
         systemImpacted: updatedData.systemImpacted,
         removedSystems: updatedData.removedSystems,
@@ -535,7 +535,7 @@ const ProjectManagement = () => {
 
   // Change page (mobile view)
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-  
+
   const handleView = (project) => {
     console.log(project)
     setSelectedProject(project);
@@ -557,20 +557,14 @@ const ProjectManagement = () => {
           onClose={handleCloseTeamManagement}
         />
       ) : (
-        <div>
-     
-        <div className="flex items-center bg-green-700 justify-between p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-             <h1 className="text-lg text-white"><AiFillProject /></h1> <h1 className="text-lg font-semibold text-white">Project Management</h1>
-            </div>
-          </div>
-        </div>
-             
-         
+        <div className="px-7">
+
+
+
+
 
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5">
-            <h1 className="text-2xl font-bold text-green-800">Project List</h1>
+            <h1 className="text-2xl font-bold text-green-800">Project Management</h1>
 
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Search Input */}
@@ -597,12 +591,12 @@ const ProjectManagement = () => {
 
                 {/* Add Project Button */}
                 {hasAccess('projects', 'edit') && (
-                <button
-                  className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none"
-                  onClick={() => setShowAddModal(true)}
-                >
-                  <span className="hidden sm:inline mr-1">+</span> Add Project
-                </button>)}
+                  <button
+                    className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none"
+                    onClick={() => setShowAddModal(true)}
+                  >
+                    <span className="hidden sm:inline mr-1">+</span> Add Project
+                  </button>)}
               </div>
             </div>
           </div>
@@ -612,7 +606,7 @@ const ProjectManagement = () => {
             {isLoading ? (
               <LoadingSpinner />
             ) : (
-              <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '540px', width: '100%' }}>
+              <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
                 <style jsx>{`
                   .ag-theme-alpine .ag-header {
                     background-color: #15803d!important;
@@ -711,17 +705,6 @@ const ProjectManagement = () => {
                     border-top: 2px solid #e5e7eb;
                     background-color: #f9fafb;
                     padding: 12px;
-                  }
-                 .ag-theme-alpine .ag-paging-button {
-                    background-color:rgb(0, 0, 0);
-                    margin-left:5px;
-                  }
-                  .ag-theme-alpine .ag-paging-button:hover {
-                    background-color: #047857;
-                  }
-                  .ag-theme-alpine .ag-paging-button[disabled] {
-                    background-color: #d1d5db;
-                    color: #6b7280;
                   }
                     /* Paging Panel Container */
 .ag-theme-alpine .ag-paging-panel {
@@ -829,31 +812,81 @@ const ProjectManagement = () => {
     box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1) !important;
 }
 
-/* Paging Buttons */
+/* Enhanced Pagination Buttons */
 .ag-theme-alpine .ag-paging-button {
-  background: linear-gradient(to bottom right, #10b981, #059669);
+  background: linear-gradient(135deg, #15803d, #166534);
   color: white;
-  margin: 0 4px;
   border: none;
-  border-radius: 6px;
-  padding: 4px 10px;
-  height:24px;
+  border-radius: 4px;
+  margin: 0 4px;
+  min-width: 30px;
+  height: 26px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
+  font-size: 14px;
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(21, 128, 61, 0.2);
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ag-theme-alpine .ag-paging-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
 }
 
 .ag-theme-alpine .ag-paging-button:hover {
-  background: linear-gradient(to bottom right, #059669, #047857);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #166534, #14532d);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(21, 128, 61, 0.3);
+}
+
+.ag-theme-alpine .ag-paging-button:hover::before {
+  left: 100%;
+}
+
+.ag-theme-alpine .ag-paging-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(21, 128, 61, 0.2);
 }
 
 .ag-theme-alpine .ag-paging-button[disabled] {
-  background-color: #e5e7eb;
+  background: #e5e7eb;
   color: #9ca3af;
   cursor: not-allowed;
+  transform: none;
   box-shadow: none;
+}
+
+.ag-theme-alpine .ag-paging-button[disabled]:hover {
+  background: #e5e7eb;
+  transform: none;
+  box-shadow: none;
+}
+
+.ag-theme-alpine .ag-paging-button[disabled]::before {
+  display: none;
+}
+
+/* First/Last page buttons */
+.ag-theme-alpine .ag-paging-button:first-child,
+.ag-theme-alpine .ag-paging-button:last-child {
+  background: linear-gradient(135deg, #047857, #065f46);
+  font-weight: 600;
+}
+
+.ag-theme-alpine .ag-paging-button:first-child:hover,
+.ag-theme-alpine .ag-paging-button:last-child:hover {
+  background: linear-gradient(135deg, #065f46, #064e3b);
 }
 
 /* Page Size Dropdown Label */
@@ -865,24 +898,30 @@ const ProjectManagement = () => {
 
 /* Page Size Selector */
 .ag-theme-alpine select {
-  padding: 6px 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
   background-color: #ffffff;
   color: #111827;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease-in-out;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 8px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 32px;
 }
 
 .ag-theme-alpine select:hover,
 .ag-theme-alpine select:focus {
-  border-color: #10b981;
+  border-color: #15803d;
   outline: none;
   background-color: #ecfdf5;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 0 3px rgba(21, 128, 61, 0.1);
 }
 
 /* Page info text (e.g., 1 to 10 of 16) */
@@ -890,6 +929,26 @@ const ProjectManagement = () => {
   font-weight: 500;
   font-size: 14px;
   color: #374151;
+  padding: 8px 12px;
+
+}
+
+/* Pagination container improvements */
+.ag-theme-alpine .ag-paging-panel .ag-paging-button-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Current page indicator */
+.ag-theme-alpine .ag-paging-button.ag-paging-button-current {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.ag-theme-alpine .ag-paging-button.ag-paging-button-current:hover {
+  background: linear-gradient(135deg, #b91c1c, #991b1b);
 }
 
                 `}</style>
@@ -933,7 +992,7 @@ const ProjectManagement = () => {
 
                     {showEntriesDropdown && (
                       <div className="absolute top-full left-0 w-24 mt-1 bg-white border border-green-700 rounded shadow-lg z-10 overflow-hidden">
-                        {[5,10, 20, 50, 100].map((value) => (
+                        {[5, 10, 20, 50, 100].map((value) => (
                           <button
                             key={value}
                             className={`block w-full text-left px-3 py-2 transition-colors duration-150 ${projectsPerPage === value
@@ -1007,13 +1066,13 @@ const ProjectManagement = () => {
 
                           {/* Edit Project Button */}
                           {hasAccess('projects', 'edit') && (
-                          <button
-                            onClick={() => setSelectedEditProjectId(project.projectId)}
-                            className="p-2 rounded-full hover:bg-green-100"
-                            title="Edit"
-                          >
-                            <FiEdit size={20} className="text-green-700" />
-                          </button>)}
+                            <button
+                              onClick={() => setSelectedEditProjectId(project.projectId)}
+                              className="p-2 rounded-full hover:bg-green-100"
+                              title="Edit"
+                            >
+                              <FiEdit size={20} className="text-green-700" />
+                            </button>)}
 
                           {/* Manage Team Button */}
                           <button
@@ -1352,7 +1411,7 @@ const ProjectManagement = () => {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500 mb-1">System Impacted</p>
-                        <p>{selectedProject.systemImpacted?.map((system, index)=>{
+                        <p>{selectedProject.systemImpacted?.map((system, index) => {
                           return <span key={index} className="block">{system.systemName}</span>
                         })}</p>
                       </div>
