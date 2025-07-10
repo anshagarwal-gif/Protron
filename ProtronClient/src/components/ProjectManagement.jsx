@@ -3,6 +3,7 @@ import axios from "axios"
 import { AiFillProject, AiOutlineSearch, AiOutlineDownload } from "react-icons/ai"
 import { FiChevronDown, FiUsers, FiEdit, FiEye } from "react-icons/fi"
 import { AgGridReact } from 'ag-grid-react'
+import { Calendar, DollarSign, Users, Settings } from 'lucide-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
@@ -1209,223 +1210,141 @@ const ProjectManagement = () => {
           />
         </div>
       )}
+
       {isModalOpen && selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.3)] z-50">
-          <div className="bg-white rounded-xl shadow-lg w-[90%] md:w-[800px] max-h-[90vh] overflow-hidden">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
             {/* Header */}
-            <div className="bg-gray-50 border-b border-gray-200 py-2 px-6">
-              <h2 className="text-xl font-semibold text-green-700">Project Details</h2>
+            <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Project Details</h2>
+                <button
+                  onClick={handleClose}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {/* Content */}
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
-              <div className="flex flex-col space-y-6">
+            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
+              {/* Project Name - Highlighted */}
+              <div className="mb-10">
+                <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Project Name</p>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.projectName}</h3>
+                <p className="text-sm text-gray-600">
+                  {selectedProject.tenant?.tenantName || selectedProject.tenent || "No tenant specified"}
+                </p>
+              </div>
 
-                {/* Project Basic Info */}
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
-                          <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Project Name</span>
-                    </div>
-                    <h3 className="text-lg font-semibold">{selectedProject.projectName}</h3>
+              {/* Project Timeline */}
+              <div className="mb-12">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
+                  <Calendar className="w-5 h-5 mr-2 text-blue-600" />
+                  Timeline
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Start Date</p>
+                    <p className="font-medium text-gray-900">{formatDate(selectedProject.startDate)}</p>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm3 1h6v4H7V5zm8 8v2h1v1H4v-1h1v-2a1 1 0 011-1h8a1 1 0 011 1z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Project ID</span>
-                    </div>
-                    <p className="text-lg">{selectedProject.projectId}</p>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">End Date</p>
+                    <p className="font-medium text-gray-900">{formatDate(selectedProject.endDate)}</p>
                   </div>
                 </div>
+              </div>
 
-                {/* Project Dates */}
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Start Date</span>
-                    </div>
-                    <p className="text-base">{formatDate(selectedProject.startDate)}</p>
+              {/* Project Cost & Created */}
+              <div className="mb-12">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                  Project Information
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Project Cost ({selectedProject.unit || "Unit"})</p>
+                    <p className="font-semibold text-gray-900">₹{selectedProject.projectCost}</p>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">End Date</span>
-                    </div>
-                    <p className="text-base">{formatDate(selectedProject.endDate)}</p>
-                  </div>
-                </div>
-
-                {/* Project Manager */}
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Project Manager</span>
-                    </div>
-                    <p className="text-base">
-                      {selectedProject.projectManager ?
-                        `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName} (${selectedProject.projectManager.empCode})` :
-                        "Not assigned"}
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Created/Updated</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedProject.startTimestamp ? new Date(selectedProject.startTimestamp).toLocaleDateString() : "Not available"}
                     </p>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Sponsor</span>
-                    </div>
-                    <p className="text-base">{selectedProject.sponsor ?
-                      `${selectedProject.sponsor.firstName} ${selectedProject.sponsor.lastName} (${selectedProject.sponsor.empCode})` :
-                      "Not assigned"}</p>
-                  </div>
                 </div>
+              </div>
 
-                {/* Cost & Timestamp */}
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Project Cost</span>
-                    </div>
-                    <p className="text-base">₹{selectedProject.projectCost}</p>
+              {/* Team & Leadership */}
+              <div className="mb-12">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
+                  <Users className="w-5 h-5 mr-2 text-purple-600" />
+                  Team & Leadership
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Project Manager</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedProject.projectManager
+                        ? `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName} (${selectedProject.projectManager.empCode})`
+                        : "Not assigned"}
+                    </p>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center mb-1">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-500 text-sm font-medium">Start Timestamp</span>
-                    </div>
-                    <p className="text-base">{selectedProject.startTimestamp ? new Date(selectedProject.startTimestamp).toLocaleString() : "Not available"}</p>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Sponsor</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedProject.sponsor
+                        ? `${selectedProject.sponsor.firstName} ${selectedProject.sponsor.lastName} (${selectedProject.sponsor.empCode})`
+                        : "Not assigned"}
+                    </p>
                   </div>
                 </div>
 
                 {/* Project Team */}
                 {selectedProject.projectTeam && selectedProject.projectTeam.length > 0 && (
                   <div>
-                    <div className="flex items-center mb-3">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-600 text-base font-medium">Project Team</span>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {selectedProject.projectTeam.map((member, index) => (
-                          <div key={index} className="flex items-center">
-                            <div className="bg-green-100 text-green-700 rounded-full h-8 w-8 flex items-center justify-center mr-3">
-                              {member.user.firstName ? member.user.firstName.charAt(0) : "U"}
-                            </div>
-                            <div>
-                              <p className="font-medium">{member.user.firstName} {member.user.lastName}</p>
-                              <p className="text-sm text-gray-500">{member.empCode || "No ID"}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Timesheet Tasks */}
-                {selectedProject.timesheetTasks && selectedProject.timesheetTasks.length > 0 && (
-                  <div>
-                    <div className="flex items-center mb-3">
-                      <span className="text-green-700 mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                          <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                      <span className="text-gray-600 text-base font-medium">Tasks</span>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="space-y-2">
-                        {selectedProject.timesheetTasks.map((task, index) => (
-                          <div key={index} className="flex items-center">
-                            <div className="bg-green-100 text-green-700 rounded-full h-6 w-6 flex items-center justify-center mr-3">
-                              {index + 1}
-                            </div>
-                            <span>{task.taskName || `Task ${task.taskId}`}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Additional Details */}
-                <div>
-                  <div className="flex items-center mb-3">
-                    <span className="text-green-700 mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </span>
-                    <span className="text-gray-600 text-base font-medium">Additional Details</span>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-600 mb-4">Project Team Members</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Tenant</p>
-                        <p>{selectedProject.tenant?.tenantName || selectedProject.tenent || "Not specified"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">Unit</p>
-                        <p>{selectedProject.unit || "Not specified"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mb-1">System Impacted</p>
-                        <p>{selectedProject.systemImpacted?.map((system, index) => {
-                          return <span key={index} className="block">{system.systemName}</span>
-                        })}</p>
-                      </div>
+                      {selectedProject.projectTeam.map((member, index) => (
+                        <div key={index} className="flex items-center bg-gray-50 rounded-lg p-3">
+                          <div className="bg-green-100 text-green-700 rounded-full h-8 w-8 flex items-center justify-center mr-3 text-sm font-medium">
+                            {member.user.firstName ? member.user.firstName.charAt(0) : "T"}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{member.user.firstName} {member.user.lastName}</p>
+                            <p className="text-sm text-gray-500">{member.empCode || "No ID"}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
+                )}
+              </div>
+
+              {/* System Impacted */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
+                  <Settings className="w-5 h-5 mr-2 text-orange-600" />
+                  System Impacted
+                </h4>
+                <div>
+                  {selectedProject.systemImpacted?.map((system, index) => (
+                    <span key={index} className="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm mr-2 mb-2">
+                      {system.systemName}
+                    </span>
+                  )) || <p className="text-gray-500">None specified</p>}
                 </div>
               </div>
             </div>
 
-            {/* Footer with buttons */}
-            <div className="bg-gray-50 border-t border-gray-200 py-2 px-6 flex justify-end gap-3">
+            {/* Footer */}
+            <div className="bg-gray-50 border-t border-gray-200 px-6 py-3 flex justify-end">
               <button
-                className="px-4 py-2 border border-green-600 text-green-600 rounded hover:border-green-700 hover:text-green-700 transition-colors"
                 onClick={handleClose}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 Close
               </button>

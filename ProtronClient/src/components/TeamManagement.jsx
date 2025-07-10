@@ -39,28 +39,28 @@ const TeamManagement = () => {
     }, []);
 
     useEffect(() => {
-    let filtered = [...employees];
+        let filtered = [...employees];
 
-    if (searchTerm.trim() !== '') {
-        const searchTermLower = searchTerm.toLowerCase();
-        filtered = filtered.filter(employee => {
-            // Search in employee name
-            const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
-            const nameMatch = fullName.includes(searchTermLower);
+        if (searchTerm.trim() !== '') {
+            const searchTermLower = searchTerm.toLowerCase();
+            filtered = filtered.filter(employee => {
+                // Search in employee name
+                const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
+                const nameMatch = fullName.includes(searchTermLower);
 
-            // Search in email
-            const emailMatch = employee.email.toLowerCase().includes(searchTermLower);
+                // Search in email
+                const emailMatch = employee.email.toLowerCase().includes(searchTermLower);
 
-            // Search in employee code
-            const empCodeMatch = employee.empCode?.toLowerCase().includes(searchTermLower);
+                // Search in employee code
+                const empCodeMatch = employee.empCode?.toLowerCase().includes(searchTermLower);
 
-            // Return true if any field matches
-            return nameMatch || emailMatch || empCodeMatch;
-        });
-    }
+                // Return true if any field matches
+                return nameMatch || emailMatch || empCodeMatch;
+            });
+        }
 
-    setFilteredEmployees(filtered);
-}, [searchTerm, employees]);
+        setFilteredEmployees(filtered);
+    }, [searchTerm, employees]);
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -103,11 +103,11 @@ const TeamManagement = () => {
         return `${day}-${month}-${year}`;
     };
 
-    // Name cell renderer with profile photo
+    // Replace the existing NameCellRenderer with this updated version
     const NameCellRenderer = (params) => {
         const { data } = params;
         return (
-            <div className="flex items-center cursor-pointer hover:text-green-700" onClick={() => handleProfileClick(data.email)}>
+            <div className="flex items-center cursor-pointer hover:text-green-700 w-full" onClick={() => handleProfileClick(data.email)}>
                 <img
                     src={
                         data.photo
@@ -115,12 +115,12 @@ const TeamManagement = () => {
                             : `${import.meta.env.VITE_API_URL}/api/users/${data.userId}/photo`
                     }
                     alt={data.firstName + ' ' + data.lastName}
-                    className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2"
+                    className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2 flex-shrink-0"
                     onError={(e) => {
                         e.target.src = "/profilepic.jpg";
                     }}
                 />
-                <span>{data.firstName + ' ' + data.lastName}</span>
+                <span className="truncate">{data.firstName + ' ' + data.lastName}</span>
             </div>
         );
     };
@@ -443,31 +443,31 @@ const TeamManagement = () => {
 
                 {/* Status filter and export row */}
                 <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5 mb-3">
-            <h1 className="text-2xl font-bold text-green-800">Team Management</h1>
+                    <h1 className="text-2xl font-bold text-green-800">Team Management</h1>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-                {/* Search Input */}
-                <div className="relative w-full sm:w-64">
-                    <input
-                        type="text"
-                        placeholder="Search team members..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="border rounded px-3 py-2 pl-9 w-full"
-                    />
-                    <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        {/* Search Input */}
+                        <div className="relative w-full sm:w-64">
+                            <input
+                                type="text"
+                                placeholder="Search team members..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="border rounded px-3 py-2 pl-9 w-full"
+                            />
+                            <AiOutlineSearch className="absolute left-3 top-3 text-gray-400" />
+                        </div>
+
+                        {/* Excel Download Button */}
+                        <button
+                            className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center"
+                            onClick={downloadExcel}
+                        >
+                            <AiOutlineDownload className="mr-1" />
+                            <span>Download Excel</span>
+                        </button>
+                    </div>
                 </div>
-
-                {/* Excel Download Button */}
-                <button
-                    className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center"
-                    onClick={downloadExcel}
-                >
-                    <AiOutlineDownload className="mr-1" />
-                    <span>Download Excel</span>
-                </button>
-            </div>
-        </div>
 
                 {/* Loading State */}
                 {loading ? (

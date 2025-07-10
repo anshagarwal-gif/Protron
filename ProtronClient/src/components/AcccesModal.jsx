@@ -362,6 +362,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
               </Box>
             </Box>
 
+            
             {/* Dynamic Access Details Section */}
             <Paper
               variant="outlined"
@@ -370,7 +371,6 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 bgcolor: "#f8f9fa",
                 borderColor: greenPrimary,
                 borderRadius: 2,
-                // Remove flex: 1 to allow natural sizing
                 display: "flex",
                 flexDirection: "column",
               }}
@@ -387,58 +387,100 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
               </Typography>
 
               {modules.length > 0 ? (
-                <Box 
-                  sx={{ 
+                <Box sx={{ 
+                  bgcolor: "#ffffff"
+                }}>
+                  {/* Header Row */}
+                  <Box sx={{ 
                     display: "grid", 
-                    gridTemplateColumns: getGridColumns(),
-                    gap: isMobile ? 1.5 : 2,
-                    // Remove fixed height constraints
-                  }}
-                >
-                  {modules.map((module, index) => {
-                    const moduleName = module.moduleName
-                    const formattedModuleName = formatModuleName(moduleName)
+                    gridTemplateColumns: isMobile ? "1fr 60px 60px 60px" : "1fr 80px 80px 80px",
+                    alignItems: "center",
+                    backgroundColor: greenPrimary,
+                    borderRadius: 1,
+                    px: isMobile ? 1 : 2,
+                    py: isMobile ? 0.75 : 1,
+                    mb: 1,
+                  }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: "white", 
+                        fontWeight: 600,
+                        fontSize: isMobile ? "0.8rem" : "0.9rem",
+                      }}
+                    >
+                      Module
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: "white", 
+                        fontWeight: 600,
+                        textAlign: "center",
+                        fontSize: isMobile ? "0.8rem" : "0.9rem",
+                      }}
+                    >
+                      View
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: "white", 
+                        fontWeight: 600,
+                        textAlign: "center",
+                        fontSize: isMobile ? "0.8rem" : "0.9rem",
+                      }}
+                    >
+                      Edit
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: "white", 
+                        fontWeight: 600,
+                        textAlign: "center",
+                        fontSize: isMobile ? "0.8rem" : "0.9rem",
+                      }}
+                    >
+                      Delete
+                    </Typography>
+                  </Box>
 
-                    return (
-                      <Paper
-                        key={index}
-                        variant="outlined"
-                        sx={{
-                          p: isMobile ? 1.5 : 2,
-                          bgcolor: "#ffffff",
-                          borderColor: greenPrimary,
-                          borderRadius: 2,
-                          height: "fit-content",
-                          minHeight: isMobile ? "120px" : "140px",
-                        }}
-                      >
-                        <Typography 
-                          variant={isMobile ? "body1" : "h6"} 
-                          sx={{ 
-                            color: greenPrimary, 
-                            mb: isMobile ? 1 : 1.5, 
-                            fontWeight: 600,
-                            textAlign: "center",
-                            pb: 1,
-                            borderBottom: "1px solid #e0e0e0",
-                            fontSize: isMobile ? "0.8rem" : "0.9rem",
+                  {/* Module Rows */}
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                    {modules.map((module, index) => {
+                      const moduleName = module.moduleName
+                      const formattedModuleName = formatModuleName(moduleName)
+
+                      return (
+                        <Box
+                          key={index}
+                          sx={{
+                            display: "grid",
+                            gridTemplateColumns: isMobile ? "1fr 60px 60px 60px" : "1fr 80px 80px 80px",
+                            alignItems: "center",
+                            px: isMobile ? 1 : 2,
+                            py: isMobile ? 0.75 : 1,
+                            backgroundColor: index % 2 === 0 ? "#ffffff" : "#f8f9fa",
+                            borderRadius: 1,
+                            transition: "background-color 0.2s ease",
+                            "&:hover": {
+                              backgroundColor: "#e8f5e8",
+                            },
                           }}
                         >
-                          {formattedModuleName}
-                        </Typography>
-                        <Box sx={{ display: "flex", flexDirection: "column", gap: isMobile ? 0.5 : 1 }}>
-                          {/* View Permission */}
-                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary" 
-                              sx={{ 
-                                fontWeight: 500, 
-                                fontSize: isMobile ? "0.75rem" : "0.8rem" 
-                              }}
-                            >
-                              View
-                            </Typography>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: "#333", 
+                              fontWeight: 500,
+                              fontSize: isMobile ? "0.8rem" : "0.85rem",
+                            }}
+                          >
+                            {formattedModuleName}
+                          </Typography>
+                          
+                          <Box sx={{ display: "flex", justifyContent: "center" }}>
                             <Switch
                               size="small"
                               checked={permissions[`${moduleName}_canView`] || false}
@@ -454,18 +496,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                             />
                           </Box>
 
-                          {/* Edit Permission */}
-                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary" 
-                              sx={{ 
-                                fontWeight: 500, 
-                                fontSize: isMobile ? "0.75rem" : "0.8rem" 
-                              }}
-                            >
-                              Edit
-                            </Typography>
+                          <Box sx={{ display: "flex", justifyContent: "center" }}>
                             <Switch
                               size="small"
                               checked={permissions[`${moduleName}_canEdit`] || false}
@@ -481,18 +512,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                             />
                           </Box>
 
-                          {/* Delete Permission */}
-                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary" 
-                              sx={{ 
-                                fontWeight: 500, 
-                                fontSize: isMobile ? "0.75rem" : "0.8rem" 
-                              }}
-                            >
-                              Delete
-                            </Typography>
+                          <Box sx={{ display: "flex", justifyContent: "center" }}>
                             <Switch
                               size="small"
                               checked={permissions[`${moduleName}_canDelete`] || false}
@@ -508,9 +528,9 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                             />
                           </Box>
                         </Box>
-                      </Paper>
-                    )
-                  })}
+                      )
+                    })}
+                  </Box>
                 </Box>
               ) : (
                 <Box sx={{ 
