@@ -115,137 +115,113 @@ const TimesheetManager = () => {
   };
 
   // Attachment handling functions with better error handling
-  const handleViewAttachment = async (taskId) => {
-    try {
-      showToast("Loading attachment...", "info");
+ 
+// Updated attachment handling functions
+const handleViewAttachment = async (taskId, attachmentId = null) => {
+  try {
+    showToast("Loading attachment...", "info");
 
-      const response = await axios.get(
-        `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`,
-        {
-          headers: {
-            Authorization: sessionStorage.getItem("token"),
-          },
-          responseType: 'blob',
-          timeout: 30000 // 30 second timeout
-        }
-      );
+    // Use specific attachment ID if provided, otherwise get first attachment
+    const url = attachmentId 
+      ? `${API_BASE_URL}/api/timesheet-tasks/attachments/${attachmentId}`
+      : `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`; // Fallback to old endpoint
 
-      if (!response.data || response.data.size === 0) {
-        showToast("Attachment file is empty or not found", "error");
-        return;
-      }
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: sessionStorage.getItem("token"),
+      },
+      responseType: 'blob',
+      timeout: 30000
+    });
 
-      // Get content type from response headers or default to octet-stream
-      const contentType = response.headers['content-type'] || 'application/octet-stream';
-
-      // Create blob URL and open in new tab
-      const blob = new Blob([response.data], { type: contentType });
-      const url = window.URL.createObjectURL(blob);
-
-      // Try to open in new tab
-      const newWindow = window.open(url, '_blank');
-
-      if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-        // If popup blocked, provide download fallback
-        showToast("Popup blocked. Starting download instead...", "info");
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `attachment_${taskId}`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        showToast("Attachment opened successfully!", "success");
-      }
-
-      // Clean up the URL after a delay
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 5000);
-
-    } catch (error) {
-      console.error("Failed to view attachment:", error);
-
-      if (error.response?.status === 404) {
-        showToast("Attachment not found or has been deleted", "error");
-      } else if (error.response?.status === 403) {
-        showToast("Access denied to attachment", "error");
-      } else if (error.response?.status === 500) {
-        showToast("Server error while retrieving attachment. Please contact support.", "error");
-      } else if (error.code === 'ECONNABORTED') {
-        showToast("Request timeout. Attachment might be too large.", "error");
-      } else {
-        showToast("Failed to open attachment. Please try downloading instead.", "error");
-      }
+    if (!response.data || response.data.size === 0) {
+      showToast("Attachment file is empty or not found", "error");
+      return;
     }
-  };
 
-  const handleDownloadAttachment = async (taskId, fileName = null) => {
-    try {
-      showToast("Downloading attachment...", "info");
+    const contentType = response.headers['content-type'] || 'application/octet-stream';
+    const blob = new Blob([response.data], { type: contentType });
+    const url_blob = window.URL.createObjectURL(blob);
 
-      const response = await axios.get(
-        `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`,
-        {
-          headers: {
-            Authorization: sessionStorage.getItem("token"),
-          },
-          responseType: 'blob',
-          timeout: 60000 // 60 second timeout for downloads
-        }
-      );
+    const newWindow = window.open(url_blob, '_blank');
 
-      if (!response.data || response.data.size === 0) {
-        showToast("Attachment file is empty or not found", "error");
-        return;
-      }
-
-      // Get filename from content-disposition header if available
-      const contentDisposition = response.headers['content-disposition'];
-      let downloadFileName = fileName || `attachment_${taskId}`;
-
-      if (contentDisposition) {
-        const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (fileNameMatch && fileNameMatch[1]) {
-          downloadFileName = fileNameMatch[1].replace(/['"]/g, '');
-        }
-      }
-
-      // Get content type from response headers
-      const contentType = response.headers['content-type'] || 'application/octet-stream';
-
-      // Create download link
-      const blob = new Blob([response.data], { type: contentType });
-      const url = window.URL.createObjectURL(blob);
+    if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+      showToast("Popup blocked. Starting download instead...", "info");
       const link = document.createElement('a');
-      link.href = url;
-      link.download = downloadFileName;
+      link.href = url_blob;
+      link.download = `attachment_${taskId}_${attachmentId || 'default'}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } else {
+      showToast("Attachment opened successfully!", "success");
+    }
 
-      // Clean up
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 1000);
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url_blob);
+    }, 5000);
 
-      showToast("Attachment downloaded successfully!", "success");
-    } catch (error) {
-      console.error("Failed to download attachment:", error);
+  } catch (error) {
+    console.error("Failed to view attachment:", error);
+    if (error.response?.status === 404) {
+      showToast("Attachment not found or has been deleted", "error");
+    } else {
+      showToast("Failed to open attachment", "error");
+    }
+  }
+};
 
-      if (error.response?.status === 404) {
-        showToast("Attachment not found or has been deleted", "error");
-      } else if (error.response?.status === 403) {
-        showToast("Access denied to attachment", "error");
-      } else if (error.response?.status === 500) {
-        showToast("Server error while downloading attachment. Please contact support.", "error");
-      } else if (error.code === 'ECONNABORTED') {
-        showToast("Download timeout. Attachment might be too large.", "error");
-      } else {
-        showToast("Failed to download attachment", "error");
+const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = null) => {
+  try {
+    showToast("Downloading attachment...", "info");
+
+    const url = attachmentId 
+      ? `${API_BASE_URL}/api/timesheet-tasks/attachments/${attachmentId}`
+      : `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: sessionStorage.getItem("token"),
+      },
+      responseType: 'blob',
+      timeout: 60000
+    });
+
+    if (!response.data || response.data.size === 0) {
+      showToast("Attachment file is empty or not found", "error");
+      return;
+    }
+
+    const contentDisposition = response.headers['content-disposition'];
+    let downloadFileName = fileName || `attachment_${taskId}_${attachmentId || 'default'}`;
+
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (fileNameMatch && fileNameMatch[1]) {
+        downloadFileName = fileNameMatch[1].replace(/['"]/g, '');
       }
     }
-  };
+
+    const contentType = response.headers['content-type'] || 'application/octet-stream';
+    const blob = new Blob([response.data], { type: contentType });
+    const url_blob = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url_blob;
+    link.download = downloadFileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url_blob);
+    }, 1000);
+
+    showToast("Attachment downloaded successfully!", "success");
+  } catch (error) {
+    console.error("Failed to download attachment:", error);
+    showToast("Failed to download attachment", "error");
+  }
+};
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length) return;
@@ -265,13 +241,16 @@ const TimesheetManager = () => {
       res.data.forEach((task) => {
         const dateKey = task.date.split("T")[0];
         if (!grouped[dateKey]) grouped[dateKey] = [];
+        
+      // Updated attachment handling - check for new attachments array
+      const hasAttachments = task.attachments && task.attachments.length > 0;
 
-        // Debug attachment data
-        console.log("Task attachment data:", {
-          taskId: task.taskId,
-          hasAttachment: !!task.attachment,
-          attachmentData: task.attachment
-        });
+      console.log("Task attachment data:", {
+        taskId: task.taskId,
+        hasAttachments: hasAttachments,
+        attachmentCount: task.attachments ? task.attachments.length : 0,
+        attachments: task.attachments
+      });
 
         grouped[dateKey].push({
           id: task.taskId,
@@ -280,10 +259,11 @@ const TimesheetManager = () => {
           task: task.taskType,
           project: task.project?.projectName || "",
           submitted: task.submitted,
-          attachment: task.attachment,
-          attachmentUrl: task.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachment` : null,
-          // Add fallback attachment info
-          attachmentInfo: task.attachmentInfo || null, // If backend provides file metadata
+       attachment: hasAttachments, // Boolean for backward compatibility
+        attachments: task.attachments || [], // New: array of attachments
+        attachmentCount: task.attachments ? task.attachments.length : 0,
+        attachmentUrl: hasAttachments ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachments` : null,
+     
           fullTask: task,
         });
       });
@@ -581,6 +561,7 @@ const TimesheetManager = () => {
       showToast("Failed to copy last week's tasks", "error");
     }
   };
+  
 
   // Download as CSV with attachment information
   const downloadExcel = () => {
@@ -1117,28 +1098,39 @@ const TimesheetManager = () => {
                   </span>
                 )}
               </div>
-              {taskDetail.attachment && (
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">Attachment:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
-                      <FileText className="h-3 w-3 mr-1" /> File Attached
-                    </span>
-                    <button
-                      onClick={() => handleViewAttachment(taskDetail.taskId)}
-                      className="inline-flex items-center px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                    >
-                      <Eye className="h-3 w-3 mr-1" /> View
-                    </button>
-                    <button
-                      onClick={() => handleDownloadAttachment(taskDetail.taskId, `attachment_${taskDetail.taskId}`)}
-                      className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                    >
-                      <DownloadIcon className="h-3 w-3 mr-1" /> Download
-                    </button>
-                  </div>
-                </div>
-              )}
+{taskDetail && taskDetail.attachments && taskDetail.attachments.length > 0 && (
+  <div>
+    <span className="font-semibold">Attachments ({taskDetail.attachments.length}):</span>
+    <div className="mt-2 space-y-2">
+      {taskDetail.attachments.map((attachment, index) => (
+        <div key={attachment.attachmentId || index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+          <FileText className="h-4 w-4 text-blue-500" />
+          <span className="text-sm text-gray-700 flex-1">
+            {attachment.fileName || `Attachment ${index + 1}`}
+            {attachment.fileSize && (
+              <span className="text-xs text-gray-500 ml-2">
+                ({(attachment.fileSize / 1024).toFixed(1)} KB)
+              </span>
+            )}
+          </span>
+          <button
+            onClick={() => handleViewAttachment(taskDetail.taskId, attachment.attachmentId)}
+            className="inline-flex items-center px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+          >
+            <Eye className="h-3 w-3 mr-1" /> View
+          </button>
+          <button
+            onClick={() => handleDownloadAttachment(taskDetail.taskId, attachment.attachmentId, attachment.fileName)}
+            className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+          >
+            <DownloadIcon className="h-3 w-3 mr-1" /> Download
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
             </div>
             {/* Edit and Delete Buttons */}
             <div className="mt-6 flex justify-end gap-4">

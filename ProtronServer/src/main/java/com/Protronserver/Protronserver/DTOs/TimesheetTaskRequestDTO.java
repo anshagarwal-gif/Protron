@@ -2,7 +2,7 @@ package com.Protronserver.Protronserver.DTOs;
 
 import lombok.Getter;
 import lombok.Setter;
-
+import java.util.List;
 import java.util.Date;
 
 @Getter
@@ -13,7 +13,11 @@ public class TimesheetTaskRequestDTO {
     private Double hoursSpent;
     private String description;
     private Long projectId;
-    private byte[] attachment;
+    private List<AttachmentDTO> attachments; // Changed from List<byte[]> to List<AttachmentDTO>
+
+    // Default constructor
+    public TimesheetTaskRequestDTO() {
+    }
 
     public String getTaskType() {
         return taskType;
@@ -55,11 +59,11 @@ public class TimesheetTaskRequestDTO {
         this.projectId = projectId;
     }
 
-    public byte[] getAttachment() {
-        return attachment;
+    public List<AttachmentDTO> getAttachments() {
+        return attachments;
     }
 
-    public void setAttachment(byte[] attachment) {
-        this.attachment = attachment;
+    public void setAttachments(List<AttachmentDTO> attachments) {
+        this.attachments = attachments;
     }
 }

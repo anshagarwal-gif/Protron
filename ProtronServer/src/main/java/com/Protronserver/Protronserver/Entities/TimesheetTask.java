@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +24,7 @@ public class TimesheetTask {
     private String taskType;
     private Date date;
     private Double hoursSpent;
+    @Column(length = 500)
     private String description;
     private boolean isSubmitted = false;
 
@@ -30,10 +32,10 @@ public class TimesheetTask {
     private LocalDateTime endTimestamp;
 
     private String lastUpdatedBy;
-
-    @Lob
-    @Column(name = "attachment", columnDefinition = "LONGBLOB")
-    private byte[] attachment;
+    // IMPORTANT: Make sure to eagerly fetch attachments or use @JsonProperty
+    @OneToMany(mappedBy = "timesheetTask", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnoreProperties({ "timesheetTask" })
+    private List<TimesheetTaskAttachment> attachments;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -91,12 +93,12 @@ public class TimesheetTask {
         this.description = description;
     }
 
-    public byte[] getAttachment() {
-        return attachment;
+    public List<TimesheetTaskAttachment> getAttachments() {
+        return attachments;
     }
 
-    public void setAttachment(byte[] attachment) {
-        this.attachment = attachment;
+    public void setAttachments(List<TimesheetTaskAttachment> attachments) {
+        this.attachments = attachments;
     }
 
     public User getUser() {

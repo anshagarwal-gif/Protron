@@ -84,7 +84,7 @@ const UserManagement = () => {
         'Role': getRoleName(user.role),
         'Tenant': getTenantName(user),
         'Status': getUserStatus(user),
-        'User ID': user.userId || 'N/A'
+       
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -261,7 +261,32 @@ const UserManagement = () => {
 
     return tenantMatch && searchMatch;
   });
-
+const filteredRoles = roles.filter(role => {
+  if (searchQuery === "") return true;
+  
+  const searchLower = searchQuery.toLowerCase();
+  
+  // Search in role name
+  const roleNameMatch = role.roleName?.toLowerCase().includes(searchLower);
+  
+  // Search in access rights/permissions
+  const accessRightsMatch = role.roleAccessRights?.some(accessRight => {
+    const ar = accessRight.accessRight;
+    // Search in module name
+    const moduleNameMatch = ar?.moduleName?.toLowerCase().includes(searchLower);
+    
+    // Search in permission types (view, edit, delete)
+    const permissionMatch = (
+      (ar?.canView && 'view'.includes(searchLower)) ||
+      (ar?.canEdit && 'edit'.includes(searchLower)) ||
+      (ar?.canDelete && 'delete'.includes(searchLower))
+    );
+    
+    return moduleNameMatch || permissionMatch;
+  });
+  
+  return roleNameMatch || accessRightsMatch;
+});
   // Action functions
   const handleHold = async (user) => {
     try {
@@ -1237,7 +1262,8 @@ const UserManagement = () => {
           ) : (
             <AgGridReact
               columnDefs={roleColumnDefs}
-              rowData={roles}
+              rowData={filteredRoles}
+              
               defaultColDef={defaultColDef}
               pagination={true}
               paginationPageSize={10}

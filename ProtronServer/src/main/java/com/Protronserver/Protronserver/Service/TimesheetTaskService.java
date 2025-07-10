@@ -8,6 +8,8 @@ import com.Protronserver.Protronserver.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import com.Protronserver.Protronserver.DTOs.AttachmentDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
@@ -19,6 +21,9 @@ public class TimesheetTaskService {
 
     @Autowired
     private TimesheetTaskRepository timesheetTaskRepository;
+
+    @Autowired
+    private TimesheetTaskAttachmentRepository timesheetTaskAttachmentRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -46,7 +51,7 @@ public class TimesheetTaskService {
         task.setDate(dto.getDate());
         task.setHoursSpent(dto.getHoursSpent());
         task.setDescription(dto.getDescription());
-        task.setAttachment(dto.getAttachment());
+
         task.setStartTimestamp(LocalDateTime.now());
         task.setEndTimestamp(null);
         task.setLastUpdatedBy(null);
@@ -58,7 +63,31 @@ public class TimesheetTaskService {
                 .orElseThrow(() -> new RuntimeException("Project not found"));
 
         task.setProject(project);
+        // Save the task first to get the ID
+        TimesheetTask savedTask = timesheetTaskRepository.save(task);
 
+        // Handle multiple attachments
+        if (dto.getAttachments() != null && !dto.getAttachments().isEmpty()) {
+            List<TimesheetTaskAttachment> attachments = new ArrayList<>();
+
+            for (AttachmentDTO attachmentDTO : dto.getAttachments()) {
+                if (attachmentDTO.getFileData() != null && attachmentDTO.getFileData().length > 0) {
+                    TimesheetTaskAttachment attachment = new TimesheetTaskAttachment();
+                    attachment.setFileData(attachmentDTO.getFileData());
+                    attachment.setFileName(attachmentDTO.getFileName());
+                    attachment.setFileType(attachmentDTO.getFileType());
+                    attachment.setFileSize(attachmentDTO.getFileSize());
+                    attachment.setTimesheetTask(savedTask);
+
+                    attachments.add(attachment);
+                }
+            }
+
+            if (!attachments.isEmpty()) {
+                timesheetTaskAttachmentRepository.saveAll(attachments);
+                savedTask.setAttachments(attachments);
+            }
+        }
         return timesheetTaskRepository.save(task);
     }
 
@@ -109,9 +138,30 @@ public class TimesheetTaskService {
             newTask.setStartTimestamp(LocalDateTime.now());
             newTask.setEndTimestamp(null);
             newTask.setLastUpdatedBy(null);
+            // Save the new task first
+            TimesheetTask savedNewTask = timesheetTaskRepository.save(newTask);
 
-            timesheetTaskRepository.save(newTask);
+            // Copy attachments from old task
+            if (oldTask.getAttachments() != null && !oldTask.getAttachments().isEmpty()) {
+                List<TimesheetTaskAttachment> newAttachments = new ArrayList<>();
+
+                for (TimesheetTaskAttachment oldAttachment : oldTask.getAttachments()) {
+                    TimesheetTaskAttachment newAttachment = new TimesheetTaskAttachment();
+                    newAttachment.setFileData(oldAttachment.getFileData());
+                    newAttachment.setFileName(oldAttachment.getFileName());
+                    newAttachment.setFileType(oldAttachment.getFileType());
+                    newAttachment.setFileSize(oldAttachment.getFileSize());
+                    newAttachment.setTimesheetTask(savedNewTask);
+
+                    newAttachments.add(newAttachment);
+                }
+
+                timesheetTaskAttachmentRepository.saveAll(newAttachments);
+                savedNewTask.setAttachments(newAttachments);
+            }
+
         }
+
     }
 
     public double calculateTotalHours(Date startDate, Date endDate, Long userId) {
@@ -156,7 +206,6 @@ public class TimesheetTaskService {
         newTask.setHoursSpent(dto.getHoursSpent());
         newTask.setDate(dto.getDate());
         // Add this line to handle attachment updates
-        newTask.setAttachment(dto.getAttachment());
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -170,8 +219,47 @@ public class TimesheetTaskService {
 
         newTask.setEndTimestamp(null);
         newTask.setLastUpdatedBy(null);
+        // Save the new task first to get the ID
+        TimesheetTask savedNewTask = timesheetTaskRepository.save(newTask);
 
-        return timesheetTaskRepository.save(newTask);
+        // Copy existing attachments that weren't deleted
+        List<TimesheetTaskAttachment> existingAttachments = timesheetTaskAttachmentRepository
+                .findByTimesheetTaskTaskId(existingTask.getTaskId());
+
+        List<TimesheetTaskAttachment> newAttachments = new ArrayList<>();
+
+        // Copy existing attachments to new task version
+        for (TimesheetTaskAttachment existingAttachment : existingAttachments) {
+            TimesheetTaskAttachment newAttachment = new TimesheetTaskAttachment();
+            newAttachment.setFileData(existingAttachment.getFileData());
+            newAttachment.setFileName(existingAttachment.getFileName());
+            newAttachment.setFileType(existingAttachment.getFileType());
+            newAttachment.setFileSize(existingAttachment.getFileSize());
+            newAttachment.setTimesheetTask(savedNewTask);
+            newAttachments.add(newAttachment);
+        }
+
+        // Add new attachments from the request
+        if (dto.getAttachments() != null && !dto.getAttachments().isEmpty()) {
+            for (AttachmentDTO attachmentDTO : dto.getAttachments()) {
+                if (attachmentDTO.getFileData() != null && attachmentDTO.getFileData().length > 0) {
+                    TimesheetTaskAttachment attachment = new TimesheetTaskAttachment();
+                    attachment.setFileData(attachmentDTO.getFileData());
+                    attachment.setFileName(attachmentDTO.getFileName());
+                    attachment.setFileType(attachmentDTO.getFileType());
+                    attachment.setFileSize(attachmentDTO.getFileSize());
+                    attachment.setTimesheetTask(savedNewTask);
+                    newAttachments.add(attachment);
+                }
+            }
+        }
+
+        if (!newAttachments.isEmpty()) {
+            timesheetTaskAttachmentRepository.saveAll(newAttachments);
+            savedNewTask.setAttachments(newAttachments);
+        }
+
+        return savedNewTask;
     }
 
     public void deleteTask(Long taskId) {
@@ -257,4 +345,77 @@ public class TimesheetTaskService {
         return summaryList;
     }
 
+    public List<TimesheetTaskAttachment> getAttachmentsByTaskId(Long taskId) {
+        System.out.println("Service: Getting attachments for task ID: " + taskId);
+
+        try {
+            List<TimesheetTaskAttachment> attachments = timesheetTaskAttachmentRepository
+                    .findByTimesheetTaskTaskId(taskId);
+            System.out.println("Service: Found " + attachments.size() + " attachments for task " + taskId);
+
+            for (TimesheetTaskAttachment att : attachments) {
+                System.out.println("Service: Attachment ID: " + att.getAttachmentId() +
+                        ", fileName: " + att.getFileName());
+            }
+
+            return attachments;
+        } catch (Exception e) {
+            System.err.println("Service: Error getting attachments for task: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error retrieving attachments: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Get a specific attachment by ID
+     */
+    public TimesheetTaskAttachment getAttachmentById(Long attachmentId) {
+        System.out.println("Service: Getting attachment by ID: " + attachmentId);
+
+        try {
+            Optional<TimesheetTaskAttachment> attachment = timesheetTaskAttachmentRepository.findById(attachmentId);
+
+            if (attachment.isPresent()) {
+                System.out.println("Service: Attachment found with ID: " + attachmentId);
+                TimesheetTaskAttachment att = attachment.get();
+                System.out.println("Service: Attachment details - fileName: " + att.getFileName() +
+                        ", fileSize: " + att.getFileSize() +
+                        ", fileType: " + att.getFileType());
+                return att;
+            } else {
+                System.out.println("Service: No attachment found with ID: " + attachmentId);
+                throw new RuntimeException("Attachment not found with ID: " + attachmentId);
+            }
+        } catch (Exception e) {
+            System.err.println("Service: Error getting attachment by ID: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error retrieving attachment: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Delete a specific attachment
+     */
+    @Transactional
+    public void deleteAttachment(Long attachmentId) {
+        System.out.println("Service: Deleting attachment with ID: " + attachmentId);
+
+        TimesheetTaskAttachment attachment = timesheetTaskAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("Attachment not found"));
+
+        // Check if the task is submitted
+        if (attachment.getTimesheetTask().isSubmitted()) {
+            throw new RuntimeException("Cannot delete attachments from submitted tasks");
+        }
+
+        timesheetTaskAttachmentRepository.delete(attachment);
+        System.out.println("Service: Attachment deleted successfully: " + attachmentId);
+    }
+
+    /**
+     * Count attachments for a specific task
+     */
+    public long countAttachmentsByTaskId(Long taskId) {
+        return timesheetTaskAttachmentRepository.countByTimesheetTaskTaskId(taskId);
+    }
 }

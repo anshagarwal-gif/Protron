@@ -15,7 +15,8 @@ import {
   IconButton,
   Paper,
   Tooltip,
-  Popover
+  Popover,
+  Chip
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -26,6 +27,7 @@ import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarTodayIcon from '@mui/icons-material/CalendarMonth';
+import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import GlobalSnackbar from './GlobalSnackbar';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -49,7 +51,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     minutes: '',
     description: '',
     projectId: '',
-    attachment: null
+    attachments: [] // Changed to array for multiple attachments
   });
 
   const [projects, setProjects] = useState([]);
@@ -87,7 +89,81 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       setCurrentDate(new Date(selectedDate));
     }
   }, [selectedDate]);
+// Add this new function to load existing attachments
+const loadExistingAttachments = async (task) => {
+  if (!task.taskId) {
+    console.log("No taskId found for editing task");
+    return;
+  }
+  
+  try {
+    console.log("Loading existing attachments for task:", task.taskId);
+    
+    // Check if attachments are already in the task object
+    if (task.attachments && Array.isArray(task.attachments) && task.attachments.length > 0) {
+      console.log("Found attachments in task object:", task.attachments);
+      
+      // Convert backend attachments to File-like objects for display
+      const existingAttachments = task.attachments.map((attachment, index) => ({
+        // Create a pseudo-file object for display purposes
+        name: attachment.fileName || `Attachment ${index + 1}`,
+        size: attachment.fileSize || 0,
+        type: attachment.fileType || 'application/octet-stream',
+        // Mark as existing attachment
+        isExisting: true,
+        attachmentId: attachment.attachmentId,
+        // Don't include file data for display efficiency
+      }));
+      
+      setFormData(prev => ({
+        ...prev,
+        attachments: existingAttachments
+      }));
+      
+      console.log("Loaded existing attachments:", existingAttachments);
+      return;
+    }
+    
+    // If not in task object, fetch them separately
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      console.log("No token found for fetching attachments");
+      return;
+    }
 
+    const response = await axios.get(
+      `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachments`,
+      {
+        headers: { Authorization: token }
+      }
+    );
+    
+    console.log("Fetched attachments from API:", response.data);
+    
+    if (response.data && response.data.length > 0) {
+      // Convert API response to File-like objects for display
+      const existingAttachments = response.data.map((attachment) => ({
+        name: attachment.fileName || `Attachment ${attachment.attachmentId}`,
+        size: attachment.fileSize || 0,
+        type: attachment.fileType || 'application/octet-stream',
+        isExisting: true,
+        attachmentId: attachment.attachmentId,
+      }));
+      
+      setFormData(prev => ({
+        ...prev,
+        attachments: existingAttachments
+      }));
+      
+      console.log("Loaded existing attachments from API:", existingAttachments);
+      showSnackbar(`Loaded ${existingAttachments.length} existing attachment(s)`, 'info');
+    }
+    
+  } catch (error) {
+    console.error("Failed to load existing attachments:", error);
+    // Don't show error to user as this is not critical
+  }
+};
   useEffect(() => {
     if (isOpen) {
       fetchProjects();
@@ -97,14 +173,16 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
         const totalMinutes = Math.round((editingTask.hours || editingTask.hoursSpent || 0) * 60);
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;
+        
         setFormData({
           taskType: editingTask.taskType || editingTask.task || '',
           hours: hours ? String(hours) : '',
           minutes: minutes ? String(minutes) : '',
           description: editingTask.description || '',
           projectId: editingTask.projectId?.toString() || editingTask.project?.projectId?.toString() || '',
-          attachment: null // Don't prefill file input for security reasons
+          attachments: [] // Don't prefill file input for security reasons
         });
+         loadExistingAttachments(editingTask);
       } else {
         // Reset form for new task
         setFormData({
@@ -113,7 +191,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
           minutes: '',
           description: '',
           projectId: '',
-          attachment: null
+          attachments: []
         });
       }
     }
@@ -204,40 +282,94 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file size (limit to 10MB)
-      const maxSizeInMB = 10;
-      const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+ const handleFileChange = (e) => {
+  const files = Array.from(e.target.files);
+  const currentAttachments = formData.attachments;
+  
+  // Check if adding these files would exceed the limit
+  if (currentAttachments.length + files.length > 4) {
+    showSnackbar("Maximum 4 attachments allowed", 'error');
+    return;
+  }
 
-      if (file.size > maxSizeInBytes) {
-        showSnackbar(`File size must be less than ${maxSizeInMB}MB`, 'error');
-        return;
-      }
+  const validFiles = [];
+  const maxSizeInMB = 10;
+  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+  const allowedTypes = [
+    'application/pdf', 
+    'image/jpeg', 
+    'image/jpg', 
+    'image/png', 
+    'application/vnd.ms-excel', 
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
 
-      // Validate file type
-      const allowedTypes = [
-        'application/pdf', 
-        'image/jpeg', 
-        'image/jpg', 
-        'image/png', 
-        'application/vnd.ms-excel', 
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      ];
-      
-      if (!allowedTypes.includes(file.type)) {
-        showSnackbar("Only PDF, JPG, PNG, XLS, and XLSX files are allowed", 'error');
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        attachment: file
-      }));
-      showSnackbar("File uploaded successfully", 'success');
+  for (const file of files) {
+    // Validate file size
+    if (file.size > maxSizeInBytes) {
+      showSnackbar(`File ${file.name} is too large. Maximum size is ${maxSizeInMB}MB`, 'error');
+      continue;
     }
-  };
+
+    // Validate file type
+    if (!allowedTypes.includes(file.type)) {
+      showSnackbar(`File ${file.name} has invalid type. Only PDF, JPG, PNG, XLS, and XLSX files are allowed`, 'error');
+      continue;
+    }
+
+    // Check for duplicate names (including existing attachments)
+    if (currentAttachments.some(att => att.name === file.name)) {
+      showSnackbar(`File ${file.name} already exists`, 'error');
+      continue;
+    }
+
+    validFiles.push(file);
+  }
+
+  if (validFiles.length > 0) {
+    setFormData(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...validFiles]
+    }));
+    showSnackbar(`${validFiles.length} file(s) uploaded successfully`, 'success');
+  }
+
+  // Reset file input
+  e.target.value = '';
+};
+ const handleRemoveAttachment = async (index) => {
+  const attachment = formData.attachments[index];
+  
+  // If it's an existing attachment, we need to delete it from the server
+  if (attachment.isExisting && attachment.attachmentId) {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (token) {
+        await axios.delete(
+          `${API_BASE_URL}/api/timesheet-tasks/attachments/${attachment.attachmentId}`,
+          {
+            headers: { Authorization: token }
+          }
+        );
+        showSnackbar("Existing attachment deleted", 'success');
+      }
+    } catch (error) {
+      console.error("Failed to delete existing attachment:", error);
+      showSnackbar("Failed to delete existing attachment", 'error');
+      return; // Don't remove from UI if server deletion failed
+    }
+  }
+  
+  // Remove from UI
+  setFormData(prev => ({
+    ...prev,
+    attachments: prev.attachments.filter((_, i) => i !== index)
+  }));
+  
+  if (!attachment.isExisting) {
+    showSnackbar("File removed", 'info');
+  }
+};
 
   const handleReset = () => {
     setFormData({
@@ -246,7 +378,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       minutes: '',
       description: '',
       projectId: projects.length === 1 ? projects[0].projectId.toString() : '',
-      attachment: null
+      attachments: []
     });
     // Reset file input
     const fileInput = document.getElementById('file-upload');
@@ -263,11 +395,23 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
     setIsSubmitting(true);
 
-    try {
-      let attachmentBytes = null;
-      if (formData.attachment instanceof File) {
-        attachmentBytes = await fileToByteArray(formData.attachment);
+   try {
+    // Convert only NEW attachments to byte arrays with metadata
+    const attachmentData = [];
+    for (const file of formData.attachments) {
+      // Skip existing attachments (they're already on the server)
+      if (file.isExisting) {
+        continue;
       }
+      
+      const bytes = await fileToByteArray(file);
+      attachmentData.push({
+        fileData: bytes,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      });
+    }
 
       // Calculate hoursSpent as decimal
       const hours = parseInt(formData.hours, 10) || 0;
@@ -280,7 +424,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
         hoursSpent: parseFloat(hoursSpent.toFixed(2)),
         description: formData.description,
         projectId: parseInt(formData.projectId),
-        attachment: attachmentBytes,
+        attachments: attachmentData, // Changed to array
       };
 
       if (editingTask) {
@@ -541,7 +685,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                 </Box>
               </Box>
 
-              {/* Row 2: Time Entry and Description */}
+              {/* Row 2: Time Entry */}
               <Box sx={{ display: 'flex', gap: 3 }}>
                 <Box sx={{ flex: 0.4 }}>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -584,100 +728,102 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                   </Box>
                 </Box>
                 
+                {/* Compact Attachment Upload */}
                 <Box sx={{ flex: 0.6 }}>
-                  <TextField
-                    fullWidth
-                    label="Description"
-                    placeholder="Enter description here..."
-                    value={formData.description}
-                    onChange={handleInputChange('description')}
-                    inputProps={{ maxLength: 500 }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <DescriptionIcon sx={{ color: greenPrimary }} />
-                        </InputAdornment>
-                      ),
-                      sx: { height: fieldHeight }
-                    }}
-                    helperText={
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        {`${formData.description.length} / 500`}
-                      </Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary', fontWeight: 600 }}>
+                    Attachments ({formData.attachments.length}/4)
+                  </Typography>
+                  <Box sx={{
+                    border: '1px dashed #ccc',
+                    borderRadius: 1,
+                    p: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: '#fafafa',
+                    minHeight: '50px',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: greenPrimary,
+                      bgcolor: 'rgba(27, 94, 32, 0.02)'
                     }
-                    FormHelperTextProps={{ sx: { margin: 0, paddingRight: 1 } }}
-                  />
+                  }}>
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+                      multiple
+                      style={{ display: 'none' }}
+                      id="file-upload"
+                      disabled={formData.attachments.length >= 4}
+                    />
+                    <label htmlFor="file-upload" style={{ cursor: 'pointer', textAlign: 'center', width: '100%' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <CloudUploadIcon sx={{ color: greenPrimary, fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                          {formData.attachments.length >= 4 ? 'Max files reached' : 'Upload files'}
+                        </Typography>
+                      </Box>
+                    </label>
+                  </Box>
+                  
+{/* Display uploaded files */}
+{formData.attachments.length > 0 && (
+  <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+    {formData.attachments.map((file, index) => (
+      <Chip
+        key={index}
+        label={
+          <span>
+            {file.isExisting && "📎 "}{truncateText(file.name, 15)}
+            {file.isExisting && " (existing)"}
+          </span>
+        }
+        size="small"
+        onDelete={() => handleRemoveAttachment(index)}
+        deleteIcon={<DeleteIcon />}
+        sx={{
+          bgcolor: file.isExisting ? 'rgba(76, 175, 80, 0.1)' : 'rgba(27, 94, 32, 0.1)',
+          color: file.isExisting ? '#4caf50' : greenPrimary,
+          '& .MuiChip-deleteIcon': {
+            color: file.isExisting ? '#4caf50' : greenPrimary,
+            '&:hover': {
+              color: greenHover
+            }
+          }
+        }}
+      />
+    ))}
+  </Box>
+)}
                 </Box>
               </Box>
 
-              {/* Row 3: Attachment */}
+              {/* Row 3: Large Description */}
               <Box>
-                <Typography variant="subtitle1" sx={{ mb: 1, color: 'text.primary', fontWeight: 600 }}>
-                  Attachment
-                </Typography>
-                <Box sx={{
-                  border: '2px dashed #aaa',
-                  borderRadius: 1,
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: '#fafafa',
-                  minHeight: '80px',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    borderColor: greenPrimary,
-                    bgcolor: 'rgba(27, 94, 32, 0.02)'
-                  }
-                }}>
-                  <input
-                    type="file"
-                    onChange={handleFileChange}
-                    accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
-                    style={{ display: 'none' }}
-                    id="file-upload"
-                  />
-                  <label htmlFor="file-upload" style={{ cursor: 'pointer', textAlign: 'center', width: '100%' }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                      {formData.attachment ? (
-                        <>
-                          <AttachFileIcon sx={{ color: greenPrimary, fontSize: 24 }} />
-                          <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                            {formData.attachment.name}
-                          </Typography>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            sx={{
-                              borderColor: greenPrimary,
-                              color: greenPrimary,
-                              fontSize: '0.75rem',
-                              py: 0.5,
-                              '&:hover': {
-                                borderColor: greenHover,
-                                color: greenHover
-                              }
-                            }}
-                            component="span"
-                          >
-                            Change File
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <CloudUploadIcon sx={{ color: greenPrimary, fontSize: 24 }} />
-                          <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                            Upload here
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            *PDF, JPG, PNG, XLS (Max 10MB)
-                          </Typography>
-                        </>
-                      )}
+                <TextField
+                  fullWidth
+                  label="Description"
+                  placeholder="Enter detailed description here..."
+                  value={formData.description}
+                  onChange={handleInputChange('description')}
+                  multiline
+                  rows={4}
+                  inputProps={{ maxLength: 1000 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
+                        <DescriptionIcon sx={{ color: greenPrimary }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  helperText={
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      {`${formData.description.length} / 1000`}
                     </Box>
-                  </label>
-                </Box>
+                  }
+                  FormHelperTextProps={{ sx: { margin: 0, paddingRight: 1 } }}
+                />
               </Box>
 
               {/* Row 4: Action Buttons */}
