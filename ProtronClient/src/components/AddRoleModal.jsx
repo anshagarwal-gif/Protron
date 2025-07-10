@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, Typography, Box, Paper, Switch, Button, TextField } from "@mui/material";
+import { Dialog, DialogContent, Typography, Box, Paper, Switch, Button, TextField,useMediaQuery, useTheme } from "@mui/material";
 
 // Helper to format module names
 const formatModuleName = (moduleName) =>
@@ -14,6 +14,9 @@ const AddRoleModal = ({
   modulesList, // List of modules fetched from the API
   onSubmit,
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const greenPrimary = "#1b5e20";
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState({});
 
@@ -93,7 +96,7 @@ const AddRoleModal = ({
           px: 3,
         }}
       >
-        <Typography variant="h5" fontWeight="600" sx={{ color: "#1b5e20" }}>
+        <Typography variant="h5" fontWeight="600" sx={{ color: greenPrimary }}>
           Add New Role
         </Typography>
       </Box>
@@ -105,91 +108,201 @@ const AddRoleModal = ({
           fullWidth
           sx={{ mb: 3 }}
         />
-        {modulesList.length > 0 ? (
-          <Box 
+        
+        {/* NEW TABLE-BASED LAYOUT - REPLACE THE EXISTING MODULES SECTION */}
+        <Paper
+          variant="outlined"
+          sx={{
+            p: isMobile ? 1.5 : 2.5,
+            bgcolor: "#f8f9fa",
+            borderColor: greenPrimary,
+            borderRadius: 2,
+            display: "flex",
+            flexDirection: "column",
+            mb: 3,
+          }}
+        >
+          <Typography 
+            variant={isMobile ? "subtitle1" : "h6"} 
             sx={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: 2,
-              maxHeight: "50vh",
-              overflowY: "auto",
-              pr: 1
+              color: greenPrimary, 
+              mb: isMobile ? 1.5 : 2, 
+              fontWeight: 600 
             }}
           >
-            {modulesList.map((moduleName, idx) => (
-              <Paper
-                key={moduleName}
-                variant="outlined"
-                sx={{
-                  p: 2.5,
-                  bgcolor: "#f8f9fa",
-                  borderColor: "#1b5e20",
-                  borderRadius: 2,
-                  height: "fit-content",
-                  minHeight: "160px",
-                }}
-              >
+            Module Permissions
+          </Typography>
+
+          {modulesList.length > 0 ? (
+            <Box sx={{ 
+              bgcolor: "#ffffff", 
+              maxHeight: "50vh",
+              overflowY: "auto",
+            }}>
+              {/* Header Row */}
+              <Box sx={{ 
+                display: "grid", 
+                gridTemplateColumns: isMobile ? "1fr 60px 60px 60px" : "1fr 80px 80px 80px",
+                alignItems: "center",
+                backgroundColor: greenPrimary,
+                borderRadius: 1,
+                px: isMobile ? 1 : 2,
+                py: isMobile ? 0.75 : 1,
+                mb: 1,
+              }}>
                 <Typography 
-                  variant="h6" 
+                  variant="body2" 
                   sx={{ 
-                    color: "#1b5e20", 
-                    mb: 2, 
+                    color: "white", 
                     fontWeight: 600,
-                    textAlign: "center",
-                    pb: 1,
-                    borderBottom: "1px solid #e0e0e0"
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
                   }}
                 >
-                  {formatModuleName(moduleName)}
+                  Module
                 </Typography>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {["View", "Edit", "Delete"].map((perm) => (
-                    <Box key={perm} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                        {perm}
-                      </Typography>
-                      <Switch
-                        checked={permissions[`${moduleName}_can${perm}`] || false}
-                        onChange={() => handleToggle(`${moduleName}_can${perm}`)}
-                        sx={{
-                          "& .MuiSwitch-switchBase.Mui-checked": {
-                            color:
-                              perm === "View"
-                                ? "#1b5e20"
-                                : perm === "Edit"
-                                ? "#fbc02d"
-                                : "#c62828",
-                          },
-                          "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                            backgroundColor:
-                              perm === "View"
-                                ? "#1b5e20"
-                                : perm === "Edit"
-                                ? "#fbc02d"
-                                : "#c62828",
-                          },
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: "white", 
+                    fontWeight: 600,
+                    textAlign: "center",
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
+                  }}
+                >
+                  View
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: "white", 
+                    fontWeight: 600,
+                    textAlign: "center",
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
+                  }}
+                >
+                  Edit
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: "white", 
+                    fontWeight: 600,
+                    textAlign: "center",
+                    fontSize: isMobile ? "0.8rem" : "0.9rem",
+                  }}
+                >
+                  Delete
+                </Typography>
+              </Box>
+
+              {/* Module Rows */}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                {modulesList.map((moduleName, index) => {
+                  const formattedModuleName = formatModuleName(moduleName);
+
+                  return (
+                    <Box
+                      key={index}
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: isMobile ? "1fr 60px 60px 60px" : "1fr 80px 80px 80px",
+                        alignItems: "center",
+                        px: isMobile ? 1 : 2,
+                        py: isMobile ? 0.75 : 1,
+                        backgroundColor: index % 2 === 0 ? "#ffffff" : "#f8f9fa",
+                        borderRadius: 1,
+                        transition: "background-color 0.2s ease",
+                        "&:hover": {
+                          backgroundColor: "#e8f5e8",
+                        },
+                      }}
+                    >
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: "#333", 
+                          fontWeight: 500,
+                          fontSize: isMobile ? "0.8rem" : "0.85rem",
                         }}
-                      />
+                      >
+                        {formattedModuleName}
+                      </Typography>
+                      
+                      <Box sx={{ display: "flex", justifyContent: "center" }}>
+                        <Switch
+                          size="small"
+                          checked={permissions[`${moduleName}_canView`] || false}
+                          onChange={() => handleToggle(`${moduleName}_canView`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: "#1b5e20",
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: "#1b5e20",
+                            },
+                          }}
+                        />
+                      </Box>
+
+                      <Box sx={{ display: "flex", justifyContent: "center" }}>
+                        <Switch
+                          size="small"
+                          checked={permissions[`${moduleName}_canEdit`] || false}
+                          onChange={() => handleToggle(`${moduleName}_canEdit`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: "#fbc02d",
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: "#fbc02d",
+                            },
+                          }}
+                        />
+                      </Box>
+
+                      <Box sx={{ display: "flex", justifyContent: "center" }}>
+                        <Switch
+                          size="small"
+                          checked={permissions[`${moduleName}_canDelete`] || false}
+                          onChange={() => handleToggle(`${moduleName}_canDelete`)}
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: "#c62828",
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              backgroundColor: "#c62828",
+                            },
+                          }}
+                        />
+                      </Box>
                     </Box>
-                  ))}
-                </Box>
-              </Paper>
-            ))}
-          </Box>
-        ) : (
-          <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography variant="body1" color="text.secondary">
-              No modules available.
-            </Typography>
-          </Box>
-        )}
+                  );
+                })}
+              </Box>
+            </Box>
+          ) : (
+            <Box sx={{ 
+              textAlign: "center", 
+              py: isMobile ? 3 : 4,
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center" 
+            }}>
+              <Typography variant="body1" color="text.secondary">
+                No modules available.
+              </Typography>
+            </Box>
+          )}
+        </Paper>
+        
+        {/* Keep existing buttons section unchanged */}
         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3, pt: 2, borderTop: "1px solid #e0e0e0" }}>
           <Button
             onClick={onClose}
             variant="outlined"
             sx={{
-              borderColor: "#1b5e20",
-              color: "#1b5e20",
+              borderColor: greenPrimary,
+              color: greenPrimary,
               height: "42px",
               "&:hover": {
                 borderColor: "#2e7d32",
@@ -203,7 +316,7 @@ const AddRoleModal = ({
             onClick={handleSave}
             variant="contained"
             sx={{
-              bgcolor: "#1b5e20",
+              bgcolor: greenPrimary,
               color: "white",
               height: "42px",
               fontWeight: 600,

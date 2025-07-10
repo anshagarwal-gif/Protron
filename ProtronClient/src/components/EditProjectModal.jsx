@@ -132,12 +132,12 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const handleSystemRemove = (index) => {
         const updatedSystems = [...formData.systemImpacted];
         const removedSystem = updatedSystems.splice(index, 1)[0]; // Remove the system
-    
+
         // If the system is not new, track it in removedSystems
         if (removedSystem.systemId) {
             setRemovedSystems((prev) => [...prev, removedSystem.systemId]);
         }
-    
+
         setFormData((prev) => ({
             ...prev,
             systemImpacted: updatedSystems
@@ -414,7 +414,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
                     {/* Row 4: Currency and Cost */}
                     <Box sx={{ display: 'flex', gap: 3 }}>
-                        <Box sx={{ width: '30%' }}>
+                        <Box sx={{ width: '20%' }}>
                             <FormControl fullWidth>
                                 <InputLabel>Currency</InputLabel>
                                 <Select
@@ -432,7 +432,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             </FormControl>
                         </Box>
 
-                        <Box sx={{ width: '70%' }}>
+                        <Box sx={{ width: '30%' }}>
                             <TextField
                                 fullWidth
                                 label="Project Cost"
@@ -450,53 +450,91 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 }}
                             />
                         </Box>
+
+                        <Box sx={{ width: '50%' }}>
+                            <TextField
+                                fullWidth
+                                label="Add System"
+                                placeholder="Add a new system and press Enter"
+                                onKeyDown={handleSystemAdd}
+                                InputProps={{
+                                    sx: { height: fieldHeight }
+                                }}
+                            />
+                        </Box>
                     </Box>
 
-                    {/* Systems Impacted - Compact Version */}
+                    {/* Systems Impacted - Chips Display */}
                     <Box>
                         <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                             Systems Impacted
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: '120px', overflowY: 'auto' }}>
+                        <Box sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 1,
+                            maxHeight: '120px',
+                            overflowY: 'auto',
+                            mb: 1,
+                            p: 1,
+                            
+                            
+                            minHeight: '40px'
+                        }}>
                             {formData.systemImpacted?.map((system, index) => (
-                                <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Box key={index} sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 0.5,
+                                    bgcolor: '#e3fded',
+                                    borderRadius: '16px',
+                                    px: 1.5,
+                                    py: 0.5,
+                                    border: '1px solid #bbfbc5'
+                                }}>
                                     <TextField
-                                        fullWidth
                                         value={system.systemName}
                                         onChange={handleSystemNameChange(index)}
                                         placeholder="Edit system name"
-                                        variant="outlined"
+                                        variant="standard"
                                         size="small"
-                                        sx={{
-                                            bgcolor: '#f5f5f5',
-                                            borderRadius: 1
+                                        InputProps={{
+                                            disableUnderline: true,
+                                            sx: {
+                                                fontSize: '14px',
+                                                minWidth: '80px',
+                                                width: `${Math.max(80, system.systemName.length * 8)}px`,
+                                                '& input': {
+                                                    padding: 0,
+                                                    textAlign: 'center',
+                                                    bgcolor: 'transparent'
+                                                }
+                                            }
                                         }}
                                     />
                                     <IconButton
                                         size="small"
                                         onClick={() => handleSystemRemove(index)}
                                         sx={{
-                                            color: 'red',
+                                            color: '#666',
+                                            width: '20px',
+                                            height: '20px',
                                             '&:hover': {
-                                                bgcolor: 'rgba(255, 0, 0, 0.1)'
+                                                bgcolor: 'rgba(255, 0, 0, 0.1)',
+                                                color: 'red'
                                             }
                                         }}
                                     >
-                                        <span style={{ fontSize: '16px', fontWeight: 'bold' }}>×</span>
+                                        <span style={{ fontSize: '14px', fontWeight: 'bold' }}>×</span>
                                     </IconButton>
                                 </Box>
                             ))}
+                            {formData.systemImpacted?.length === 0 && (
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                                    No systems added yet
+                                </Typography>
+                            )}
                         </Box>
-                        <TextField
-                            fullWidth
-                            placeholder="Add a new system and press Enter"
-                            onKeyDown={handleSystemAdd}
-                            size="small"
-                            sx={{ mt: 1 }}
-                        />
-                        <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary', display: 'block' }}>
-                            Enter System Name and press Enter to add the system.
-                        </Typography>
                     </Box>
 
                     {/* Row 5: Action Buttons (Right-aligned) */}
