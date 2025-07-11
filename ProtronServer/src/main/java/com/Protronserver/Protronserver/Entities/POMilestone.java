@@ -5,14 +5,14 @@ import java.util.Date;
 
 @Entity
 @Table(name = "po_milestone")
-public class po_milestone {
+public class POMilestone {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ms_id")
     private Long msId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "po_id", referencedColumnName = "po_id", nullable = false)
     private PODetails poDetail;
 
