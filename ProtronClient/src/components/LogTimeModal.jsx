@@ -148,6 +148,7 @@ const loadExistingAttachments = async (task) => {
         type: attachment.fileType || 'application/octet-stream',
         isExisting: true,
         attachmentId: attachment.attachmentId,
+        data: attachment.fileData, // Keep file data for potential download
       }));
       
       setFormData(prev => ({
@@ -337,8 +338,10 @@ const loadExistingAttachments = async (task) => {
   // Reset file input
   e.target.value = '';
 };
+
  const handleRemoveAttachment = async (index) => {
   const attachment = formData.attachments[index];
+  console.log(attachment)
   
   // If it's an existing attachment, we need to delete it from the server
   if (attachment.isExisting && attachment.attachmentId) {
@@ -399,19 +402,25 @@ const loadExistingAttachments = async (task) => {
     // Convert only NEW attachments to byte arrays with metadata
     const attachmentData = [];
     for (const file of formData.attachments) {
-      // Skip existing attachments (they're already on the server)
-      if (file.isExisting) {
-        continue;
-      }
-      
-      const bytes = await fileToByteArray(file);
-      attachmentData.push({
-        fileData: bytes,
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size
-      });
-    }
+  if (file instanceof File) {
+    const bytes = await fileToByteArray(file);
+    attachmentData.push({
+      fileData: bytes,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size
+    });
+    console.log("Converted file to byte array:", bytes);
+  } else {
+    // Existing attachment, already has required metadata
+    attachmentData.push({
+      fileData: file.data,
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size
+    });
+  }
+}
 
       // Calculate hoursSpent as decimal
       const hours = parseInt(formData.hours, 10) || 0;
@@ -426,6 +435,7 @@ const loadExistingAttachments = async (task) => {
         projectId: parseInt(formData.projectId),
         attachments: attachmentData, // Changed to array
       };
+      console.log("Payload to save:", payload);
 
       if (editingTask) {
         if (onSave) {

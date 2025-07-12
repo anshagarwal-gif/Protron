@@ -205,55 +205,74 @@ public class TimesheetTaskService {
         newTask.setDescription(dto.getDescription());
         newTask.setHoursSpent(dto.getHoursSpent());
         newTask.setDate(dto.getDate());
-        // Add this line to handle attachment updates
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-
         newTask.setProject(project);
         newTask.setStartTimestamp(LocalDateTime.now());
 
         User taskUser = userRepository.findById(existingTask.getUser().getUserId())
-                .orElseThrow(() -> new RuntimeException("User Not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
         newTask.setUser(taskUser);
 
         newTask.setEndTimestamp(null);
         newTask.setLastUpdatedBy(null);
-        // Save the new task first to get the ID
+
+        // Save new task to get the ID
         TimesheetTask savedNewTask = timesheetTaskRepository.save(newTask);
 
-        // Copy existing attachments that weren't deleted
+        // Fetch existing attachments of old task
         List<TimesheetTaskAttachment> existingAttachments = timesheetTaskAttachmentRepository
                 .findByTimesheetTaskTaskId(existingTask.getTaskId());
 
-        List<TimesheetTaskAttachment> newAttachments = new ArrayList<>();
-
-        // Copy existing attachments to new task version
-        for (TimesheetTaskAttachment existingAttachment : existingAttachments) {
-            TimesheetTaskAttachment newAttachment = new TimesheetTaskAttachment();
-            newAttachment.setFileData(existingAttachment.getFileData());
-            newAttachment.setFileName(existingAttachment.getFileName());
-            newAttachment.setFileType(existingAttachment.getFileType());
-            newAttachment.setFileSize(existingAttachment.getFileSize());
-            newAttachment.setTimesheetTask(savedNewTask);
-            newAttachments.add(newAttachment);
-        }
-
-        // Add new attachments from the request
-        if (dto.getAttachments() != null && !dto.getAttachments().isEmpty()) {
-            for (AttachmentDTO attachmentDTO : dto.getAttachments()) {
-                if (attachmentDTO.getFileData() != null && attachmentDTO.getFileData().length > 0) {
-                    TimesheetTaskAttachment attachment = new TimesheetTaskAttachment();
-                    attachment.setFileData(attachmentDTO.getFileData());
-                    attachment.setFileName(attachmentDTO.getFileName());
-                    attachment.setFileType(attachmentDTO.getFileType());
-                    attachment.setFileSize(attachmentDTO.getFileSize());
-                    attachment.setTimesheetTask(savedNewTask);
-                    newAttachments.add(attachment);
+        // Build set of filenames user wants to keep (from DTO)
+        Set<String> filenamesToRetain = new HashSet<>();
+        System.out.println(dto.getAttachments() == null);
+        if (dto.getAttachments() != null) {
+        System.out.println(dto.getAttachments().size());
+            for (AttachmentDTO dtoAttachment : dto.getAttachments()) {
+        System.out.println(dtoAttachment.getFileName() == null);
+        System.out.println(dtoAttachment.getFileData() == null);
+                if (dtoAttachment.getFileData() == null && dtoAttachment.getFileName() != null) {
+                    // Means user wants to retain an existing attachment
+                    filenamesToRetain.add(dtoAttachment.getFileName());
                 }
             }
         }
 
+        List<TimesheetTaskAttachment> newAttachments = new ArrayList<>();
+
+        // Retain only selected existing attachments
+        for (TimesheetTaskAttachment existingAttachment : existingAttachments) {
+            System.out.println(existingAttachment.getFileName());
+            System.out.println(filenamesToRetain);
+            if (filenamesToRetain.contains(existingAttachment.getFileName())) {
+                TimesheetTaskAttachment retainedAttachment = new TimesheetTaskAttachment();
+                retainedAttachment.setFileData(existingAttachment.getFileData());
+                retainedAttachment.setFileName(existingAttachment.getFileName());
+                retainedAttachment.setFileType(existingAttachment.getFileType());
+                retainedAttachment.setFileSize(existingAttachment.getFileSize());
+                retainedAttachment.setTimesheetTask(savedNewTask);
+                newAttachments.add(retainedAttachment);
+            }
+        }
+
+        // Add new attachments from DTO
+        if (dto.getAttachments() != null) {
+            for (AttachmentDTO attachmentDTO : dto.getAttachments()) {
+                if (attachmentDTO.getFileData() != null && attachmentDTO.getFileData().length > 0) {
+                    TimesheetTaskAttachment newAttachment = new TimesheetTaskAttachment();
+                    newAttachment.setFileData(attachmentDTO.getFileData());
+                    newAttachment.setFileName(attachmentDTO.getFileName());
+                    newAttachment.setFileType(attachmentDTO.getFileType());
+                    newAttachment.setFileSize(attachmentDTO.getFileSize());
+                    newAttachment.setTimesheetTask(savedNewTask);
+                    newAttachments.add(newAttachment);
+                }
+            }
+        }
+
+        // Save and associate attachments
         if (!newAttachments.isEmpty()) {
             timesheetTaskAttachmentRepository.saveAll(newAttachments);
             savedNewTask.setAttachments(newAttachments);
@@ -261,6 +280,7 @@ public class TimesheetTaskService {
 
         return savedNewTask;
     }
+
 
     public void deleteTask(Long taskId) {
         TimesheetTask existingTask = timesheetTaskRepository.findById(taskId)
