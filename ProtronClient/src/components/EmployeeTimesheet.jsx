@@ -401,7 +401,7 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
             hoursSpent: taskData.hoursSpent,
             description: taskData.description,
             projectId: taskData.projectId || null, // Ensure projectId is passed correctly
-            attachment: taskData.attachment || null, // Handle optional attachment
+            attachments: taskData.attachments || null, // Handle optional attachment
             date: new Date(editingTask.date), // or use taskData.date if you allow editing date
           },
           {
@@ -425,7 +425,7 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                 task: res.data.taskType,
                 project: res.data.project?.projectName || "",
                 submitted: res.data.submitted,
-                attachment: res.data.attachment,
+                attachment: res.data.attachments,
                 attachmentUrl: res.data.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${res.data.taskId}/attachment` : null,
                 fullTask: res.data,
               }
