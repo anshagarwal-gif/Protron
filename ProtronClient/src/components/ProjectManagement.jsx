@@ -204,7 +204,7 @@ const ProjectManagement = () => {
     {
       headerName: 'Project Cost',
       field: 'projectCost',
-      valueFormatter: (params) => params.value ? `₹${params.value}` : '-',
+      valueFormatter: (params) => params.value ? `${params.value}` : '-',
       minWidth: 150,
       filter: 'agNumberColumnFilter',
       cellStyle: { textAlign: 'right', fontWeight: '500' }
