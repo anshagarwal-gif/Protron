@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
-import { FiUser, FiChevronDown, FiMenu, FiArrowUp, FiArrowDown, FiFilter } from 'react-icons/fi'
+import ProfileModal from './ProfileModal'
 import { AiOutlineDownload, AiOutlineSearch } from 'react-icons/ai'
 import { AgGridReact } from 'ag-grid-react'
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
@@ -75,6 +75,7 @@ const TeamManagement = () => {
     }, [showStatusFilterDropdown]);
 
     // Apply filtering whenever status filter changes
+
     useEffect(() => {
         let filtered = [...employees];
 
@@ -152,6 +153,10 @@ const TeamManagement = () => {
     // Date cell renderer
     const DateCellRenderer = (params) => {
         return params.value ? params.value.split('T')[0] : "N/A";
+    };
+    const onClose = () => {
+        setIsProfileOpen(false);
+        setSelectedProfile(null);
     };
 
     // AG Grid column definitions
@@ -849,111 +854,17 @@ const TeamManagement = () => {
 
             {/* Profile Modal - Increased size and font */}
             {isProfileOpen && selectedProfile && (
-                <>
-                    <div
-                        className="fixed inset-0 bg-[rgba(0,0,0,0.3)] z-40 transition-opacity"
-                        onClick={() => setIsProfileOpen(false)}
-                    />
-
-                    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-[900px] bg-white rounded-lg shadow-xl z-50 p-6">
-                        <button
-                            className="absolute top-4 right-4 text-gray-600 hover:text-gray-900 text-xl font-bold"
-                            onClick={() => setIsProfileOpen(false)}
-                        >
-                            ✖
-                        </button>
-
-                        <div className="flex items-start space-x-6 mb-6 pb-4 border-b">
-                            <img
-                                src={selectedProfile.profilePhoto ? selectedProfile.profilePhoto : "./profilepic.jpg"}
-                                className="w-24 h-24 rounded-full object-cover"
-                                alt="Profile"
-                            />
-                            <div>
-                                <h2 className="text-2xl font-bold">
-                                    {selectedProfile.firstName} {selectedProfile.middleName ? selectedProfile.middleName + " " : ""}{selectedProfile.lastName}
-                                </h2>
-                                <p className="text-lg text-gray-500">{selectedProfile.empCode}</p>
-                                <p className="text-lg mt-2">
-                                    <span className="font-medium">Email:</span> {selectedProfile.email}
-                                </p>
-                                <p className="text-lg">
-                                    <span className="font-medium">Joined:</span> {selectedProfile.dateOfJoining ? new Date(selectedProfile.dateOfJoining).toLocaleDateString() : "N/A"}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="space-y-4">
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
-                                    <div className="space-y-2 text-base">
-                                        <p><span className="font-medium">Mobile:</span> {selectedProfile.mobilePhone || "N/A"}</p>
-                                        <p><span className="font-medium">Office:</span> {selectedProfile.lanPhone || "N/A"}</p>
-                                    </div>
-                                </div>
-
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="text-lg font-semibold mb-3">Organization</h3>
-                                    <div className="space-y-2 text-base">
-                                        <p><span className="font-medium">Company:</span> {selectedProfile.tenant?.tenantName || "N/A"}</p>
-                                        <p><span className="font-medium">Role:</span> {selectedProfile.role?.roleName || "N/A"}</p>
-                                        <p><span className="font-medium">Unit:</span> {selectedProfile.unit || "N/A"}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="bg-gray-50 p-4 rounded h-full">
-                                    <h3 className="text-lg font-semibold mb-3">Location</h3>
-                                    <div className="text-base">
-                                        <p>{selectedProfile.addressLine1 || "N/A"}</p>
-                                        {selectedProfile.addressLine2 && <p>{selectedProfile.addressLine2}</p>}
-                                        {selectedProfile.addressLine3 && <p>{selectedProfile.addressLine3}</p>}
-                                        <p>
-                                            {selectedProfile.city && `${selectedProfile.city}, `}
-                                            {selectedProfile.state && `${selectedProfile.state}, `}
-                                            {selectedProfile.zipCode && `${selectedProfile.zipCode}`}
-                                        </p>
-                                        <p>{selectedProfile.country || "N/A"}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="text-lg font-semibold mb-3">Project Teams ({selectedProfile.projectTeams?.length || 0})</h3>
-                                    {selectedProfile.projectTeams && selectedProfile.projectTeams.length > 0 ? (
-                                        <div className="text-base max-h-[120px] overflow-y-auto pr-2">
-                                            <ul className="list-disc list-inside space-y-1">
-                                                {selectedProfile.projectTeams.map((team, i) => (
-                                                    <li key={i} className="truncate" title={team.project.projectName}>
-                                                        {team.project.projectName || `Team ${i + 1}`}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    ) : (
-                                        <p className="text-gray-500 text-base">Not part of any teams</p>
-                                    )}
-                                </div>
-
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <h3 className="text-lg font-semibold mb-3">Certifications</h3>
-                                    {selectedProfile.certificates && selectedProfile.certificates.length > 0 ? (
-                                        <ul className="list-disc list-inside text-base space-y-1">
-                                            {selectedProfile.certificates.map((cert, i) => (
-                                                <li key={i}>{cert.name || cert}</li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-gray-500 text-base">No certifications found</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </>
+                <ProfileModal
+                    selectedProfile={selectedProfile}
+                    onClose={() => setIsProfileOpen(false)} // ✔️ Passes a function
+                    title="Employee Profile"
+                />
+            )}
+            {/* Snackbar for notifications */}
+            {snackbar && (
+                <div className={`snackbar ${snackbar.severity}`}>
+                    {snackbar.message}
+                </div>
             )}
         </div>
     )

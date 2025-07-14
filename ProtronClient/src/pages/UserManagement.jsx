@@ -228,7 +228,7 @@ const UserManagement = () => {
     fetchRoles();
     fetchModules();
   }, []);
-
+  console.log("Users:", users);
   const getAllModuleNames = () => {
     const moduleNames = new Set(modules.map((module) => module.moduleName));
     roles.forEach((role) => {
@@ -594,9 +594,7 @@ const filteredRoles = roles.filter(role => {
       field: "name",
       valueGetter: params => getFullName(params.data),
       flex: 1,
-
-
-
+      minWidth: 150,
       sortable: true,
       filter: true,
       cellStyle: { fontWeight: 'bold' }
@@ -605,6 +603,15 @@ const filteredRoles = roles.filter(role => {
       headerName: "Email",
       field: "email",
       valueGetter: params => params.data.email || 'N/A',
+      flex: 1,
+      minWidth: 250,
+      sortable: true,
+      filter: true
+    },
+    {
+      headerName: "Mobile Number",
+      field: "mobileNumber",
+      valueGetter: params => params.data.mobilePhone || 'N/A',
       flex: 1,
       minWidth: 200,
       sortable: true,
@@ -625,7 +632,25 @@ const filteredRoles = roles.filter(role => {
       field: "tenant",
       valueGetter: params => getTenantName(params.data),
       flex: 1,
-      minWidth: 120,
+      minWidth: 150,
+      sortable: true,
+      filter: true
+    },
+    {
+      headerName: "City",
+      field: "city",
+      valueGetter: params => params.data.city || 'N/A',
+      flex: 1,
+      minWidth: 100,
+      sortable: true,
+      filter: true
+    },
+    {
+      headerName: "Country",
+      field: "country",
+      valueGetter: params => params.data.country || 'N/A',
+      flex: 1,
+      minWidth: 100,
       sortable: true,
       filter: true
     },

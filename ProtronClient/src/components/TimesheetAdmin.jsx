@@ -166,10 +166,10 @@
       const weekdays = getWeekdays();
 
       const dayColumns = weekdays.map((day, index) => ({
-        headerName: day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }),
+        headerName: day.toLocaleDateString('en-GB', {  day: "2-digit", month: "short", year: "2-digit"}),
         field: `day${index}`,
         cellRenderer: DayCellRenderer,
-        valueGetter: (params) => params.data.dailyHours?.[index],
+        valueGetter: (params) => params.data.dailyHours?.[index+1],
         sortable: false,
         filter: false,
         resizable: true,
@@ -294,7 +294,9 @@
     const fetchTimesheetData = async () => {
       setLoading(true);
       try {
+        console.log(weekStart)
         const startParam = weekStart.toISOString().split('T')[0];
+        console.log('Start Date:', startParam);
         const endParam = weekEnd.toISOString().split('T')[0];
 
         console.log('Fetching timesheet data for:', { startParam, endParam });
