@@ -30,7 +30,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarMonth';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import GlobalSnackbar from './GlobalSnackbar';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import {StaticDatePicker} from '@mui/x-date-pickers/StaticDatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
@@ -596,39 +596,33 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
               {/* Calendar Popover */}
               <Popover
-                open={isCalendarOpen}
-                anchorEl={calendarAnchorEl}
-                onClose={handleCalendarClose}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'center',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'center',
-                }}
-                PaperProps={{
-                  sx: {
-                    borderRadius: 2,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    overflow: 'visible',
-                  }
-                }}
-              >
-                <Box sx={{ p: 2 }}>
-                  <DatePicker
-                    value={currentDate}
-                    onChange={handleDateChange}
-                    slotProps={{
-                      textField: {
-                        style: { display: 'none' }
-                      }
-                    }}
-                    open
-                    onClose={handleCalendarClose}
-                  />
-                </Box>
-              </Popover>
+  open={isCalendarOpen}
+  anchorEl={calendarAnchorEl}
+  onClose={handleCalendarClose}
+  anchorOrigin={{
+    vertical: 'bottom',
+    horizontal: 'center',
+  }}
+  transformOrigin={{
+    vertical: 'top',
+    horizontal: 'center',
+  }}
+  PaperProps={{
+    sx: {
+      borderRadius: 2,
+      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+      overflow: 'visible',
+    }
+  }}
+>
+  <Box sx={{ p: 2 }}>
+    <StaticDatePicker
+      value={currentDate}
+      onChange={handleDateChange}
+    />
+  </Box>
+</Popover>
+
 
 
               {/* Row 1: Project and Task Type */}
