@@ -1212,146 +1212,176 @@ const ProjectManagement = () => {
       )}
 
       {isModalOpen && selectedProject && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            {/* Header */}
-            <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Project Details</h2>
-                <button
-                  onClick={handleClose}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+  <>
+    <div
+      className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-40 transition-opacity"
+      onClick={handleClose}
+    />
+
+    <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl bg-white rounded-lg shadow-xl z-50 p-4 sm:p-6 md:p-8 overflow-y-auto m-4">
+      <button
+        className="absolute top-2 right-2 text-red-700 hover:text-red-900 cursor-pointer text-xl font-bold z-10"
+        onClick={handleClose}
+      >
+        X
+      </button>
+
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start bg-green-700 space-y-4 sm:space-y-0 sm:space-x-8 mb-6 md:mb-8 p-4 sm:p-6 border-b border-gray-200 rounded-t-lg">
+        <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-green-600 rounded-full flex items-center justify-center border-4 border-gray-100 flex-shrink-0">
+          <svg className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H9m3 0V9" />
+          </svg>
+        </div>
+
+        <div className="flex-1 text-center sm:text-left">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1 sm:mb-2">
+            {selectedProject.projectName}
+          </h2>
+          <p className="text-sm sm:text-base md:text-lg text-white mb-2 sm:mb-4">
+            {selectedProject.tenant?.tenantName || selectedProject.tenent || "No tenant specified"}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-x-8 sm:gap-y-2">
+            <div className="text-sm sm:text-base">
+              <span className="font-bold text-white">Start Date:</span>
+              <span className="ml-2 text-white">{formatDate(selectedProject.startDate)}</span>
             </div>
-
-            {/* Content */}
-            <div className="p-8 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {/* Project Name - Highlighted */}
-              <div className="mb-10">
-                <p className="text-xs text-gray-500 mb-2 uppercase tracking-wide">Project Name</p>
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{selectedProject.projectName}</h3>
-                <p className="text-sm text-gray-600">
-                  {selectedProject.tenant?.tenantName || selectedProject.tenent || "No tenant specified"}
-                </p>
-              </div>
-
-              {/* Project Timeline */}
-              <div className="mb-12">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
-                  <Calendar className="w-5 h-5 mr-2 text-blue-600" />
-                  Timeline
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Start Date</p>
-                    <p className="font-medium text-gray-900">{formatDate(selectedProject.startDate)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">End Date</p>
-                    <p className="font-medium text-gray-900">{formatDate(selectedProject.endDate)}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Project Cost & Created */}
-              <div className="mb-12">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-green-600" />
-                  Project Information
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Project Cost ({selectedProject.unit || "Unit"})</p>
-                    <p className="font-semibold text-gray-900">₹{selectedProject.projectCost}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Created/Updated</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedProject.startTimestamp ? new Date(selectedProject.startTimestamp).toLocaleDateString() : "Not available"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Team & Leadership */}
-              <div className="mb-12">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
-                  <Users className="w-5 h-5 mr-2 text-purple-600" />
-                  Team & Leadership
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Project Manager</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedProject.projectManager
-                        ? `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName} (${selectedProject.projectManager.empCode})`
-                        : "Not assigned"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Sponsor</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedProject.sponsor
-                        ? `${selectedProject.sponsor.firstName} ${selectedProject.sponsor.lastName} (${selectedProject.sponsor.empCode})`
-                        : "Not assigned"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Project Team */}
-                {selectedProject.projectTeam && selectedProject.projectTeam.length > 0 && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-4">Project Team Members</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedProject.projectTeam.map((member, index) => (
-                        <div key={index} className="flex items-center bg-gray-50 rounded-lg p-3">
-                          <div className="bg-green-100 text-green-700 rounded-full h-8 w-8 flex items-center justify-center mr-3 text-sm font-medium">
-                            {member.user.firstName ? member.user.firstName.charAt(0) : "T"}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{member.user.firstName} {member.user.lastName}</p>
-                            <p className="text-sm text-gray-500">{member.empCode || "No ID"}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* System Impacted */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-400 pb-1 flex items-center">
-                  <Settings className="w-5 h-5 mr-2 text-orange-600" />
-                  System Impacted
-                </h4>
-                <div>
-                  {selectedProject.systemImpacted?.map((system, index) => (
-                    <span key={index} className="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm mr-2 mb-2">
-                      {system.systemName}
-                    </span>
-                  )) || <p className="text-gray-500">None specified</p>}
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-gray-50 border-t border-gray-200 px-6 py-3 flex justify-end">
-              <button
-                onClick={handleClose}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              >
-                Close
-              </button>
+            <div className="text-sm sm:text-base">
+              <span className="font-bold text-white">End Date:</span>
+              <span className="ml-2 text-white">{formatDate(selectedProject.endDate)}</span>
             </div>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+        {/* Left Column */}
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-green-100 p-4 sm:p-6 rounded-lg">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">Project Information</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <span className="font-medium text-gray-700 text-sm sm:text-base">Project Cost:</span>
+                <span className="text-gray-900 text-sm sm:text-base font-semibold">₹{selectedProject.projectCost}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <span className="font-medium text-gray-700 text-sm sm:text-base">Unit:</span>
+                <span className="text-gray-900 text-sm sm:text-base">{selectedProject.unit || "N/A"}</span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <span className="font-medium text-gray-700 text-sm sm:text-base">Created:</span>
+                <span className="text-gray-900 text-sm sm:text-base">
+                  {selectedProject.startTimestamp ? new Date(selectedProject.startTimestamp).toLocaleDateString() : "N/A"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-green-100 p-4 sm:p-6 rounded-lg">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">Timeline</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <span className="font-medium text-gray-700 text-sm sm:text-base">Duration:</span>
+                <span className="text-gray-900 text-sm sm:text-base">
+                  {selectedProject.startDate && selectedProject.endDate 
+                    ? `${Math.ceil((new Date(selectedProject.endDate) - new Date(selectedProject.startDate)) / (1000 * 60 * 60 * 24))} days`
+                    : "N/A"}
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <span className="font-medium text-gray-700 text-sm sm:text-base">Status:</span>
+                <span className="text-gray-900 text-sm sm:text-base">
+                  {new Date() > new Date(selectedProject.endDate) ? "Completed" : "In Progress"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Middle Column */}
+        <div>
+          <div className="bg-green-100 p-4 sm:p-6 rounded-lg h-full">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">Leadership</h3>
+            <div className="text-sm sm:text-base space-y-4 text-gray-900">
+              <div>
+                <p className="font-medium text-gray-700 mb-1">Project Manager:</p>
+                <p className="text-gray-900">
+                  {selectedProject.projectManager
+                    ? `${selectedProject.projectManager.firstName} ${selectedProject.projectManager.lastName}`
+                    : "Not assigned"}
+                </p>
+                {selectedProject.projectManager && (
+                  <p className="text-gray-600 text-sm">({selectedProject.projectManager.empCode})</p>
+                )}
+              </div>
+              
+              <div>
+                <p className="font-medium text-gray-700 mb-1">Sponsor:</p>
+                <p className="text-gray-900">
+                  {selectedProject.sponsor
+                    ? `${selectedProject.sponsor.firstName} ${selectedProject.sponsor.lastName}`
+                    : "Not assigned"}
+                </p>
+                {selectedProject.sponsor && (
+                  <p className="text-gray-600 text-sm">({selectedProject.sponsor.empCode})</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-green-100 p-4 sm:p-6 rounded-lg">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">
+              Team Members ({selectedProject.projectTeam?.length || 0})
+            </h3>
+            {selectedProject.projectTeam && selectedProject.projectTeam.length > 0 ? (
+              <div className="max-h-[120px] sm:max-h-[140px] overflow-y-auto pr-2">
+                <ul className="space-y-2">
+                  {selectedProject.projectTeam.map((member, index) => (
+                    <li key={index} className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                      <div className="flex-1">
+                        <span className="text-gray-900 text-sm sm:text-base block">
+                          {member.user.firstName} {member.user.lastName}
+                        </span>
+                        <span className="text-gray-600 text-xs sm:text-sm">
+                          {member.empCode || "No ID"}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm sm:text-base">No team members assigned</p>
+            )}
+          </div>
+
+          <div className="bg-green-100 p-4 sm:p-6 h-auto rounded-lg">
+            <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">
+              Systems Impacted ({selectedProject.systemImpacted?.length || 0})
+            </h3>
+            {selectedProject.systemImpacted && selectedProject.systemImpacted.length > 0 ? (
+              <div className="space-y-2">
+                {selectedProject.systemImpacted.map((system, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                    <span className="text-gray-900 text-sm sm:text-base">{system.systemName}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm sm:text-base">No systems specified</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </>
+)}
       {selectedEditProjectId && (
         <EditProjectModal
           open={true}
