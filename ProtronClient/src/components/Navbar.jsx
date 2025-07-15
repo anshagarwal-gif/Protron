@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FiHome, FiUser, FiUserCheck, FiFolder, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
+import { FiHome, FiUser, FiUserCheck, FiFolder,FiFileText, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext"; // Import AccessContext
@@ -172,6 +172,7 @@ const Navbar = ({ setIsAuthenticated }) => {
     { key: "team", label: "Team", path: "/team", moduleName: "teams", icon: FiUserCheck },
     { key: "timesheet", label: "Timesheet", path: "/timesheet", moduleName: "timesheet", icon: FiClock },
     { key: "users", label: "Users", path: "/users", moduleName: "users", icon: FiUser },
+{ key: "po", label: "Purchase Orders", path: "/po", moduleName: "users", icon: FiFileText },
   ];
 
   const currentPath = window.location.pathname;

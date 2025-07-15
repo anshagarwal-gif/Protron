@@ -20,6 +20,7 @@ import { AccessProvider, useAccess } from './Context/AccessContext';
 import TimesheetApp from './components/EmployeeTimesheet';
 import AdminTimesheet from './components/TimesheetAdmin';
 import IndividualTimesheet from './components/IndividualTimesheet';
+import POManagement from './pages/PO';
 const Dashboard = () => <div>Dashboard Content</div>;
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
@@ -74,11 +75,14 @@ const App = () => {
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/projects" element={<ProjectManagement />} />
                                 <Route path="/team" element={<TeamManagement />} />
+                               
                                 <Route path="/timesheet" element={role === 'tenant_admin' ? <AdminTimesheet /> : <TimesheetApp />} />
                                 <Route path="/employee-timesheet" element={<TimesheetManager />} />
                                 <Route path="/users" element={<UserManagement />} />
+                                  <Route path="/po" element={<POManagement/>}/>
                                 <Route path="individual-timesheet" element={<IndividualTimesheet />} />
                                 <Route path="*" element={<Navigate to="/dashboard" />} />
+                               
                             </>
                         )}
                     </Routes>
