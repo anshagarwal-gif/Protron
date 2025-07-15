@@ -175,6 +175,7 @@ const Navbar = ({ setIsAuthenticated }) => {
   ];
 
   const currentPath = window.location.pathname;
+ 
 
   return (
     <div className="sticky top-0 z-50">
@@ -266,6 +267,7 @@ const Navbar = ({ setIsAuthenticated }) => {
                             {`${profile.firstName} ${profile.lastName}`}
                           </div>
                           <div className="text-sm text-gray-600">{profile.email}</div>
+                          <div className="text-sm text-gray-600">Role: {profile.role.roleName}</div>
                         </div>
                       </div>
                     </div>
