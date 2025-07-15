@@ -37,14 +37,9 @@ public class TimesheetTaskService {
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
 
-    public TimesheetTask addTask(TimesheetTaskRequestDTO dto, Long userId) {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public TimesheetTask addTask(TimesheetTaskRequestDTO dto) {
 
-        if (!(principal instanceof User user)) {
-            throw new RuntimeException("Invalid user session");
-        }
-
-        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+        User targetUser = loggedInUserUtils.getLoggedInUser();
 
         TimesheetTask task = new TimesheetTask();
         task.setTaskType(dto.getTaskType());
@@ -57,7 +52,7 @@ public class TimesheetTaskService {
         task.setLastUpdatedBy(null);
 
         task.setUser(targetUser);
-        task.setTenant(user.getTenant());
+        task.setTenant(targetUser.getTenant());
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -110,14 +105,9 @@ public class TimesheetTaskService {
         return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, user);
     }
 
-    public void copyTasksToNextWeek(Date startDate, Date endDate, Long userId) {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public void copyTasksToNextWeek(Date startDate, Date endDate) {
 
-        if (!(principal instanceof User user)) {
-            throw new RuntimeException("Invalid user session");
-        }
-
-        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+        User targetUser = loggedInUserUtils.getLoggedInUser();
 
         List<TimesheetTask> lastWeekTasks = timesheetTaskRepository
                 .findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser);
@@ -164,14 +154,8 @@ public class TimesheetTaskService {
 
     }
 
-    public double calculateTotalHours(Date startDate, Date endDate, Long userId) {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (!(principal instanceof User user)) {
-            throw new RuntimeException("Invalid user session");
-        }
-
-        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+    public double calculateTotalHours(Date startDate, Date endDate) {
+        User targetUser = loggedInUserUtils.getLoggedInUser();
 
         return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser)
                 .stream()
@@ -294,12 +278,8 @@ public class TimesheetTaskService {
         timesheetTaskRepository.save(existingTask);
     }
 
-    public String submitPendingTasks(Date startDate, Date endDate, Long userId) {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!(principal instanceof User user))
-            throw new RuntimeException("Invalid session");
-
-        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
+    public String submitPendingTasks(Date startDate, Date endDate) {
+        User targetUser = loggedInUserUtils.getLoggedInUser();
 
         List<TimesheetTask> unsubmittedTasks = timesheetTaskRepository
                 .findByDateBetweenAndUserAndIsSubmittedFalseAndEndTimestampIsNull(startDate, endDate, targetUser);

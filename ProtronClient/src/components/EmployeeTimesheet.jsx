@@ -118,113 +118,113 @@ const TimesheetManager = () => {
   };
 
   // Attachment handling functions with better error handling
- 
-// Updated attachment handling functions
-const handleViewAttachment = async (taskId, attachmentId = null) => {
-  try {
-    showToast("Loading attachment...", "info");
 
-    // Use specific attachment ID if provided, otherwise get first attachment
-    const url = attachmentId 
-      ? `${API_BASE_URL}/api/timesheet-tasks/attachments/${attachmentId}`
-      : `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`; // Fallback to old endpoint
+  // Updated attachment handling functions
+  const handleViewAttachment = async (taskId, attachmentId = null) => {
+    try {
+      showToast("Loading attachment...", "info");
 
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: sessionStorage.getItem("token"),
-      },
-      responseType: 'blob',
-      timeout: 30000
-    });
+      // Use specific attachment ID if provided, otherwise get first attachment
+      const url = attachmentId
+        ? `${API_BASE_URL}/api/timesheet-tasks/attachments/${attachmentId}`
+        : `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`; // Fallback to old endpoint
 
-    if (!response.data || response.data.size === 0) {
-      showToast("Attachment file is empty or not found", "error");
-      return;
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: sessionStorage.getItem("token"),
+        },
+        responseType: 'blob',
+        timeout: 30000
+      });
+
+      if (!response.data || response.data.size === 0) {
+        showToast("Attachment file is empty or not found", "error");
+        return;
+      }
+
+      const contentType = response.headers['content-type'] || 'application/octet-stream';
+      const blob = new Blob([response.data], { type: contentType });
+      const url_blob = window.URL.createObjectURL(blob);
+
+      const newWindow = window.open(url_blob, '_blank');
+
+      if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+        showToast("Popup blocked. Starting download instead...", "info");
+        const link = document.createElement('a');
+        link.href = url_blob;
+        link.download = `attachment_${taskId}_${attachmentId || 'default'}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        showToast("Attachment opened successfully!", "success");
+      }
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url_blob);
+      }, 5000);
+
+    } catch (error) {
+      console.error("Failed to view attachment:", error);
+      if (error.response?.status === 404) {
+        showToast("Attachment not found or has been deleted", "error");
+      } else {
+        showToast("Failed to open attachment", "error");
+      }
     }
+  };
 
-    const contentType = response.headers['content-type'] || 'application/octet-stream';
-    const blob = new Blob([response.data], { type: contentType });
-    const url_blob = window.URL.createObjectURL(blob);
+  const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = null) => {
+    try {
+      showToast("Downloading attachment...", "info");
 
-    const newWindow = window.open(url_blob, '_blank');
+      const url = attachmentId
+        ? `${API_BASE_URL}/api/timesheet-tasks/attachments/${attachmentId}`
+        : `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`;
 
-    if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
-      showToast("Popup blocked. Starting download instead...", "info");
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: sessionStorage.getItem("token"),
+        },
+        responseType: 'blob',
+        timeout: 60000
+      });
+
+      if (!response.data || response.data.size === 0) {
+        showToast("Attachment file is empty or not found", "error");
+        return;
+      }
+
+      const contentDisposition = response.headers['content-disposition'];
+      let downloadFileName = fileName || `attachment_${taskId}_${attachmentId || 'default'}`;
+
+      if (contentDisposition) {
+        const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (fileNameMatch && fileNameMatch[1]) {
+          downloadFileName = fileNameMatch[1].replace(/['"]/g, '');
+        }
+      }
+
+      const contentType = response.headers['content-type'] || 'application/octet-stream';
+      const blob = new Blob([response.data], { type: contentType });
+      const url_blob = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url_blob;
-      link.download = `attachment_${taskId}_${attachmentId || 'default'}`;
+      link.download = downloadFileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } else {
-      showToast("Attachment opened successfully!", "success");
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url_blob);
+      }, 1000);
+
+      showToast("Attachment downloaded successfully!", "success");
+    } catch (error) {
+      console.error("Failed to download attachment:", error);
+      showToast("Failed to download attachment", "error");
     }
-
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url_blob);
-    }, 5000);
-
-  } catch (error) {
-    console.error("Failed to view attachment:", error);
-    if (error.response?.status === 404) {
-      showToast("Attachment not found or has been deleted", "error");
-    } else {
-      showToast("Failed to open attachment", "error");
-    }
-  }
-};
-
-const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = null) => {
-  try {
-    showToast("Downloading attachment...", "info");
-
-    const url = attachmentId 
-      ? `${API_BASE_URL}/api/timesheet-tasks/attachments/${attachmentId}`
-      : `${API_BASE_URL}/api/timesheet-tasks/${taskId}/attachment`;
-
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: sessionStorage.getItem("token"),
-      },
-      responseType: 'blob',
-      timeout: 60000
-    });
-
-    if (!response.data || response.data.size === 0) {
-      showToast("Attachment file is empty or not found", "error");
-      return;
-    }
-
-    const contentDisposition = response.headers['content-disposition'];
-    let downloadFileName = fileName || `attachment_${taskId}_${attachmentId || 'default'}`;
-
-    if (contentDisposition) {
-      const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-      if (fileNameMatch && fileNameMatch[1]) {
-        downloadFileName = fileNameMatch[1].replace(/['"]/g, '');
-      }
-    }
-
-    const contentType = response.headers['content-type'] || 'application/octet-stream';
-    const blob = new Blob([response.data], { type: contentType });
-    const url_blob = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url_blob;
-    link.download = downloadFileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => {
-      window.URL.revokeObjectURL(url_blob);
-    }, 1000);
-
-    showToast("Attachment downloaded successfully!", "success");
-  } catch (error) {
-    console.error("Failed to download attachment:", error);
-    showToast("Failed to download attachment", "error");
-  }
-};
+  };
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length) return;
@@ -244,16 +244,16 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
       res.data.forEach((task) => {
         const dateKey = task.date.split("T")[0];
         if (!grouped[dateKey]) grouped[dateKey] = [];
-        
-      // Updated attachment handling - check for new attachments array
-      const hasAttachments = task.attachments && task.attachments.length > 0;
 
-      console.log("Task attachment data:", {
-        taskId: task.taskId,
-        hasAttachments: hasAttachments,
-        attachmentCount: task.attachments ? task.attachments.length : 0,
-        attachments: task.attachments
-      });
+        // Updated attachment handling - check for new attachments array
+        const hasAttachments = task.attachments && task.attachments.length > 0;
+
+        console.log("Task attachment data:", {
+          taskId: task.taskId,
+          hasAttachments: hasAttachments,
+          attachmentCount: task.attachments ? task.attachments.length : 0,
+          attachments: task.attachments
+        });
 
         grouped[dateKey].push({
           id: task.taskId,
@@ -262,11 +262,11 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
           task: task.taskType,
           project: task.project?.projectName || "",
           submitted: task.submitted,
-       attachment: hasAttachments, // Boolean for backward compatibility
-        attachments: task.attachments || [], // New: array of attachments
-        attachmentCount: task.attachments ? task.attachments.length : 0,
-        attachmentUrl: hasAttachments ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachments` : null,
-     
+          attachment: hasAttachments, // Boolean for backward compatibility
+          attachments: task.attachments || [], // New: array of attachments
+          attachmentCount: task.attachments ? task.attachments.length : 0,
+          attachmentUrl: hasAttachments ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachments` : null,
+
           fullTask: task,
         });
       });
@@ -564,7 +564,7 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
       showToast("Failed to copy last week's tasks", "error");
     }
   };
-  
+
 
   // Download as CSV with attachment information
   const downloadExcel = () => {
@@ -612,7 +612,8 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
 
     // Create an array for grid cells (including empty cells for alignment)
     const gridCells = [null].concat(dates);
- return (
+
+    return (
       <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
         {gridCells.map((date, index) => {
           if (!date) {
@@ -641,20 +642,20 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
           return (
             <div
               key={dateKey}
-              className={`relative cursor-pointer border p-2 transition-all duration-200 ${
-                isOverflowOpen
+              className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
                   ? "border-blue-400 bg-blue-50 shadow-md z-20"
-                  : `border-gray-200 ${
-                      isToday 
-                        ? "bg-blue-50" 
-                        : isWeekendDay 
-                          ? "bg-gray-100" 
-                          : "bg-white"
-                    }`
-              }`}
+                  : `border-gray-200 ${isToday
+                    ? "bg-blue-50"
+                    : isWeekendDay
+                      ? "bg-gray-100"
+                      : "bg-white"
+                  }`
+                }`}
               style={{
                 aspectRatio: "5/6"
               }}
+              onMouseEnter={() => setHoveredCell(dateKey)}
+              onMouseLeave={() => setHoveredCell(null)}
               onClick={(e) => {
                 // Prevent modal opening if clicking on a task
                 if (e.target.closest(".task-entry")) return;
@@ -670,9 +671,8 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                 {visibleTasks.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${
-                      entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
-                    } ${isWeekendDay ? 'opacity-90' : ''}`}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
+                      } ${isWeekendDay ? 'opacity-90' : ''}`}
                     title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -687,9 +687,8 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                 {/* Show more button */}
                 {remainingTasksCount > 0 && (
                   <div
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${
-                      isWeekendDay ? 'opacity-90' : ''
-                    }`}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${isWeekendDay ? 'opacity-90' : ''
+                      }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowOverflowTasks(!isOverflowOpen);
@@ -702,6 +701,34 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                   </div>
                 )}
               </div>
+
+              {/* Floating + icon */}
+              {hoveredCell === dateKey && (
+                <div
+                  className={`absolute flex items-center justify-center transition-all ${entries.length === 0
+                    ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12"
+                    : overflowTasks.length > 0
+                      ? "top-2.5 right-2 w-4 h-4"
+                      : "bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6"
+                    }`}
+                >
+                  <button
+                    className={`bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg ${entries.length === 0 ? "text-xl" : "text-sm"
+                      }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCellClick(date);
+                    }}
+                  >
+                    <Plus className={`${entries.length === 0 ? "h-6 w-6" : "h-3 w-3"} ${entries.length === 0
+                      ? "h-6 w-6"
+                      : overflowTasks.length > 0
+                        ? "h-3 w-3"
+                        : "h-5 w-5"
+                      }`} />
+                  </button>
+                </div>
+              )}
 
               {/* Overflow tasks dropdown */}
               {isOverflowOpen && (
@@ -896,160 +923,155 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
             <div className="flex-1 overflow-hidden">
               <div className="overflow-auto h-full">
                 <table className="w-full table-fixed">
-                 <thead className="sticky top-0 z-10">
-  <tr className="bg-gray-50 border-b border-gray-200">
-    {getVisibleDates().map((date) => {
-      const isWeekendDay = isWeekend(date);
-      const isToday = date.toDateString() === new Date().toDateString();
-      
-      return (
-        <th
-          key={date.toISOString()}
-          className={`text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${
-            isWeekendDay ? 'bg-gray-200' : ''
-          }`}
-          style={{ width: "150px" }}
-        >
-          <div className={`px-4 py-4 flex flex-col items-center ${
-            isToday ? "bg-blue-100" : isWeekendDay ? "bg-gray-200" : ""
-          }`}>
-            <span className={isWeekendDay ? 'text-gray-600' : ''}>
-              {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
-            </span>
-            <span className={`text-xs mt-1 ${isWeekendDay ? 'text-gray-500' : 'text-gray-400'}`}>
-              {getDayTotalHours(date)}H/8H
-            </span>
-          </div>
-        </th>
-      );
-    })}
-  </tr>
-</thead>
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      {getVisibleDates().map((date) => {
+                        const isWeekendDay = isWeekend(date);
+                        const isToday = date.toDateString() === new Date().toDateString();
+
+                        return (
+                          <th
+                            key={date.toISOString()}
+                            className={`text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${isWeekendDay ? 'bg-gray-200' : ''
+                              }`}
+                            style={{ width: "150px" }}
+                          >
+                            <div className={`px-4 py-4 flex flex-col items-center ${isToday ? "bg-blue-100" : isWeekendDay ? "bg-gray-200" : ""
+                              }`}>
+                              <span className={isWeekendDay ? 'text-gray-600' : ''}>
+                                {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
+                              </span>
+                              <span className={`text-xs mt-1 ${isWeekendDay ? 'text-gray-500' : 'text-gray-400'}`}>
+                                {getDayTotalHours(date)}H/8H
+                              </span>
+                            </div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
                   <tbody className="bg-white">
-  <tr>
-    {getVisibleDates().map((date) => {
-      const entries = getTimeEntries(date);
-      const isToday = date.toDateString() === new Date().toDateString();
-      const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
-      const isWeekendDay = isWeekend(date);
+                    <tr>
+                      {getVisibleDates().map((date) => {
+                        const entries = getTimeEntries(date);
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
+                        const isWeekendDay = isWeekend(date);
 
-      return (
-        <td
-          key={date.toISOString()}
-          className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${
-            isWeekendDay ? 'bg-gray-50' : ''
-          }`}
-          style={{ width: "150px", height: "200px" }}
-          onMouseEnter={() => handleCellHover(date, true)}
-          onMouseLeave={() => handleCellHover(date, false)}
-        >
-          <div className="space-y-3 h-full">
-            {/* Existing Time Entries */}
-            {entries.map((entry) => (
-              <div
-                key={entry.id}
-                className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${
-                  entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
-                } ${isWeekendDay ? 'opacity-90' : ''}`}
-                style={{
-                  boxSizing: "border-box",
-                  height: "150px",
-                }}
-                onClick={() => setTaskDetail(entry.fullTask)}
-              >
-                {/* Rest of the entry content remains the same */}
-                {!entry.submitted && (
-                  <div className="absolute top-2 right-2 flex gap-2 transition-opacity z-20">
-                    {hasAccess("timesheet", "delete") && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteTimeEntry(date, entry.id);
-                        }}
-                        className="text-red-500 hover:text-red-700"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                    {hasAccess("timesheet", "edit") && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingTask({ ...entry.fullTask, date });
-                          setShowLogTimeModal(true);
-                        }}
-                        className="text-blue-500 hover:text-blue-700"
-                        title="Edit"
-                      >
-                        <SquarePen className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                )}
+                        return (
+                          <td
+                            key={date.toISOString()}
+                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${isWeekendDay ? 'bg-gray-50' : ''
+                              }`}
+                            style={{ width: "150px", height: "200px" }}
+                            onMouseEnter={() => handleCellHover(date, true)}
+                            onMouseLeave={() => handleCellHover(date, false)}
+                          >
+                            <div className="space-y-3 h-full">
+                              {/* Existing Time Entries */}
+                              {entries.map((entry) => (
+                                <div
+                                  key={entry.id}
+                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                                    } ${isWeekendDay ? 'opacity-90' : ''}`}
+                                  style={{
+                                    boxSizing: "border-box",
+                                    height: "150px",
+                                  }}
+                                  onClick={() => setTaskDetail(entry.fullTask)}
+                                >
+                                  {/* Rest of the entry content remains the same */}
+                                  {!entry.submitted && (
+                                    <div className="absolute top-2 right-2 flex gap-2 transition-opacity z-20">
+                                      {hasAccess("timesheet", "delete") && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteTimeEntry(date, entry.id);
+                                          }}
+                                          className="text-red-500 hover:text-red-700"
+                                          title="Delete"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </button>
+                                      )}
+                                      {hasAccess("timesheet", "edit") && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingTask({ ...entry.fullTask, date });
+                                            setShowLogTimeModal(true);
+                                          }}
+                                          className="text-blue-500 hover:text-blue-700"
+                                          title="Edit"
+                                        >
+                                          <SquarePen className="h-3 w-3" />
+                                        </button>
+                                      )}
+                                    </div>
+                                  )}
                                   {/* Main content with blur effect on hover */}
-                <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-blue-500" />
-                    <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {entry.project && (
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                        title={entry.project}
-                      >
-                        <Folder className="h-3 w-3 mr-1" />
-                        {truncateText(entry.project, 12)}
-                      </span>
-                    )}
-                  </div>
+                                  <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
+                                    <div className="flex items-center gap-2">
+                                      <FileText className="h-4 w-4 text-blue-500" />
+                                      <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {entry.project && (
+                                        <span
+                                          className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
+                                          title={entry.project}
+                                        >
+                                          <Folder className="h-3 w-3 mr-1" />
+                                          {truncateText(entry.project, 12)}
+                                        </span>
+                                      )}
+                                    </div>
 
-                  <div className="w-full">
-                    <div
-                      className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${
-                        !entry.description ? "italic text-gray-400" : ""
-                      }`}
-                      style={{
-                        maxHeight: "50px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "normal",
-                      }}
-                    >
-                      {entry.description ? entry.description : "No description"}
-                    </div>
-                  </div>
-                </div>
+                                    <div className="w-full">
+                                      <div
+                                        className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""
+                                          }`}
+                                        style={{
+                                          maxHeight: "50px",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          whiteSpace: "normal",
+                                        }}
+                                      >
+                                        {entry.description ? entry.description : "No description"}
+                                      </div>
+                                    </div>
+                                  </div>
 
-                {/* Eye icon overlay - appears on hover */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                  <div className="bg-opacity-90 rounded-full p-3">
-                    <Eye className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-8 text-gray-800 text-xs px-2 py-1 rounded whitespace-nowrap">
-                    Click to view details
-                  </div>
-                </div>
-              </div>
-            ))}
-                               {/* Add New Entry Button */}
-            <div className="flex items-center justify-center">
-              {(isHovered && hasAccess("timesheet", "edit")) && (
-                <button
-                  onClick={() => handleCellClick(date)}
-                  className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-          </div>
-        </td>
-      );
-    })}
-  </tr>
-</tbody>
+                                  {/* Eye icon overlay - appears on hover */}
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
+                                    <div className="bg-opacity-90 rounded-full p-3">
+                                      <Eye className="h-6 w-6 text-blue-600" />
+                                    </div>
+                                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 translate-y-8 text-gray-800 text-xs px-2 py-1 rounded whitespace-nowrap">
+                                      Click to view details
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              {/* Add New Entry Button */}
+                              <div className="flex items-center justify-center">
+                                {(isHovered && hasAccess("timesheet", "edit")) && (
+                                  <button
+                                    onClick={() => handleCellClick(date)}
+                                    className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
+                                  >
+                                    <Plus className="h-5 w-5" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             </div>
@@ -1127,38 +1149,38 @@ const handleDownloadAttachment = async (taskId, attachmentId = null, fileName = 
                   </span>
                 )}
               </div>
-{taskDetail && taskDetail.attachments && taskDetail.attachments.length > 0 && (
-  <div>
-    <span className="font-semibold">Attachments ({taskDetail.attachments.length}):</span>
-    <div className="mt-2 space-y-2">
-      {taskDetail.attachments.map((attachment, index) => (
-        <div key={attachment.attachmentId || index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-          <FileText className="h-4 w-4 text-blue-500" />
-          <span className="text-sm text-gray-700 flex-1">
-            {attachment.fileName || `Attachment ${index + 1}`}
-            {attachment.fileSize && (
-              <span className="text-xs text-gray-500 ml-2">
-                ({(attachment.fileSize / 1024).toFixed(1)} KB)
-              </span>
-            )}
-          </span>
-          <button
-            onClick={() => handleViewAttachment(taskDetail.taskId, attachment.attachmentId)}
-            className="inline-flex items-center px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-          >
-            <Eye className="h-3 w-3 mr-1" /> View
-          </button>
-          <button
-            onClick={() => handleDownloadAttachment(taskDetail.taskId, attachment.attachmentId, attachment.fileName)}
-            className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-          >
-            <DownloadIcon className="h-3 w-3 mr-1" /> Download
-          </button>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+              {taskDetail && taskDetail.attachments && taskDetail.attachments.length > 0 && (
+                <div>
+                  <span className="font-semibold">Attachments ({taskDetail.attachments.length}):</span>
+                  <div className="mt-2 space-y-2">
+                    {taskDetail.attachments.map((attachment, index) => (
+                      <div key={attachment.attachmentId || index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                        <FileText className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm text-gray-700 flex-1">
+                          {attachment.fileName || `Attachment ${index + 1}`}
+                          {attachment.fileSize && (
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({(attachment.fileSize / 1024).toFixed(1)} KB)
+                            </span>
+                          )}
+                        </span>
+                        <button
+                          onClick={() => handleViewAttachment(taskDetail.taskId, attachment.attachmentId)}
+                          className="inline-flex items-center px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                        >
+                          <Eye className="h-3 w-3 mr-1" /> View
+                        </button>
+                        <button
+                          onClick={() => handleDownloadAttachment(taskDetail.taskId, attachment.attachmentId, attachment.fileName)}
+                          className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
+                        >
+                          <DownloadIcon className="h-3 w-3 mr-1" /> Download
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             </div>
             {/* Edit and Delete Buttons */}

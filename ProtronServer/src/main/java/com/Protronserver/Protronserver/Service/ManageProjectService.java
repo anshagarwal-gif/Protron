@@ -201,9 +201,7 @@ public class ManageProjectService {
             throw new RuntimeException("Invalid user session");
         }
 
-        User targetUser = loggedInUserUtils.resolveTargetUser(userId, user);
-
-        return projectRepository.findActiveProjectsByUserInSameTenant(targetUser.getUserId());
+        return projectRepository.findActiveProjectsByUserInSameTenant(user.getUserId());
     }
 
 }

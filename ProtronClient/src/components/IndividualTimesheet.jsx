@@ -20,6 +20,8 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios';
 import { useAccess } from '../Context/AccessContext';
+import { useSession } from '../Context/SessionContext';
+import LogTimeModal from './LogTimeModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -115,6 +117,10 @@ const IndividualTimesheet = () => {
   const [showOverflowTasks, setShowOverflowTasks] = useState(false);
   const [overflowTasksDate, setOverflowTasksDate] = useState(null);
   const navigate = useNavigate();
+  const { sessionData, clearSession } = useSession();
+  const [showLogTimeModal, setShowLogTimeModal] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [selectedCell, setSelectedCell] = useState(null);
 
   const getTargetHours = () => {
     return viewMode === "Weekly" ? 40 : 184;
@@ -257,6 +263,59 @@ const IndividualTimesheet = () => {
     }
   };
 
+  const deleteTimeEntry = async (date, entryId) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/timesheet-tasks/delete/${entryId}`, {
+        headers: {
+          Authorization: sessionStorage.getItem("token"),
+        },
+      });
+      const dateKey = formatDateKey(date);
+      setTimesheetData((prev) => ({
+        ...prev,
+        [dateKey]: prev[dateKey]?.filter((entry) => entry.id !== entryId) || [],
+      }));
+      showToast("Task deleted successfully!", "success");
+    } catch (error) {
+      showToast("Failed to delete task", "error");
+    }
+  };
+
+  const handleSubmitTimesheet = async () => {
+    const dates = getVisibleDates();
+    if (!dates.length) return;
+    const start = dates[0].toISOString().split("T")[0];
+    const end = dates[dates.length - 1].toISOString().split("T")[0];
+
+    try {
+      await axios.post(
+        `${API_BASE_URL}/api/timesheet-tasks/submit?start=${start}&end=${end}`,
+        {},
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("token"),
+          },
+        }
+      );
+      // Option 1: Refetch tasks for real-time update (recommended for accuracy)
+      fetchTasks();
+      showToast("Timesheet submitted successfully! 🎉", "success");
+      // Option 2: If you want to update manually for performance, you could do:
+      // setTimesheetData(prev => {
+      //   const updated = { ...prev };
+      //   dates.forEach(date => {
+      //     const key = date.toISOString().split("T")[0];
+      //     if (updated[key]) {
+      //       updated[key] = updated[key].map(entry => ({ ...entry, submitted: true }));
+      //     }
+      //   });
+      //   return updated;
+      // });
+    } catch (error) {
+      showToast("Failed to submit timesheet", "error");
+    }
+  };
+
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length || !employee?.rawData?.userId) return;
@@ -360,6 +419,95 @@ const IndividualTimesheet = () => {
   const getTimeEntries = (date) => {
     const dateKey = formatDateKey(date);
     return timesheetData[dateKey] || [];
+  };
+
+  const hasUnsubmittedTasks = () => {
+    const dates = getVisibleDates();
+    for (const date of dates) {
+      const entries = getTimeEntries(date);
+      if (entries.some(entry => !entry.submitted)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const handleLogTimeSave = async (taskData) => {
+    if (editingTask) {
+      console.log({
+        ...taskData,
+        date: editingTask.date.toISOString().split("T")[0], // or use taskData.date if you allow editing date
+      })
+      // Edit mode
+      try {
+        const res = await axios.put(
+          `${API_BASE_URL}/api/timesheet-tasks/edit/${editingTask.taskId}`,
+          {
+            taskType: taskData.taskType,
+            hoursSpent: taskData.hoursSpent,
+            description: taskData.description,
+            projectId: taskData.projectId || null, // Ensure projectId is passed correctly
+            attachments: taskData.attachments || null, // Handle optional attachment
+            date: new Date(editingTask.date), // or use taskData.date if you allow editing date
+          },
+          {
+            headers: {
+              Authorization: sessionStorage.getItem("token"),
+            },
+          }
+        );
+        // Update UI
+        const dateKey = editingTask.date.toISOString().split("T")[0];
+        setTimesheetData((prev) => ({
+          ...prev,
+          [dateKey]: prev[dateKey].map((entry) =>
+            entry.id === editingTask.taskId
+              ? {
+                ...entry,
+                ...res.data,
+                id: res.data.taskId,
+                hours: res.data.hoursSpent,
+                description: res.data.description,
+                task: res.data.taskType,
+                project: res.data.project?.projectName || "",
+                submitted: res.data.submitted,
+                attachment: res.data.attachments,
+                attachmentUrl: res.data.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${res.data.taskId}/attachment` : null,
+                fullTask: res.data,
+              }
+              : entry
+          ),
+        }));
+        showToast("Task updated successfully!", "success");
+      } catch (err) {
+        showToast("Failed to update task", "error");
+      }
+      setEditingTask(null);
+      setShowLogTimeModal(false);
+      setSelectedCell(null);
+    } else {
+      const dateKey = taskData.date.split("T")[0];
+      setTimesheetData((prev) => ({
+        ...prev,
+        [dateKey]: [
+          ...(prev[dateKey] || []),
+          {
+            id: taskData.taskId,
+            hours: taskData.hoursSpent,
+            description: taskData.description,
+            task: taskData.taskType,
+            project: taskData.project?.projectName || "",
+            submitted: taskData.submitted,
+            attachment: taskData.attachment,
+            attachmentUrl: taskData.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${taskData.taskId}/attachment` : null,
+            fullTask: taskData,
+          },
+        ],
+      }));
+      showToast("Task added successfully!", "success");
+      setShowLogTimeModal(false);
+      setSelectedCell(null);
+    }
   };
 
   const getDayTotalHours = (date) => {
@@ -531,24 +679,24 @@ const IndividualTimesheet = () => {
           return (
             <div
               key={dateKey}
-              className={`relative cursor-pointer border p-2 transition-all duration-200 ${
-                isOverflowOpen
-                  ? "border-blue-400 bg-blue-50 shadow-md z-20"
-                  : `border-gray-200 ${
-                      isToday 
-                        ? "bg-blue-50" 
-                        : isWeekendDay 
-                          ? "bg-gray-100" 
-                          : "bg-white"
-                    }`
-              }`}
+              className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
+                ? "border-blue-400 bg-blue-50 shadow-md z-20"
+                : `border-gray-200 ${isToday
+                  ? "bg-blue-50"
+                  : isWeekendDay
+                    ? "bg-gray-100"
+                    : "bg-white"
+                }`
+                }`}
               style={{
                 aspectRatio: "5/6"
               }}
+              onMouseEnter={() => setHoveredCell(dateKey)}
+              onMouseLeave={() => setHoveredCell(null)}
               onClick={(e) => {
                 // Prevent modal opening if clicking on a task
                 if (e.target.closest(".task-entry")) return;
-                handleCellClick(date);
+                if (sessionData.email === employee.email) handleCellClick(date);
               }}
             >
               <div className={`text-xs font-medium ${isWeekendDay ? 'text-gray-600' : 'text-gray-500'}`}>
@@ -560,9 +708,8 @@ const IndividualTimesheet = () => {
                 {visibleTasks.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${
-                      entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
-                    } ${isWeekendDay ? 'opacity-90' : ''}`}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
+                      } ${isWeekendDay ? 'opacity-90' : ''}`}
                     title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -577,9 +724,8 @@ const IndividualTimesheet = () => {
                 {/* Show more button */}
                 {remainingTasksCount > 0 && (
                   <div
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${
-                      isWeekendDay ? 'opacity-90' : ''
-                    }`}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${isWeekendDay ? 'opacity-90' : ''
+                      }`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowOverflowTasks(!isOverflowOpen);
@@ -592,6 +738,34 @@ const IndividualTimesheet = () => {
                   </div>
                 )}
               </div>
+
+              {/* Floating + icon */}
+              {hoveredCell === dateKey && hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+                <div
+                  className={`absolute flex items-center justify-center transition-all ${entries.length === 0
+                      ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12"
+                      : overflowTasks.length > 0
+                        ? "top-2.5 right-2 w-4 h-4"
+                        : "bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6"
+                    }`}
+                >
+                  <button
+                    className={`bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg ${entries.length === 0 ? "text-xl" : "text-sm"
+                      }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCellClick(date);
+                    }}
+                  >
+                    <Plus className={`${entries.length === 0 ? "h-6 w-6" : "h-3 w-3"} ${entries.length === 0
+                      ? "h-6 w-6"
+                      : overflowTasks.length > 0
+                        ? "h-3 w-3"
+                        : "h-5 w-5"
+                    }`} />
+                  </button>
+                </div>
+              )}
 
               {/* Overflow tasks dropdown */}
               {isOverflowOpen && (
@@ -743,13 +917,23 @@ const IndividualTimesheet = () => {
                 </div>
               </div>
               {/* Action Buttons */}
-              {hasAccess("timesheet", "edit") && (
+              {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
                 <button
                   className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                   onClick={handleCopyLastWeek}
                 >
                   <span>📋</span>
                   <span>Copy Last Week</span>
+                </button>
+              )}
+              {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+                <button
+                  className="flex items-center space-x-2 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handleSubmitTimesheet}
+                  disabled={!hasUnsubmittedTasks()}
+                >
+                  <span>📤</span>
+                  <span>Submit Timesheet</span>
                 </button>
               )}
 
@@ -798,18 +982,16 @@ const IndividualTimesheet = () => {
                       {getVisibleDates().map((date) => {
                         const isWeekendDay = isWeekend(date);
                         const isToday = date.toDateString() === new Date().toDateString();
-                        
+
                         return (
                           <th
                             key={date.toISOString()}
-                            className={`text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                              isWeekendDay ? 'bg-gray-200' : ''
-                            }`}
+                            className={`text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${isWeekendDay ? 'bg-gray-200' : ''
+                              }`}
                             style={{ width: "150px" }}
                           >
-                            <div className={`px-4 py-4 flex flex-col items-center ${
-                              isToday ? "bg-blue-100" : isWeekendDay ? "bg-gray-200" : ""
-                            }`}>
+                            <div className={`px-4 py-4 flex flex-col items-center ${isToday ? "bg-blue-100" : isWeekendDay ? "bg-gray-200" : ""
+                              }`}>
                               <span className={isWeekendDay ? 'text-gray-600' : ''}>
                                 {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
                               </span>
@@ -833,9 +1015,8 @@ const IndividualTimesheet = () => {
                         return (
                           <td
                             key={date.toISOString()}
-                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${
-                              isWeekendDay ? 'bg-gray-50' : ''
-                            }`}
+                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${isWeekendDay ? 'bg-gray-50' : ''
+                              }`}
                             onMouseEnter={() => handleCellHover(date, true)}
                             onMouseLeave={() => handleCellHover(date, false)}
                           >
@@ -844,9 +1025,8 @@ const IndividualTimesheet = () => {
                               {entries.map((entry) => (
                                 <div
                                   key={entry.id}
-                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${
-                                    entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
-                                  } ${isWeekendDay ? 'opacity-90' : ''}`}
+                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
+                                    } ${isWeekendDay ? 'opacity-90' : ''}`}
                                   style={{
                                     boxSizing: "border-box",
                                     height: "150px",
@@ -855,6 +1035,31 @@ const IndividualTimesheet = () => {
                                 >
                                   {!entry.submitted && (
                                     <div className="absolute top-2 right-2 flex gap-2 transition-opacity z-20">
+                                      {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingTask({ ...entry.fullTask, date });
+                                            setShowLogTimeModal(true);
+                                          }}
+                                          className="text-blue-500 hover:text-blue-700"
+                                          title="Edit"
+                                        >
+                                          <SquarePen className="h-3 w-3" />
+                                        </button>
+                                      )}
+                                      {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteTimeEntry(date, entry.id);
+                                          }}
+                                          className="text-red-500 hover:text-red-700"
+                                          title="Delete"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </button>
+                                      )}
                                       <Eye className='h-3 w-3 text-blue-600' />
                                     </div>
                                   )}
@@ -903,6 +1108,16 @@ const IndividualTimesheet = () => {
                                   </div>
                                 </div>
                               ))}
+                              <div className='flex justify-center items-center'>
+                                {isHovered && hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+                                  <button
+                                    onClick={() => handleCellClick(date)}
+                                    className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
+                                  >
+                                    <Plus className="h-5 w-5" />
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </td>
                         );
@@ -914,6 +1129,18 @@ const IndividualTimesheet = () => {
             </div>
           </div>)}
       </div>
+
+      <LogTimeModal
+        isOpen={showLogTimeModal}
+        onClose={() => {
+          setShowLogTimeModal(false);
+          setSelectedCell(null);
+          setEditingTask(null);
+        }}
+        selectedDate={selectedCell ? selectedCell.date : null}
+        onSave={handleLogTimeSave}
+        editingTask={editingTask}
+      />
 
       {taskDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/60 backdrop-blur-sm backdrop-brightness-95">
@@ -991,8 +1218,40 @@ const IndividualTimesheet = () => {
                       <DownloadIcon className="h-3 w-3 mr-1" /> Download
                     </button>
                   </div>
+
                 </div>
               )}
+              {
+                !taskDetail.submitted && (
+                  <div className="mt-6 flex justify-end gap-4">
+                    {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+                      <button
+                        onClick={() => {
+                          console.log("Editing task:", taskDetail);
+                          setEditingTask({ ...taskDetail, date: new Date(taskDetail.date) });
+                          setShowLogTimeModal(true);
+                          setTaskDetail(null);
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {hasAccess("timesheet", "delete") && (sessionData.email === employee.email) && (
+                      <button
+                        onClick={() => {
+                          deleteTimeEntry(new Date(taskDetail.date), taskDetail.taskId);
+                          setTaskDetail(null);
+                        }}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                )
+              }
+
             </div>
           </div>
         </div>

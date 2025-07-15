@@ -12,6 +12,7 @@
   import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
   import 'ag-grid-community/styles/ag-grid.css';
   import 'ag-grid-community/styles/ag-theme-alpine.css';
+  import { useSession } from '../Context/SessionContext';
 
   // Register AG Grid modules
   ModuleRegistry.registerModules([AllCommunityModule]);
@@ -22,6 +23,7 @@
     const [loading, setLoading] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [gridApi, setGridApi] = useState(null);
+    const {sessionData} = useSession();
 
     // Ref for hidden date input
     const hiddenDateInputRef = useRef(null);
@@ -294,6 +296,7 @@
     const fetchTimesheetData = async () => {
       setLoading(true);
       try {
+        const loggedInUserEmail = sessionData.email;
         console.log(weekStart)
         const startParam = weekStart.toISOString().split('T')[0];
         console.log('Start Date:', startParam);
@@ -346,7 +349,10 @@
           };
         });
 
-        setTimesheetData(transformedData);
+        const loggedInUserData = transformedData.filter((user) => user.email === loggedInUserEmail);
+        const otherUsersData = transformedData.filter((user) => user.email !== loggedInUserEmail);
+
+        setTimesheetData([...loggedInUserData, ...otherUsersData]);
       } catch (error) {
         console.error('Error fetching timesheet data:', error);
 

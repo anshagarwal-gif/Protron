@@ -3,8 +3,10 @@ package com.Protronserver.Protronserver.Utils;
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
@@ -33,6 +35,15 @@ public class LoggedInUserUtils {
         }
 
         return targetUser;
+    }
+
+    public User getLoggedInUser(){
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!(principal instanceof User user)) {
+            throw new RuntimeException("Session Expired");
+        }
+
+        return user;
     }
 
 }

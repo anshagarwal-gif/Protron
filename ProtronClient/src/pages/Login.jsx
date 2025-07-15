@@ -4,6 +4,7 @@ import GlobalSnackbar from '../components/GlobalSnackbar';
 import axios from 'axios';
 import ForgotPassword from './ForgotPassword'; // Import the new component
 import { useAccess } from '../Context/AccessContext';
+import { useSession } from '../Context/SessionContext';
 
 const Login = ({ onLogin }) => {
     const { setAccessRights, setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
@@ -17,6 +18,7 @@ const Login = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const { updateSession } = useSession();
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -49,6 +51,12 @@ const Login = ({ onLogin }) => {
             sessionStorage.setItem('email', response.data.email);
             sessionStorage.setItem('tenantId', response.data.tenantId);
             sessionStorage.setItem('userId', response.data.userId);
+            updateSession({
+    token: response.data.token,
+    email: response.data.email,
+    tenantId: response.data.tenantId,
+    userId: response.data.userId,
+});
             setRoleAccessRights(response.data.roleAccessRights);
             setUserAccessRights(response.data.userAccessRights);
             setRole(response.data.role);
