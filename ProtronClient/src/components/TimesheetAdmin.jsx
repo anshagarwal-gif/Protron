@@ -14,7 +14,6 @@
   import 'ag-grid-community/styles/ag-theme-alpine.css';
   import { useSession } from '../Context/SessionContext';
 
-  // Register AG Grid modules
   ModuleRegistry.registerModules([AllCommunityModule]);
 
   const TimesheetManager = () => {

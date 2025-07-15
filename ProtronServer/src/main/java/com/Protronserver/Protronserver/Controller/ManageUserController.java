@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.DTOs.LoginRequest;
 import com.Protronserver.Protronserver.DTOs.UserSignUpDTO;
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.UserRepository;
+import com.Protronserver.Protronserver.ResultDTOs.UserBasicDetailDTO;
 import com.Protronserver.Protronserver.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -61,6 +62,11 @@ public class ManageUserController {
     @GetMapping("/email/{email}")
     public Optional<User> getUserByEmail(@PathVariable String email) {
         return userRepository.findByEmailAndEndTimestampIsNull(email);
+    }
+
+    @GetMapping("/basicdetails/{email}")
+    public Optional<UserBasicDetailDTO> getUserBasicDetails(@PathVariable String email) {
+        return userRepository.findBasicDetailsByEmail(email);
     }
 
     // Fetch user by empCode

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FiHome, FiUser, FiUserCheck, FiFolder,FiFileText, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
+import { FiHome, FiUser, FiUserCheck, FiFolder, FiFileText, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext"; // Import AccessContext
@@ -92,7 +92,7 @@ const Navbar = ({ setIsAuthenticated }) => {
 
   const handleProfileClick = async (email) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/basicdetails/${email}`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
       setProfile(res.data);
@@ -103,7 +103,7 @@ const Navbar = ({ setIsAuthenticated }) => {
 
   const fetchProfile = async (email) => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/email/${email}`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/users/basicdetails/${email}`, {
         headers: { Authorization: `${sessionStorage.getItem('token')}` },
       });
       setProfile(res.data);
@@ -172,11 +172,11 @@ const Navbar = ({ setIsAuthenticated }) => {
     { key: "team", label: "Team", path: "/team", moduleName: "teams", icon: FiUserCheck },
     { key: "timesheet", label: "Timesheet", path: "/timesheet", moduleName: "timesheet", icon: FiClock },
     { key: "users", label: "Users", path: "/users", moduleName: "users", icon: FiUser },
-{ key: "po", label: "Purchase Orders", path: "/po", moduleName: "users", icon: FiFileText },
+    { key: "po", label: "Purchase Orders", path: "/po", moduleName: "users", icon: FiFileText },
   ];
 
   const currentPath = window.location.pathname;
- 
+
 
   return (
     <div className="sticky top-0 z-50">
@@ -187,14 +187,14 @@ const Navbar = ({ setIsAuthenticated }) => {
             {/* Logo - Left Side */}
             <div className="flex items-center gap-3 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <img 
-                  src="./logo.png" 
-                  className="h-8 w-8 rounded-full ring-2 ring-white/20" 
-                  alt="Logo" 
+                <img
+                  src="./logo.png"
+                  className="h-8 w-8 rounded-full ring-2 ring-white/20"
+                  alt="Logo"
                 />
                 <span className="text-xl font-semibold tracking-tight hidden sm:block">
-                  {profile && profile.tenant && profile.tenant.tenantName ? (
-                    profile.tenant.tenantName
+                  {profile && profile.tenantName ? (
+                    profile.tenantName
                   ) : (
                     <div className="animate-pulse bg-white/20 h-6 w-32 rounded"></div>
                   )}
@@ -210,11 +210,10 @@ const Navbar = ({ setIsAuthenticated }) => {
                     <button
                       key={item.key}
                       onClick={() => navigate(item.path)}
-                      className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                        currentPath === item.path 
-                          ? "bg-white text-green-900 shadow-sm" 
+                      className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${currentPath === item.path
+                          ? "bg-white text-green-900 shadow-sm"
                           : "text-white/90 hover:text-white hover:bg-white/20"
-                      }`}
+                        }`}
                     >
                       <item.icon size={18} className="mr-2" />
                       <span>{item.label}</span>
@@ -237,17 +236,16 @@ const Navbar = ({ setIsAuthenticated }) => {
                     </div>
                     <div className="hidden md:block text-left">
                       <div className="text-sm font-medium">
-                        {profile ? `${profile.firstName} ${profile.lastName}` : "Loading..."}
+                        {profile ? `${profile.fullName}` : "Loading..."}
                       </div>
                       <div className="text-xs text-white/70">
                         {profile ? profile.email : ""}
                       </div>
                     </div>
-                    <FiChevronDown 
-                      className={`ml-1 transition-transform duration-200 ${
-                        userDropdownOpen ? "rotate-180" : ""
-                      }`} 
-                      size={16} 
+                    <FiChevronDown
+                      className={`ml-1 transition-transform duration-200 ${userDropdownOpen ? "rotate-180" : ""
+                        }`}
+                      size={16}
                     />
                   </div>
                 </button>
@@ -258,17 +256,17 @@ const Navbar = ({ setIsAuthenticated }) => {
                     {/* User Profile Section */}
                     <div className="px-6 py-4 bg-gradient-to-r from-green-50 to-green-100">
                       <div className="flex items-center space-x-4">
-                        <div className="bg-green-500 rounded-full p-3 shadow-md">
+                        <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-md">
                           <span className="text-white text-lg font-bold">
-                            {profile.firstName?.charAt(0)}{profile.lastName?.charAt(0)}
+                            {profile?.fullName ? profile.fullName.charAt(0).toUpperCase() : "U"}
                           </span>
                         </div>
                         <div>
                           <div className="font-semibold text-gray-800 text-lg">
-                            {`${profile.firstName} ${profile.lastName}`}
+                            {`${profile?.fullName}`}
                           </div>
-                          <div className="text-sm text-gray-600">{profile.email}</div>
-                          <div className="text-sm text-gray-600">Role: {profile.role.roleName}</div>
+                          <div className="text-sm text-gray-600">{profile?.email}</div>
+                          <div className="text-sm text-gray-600">Role: {profile?.roleName}</div>
                         </div>
                       </div>
                     </div>
@@ -279,13 +277,13 @@ const Navbar = ({ setIsAuthenticated }) => {
                         <div className="space-y-2">
                           <div className="text-gray-500 font-medium">Employee Code:</div>
                           <div className="text-gray-800 font-semibold bg-gray-50 px-3 py-1 rounded-md">
-                            {profile.empCode}
+                            {profile?.empCode}
                           </div>
                         </div>
                         <div className="space-y-2">
                           <div className="text-gray-500 font-medium">Mobile:</div>
                           <div className="text-gray-800 font-semibold bg-gray-50 px-3 py-1 rounded-md">
-                            {profile.mobilePhone}
+                            {profile?.phoneNumber || "N/A"}
                           </div>
                         </div>
                       </div>
@@ -323,9 +321,8 @@ const Navbar = ({ setIsAuthenticated }) => {
       {/* Mobile Navigation Dropdown */}
       {isMobile && (
         <div
-          className={`navbar-dropdown lg:hidden bg-white shadow-lg border-t border-gray-200 overflow-hidden transition-all duration-300 ${
-            isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
-          }`}
+          className={`navbar-dropdown lg:hidden bg-white shadow-lg border-t border-gray-200 overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
+            }`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
             <nav>
@@ -335,11 +332,10 @@ const Navbar = ({ setIsAuthenticated }) => {
                     <li key={item.key}>
                       <button
                         onClick={() => handleNavItemClick(item.key)}
-                        className={`w-full text-left flex items-center px-4 py-3 rounded-lg transition-colors duration-200 ${
-                          currentPath === item.path
+                        className={`w-full text-left flex items-center px-4 py-3 rounded-lg transition-colors duration-200 ${currentPath === item.path
                             ? "bg-green-100 text-green-900 border-l-4 border-green-500"
                             : "text-gray-700 hover:bg-gray-100"
-                        }`}
+                          }`}
                       >
                         <item.icon size={20} className="mr-3" />
                         <span className="font-medium">{item.label}</span>
@@ -347,22 +343,22 @@ const Navbar = ({ setIsAuthenticated }) => {
                     </li>
                   ) : null
                 )}
-                
+
                 {/* Mobile User Section */}
                 <li className="border-t border-gray-200 mt-4 pt-4">
                   <div className="px-4 py-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="bg-green-500 rounded-full p-2">
                         <span className="text-white text-sm font-bold">
-                          {profile ? `${profile.firstName?.charAt(0)}${profile.lastName?.charAt(0)}` : "U"}
+                          {profile ? `${profile?.fullName}` : "U"}
                         </span>
                       </div>
                       <div>
                         <div className="font-medium text-gray-800">
-                          {profile ? `${profile.firstName} ${profile.lastName}` : "User"}
+                          {profile ? `${profile?.fullName}` : "User"}
                         </div>
                         <div className="text-sm text-gray-600">
-                          {profile ? profile.email : email}
+                          {profile ? profile?.email : email}
                         </div>
                       </div>
                     </div>
