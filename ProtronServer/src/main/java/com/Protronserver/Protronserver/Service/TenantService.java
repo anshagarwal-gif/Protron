@@ -5,16 +5,20 @@ import com.Protronserver.Protronserver.DTOs.TenantRequestDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Entities.UserAccessRights;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
+import com.Protronserver.Protronserver.ResultDTOs.ProjectTableDTO;
 import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
 import com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -96,24 +100,36 @@ public class TenantService {
         return tenantRepository.getTeamUsersByTenant(tenantId);
     }
 
-    public List<UsersTableResultDTO> getUsersByTenantId(Long tenantId){
-        List<User> users = tenantRepository.getUsersWithRoleAndAccessRightsByTenantId(tenantId);
-        return users.stream().map(u -> new UsersTableResultDTO(
-                u.getUserId(),
-                u.getFirstName() + " " + u.getLastName(),
-                u.getEmail(),
-                u.getMobilePhone(),
-                u.getCity(),
-                u.getCountry(),
-                u.getStatus(),
-                u.getTenant().getTenantName(),
-                u.getRole(),
-                u.getUserAccessRights()
-        )).collect(Collectors.toList());
+    public List<UsersTableResultDTO> getUsersByTenantId(Long tenantId) {
+        List<UsersTableResultDTO> users = tenantRepository.getUsersBasicDataByTenantId(tenantId);
+
+        if (users.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+
+        List<Long> userIds = users.stream()
+                .map(UsersTableResultDTO::getUserId)
+                .collect(Collectors.toList());
+
+
+        List<UserAccessRights> allAccessRights = tenantRepository.findAccessRightsByUserIds(userIds);
+
+
+        Map<Long, List<UserAccessRights>> accessRightsMap = allAccessRights.stream()
+                .collect(Collectors.groupingBy(ar -> ar.getUser().getUserId()));
+
+
+        for (UsersTableResultDTO user : users) {
+            List<UserAccessRights> rights = accessRightsMap.getOrDefault(user.getUserId(), Collections.emptyList());
+            user.setUserAccessRights(rights);
+        }
+
+        return users;
     }
 
-    public List<Project> getProjectsByTenantId(Long tenantId) {
-        return projectRepository.findByTenantTenantIdAndEndTimestampIsNull(tenantId);
+    public List<ProjectTableDTO> getProjectsByTenantId(Long tenantId) {
+        return tenantRepository.getProjectTableData(tenantId);
     }
 
 }

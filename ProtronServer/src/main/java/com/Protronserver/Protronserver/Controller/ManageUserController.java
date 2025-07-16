@@ -5,6 +5,7 @@ import com.Protronserver.Protronserver.DTOs.UserSignUpDTO;
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.ResultDTOs.UserBasicDetailDTO;
+import com.Protronserver.Protronserver.ResultDTOs.UserRoleAccessDTO;
 import com.Protronserver.Protronserver.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -76,13 +77,14 @@ public class ManageUserController {
     }
 
     @GetMapping("/loggedInUser")
-    public Optional<User> getLoggedInUser() {
+    public UserRoleAccessDTO getLoggedInUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!(principal instanceof User user)) {
             throw new RuntimeException("Invalid user session");
         }
-        return userRepository.findByEmailAndEndTimestampIsNull(user.getEmail());
+
+        return new UserRoleAccessDTO(user.getUserId(), user.getRole(), user.getUserAccessRights());
     }
 
     // In your UserController.java

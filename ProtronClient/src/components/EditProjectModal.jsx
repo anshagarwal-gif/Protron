@@ -56,25 +56,55 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     };
 
     const fetchProjectData = async () => {
-        if (!projectId) return;
+    if (!projectId) return;
 
-        try {
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`, {
-                headers: { Authorization: `${sessionStorage.getItem('token')}` }
-            });
-            setFormData(res.data);
-            setInitialFormData(res.data); // Store initial data for reset
-        } catch (error) {
-            console.log({ message: error });
-        }
-    };
+    try {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`, {
+            headers: { Authorization: `${sessionStorage.getItem('token')}` }
+        });
+
+        const { project, systemsImpacted, teamMembers } = res.data;
+
+        // Match based on `name` from users
+        const manager = users.find(user => user.userId === project.managerId);
+        const sponsor = users.find(user => user.userId === project.sponsorId);
+        console.log(manager, sponsor, project.projectId, project.sponsorId, users);
+        const projectData = {
+            projectId: project.projectId,
+            projectName: project.projectName || '',
+            startDate: project.startDate || null,
+            endDate: project.endDate || null,
+            unit: project.unit || 'USD',
+            projectCost: project.projectCost || 0,
+            projectIcon: project.projectIcon || null,
+
+            projectManager: manager || null,
+            sponsor: sponsor || null,
+
+            systemImpacted: systemsImpacted.map(system => ({
+                systemId: system.systemId || null,
+                systemName: system.systemName || ''
+            }))
+        };
+
+        setFormData(projectData);
+        setInitialFormData(projectData);
+    } catch (error) {
+        console.error('Error fetching project data:', error);
+    }
+};
+
+
 
     useEffect(() => {
         fetchUsers();
-        if (open && projectId) {
+    }, [open, projectId]);
+
+    useEffect(() => {
+        if(open && projectId && users.length > 0) {
             fetchProjectData();
         }
-    }, [open, projectId]);
+    }, [open, projectId, users]);
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
@@ -144,20 +174,41 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         }));
     };
 
-    const handleSubmit = () => {
-        const updatedSystemImpacted = [
-            ...formData.systemImpacted, // Existing systems (with updated names)
-            ...newSystems.map((name) => ({ systemName: name })) // Add new systems
-        ];
+    const handleSubmit = async () => {
+        const updatedSystemImpacted = formData.systemImpacted.map((system) => ({
+            systemId: system.systemId || null,
+            systemName: system.systemName,
+        }));
 
         const payload = {
-            ...formData,
+            projectName: formData.projectName,
+            projectIcon: formData.projectIcon || null, // Handle file upload separately
+            startDate: formData.startDate,
+            endDate: formData.endDate,
+            projectCost: formData.projectCost || 0, // Default to 0 if missing
+            projectManagerId: formData.projectManager?.userId || null,
+            sponsorId: formData.sponsor?.userId || null,
+            unit: formData.unit || 'USD', // Default to USD if missing
             systemImpacted: updatedSystemImpacted,
-            removedSystems, // Single field for all systems
+            removedSystems: removedSystems, // Track removed systems manually
         };
 
-        console.log('Payload:', payload);
-        onSubmit(payload);
+        try {
+            const response = await axios.put(
+                `${import.meta.env.VITE_API_URL}/api/projects/edit/${projectId}`,
+                payload,
+                {
+                    headers: {
+                        Authorization: `${sessionStorage.getItem('token')}`,
+                        'Content-Type': 'application/json',
+                    },
+                }
+            );
+            console.log('Project updated successfully:', response.data);
+            onSubmit();
+        } catch (error) {
+            console.error('Error updating project:', error);
+        }
     };
 
     const handleReset = () => {
@@ -338,7 +389,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             <Autocomplete
                                 options={users}
                                 value={users.find(user => user.userId === formData.projectManager?.userId) || null}
-                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+                                getOptionLabel={(option) => option?.name || ''}
+
                                 isOptionEqualToValue={(option, value) => option?.userId === value?.userId}
                                 onChange={(e, value) => {
                                     console.log("Selected manager:", value);
@@ -375,9 +427,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             <Autocomplete
                                 options={users}
                                 value={users.find(user => user.userId === formData.sponsor?.userId) || null}
-                                getOptionLabel={(option) =>
-                                    option ? `${option.firstName} ${option.lastName}` : ''
-                                }
+                                getOptionLabel={(option) => option?.name || ''}
                                 isOptionEqualToValue={(option, value) =>
                                     option?.userId === value?.userId
                                 }
@@ -477,8 +527,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             overflowY: 'auto',
                             mb: 1,
                             p: 1,
-                            
-                            
+
+
                             minHeight: '40px'
                         }}>
                             {formData.systemImpacted?.map((system, index) => (

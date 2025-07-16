@@ -10,18 +10,19 @@ import AssignTeamMemberModal from './AssignTeamMemberModal';
 import EditProjectModal from './EditProjectModal';
 import { useAccess } from '../Context/AccessContext';
 
-const ProjectTeamManagement = ({ projectId, project, onClose }) => {
+const ProjectTeamManagement = ({ projectId, onClose }) => {
   const { hasAccess } = useAccess();
   const [teamMembers, setTeamMembers] = useState([
 
   ]);
+  const [projectDetails, setProjectDetails] = useState(null); // State for project details
   const [users, setUsers] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [actionsOpen, setActionsOpen] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState(null)
-  const [projectFormData, setProjectFormData] = useState({ ...project });
+  const [projectFormData, setProjectFormData] = useState();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false)
   const [editProjectModalOpen, setEditProjectModalOpen] = useState(false)
@@ -38,6 +39,18 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
     }
   }
 
+  const fetchProjectDetails = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` }
+      });
+      setProjectDetails(res.data);
+      setProjectFormData(res.data.project); // Initialize form data with fetched project details
+    } catch (error) {
+      console.error("Failed to fetch project details:", error);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
 
@@ -53,8 +66,10 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
   };
 
   useEffect(() => {
-    fetchTeammates()
+    fetchTeammates();
+    fetchProjectDetails();
   }, [])
+
   const fetchUsers = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
@@ -72,7 +87,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
   const toggleActions = (id) => {
     setActionsOpen((prev) => ({
       ...prev,
-      [id]: !prev[id], // Toggle only the specific row
+      [id]: !prev[id],
     }));
   };
 
@@ -226,66 +241,12 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
     setSelectedProjectId(projectId);
     setEditProjectModalOpen(true);
   };
-  const handleProjectUpdate = async (updatedData) => {
-    console.log("updatedData:", updatedData);
-
-    if (!updatedData.projectName) {
-      console.error("Project name is required");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // Prepare the correct payload for backend
-      const projectData = {
-        projectName: updatedData.projectName,
-        projectIcon: updatedData.projectIcon,
-        startDate: updatedData.startDate
-          ? typeof updatedData.startDate === 'object'
-            ? updatedData.startDate.toISOString()
-            : updatedData.startDate
-          : null,
-        endDate: updatedData.endDate
-          ? typeof updatedData.endDate === 'object'
-            ? updatedData.endDate.toISOString()
-            : updatedData.endDate
-          : null,
-        projectCost: updatedData.projectCost,
-        projectManagerId: updatedData.projectManager?.userId ?? null, // Send only the userId
-        sponsorId: updatedData.sponsor?.userId ?? null, // Send only the userId
-        unit: updatedData.unit,
-        systemImpacted: updatedData.systemImpacted,
-        removedSystems: updatedData.removedSystems,
-      };
-      console.log("Project Data: ", projectData)
-
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/projects/edit/${projectId}`,
-        projectData,
-        {
-          headers: {
-            Authorization: `${sessionStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      console.log("Project updated successfully:", response.data);
-
+  const handleProjectUpdate = async () => {
       onClose();
 
       if (typeof onProjectUpdated === 'function') {
         onProjectUpdated();
       }
-
-    } catch (error) {
-      console.error("Failed to update project:", error);
-      const errorMessage = error.response?.data?.message || "Failed to update project";
-      // Optionally show toast here
-    } finally {
-      setIsLoading(false);
-    }
   };
   const downloadExcel = () => {
     try {
@@ -341,23 +302,24 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
       </div>
 
       {/* Project Details */}
-      <div className="grid grid-cols-3 gap-6 mb-8 bg-[#AECCE4] p-4 rounded-lg">
-        <div>
-          <p className="text-gray-500 text-sm">Project Name: <span className="font-medium text-gray-700">{project.projectName}</span></p>
-          <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{formatDate(project.startDate)}</span></p>
+      {projectDetails && (
+        <div className="grid grid-cols-3 gap-6 mb-8 bg-[#AECCE4] p-4 rounded-lg">
+          <div>
+            <p className="text-gray-500 text-sm">Project Name: <span className="font-medium text-gray-700">{projectDetails.project.projectName}</span></p>
+            <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{formatDate(projectDetails.project.startDate)}</span></p>
+          </div>
+          <div>
+            <p className="text-gray-500  text-sm">PM Name: <span className="font-medium text-gray-700">{projectDetails.project.managerName}</span></p>
+            <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{projectDetails.project.sponsorName}</span></p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{projectDetails.project.projectCost} {projectDetails.project.unit}</span></p>
+            <p className="text-gray-500 text-sm mt-2">System Impacted: <span className="font-medium text-gray-700">{projectDetails.systemsImpacted?.map((sys, index) => {
+              return sys.systemName + (index < projectDetails.systemsImpacted.length - 1 ? ', ' : '')
+            })}</span></p>
+          </div>
         </div>
-        <div>
-          <p className="text-gray-500  text-sm">PM Name: <span className="font-medium text-gray-700">{project.projectManager?.firstName}{" "}
-            {project.projectManager?.lastName}</span></p>
-          <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{project.sponsor?.firstName} {project.sponsor?.lastName}</span></p>
-        </div>
-        <div>
-          <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{project.projectCost} {project.unit}</span></p>
-          <p className="text-gray-500 text-sm mt-2">System Impacted: <span className="font-medium text-gray-700">{project.systemImpacted?.map((sys, index) => {
-            return sys.systemName + (index < project.systemImpacted.length - 1 ? ', ' : '')
-          })}</span></p>
-        </div>
-      </div>
+      )}
 
       {/* Team Members Section */}
       <div>
@@ -588,10 +550,10 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
       <AssignTeamMemberModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        projectName={project.projectName}
+        projectName={projectDetails?.project?.projectName}
         onAddMember={handleAddMember}
-        project={project}
-        users={users} // Pass the users data to the modal
+        project={projectDetails}
+        users={users} 
       />
 
       {/* Add this before closing div */}
@@ -601,7 +563,7 @@ const ProjectTeamManagement = ({ projectId, project, onClose }) => {
           onClose={() => { setIsEditModalOpen(false); setEditingMember(null); }}
           member={editingMember}
           onUpdate={handleUpdateMember}
-          project={project}
+          project={projectDetails}
         />
       )}
       {selectedProjectId && (

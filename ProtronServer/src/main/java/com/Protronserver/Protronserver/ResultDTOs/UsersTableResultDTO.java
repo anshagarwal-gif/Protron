@@ -3,6 +3,7 @@ package com.Protronserver.Protronserver.ResultDTOs;
 import com.Protronserver.Protronserver.Entities.Role;
 import com.Protronserver.Protronserver.Entities.UserAccessRights;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UsersTableResultDTO {
@@ -16,10 +17,10 @@ public class UsersTableResultDTO {
     private String status;
     private String tenantName;
     private Role role;
-    private List<UserAccessRights> userAccessRights;// full Role entity
+    private List<UserAccessRights> userAccessRights = new ArrayList<>();// full Role entity
 
     public UsersTableResultDTO(Long userId, String name, String email, String mobilePhone,
-                                String city, String country, String status, String tenantName, Role role, List<UserAccessRights> userAccessRights) {
+                                String city, String country, String status, String tenantName, Role role) {
         this.userId = userId;
         this.name = name;
         this.email = email;
@@ -29,7 +30,6 @@ public class UsersTableResultDTO {
         this.status = status;
         this.tenantName = tenantName;
         this.role = role;
-        this.userAccessRights = userAccessRights;
     }
 
     // Getters and setters
@@ -40,7 +40,7 @@ public class UsersTableResultDTO {
     }
 
     public void setUserAccessRights(List<UserAccessRights> userAccessRights) {
-        this.userAccessRights = userAccessRights;
+        this.userAccessRights = userAccessRights != null ? userAccessRights : new ArrayList<>();
     }
 
     public Long getUserId() { return userId; }

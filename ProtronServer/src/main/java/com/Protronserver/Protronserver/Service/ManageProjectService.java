@@ -7,6 +7,7 @@ import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
 
+import com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -15,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -120,10 +123,23 @@ public class ManageProjectService {
         return projectRepository.findByEndTimestampIsNull();
     }
 
-    public Project getProjectById(Long projectId) {
-        return projectRepository.findByProjectIdAndEndTimestampIsNull(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + projectId));
+    public ProjectDetailsDTO getProjectDetails(Long projectId) {
+        ProjectDetailsDTO dto = projectRepository.fetchProjectDetails(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        dto.setStatus(dto.getEndDate() != null ? "Completed" : "Active");
+
+        if (dto.getStartDate() != null && dto.getEndDate() != null) {
+            long days = ChronoUnit.DAYS.between(
+                    dto.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
+                    dto.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            dto.setDurationInDays((int) days);
+        }
+
+        return dto;
     }
+
+
 
     public Project updateProject(Long id, ProjectUpdateDTO request) {
         Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)

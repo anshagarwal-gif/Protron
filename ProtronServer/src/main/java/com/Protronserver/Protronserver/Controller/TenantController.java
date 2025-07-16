@@ -5,6 +5,7 @@ import com.Protronserver.Protronserver.DTOs.TenantRequestDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.ResultDTOs.ProjectTableDTO;
 import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
 import com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO;
 import com.Protronserver.Protronserver.Service.TenantService;
@@ -57,7 +58,7 @@ public class TenantController {
 
     // Fetch Projects for a particular tenant
     @GetMapping("/{tenantId}/projects")
-    public List<Project> getProjectsByTenant(@PathVariable Long tenantId) {
+    public List<ProjectTableDTO> getProjectsByTenant(@PathVariable Long tenantId) {
         return tenantService.getProjectsByTenantId(tenantId);
     }
 

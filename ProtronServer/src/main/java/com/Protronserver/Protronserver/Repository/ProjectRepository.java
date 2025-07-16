@@ -2,6 +2,9 @@ package com.Protronserver.Protronserver.Repository;
 
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.ProjectTeam;
+import com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO;
+import com.Protronserver.Protronserver.ResultDTOs.SystemImpactedDTO;
+import com.Protronserver.Protronserver.ResultDTOs.TeamMemberDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,5 +32,29 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       AND pt.end_timestamp IS NULL
 """, nativeQuery = true)
     List<Project> findActiveProjectsByUserInSameTenant(@Param("userId") Long userId);
+
+    @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO(" +
+            "p.projectId, p.projectName, t.tenantName, p.startDate, p.endDate, p.unit, p.projectCost, " +
+            "p.startTimestamp, p.projectIcon, " +
+            "pm.userId, CONCAT(pm.firstName, ' ', pm.lastName), pm.empCode, " +
+            "s.userId, CONCAT(s.firstName, ' ', s.lastName), s.empCode) " +
+            "FROM Project p " +
+            "LEFT JOIN p.tenant t " +
+            "LEFT JOIN p.projectManager pm " +
+            "LEFT JOIN p.sponsor s " +
+            "WHERE p.projectId = :projectId")
+    Optional<ProjectDetailsDTO> fetchProjectDetails(@Param("projectId") Long projectId);
+
+
+    @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.TeamMemberDTO(" +
+            "pt.user.userId, CONCAT(pt.user.firstName, ' ', pt.user.lastName), pt.empCode, pt.project.projectId) " +
+            "FROM ProjectTeam pt WHERE pt.project.projectId = :projectId AND pt.endTimestamp IS NULL")
+    List<TeamMemberDTO> getTeamMembersForProject(@Param("projectId") Long projectId);
+
+    @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.SystemImpactedDTO(" +
+            "si.systemId, si.systemName, si.project.projectId) " +
+            "FROM Systemimpacted si WHERE si.project.projectId = :projectId AND si.endTimestamp IS NULL")
+    List<SystemImpactedDTO> getSystemsForProject(@Param("projectId") Long projectId);
+
 
 }

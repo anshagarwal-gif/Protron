@@ -174,7 +174,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                             <MenuItem value="" disabled>
                                 Select a system
                             </MenuItem>
-                            {project.systemImpacted.map((system, index) => (
+                            {project.systemsImpacted.map((system, index) => (
                                 <MenuItem key={index} value={system.systemId}>
                                     {system.systemName}
                                 </MenuItem>

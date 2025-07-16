@@ -39,14 +39,15 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
   });
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+    console.log(name, value)
     if (name === 'email') {
       const user = users.find((user) => user.email === value);
+      console.log(user)
       if (user) {
         setFormData({
           ...formData,
           email: value,
-          name: user.firstName + user.lastName,
+          name: user.name,
           employeeCode: user.empCode
         })
         setError(null);
@@ -158,7 +159,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
                     setFormData({
                       ...formData,
                       email: value.email,
-                      name: `${value.firstName} ${value.lastName}`,
+                      name: value.name,
                       employeeCode: value.empCode
                     });
                     setError(null);
@@ -285,7 +286,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
                   }
                 >
                   <MenuItem value="" disabled>Select a system</MenuItem>
-                  {project.systemImpacted?.map((system, index) => (
+                  {project.systemsImpacted?.map((system, index) => (
                     <MenuItem key={index} value={system.systemId}>
                       {system.systemName}
                     </MenuItem>
@@ -376,7 +377,10 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
             <Button
               type="button"
-              onClick={onClose}
+              onClick={()=>{
+                handleReset();
+                onClose();
+              }}
               variant="outlined"
               sx={{
                 borderColor: greenPrimary,
