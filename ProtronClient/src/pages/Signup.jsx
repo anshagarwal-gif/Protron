@@ -10,7 +10,6 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
   const navigate = useNavigate()
   const [roles, setRoles] = useState([])
   const [loading, setLoading] = useState(false)
-  const [zipLoading, setZipLoading] = useState(false)
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -46,81 +45,22 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
   })
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
+  const [countriesno, setCountriesno] = useState([]);
 
-  // Comprehensive country list
-  const countries = [
-    { code: "AD", name: "Andorra" },
-    { code: "AR", name: "Argentina" },
-    { code: "AS", name: "American Samoa" },
-    { code: "AT", name: "Austria" },
-    { code: "AU", name: "Australia" },
-    { code: "BD", name: "Bangladesh" },
-    { code: "BE", name: "Belgium" },
-    { code: "BG", name: "Bulgaria" },
-    { code: "BR", name: "Brazil" },
-    { code: "CA", name: "Canada" },
-    { code: "CH", name: "Switzerland" },
-    { code: "CZ", name: "Czech Republic" },
-    { code: "DE", name: "Germany" },
-    { code: "DK", name: "Denmark" },
-    { code: "DO", name: "Dominican Republic" },
-    { code: "ES", name: "Spain" },
-    { code: "FI", name: "Finland" },
-    { code: "FO", name: "Faroe Islands" },
-    { code: "FR", name: "France" },
-    { code: "GB", name: "United Kingdom" },
-    { code: "GF", name: "French Guiana" },
-    { code: "GL", name: "Greenland" },
-    { code: "GP", name: "Guadeloupe" },
-    { code: "GT", name: "Guatemala" },
-    { code: "GU", name: "Guam" },
-    { code: "GY", name: "Guyana" },
-    { code: "HR", name: "Croatia" },
-    { code: "HU", name: "Hungary" },
-    { code: "IN", name: "India" },
-    { code: "IS", name: "Iceland" },
-    { code: "IT", name: "Italy" },
-    { code: "JP", name: "Japan" },
-    { code: "LI", name: "Liechtenstein" },
-    { code: "LK", name: "Sri Lanka" },
-    { code: "LT", name: "Lithuania" },
-    { code: "LU", name: "Luxembourg" },
-    { code: "MC", name: "Monaco" },
-    { code: "MD", name: "Moldova" },
-    { code: "MH", name: "Marshall Islands" },
-    { code: "MK", name: "North Macedonia" },
-    { code: "MP", name: "Northern Mariana Islands" },
-    { code: "MQ", name: "Martinique" },
-    { code: "MX", name: "Mexico" },
-    { code: "MY", name: "Malaysia" },
-    { code: "NC", name: "New Caledonia" },
-    { code: "NL", name: "Netherlands" },
-    { code: "NO", name: "Norway" },
-    { code: "NZ", name: "New Zealand" },
-    { code: "PH", name: "Philippines" },
-    { code: "PK", name: "Pakistan" },
-    { code: "PL", name: "Poland" },
-    { code: "PM", name: "Saint Pierre and Miquelon" },
-    { code: "PR", name: "Puerto Rico" },
-    { code: "PT", name: "Portugal" },
-    { code: "RE", name: "Réunion" },
-    { code: "RU", name: "Russia" },
-    { code: "SE", name: "Sweden" },
-    { code: "SI", name: "Slovenia" },
-    { code: "SJ", name: "Svalbard and Jan Mayen" },
-    { code: "SK", name: "Slovakia" },
-    { code: "SM", name: "San Marino" },
-    { code: "TH", name: "Thailand" },
-    { code: "TR", name: "Turkey" },
-    { code: "US", name: "United States" },
-    { code: "VA", name: "Vatican City" },
-    { code: "VI", name: "U.S. Virgin Islands" },
-    { code: "WF", name: "Wallis and Futuna" },
-    { code: "YT", name: "Mayotte" },
-    { code: "ZA", name: "South Africa" },
-  ]
+  // Location-related states
+  const [countries, setCountries] = useState([])
+  const [states, setStates] = useState([])
+  const [cities, setCities] = useState([])
+  const [locationLoading, setLocationLoading] = useState({
+    countries: false,
+    states: false,
+    cities: false,
+    zipLookup: false
+  })
 
-  // Currency symbols mapping
+  const GEONAMES_USERNAME = "bhagirathauti"
+  const GEONAMES_BASE_URL = "https://secure.geonames.org"
+
   const currencySymbols = {
     USD: "$",
     EUR: "€",
@@ -129,7 +69,6 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     AUD: "A$",
   }
 
-  // Time period options
   const timePeriods = [
     { value: "hour", label: "Hourly" },
     { value: "day", label: "Daily" },
@@ -138,43 +77,194 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     { value: "year", label: "Yearly" },
   ]
 
-  // Get current currency symbol
   const getCurrentCurrencySymbol = () => {
     return currencySymbols[formData.unit] || "$"
   }
 
-  // Fetch location data from Zippopotam API
-  const fetchLocationData = async (country, zipCode) => {
-    if (!country || !zipCode || zipCode.length < 4) return
+  // Load cached countries from localStorage
+  const loadCachedCountries = () => {
+    const cached = localStorage.getItem('geonames_countries')
+    if (cached) {
+      try {
+        const parsedCountries = JSON.parse(cached)
+        const cacheTime = localStorage.getItem('geonames_countries_cache_time')
+        const now = Date.now()
 
-    setZipLoading(true)
+        // Cache valid for 7 days
+        if (cacheTime && (now - parseInt(cacheTime)) < 7 * 24 * 60 * 60 * 1000) {
+          setCountries(parsedCountries)
+          return true
+        }
+      } catch (e) {
+        console.error('Error parsing cached countries:', e)
+      }
+    }
+    return false
+  }
+
+  // Cache countries to localStorage
+  const cacheCountries = (countriesData) => {
     try {
-      const response = await axios.get(`http://api.zippopotam.us/${country}/${zipCode}`)
-      const data = response.data
+      localStorage.setItem('geonames_countries', JSON.stringify(countriesData))
+      localStorage.setItem('geonames_countries_cache_time', Date.now().toString())
+    } catch (e) {
+      console.error('Error caching countries:', e)
+    }
+  }
+  useEffect(() => {
+    axios
+      .get("https://restcountries.com/v3.1/all?fields=name,idd,flags")
+      .then((res) => {
+        const sortedCountries = res.data
+          .filter(c => c.idd?.root)
+          .map((country) => ({
+            name: country.name.common,
+            dialCode: country.idd.root + (country.idd.suffixes?.[0] || ""),
+            flag: country.flags.png,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCountriesno(sortedCountries);
+      });
+  }, []);
+  // Fetch countries from GeoNames API
+  const fetchCountries = async () => {
+    // Try to load from cache first
+    if (loadCachedCountries()) {
+      return
+    }
 
-      if (data.places && data.places.length > 0) {
-        const place = data.places[0]
-        setFormData((prev) => ({
+    setLocationLoading(prev => ({ ...prev, countries: true }))
+    try {
+      const response = await axios.get(`${GEONAMES_BASE_URL}/countryInfoJSON?username=${GEONAMES_USERNAME}`)
+      const countriesData = response.data.geonames.map(country => ({
+        code: country.countryCode,
+        name: country.countryName,
+        geonameId: country.geonameId
+      })).sort((a, b) => a.name.localeCompare(b.name))
+
+      setCountries(countriesData)
+      cacheCountries(countriesData)
+    } catch (error) {
+      console.error("Failed to fetch countries:", error)
+      setSnackbar({
+        open: true,
+        message: "Failed to load countries. Please try again.",
+        severity: "error",
+      })
+    } finally {
+      setLocationLoading(prev => ({ ...prev, countries: false }))
+    }
+  }
+
+  // Fetch states for selected country
+  const fetchStates = async (countryCode) => {
+    const country = countries.find(c => c.code === countryCode)
+    if (!country) return
+
+    setLocationLoading(prev => ({ ...prev, states: true }))
+    try {
+      const response = await axios.get(`${GEONAMES_BASE_URL}/childrenJSON?geonameId=${country.geonameId}&username=${GEONAMES_USERNAME}`)
+      const statesData = response.data.geonames.map(state => ({
+        code: state.adminCode1,
+        name: state.name,
+        geonameId: state.geonameId
+      })).sort((a, b) => a.name.localeCompare(b.name))
+
+      setStates(statesData)
+    } catch (error) {
+      console.error("Failed to fetch states:", error)
+      setSnackbar({
+        open: true,
+        message: "Failed to load states. Please try again.",
+        severity: "error",
+      })
+    } finally {
+      setLocationLoading(prev => ({ ...prev, states: false }))
+    }
+  }
+
+  // Fetch cities for selected state
+  const fetchCities = async (countryCode, stateCode) => {
+    setLocationLoading(prev => ({ ...prev, cities: true }))
+    try {
+      const response = await axios.get(`${GEONAMES_BASE_URL}/searchJSON?country=${countryCode}&adminCode1=${stateCode}&featureClass=P&maxRows=1000&username=${GEONAMES_USERNAME}`)
+      const citiesData = response.data.geonames.map(city => ({
+        name: city.name,
+        geonameId: city.geonameId,
+        postalCodes: city.postalCodes || []
+      })).sort((a, b) => a.name.localeCompare(b.name))
+
+      setCities(citiesData)
+    } catch (error) {
+      console.error("Failed to fetch cities:", error)
+      setSnackbar({
+        open: true,
+        message: "Failed to load cities. Please try again.",
+        severity: "error",
+      })
+    } finally {
+      setLocationLoading(prev => ({ ...prev, cities: false }))
+    }
+  }
+  // Lookup location by ZIP code
+  const lookupByZipCode = async (zipCode, countryCode) => {
+    if (!zipCode || !countryCode) return
+
+    setLocationLoading(prev => ({ ...prev, zipLookup: true }))
+    try {
+      const response = await axios.get(`${GEONAMES_BASE_URL}/postalCodeSearchJSON?postalcode=${zipCode}&country=${countryCode}&username=${GEONAMES_USERNAME}`)
+
+      if (response.data.postalCodes && response.data.postalCodes.length > 0) {
+        const result = response.data.postalCodes[0]
+
+        // Update form data with found location
+        setFormData(prev => ({
           ...prev,
-          city: place["place name"] || "",
-          state: place["state"] || place["state abbreviation"] || "",
+          state: result.adminName1 || "",
+          city: result.placeName || ""
         }))
+
+        // Fetch states for the country if not already loaded
+        if (states.length === 0) {
+          await fetchStates(countryCode)
+        }
+
+        // Find and fetch cities for the state
+        const stateCode = result.adminCode1
+        if (stateCode) {
+          await fetchCities(countryCode, stateCode)
+        }
       }
     } catch (error) {
-      console.error("Failed to fetch location data:", error)
-      // Clear city and state if API call fails
-      setFormData((prev) => ({
-        ...prev,
-        city: "",
-        state: "",
-      }))
+      console.error("Failed to lookup ZIP code:", error)
+      setSnackbar({
+        open: true,
+        message: "Failed to lookup ZIP code. Please try again.",
+        severity: "error",
+      })
     } finally {
-      setZipLoading(false)
+      setLocationLoading(prev => ({ ...prev, zipLookup: false }))
+    }
+  }
+
+  // Handle ZIP code autofill based on city selection
+  const handleCitySelection = (cityName) => {
+    const city = cities.find(c => c.name === cityName)
+    if (city && city.postalCodes && city.postalCodes.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        city: cityName,
+        zipCode: city.postalCodes[0]
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        city: cityName
+      }))
     }
   }
 
   useEffect(() => {
-    // Fetch roles from the API
     const token = sessionStorage.getItem("token")
     const fetchRoles = async () => {
       try {
@@ -187,24 +277,52 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
       }
     }
     fetchRoles()
+    fetchCountries()
   }, [])
 
-  // Effect to fetch location data when country or zipCode changes
+  // Handle country change
   useEffect(() => {
-    if (formData.country && formData.zipCode) {
-      const timeoutId = setTimeout(() => {
-        fetchLocationData(formData.country, formData.zipCode)
-      }, 500) // Debounce API calls
-
-      return () => clearTimeout(timeoutId)
+    if (formData.country) {
+      fetchStates(formData.country)
+      setStates([])
+      setCities([])
+      setFormData(prev => ({
+        ...prev,
+        state: "",
+        city: ""
+      }))
     }
-  }, [formData.country, formData.zipCode])
+  }, [formData.country])
+
+  // Handle state change
+  useEffect(() => {
+    if (formData.country && formData.state) {
+      const state = states.find(s => s.name === formData.state)
+      if (state) {
+        fetchCities(formData.country, state.code)
+        setFormData(prev => ({
+          ...prev,
+          city: ""
+        }))
+      }
+    }
+  }, [formData.state])
+
+  // Handle ZIP code change for lookup
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (formData.zipCode && formData.country && formData.zipCode.length >= 3) {
+        lookupByZipCode(formData.zipCode, formData.country)
+      }
+    }, 500) // Debounce for 500ms
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.zipCode, formData.country])
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
   }
 
-  // Handle numeric input for phone numbers
   const handleNumericInput = (e, fieldName) => {
     const value = e.target.value.replace(/\D/g, "") // Remove non-numeric characters
     setFormData((prev) => ({
@@ -215,14 +333,14 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-
-    // Handle role dropdown separately
     if (name === "role") {
       const selectedRole = roles.find((role) => role.roleName === value)
       setFormData((prev) => ({
         ...prev,
         roleId: selectedRole?.roleId || null,
       }))
+    } else if (name === "city") {
+      handleCitySelection(value)
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -235,8 +353,6 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     const file = e.target.files[0]
     if (file) {
       setPhoto(file)
-
-      // Create preview
       const reader = new FileReader()
       reader.onloadend = () => {
         setPhotoPreview(reader.result)
@@ -249,10 +365,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     e.preventDefault()
     setLoading(true)
     setError("")
-
     console.log("Form Data before submission:", formData)
-
-    // Basic validation
     if (!formData.email || !formData.firstName || !formData.lastName || !formData.roleId) {
       setError("Please fill in all required fields")
       setLoading(false)
@@ -528,15 +641,16 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 <select
                   id="mobileCountryCode"
                   name="mobileCountryCode"
-                  className="w-16 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                  className="w-15 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white pr-2"
                   value={formData.mobileCountryCode}
                   onChange={handleChange}
                   disabled={loading}
                 >
-                  <option value="+1">+1</option>
-                  <option value="+44">+44</option>
-                  <option value="+91">+91</option>
-                  <option value="+61">+61</option>
+                  {countriesno.map((country, index) => (
+                    <option key={index} value={country.dialCode}>
+                      {country.dialCode}
+                    </option>
+                  ))}
                 </select>
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
@@ -577,10 +691,11 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   onChange={handleChange}
                   disabled={loading}
                 >
-                  <option value="+1">+1</option>
-                  <option value="+44">+44</option>
-                  <option value="+91">+91</option>
-                  <option value="+61">+61</option>
+                  {countriesno.map((country, index) => (
+                    <option key={index} value={country.dialCode}>
+                      {country.dialCode}
+                    </option>
+                  ))}
                 </select>
                 <input
                   id="landlineNumber"
@@ -655,14 +770,15 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
               <div>
                 <label htmlFor="country" className="block text-slate-700 font-medium mb-2 text-sm">
                   Country
+                  {locationLoading.countries && <Loader2 className="inline h-4 w-4 animate-spin ml-2 text-blue-500" />}
                 </label>
                 <select
                   id="country"
                   name="country"
-                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300 disabled:opacity-50"
                   value={formData.country}
                   onChange={handleChange}
-                  disabled={loading}
+                  disabled={loading || locationLoading.countries}
                 >
                   <option value="">Select country</option>
                   {countries.map((country) => (
@@ -673,90 +789,100 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 </select>
               </div>
 
-              {/* Zip Code */}
+              {/* State */}
               <div>
-                <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-3">
-                  Zip Code
-                  {zipLoading && <Loader2 className="inline h-4 w-4 animate-spin ml-2 text-blue-500" />}
+                <label htmlFor="state" className="block text-slate-700 font-medium mb-2 text-sm">
+                  State
+                  {locationLoading.states && <Loader2 className="inline h-4 w-4 animate-spin ml-2 text-blue-500" />}
+                </label>
+                <select
+                  id="state"
+                  name="state"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300 disabled:opacity-50"
+                  value={formData.state}
+                  onChange={handleChange}
+                  disabled={loading || locationLoading.states || !formData.country}
+                >
+                  <option value="">Select state</option>
+                  {states.map((state) => (
+                    <option key={state.code} value={state.name}>
+                      {state.name}
+                    </option>
+                  ))}
+                </select>
+                {!formData.country && (
+                  <p className="text-xs text-slate-500 mt-1">Select a country first</p>
+                )}
+              </div>
+
+              {/* City */}
+              <div>
+                <label htmlFor="city" className="block text-slate-700 font-medium mb-2 text-sm">
+                  City
+                  {locationLoading.cities && <Loader2 className="inline h-4 w-4 animate-spin ml-2 text-blue-500" />}
+                </label>
+                <select
+                  id="city"
+                  name="city"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300 disabled:opacity-50"
+                  value={formData.city}
+                  onChange={handleChange}
+                  disabled={loading || locationLoading.cities || !formData.state}
+                >
+                  <option value="">Select city</option>
+                  {cities.map((city) => (
+                    <option key={city.geonameId} value={city.name}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
+                {!formData.state && (
+                  <p className="text-xs text-slate-500 mt-1">Select a state first</p>
+                )}
+              </div>
+
+              {/* ZIP Code */}
+              <div>
+                <label htmlFor="zipCode" className="block text-slate-700 font-medium mb-2 text-sm">
+                  ZIP Code
+                  {locationLoading.zipLookup && <Loader2 className="inline h-4 w-4 animate-spin ml-2 text-blue-500" />}
                 </label>
                 <input
                   id="zipCode"
                   name="zipCode"
                   type="text"
-                  placeholder="Zip code"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  placeholder="Enter ZIP code"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                   value={formData.zipCode}
                   onChange={handleChange}
                   disabled={loading}
                 />
-              </div>
-
-              {/* City */}
-              <div>
-                <label htmlFor="city" className="block text-slate-700 font-medium mb-3">
-                  City
-                </label>
-                <input
-                  id="city"
-                  name="city"
-                  type="text"
-                  placeholder="City"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                  value={formData.city}
-                  onChange={handleChange}
-                  readOnly={formData.zipCode && formData.country}
-                  disabled={loading}
-                />
-                {formData.zipCode && formData.country && (
-                  <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                {formData.country && formData.zipCode && (
+                  <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
                     <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                    Auto-filled from zip code
-                  </p>
-                )}
-              </div>
-
-              {/* State */}
-              <div>
-                <label htmlFor="state" className="block text-slate-700 font-medium mb-3">
-                  State
-                </label>
-                <input
-                  id="state"
-                  name="state"
-                  type="text"
-                  placeholder="State"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                  value={formData.state}
-                  onChange={handleChange}
-                  readOnly={formData.zipCode && formData.country}
-                  disabled={loading}
-                />
-                {formData.zipCode && formData.country && (
-                  <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
-                    <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                    Auto-filled from zip code
+                    {countries.find(c => c.code === formData.country)?.name}
                   </p>
                 )}
               </div>
 
               {/* Address Line 1 */}
               <div className="md:col-span-3">
-                <label htmlFor="addressLine1" className="block text-slate-700 font-medium mb-3">
+                <label htmlFor="addressLine1" className="block text-slate-700 font-medium mb-2 text-sm">
                   Address Line 1
                   <span className="text-sm text-slate-500 ml-2 font-normal">
                     ({formData.addressLine1.length}/100)
                   </span>
                 </label>
                 <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                    <MapPinIcon className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MapPinIcon className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                   </div>
                   <input
                     id="addressLine1"
                     name="addressLine1"
                     type="text"
-                    placeholder="Address line 1"
-                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                    placeholder="Street address, building, etc."
+                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                     value={formData.addressLine1}
                     onChange={handleChange}
                     disabled={loading}
@@ -767,7 +893,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
 
               {/* Address Line 2 */}
               <div className="md:col-span-3">
-                <label htmlFor="addressLine2" className="block text-slate-700 font-medium mb-3">
+                <label htmlFor="addressLine2" className="block text-slate-700 font-medium mb-2 text-sm">
                   Address Line 2
                   <span className="text-sm text-slate-500 ml-2 font-normal">
                     ({formData.addressLine2.length}/100)
@@ -777,8 +903,8 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   id="addressLine2"
                   name="addressLine2"
                   type="text"
-                  placeholder="Address line 2"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  placeholder="Apartment, suite, unit, etc. (optional)"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                   value={formData.addressLine2}
                   onChange={handleChange}
                   disabled={loading}
@@ -788,7 +914,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
 
               {/* Address Line 3 */}
               <div className="md:col-span-3">
-                <label htmlFor="addressLine3" className="block text-slate-700 font-medium mb-3">
+                <label htmlFor="addressLine3" className="block text-slate-700 font-medium mb-2 text-sm">
                   Address Line 3
                   <span className="text-sm text-slate-500 ml-2 font-normal">
                     ({formData.addressLine3.length}/100)
@@ -798,8 +924,8 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   id="addressLine3"
                   name="addressLine3"
                   type="text"
-                  placeholder="Address line 3"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  placeholder="Additional address information (optional)"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                   value={formData.addressLine3}
                   onChange={handleChange}
                   disabled={loading}
@@ -808,6 +934,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
               </div>
             </div>
           </div>
+
 
           {/* Password Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
