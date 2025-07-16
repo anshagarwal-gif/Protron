@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests()
                 .requestMatchers("/api/users/login").permitAll() // Auth endpoints are public
                 .requestMatchers("/api/users/signup").permitAll()
+                .requestMatchers("/api/users/*/photo").permitAll()
                 .anyRequest().authenticated(); // Others need authentication
 
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -178,7 +178,7 @@ const UserManagement = () => {
       }
 
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`,
+        `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/userstable`,
         {
           headers: { Authorization: `${token}` }
         }
@@ -187,7 +187,7 @@ const UserManagement = () => {
       setUsers(res.data);
       const uniqueTenants = [...new Set(
         res.data
-          .map(emp => emp.tenant?.tenantName)
+          .map(emp => emp.tenantName)
           .filter(Boolean)
       )];
       setTenants(["All Tenants", ...uniqueTenants]);
@@ -250,12 +250,11 @@ const UserManagement = () => {
 
   const filteredUsers = users.filter(user => {
     const tenantMatch = selectedTenant === "All Tenants" ||
-      user.tenant?.tenantName === selectedTenant;
+      user.tenantName === selectedTenant;
 
     const roleName = getRoleName(user.role);
     const searchMatch = searchQuery === "" ||
-      (user.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         roleName.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -516,11 +515,11 @@ const filteredRoles = roles.filter(role => {
   };
 
   const getFullName = (user) => {
-    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'N/A';
+    return `${user.name}`.trim() || 'N/A';
   };
 
   const getTenantName = (user) => {
-    return user.tenant?.tenantName || 'N/A';
+    return user.tenantName || 'N/A';
   };
 
   const getUserStatus = (user) => {
@@ -629,7 +628,7 @@ const filteredRoles = roles.filter(role => {
     },
     {
       headerName: "Tenant",
-      field: "tenant",
+      field: "tenantName",
       valueGetter: params => getTenantName(params.data),
       flex: 1,
       minWidth: 150,

@@ -8,11 +8,14 @@ import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
+import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
+import com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TenantService {
@@ -89,8 +92,24 @@ public class TenantService {
         tenantRepository.deleteById(tenantId);
     }
 
-    public List<User> getUsersByTenantId(Long tenantId) {
-        return userRepository.findByTenantTenantIdAndEndTimestampIsNull(tenantId);
+    public List<TeamTableResultDTO> getTeamTableUsersByTenantId(Long tenantId) {
+        return tenantRepository.getTeamUsersByTenant(tenantId);
+    }
+
+    public List<UsersTableResultDTO> getUsersByTenantId(Long tenantId){
+        List<User> users = tenantRepository.getUsersWithRoleAndAccessRightsByTenantId(tenantId);
+        return users.stream().map(u -> new UsersTableResultDTO(
+                u.getUserId(),
+                u.getFirstName() + " " + u.getLastName(),
+                u.getEmail(),
+                u.getMobilePhone(),
+                u.getCity(),
+                u.getCountry(),
+                u.getStatus(),
+                u.getTenant().getTenantName(),
+                u.getRole(),
+                u.getUserAccessRights()
+        )).collect(Collectors.toList());
     }
 
     public List<Project> getProjectsByTenantId(Long tenantId) {

@@ -45,7 +45,7 @@ const TeamManagement = () => {
             const searchTermLower = searchTerm.toLowerCase();
             filtered = filtered.filter(employee => {
                 // Search in employee name
-                const fullName = `${employee.firstName} ${employee.lastName}`.toLowerCase();
+                const fullName = `${employee.name}`.toLowerCase();
                 const nameMatch = fullName.includes(searchTermLower);
 
                 // Search in email
@@ -112,16 +112,16 @@ const TeamManagement = () => {
                 <img
                     src={
                         data.photo
-                            ? `data:image/png;base64,${data.photo}`
+                            ? `data:image/png;base64,${data?.photo}`
                             : `${import.meta.env.VITE_API_URL}/api/users/${data.userId}/photo`
                     }
-                    alt={data.firstName + ' ' + data.lastName}
+                    alt={data.name}
                     className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2 flex-shrink-0"
                     onError={(e) => {
                         e.target.src = "/profilepic.jpg";
                     }}
                 />
-                <span className="truncate">{data.firstName + ' ' + data.lastName}</span>
+                <span className="truncate">{data.name}</span>
             </div>
         );
     };
@@ -163,15 +163,15 @@ const TeamManagement = () => {
     const columnDefs = useMemo(() => [
         {
             headerName: "Name",
-            field: "firstName",
+            field: "name",
             cellRenderer: NameCellRenderer,
             sortable: true,
             filter: true,
             resizable: true,
             width: 200,
-            valueGetter: (params) => `${params.data.firstName} ${params.data.lastName}`,
+            valueGetter: (params) => `${params.data.name}`,
             cellClass: 'ag-cell-truncate',
-            tooltipValueGetter: (params) => `${params.data.firstName} ${params.data.lastName}`,
+            tooltipValueGetter: (params) => `${params.data.name}`,
         },
         {
             headerName: "Emp-Code",
@@ -313,7 +313,7 @@ const TeamManagement = () => {
         try {
             const excelData = employees.map((employee, index) => ({
                 'No.': index + 1,
-                'Employee Name': employee.firstName + " " + employee.lastName,
+                'Employee Name': employee.name,
                 'Employee Code': employee.empCode,
                 'Email': employee.email,
                 'DOJ': employee.dateOfJoining ? formatDate(employee.dateOfJoining) : 'N/A',
@@ -390,7 +390,7 @@ const TeamManagement = () => {
                 />
                 <div className="text-center">
                     <h3 className="font-medium text-lg">
-                        {member.firstName + member.lastName}
+                        {member.name}
                     </h3>
                     <p className="text-base text-gray-500">{member.empCode}</p>
                 </div>
