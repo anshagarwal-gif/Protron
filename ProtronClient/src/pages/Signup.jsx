@@ -665,7 +665,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                     value={formData.mobileNumber}
                     onChange={(e) => handleNumericInput(e, "mobileNumber")}
                     disabled={loading}
-                    maxLength={15}
+                    maxLength={10}
                   />
                 </div>
               </div>

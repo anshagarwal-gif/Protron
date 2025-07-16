@@ -664,13 +664,16 @@ const filteredRoles = roles.filter(role => {
         const status = params.value;
         return (
           <span
-            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${status === "active"
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-              }`}
-          >
-            {status}
-          </span>
+  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+    status?.toLowerCase() === "active"
+      ? "bg-green-100 text-green-800"
+      : "bg-red-100 text-red-800"
+  }`}
+>
+  {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Inactive"}
+  {/* {status} */}
+</span>
+
         );
       }
     },
@@ -686,7 +689,7 @@ const filteredRoles = roles.filter(role => {
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             {hasAccess('users', 'edit') && (
-              user.status === 'active' ? (
+              user.status.toLowerCase() === 'active' ? (
                 <button
                   onClick={() => handleHold(user)}
                   className="p-2 rounded-full hover:bg-orange-100 transition-colors"
