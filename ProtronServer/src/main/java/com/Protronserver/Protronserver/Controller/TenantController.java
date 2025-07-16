@@ -5,6 +5,8 @@ import com.Protronserver.Protronserver.DTOs.TenantRequestDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
+import com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO;
 import com.Protronserver.Protronserver.Service.TenantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +46,12 @@ public class TenantController {
     }
 
     @GetMapping("/{tenantId}/users")
-    public List<User> getUsersByTenant(@PathVariable Long tenantId) {
+    public List<TeamTableResultDTO> getUsersByTenant(@PathVariable Long tenantId) {
+        return tenantService.getTeamTableUsersByTenantId(tenantId);
+    }
+
+    @GetMapping("/{tenantId}/userstable")
+    public List<UsersTableResultDTO> getUsersforUserTable(@PathVariable Long tenantId){
         return tenantService.getUsersByTenantId(tenantId);
     }
 
