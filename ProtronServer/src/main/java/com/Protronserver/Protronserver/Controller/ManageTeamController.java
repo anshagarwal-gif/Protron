@@ -3,6 +3,7 @@ package com.Protronserver.Protronserver.Controller;
 import com.Protronserver.Protronserver.DTOs.TeamMemberEditDTO;
 import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
 import com.Protronserver.Protronserver.Entities.ProjectTeam;
+import com.Protronserver.Protronserver.ResultDTOs.ProjectTeamMemberDTO;
 import com.Protronserver.Protronserver.Service.ManageTeamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,7 @@ public class ManageTeamController {
     }
 
     @GetMapping("/list/{projectId}")
-    public ResponseEntity<List<ProjectTeam>> getProjectTeam(@PathVariable Long projectId) {
+    public ResponseEntity<List<ProjectTeamMemberDTO>> getProjectTeam(@PathVariable Long projectId) {
         return ResponseEntity.ok(manageTeamService.getProjectTeam(projectId));
     }
 

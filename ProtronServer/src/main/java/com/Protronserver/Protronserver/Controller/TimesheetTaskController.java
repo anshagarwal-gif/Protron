@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.DTOs.AdminTimesheetSummaryDTO;
 import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
 import com.Protronserver.Protronserver.Entities.TimesheetTask;
 import com.Protronserver.Protronserver.Entities.TimesheetTaskAttachment;
+import com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskDTO;
 import com.Protronserver.Protronserver.Service.TimesheetTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -32,20 +33,20 @@ public class TimesheetTaskController {
     }
 
     @GetMapping("/between")
-    public ResponseEntity<List<TimesheetTask>> getTasksBetweenDates(
+    public ResponseEntity<List<TimesheetTaskDTO>> getTasksBetweenDates(
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
-        List<TimesheetTask> tasks = timesheetTaskService.getTasksBetweenDates(start, end);
+        List<TimesheetTaskDTO> tasks = timesheetTaskService.getTasksBetweenDates(start, end);
 
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/admin-between")
-    public ResponseEntity<List<TimesheetTask>> getTasksForUserBetweenDates(
+    public ResponseEntity<List<TimesheetTaskDTO>> getTasksForUserBetweenDates(
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end,
             @RequestParam("userId") Long userId) {
-        List<TimesheetTask> tasks = timesheetTaskService.getTasksBetweenDatesForUser(start, end, userId);
+        List<TimesheetTaskDTO> tasks = timesheetTaskService.getTasksBetweenDatesForUser(start, end, userId);
         return ResponseEntity.ok(tasks);
     }
 

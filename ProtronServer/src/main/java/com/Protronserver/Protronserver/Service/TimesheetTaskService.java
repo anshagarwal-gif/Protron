@@ -2,6 +2,8 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.AdminTimesheetSummaryDTO;
 import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
+import com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskAttachmentDTO;
+import com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskDTO;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
@@ -86,7 +88,7 @@ public class TimesheetTaskService {
         return timesheetTaskRepository.save(task);
     }
 
-    public List<TimesheetTask> getTasksBetweenDates(Date startDate, Date endDate) {
+    public List<TimesheetTaskDTO> getTasksBetweenDates(Date startDate, Date endDate) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         User user;
@@ -96,13 +98,26 @@ public class TimesheetTaskService {
             throw new RuntimeException("Unauthorized access");
         }
 
-        return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, user);
+        List<TimesheetTaskDTO> dtos = timesheetTaskRepository.findTaskDTOsBetweenDates(startDate, endDate, user.getUserId());
+        for(TimesheetTaskDTO dto : dtos){
+            List<TimesheetTaskAttachmentDTO> attachmentDTOS = timesheetTaskAttachmentRepository.findByTimesheetTaskId(dto.getTaskId());
+            dto.setAttachments(attachmentDTOS);
+        }
+
+        return dtos;
     }
 
-    public List<TimesheetTask> getTasksBetweenDatesForUser(Date startDate, Date endDate, Long userId) {
+    public List<TimesheetTaskDTO> getTasksBetweenDatesForUser(Date startDate, Date endDate, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, user);
+        List<TimesheetTaskDTO> dtos = timesheetTaskRepository.findTaskDTOsBetweenDates(startDate, endDate, user.getUserId());
+        for(TimesheetTaskDTO dto : dtos){
+            List<TimesheetTaskAttachmentDTO> attachmentDTOS = timesheetTaskAttachmentRepository.findByTimesheetTaskId(dto.getTaskId());
+            dto.setAttachments(attachmentDTOS);
+        }
+
+        return dtos;
+
     }
 
     public void copyTasksToNextWeek(Date startDate, Date endDate) {

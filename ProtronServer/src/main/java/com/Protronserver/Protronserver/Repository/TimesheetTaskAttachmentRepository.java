@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.Repository;
 
 import com.Protronserver.Protronserver.Entities.TimesheetTaskAttachment;
+import com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskAttachmentDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,12 @@ public interface TimesheetTaskAttachmentRepository extends JpaRepository<Timeshe
      * Find all attachments for a specific timesheet task
      */
     List<TimesheetTaskAttachment> findByTimesheetTaskTaskId(Long taskId);
+
+    @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskAttachmentDTO( " +
+            "a.attachmentId, a.fileName, a.fileType, a.fileSize, a.fileData )" +
+            "FROM TimesheetTaskAttachment a " +
+            "WHERE a.timesheetTask.taskId = :taskId")
+    List<TimesheetTaskAttachmentDTO> findByTimesheetTaskId(Long taskId);
 
     /**
      * Delete all attachments for a specific timesheet task

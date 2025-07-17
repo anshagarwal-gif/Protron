@@ -239,34 +239,32 @@ const TimesheetManager = () => {
           },
         }
       );
+
+      const mappedData = res.data.map(task => ({
+        taskId: task.taskId,
+        date: task.date,
+        hoursSpent: task.hoursSpent,
+        description: task.description,
+        taskType: task.taskType,
+        project: {projectName: task.projectName || "", projectId: task.projectId || ""},
+        submitted: task.submitted,
+        attachments: task.attachments
+      }));
+
       // Group tasks by date
       const grouped = {};
-      res.data.forEach((task) => {
+      mappedData.forEach((task) => {
         const dateKey = task.date.split("T")[0];
         if (!grouped[dateKey]) grouped[dateKey] = [];
-
-        // Updated attachment handling - check for new attachments array
-        const hasAttachments = task.attachments && task.attachments.length > 0;
-
-        console.log("Task attachment data:", {
-          taskId: task.taskId,
-          hasAttachments: hasAttachments,
-          attachmentCount: task.attachments ? task.attachments.length : 0,
-          attachments: task.attachments
-        });
 
         grouped[dateKey].push({
           id: task.taskId,
           hours: task.hoursSpent,
           description: task.description,
           task: task.taskType,
-          project: task.project?.projectName || "",
+          project: task.project,
           submitted: task.submitted,
-          attachment: hasAttachments, // Boolean for backward compatibility
-          attachments: task.attachments || [], // New: array of attachments
-          attachmentCount: task.attachments ? task.attachments.length : 0,
-          attachmentUrl: hasAttachments ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachments` : null,
-
+          attachments: task.attachments,
           fullTask: task,
         });
       });
@@ -426,7 +424,7 @@ const TimesheetManager = () => {
                 project: res.data.project?.projectName || "",
                 submitted: res.data.submitted,
                 attachment: res.data.attachments,
-                attachmentUrl: res.data.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${res.data.taskId}/attachment` : null,
+                attachmentUrl: res.data.attachments,
                 fullTask: res.data,
               }
               : entry
@@ -453,7 +451,7 @@ const TimesheetManager = () => {
             project: taskData.project?.projectName || "",
             submitted: taskData.submitted,
             attachment: taskData.attachment,
-            attachmentUrl: taskData.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${taskData.taskId}/attachment` : null,
+            attachmentUrl: taskData.attachments,
             fullTask: taskData,
           },
         ],
@@ -1022,10 +1020,10 @@ const TimesheetManager = () => {
                     {entry.project && (
                       <span
                         className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                        title={entry.project}
+                        title={entry.project.projectName || "-"} // Full project name on hover
                       >
                         <Folder className="h-3 w-3 mr-1" />
-                        {truncateText(entry.project, 12)}
+                        {truncateText(entry.project.projectName, 12)}
                       </span>
                     )}
                   </div>

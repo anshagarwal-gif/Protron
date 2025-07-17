@@ -29,15 +29,26 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
   const [editingMember, setEditingMember] = useState(null);
 
   const fetchTeammates = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      })
-      setTeamMembers(res.data)
-    } catch (error) {
-      console.log({ message: error })
-    }
+  try {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
+      headers: { Authorization: `${sessionStorage.getItem('token')}` },
+    });
+    // Map the response to match the expected structure
+    const mappedTeamMembers = res.data.map((member) => ({
+      projectTeamId: member.projectTeamId,
+      user: {userId : member.userId, email : member.email, name: member.name},
+      empCode: member.empCode,
+      unit: member.unit,
+      pricing: member.pricing,
+      systemImpacted: { systemName: member.systemName, systemId: member.systemId },
+      estimatedReleaseDate: member.estimatedReleaseDate,
+      status: member.status,
+    }));
+    setTeamMembers(mappedTeamMembers);
+  } catch (error) {
+    console.error("Failed to fetch team members:", error);
   }
+};
 
   const fetchProjectDetails = async () => {
     try {
@@ -110,10 +121,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         }
       );
 
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      });
-      setTeamMembers(response.data);
+      fetchTeammates();
 
       // // Update frontend state
       // setTeamMembers((prevMembers) =>
@@ -137,10 +145,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       });
       console.log("Deleted successfully:", response.data);
 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      });
-      setTeamMembers(res.data);
+      fetchTeammates();
 
     } catch (error) {
       alert("Failed to update status:", error);
@@ -172,10 +177,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       });
 
       // 2. Refetch the updated team list
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      });
-      setTeamMembers(response.data);
+      fetchTeammates();
     } catch (error) {
       alert("Failed to add member:", error);
       console.error("Failed to add member:", error);
@@ -217,10 +219,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       }
       );
 
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      });
-      setTeamMembers(response.data);
+      fetchTeammates();
 
       // Update local state
       // setTeamMembers(prevMembers =>
@@ -253,12 +252,14 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       // Prepare data for Excel export with all project details
       const excelData = teamMembers.map((employee, index) => ({
         'No.': index + 1,
-        'Employee Name': employee.user.firstName + " " + employee.user.lastName,
+        'Employee Name': employee.user.name,
         'Employee Code': employee.empCode,
         'Email': employee.user.email,
-        'DOJ': employee.user.dateOfJoining ? formatDate(employee.user.dateOfJoining) : 'N/A',
-        'cost': employee.pricing,
+        'Unit': employee.unit,
+        'Cost': employee.pricing,
         'Status': employee.status,
+        'System Impacted': employee.systemImpacted.systemName,
+        'Estimated Release Date': employee.estimatedReleaseDate,
       }));
 
       // Create worksheet from data
@@ -374,24 +375,24 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                         <div className="flex items-center">
                           <img
                             src={
-                              member.user.photo
-                                ? `data:image/png;base64,${member.user.photo}` // Use Base64 string directly
-                                : `${import.meta.env.VITE_API_URL}/api/users/${member.user.userId}/photo` // Fallback to API URL
+                              member.user?.photo
+                                ? `data:image/png;base64,${member.user?.photo}` // Use Base64 string directly
+                                : `${import.meta.env.VITE_API_URL}/api/users/${member.user?.userId}/photo` // Fallback to API URL
                             }
-                            alt={member.user.firstName + ' ' + member.user.lastName}
+                            alt={member.user.name}
                             className="w-10 h-10 rounded-full object-cover border border-gray-200 mr-2 max-w-[200px] truncate"
                             onError={(e) => {
                               e.target.src = "/profilepic.jpg"; // Fallback image
                             }}
                           />
-                          <span>{member.user.firstName + ' ' + member.user.lastName}</span>
+                          <span>{member.user.name}</span>
                         </div>
                       </td>
                       <td className="py-2 px-4 border-r border-t">{member.empCode}</td>
                       <td className="py-2 px-4 border-r border-t cursor-pointer max-w-[200px] truncate" title={member.user.email}>{member.user.email}</td>
                       <td className="py-2 px-4 border-r border-t">{member.unit}</td>
                       <td className="py-2 px-4 border-r border-t">{member.pricing}</td>
-                      <td className="py-2 px-4 border-r border-t">{member.systemimpacted?.systemName}</td>
+                      <td className="py-2 px-4 border-r border-t">{member.systemImpacted.systemName}</td>
                       <td className="py-2 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
                       <td className="py-2 px-4 border-r border-t">
                         <span className={`px-2 py-1 rounded-full font-medium ${getStatusColor(member.status)}`}>

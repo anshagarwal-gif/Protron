@@ -10,6 +10,7 @@ import com.Protronserver.Protronserver.Repository.ProjectRepository;
 import com.Protronserver.Protronserver.Repository.ProjectTeamRepository;
 import com.Protronserver.Protronserver.Repository.SystemImpactedRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
+import com.Protronserver.Protronserver.ResultDTOs.ProjectTeamMemberDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -139,8 +140,8 @@ public class ManageTeamService {
         updateStatus(id, "removed");
     }
 
-    public List<ProjectTeam> getProjectTeam(Long projectId) {
-        return projectTeamRepository.findByProjectProjectIdAndEndTimestampIsNull(projectId);
+    public List<ProjectTeamMemberDTO> getProjectTeam(Long projectId) {
+        return projectTeamRepository.getTeamMemberDTOByProjectId(projectId);
     }
 
 }

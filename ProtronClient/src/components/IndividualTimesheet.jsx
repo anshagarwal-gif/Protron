@@ -134,8 +134,6 @@ const IndividualTimesheet = () => {
     });
   };
 
-  console.log(employee)
-
   const hideToast = () => {
     setToast(prev => ({ ...prev, isVisible: false }));
   };
@@ -334,30 +332,31 @@ const IndividualTimesheet = () => {
         }
       );
 
+      const mappedData = res.data.map(task => ({
+        taskId: task.taskId,
+        date: task.date,
+        hoursSpent: task.hoursSpent,
+        description: task.description,
+        taskType: task.taskType,
+        project: {projectName: task.projectName || "", projectId: task.projectId || ""},
+        submitted: task.submitted,
+        attachments: task.attachments
+      }));
+
       // Group tasks by date
       const grouped = {};
-      res.data.forEach((task) => {
+      mappedData.forEach((task) => {
         const dateKey = task.date.split("T")[0];
         if (!grouped[dateKey]) grouped[dateKey] = [];
-
-        console.log("Task attachment data:", {
-          taskId: task.taskId,
-          hasAttachment: !!task.attachment,
-          attachmentData: task.attachment,
-        });
 
         grouped[dateKey].push({
           id: task.taskId,
           hours: task.hoursSpent,
           description: task.description,
           task: task.taskType,
-          project: task.project?.projectName || "",
+          project: task.project,
           submitted: task.submitted,
-          attachment: task.attachment,
-          attachmentUrl: task.attachment
-            ? `${API_BASE_URL}/api/timesheet-tasks/${task.taskId}/attachment`
-            : null,
-          attachmentInfo: task.attachmentInfo || null,
+          attachments: task.attachments,
           fullTask: task,
         });
       });
@@ -471,8 +470,7 @@ const IndividualTimesheet = () => {
                 task: res.data.taskType,
                 project: res.data.project?.projectName || "",
                 submitted: res.data.submitted,
-                attachment: res.data.attachments,
-                attachmentUrl: res.data.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${res.data.taskId}/attachment` : null,
+                attachments: res.data.attachments,
                 fullTask: res.data,
               }
               : entry
@@ -498,8 +496,7 @@ const IndividualTimesheet = () => {
             task: taskData.taskType,
             project: taskData.project?.projectName || "",
             submitted: taskData.submitted,
-            attachment: taskData.attachment,
-            attachmentUrl: taskData.attachment ? `${API_BASE_URL}/api/timesheet-tasks/${taskData.taskId}/attachment` : null,
+            attachments: taskData.attachments,
             fullTask: taskData,
           },
         ],
@@ -1043,7 +1040,6 @@ const IndividualTimesheet = () => {
       const isToday = date.toDateString() === new Date().toDateString();
       const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
       const isWeekendDay = isWeekend(date);
-
       return (
         <td
           key={date.toISOString()}
@@ -1076,10 +1072,10 @@ const IndividualTimesheet = () => {
                     {entry.project && (
                       <span
                         className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                        title={entry.project}
+                        title={entry.project.projectName || "-"}
                       >
                         <Folder className="h-3 w-3 mr-1" />
-                        {truncateText(entry.project, 12)}
+                        {truncateText(entry.project.projectName, 12)}
                       </span>
                     )}
                   </div>
@@ -1103,7 +1099,7 @@ const IndividualTimesheet = () => {
 
             {/* Add New Entry Button */}
             <div className="flex items-center justify-center">
-              {(isHovered && hasAccess("timesheet", "edit")) && (
+              {(isHovered && hasAccess("timesheet", "edit")) && (sessionData.email === employee.email) && (
                 <button
                   onClick={() => handleCellClick(date)}
                   className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
@@ -1198,7 +1194,7 @@ const IndividualTimesheet = () => {
                   </span>
                 )}
               </div>
-              {taskDetail.attachment && (
+              {taskDetail.attachments && (
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">Attachment:</span>
                   <div className="flex items-center gap-2">

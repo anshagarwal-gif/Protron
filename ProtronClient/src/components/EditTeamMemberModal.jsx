@@ -29,7 +29,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
         unit: '',
         estimatedReleaseDate: '',
         taskType: 'developer', // Default value
-        systemImpacted: member?.systemimpacted?.systemId || "" // Default value from member object
+        systemImpacted: member?.systemImpacted?.systemId || "" // Default value from member object
     });
     
     // Store initial data for reset functionality
@@ -38,7 +38,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
         unit: '',
         estimatedReleaseDate: '',
         taskType: 'developer',
-        systemImpacted: member?.systemimpacted?.systemId || ""
+        systemImpacted: member?.systemImpacted?.systemId || ""
     });
 
     // Theme colors
@@ -57,7 +57,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                 estimatedReleaseDate: member.estimatedReleaseDate || '',
                 // Use the member's taskType if it exists, otherwise default to 'developer'
                 taskType: member.taskType || 'developer',
-                systemImpacted: member?.systemimpacted?.systemId || "" // Default value from member object
+                systemImpacted: member?.systemImpacted?.systemId || "" // Default value from member object
             };
             
             setFormData(newFormData);
