@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+
 import {
   ChevronDown,
   FileText,
@@ -237,6 +238,9 @@ const POManagement = () => {
   const handleAddPO = () => {
     setIsAddModalOpen(true);
   };
+const handlePONumberClick = (po) => {
+    navigate(`/po-details/${po.poId || po.id}`);
+  };
 
   const handleModalSubmit = (data) => {
     showSnackbar("PO created successfully!", "success");
@@ -268,15 +272,31 @@ const POManagement = () => {
       cellStyle: { textAlign: 'center' }
     },
     {
-      headerName: "PO Number",
-      field: "poNumber",
-      valueGetter: params => params.data.poNumber || 'N/A',
-      flex: 1,
-      minWidth: 150,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#1f2937' }
-    },
+  headerName: "PO Number",
+  field: "poNumber",
+  valueGetter: params => params.data.poNumber || 'N/A',
+  flex: 1,
+  minWidth: 150,
+  sortable: true,
+  filter: true,
+  cellStyle: { fontWeight: 'bold', color: '#1f2937' },
+  cellRenderer: params => {
+    const poNumber = params.value;
+    const po = params.data;
+    if (poNumber && poNumber !== 'N/A') {
+      return (
+        <button
+          onClick={() => handlePONumberClick(po)}
+          className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left"
+          title={`View details for ${poNumber}`}
+        >
+          {poNumber}
+        </button>
+      );
+    }
+    return <span className="text-gray-500">{poNumber}</span>;
+  }
+},
     {
       headerName: "PO Type",
       field: "poType",
