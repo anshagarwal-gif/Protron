@@ -35,7 +35,7 @@ export const AccessProvider = ({ children }) => {
       })
       .catch((error) => {
         console.error('Error fetching logged-in user:', error);
-        sessionStorage.removeItem('token');
+        // sessionStorage.removeItem('token');
       })
       .finally(() => {
         setLoading(false);

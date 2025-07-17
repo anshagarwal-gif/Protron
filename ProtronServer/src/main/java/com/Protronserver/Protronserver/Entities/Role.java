@@ -27,11 +27,11 @@ public class Role {
     @JsonIgnoreProperties("role")
     private List<User> users;
 
-    @OneToMany(mappedBy = "role")
+    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER)
     @JsonIgnoreProperties({"role"})
     private List<RoleAccessRights> roleAccessRights;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tenant_id")
     @JsonIgnoreProperties({"roles", "roleAccesses", "projects", "projectTeams", "certificates"})
     private Tenant tenant;

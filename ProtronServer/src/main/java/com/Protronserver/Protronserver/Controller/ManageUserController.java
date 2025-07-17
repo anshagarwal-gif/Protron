@@ -2,11 +2,11 @@ package com.Protronserver.Protronserver.Controller;
 
 import com.Protronserver.Protronserver.DTOs.LoginRequest;
 import com.Protronserver.Protronserver.DTOs.UserSignUpDTO;
-import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.UserRepository;
-import com.Protronserver.Protronserver.ResultDTOs.UserBasicDetailDTO;
-import com.Protronserver.Protronserver.ResultDTOs.UserRoleAccessDTO;
+import com.Protronserver.Protronserver.ResultDTOs.*;
 import com.Protronserver.Protronserver.Service.UserService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -77,6 +74,7 @@ public class ManageUserController {
     }
 
     @GetMapping("/loggedInUser")
+    @Transactional  // Keep this to allow access to lazy fields
     public UserRoleAccessDTO getLoggedInUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -84,8 +82,45 @@ public class ManageUserController {
             throw new RuntimeException("Invalid user session");
         }
 
-        return new UserRoleAccessDTO(user.getUserId(), user.getRole(), user.getUserAccessRights());
+        // Map role → RoleDTO → RoleAccessRightDTO → AccessRightDTO
+        Role role = user.getRole();
+        RoleDTO roleDTO = null;
+
+        if (role != null) {
+            List<RoleAccessRightDTO> roleAccessRightDTOs = new ArrayList<>();
+            for (RoleAccessRights rar : role.getRoleAccessRights()) {
+                AccessRight ar = rar.getAccessRight();
+                AccessRightDTO arDTO = new AccessRightDTO(
+                        ar.getAccessId(),
+                        ar.getModuleName(),
+                        ar.isCanView(),
+                        ar.isCanEdit(),
+                        ar.isCanDelete()
+                );
+                roleAccessRightDTOs.add(new RoleAccessRightDTO(rar.getRoleAccessRightsId(), arDTO));
+            }
+            roleDTO = new RoleDTO(role.getRoleId(), role.getRoleName(), roleAccessRightDTOs);
+        }
+
+        // Map userAccessRights
+        List<UserAccessRightDTO> userAccessRightDTOs = new ArrayList<>();
+        for (UserAccessRights uar : user.getUserAccessRights()) {
+            AccessRight ar = uar.getAccessRight();
+            userAccessRightDTOs.add(new UserAccessRightDTO(
+                    uar.getUserAccessRightsId(),
+                    ar.getAccessId(),
+                    ar.getModuleName(),
+                    ar.isCanView(),
+                    ar.isCanEdit(),
+                    ar.isCanDelete()
+            ));
+        }
+
+        return new UserRoleAccessDTO(user.getUserId(), roleDTO, userAccessRightDTOs);
     }
+
+
+
 
     // In your UserController.java
     @GetMapping("/{userId}/photo")

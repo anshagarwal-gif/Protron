@@ -147,7 +147,7 @@ public class User {
     @JsonIgnoreProperties("user")
     private List<Certificate> certificates;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
     @JsonIgnoreProperties("user")
     private List<UserAccessRights> userAccessRights;
 

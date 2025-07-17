@@ -167,37 +167,41 @@ const UserManagement = () => {
   };
 
   const fetchEmployees = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const tenantId = sessionStorage.getItem("tenantId");
-      const token = sessionStorage.getItem('token');
+  setLoading(true);
+  setError(null);
+  try {
+    const tenantId = sessionStorage.getItem("tenantId");
+    const token = sessionStorage.getItem('token');
 
-      if (!tenantId || !token) {
-        throw new Error("Missing authentication credentials");
-      }
-
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/userstable`,
-        {
-          headers: { Authorization: `${token}` }
-        }
-      );
-
-      setUsers(res.data);
-      const uniqueTenants = [...new Set(
-        res.data
-          .map(emp => emp.tenantName)
-          .filter(Boolean)
-      )];
-      setTenants(["All Tenants", ...uniqueTenants]);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
-      setError(error.message || "Failed to fetch users");
-    } finally {
-      setLoading(false);
+    if (!tenantId || !token) {
+      throw new Error("Missing authentication credentials");
     }
-  };
+
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/userstable`,
+      {
+        headers: { Authorization: `${token}` }
+      }
+    );
+
+    // Ensure users is always an array
+    const fetchedUsers = Array.isArray(res.data) ? res.data : [];
+    setUsers(fetchedUsers);
+
+    const uniqueTenants = [...new Set(
+      fetchedUsers
+        .map(emp => emp.tenantName)
+        .filter(Boolean)
+    )];
+    setTenants(["All Tenants", ...uniqueTenants]);
+  } catch (error) {
+    console.error("Error fetching employees:", error);
+    setError(error.message || "Failed to fetch users");
+    setUsers([]); // Set users to an empty array on error
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchRoles = async () => {
     try {
@@ -248,18 +252,18 @@ const UserManagement = () => {
     return 'N/A';
   };
 
-  const filteredUsers = users.filter(user => {
-    const tenantMatch = selectedTenant === "All Tenants" ||
-      user.tenantName === selectedTenant;
+  const filteredUsers = (Array.isArray(users) ? users : []).filter(user => {
+  const tenantMatch = selectedTenant === "All Tenants" ||
+    user.tenantName === selectedTenant;
 
-    const roleName = getRoleName(user.role);
-    const searchMatch = searchQuery === "" ||
-      (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        roleName.toLowerCase().includes(searchQuery.toLowerCase()));
+  const roleName = getRoleName(user.role);
+  const searchMatch = searchQuery === "" ||
+    (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      roleName.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    return tenantMatch && searchMatch;
-  });
+  return tenantMatch && searchMatch;
+});
 const filteredRoles = roles.filter(role => {
   if (searchQuery === "") return true;
   

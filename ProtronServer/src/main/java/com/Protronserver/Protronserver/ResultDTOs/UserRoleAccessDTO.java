@@ -8,10 +8,10 @@ import java.util.List;
 public class UserRoleAccessDTO {
 
     private Long userId;
-    private Role role;
-    private List<UserAccessRights> userAccessRights;
+    private RoleDTO role;
+    private List<UserAccessRightDTO> userAccessRights;
 
-    public UserRoleAccessDTO(Long userId, Role role, List<UserAccessRights> userAccessRights) {
+    public UserRoleAccessDTO(Long userId, RoleDTO role, List<UserAccessRightDTO> userAccessRights) {
         this.userId = userId;
         this.role = role;
         this.userAccessRights = userAccessRights;
@@ -25,19 +25,19 @@ public class UserRoleAccessDTO {
         this.userId = userId;
     }
 
-    public Role getRole() {
+    public RoleDTO getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(RoleDTO role) {
         this.role = role;
     }
 
-    public List<UserAccessRights> getUserAccessRights() {
+    public List<UserAccessRightDTO> getUserAccessRights() {
         return userAccessRights;
     }
 
-    public void setUserAccessRights(List<UserAccessRights> userAccessRights) {
+    public void setUserAccessRights(List<UserAccessRightDTO> userAccessRights) {
         this.userAccessRights = userAccessRights;
     }
 }
