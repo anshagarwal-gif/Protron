@@ -20,7 +20,7 @@ public interface TimesheetTaskAttachmentRepository extends JpaRepository<Timeshe
     List<TimesheetTaskAttachment> findByTimesheetTaskTaskId(Long taskId);
 
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskAttachmentDTO( " +
-            "a.attachmentId, a.fileName, a.fileType, a.fileSize, a.fileData )" +
+            "a.attachmentId, a.fileName )" +
             "FROM TimesheetTaskAttachment a " +
             "WHERE a.timesheetTask.taskId = :taskId")
     List<TimesheetTaskAttachmentDTO> findByTimesheetTaskId(Long taskId);

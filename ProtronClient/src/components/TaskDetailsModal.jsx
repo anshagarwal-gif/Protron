@@ -113,27 +113,13 @@ const TaskDetailsModal = ({
   };
 
   const handlePreview = (attachment) => {
-    if (isImageFile(attachment.fileName)) {
-      setPreviewAttachment(attachment);
-    } else {
       handleViewAttachment(taskDetail.taskId, attachment.attachmentId);
-    }
   };
 
   const handleDownload = (attachment) => {
-    if (attachment.fileData) {
-      const mimeType = getMimeType(attachment.fileName);
-      const base64Data = attachment.fileData.includes(',') ? attachment.fileData : `data:${mimeType};base64,${attachment.fileData}`;
-      
-      const link = document.createElement('a');
-      link.href = base64Data;
-      link.download = attachment.fileName || 'attachment';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } else {
+    
       handleDownloadAttachment(taskDetail.taskId, attachment.attachmentId, attachment.fileName);
-    }
+    
   };
 
   const hasAttachments = taskDetail.attachments && taskDetail.attachments.length > 0;
@@ -288,12 +274,6 @@ const TaskDetailsModal = ({
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-gray-700 text-xs leading-tight">
                                   {truncateText(attachment.fileName || `Attachment ${index + 1}`, 20)}
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {attachment.fileSize ? 
-                                    `${(attachment.fileSize / 1024).toFixed(1)} KB` : 
-                                    formatFileSize(attachment.fileData)
-                                  }
                                 </div>
                               </div>
                             </div>

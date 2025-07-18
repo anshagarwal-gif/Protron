@@ -102,18 +102,18 @@ public class ManageUserController {
             roleDTO = new RoleDTO(role.getRoleId(), role.getRoleName(), roleAccessRightDTOs);
         }
 
-        // Map userAccessRights
+        // Map userAccessRight
         List<UserAccessRightDTO> userAccessRightDTOs = new ArrayList<>();
         for (UserAccessRights uar : user.getUserAccessRights()) {
             AccessRight ar = uar.getAccessRight();
-            userAccessRightDTOs.add(new UserAccessRightDTO(
-                    uar.getUserAccessRightsId(),
+            AccessRightDTO arDTO = new AccessRightDTO(
                     ar.getAccessId(),
                     ar.getModuleName(),
                     ar.isCanView(),
                     ar.isCanEdit(),
                     ar.isCanDelete()
-            ));
+            );
+            userAccessRightDTOs.add(new UserAccessRightDTO(uar.getUserAccessRightsId(), arDTO));
         }
 
         return new UserRoleAccessDTO(user.getUserId(), roleDTO, userAccessRightDTOs);

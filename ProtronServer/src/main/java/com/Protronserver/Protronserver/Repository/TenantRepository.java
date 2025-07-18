@@ -1,7 +1,6 @@
 package com.Protronserver.Protronserver.Repository;
 
 import com.Protronserver.Protronserver.Entities.Tenant;
-import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Entities.UserAccessRights;
 import com.Protronserver.Protronserver.ResultDTOs.ProjectTableDTO;
 import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
