@@ -12,6 +12,9 @@ import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.ResultDTOs.ProjectTableDTO;
 import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
 import com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO;
+import com.Protronserver.Protronserver.Utils.QueryResponseJsonString;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,9 @@ public class TenantService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public Tenant addTenant(TenantRequestDTO tenantRequestDTO) {
         Tenant tenant = new Tenant();
@@ -98,6 +104,20 @@ public class TenantService {
 
     public List<TeamTableResultDTO> getTeamTableUsersByTenantId(Long tenantId) {
         return tenantRepository.getTeamUsersByTenant(tenantId);
+    }
+
+    public List<Object> getAllUsers(Long tenantId) throws Exception {
+
+        QueryResponseJsonString projection = tenantRepository.findAllUsersAsJson(tenantId);
+
+        List<Object> userList;
+        if (projection != null && projection.getJsonPayload() != null) {
+            userList = objectMapper.readValue(projection.getJsonPayload(), new TypeReference<List<Object>>() {});
+        } else {
+            userList = Collections.emptyList();
+        }
+
+        return userList;
     }
 
     public List<UsersTableResultDTO> getUsersByTenantId(Long tenantId) {
