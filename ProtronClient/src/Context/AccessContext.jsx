@@ -44,6 +44,7 @@ export const AccessProvider = ({ children }) => {
 
   const getFinalAccessRights = (roleAccessRights, userAccessRights) => {
   // Create a map for user access rights for quick lookup
+  console.log(userAccessRights);
   const userAccessMap = userAccessRights.reduce((map, access) => {
     map[access.moduleName] = access;
     return map;
