@@ -6,6 +6,7 @@ import LogTimeModal from "./LogTimeModal";
 import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext";
+import TaskDetailsModal from "./TaskDetailsModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -1090,124 +1091,20 @@ const TimesheetManager = () => {
 
       {/* Task Details Modal */}
       {taskDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/60 backdrop-blur-sm backdrop-brightness-95">
-          <div className="bg-white rounded-xl shadow-2xl p-8 min-w-[350px] max-w-[70vw] border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <FileText className="h-6 w-6 text-blue-500" />
-                <h2 className="text-xl font-bold">Task Details</h2>
-              </div>
-              <button onClick={() => setTaskDetail(null)} className="text-gray-400 hover:text-gray-700">
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Task Type:</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-semibold">
-                  {taskDetail.taskType}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-gray-500" />
-                <span className="font-semibold">Date:</span>
-                <span>{formatDateDisplay(new Date(taskDetail.date))}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Folder className="h-4 w-4 text-green-600" />
-                <span className="font-semibold">Project:</span>
-                <span
-                  className="cursor-help"
-                  title={taskDetail.project?.projectName || "-"} // Full project name on hover
-                >
-                  {taskDetail.project?.projectName ? truncateText(taskDetail.project.projectName, 25) : "-"}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Hours:</span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded bg-orange-100 text-orange-800 text-xs font-semibold">
-                  {taskDetail.hoursSpent}
-                </span>
-              </div>
-              <div className="w-full">
-                <span className="font-semibold">Description:</span>
-                <div className="text-gray-700 mt-1 break-words whitespace-pre-wrap">{taskDetail.description}</div>
-              </div>
-              <div>
-                <span className="font-semibold">Status:</span>
-                {taskDetail.submitted ? (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-200 text-green-800 text-xs font-semibold ml-2">
-                    <CheckCircle className="h-4 w-4 mr-1" /> Submitted
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded bg-red-200 text-red-800 text-xs font-semibold ml-2">
-                    <XCircle className="h-4 w-4 mr-1" /> Not Submitted
-                  </span>
-                )}
-              </div>
-              {taskDetail && taskDetail.attachments && taskDetail.attachments.length > 0 && (
-                <div>
-                  <span className="font-semibold">Attachments ({taskDetail.attachments.length}):</span>
-                  <div className="mt-2 space-y-2">
-                    {taskDetail.attachments.map((attachment, index) => (
-                      <div key={attachment.attachmentId || index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                        <FileText className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm text-gray-700 flex-1">
-                          {attachment.fileName || `Attachment ${index + 1}`}
-                          {attachment.fileSize && (
-                            <span className="text-xs text-gray-500 ml-2">
-                              ({(attachment.fileSize / 1024).toFixed(1)} KB)
-                            </span>
-                          )}
-                        </span>
-                        <button
-                          onClick={() => handleViewAttachment(taskDetail.taskId, attachment.attachmentId)}
-                          className="inline-flex items-center px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                        >
-                          <Eye className="h-3 w-3 mr-1" /> View
-                        </button>
-                        <button
-                          onClick={() => handleDownloadAttachment(taskDetail.taskId, attachment.attachmentId, attachment.fileName)}
-                          className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors"
-                        >
-                          <DownloadIcon className="h-3 w-3 mr-1" /> Download
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
-            {/* Edit and Delete Buttons */}
-            <div className="mt-6 flex justify-end gap-4">
-              {hasAccess("timesheet", "edit") && (
-                <button
-                  onClick={() => {
-                    console.log("Editing task:", taskDetail);
-                    setEditingTask({ ...taskDetail, date: new Date(taskDetail.date) });
-                    setShowLogTimeModal(true);
-                    setTaskDetail(null);
-                  }}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  Edit
-                </button>
-              )}
-              {hasAccess("timesheet", "delete") && (
-                <button
-                  onClick={() => {
-                    deleteTimeEntry(new Date(taskDetail.date), taskDetail.taskId);
-                    setTaskDetail(null);
-                  }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  Delete
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        <TaskDetailsModal
+          isOpen={!!taskDetail}
+          onClose={() => setTaskDetail(null)}
+          taskDetail={taskDetail}
+          onEdit={(updatedTask) => {
+            setEditingTask(updatedTask);
+            setShowLogTimeModal(true);
+            setTaskDetail(null);
+          }}
+          onDelete={() => {
+            deleteTimeEntry(new Date(taskDetail.date), taskDetail.taskId);
+            setTaskDetail(null);
+          }}
+        />
       )}
     </div>
   );
