@@ -178,7 +178,7 @@ const UserManagement = () => {
     }
 
     const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/userstable`,
+      `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/getAllUsers`,
       {
         headers: { Authorization: `${token}` }
       }
