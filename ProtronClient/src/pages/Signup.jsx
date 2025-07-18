@@ -767,6 +767,74 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Country */}
+              
+              {/* Address Line 1 */}
+              <div className="md:col-span-3">
+                <label htmlFor="addressLine1" className="block text-slate-700 font-medium mb-2 text-sm">
+                  Address Line 1
+                  <span className="text-sm text-slate-500 ml-2 font-normal">
+                    ({formData.addressLine1.length}/100)
+                  </span>
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <MapPinIcon className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                  </div>
+                  <input
+                    id="addressLine1"
+                    name="addressLine1"
+                    type="text"
+                    placeholder="Street address, building, etc."
+                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                    value={formData.addressLine1}
+                    onChange={handleChange}
+                    disabled={loading}
+                    maxLength={100}
+                  />
+                </div>
+              </div>
+
+              {/* Address Line 2 */}
+              <div className="md:col-span-3">
+                <label htmlFor="addressLine2" className="block text-slate-700 font-medium mb-2 text-sm">
+                  Address Line 2
+                  <span className="text-sm text-slate-500 ml-2 font-normal">
+                    ({formData.addressLine2.length}/100)
+                  </span>
+                </label>
+                <input
+                  id="addressLine2"
+                  name="addressLine2"
+                  type="text"
+                  placeholder="Apartment, suite, unit, etc. (optional)"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  value={formData.addressLine2}
+                  onChange={handleChange}
+                  disabled={loading}
+                  maxLength={100}
+                />
+              </div>
+
+              {/* Address Line 3 */}
+              <div className="md:col-span-3">
+                <label htmlFor="addressLine3" className="block text-slate-700 font-medium mb-2 text-sm">
+                  Address Line 3
+                  <span className="text-sm text-slate-500 ml-2 font-normal">
+                    ({formData.addressLine3.length}/100)
+                  </span>
+                </label>
+                <input
+                  id="addressLine3"
+                  name="addressLine3"
+                  type="text"
+                  placeholder="Additional address information (optional)"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  value={formData.addressLine3}
+                  onChange={handleChange}
+                  disabled={loading}
+                  maxLength={100}
+                />
+              </div>
               <div>
                 <label htmlFor="country" className="block text-slate-700 font-medium mb-2 text-sm">
                   Country
@@ -865,73 +933,6 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 )}
               </div>
 
-              {/* Address Line 1 */}
-              <div className="md:col-span-3">
-                <label htmlFor="addressLine1" className="block text-slate-700 font-medium mb-2 text-sm">
-                  Address Line 1
-                  <span className="text-sm text-slate-500 ml-2 font-normal">
-                    ({formData.addressLine1.length}/100)
-                  </span>
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MapPinIcon className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                  </div>
-                  <input
-                    id="addressLine1"
-                    name="addressLine1"
-                    type="text"
-                    placeholder="Street address, building, etc."
-                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                    value={formData.addressLine1}
-                    onChange={handleChange}
-                    disabled={loading}
-                    maxLength={100}
-                  />
-                </div>
-              </div>
-
-              {/* Address Line 2 */}
-              <div className="md:col-span-3">
-                <label htmlFor="addressLine2" className="block text-slate-700 font-medium mb-2 text-sm">
-                  Address Line 2
-                  <span className="text-sm text-slate-500 ml-2 font-normal">
-                    ({formData.addressLine2.length}/100)
-                  </span>
-                </label>
-                <input
-                  id="addressLine2"
-                  name="addressLine2"
-                  type="text"
-                  placeholder="Apartment, suite, unit, etc. (optional)"
-                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                  value={formData.addressLine2}
-                  onChange={handleChange}
-                  disabled={loading}
-                  maxLength={100}
-                />
-              </div>
-
-              {/* Address Line 3 */}
-              <div className="md:col-span-3">
-                <label htmlFor="addressLine3" className="block text-slate-700 font-medium mb-2 text-sm">
-                  Address Line 3
-                  <span className="text-sm text-slate-500 ml-2 font-normal">
-                    ({formData.addressLine3.length}/100)
-                  </span>
-                </label>
-                <input
-                  id="addressLine3"
-                  name="addressLine3"
-                  type="text"
-                  placeholder="Additional address information (optional)"
-                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                  value={formData.addressLine3}
-                  onChange={handleChange}
-                  disabled={loading}
-                  maxLength={100}
-                />
-              </div>
             </div>
           </div>
 
