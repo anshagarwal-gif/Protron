@@ -18,6 +18,7 @@ const Login = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showForgotPassword, setShowForgotPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // New state for loader
     const { updateSession } = useSession();
 
     const togglePasswordVisibility = () => {
@@ -33,6 +34,7 @@ const Login = ({ onLogin }) => {
             return;
         }
 
+        setIsLoading(true); // Start loader
         try {
             const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/login`, {
                 email,
@@ -41,7 +43,6 @@ const Login = ({ onLogin }) => {
             });
             console.log('Login successful:', response.data);
 
-            // Mock successful authentication
             setSnackbar({
                 open: true,
                 message: 'Login successful!',
@@ -52,11 +53,11 @@ const Login = ({ onLogin }) => {
             sessionStorage.setItem('tenantId', response.data.tenantId);
             sessionStorage.setItem('userId', response.data.userId);
             updateSession({
-    token: response.data.token,
-    email: response.data.email,
-    tenantId: response.data.tenantId,
-    userId: response.data.userId,
-});
+                token: response.data.token,
+                email: response.data.email,
+                tenantId: response.data.tenantId,
+                userId: response.data.userId,
+            });
             setRoleAccessRights(response.data.roleAccessRights);
             setUserAccessRights(response.data.userAccessRights);
             setRole(response.data.role);
@@ -68,6 +69,8 @@ const Login = ({ onLogin }) => {
                 severity: 'error',
             });
             console.error('Login failed:', error.response?.data);
+        } finally {
+            setIsLoading(false); // Stop loader
         }
     };
 
@@ -148,9 +151,12 @@ const Login = ({ onLogin }) => {
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className={`w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                            isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                        disabled={isLoading} // Disable button when loading
                     >
-                        Sign in
+                        {isLoading ? 'Signing in...' : 'Sign in'}
                     </button>
                 </form>
             </div>

@@ -3,6 +3,8 @@ package com.Protronserver.Protronserver.Entities;
 import jakarta.persistence.*;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "srn_details")
 public class SRNDetails {
@@ -15,6 +17,7 @@ public class SRNDetails {
     // Foreign key to PODetail
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "po_id", referencedColumnName = "po_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private PODetails poDetail;
 
     @Column(name = "po_number", length = 250)

@@ -1,5 +1,5 @@
 // POManagement.js
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -24,10 +24,12 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddPOModal from "../components/AddPOModal";
 import EditPOModal from "../components/EditPOModal";
+import SRNManagement from "./SRN";
 
 const POManagement = () => {
   const navigate = useNavigate();
   const { hasAccess } = useAccess();
+  const srnRef = useRef();
 
   // State management
   const [activeTab, setActiveTab] = useState("details");
@@ -38,6 +40,9 @@ const POManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPOId, setSelectedPOId] = useState(null);
+
+  // SRN specific state
+  const [isAddSRNModalOpen, setIsAddSRNModalOpen] = useState(false);
 
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -228,6 +233,13 @@ const POManagement = () => {
     }
   };
 
+  // SRN Excel download function
+  const downloadSRNExcel = () => {
+    if (srnRef.current && srnRef.current.downloadSRNExcel) {
+      srnRef.current.downloadSRNExcel();
+    }
+  };
+
   // Handle PO actions
   const handleEditPO = (po) => {
     console.log('Editing PO:', po);
@@ -238,7 +250,14 @@ const POManagement = () => {
   const handleAddPO = () => {
     setIsAddModalOpen(true);
   };
-const handlePONumberClick = (po) => {
+
+  const handleAddSRN = () => {
+    if (srnRef.current && srnRef.current.handleAddSRN) {
+      srnRef.current.handleAddSRN();
+    }
+  };
+
+  const handlePONumberClick = (po) => {
     navigate(`/po-details/${po.poId || po.id}`);
   };
 
@@ -272,31 +291,31 @@ const handlePONumberClick = (po) => {
       cellStyle: { textAlign: 'center' }
     },
     {
-  headerName: "PO Number",
-  field: "poNumber",
-  valueGetter: params => params.data.poNumber || 'N/A',
-  flex: 1,
-  minWidth: 150,
-  sortable: true,
-  filter: true,
-  cellStyle: { fontWeight: 'bold', color: '#1f2937' },
-  cellRenderer: params => {
-    const poNumber = params.value;
-    const po = params.data;
-    if (poNumber && poNumber !== 'N/A') {
-      return (
-        <button
-          onClick={() => handlePONumberClick(po)}
-          className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left"
-          title={`View details for ${poNumber}`}
-        >
-          {poNumber}
-        </button>
-      );
-    }
-    return <span className="text-gray-500">{poNumber}</span>;
-  }
-},
+      headerName: "PO Number",
+      field: "poNumber",
+      valueGetter: params => params.data.poNumber || 'N/A',
+      flex: 1,
+      minWidth: 150,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#1f2937' },
+      cellRenderer: params => {
+        const poNumber = params.value;
+        const po = params.data;
+        if (poNumber && poNumber !== 'N/A') {
+          return (
+            <button
+              onClick={() => handlePONumberClick(po)}
+              className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left"
+              title={`View details for ${poNumber}`}
+            >
+              {poNumber}
+            </button>
+          );
+        }
+        return <span className="text-gray-500">{poNumber}</span>;
+      }
+    },
     {
       headerName: "PO Type",
       field: "poType",
@@ -758,15 +777,7 @@ const handlePONumberClick = (po) => {
           </div>
         );
       case "srn":
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-            <div className="text-center">
-              <Receipt size={64} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">SRN Management</h3>
-              <p className="text-gray-500">Service Receipt Notes (SRN) management will be displayed here.</p>
-            </div>
-          </div>
-        );
+        return <SRNManagement ref={srnRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       default:
         return null;
     }
@@ -776,7 +787,7 @@ const handlePONumberClick = (po) => {
     <div className="w-full p-6 bg-white">
       {/* Header with navigation, search and actions in one line */}
       <div className="flex justify-between items-center mb-6">
-        {/* Left side - 3-Slider toggle buttons and PO List title */}
+        {/* Left side - 3-Slider toggle buttons and title */}
         <div className="flex items-center gap-6">
           {/* 3-Slider toggle buttons */}
           <div className="relative bg-gray-200 p-1 rounded-full flex">
@@ -824,32 +835,48 @@ const handlePONumberClick = (po) => {
             </button>
           </div>
 
-          {/* PO List title - only show on details tab */}
-          {activeTab === "details" && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                <FileText size={24} className="mr-2 text-green-600" />
-                PO List
-              </h2>
-            </div>
-          )}
+          {/* Dynamic title based on active tab */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              {activeTab === "details" && (
+                <>
+                  <FileText size={24} className="mr-2 text-green-600" />
+                  PO List
+                </>
+              )}
+              {activeTab === "utilization" && (
+                <>
+                  <TrendingUp size={24} className="mr-2 text-green-600" />
+                  PO Utilization
+                </>
+              )}
+              {activeTab === "srn" && (
+                <>
+                  <Receipt size={24} className="mr-2 text-green-600" />
+                  SRN Management
+                </>
+              )}
+            </h2>
+          </div>
         </div>
 
         {/* Right side - Search and action buttons */}
         <div className="flex items-center gap-4">
-          {/* Search input */}
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder="Search POs..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
-          </div>
+          {/* Search input - show for PO Details and SRN tabs */}
+          {(activeTab === "details" || activeTab === "srn") && (
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder={activeTab === "details" ? "Search POs..." : "Search SRNs..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
+            </div>
+          )}
 
-          {/* Download Excel Button - only show on PO Details tab */}
+          {/* Download Excel Button */}
           {activeTab === "details" && (
             <button
               className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
@@ -860,7 +887,17 @@ const handlePONumberClick = (po) => {
             </button>
           )}
 
-          {/* Add PO Button - show on PO Details tab */}
+          {activeTab === "srn" && (
+            <button
+              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={downloadSRNExcel}
+            >
+              <Download size={18} className="mr-2" />
+              Download Excel
+            </button>
+          )}
+
+          {/* Add Button */}
           {activeTab === "details" && (
             <button
               className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
@@ -870,11 +907,21 @@ const handlePONumberClick = (po) => {
               Add PO
             </button>
           )}
+
+          {activeTab === "srn" && (
+            <button
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={handleAddSRN}
+            >
+              <Plus size={18} className="mr-2" />
+              Add SRN
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Error display */}
-      {error && (
+      {/* Error display - only show on PO Details tab */}
+      {activeTab === "details" && error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>

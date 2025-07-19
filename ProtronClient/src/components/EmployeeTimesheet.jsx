@@ -1104,6 +1104,8 @@ const TimesheetManager = () => {
             deleteTimeEntry(new Date(taskDetail.date), taskDetail.taskId);
             setTaskDetail(null);
           }}
+          handleViewAttachment={handleViewAttachment}
+          handleDownloadAttachment={handleDownloadAttachment}
         />
       )}
     </div>

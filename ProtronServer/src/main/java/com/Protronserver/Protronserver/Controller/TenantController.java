@@ -56,6 +56,16 @@ public class TenantController {
         return tenantService.getUsersByTenantId(tenantId);
     }
 
+    @GetMapping("/{tenantId}/getAllUsers")
+    public List<Object> getAllUsers(@PathVariable Long tenantId){
+        try{
+            return tenantService.getAllUsers(tenantId);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     // Fetch Projects for a particular tenant
     @GetMapping("/{tenantId}/projects")
     public List<ProjectTableDTO> getProjectsByTenant(@PathVariable Long tenantId) {
