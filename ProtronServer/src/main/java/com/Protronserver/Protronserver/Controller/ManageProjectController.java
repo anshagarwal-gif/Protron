@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.DTOs.ProjectRequestDTO;
 import com.Protronserver.Protronserver.DTOs.ProjectUpdateDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
+import com.Protronserver.Protronserver.ResultDTOs.ActiveProjectsDTO;
 import com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO;
 import com.Protronserver.Protronserver.ResultDTOs.SystemImpactedDTO;
 import com.Protronserver.Protronserver.ResultDTOs.TeamMemberDTO;
@@ -67,8 +68,8 @@ public class ManageProjectController {
     }
 
     @GetMapping("/user/active-projects")
-    public ResponseEntity<List<Project>> getUserActiveProjects(@RequestParam(value = "userId", required = false) Long userId) {
-        List<Project> projects = manageProjectService.getActiveProjectsInSameTenantByUser(userId);
+    public ResponseEntity<List<ActiveProjectsDTO>> getUserActiveProjects(@RequestParam(value = "userId", required = false) Long userId) {
+        List<ActiveProjectsDTO> projects = manageProjectService.getActiveProjectsInSameTenantByUser(userId);
         return ResponseEntity.ok(projects);
     }
 

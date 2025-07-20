@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Repository;
 
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.ProjectTeam;
+import com.Protronserver.Protronserver.ResultDTOs.ActiveProjectsDTO;
 import com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO;
 import com.Protronserver.Protronserver.ResultDTOs.SystemImpactedDTO;
 import com.Protronserver.Protronserver.ResultDTOs.TeamMemberDTO;
@@ -21,7 +22,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByTenantTenantIdAndEndTimestampIsNull(Long id);
 
     @Query(value = """
-    SELECT p.*
+    SELECT p.project_Id, p.project_name
     FROM projects p
     JOIN project_team pt ON p.project_id = pt.project_id
     JOIN users u ON pt.user_id = u.user_id
@@ -31,7 +32,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
       AND p.end_timestamp IS NULL
       AND pt.end_timestamp IS NULL
 """, nativeQuery = true)
-    List<Project> findActiveProjectsByUserInSameTenant(@Param("userId") Long userId);
+    List<ActiveProjectsDTO> findActiveProjectsByUserInSameTenant(@Param("userId") Long userId);
 
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO(" +
             "p.projectId, p.projectName, t.tenantName, p.startDate, p.endDate, p.unit, p.projectCost, " +

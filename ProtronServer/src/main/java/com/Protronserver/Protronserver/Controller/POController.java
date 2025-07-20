@@ -2,11 +2,13 @@ package com.Protronserver.Protronserver.Controller;
 
 import com.Protronserver.Protronserver.DTOs.PODetailsDTO;
 import com.Protronserver.Protronserver.Entities.PODetails;
+import com.Protronserver.Protronserver.Service.CostDetailsService;
 import com.Protronserver.Protronserver.Service.POService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -15,6 +17,9 @@ public class POController {
 
     @Autowired
     private POService poService;
+
+    @Autowired
+    private CostDetailsService costDetailsService;
 
     @PostMapping("/add")
     public ResponseEntity<PODetails> addPO(@RequestBody PODetailsDTO poDetails) {
@@ -36,6 +41,11 @@ public class POController {
     @GetMapping("/{id}")
     public ResponseEntity<PODetails> getPOById(@PathVariable Long id) {
         return ResponseEntity.ok(poService.getPOById(id));
+    }
+
+    @GetMapping("/pobalance/{id}")
+    public BigDecimal getPoBalance(@PathVariable Long id){
+        return costDetailsService.getPOBalance(id);
     }
 
 }

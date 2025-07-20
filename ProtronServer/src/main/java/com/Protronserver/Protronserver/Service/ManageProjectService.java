@@ -7,6 +7,7 @@ import com.Protronserver.Protronserver.DTOs.TeamMemberRequestDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
 
+import com.Protronserver.Protronserver.ResultDTOs.ActiveProjectsDTO;
 import com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import jakarta.persistence.EntityNotFoundException;
@@ -209,7 +210,7 @@ public class ManageProjectService {
         return updatedProject;
     }
 
-    public List<Project> getActiveProjectsInSameTenantByUser(Long userId) {
+    public List<ActiveProjectsDTO> getActiveProjectsInSameTenantByUser(Long userId) {
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 

@@ -2,12 +2,16 @@ package com.Protronserver.Protronserver.Controller;
 
 import com.Protronserver.Protronserver.DTOs.POMilestoneAddDTO;
 import com.Protronserver.Protronserver.Entities.POMilestone;
+import com.Protronserver.Protronserver.ResultDTOs.EligibleMilestone;
+import com.Protronserver.Protronserver.Service.CostDetailsService;
 import com.Protronserver.Protronserver.Service.POMilestoneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/po-milestone")
@@ -15,6 +19,9 @@ public class POMilestoneController {
 
     @Autowired
     private POMilestoneService poMilestoneService;
+
+    @Autowired
+    private CostDetailsService costDetailsService;
 
     @PostMapping("/add")
     public ResponseEntity<POMilestone> addMilestone(@RequestBody POMilestoneAddDTO dto) {
@@ -39,6 +46,16 @@ public class POMilestoneController {
     @GetMapping("/po/{poId}")
     public ResponseEntity<List<POMilestone>> getMilestonesByPoId(@PathVariable Long poId) {
         return ResponseEntity.ok(poMilestoneService.getMilestonesByPoId(poId));
+    }
+
+    @GetMapping("/milestonebalance/{id}/{name}")
+    public BigDecimal getMilestoneBalance(@PathVariable Long id, @PathVariable String name){
+        return costDetailsService.getMilestoneBalance(id, name);
+    }
+
+    @GetMapping("/getMilestoneForPo/{id}")
+    public List<EligibleMilestone> getMilestoneForPo(@PathVariable Long id){
+        return costDetailsService.getRemainingMilestones(id);
     }
 
 }
