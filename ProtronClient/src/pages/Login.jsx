@@ -52,11 +52,13 @@ const Login = ({ onLogin }) => {
             sessionStorage.setItem('email', response.data.email);
             sessionStorage.setItem('tenantId', response.data.tenantId);
             sessionStorage.setItem('userId', response.data.userId);
+            sessionStorage.setItem('tenantName', response.data.tenantName);
             updateSession({
                 token: response.data.token,
                 email: response.data.email,
                 tenantId: response.data.tenantId,
                 userId: response.data.userId,
+                tenantName: response.data.tenantName
             });
             setRoleAccessRights(response.data.roleAccessRights);
             setUserAccessRights(response.data.userAccessRights);

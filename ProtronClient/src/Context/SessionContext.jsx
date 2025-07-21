@@ -9,6 +9,7 @@ export const SessionProvider = ({ children }) => {
         email: null,
         tenantId: null,
         userId: null,
+        tenantName: null,
     });
 
     useEffect(() => {
@@ -18,6 +19,7 @@ export const SessionProvider = ({ children }) => {
             email: sessionStorage.getItem('email'),
             tenantId: sessionStorage.getItem('tenantId'),
             userId: sessionStorage.getItem('userId'),
+            tenantName: sessionStorage.getItem('tenantName'),
         };
         setSessionData(storedData);
     }, []);
@@ -37,6 +39,7 @@ export const SessionProvider = ({ children }) => {
             email: null,
             tenantId: null,
             userId: null,
+            tenantName: null,
         });
     };
 

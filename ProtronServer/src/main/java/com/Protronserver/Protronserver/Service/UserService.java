@@ -144,6 +144,7 @@ public class UserService {
                 response.put("tenantId", user.getTenant().getTenantId());
                 response.put("userId", user.getUserId());
                 response.put("role", user.getRole().getRoleName());
+                response.put("tenantName", user.getTenant().getTenantName());
 
                 // Get access rights for this user's role
                 List<Map<String, Object>> accessRightsList = user.getRole().getRoleAccessRights().stream()
@@ -154,7 +155,8 @@ public class UserService {
                             accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
                             accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
                             return accessMap;
-                        }).toList();
+                        })
+                        .toList();
 
                 response.put("roleAccessRights", accessRightsList);
 

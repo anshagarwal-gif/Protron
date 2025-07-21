@@ -204,16 +204,7 @@ const AddSRNModal = ({ open, onClose }) => {
                 <div className="p-6 overflow-y-auto flex-1">
                     <div className="space-y-6">
                         {/* First Row - SRN ID, PO Number, Select PO, SRN Name */}
-                        <div className="grid grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN ID</label>
-                                <input
-                                    type="text"
-                                    placeholder="Auto-generated"
-                                    disabled
-                                    className="w-full h-14 px-4 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
-                                />
-                            </div>
+                        <div className="grid grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
                                 <input
@@ -349,6 +340,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                     value={formData.srnDsc}
                                     onChange={handleChange('srnDsc')}
                                     className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                    maxLength={500}
                                 />
                             </div>
                         </div>
