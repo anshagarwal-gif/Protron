@@ -6,6 +6,8 @@ import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.ResultDTOs.*;
 import com.Protronserver.Protronserver.Service.UserService;
+import com.Protronserver.Protronserver.Utils.UserProfileJson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,9 @@ public class ManageUserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> signupUser(@ModelAttribute UserSignUpDTO userSignUpDTO) {
@@ -58,8 +63,17 @@ public class ManageUserController {
 
     // Fetch user by email
     @GetMapping("/email/{email}")
-    public Optional<User> getUserByEmail(@PathVariable String email) {
-        return userRepository.findByEmailAndEndTimestampIsNull(email);
+    public UserProfileDTO getUserByEmail(@PathVariable String email) throws Exception {
+        UserProfileJson result = userRepository.findUserProfileById(email);
+
+        if (result == null || result.getUserProfileJson() == null) {
+            // Handle case where user is not found
+            return null;
+        }
+
+        // Deserialize the JSON string from the DB into your DTO
+        String json = result.getUserProfileJson();
+        return objectMapper.readValue(json, UserProfileDTO.class);
     }
 
     @GetMapping("/basicdetails/{email}")

@@ -72,11 +72,11 @@ const ProfileModal = ({ selectedProfile, onClose, title = "Profile Details", isO
                             <div className="space-y-2 sm:space-y-3">
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                                     <span className="font-medium text-gray-700 text-sm sm:text-base">Company:</span>
-                                    <span className="text-gray-900 text-sm sm:text-base sm:text-right break-all">{selectedProfile.tenant?.tenantName || "N/A"}</span>
+                                    <span className="text-gray-900 text-sm sm:text-base sm:text-right break-all">{selectedProfile.tenantName || "N/A"}</span>
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                                     <span className="font-medium text-gray-700 text-sm sm:text-base">Role:</span>
-                                    <span className="text-gray-900 text-sm sm:text-base sm:text-right break-all">{selectedProfile.role?.roleName || "N/A"}</span>
+                                    <span className="text-gray-900 text-sm sm:text-base sm:text-right break-all">{selectedProfile.roleName || "N/A"}</span>
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                                     <span className="font-medium text-gray-700 text-sm sm:text-base">Unit:</span>
@@ -116,8 +116,8 @@ const ProfileModal = ({ selectedProfile, onClose, title = "Profile Details", isO
                                         {selectedProfile.projectTeams.map((team, i) => (
                                             <li key={i} className="flex items-center space-x-2">
                                                 <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                                                <span className="text-gray-900 truncate text-sm sm:text-base" title={team.project.projectName}>
-                                                    {team.project.projectName || `Team ${i + 1}`}
+                                                <span className="text-gray-900 truncate text-sm sm:text-base" title={team.projectName}>
+                                                    {team.projectName || `Team ${i + 1}`}
                                                 </span>
                                             </li>
                                         ))}
