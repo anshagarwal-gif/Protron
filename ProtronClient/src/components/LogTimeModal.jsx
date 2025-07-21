@@ -170,10 +170,13 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       fetchProjects();
 
       if (editingTask) {
+        console.log(editingTask, "et")
         // Pre-fill fields from editingTask
-        const totalMinutes = Math.round((editingTask.hours || editingTask.hoursSpent || 0) * 60);
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
+        const totalMinutes =
+        (editingTask.hours || editingTask.hoursSpent || 0) * 60 +
+        (editingTask.minutes || editingTask.minutesSpent || 0);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
 
         setFormData({
           taskType: editingTask.taskType || editingTask.task || '',
@@ -422,18 +425,14 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
         }
       }
 
-      // Calculate hoursSpent as decimal
-      const hours = parseInt(formData.hours, 10) || 0;
-      const minutes = parseInt(formData.minutes, 10) || 0;
-      const hoursSpent = hours + minutes / 60;
-
       const payload = {
         taskType: formData.taskType,
         date: currentDate,
-        hoursSpent: parseFloat(hoursSpent.toFixed(2)),
+        hoursSpent: parseInt(formData.hours, 10) || 0,
+        minutesSpent: parseInt(formData.minutes, 10) || 0,
         description: formData.description,
         projectId: parseInt(formData.projectId),
-        attachments: attachmentData, // Changed to array
+        attachments: attachmentData,
       };
       console.log("Payload to save:", payload);
 

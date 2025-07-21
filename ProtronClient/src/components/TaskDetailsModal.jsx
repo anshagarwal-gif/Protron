@@ -387,7 +387,7 @@ const TaskDetailsModal = ({
                         <div className="flex items-center gap-2 mt-2">
                           <Clock className="h-4 w-4 text-amber-500" />
                           <span className="inline-flex items-center px-2 py-1 rounded-lg bg-amber-500 text-white text-sm font-bold">
-                            {taskDetail.hoursSpent || 0}h
+                            {taskDetail.hoursSpent || 0}h {taskDetail.minutesSpent || 0}m
                           </span>
                         </div>
                       </div>

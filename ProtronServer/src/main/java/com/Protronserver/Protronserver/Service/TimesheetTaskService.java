@@ -7,6 +7,7 @@ import com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskDTO;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
+import com.Protronserver.Protronserver.Utils.TimeEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class TimesheetTaskService {
         task.setTaskType(dto.getTaskType());
         task.setDate(dto.getDate());
         task.setHoursSpent(dto.getHoursSpent());
+        task.setMinutesSpent(dto.getMinutesSpent());
         task.setDescription(dto.getDescription());
 
         task.setStartTimestamp(LocalDateTime.now());
@@ -132,6 +134,7 @@ public class TimesheetTaskService {
             newTask.setTaskType(oldTask.getTaskType());
             newTask.setDescription(oldTask.getDescription());
             newTask.setHoursSpent(oldTask.getHoursSpent());
+            newTask.setMinutesSpent(oldTask.getMinutesSpent());
 
             // Add 7 days to each date to copy to next week
             Date newDate = new Date(oldTask.getDate().getTime() + (7 * 24 * 60 * 60 * 1000L));
@@ -172,9 +175,10 @@ public class TimesheetTaskService {
     public double calculateTotalHours(Date startDate, Date endDate) {
         User targetUser = loggedInUserUtils.getLoggedInUser();
 
-        return timesheetTaskRepository.findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser)
+        return timesheetTaskRepository
+                .findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, targetUser)
                 .stream()
-                .mapToDouble(TimesheetTask::getHoursSpent)
+                .mapToDouble(task -> task.getHoursSpent() + (task.getMinutesSpent() / 60.0))
                 .sum();
     }
 
@@ -203,6 +207,7 @@ public class TimesheetTaskService {
         newTask.setTaskType(dto.getTaskType());
         newTask.setDescription(dto.getDescription());
         newTask.setHoursSpent(dto.getHoursSpent());
+        newTask.setMinutesSpent(dto.getMinutesSpent());
         newTask.setDate(dto.getDate());
 
         Project project = projectRepository.findById(dto.getProjectId())
@@ -324,41 +329,54 @@ public class TimesheetTaskService {
         List<AdminTimesheetSummaryDTO> summaryList = new ArrayList<>();
 
         for (User user : allUsers) {
-            // ⛳ Only submitted tasks considered
             List<TimesheetTask> tasks = timesheetTaskRepository
                     .findByDateBetweenAndUserAndEndTimestampIsNull(startDate, endDate, user);
 
-            Map<String, Double> dailyHoursMap = new TreeMap<>();
+            Map<String, TimeEntry> dailyHoursMap = new TreeMap<>();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+            int totalMinutes = 0;
 
             for (TimesheetTask task : tasks) {
                 String dateKey = sdf.format(task.getDate());
-                dailyHoursMap.put(dateKey, dailyHoursMap.getOrDefault(dateKey, 0.0) + task.getHoursSpent());
+
+                int taskMinutes = task.getHoursSpent() * 60 + task.getMinutesSpent();
+                totalMinutes += taskMinutes;
+
+                TimeEntry entry = dailyHoursMap.getOrDefault(dateKey, new TimeEntry(0, 0));
+                int existingMinutes = entry.getHours() * 60 + entry.getMinutes();
+
+                int combinedMinutes = existingMinutes + taskMinutes;
+                entry.setHours(combinedMinutes / 60);
+                entry.setMinutes(combinedMinutes % 60);
+
+                dailyHoursMap.put(dateKey, entry);
             }
 
-            // Fill missing days
+            // Fill missing days with 0h 0m
             Calendar cal = Calendar.getInstance();
             cal.setTime(startDate);
             while (!cal.getTime().after(endDate)) {
                 String dateKey = sdf.format(cal.getTime());
-                dailyHoursMap.putIfAbsent(dateKey, 0.0);
+                dailyHoursMap.putIfAbsent(dateKey, new TimeEntry(0, 0));
                 cal.add(Calendar.DATE, 1);
             }
 
-            double total = dailyHoursMap.values().stream().mapToDouble(Double::doubleValue).sum();
-
             AdminTimesheetSummaryDTO dto = new AdminTimesheetSummaryDTO();
             dto.setUserId(user.getUserId());
-            dto.setName(user.getFirstName() + user.getLastName());
+            dto.setName(user.getFirstName() + " " + user.getLastName());
             dto.setEmail(user.getEmail());
             dto.setDailyHours(dailyHoursMap);
-            dto.setTotalHours(total);
+            dto.setTotalHours(totalMinutes / 60);
+            dto.setTotalMinutes(totalMinutes % 60);
 
             summaryList.add(dto);
         }
 
         return summaryList;
     }
+
+
 
     public List<TimesheetTaskAttachment> getAttachmentsByTaskId(Long taskId) {
         System.out.println("Service: Getting attachments for task ID: " + taskId);
