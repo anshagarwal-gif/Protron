@@ -10,7 +10,8 @@ import java.util.Date;
 public class TimesheetTaskRequestDTO {
     private String taskType;
     private Date date;
-    private Double hoursSpent;
+    private int hoursSpent;
+    private int minutesSpent;
     private String description;
     private Long projectId;
     private List<AttachmentDTO> attachments; // Changed from List<byte[]> to List<AttachmentDTO>
@@ -35,12 +36,20 @@ public class TimesheetTaskRequestDTO {
         this.date = date;
     }
 
-    public Double getHoursSpent() {
+    public int getHoursSpent() {
         return hoursSpent;
     }
 
-    public void setHoursSpent(Double hoursSpent) {
+    public void setHoursSpent(int hoursSpent) {
         this.hoursSpent = hoursSpent;
+    }
+
+    public int getMinutesSpent() {
+        return minutesSpent;
+    }
+
+    public void setMinutesSpent(int minutesSpent) {
+        this.minutesSpent = minutesSpent;
     }
 
     public String getDescription() {

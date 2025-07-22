@@ -245,6 +245,7 @@ const TimesheetManager = () => {
         taskId: task.taskId,
         date: task.date,
         hoursSpent: task.hoursSpent,
+        minutesSpent: task.minutesSpent,
         description: task.description,
         taskType: task.taskType,
         project: {projectName: task.projectName || "", projectId: task.projectId || ""},
@@ -261,6 +262,7 @@ const TimesheetManager = () => {
         grouped[dateKey].push({
           id: task.taskId,
           hours: task.hoursSpent,
+          minutes: task.minutesSpent,
           description: task.description,
           task: task.taskType,
           project: task.project,
@@ -332,6 +334,35 @@ const TimesheetManager = () => {
     return Math.round(total * 100) / 100; // Round to 2 decimal places
   };
 
+  const getTotalMinutesForPeriod = () => {
+  const dates = getVisibleDates();
+  let totalMinutes = 0;
+  dates.forEach(date => {
+    const entries = getTimeEntries(date);
+    entries.forEach(entry => {
+      totalMinutes += (entry.hours || 0) * 60 + (entry.minutes || 0);
+    });
+  });
+  return totalMinutes;
+};
+
+const getTargetMinutes = () => {
+  const targetHours = getTargetHours(); // Weekly: 40 hours, Monthly: 184 hours
+  return targetHours * 60; // Convert hours to minutes
+};
+
+const getDayTotalTime = (date) => {
+  const entries = getTimeEntries(date);
+  let totalMinutes = entries.reduce((total, entry) => {
+    return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
+  }, 0);
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  return { hours, minutes };
+};
+
   const getTotalHoursForPeriod = () => {
     const dates = getVisibleDates();
     let total = 0;
@@ -398,10 +429,10 @@ const TimesheetManager = () => {
           {
             taskType: taskData.taskType,
             hoursSpent: taskData.hoursSpent,
+            minutesSpent: taskData.minutesSpent,
             description: taskData.description,
-            projectId: taskData.projectId || null, // Ensure projectId is passed correctly
-            attachments: taskData.attachments || null, // Handle optional attachment
-            date: new Date(editingTask.date), // or use taskData.date if you allow editing date
+            projectId: taskData.projectId || null,
+            date: new Date(editingTask.date),
           },
           {
             headers: {
@@ -420,12 +451,12 @@ const TimesheetManager = () => {
                 ...res.data,
                 id: res.data.taskId,
                 hours: res.data.hoursSpent,
+                minutes: res.data.minutesSpent,
                 description: res.data.description,
                 task: res.data.taskType,
                 project: res.data.project?.projectName || "",
                 submitted: res.data.submitted,
                 attachment: res.data.attachments,
-                attachmentUrl: res.data.attachments,
                 fullTask: res.data,
               }
               : entry
@@ -447,12 +478,12 @@ const TimesheetManager = () => {
           {
             id: taskData.taskId,
             hours: taskData.hoursSpent,
+            minutes: taskData.minutesSpent,
             description: taskData.description,
             task: taskData.taskType,
             project: taskData.project?.projectName || "",
             submitted: taskData.submitted,
             attachment: taskData.attachment,
-            attachmentUrl: taskData.attachments,
             fullTask: taskData,
           },
         ],
@@ -638,6 +669,9 @@ const TimesheetManager = () => {
           const dateKey = date.toISOString();
           const isOverflowOpen = showOverflowTasks && overflowTasksDate === dateKey;
 
+          // Calculate total hours and minutes for the day
+          const { hours: totalHours, minutes: totalMinutes } = getDayTotalTime(date);
+
           return (
             <div
               key={dateKey}
@@ -672,14 +706,14 @@ const TimesheetManager = () => {
                     key={entry.id}
                     className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
                       } ${isWeekendDay ? 'opacity-90' : ''}`}
-                    title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
+                    title={`${entry.task} - ${entry.hours}h ${entry.minutes}m - ${entry.project}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setTaskDetail(entry.fullTask);
                     }}
                   >
                     <span className="font-semibold">{entry.task}</span>
-                    <span className="text-gray-500">{entry.hours}h</span>
+                    <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
                   </div>
                 ))}
 
@@ -896,24 +930,30 @@ const TimesheetManager = () => {
 
       {/* Progress Bar */}
       <div className="bg-white border-b border-gray-200 flex-shrink-0">
-        <div className="px-6 py-3">
-          <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium text-gray-700">{getTotalHoursForPeriod()} Hrs</span>
-            <div className="flex-1 bg-gray-200 rounded-full h-2 relative">
-              <div
-                className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                style={{
-                  width: `${Math.min((getTotalHoursForPeriod() / getTargetHours()) * 100, 100)}%`
-                }}
-              ></div>
-            </div>
-            <span className="text-sm font-medium text-gray-700">{getTargetHours()} Hrs</span>
-            <span className="text-sm font-medium text-green-600">
-              {getTotalHoursForPeriod() >= getTargetHours() ? "✅" : ""}
-            </span>
-          </div>
-        </div>
+  <div className="px-6 py-3">
+    <div className="flex items-center space-x-4">
+      {/* Total Time Calculation */}
+      <span className="text-sm font-medium text-gray-700">
+        {Math.floor(getTotalMinutesForPeriod() / 60)}h {getTotalMinutesForPeriod() % 60}m
+      </span>
+      <div className="flex-1 bg-gray-200 rounded-full h-2 relative">
+        <div
+          className="bg-green-500 h-2 rounded-full transition-all duration-300"
+          style={{
+            width: `${Math.min((getTotalMinutesForPeriod() / getTargetMinutes()) * 100, 100)}%`
+          }}
+        ></div>
       </div>
+      {/* Target Time Calculation */}
+      <span className="text-sm font-medium text-gray-700">
+        {Math.floor(getTargetMinutes() / 60)}h {getTargetMinutes() % 60}m
+      </span>
+      <span className="text-sm font-medium text-green-600">
+        {getTotalMinutesForPeriod() >= getTargetMinutes() ? "✅" : ""}
+      </span>
+    </div>
+  </div>
+</div>
 
       {/* Timesheet Table */}
       <div className="flex-1 py-6 overflow-hidden">
@@ -953,8 +993,11 @@ const TimesheetManager = () => {
                                 {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
                               </span>
                               <span className={`text-xs mt-1 ${isWeekendDay ? 'text-gray-500' : 'text-gray-400'}`}>
-                                {getDayTotalHours(date)}H/8H
-                              </span>
+  {(() => {
+    const { hours, minutes } = getDayTotalTime(date);
+    return `${hours}h ${minutes}m/8h`;
+  })()}
+</span>
                             </div>
                           </th>
                         );
@@ -1015,7 +1058,7 @@ const TimesheetManager = () => {
                 <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-blue-500" />
-                    <span className="text-base font-semibold text-gray-900">{entry.hours}h</span>
+                    <span className="text-base font-semibold text-gray-900">{entry.hours}h {entry.minutes}m</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {entry.project && (

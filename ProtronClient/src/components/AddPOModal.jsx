@@ -1,5 +1,6 @@
 // AddPOModal.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import Select from 'react-select';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -32,7 +33,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         poAmount: '',
         currency: 'USD',
         customerName: '',
-        supplierName: '',
+        supplierName: sessionStorage.getItem('tenantName') || '',
         projectName: '',
         spocName: '',
         startDate: '',
@@ -43,7 +44,13 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     });
 
     const [users, setUsers] = useState([]);
+    const StartDateInputRef = useRef(null);
+    const EndDateInputRef = useRef(null);
     const [projects, setProjects] = useState([]);
+    const projectOptions = projects.map((project) => ({
+    value: project.projectName,
+    label: project.projectName,
+  }));
 
     const fetchUsers = async () => {
         try {
@@ -130,10 +137,10 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
     const onCellValueChanged = (params) => {
         console.log('Cell changed:', params.colDef.field, params.newValue);
-        
+
         const updatedMilestones = [...formData.milestones];
         const rowIndex = params.node.rowIndex;
-        
+
         if (params.colDef.field === 'amount') {
             updatedMilestones[rowIndex].amount = parseFloat(params.newValue) || 0;
         } else if (params.colDef.field === 'duration') {
@@ -152,7 +159,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 updatedMilestones[rowIndex][params.colDef.field] = params.newValue;
             }
         }
-        
+
         setFormData(prev => ({
             ...prev,
             milestones: updatedMilestones
@@ -177,8 +184,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             editable: true,
             cellEditor: 'agTextCellEditor',
             cellRenderer: (params) => {
-                return params.value === 'Click to add milestone name' ? 
-                    <span className="text-gray-400 italic">+ Click to add milestone name</span> : 
+                return params.value === 'Click to add milestone name' ?
+                    <span className="text-gray-400 italic">+ Click to add milestone name</span> :
                     params.value;
             }
         },
@@ -189,8 +196,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             editable: true,
             cellEditor: 'agTextCellEditor',
             cellRenderer: (params) => {
-                return params.value === 'Click to add description' ? 
-                    <span className="text-gray-400 italic">+ Click to add description</span> : 
+                return params.value === 'Click to add description' ?
+                    <span className="text-gray-400 italic">+ Click to add description</span> :
                     params.value;
             }
         },
@@ -241,8 +248,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             editable: true,
             cellEditor: 'agTextCellEditor',
             cellRenderer: (params) => {
-                return params.value === 'Click to add remark' ? 
-                    <span className="text-gray-400 italic">+ Click to add remark</span> : 
+                return params.value === 'Click to add remark' ?
+                    <span className="text-gray-400 italic">+ Click to add remark</span> :
                     params.value;
             }
         },
@@ -319,15 +326,15 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 poStartDate: formData.startDate || null,
                 poEndDate: formData.endDate || null,
             };
-            
+
             console.log('PO Payload:', poPayload);
-            
+
             const token = sessionStorage.getItem('token');
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL}/api/po/add`,
                 {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Authorization': `${token}`,
                         'Content-Type': 'application/json'
                     },
@@ -338,7 +345,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('PO Created:', data);
-                
+
                 if (formData.milestones.length > 0) {
                     for (const milestone of formData.milestones) {
                         if (milestone.milestoneName && milestone.milestoneName.trim()) {
@@ -353,22 +360,22 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 poId: data.poId || data.id,
                                 poNumber: formData.poNumber
                             };
-                            
+
                             console.log('Milestone data:', milestone);
                             console.log('Milestone payload:', milestonePayload);
-                            
+
                             const milestoneResponse = await fetch(
                                 `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
                                 {
                                     method: 'POST',
-                                    headers: { 
+                                    headers: {
                                         'Authorization': `${token}`,
                                         'Content-Type': 'application/json'
                                     },
                                     body: JSON.stringify(milestonePayload)
                                 }
                             );
-                            
+
                             if (!milestoneResponse.ok) {
                                 const milestoneError = await milestoneResponse.text();
                                 console.error('Milestone error:', milestoneError);
@@ -379,7 +386,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                         }
                     }
                 }
-                
+
                 onSubmit?.(data);
                 handleReset();
                 onClose();
@@ -401,7 +408,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             poAmount: '',
             currency: 'USD',
             customerName: '',
-            supplierName: '',
+            supplierName: sessionStorage.getItem('tenantName') || '',
             projectName: '',
             spocName: '',
             startDate: '',
@@ -429,16 +436,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
                 <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
                     <div className="space-y-6">
-                        <div className="grid grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO ID</label>
-                                <input
-                                    type="text"
-                                    placeholder="Auto-generated"
-                                    disabled
-                                    className="w-full h-14 px-4 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
-                                />
-                            </div>
+                        <div className="grid grid-cols-3 gap-4">
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
                                 <input
@@ -496,25 +495,31 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                                <div className="relative">
+                                <div
+                                    onClick={() => StartDateInputRef.current?.showPicker?.()}
+                                    className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
+                                >
                                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
                                     <input
+                                        ref={StartDateInputRef}
                                         type="date"
                                         value={formData.startDate}
                                         onChange={handleChange('startDate')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full h-full bg-transparent outline-none cursor-pointer"
                                     />
                                 </div>
                             </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                                <div className="relative">
+                                <div onClick={() => EndDateInputRef.current?.showPicker?.()} className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
                                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
                                     <input
+                                        ref={EndDateInputRef}
                                         type="date"
                                         value={formData.endDate}
                                         onChange={handleChange('endDate')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full h-full bg-transparent outline-none cursor-pointer"
                                     />
                                 </div>
                             </div>
@@ -537,19 +542,20 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
                                 <div className="relative">
-                                    <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <select
-                                        value={formData.projectName}
-                                        onChange={handleChange('projectName')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    >
-                                        <option value="">Enter here</option>
-                                        {projects.map((project) => (
-                                            <option key={project.projectId} value={project.projectName}>
-                                                {project.projectName}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
+                                    <div className="pl-10">
+                                        <Select
+                                            options={projectOptions}
+                                            value={projectOptions.find(option => option.value === formData.projectName)}
+                                            onChange={(selectedOption) =>
+                                                handleChange('projectName')({ target: { value: selectedOption.value } })
+                                            }
+                                            className="react-select-container"
+                                            classNamePrefix="react-select"
+                                            placeholder="Enter here"
+                                            isSearchable
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <div>
@@ -600,6 +606,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 value={formData.projectDescription}
                                 onChange={handleChange('projectDescription')}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                maxLength={500}
                             />
                         </div>
 

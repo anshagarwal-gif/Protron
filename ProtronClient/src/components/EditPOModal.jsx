@@ -1,5 +1,6 @@
 // EditPOModal.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import Select from 'react-select';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -47,6 +48,12 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const [users, setUsers] = useState([]);
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(false);
+    const startDateRef = useRef(null);
+    const endDateRef = useRef(null);
+    const projectOptions = projects.map((project) => ({
+    value: project.projectName,
+    label: project.projectName,
+  }));
 
     const fetchUsers = async () => {
         try {
@@ -77,17 +84,17 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
     const fetchPOData = async () => {
         if (!poId) return;
-        
+
         setLoading(true);
         try {
             const token = sessionStorage.getItem('token');
-            
+
             // Fetch PO details
             const poResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po/${poId}`, {
                 headers: { Authorization: `${token}` }
             });
             const poData = await poResponse.json();
-            
+
             // Fetch milestones for this PO
             const milestonesResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/po/${poId}`, {
                 headers: { Authorization: `${token}` }
@@ -113,14 +120,14 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 poAttachment: null, // File attachments need to be handled separately
                 milestones: milestonesData.map(milestone => {
                     console.log('Processing milestone:', milestone); // Debug log
-                    
+
                     // Handle date formatting - convert from backend date to YYYY-MM-DD format
                     let formattedDate = '';
                     if (milestone.msDate) {
                         const date = new Date(milestone.msDate);
                         formattedDate = date.toISOString().split('T')[0];
                     }
-                    
+
                     return {
                         msId: milestone.msId,
                         milestoneName: milestone.msName || '',
@@ -137,7 +144,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
             setFormData(mappedFormData);
             setInitialFormData(mappedFormData);
-            
+
         } catch (error) {
             console.error('Error fetching PO data:', error);
         } finally {
@@ -312,7 +319,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const AttachmentRenderer = (params) => {
         const rowIndex = params.node.rowIndex;
         const fileInputId = 'editfile' + rowIndex;
-        
+
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                 <input
@@ -324,10 +331,10 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 />
                 <button
                     onClick={() => document.getElementById(fileInputId).click()}
-                    style={{ 
-                        padding: '4px', 
-                        borderRadius: '50%', 
-                        border: 'none', 
+                    style={{
+                        padding: '4px',
+                        borderRadius: '50%',
+                        border: 'none',
                         background: 'transparent',
                         cursor: 'pointer',
                         color: '#2563eb'
@@ -345,10 +352,10 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
     const onCellValueChanged = (params) => {
         console.log('Cell changed:', params.colDef.field, params.newValue);
-        
+
         const updatedMilestones = [...formData.milestones];
         const rowIndex = params.node.rowIndex;
-        
+
         if (params.colDef.field === 'amount') {
             updatedMilestones[rowIndex].amount = parseFloat(params.newValue) || 0;
         } else if (params.colDef.field === 'duration') {
@@ -358,7 +365,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         } else {
             updatedMilestones[rowIndex][params.colDef.field] = params.newValue;
         }
-        
+
         setFormData(prev => ({
             ...prev,
             milestones: updatedMilestones
@@ -380,15 +387,15 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 poStartDate: formData.poStartDate || null,
                 poEndDate: formData.poEndDate || null,
             };
-            
+
             console.log('Updating PO with payload:', poPayload);
-            
+
             const token = sessionStorage.getItem('token');
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL}/api/po/edit/${poId}`,
                 {
                     method: 'PUT',
-                    headers: { 
+                    headers: {
                         'Authorization': `${token}`,
                         'Content-Type': 'application/json'
                     },
@@ -399,7 +406,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('PO Updated:', data);
-                
+
                 // Handle milestones - update existing and create new ones
                 for (const milestone of formData.milestones) {
                     if (milestone.milestoneName && milestone.milestoneName.trim()) {
@@ -414,23 +421,23 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                             poId: poId,
                             poNumber: formData.poNumber
                         };
-                        
+
                         console.log('Processing milestone:', milestone);
-                        
+
                         if (milestone.msId) {
                             // Update existing milestone
                             const milestoneResponse = await fetch(
                                 `${import.meta.env.VITE_API_URL}/api/po-milestone/edit/${milestone.msId}`,
                                 {
                                     method: 'PUT',
-                                    headers: { 
+                                    headers: {
                                         'Authorization': `${token}`,
                                         'Content-Type': 'application/json'
                                     },
                                     body: JSON.stringify(milestonePayload)
                                 }
                             );
-                            
+
                             if (!milestoneResponse.ok) {
                                 const milestoneError = await milestoneResponse.text();
                                 console.error('Failed to update milestone:', milestoneError);
@@ -441,14 +448,14 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                 `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
                                 {
                                     method: 'POST',
-                                    headers: { 
+                                    headers: {
                                         'Authorization': `${token}`,
                                         'Content-Type': 'application/json'
                                     },
                                     body: JSON.stringify(milestonePayload)
                                 }
                             );
-                            
+
                             if (!milestoneResponse.ok) {
                                 const milestoneError = await milestoneResponse.text();
                                 console.error('Failed to create milestone:', milestoneError);
@@ -456,7 +463,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                         }
                     }
                 }
-                
+
                 onSubmit?.(data);
                 onClose();
             } else {
@@ -499,16 +506,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-4 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO ID</label>
-                                    <input
-                                        type="text"
-                                        value={formData.poId}
-                                        disabled
-                                        className="w-full h-14 px-4 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
-                                    />
-                                </div>
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
                                     <input
@@ -566,25 +564,34 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                                    <div className="relative">
+                                    <div
+                                        onClick={() => startDateRef.current?.showPicker?.()}
+                                        className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
+                                    >
                                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
                                         <input
+                                            ref={startDateRef}
                                             type="date"
                                             value={formData.poStartDate}
                                             onChange={handleChange('poStartDate')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            className="w-full h-full bg-transparent outline-none cursor-pointer"
                                         />
                                     </div>
                                 </div>
-                                <div>
+
+                                <div className="mt-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                                    <div className="relative">
+                                    <div
+                                        onClick={() => endDateRef.current?.showPicker?.()}
+                                        className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
+                                    >
                                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
                                         <input
+                                            ref={endDateRef}
                                             type="date"
                                             value={formData.poEndDate}
                                             onChange={handleChange('poEndDate')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            className="w-full h-full bg-transparent outline-none cursor-pointer"
                                         />
                                     </div>
                                 </div>
@@ -630,22 +637,23 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         />
                                     </div>
                                 </div>
-                                <div>
+                                <div >
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-                                    <div className="relative">
-                                        <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <select
-                                            value={formData.projectName}
-                                            onChange={handleChange('projectName')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        >
-                                            <option value="">Select project</option>
-                                            {projects.map((project) => (
-                                                <option key={project.projectId} value={project.projectName}>
-                                                    {project.projectName}
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <div className="relative w-full h-14">
+                                    <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
+                                    <div className="pl-10">
+                                        <Select
+                                            options={projectOptions}
+                                            value={projectOptions.find(option => option.value === formData.projectName)}
+                                            onChange={(selectedOption) =>
+                                                handleChange('projectName')({ target: { value: selectedOption.value } })
+                                            }
+                                            className="react-select-container"
+                                            classNamePrefix="react-select"
+                                            placeholder="Enter here"
+                                            isSearchable
+                                        />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -659,6 +667,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         value={formData.poDesc}
                                         onChange={handleChange('poDesc')}
                                         className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                        maxLength={500}
                                     />
                                 </div>
                                 <div>

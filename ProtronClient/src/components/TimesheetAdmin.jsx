@@ -112,40 +112,45 @@
 
     // Day cell renderer with hours
     const DayCellRenderer = (params) => {
-      const { value } = params;
-      if (!value) return <span className="text-sm text-gray-400">0H/8H</span>;
+  const { value } = params;
+  if (!value) return <span className="text-sm text-gray-400">0h 0m/8h 0m</span>;
 
-      const getCellColor = (dayData) => {
-        const worked = dayData.worked;
-        const expected = dayData.expected;
+  const getCellColor = (dayData) => {
+    const workedMinutes = dayData.worked.hours * 60 + dayData.worked.minutes;
+    const expectedMinutes = dayData.expected.hours * 60 + dayData.expected.minutes;
 
-        if (worked === 0) return 'text-red-600';
-        if (worked >= expected) return 'text-green-600';
-        return 'text-yellow-600';
-      };
+    if (workedMinutes === 0) return 'text-red-600';
+    if (workedMinutes >= expectedMinutes) return 'text-green-600';
+    return 'text-yellow-600';
+  };
 
-      return (
-        <span className={`text-sm font-medium ${getCellColor(value)}`}>
-          {value.display}
-        </span>
-      );
-    };
+  return (
+    <span className={`text-sm font-medium ${getCellColor(value)}`}>
+      {value.display}
+    </span>
+  );
+};
 
     // Total hours cell renderer
     const TotalCellRenderer = (params) => {
-      const { data } = params;
-      const getTotalColor = (total, expected) => {
-        if (total === 0) return 'text-red-600';
-        if (total >= expected) return 'text-green-600';
-        return 'text-yellow-600';
-      };
+  const { data } = params;
 
-      return (
-        <span className={`text-sm font-bold ${getTotalColor(data.totalHours, data.expectedHours)}`}>
-          {data.totalHours}H/{data.expectedHours}H
-        </span>
-      );
-    };
+  const getTotalColor = (total, expected) => {
+    const totalMinutes = total.hours * 60 + total.minutes;
+    const expectedMinutes = expected.hours * 60 + expected.minutes;
+
+    if (totalMinutes === 0) return 'text-red-600';
+    if (totalMinutes >= expectedMinutes) return 'text-green-600';
+    return 'text-yellow-600';
+  };
+
+  return (
+    <span className={`text-sm font-bold ${getTotalColor(data.totalHours, data.expectedHours)}`}>
+      {data.totalHours.hours}h {data.totalHours.minutes}m/
+      {data.expectedHours.hours}h {data.expectedHours.minutes}m
+    </span>
+  );
+};
 
     // Actions cell renderer
     const ActionsCellRenderer = (params) => {
@@ -164,75 +169,74 @@
 
     // AG Grid column definitions
     const columnDefs = useMemo(() => {
-      const weekdays = getWeekdays();
+  const weekdays = getWeekdays();
 
-      const dayColumns = weekdays.map((day, index) => ({
-        headerName: day.toLocaleDateString('en-GB', {  day: "2-digit", month: "short", year: "2-digit"}),
-        field: `day${index}`,
-        cellRenderer: DayCellRenderer,
-        valueGetter: (params) => params.data.dailyHours?.[index+1],
-        sortable: false,
-        filter: false,
-        resizable: true,
-        width: 120,
-        minWidth: 100,
-        maxWidth: 150,
-        suppressMenu: true,
-      }));
+  const dayColumns = weekdays.map((day, index) => ({
+    headerName: day.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }),
+    field: `day${index}`,
+    cellRenderer: DayCellRenderer,
+    valueGetter: (params) => params.data.dailyHours?.[index],
+    sortable: false,
+    filter: false,
+    resizable: true,
+    width: 120,
+    minWidth: 100,
+    maxWidth: 150,
+    suppressMenu: true,
+  }));
 
-      return [
-        {
-          headerName: "#",
-          valueGetter: "node.rowIndex + 1",
-
-          minWidth: 30,
-          maxWidth: 50,
-          pinned: "left",
-          sortable: false,
-          filter: false,
-          suppressMenu: true,
-          cellStyle: { textAlign: 'center' }
-        },
-        {
-          headerName: "Name",
-          field: "name",
-          cellRenderer: NameCellRenderer,
-          sortable: true,
-          filter: true,
-          resizable: true,
-          width: 250,
-          minWidth: 200,
-          maxWidth: 350,
-          pinned: 'left',
-        },
-        ...dayColumns,
-        {
-          headerName: "Total",
-          field: "totalHours",
-          cellRenderer: TotalCellRenderer,
-          sortable: true,
-          filter: false,
-          resizable: true,
-          width: 130,
-          minWidth: 120,
-          maxWidth: 180,
-          pinned: 'right',
-        },
-        {
-          headerName: "Actions",
-          field: "actions",
-          cellRenderer: ActionsCellRenderer,
-          sortable: false,
-          filter: false,
-          resizable: false,
-          width: 120,
-          minWidth: 100,
-          maxWidth: 150,
-          suppressMenu: true,
-          pinned: 'right',
-        }
-      ];
-    }, [currentWeek]);
+  return [
+    {
+      headerName: "#",
+      valueGetter: "node.rowIndex + 1",
+      minWidth: 30,
+      maxWidth: 50,
+      pinned: "left",
+      sortable: false,
+      filter: false,
+      suppressMenu: true,
+      cellStyle: { textAlign: 'center' },
+    },
+    {
+      headerName: "Name",
+      field: "name",
+      cellRenderer: NameCellRenderer,
+      sortable: true,
+      filter: true,
+      resizable: true,
+      width: 250,
+      minWidth: 200,
+      maxWidth: 350,
+      pinned: 'left',
+    },
+    ...dayColumns,
+    {
+      headerName: "Total",
+      field: "totalHours",
+      cellRenderer: TotalCellRenderer,
+      sortable: true,
+      filter: false,
+      resizable: true,
+      width: 130,
+      minWidth: 120,
+      maxWidth: 180,
+      pinned: 'right',
+    },
+    {
+      headerName: "Actions",
+      field: "actions",
+      cellRenderer: ActionsCellRenderer,
+      sortable: false,
+      filter: false,
+      resizable: false,
+      width: 120,
+      minWidth: 100,
+      maxWidth: 150,
+      suppressMenu: true,
+      pinned: 'right',
+    },
+  ];
+}, [currentWeek]);
 
     // AG Grid default column definition
     const defaultColDef = useMemo(() => ({
@@ -293,84 +297,102 @@
 
     // Fetch timesheet data
     const fetchTimesheetData = async () => {
-      setLoading(true);
-      try {
-        const loggedInUserEmail = sessionData.email;
-        console.log(weekStart)
-        const startParam = weekStart.toISOString().split('T')[0];
-        console.log('Start Date:', startParam);
-        const endParam = weekEnd.toISOString().split('T')[0];
+  setLoading(true);
+  try {
+    const loggedInUserEmail = sessionData.email;
+    const startParam = weekStart.toISOString().split('T')[0];
+    const endParam = weekEnd.toISOString().split('T')[0];
 
-        console.log('Fetching timesheet data for:', { startParam, endParam });
+    const response = await fetch(`${API_BASE_URL}/api/timesheet-tasks/admin/summary?start=${startParam}&end=${endParam}`, {
+      headers: {
+        Authorization: `${sessionStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-        const response = await fetch(`${API_BASE_URL}/api/timesheet-tasks/admin/summary?start=${startParam}&end=${endParam}`, {
-          headers: {
-            Authorization: `${sessionStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    const data = await response.json();
 
-        const data = await response.json();
-        console.log('API Response:', data);
+    // Transform data to match UI structure
+    const transformedData = data.map((user, index) => {
+      const currentWeekdays = getWeekdays();
 
-        // Transform data to match UI structure
-        const transformedData = data.map((user, index) => {
-          const currentWeekdays = getWeekdays();
+      const dailyHours = currentWeekdays.map((day) => {
+        const dayKey = day.toISOString().split('T')[0];
+        const hoursWorked = user.dailyHours?.[dayKey]?.hours || 0;
+        const minutesWorked = user.dailyHours?.[dayKey]?.minutes || 0;
 
-          const dailyHours = currentWeekdays.map(day => {
-            const dayKey = day.toISOString().split('T')[0];
-            const hoursWorked = user.dailyHours?.[dayKey] || 0;
-            const workedRounded = Math.round((parseFloat(hoursWorked) || 0) * 100) / 100;
-            const expectedDaily = 8;
-            return {
-              worked: workedRounded,
-              expected: expectedDaily,
-              display: `${workedRounded}H/${expectedDaily}H`
-            };
-          });
+        const totalMinutes = hoursWorked * 60 + minutesWorked;
+        const workedHours = Math.floor(totalMinutes / 60);
+        const workedMinutes = totalMinutes % 60;
 
-          const totalWorkedHours = dailyHours.reduce((sum, day) => sum + day.worked, 0);
-          const totalExpectedHours = dailyHours.length * 8;
+        const expectedDailyMinutes = 8 * 60; // 8 hours in minutes
+        const expectedHours = Math.floor(expectedDailyMinutes / 60);
+        const expectedMinutes = expectedDailyMinutes % 60;
 
-          return {
-            id: user.userId || index + 1,
-            name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || `User ${index + 1}`,
-            email: user.email,
-            avatar: user.name ? user.name.charAt(0).toUpperCase() : (user.email ? user.email.charAt(0).toUpperCase() : 'U'),
-            dailyHours: dailyHours,
-            totalHours: Math.round(totalWorkedHours * 100) / 100,
-            expectedHours: totalExpectedHours,
-            rawData: user
-          };
-        });
+        return {
+          worked: { hours: workedHours, minutes: workedMinutes },
+          expected: { hours: expectedHours, minutes: expectedMinutes },
+          display: `${workedHours}h ${workedMinutes}m/${expectedHours}h ${expectedMinutes}m`,
+        };
+      });
 
-        const loggedInUserData = transformedData.filter((user) => user.email === loggedInUserEmail);
-        const otherUsersData = transformedData.filter((user) => user.email !== loggedInUserEmail);
+      const totalWorkedMinutes = dailyHours.reduce(
+        (sum, day) => sum + day.worked.hours * 60 + day.worked.minutes,
+        0
+      );
+      const totalExpectedMinutes = dailyHours.length * 8 * 60;
 
-        setTimesheetData([...loggedInUserData, ...otherUsersData]);
-      } catch (error) {
-        console.error('Error fetching timesheet data:', error);
+      const totalWorkedHours = Math.floor(totalWorkedMinutes / 60);
+      const totalWorkedRemainingMinutes = totalWorkedMinutes % 60;
 
-        if (error.message.includes('401')) {
-          alert('Authentication failed. Please log in again.');
-        } else if (error.message.includes('403')) {
-          alert('Access denied. You do not have permission to view timesheet data.');
-        } else if (error.message.includes('500')) {
-          alert('Server error. Please try again later.');
-        } else if (error.name === 'TypeError') {
-          alert('Network error. Please check your connection and try again.');
-        } else {
-          alert('Failed to load timesheet data. Please try again.');
-        }
+      const totalExpectedHours = Math.floor(totalExpectedMinutes / 60);
+      const totalExpectedRemainingMinutes = totalExpectedMinutes % 60;
 
-        setTimesheetData([]);
-      }
-      setLoading(false);
-    };
+      return {
+        id: user.userId || index + 1,
+        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || `User ${index + 1}`,
+        email: user.email,
+        avatar: user.name ? user.name.charAt(0).toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U',
+        dailyHours: dailyHours,
+        totalHours: {
+          hours: totalWorkedHours,
+          minutes: totalWorkedRemainingMinutes,
+        },
+        expectedHours: {
+          hours: totalExpectedHours,
+          minutes: totalExpectedRemainingMinutes,
+        },
+        rawData: user,
+      };
+    });
+
+    const loggedInUserData = transformedData.filter((user) => user.email === loggedInUserEmail);
+    const otherUsersData = transformedData.filter((user) => user.email !== loggedInUserEmail);
+
+    setTimesheetData([...loggedInUserData, ...otherUsersData]);
+  } catch (error) {
+    console.error('Error fetching timesheet data:', error);
+
+    if (error.message.includes('401')) {
+      alert('Authentication failed. Please log in again.');
+    } else if (error.message.includes('403')) {
+      alert('Access denied. You do not have permission to view timesheet data.');
+    } else if (error.message.includes('500')) {
+      alert('Server error. Please try again later.');
+    } else if (error.name === 'TypeError') {
+      alert('Network error. Please check your connection and try again.');
+    } else {
+      alert('Failed to load timesheet data. Please try again.');
+    }
+
+    setTimesheetData([]);
+  }
+  setLoading(false);
+};
 
     useEffect(() => {
       fetchTimesheetData();

@@ -23,7 +23,8 @@ public class TimesheetTask {
     private Long taskId;
     private String taskType;
     private Date date;
-    private Double hoursSpent;
+    private int hoursSpent;
+    private int minutesSpent;
     @Column(length = 500)
     private String description;
     private boolean isSubmitted = false;
@@ -77,12 +78,20 @@ public class TimesheetTask {
         this.date = date;
     }
 
-    public Double getHoursSpent() {
+    public int getHoursSpent() {
         return hoursSpent;
     }
 
-    public void setHoursSpent(Double hoursSpent) {
+    public void setHoursSpent(int hoursSpent) {
         this.hoursSpent = hoursSpent;
+    }
+
+    public int getMinutesSpent() {
+        return minutesSpent;
+    }
+
+    public void setMinutesSpent(int minutesSpent) {
+        this.minutesSpent = minutesSpent;
     }
 
     public String getDescription() {

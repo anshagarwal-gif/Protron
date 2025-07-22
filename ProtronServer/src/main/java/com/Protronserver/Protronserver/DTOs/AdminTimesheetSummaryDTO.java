@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import com.Protronserver.Protronserver.Utils.TimeEntry;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,19 +16,10 @@ public class AdminTimesheetSummaryDTO {
     private Long userId;
     private String name;
     private String email;
-    private Map<String, Double> dailyHours; // Date string -> hours worked
-    private double totalHours;
+    private Map<String, TimeEntry> dailyHours;
+    private int totalHours;
+    private int totalMinutes;
 
-    // Constructors, Getters, Setters
-
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
     public Long getUserId() {
         return userId;
@@ -45,20 +37,36 @@ public class AdminTimesheetSummaryDTO {
         this.name = name;
     }
 
-    public Map<String, Double> getDailyHours() {
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Map<String, TimeEntry> getDailyHours() {
         return dailyHours;
     }
 
-    public void setDailyHours(Map<String, Double> dailyHours) {
+    public void setDailyHours(Map<String, TimeEntry> dailyHours) {
         this.dailyHours = dailyHours;
     }
 
-    public double getTotalHours() {
+    public int getTotalHours() {
         return totalHours;
     }
 
-    public void setTotalHours(double totalHours) {
+    public void setTotalHours(int totalHours) {
         this.totalHours = totalHours;
+    }
+
+    public int getTotalMinutes() {
+        return totalMinutes;
+    }
+
+    public void setTotalMinutes(int totalMinutes) {
+        this.totalMinutes = totalMinutes;
     }
 }
 
