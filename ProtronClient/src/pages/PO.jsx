@@ -25,11 +25,14 @@ import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddPOModal from "../components/AddPOModal";
 import EditPOModal from "../components/EditPOModal";
 import SRNManagement from "./SRN";
+import POConsumptionManagement from "./POUtilization";
+
 
 const POManagement = () => {
   const navigate = useNavigate();
   const { hasAccess } = useAccess();
   const srnRef = useRef();
+  const poRef = useRef();
 
   // State management
   const [activeTab, setActiveTab] = useState("details");
@@ -250,7 +253,21 @@ const POManagement = () => {
   const handleAddPO = () => {
     setIsAddModalOpen(true);
   };
+// Add these functions to your POManagement.js file
 
+// PO Consumption Excel download function
+const downloadConsumptionExcel = () => {
+  if (poRef.current && poRef.current.downloadConsumptionExcel) {
+    poRef.current.downloadConsumptionExcel();
+  }
+};
+
+// Handle Add PO Consumption
+const handleAddConsumption = () => {
+  if (poRef.current && poRef.current.handleAddConsumption) {
+    poRef.current.handleAddConsumption();
+  }
+};
   const handleAddSRN = () => {
     if (srnRef.current && srnRef.current.handleAddSRN) {
       srnRef.current.handleAddSRN();
@@ -767,15 +784,7 @@ const POManagement = () => {
           </div>
         );
       case "utilization":
-        return (
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
-            <div className="text-center">
-              <TrendingUp size={64} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-xl font-medium text-gray-900 mb-2">PO Utilization</h3>
-              <p className="text-gray-500">PO utilization analytics and reports will be displayed here.</p>
-            </div>
-          </div>
-        );
+        return <POConsumptionManagement ref={poRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
       case "srn":
         return <SRNManagement ref={srnRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       default:
@@ -862,16 +871,20 @@ const POManagement = () => {
 
         {/* Right side - Search and action buttons */}
         <div className="flex items-center gap-4">
-          {/* Search input - show for PO Details and SRN tabs */}
-          {(activeTab === "details" || activeTab === "srn") && (
-            <div className="relative w-64">
-              <input
-                type="text"
-                placeholder={activeTab === "details" ? "Search POs..." : "Search SRNs..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+     {/* Search input - show for all tabs */}
+  {(activeTab === "details" || activeTab === "utilization" || activeTab === "srn") && (
+    <div className="relative w-64">
+      <input
+        type="text"
+        placeholder={
+          activeTab === "details" ? "Search POs..." : 
+          activeTab === "utilization" ? "Search PO Consumptions..." :
+          "Search SRNs..."
+        }
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
               <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
             </div>
           )}
@@ -885,7 +898,16 @@ const POManagement = () => {
               <Download size={18} className="mr-2" />
               Download Excel
             </button>
-          )}
+          )} 
+           {activeTab === "utilization" && (
+    <button
+      className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+      onClick={downloadConsumptionExcel}
+    >
+      <Download size={18} className="mr-2" />
+      Download Excel
+    </button>
+  )}
 
           {activeTab === "srn" && (
             <button
@@ -907,6 +929,15 @@ const POManagement = () => {
               Add PO
             </button>
           )}
+          {activeTab === "utilization" && (
+    <button
+      className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+      onClick={handleAddConsumption}
+    >
+      <Plus size={18} className="mr-2" />
+      Add Consumption
+    </button>
+  )}
 
           {activeTab === "srn" && (
             <button
