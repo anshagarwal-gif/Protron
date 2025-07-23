@@ -20,6 +20,7 @@ import {
   User,
   Layout
 } from 'lucide-react';
+import { useSession } from '../Context/SessionContext';
 
 const TaskDetailsModal = ({ 
   isOpen, 
@@ -27,6 +28,8 @@ const TaskDetailsModal = ({
   taskDetail, 
   onEdit, 
   onDelete,
+  employee,
+  isEmployeeView,
   hasAccess = () => true,
   handleViewAttachment = () => {},
   handleDownloadAttachment = () => {},
@@ -44,6 +47,7 @@ const TaskDetailsModal = ({
 }) => {
   const [previewAttachment, setPreviewAttachment] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const { sessionData } = useSession();
 
   // Close modal on escape key
   useEffect(() => {
@@ -267,7 +271,7 @@ const TaskDetailsModal = ({
               </div>
               <div className='flex'>
               <div className="flex gap-2">
-                  {hasAccess("timesheet", "edit") && (
+                  {hasAccess("timesheet", "edit") && isEmployeeView && (
                     <button
                       onClick={handleEdit}
                       className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-sm"
@@ -277,7 +281,7 @@ const TaskDetailsModal = ({
                       Edit
                     </button>
                   )}
-                  {hasAccess("timesheet", "delete") && (
+                  {hasAccess("timesheet", "delete") && isEmployeeView && (
                     <button
                       onClick={handleDelete}
                       className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-sm"

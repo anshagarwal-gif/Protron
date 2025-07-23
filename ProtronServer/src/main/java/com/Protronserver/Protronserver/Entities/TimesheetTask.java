@@ -27,7 +27,7 @@ public class TimesheetTask {
     private int minutesSpent;
     @Column(length = 500)
     private String description;
-    private boolean isSubmitted = false;
+    private boolean isSubmitted = true;
 
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;

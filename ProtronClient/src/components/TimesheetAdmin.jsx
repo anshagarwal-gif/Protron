@@ -113,7 +113,7 @@
     // Day cell renderer with hours
     const DayCellRenderer = (params) => {
   const { value } = params;
-  if (!value) return <span className="text-sm text-gray-400">0h 0m/8h 0m</span>;
+  if (!value) return <span className="text-sm text-gray-400">0h 0m</span>;
 
   const getCellColor = (dayData) => {
     const workedMinutes = dayData.worked.hours * 60 + dayData.worked.minutes;
@@ -126,7 +126,8 @@
 
   return (
     <span className={`text-sm font-medium ${getCellColor(value)}`}>
-      {value.display}
+      
+      {value.worked.hours}h {value.worked.minutes}m
     </span>
   );
 };
@@ -146,8 +147,8 @@
 
   return (
     <span className={`text-sm font-bold ${getTotalColor(data.totalHours, data.expectedHours)}`}>
-      {data.totalHours.hours}h {data.totalHours.minutes}m/
-      {data.expectedHours.hours}h {data.expectedHours.minutes}m
+      {data.totalHours.hours}h {data.totalHours.minutes}m
+      
     </span>
   );
 };

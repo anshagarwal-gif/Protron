@@ -191,10 +191,6 @@ public class TimesheetTaskService {
         TimesheetTask existingTask = timesheetTaskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        if (existingTask.isSubmitted()) {
-            throw new RuntimeException("Submitted tasks cannot be edited.");
-        }
-
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof User user) {
             existingTask.setLastUpdatedBy(user.getEmail());

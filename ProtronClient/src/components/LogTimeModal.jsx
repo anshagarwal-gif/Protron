@@ -44,7 +44,7 @@ const truncateText = (text, maxLength = 20) => {
   return text.substring(0, maxLength) + "...";
 };
 
-const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, editingTask }) => {
+const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, editingTask, timesheetData }) => {
   const [formData, setFormData] = useState({
     taskType: '',
     hours: '',
@@ -57,10 +57,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
   const [projects, setProjects] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
-
+  const [existingTime, setExistingTime] = useState(0);
   // Calendar popover state
   const [calendarAnchorEl, setCalendarAnchorEl] = useState(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [error, setError] = useState('');
 
   // Snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -173,10 +174,10 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
         console.log(editingTask, "et")
         // Pre-fill fields from editingTask
         const totalMinutes =
-        (editingTask.hours || editingTask.hoursSpent || 0) * 60 +
-        (editingTask.minutes || editingTask.minutesSpent || 0);
-      const hours = Math.floor(totalMinutes / 60);
-      const minutes = totalMinutes % 60;
+          (editingTask.hours || editingTask.hoursSpent || 0) * 60 +
+          (editingTask.minutes || editingTask.minutesSpent || 0);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
 
         setFormData({
           taskType: editingTask.taskType || editingTask.task || '',
@@ -200,6 +201,38 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       }
     }
   }, [isOpen, editingTask]);
+
+  useEffect(() => {
+    if (selectedDate && timesheetData && projects) {
+      const dateKey = selectedDate.toISOString().split("T")[0];
+      const entries = timesheetData[dateKey] || [];
+      const totalMinutes = entries.reduce((total, entry) => {
+        return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
+      }, 0);
+
+      setExistingTime(totalMinutes);
+    }
+  }, [selectedDate, timesheetData, projects]);
+
+  const validateTime = (hours, minutes) => {
+    
+    const currentMinutes = (parseInt(hours, 10) || 0) * 60 + (parseInt(minutes, 10) || 0);
+    
+    let additionalTime = 0
+    
+    if(editingTask){
+      console.log("Editing task, adding existing time to current time");
+      additionalTime = (parseInt(editingTask.hoursSpent, 10) || 0) * 60 + (parseInt(editingTask.minutesSpent, 10) || 0);
+    }
+    console.log("Current minutes:", currentMinutes, "Existing time:", existingTime, additionalTime);
+
+    if ((existingTime - additionalTime)  + currentMinutes > 1440) { // 1440 minutes = 24 hours
+      setError('Total time for the day cannot exceed 24 hours.');
+      return false;
+    }
+    setError('');
+    return true;
+  };
 
   // Auto-select project if only one available
   useEffect(() => {
@@ -280,9 +313,18 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
   };
 
   const handleInputChange = (field) => (event) => {
-    setFormData(prev => ({
+    const value = event.target.value;
+
+    if (field === 'hours' || field === 'minutes') {
+      const updatedFormData = { ...formData, [field]: value };
+      if (!validateTime(updatedFormData.hours, updatedFormData.minutes)) {
+        return; // Prevent invalid input
+      }
+    }
+
+    setFormData((prev) => ({
       ...prev,
-      [field]: event.target.value
+      [field]: value
     }));
   };
 
@@ -397,6 +439,10 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
+    }
+
+    if (!validateTime(formData.hours, formData.minutes)) {
+      return; // Prevent submission if validation fails
     }
 
     setIsSubmitting(true);
@@ -696,10 +742,22 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       value={formData.hours}
                       onChange={handleInputChange('hours')}
                       placeholder="HH"
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) && // Allow only numbers
+                          e.key !== 'Backspace' && // Allow backspace
+                          e.key !== 'Delete' && // Allow delete
+                          e.key !== 'ArrowLeft' && // Allow left arrow
+                          e.key !== 'ArrowRight' && // Allow right arrow
+                          e.key !== 'Tab' // Allow tab
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
                       inputProps={{ min: 0, max: 24 }}
                       sx={{ flex: 1 }}
                       error={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24)}
-                      helperText={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24) ? "0-24" : ""}
+                      helperText={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24) ? "0-24" : error ? error : ""}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -718,10 +776,22 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       value={formData.minutes}
                       onChange={handleInputChange('minutes')}
                       placeholder="MM"
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) && // Allow only numbers
+                          e.key !== 'Backspace' && // Allow backspace
+                          e.key !== 'Delete' && // Allow delete
+                          e.key !== 'ArrowLeft' && // Allow left arrow
+                          e.key !== 'ArrowRight' && // Allow right arrow
+                          e.key !== 'Tab' // Allow tab
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
                       inputProps={{ min: 0, max: 59 }}
                       sx={{ flex: 1 }}
                       error={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60)}
-                      helperText={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60) ? "0-59" : ""}
+                      helperText={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60) ? "0-59" : error ? error : ""}
                       InputProps={{
                         sx: { height: fieldHeight }
                       }}

@@ -280,41 +280,6 @@ const IndividualTimesheet = () => {
     }
   };
 
-  const handleSubmitTimesheet = async () => {
-    const dates = getVisibleDates();
-    if (!dates.length) return;
-    const start = dates[0].toISOString().split("T")[0];
-    const end = dates[dates.length - 1].toISOString().split("T")[0];
-
-    try {
-      await axios.post(
-        `${API_BASE_URL}/api/timesheet-tasks/submit?start=${start}&end=${end}`,
-        {},
-        {
-          headers: {
-            Authorization: sessionStorage.getItem("token"),
-          },
-        }
-      );
-      // Option 1: Refetch tasks for real-time update (recommended for accuracy)
-      fetchTasks();
-      showToast("Timesheet submitted successfully! 🎉", "success");
-      // Option 2: If you want to update manually for performance, you could do:
-      // setTimesheetData(prev => {
-      //   const updated = { ...prev };
-      //   dates.forEach(date => {
-      //     const key = date.toISOString().split("T")[0];
-      //     if (updated[key]) {
-      //       updated[key] = updated[key].map(entry => ({ ...entry, submitted: true }));
-      //     }
-      //   });
-      //   return updated;
-      // });
-    } catch (error) {
-      showToast("Failed to submit timesheet", "error");
-    }
-  };
-
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length || !employee?.rawData?.userId) return;
@@ -421,17 +386,6 @@ const IndividualTimesheet = () => {
   const getTimeEntries = (date) => {
     const dateKey = formatDateKey(date);
     return timesheetData[dateKey] || [];
-  };
-
-  const hasUnsubmittedTasks = () => {
-    const dates = getVisibleDates();
-    for (const date of dates) {
-      const entries = getTimeEntries(date);
-      if (entries.some(entry => !entry.submitted)) {
-        return true;
-      }
-    }
-    return false;
   };
 
   const handleLogTimeSave = async (taskData) => {
@@ -666,99 +620,185 @@ const IndividualTimesheet = () => {
   const gridCells = [null].concat(dates);
 
   return (
-    <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
-      {gridCells.map((date, index) => {
-        if (!date) {
-          // Render the single empty cell
+    <div className="flex flex-col h-full">
+      {/* Header Row with Navigation Arrows */}
+      <div className="flex items-center justify-between bg-gray-100 p-2 border-b border-gray-200 h-full">
+        <button
+          onClick={() => navigatePeriod("prev")}
+          className="p-2 hover:bg-white rounded-md transition-colors h-full"
+        >
+          <ChevronLeft className="h-4 w-4 text-gray-600" />
+        </button>
+       
+        
+    
+
+      {/* Grid for Monthly View */}
+      <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
+        
+        {gridCells.map((date, index) => {
+          if (!date) {
+            // Render the single empty cell
+            return (
+              <div
+                key={index}
+                className="border border-gray-200 bg-gray-50"
+                style={{
+                  aspectRatio: "5/6",
+                }}
+              ></div>
+            );
+          }
+
+          const entries = getTimeEntries(date);
+          const isToday = date.toDateString() === new Date().toDateString();
+          const isWeekendDay = isWeekend(date);
+          const maxVisibleTasks = 5;
+          const visibleTasks = entries.slice(0, maxVisibleTasks);
+          const overflowTasks = entries.slice(maxVisibleTasks);
+          const remainingTasksCount = overflowTasks.length;
+          const dateKey = date.toISOString();
+          const isOverflowOpen = showOverflowTasks && overflowTasksDate === dateKey;
+
+          // Calculate total hours and minutes for the day
+          const { hours: totalHours, minutes: totalMinutes } = getDayTotalTime(date);
+
           return (
             <div
-              key={index}
-              className="border border-gray-200 bg-gray-50"
+              key={dateKey}
+              className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
+                ? "border-blue-400 bg-blue-50 shadow-md z-20"
+                : `border-gray-200 ${isToday
+                  ? "bg-blue-50"
+                  : isWeekendDay
+                    ? "bg-gray-100"
+                    : "bg-white"
+                }`
+                }`}
               style={{
-                aspectRatio: "5/6",
+                aspectRatio: "5/6"
               }}
-            ></div>
-          );
-        }
+              onMouseEnter={() => setHoveredCell(dateKey)}
+              onMouseLeave={() => setHoveredCell(null)}
+              onClick={(e) => {
+                // Prevent modal opening if clicking on a task
+                if (e.target.closest(".task-entry")) return;
+                if (sessionData.email === employee.email) handleCellClick(date);
+              }}
+            >
+              <div className={`text-xs font-medium ${isWeekendDay ? 'text-gray-600' : 'text-gray-500'}`}>
+                {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
+              </div>
 
-        const entries = getTimeEntries(date);
-        const isToday = date.toDateString() === new Date().toDateString();
-        const isWeekendDay = isWeekend(date);
-        const maxVisibleTasks = 5;
-        const visibleTasks = entries.slice(0, maxVisibleTasks);
-        const overflowTasks = entries.slice(maxVisibleTasks);
-        const remainingTasksCount = overflowTasks.length;
-        const dateKey = date.toISOString();
-        const isOverflowOpen = showOverflowTasks && overflowTasksDate === dateKey;
+              <div className="space-y-1 mt-2">
+                {/* Visible tasks */}
+                {visibleTasks.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity bg-green-200 border-green-200
+                      } ${isWeekendDay ? 'opacity-90' : ''}`}
+                    title={`${entry.task} - ${entry.hours}h ${entry.minutes}m - ${entry.project}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTaskDetail(entry.fullTask);
+                    }}
+                  >
+                    <span className="font-semibold">{entry.task}</span>
+                    <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
+                  </div>
+                ))}
 
-        // Calculate total hours and minutes for the day
-        const { hours: totalHours, minutes: totalMinutes } = getDayTotalTime(date);
+                {/* Show more button */}
+                {remainingTasksCount > 0 && (
+                  <div
+                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${isWeekendDay ? 'opacity-90' : ''
+                      }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowOverflowTasks(!isOverflowOpen);
+                      setOverflowTasksDate(isOverflowOpen ? null : dateKey);
+                    }}
+                  >
+                    <span className="font-semibold">
+                      {isOverflowOpen ? `- Hide ${remainingTasksCount} tasks` : `+ ${remainingTasksCount} more tasks`}
+                    </span>
+                  </div>
+                )}
+              </div>
 
-        return (
-          <div
-            key={dateKey}
-            className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
-              ? "border-blue-400 bg-blue-50 shadow-md z-20"
-              : `border-gray-200 ${isToday
-                ? "bg-blue-50"
-                : isWeekendDay
-                  ? "bg-gray-100"
-                  : "bg-white"
-              }`
-              }`}
-            style={{
-              aspectRatio: "5/6",
-            }}
-            onMouseEnter={() => setHoveredCell(dateKey)}
-            onMouseLeave={() => setHoveredCell(null)}
-            onClick={(e) => {
-              // Prevent modal opening if clicking on a task
-              if (e.target.closest(".task-entry")) return;
-              if (sessionData.email === employee.email) handleCellClick(date);
-            }}
-          >
-            <div className={`text-xs font-medium ${isWeekendDay ? 'text-gray-600' : 'text-gray-500'}`}>
-              {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
-            </div>
-
-            <div className="space-y-1 mt-2">
-              {/* Visible tasks */}
-              {visibleTasks.map((entry) => (
-                <div
-                  key={entry.id}
-                  className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity ${entry.submitted ? "bg-green-200 border-green-200" : "bg-red-200 border-red-200"
-                    } ${isWeekendDay ? 'opacity-90' : ''}`}
-                  title={`${entry.task} - ${entry.hours}h ${entry.minutes}m - ${entry.project}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTaskDetail(entry.fullTask);
-                  }}
-                >
-                  <span className="font-semibold">{entry.task}</span>
-                  <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
-                </div>
-              ))}
-
-              {/* Show more button */}
-              {remainingTasksCount > 0 && (
-                <div
-                  className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${isWeekendDay ? 'opacity-90' : ''
+              {hoveredCell === dateKey && sessionData.email === employee.email && (
+              <div
+                className={`absolute flex items-center justify-center transition-all ${entries.length === 0
+                  ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12"
+                  : overflowTasks.length > 0
+                    ? "top-2.5 right-2 w-4 h-4"
+                    : "bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6"
+                  }`}
+              >
+                <button
+                  className={`bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg ${entries.length === 0 ? "text-xl" : "text-sm"
                     }`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowOverflowTasks(!isOverflowOpen);
-                    setOverflowTasksDate(isOverflowOpen ? null : dateKey);
+                    handleCellClick(date);
                   }}
                 >
-                  <span className="font-semibold">
-                    {isOverflowOpen ? `- Hide ${remainingTasksCount} tasks` : `+ ${remainingTasksCount} more tasks`}
-                  </span>
+                  <Plus className={`${entries.length === 0 ? "h-6 w-6" : "h-3 w-3"} ${entries.length === 0
+                    ? "h-6 w-6"
+                    : overflowTasks.length > 0
+                      ? "h-3 w-3"
+                      : "h-5 w-5"
+                    }`} />
+                </button>
+              </div>
+            )}
+
+            {isOverflowOpen && (
+                <div
+                  className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
+                  style={{
+                    // Position dropdown above if it's in the last few rows, below otherwise
+                    ...(index >= gridCells.length - 22
+                      ? { bottom: '100%', marginBottom: '8px' }
+                      : { top: '100%', marginTop: '8px' })
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="pb-3">
+                    <div className="text-xs font-semibold text-blue-700 mb-2 border-b border-blue-200 pb-2 bg-blue-50 p-3 rounded-t-lg flex items-center justify-between">
+                      <span>Additional tasks for {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}</span>
+                    </div>
+                    <div className="space-y-2 px-2">
+                      {overflowTasks.map((entry) => (
+                        <div
+                          key={entry.id}
+                          className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacitybg-green-200 border-green-200`}
+                          title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTaskDetail(entry.fullTask);
+                          }}
+                        >
+                          <span className="font-semibold">{entry.task}</span>
+                          <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      
+      </div>
+      <button
+          onClick={() => navigatePeriod("next")}
+          className="p-2 hover:bg-white rounded-md transition-colors h-full"
+        >
+          <ChevronRight className="h-4 w-4 text-gray-600" />
+        </button>
+      </div>
     </div>
   );
 };
@@ -880,16 +920,6 @@ const IndividualTimesheet = () => {
                   <span>Copy Last Week</span>
                 </button>
               )}
-              {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
-                <button
-                  className="flex items-center space-x-2 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={handleSubmitTimesheet}
-                  disabled={!hasUnsubmittedTasks()}
-                >
-                  <span>📤</span>
-                  <span>Submit Timesheet</span>
-                </button>
-              )}
 
               <button
                 onClick={downloadExcel}
@@ -974,7 +1004,7 @@ const IndividualTimesheet = () => {
                                 {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
                               </span>
                               <span className={`text-xs mt-1 ${isWeekendDay ? 'text-gray-500' : 'text-gray-400'}`}>
-  {getDayTotalTime(date).hours}h {getDayTotalTime(date).minutes}m / 8h 0m
+  {getDayTotalTime(date).hours}h {getDayTotalTime(date).minutes}m
 </span>
                             </div>
                           </th>
@@ -1023,8 +1053,8 @@ const IndividualTimesheet = () => {
             {entries.map((entry) => (
               <div
                 key={entry.id}
-                className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full ${entry.submitted ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"
-                  } ${isWeekendDay ? 'opacity-90' : ''}`}
+                className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full bg-green-50 border-green-200
+                   ${isWeekendDay ? 'opacity-90' : ''}`}
                 style={{
                   boxSizing: "border-box",
                   height: "150px",
@@ -1105,6 +1135,7 @@ const IndividualTimesheet = () => {
         selectedDate={selectedCell ? selectedCell.date : null}
         onSave={handleLogTimeSave}
         editingTask={editingTask}
+        timesheetData={timesheetData}
       />
 
       {taskDetail && (
@@ -1121,6 +1152,8 @@ const IndividualTimesheet = () => {
             deleteTimeEntry(new Date(taskDetail.date), taskDetail.taskId);
             setTaskDetail(null);
           }}
+          employee={employee}
+          isEmployeeView={ sessionData.email === employee.email}
         />
       )}
     </div>
