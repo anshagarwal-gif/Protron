@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { EyeIcon, EyeOffIcon, MailIcon, UserIcon, PhoneIcon, MapPinIcon, UploadIcon, Loader2 } from "lucide-react"
+import { EyeIcon, EyeOffIcon, MailIcon, UserIcon, PhoneIcon, MapPinIcon, UploadIcon, Loader2, Mail } from "lucide-react"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import GlobalSnackbar from "../components/GlobalSnackbar"
@@ -434,10 +434,10 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-6">
       <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 w-full max-w-6xl p-6 my-4">
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-green-600 bg-clip-text text-transparent">
             Create Account
           </h1>
           <p className="text-slate-600 mt-1 text-sm">Please fill in your information to get started</p>
@@ -451,9 +451,9 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Role Dropdown */}
-            <div className="md:col-span-4">
+          
+          <div className="flex justify-between items-center">
+            <div className="w-full mr-4">
               <label htmlFor="role" className="block text-slate-700 font-medium mb-2 text-sm">
                 Role <span className="text-red-500">*</span>
               </label>
@@ -475,31 +475,8 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
               </select>
             </div>
 
-            {/* Email Address */}
-            <div className="md:col-span-2">
-              <label htmlFor="email" className="block text-slate-700 font-medium mb-2 text-sm">
-                Email Address <span className="text-red-500">*</span>
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <MailIcon className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
             {/* First Name */}
-            <div>
+            <div className="w-full mr-4">
               <label htmlFor="firstName" className="block text-slate-700 font-medium mb-2 text-sm">
                 First Name <span className="text-red-500">*</span>
               </label>
@@ -517,7 +494,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
             </div>
 
             {/* Middle Name */}
-            <div>
+            <div className="w-full mr-4">
               <label htmlFor="middleName" className="block text-slate-700 font-medium mb-2 text-sm">
                 Middle Name
               </label>
@@ -534,7 +511,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
             </div>
 
             {/* Last Name */}
-            <div>
+            <div className="w-full mr-4">
               <label htmlFor="lastName" className="block text-slate-700 font-medium mb-2 text-sm">
                 Last Name <span className="text-red-500">*</span>
               </label>
@@ -550,15 +527,13 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 disabled={loading}
               />
             </div>
-
-            {/* Display Name */}
-            <div>
+            <div className="w-full">
               <label htmlFor="displayName" className="block text-slate-700 font-medium mb-2 text-sm">
                 Display Name
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <UserIcon className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                  <UserIcon className="h-5 w-5 text-black group-focus-within:text-green-700" />
                 </div>
                 <input
                   id="displayName"
@@ -572,9 +547,35 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 />
               </div>
             </div>
+            </div>
+
+            {/* Display Name */}
+            <div className="flex justify-center items-center">
+            <div className="w-full mr-4">
+              <label htmlFor="email" className="block text-slate-700 font-medium mb-2 text-sm">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                 <Mail className="h-5 w-5 text-black group-focus-within:text-green-700" />
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+            
 
             {/* Cost */}
-            <div>
+            <div className="w-full mr-4">
               <label htmlFor="cost" className="block text-slate-700 font-medium mb-2 text-sm">
                 Cost
               </label>
@@ -593,9 +594,9 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   <option value="INR">INR</option>
                   <option value="AUD">AUD</option>
                 </select>
-                <div className="relative flex-1">
+                <div className="relative flex">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                    <span className="text-slate-400 font-medium text-sm">{getCurrentCurrencySymbol()}</span>
+                    <span className="text-green-100 font-medium text-sm">{getCurrentCurrencySymbol()}</span>
                   </div>
                   <input
                     id="cost"
@@ -607,19 +608,10 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                     onChange={handleChange}
                     disabled={loading}
                   />
-                </div>
-              </div>
-            </div>
-
-            {/* Cost Time Period */}
-            <div>
-              <label htmlFor="cost_time" className="block text-slate-700 font-medium mb-2 text-sm">
-                Cost Period
-              </label>
-              <select
+                  <select
                 id="cost_time"
                 name="cost_time"
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                className="w-full px-3 py-2.5 text-sm border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                 value={formData.cost_time}
                 onChange={handleChange}
                 disabled={loading}
@@ -630,10 +622,10 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   </option>
                 ))}
               </select>
+                </div>
+              </div>
             </div>
-
-            {/* Mobile Phone */}
-            <div className="md:col-span-2">
+            <div className="w-full mr-4">
               <label htmlFor="mobileNumber" className="block text-slate-700 font-medium mb-2 text-sm">
                 Mobile Phone
               </label>
@@ -654,7 +646,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 </select>
                 <div className="relative flex-1">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                    <PhoneIcon className="h-4 w-4 text-slate-400" />
+                    <PhoneIcon className="h-4 w-4 text-green-100" />
                   </div>
                   <input
                     id="mobileNumber"
@@ -669,16 +661,9 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   />
                 </div>
               </div>
-              {formData.mobileNumber && (
-                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                  <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                  Will be submitted as: {formData.mobileCountryCode}{formData.mobileNumber}
-                </p>
-              )}
+              
             </div>
-
-            {/* Landline Phone */}
-            <div className="md:col-span-2">
+            <div className="w-full mr-4">
               <label htmlFor="landlineNumber" className="block text-slate-700 font-medium mb-2 text-sm">
                 Landline
               </label>
@@ -709,14 +694,8 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   maxLength={15}
                 />
               </div>
-              {formData.landlineNumber && (
-                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                  <div className="w-1 h-1 bg-blue-400 rounded-full"></div>
-                  Will be submitted as: {formData.landlineCountryCode}{formData.landlineNumber}
-                </p>
-              )}
             </div>
-
+            </div>
             {/* Profile Picture */}
             <div className="md:col-span-4">
               <label className="block text-slate-700 font-medium mb-2 text-sm">Profile Picture</label>
@@ -730,7 +709,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <UserIcon className="h-8 w-8 text-slate-400" />
+                      <UserIcon className="h-8 w-8 text-green-100" />
                     )}
                   </div>
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
@@ -757,7 +736,6 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 </div>
               </div>
             </div>
-          </div>
 
           {/* Address Section */}
           <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-6 border border-slate-200">
@@ -778,7 +756,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <MapPinIcon className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                    <MapPinIcon className="h-4 w-4 text-green-100 group-focus-within:text-blue-500 transition-colors" />
                   </div>
                   <input
                     id="addressLine1"
@@ -958,7 +936,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-green-100 hover:text-slate-600 transition-colors"
                   onClick={togglePasswordVisibility}
                   disabled={loading}
                 >

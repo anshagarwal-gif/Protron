@@ -658,29 +658,54 @@ const filteredRoles = roles.filter(role => {
       filter: true
     },
     {
-      headerName: "Status",
-      field: "status",
-      valueGetter: params => getUserStatus(params.data),
-      width: 120,
-      sortable: true,
-      filter: true,
-      cellRenderer: params => {
-        const status = params.value;
-        return (
-          <span
-  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-    status?.toLowerCase() === "active"
-      ? "bg-green-100 text-green-800"
-      : "bg-red-100 text-red-800"
-  }`}
->
-  {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Inactive"}
-  {/* {status} */}
-</span>
+  headerName: "Status",
+  field: "status",
+  valueGetter: params => getUserStatus(params.data),
+  width: 120,
+  sortable: true,
+  filter: true,
+  cellRenderer: params => {
+    const rawStatus = params.value?.toLowerCase() || "inactive";
 
-        );
+    const getStatusStyle = (status) => {
+      switch (status) {
+        case "active":
+          return "bg-green-100 text-green-800";
+        case "hold":
+        case "on hold":
+          return "bg-yellow-100 text-yellow-800";
+        case "removed":
+          return "bg-red-100 text-red-800";
+        case "inactive":
+        default:
+          return "bg-gray-100 text-gray-800";
       }
-    },
+    };
+
+    const getStatusLabel = (status) => {
+      switch (status) {
+        case "active":
+          return "Active";
+        case "hold":
+        case "on hold":
+          return "On Hold";
+        case "removed":
+          return "Removed";
+        case "inactive":
+        default:
+          return "Inactive";
+      }
+    };
+
+    return (
+      <span
+        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(rawStatus)}`}
+      >
+        {getStatusLabel(rawStatus)}
+      </span>
+    );
+  }
+},
     {
       headerName: "Actions",
       field: "actions",

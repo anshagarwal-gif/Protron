@@ -4,6 +4,7 @@ import Select from 'react-select';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import CreatableSelect from 'react-select/creatable';
 import {
     X,
     Calendar,
@@ -51,9 +52,10 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const startDateRef = useRef(null);
     const endDateRef = useRef(null);
     const projectOptions = projects.map((project) => ({
-    value: project.projectName,
-    label: project.projectName,
-  }));
+        value: project.projectName,
+        label: project.projectName,
+    }));
+    const [activeTab, setActiveTab] = useState('details');
 
     const fetchUsers = async () => {
         try {
@@ -496,7 +498,31 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
+                {/* Tab Navigation */}
+                <div className="border-b border-gray-200">
+                    <nav className="flex px-6" aria-label="Tabs">
+                        <button
+                            onClick={() => setActiveTab('details')}
+                            className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'details'
+                                ? 'border-green-500 text-green-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                } transition-colors`}
+                        >
+                            PO Details
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('milestones')}
+                            className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'milestones'
+                                ? 'border-green-500 text-green-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                } transition-colors`}
+                        >
+                            Milestone Details
+                        </button>
+                    </nav>
+                </div>
+
+                <div className="p-6 overflow-y-auto max-h-[calc(95vh-180px)]">
                     {loading ? (
                         <div className="flex items-center justify-center h-64">
                             <div className="text-center">
@@ -505,245 +531,273 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter here"
-                                        value={formData.poNumber}
-                                        onChange={handleChange('poNumber')}
-                                        className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Type</label>
-                                    <select
-                                        value={formData.poType}
-                                        onChange={handleChange('poType')}
-                                        className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    >
-                                        <option value="">Select from list</option>
-                                        <option value="FIXED">Fixed</option>
-                                        <option value="T_AND_M">T & M</option>
-                                        <option value="MIXED">Mixed</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                                    <select
-                                        value={formData.poCurrency}
-                                        onChange={handleChange('poCurrency')}
-                                        className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    >
-                                        <option value="USD">USD</option>
-                                        <option value="INR">INR</option>
-                                        <option value="EUR">EUR</option>
-                                        <option value="GBP">GBP</option>
-                                        <option value="JPY">JPY</option>
-                                    </select>
-                                </div>
-                            </div>
+                        <>
+                            {/* Tab 1: PO Details */}
+                            {activeTab === 'details' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter here"
+                                                value={formData.poNumber}
+                                                onChange={handleChange('poNumber')}
+                                                className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PO Type</label>
+                                            <select
+                                                value={formData.poType}
+                                                onChange={handleChange('poType')}
+                                                className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            >
+                                                <option value="">Select from list</option>
+                                                <option value="FIXED">Fixed</option>
+                                                <option value="T_AND_M">T & M</option>
+                                                <option value="MIXED">Mixed</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                                            <select
+                                                value={formData.poCurrency}
+                                                onChange={handleChange('poCurrency')}
+                                                className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            >
+                                                <option value="USD">USD</option>
+                                                <option value="INR">INR</option>
+                                                <option value="EUR">EUR</option>
+                                                <option value="GBP">GBP</option>
+                                                <option value="JPY">JPY</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount</label>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
+                                                    {currencySymbols[formData.poCurrency] || '$'}
+                                                </span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="Enter here"
+                                                    value={formData.poAmount}
+                                                    onChange={handleChange('poAmount')}
+                                                    className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                            <div
+                                                onClick={() => startDateRef.current?.showPicker?.()}
+                                                className="relative w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
+                                            >
+                                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                                <input
+                                                    ref={startDateRef}
+                                                    type="date"
+                                                    value={formData.poStartDate}
+                                                    onChange={handleChange('poStartDate')}
+                                                    className="w-full h-full bg-transparent outline-none cursor-pointer"
+                                                />
+                                            </div>
+                                        </div>
 
-                            <div className="grid grid-cols-4 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
-                                            {currencySymbols[formData.poCurrency] || '$'}
-                                        </span>
-                                        <input
-                                            type="number"
-                                            placeholder="Enter here"
-                                            value={formData.poAmount}
-                                            onChange={handleChange('poAmount')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                                            <div
+                                                onClick={() => endDateRef.current?.showPicker?.()}
+                                                className="relative w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
+                                            >
+                                                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                                <input
+                                                    ref={endDateRef}
+                                                    type="date"
+                                                    value={formData.poEndDate}
+                                                    onChange={handleChange('poEndDate')}
+                                                    className="w-full h-full bg-transparent outline-none cursor-pointer"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                                    <div
-                                        onClick={() => startDateRef.current?.showPicker?.()}
-                                        className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
-                                    >
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            ref={startDateRef}
-                                            type="date"
-                                            value={formData.poStartDate}
-                                            onChange={handleChange('poStartDate')}
-                                            className="w-full h-full bg-transparent outline-none cursor-pointer"
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="mt-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                                    <div
-                                        onClick={() => endDateRef.current?.showPicker?.()}
-                                        className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
-                                    >
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            ref={endDateRef}
-                                            type="date"
-                                            value={formData.poEndDate}
-                                            onChange={handleChange('poEndDate')}
-                                            className="w-full h-full bg-transparent outline-none cursor-pointer"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PM/SPOC Name</label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter here"
-                                            value={formData.poSpoc}
-                                            onChange={handleChange('poSpoc')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter customer name"
-                                            value={formData.customer}
-                                            onChange={handleChange('customer')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
+                                    <div className="grid grid-cols-4 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PM/SPOC Name</label>
+                                            <div className="relative">
+                                                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter here"
+                                                    value={formData.poSpoc}
+                                                    onChange={handleChange('poSpoc')}
+                                                    className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                                            <div className="relative">
+                                                <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter customer name"
+                                                    value={formData.customer}
+                                                    onChange={handleChange('customer')}
+                                                    className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
+                                            <div className="relative">
+                                                <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter supplier name"
+                                                    value={formData.supplier}
+                                                    onChange={handleChange('supplier')}
+                                                    className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Project Name
+                                            </label>
+                                            <div className="relative w-full h-10">
+                                                <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
+                                                <div className="pl-10">
+                                                    <CreatableSelect
+                                                        options={projectOptions}
+                                                        value={
+                                                            formData.projectName
+                                                                ? { label: formData.projectName, value: formData.projectName }
+                                                                : null
+                                                        }
+                                                        onChange={(selectedOption) => {
+                                                            handleChange('projectName')({
+                                                                target: { value: selectedOption?.value || '' },
+                                                            });
+                                                        }}
+                                                        className="react-select-container"
+                                                        classNamePrefix="react-select"
+                                                        placeholder="Type project name"
+                                                        isSearchable
+                                                        isClearable
+                                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                        filterOption={(option, inputValue) =>
+                                                            option.label.toLowerCase().includes(inputValue.toLowerCase())
+                                                        }
+                                                        isValidNewOption={(inputValue, selectValue, selectOptions) => {
+                                                            const isExisting = selectOptions.some(
+                                                                (option) =>
+                                                                    option.label.toLowerCase() === inputValue.toLowerCase()
+                                                            );
+                                                            return inputValue.trim() !== '' && !isExisting;
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachment</label>
+                                            <div className="relative">
+                                                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                                <input
+                                                    type="file"
+                                                    onChange={handleFileChange('poAttachment')}
+                                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                    className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
+                                            <textarea
+                                                placeholder="Enter here"
+                                                rows={3}
+                                                value={formData.poDesc}
+                                                onChange={handleChange('poDesc')}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                                maxLength={500}
+                                            />
+                                        </div>
+
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter supplier name"
-                                            value={formData.supplier}
-                                            onChange={handleChange('supplier')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
+                            )}
+
+                            {/* Tab 2: Milestone Details */}
+                            {activeTab === 'milestones' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-lg font-semibold text-green-900">Milestones Details</h3>
+                                        <button
+                                            onClick={handleAddMilestone}
+                                            className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors"
+                                        >
+                                            <Plus size={16} className="mr-2" />
+                                            Add Row
+                                        </button>
                                     </div>
-                                </div>
-                                <div >
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-                                    <div className="relative w-full h-14">
-                                    <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
-                                    <div className="pl-10">
-                                        <Select
-                                            options={projectOptions}
-                                            value={projectOptions.find(option => option.value === formData.projectName)}
-                                            onChange={(selectedOption) =>
-                                                handleChange('projectName')({ target: { value: selectedOption.value } })
-                                            }
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
-                                            placeholder="Enter here"
-                                            isSearchable
-                                        />
+
+                                    <div className="h-96 w-full border border-gray-200 rounded-md">
+                                        <div className="ag-theme-alpine h-full w-full">
+                                            <AgGridReact
+                                                columnDefs={milestoneColumnDefs}
+                                                rowData={formData.milestones}
+                                                defaultColDef={defaultColDef}
+                                                suppressMovableColumns={true}
+                                                enableCellTextSelection={true}
+                                                suppressRowClickSelection={true}
+                                                onCellValueChanged={onCellValueChanged}
+                                                animateRows={true}
+                                                rowHeight={48}
+                                                headerHeight={48}
+                                                components={{
+                                                    attachmentRenderer: AttachmentRenderer
+                                                }}
+                                                noRowsOverlayComponent={() => (
+                                                    <div className="flex items-center justify-center h-full text-gray-500">
+                                                        No milestones found. Click "Add Row" to add new milestones.
+                                                    </div>
+                                                )}
+                                            />
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
-                                    <textarea
-                                        placeholder="Enter here"
-                                        rows={3}
-                                        value={formData.poDesc}
-                                        onChange={handleChange('poDesc')}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                        maxLength={500}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachment</label>
-                                    <div className="relative">
-                                        <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="file"
-                                            onChange={handleFileChange('poAttachment')}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold text-green-900">Milestones Details</h3>
-                                    <button
-                                        onClick={handleAddMilestone}
-                                        className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors"
-                                    >
-                                        <Plus size={16} className="mr-2" />
-                                        Add Row
-                                    </button>
-                                </div>
-
-                                <div className="h-80 w-full border border-gray-200 rounded-md">
-                                    <div className="ag-theme-alpine h-full w-full">
-                                        <AgGridReact
-                                            columnDefs={milestoneColumnDefs}
-                                            rowData={formData.milestones}
-                                            defaultColDef={defaultColDef}
-                                            suppressMovableColumns={true}
-                                            enableCellTextSelection={true}
-                                            suppressRowClickSelection={true}
-                                            onCellValueChanged={onCellValueChanged}
-                                            animateRows={true}
-                                            rowHeight={48}
-                                            headerHeight={48}
-                                            components={{
-                                                attachmentRenderer: AttachmentRenderer
-                                            }}
-                                            noRowsOverlayComponent={() => (
-                                                <div className="flex items-center justify-center h-full text-gray-500">
-                                                    No milestones found. Click "Add Row" to add new milestones.
-                                                </div>
-                                            )}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                                <button
-                                    onClick={onClose}
-                                    className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleReset}
-                                    className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                                >
-                                    Reset
-                                </button>
-                                <button
-                                    onClick={handleSubmit}
-                                    className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
-                                >
-                                    Update PO
-                                </button>
-                            </div>
-                        </div>
+                            )}
+                        </>
                     )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleReset}
+                        className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+                    >
+                        Reset
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
+                    >
+                        Update PO
+                    </button>
                 </div>
             </div>
         </div>

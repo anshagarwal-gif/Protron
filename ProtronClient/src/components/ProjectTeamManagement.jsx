@@ -187,7 +187,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active':
+      case 'Active':
         return 'text-green-500';
       case 'hold':
         return 'text-yellow-500';
@@ -410,7 +410,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                               } else if (action === "toggleStatus") {
                                 handleStatusChange(
                                   member.projectTeamId,
-                                  member.status === "hold" ? "active" : "hold"
+                                  member.status === "hold" ? "Active" : "hold"
                                 );
                               } else if (action === "remove") {
                                 handleRemoveMember(member.projectTeamId);
@@ -421,7 +421,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                             <option value="">Actions</option>
                             <option value="edit">Edit</option>
                             <option value="toggleStatus">
-                              {member.status === "hold" ? "Activate" : "Hold"}
+                              {member.status === "hold" ? "Activate" : "Put on Hold"}
                             </option>
                             <option value="remove">Remove</option>
                           </select>
