@@ -45,11 +45,9 @@ public class SRNDetails {
     @Column(name = "srn_remarks", length = 500)
     private String srnRemarks;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_timestamp")
     private LocalDateTime createdTimestamp;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "lastupdate_timestamp")
     private LocalDateTime lastUpdateTimestamp;
 

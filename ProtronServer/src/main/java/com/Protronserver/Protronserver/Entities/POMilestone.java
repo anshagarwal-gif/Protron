@@ -33,7 +33,6 @@ public class POMilestone {
     @Column(name = "ms_currency", length = 10)
     private String msCurrency;
 
-    @Temporal(TemporalType.DATE)
     @Column(name = "ms_date")
     private Date msDate;
 
@@ -43,14 +42,12 @@ public class POMilestone {
     @Column(name = "ms_remarks", length = 500)
     private String msRemarks;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "start_timestamp")
     private LocalDateTime startTimestamp;
 
     @Column(name = "last_update_by")
     private String lastUpdateBy;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
