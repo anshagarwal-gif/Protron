@@ -21,7 +21,7 @@ public class POConsumption {
     private String poNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ms_id", referencedColumnName = "ms_id", nullable = false)
+    @JoinColumn(name = "ms_id", referencedColumnName = "ms_id")
     @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "poDetail" })
     private POMilestone milestone;
 

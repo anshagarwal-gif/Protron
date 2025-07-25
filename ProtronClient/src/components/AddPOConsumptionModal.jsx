@@ -64,49 +64,48 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
   // Fetch milestones when PO is selected
   useEffect(() => {
-    const fetchMilestones = async () => {
-      if (formData.poNumber) {
-        try {
-          const token = sessionStorage.getItem('token');
-          const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
+  const fetchMilestones = async () => {
+    if (formData.poNumber) {
+      try {
+        const token = sessionStorage.getItem('token');
+        const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
+        
+        if (selectedPO) {
+          console.log('Selected PO:', selectedPO);
           
-          if (selectedPO) {
-            console.log('Selected PO:', selectedPO);
+          // Fetch milestones using the same API endpoint as SRN modal
+          try {
+            const milestoneResponse = await axios.get(
+              `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${selectedPO.poId}`,
+              {
+                headers: { Authorization: `${token}` }
+              }
+            );
             
-            // Fetch milestones using the same API endpoint as SRN modal
-            try {
-              const milestoneResponse = await axios.get(
-                `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${selectedPO.poId}`,
-                {
-                  headers: { Authorization: `${token}` }
-                }
-              );
-              
-              console.log('Milestone response:', milestoneResponse.data);
-              setMilestoneList(milestoneResponse.data || []);
-              
-            } catch (milestoneError) {
-              console.error("Error fetching milestones:", milestoneError);
-              setMilestoneList([]);
-            }
-            
-            // Update currency based on selected PO
-            setFormData(prev => ({
-              ...prev,
-              currency: selectedPO.poCurrency || "USD"
-            }));
+            console.log('Milestone response:', milestoneResponse.data);
+            setMilestoneList(milestoneResponse.data || []);
+          } catch (milestoneError) {
+            console.error("Error fetching milestones:", milestoneError);
+            setMilestoneList([]); // No milestones found
           }
-        } catch (error) {
-          console.error("Error in fetchMilestones:", error);
-          setMilestoneList([]);
+          
+          // Update currency based on selected PO
+          setFormData(prev => ({
+            ...prev,
+            currency: selectedPO.poCurrency || "USD"
+          }));
         }
-      } else {
-        setMilestoneList([]);
+      } catch (error) {
+        console.error("Error in fetchMilestones:", error);
+        setMilestoneList([]); // No milestones found
       }
-    };
+    } else {
+      setMilestoneList([]); // No PO selected, clear milestones
+    }
+  };
 
-    fetchMilestones();
-  }, [formData.poNumber, poList]);
+  fetchMilestones();
+}, [formData.poNumber, poList]);
 
   // Initialize character counts when form data is set
   useEffect(() => {
@@ -237,10 +236,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
     if (!formData.utilizationType?.trim()) {
       newErrors.utilizationType = "Utilization type is required";
-    }
-
-    if (!formData.resourceOrProject?.trim()) {
-      newErrors.resourceOrProject = "Resource/Project is required";
     }
 
     if (!formData.workDesc?.trim()) {
