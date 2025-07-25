@@ -345,9 +345,9 @@ const TaskDetailsModal = ({
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full">
 
                   {/* Project Details Section */}
-                  <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl border border-emerald-100 p-6 max-h-[300px] overflow-y-auto custom-scrollbar flex flex-col">
+                  <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl border border-emerald-100 p-2 max-h-[350px] overflow-y-auto custom-scrollbar flex flex-col">
                     {/* Project Details Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Task Type */}
                       <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-emerald-100/50 shadow-sm">
                         <label className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Task Type</label>
@@ -415,13 +415,14 @@ const TaskDetailsModal = ({
                   </div>
 
                   {/* Description Section */}
-                  <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl border border-gray-100 flex flex-col max-h-[300px]">
+                  <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl border border-gray-100 flex flex-col max-h-[350px]">
                     <div className="p-6 flex-1 flex flex-col">
                       <div className="flex items-center gap-3 mb-4 flex-shrink-0">
                         <div className="w-1.5 h-8 bg-gradient-to-b from-emerald-500 to-green-600 rounded-full"></div>
                         <h3 className="text-xl font-bold text-gray-900">Task Description</h3>
                       </div>
-                      <div className="flex-1 bg-white/80 backdrop-blur-sm rounded-xl p-6 text-gray-700 break-words whitespace-pre-wrap overflow-y-auto border border-gray-200/50 shadow-sm custom-scrollbar min-h-0">
+                      <div className="flex-1 bg-white/80 backdrop-blur-sm rounded-xl p-6 text-gray-700 break-words whitespace-pre-wrap overflow-y-auto border border-gray-200/50 shadow-sm custom-scrollbar min-h-0 max-w-full overflow-x-auto">
+
                         {taskDetail.description ? (
                           taskDetail.description
                         ) : (

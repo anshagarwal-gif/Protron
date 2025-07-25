@@ -78,7 +78,7 @@ const TeamManagement = () => {
 
     useEffect(() => {
         let filtered = [...employees];
-
+        console.log(employees)
         if (statusFilter !== 'All') {
             filtered = filtered.filter(employee => employee.status === statusFilter);
         }
@@ -129,26 +129,44 @@ const TeamManagement = () => {
     // Status cell renderer with colors
     const StatusCellRenderer = (params) => {
         const getStatusColor = (status) => {
-            switch (status) {
-                case 'Active':
+            const normalizedStatus = status?.toLowerCase();
+
+            switch (normalizedStatus) {
+                case 'active':
                     return 'bg-green-100 text-green-800';
-                case 'On Hold':
+                case 'on hold':
+                case 'hold':
                     return 'bg-yellow-100 text-yellow-800';
-                case 'Hold':
-                    return 'bg-yellow-100 text-yellow-800';
-                case 'Removed':
+                case 'removed':
                     return 'bg-red-100 text-red-800';
                 default:
                     return 'bg-gray-100 text-gray-800';
             }
         };
 
+        const formatStatusLabel = (status) => {
+            const normalizedStatus = status?.toLowerCase();
+
+            switch (normalizedStatus) {
+                case 'active':
+                    return 'Active';
+                case 'hold':
+                case 'on hold':
+                    return 'On Hold';
+                case 'removed':
+                    return 'Removed';
+                default:
+                    return status || 'Unknown';
+            }
+        };
+
         return (
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(params.value)}`}>
-                {params.value}
+                {formatStatusLabel(params.value)}
             </span>
         );
     };
+
 
     // Date cell renderer
     const DateCellRenderer = (params) => {
@@ -319,6 +337,7 @@ const TeamManagement = () => {
                 'DOJ': employee.dateOfJoining ? formatDate(employee.dateOfJoining) : 'N/A',
                 'cost': employee.cost,
                 'Status': employee.status,
+
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(excelData);
