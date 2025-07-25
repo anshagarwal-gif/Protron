@@ -37,7 +37,7 @@ public interface POConsumptionRepository extends JpaRepository<POConsumption, Lo
 
     // 🔹 Sum by PO Number and Milestone ID (native)
     @Query(value = "SELECT COALESCE(SUM(p.amount), 0) \n" +
-            "FROM \"po_utilization\" p \n" +
+            "FROM po_utilization p \n" +
             "WHERE p.po_number = :poNumber \n" +
             "  AND p.ms_id = :msId \n" +
             "  AND p.lastupdate_timestamp IS NULL", nativeQuery = true)
