@@ -24,6 +24,7 @@ import { useAccess } from "../Context/AccessContext";
 import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSRNModal from "../components/AddSRNModal";
+import SRNDetailsModal from "../components/SRNDetailsModal";
 // import EditSRNModal from "../components/EditSRNModal";
 
 const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
@@ -37,6 +38,26 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedSRNId, setSelectedSRNId] = useState(null);
+
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
+
+  const handleViewSRNDetails = async (srn) => {
+  try {
+    const token = sessionStorage.getItem('token');
+    const response = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/srn/${srn.srnId}`,
+      {
+        headers: { Authorization: `${token}` }
+      }
+    );
+    setSelectedSRNDetails(response.data);
+    setIsDetailsModalOpen(true);
+  } catch (error) {
+    console.error("Error fetching SRN details:", error);
+    showSnackbar("Failed to fetch SRN details", "error");
+  }
+};
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -333,7 +354,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "#",
       valueGetter: "node.rowIndex + 1",
-      width: 70,
+      width: 50,
       pinned: "left",
       sortable: false,
       filter: false,
@@ -341,55 +362,60 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellStyle: { textAlign: 'center' }
     },
     {
-      headerName: "PO Number",
-      field: "poNumber",
-      valueGetter: params => params.data.poNumber || 'N/A',
-      flex: 1,
-      minWidth: 150,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#1f2937' },
-      cellRenderer: params => {
-        const poNumber = params.value;
-        const srn = params.data;
-        if (poNumber && poNumber !== 'N/A') {
-          return (
-            <button
-              onClick={() => handlePONumberClick(srn)}
-              className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left"
-              title={`View PO details for ${poNumber}`}
-            >
-              {poNumber}
-            </button>
-          );
+        headerName: "PO Number",
+        field: "poNumber",
+        valueGetter: params => params.data.poNumber || 'N/A',
+        flex: 1,
+        minWidth: 150,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const poNumber = params.value;
+            if (poNumber && poNumber !== 'N/A') {
+                return (
+                    <span title={poNumber} className="cursor-pointer text-blue-600 font-bold underline" onClick={() => handlePONumberClick(params.data)}>
+                        {poNumber.length > 20 ? `${poNumber.substring(0, 20)}...` : poNumber}
+                    </span>
+                );
+            }
+            return poNumber;
         }
-        return <span className="text-gray-500">{poNumber}</span>;
-      }
     },
     {
-      headerName: "SRN ID",
-      field: "srnId",
-      valueGetter: params => params.data.srnId || 'N/A',
-      width: 120,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' },
-      cellRenderer: params => {
-        const srnId = params.value;
-        const srn = params.data;
-        if (srnId && srnId !== 'N/A') {
-          return (
-            <button
-              onClick={() => handleSRNIdClick(srn)}
-              className="text-green-600 hover:text-green-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left"
-              title={`View SRN details for ${srnId}`}
-            >
-              {srnId}
-            </button>
-          );
+        headerName: "SRN ID",
+        field: "srnId",
+        valueGetter: params => params.data.srnId || 'N/A',
+        width: 100,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const srnId = params.value;
+            return (
+                <span title={srnId} className="cursor-help">
+                    {srnId}
+                </span>
+            );
         }
-        return <span className="text-gray-500">{srnId}</span>;
-      }
+    },
+    {
+        headerName: "Milestone Name",
+        field: "milestone.msName",
+        valueGetter: params => params.data.milestone?.msName || 'N/A',
+        flex: 1,
+        minWidth: 150,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const milestoneName = params.value;
+            if (milestoneName && milestoneName !== 'N/A') {
+                return (
+                    <span title={milestoneName} className="cursor-help">
+                        {milestoneName.length > 30 ? `${milestoneName.substring(0, 30)}...` : milestoneName}
+                    </span>
+                );
+            }
+            return milestoneName;
+        }
     },
     {
     headerName: "SRN Type",
@@ -398,90 +424,113 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     width: 120,
     sortable: true,
     filter: true,
-    cellStyle: { fontWeight: 'bold', color: '#374151' }
+    cellStyle: { fontWeight: 'bold', color: '#374151' },
+    cellRenderer: params => {
+        const srnType = params.value;
+        return (
+            <span title={srnType} className="cursor-help">
+                {srnType || 'N/A'}
+            </span>
+        );
+    }
   },
     {
-      headerName: "Milestone Name",
-      field: "milestone.msName",
-      valueGetter: params => params.data.milestone?.msName || 'N/A',
-      flex: 1,
-      minWidth: 150,
-      sortable: true,
-      filter: true
-    },
-    {
-      headerName: "SRN Name",
-      field: "srnName",
-      valueGetter: params => params.data.srnName || 'N/A',
-      flex: 1,
-      minWidth: 180,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: '500' }
-    },
-    {
-      headerName: "SRN Description",
-      field: "srnDsc",
-      valueGetter: params => params.data.srnDsc || 'N/A',
-      flex: 2,
-      minWidth: 200,
-      sortable: true,
-      filter: true,
-      cellRenderer: params => {
-        const description = params.value;
-        if (description && description !== 'N/A' && description.length > 50) {
-          return (
-            <span title={description} className="cursor-help">
-              {description.substring(0, 50)}...
-            </span>
-          );
+        headerName: "SRN Name",
+        field: "srnName",
+        valueGetter: params => params.data.srnName || 'N/A',
+        flex: 1,
+        minWidth: 180,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const srnName = params.value;
+            if (srnName && srnName !== 'N/A') {
+                return (
+                    <span title={srnName} className="cursor-help">
+                        {srnName.length > 30 ? `${srnName.substring(0, 30)}...` : srnName}
+                    </span>
+                );
+            }
+            return srnName;
         }
-        return description;
-      }
     },
     {
-      headerName: "Currency",
-      field: "srnCurrency",
-      valueGetter: params => params.data.srnCurrency || 'N/A',
-      width: 100,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#374151' }
-    },
-    {
-      headerName: "SRN Amount",
-      field: "srnAmount",
-      valueGetter: params => {
-        const amount = params.data.srnAmount;
-        const currency = params.data.srnCurrency;
-        if (!amount) return 'N/A';
-        const symbol = getCurrencySymbol(currency);
-        return `${symbol}${amount.toLocaleString()}`;
-      },
-      width: 140,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' }
-    },
-    {
-      headerName: "SRN Remarks",
-      field: "srnRemarks",
-      valueGetter: params => params.data.srnRemarks || 'N/A',
-      flex: 1,
-      minWidth: 180,
-      sortable: true,
-      filter: true,
-      cellRenderer: params => {
-        const remarks = params.value;
-        if (remarks && remarks !== 'N/A' && remarks.length > 40) {
-          return (
-            <span title={remarks} className="cursor-help">
-              {remarks.substring(0, 40)}...
-            </span>
-          );
+        headerName: "SRN Description",
+        field: "srnDsc",
+        valueGetter: params => params.data.srnDsc || 'N/A',
+        flex: 2,
+        minWidth: 200,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const description = params.value;
+            if (description && description !== 'N/A') {
+                return (
+                    <span title={description} className="cursor-help">
+                        {description.length > 50 ? `${description.substring(0, 50)}...` : description}
+                    </span>
+                );
+            }
+            return description;
         }
-        return remarks;
-      }
+    },
+    {
+        headerName: "SRN Remarks",
+        field: "srnRemarks",
+        valueGetter: params => params.data.srnRemarks || 'N/A',
+        flex: 1,
+        minWidth: 180,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const remarks = params.value;
+            if (remarks && remarks !== 'N/A') {
+                return (
+                    <span title={remarks} className="cursor-help">
+                        {remarks.length > 40 ? `${remarks.substring(0, 40)}...` : remarks}
+                    </span>
+                );
+            }
+            return remarks;
+        }
+    },
+    {
+        headerName: "Currency",
+        field: "srnCurrency",
+        valueGetter: params => params.data.srnCurrency || 'N/A',
+        width: 100,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const currency = params.value;
+            return (
+                <span title={currency} className="cursor-help">
+                    {currency}
+                </span>
+            );
+        }
+    },
+    {
+        headerName: "SRN Amount",
+        field: "srnAmount",
+        valueGetter: params => {
+            const amount = params.data.srnAmount;
+            const currency = params.data.srnCurrency;
+            if (!amount) return 'N/A';
+            const symbol = getCurrencySymbol(currency);
+            return `${symbol}${amount.toLocaleString()}`;
+        },
+        width: 140,
+        sortable: true,
+        filter: true,
+        cellRenderer: params => {
+            const amount = params.value;
+            return (
+                <span title={amount} className="cursor-help">
+                    {amount}
+                </span>
+            );
+        }
     },
     {
       headerName: "Attachments",
@@ -525,6 +574,13 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         const srn = params.data;
         return (
           <div className="flex justify-center gap-2 h-full items-center">
+            <button
+          onClick={() => handleViewSRNDetails(srn)}
+          className="p-2 rounded-full hover:bg-green-100 transition-colors"
+          title="View SRN Details"
+        >
+          <Eye size={16} className="text-green-600" />
+        </button>
             <button
               onClick={() => handleEditSRN(srn)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
@@ -915,6 +971,12 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
       />
+
+      <SRNDetailsModal
+  open={isDetailsModalOpen}
+  onClose={() => setIsDetailsModalOpen(false)}
+  srnDetails={selectedSRNDetails}
+/>
     </div>
   );
 });

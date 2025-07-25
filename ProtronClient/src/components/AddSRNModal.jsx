@@ -190,6 +190,10 @@ const AddSRNModal = ({ open, onClose }) => {
                 alert('Please select a PO');
                 return;
             }
+            if (milestoneList.length > 0 && !formData.msId) {
+                alert('Please select a Milestone');
+                return;
+            }
             if (!formData.srnName.trim()) {
                 alert('Please enter SRN name');
                 return;
