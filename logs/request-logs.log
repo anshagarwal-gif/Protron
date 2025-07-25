@@ -864,3 +864,63 @@
 2025-07-25 22:27:33 WARN  - [2025-07-25 22:27:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/balance/PO-123 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Error: JDBC exception executing SQL [SELECT COALESCE(SUM(p.amount), 0) FROM po_utilization p WHERE p.po_number = ? AND p.ms_id = ? AND p.last_update_timestamp IS NULL] [Unknown column 'p.last_update_t...
 2025-07-25 22:27:41 WARN  - [2025-07-25 22:27:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/balance/PO-123 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Error: JDBC exception executing SQL [SELECT COALESCE(SUM(p.amount), 0) FROM po_utilization p WHERE p.po_number = ? AND p.ms_id = ? AND p.last_update_timestamp IS NULL] [Unknown column 'p.last_update_t...
 2025-07-25 22:29:33 INFO  - [2025-07-25 22:29:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:47 INFO  - [2025-07-25 22:41:46] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:47 INFO  - [2025-07-25 22:41:47] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:47 INFO  - [2025-07-25 22:41:47] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:55 INFO  - [2025-07-25 22:41:55] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:55 INFO  - [2025-07-25 22:41:55] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:58 INFO  - [2025-07-25 22:41:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:58 INFO  - [2025-07-25 22:41:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:58 INFO  - [2025-07-25 22:41:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:58 INFO  - [2025-07-25 22:41:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:58 INFO  - [2025-07-25 22:41:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:41:58 INFO  - [2025-07-25 22:41:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:00 INFO  - [2025-07-25 22:42:00] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:00 INFO  - [2025-07-25 22:42:00] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:02 INFO  - [2025-07-25 22:42:02] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:02 INFO  - [2025-07-25 22:42:02] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:02 INFO  - [2025-07-25 22:42:02] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:02 INFO  - [2025-07-25 22:42:02] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:05 INFO  - [2025-07-25 22:42:05] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:05 INFO  - [2025-07-25 22:42:05] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:07 INFO  - [2025-07-25 22:42:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:07 INFO  - [2025-07-25 22:42:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:08 INFO  - [2025-07-25 22:42:08] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:09 INFO  - [2025-07-25 22:42:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:13 INFO  - [2025-07-25 22:42:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:13 INFO  - [2025-07-25 22:42:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:14 INFO  - [2025-07-25 22:42:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:14 INFO  - [2025-07-25 22:42:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:16 INFO  - [2025-07-25 22:42:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:23 INFO  - [2025-07-25 22:42:23] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/balance/PO-123 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:24 WARN  - [2025-07-25 22:42:23] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/po-consumption/add | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Error: Milestone not found
+2025-07-25 22:42:28 WARN  - [2025-07-25 22:42:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/balance/PO-123 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Error: JDBC exception executing SQL [SELECT COALESCE(SUM(p.amount), 0) 
+FROM "po_utilization" p 
+WHERE p.po_number = ? 
+  AND p.ms_id = ? 
+  AND p.lastupdate_timestamp IS NULL] [You have an error in y...
+2025-07-25 22:42:38 INFO  - [2025-07-25 22:42:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:41 INFO  - [2025-07-25 22:42:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:42:41 INFO  - [2025-07-25 22:42:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:44:03 INFO  - [2025-07-25 22:44:03] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:44:03 INFO  - [2025-07-25 22:44:03] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:44:05 INFO  - [2025-07-25 22:44:05] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:44:05 INFO  - [2025-07-25 22:44:05] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:44:18 INFO  - [2025-07-25 22:44:18] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:44:27 WARN  - [2025-07-25 22:44:27] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/balance/PO-123 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Error: JDBC exception executing SQL [SELECT COALESCE(SUM(p.amount), 0) 
+FROM "po_utilization" p 
+WHERE p.po_number = ? 
+  AND p.ms_id = ? 
+  AND p.lastupdate_timestamp IS NULL] [You have an error in y...
+2025-07-25 22:45:26 INFO  - [2025-07-25 22:45:26] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:03 INFO  - [2025-07-25 22:46:03] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:03 INFO  - [2025-07-25 22:46:03] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:30 WARN  - [2025-07-25 22:46:30] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: Unable to find com.Protronserver.Protronserver.Entities.POMilestone with id 0
+2025-07-25 22:46:30 WARN  - [2025-07-25 22:46:30] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: Unable to find com.Protronserver.Protronserver.Entities.POMilestone with id 0
+2025-07-25 22:46:32 INFO  - [2025-07-25 22:46:32] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:32 INFO  - [2025-07-25 22:46:32] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:34 INFO  - [2025-07-25 22:46:34] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:34 INFO  - [2025-07-25 22:46:34] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:48 INFO  - [2025-07-25 22:46:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:48 INFO  - [2025-07-25 22:46:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-25 22:46:53 INFO  - [2025-07-25 22:46:53] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
