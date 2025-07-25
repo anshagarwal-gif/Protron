@@ -34,7 +34,7 @@ const AddSRNModal = ({ open, onClose }) => {
     const [formData, setFormData] = useState({
         poId: '',
         poNumber: '',
-        msName: '',
+        msId: '',
         srnName: '',
         srnDsc: '',
         srnAmount: '',
@@ -132,7 +132,7 @@ const AddSRNModal = ({ open, onClose }) => {
             const srnPayload = {
                 poId: parseInt(formData.poId),
                 poNumber: formData.poNumber,
-                msName: formData.msName || '',
+                msId: parseInt(formData.msId),
                 srnName: formData.srnName.trim(),
                 srnDsc: formData.srnDsc.trim() || '',
                 srnAmount: parseInt(formData.srnAmount),
@@ -212,7 +212,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                     placeholder="Auto-filled from PO"
                                     value={formData.poNumber}
                                     onChange={handleChange('poNumber')}
-                                    className="w-full h-14 px-4 border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 />
                             </div>
                             <div>
@@ -224,7 +224,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                     <select
                                         value={formData.poId}
                                         onChange={handleChange('poId')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         required
                                     >
                                         <option value="">Select PO</option>
@@ -247,7 +247,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                         placeholder="Enter SRN name"
                                         value={formData.srnName}
                                         onChange={handleChange('srnName')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         required
                                     />
                                 </div>
@@ -261,14 +261,14 @@ const AddSRNModal = ({ open, onClose }) => {
                                 <div className="relative">
                                     <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
                                     <select
-                                        value={formData.msName}
-                                        onChange={handleChange('msName')}
+                                        value={formData.msId}
+                                        onChange={handleChange('msId')}
                                         className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         disabled={!formData.poId}
                                     >
                                         <option value="">Select milestone (optional)</option>
                                         {milestoneList.map((milestone) => (
-                                            <option key={milestone.msId} value={milestone.msName}>
+                                            <option key={milestone.msId} value={milestone.msId}>
                                                 {milestone.msName}
                                             </option>
                                         ))}
@@ -280,7 +280,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                 <select
                                     value={formData.srnCurrency}
                                     onChange={handleChange('srnCurrency')}
-                                    className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 >
                                     <option value="USD">USD</option>
                                     <option value="INR">INR</option>
@@ -310,7 +310,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                         onChange={handleChange('srnAmount')}
                                         min="0"
                                         step="0.01"
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         required
                                     />
                                 </div>
@@ -323,7 +323,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                         type="file"
                                         onChange={handleFileChange('srnAttachment')}
                                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                                     />
                                 </div>
                             </div>

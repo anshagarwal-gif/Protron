@@ -1,6 +1,8 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -23,8 +25,10 @@ public class SRNDetails {
     @Column(name = "po_number", length = 250)
     private String poNumber;
 
-    @Column(name = "ms_name")
-    private String msName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ms_id", referencedColumnName = "ms_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "poDetail" })
+    private POMilestone milestone;
 
     @Column(name = "srn_name", length = 100)
     private String srnName;
@@ -43,11 +47,11 @@ public class SRNDetails {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_timestamp")
-    private Date createdTimestamp;
+    private LocalDateTime createdTimestamp;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "lastupdate_timestamp")
-    private Date lastUpdateTimestamp;
+    private LocalDateTime lastUpdateTimestamp;
 
     @Column(name = "updatedby")
     private String updatedBy;
@@ -78,12 +82,12 @@ public class SRNDetails {
         this.poNumber = poNumber;
     }
 
-    public String getMsName() {
-        return msName;
+    public POMilestone getMilestone() {
+        return milestone;
     }
 
-    public void setMsName(String msName) {
-        this.msName = msName;
+    public void setMilestone(POMilestone milestone) {
+        this.milestone = milestone;
     }
 
     public String getSrnName() {
@@ -126,19 +130,19 @@ public class SRNDetails {
         this.srnRemarks = srnRemarks;
     }
 
-    public Date getCreatedTimestamp() {
+    public LocalDateTime getCreatedTimestamp() {
         return createdTimestamp;
     }
 
-    public void setCreatedTimestamp(Date createdTimestamp) {
+    public void setCreatedTimestamp(LocalDateTime createdTimestamp) {
         this.createdTimestamp = createdTimestamp;
     }
 
-    public Date getLastUpdateTimestamp() {
+    public LocalDateTime getLastUpdateTimestamp() {
         return lastUpdateTimestamp;
     }
 
-    public void setLastUpdateTimestamp(Date lastUpdateTimestamp) {
+    public void setLastUpdateTimestamp(LocalDateTime lastUpdateTimestamp) {
         this.lastUpdateTimestamp = lastUpdateTimestamp;
     }
 

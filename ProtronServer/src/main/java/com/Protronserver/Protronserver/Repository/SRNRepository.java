@@ -12,21 +12,28 @@ import java.util.List;
 @Repository
 public interface SRNRepository extends JpaRepository<SRNDetails, Long> {
 
+    @Query("SELECT s FROM SRNDetails s WHERE s.lastUpdateTimestamp IS NULL")
+    List<SRNDetails> findAllActive();
+
     // Find SRNs by PO ID
+    @Query("SELECT s FROM SRNDetails s WHERE s.poDetail.poId = :poId AND s.lastUpdateTimestamp IS NULL")
     List<SRNDetails> findByPoDetail_PoId(Long poId);
 
     // Find SRNs by PO Number
+    @Query("SELECT s FROM SRNDetails s WHERE s.poNumber = :poNumber AND s.lastUpdateTimestamp IS NULL")
     List<SRNDetails> findByPoNumber(String poNumber);
 
     // Find SRNs by Milestone Name
-    List<SRNDetails> findByMsName(String msName);
+    @Query("SELECT s FROM SRNDetails s WHERE s.milestone.msName = :msName AND s.lastUpdateTimestamp IS NULL")
+    List<SRNDetails> findByMilestone_MsName(String msName);
 
     // Find SRNs by SRN Name
+    @Query("SELECT s FROM SRNDetails s WHERE s.srnName = :srnName AND s.lastUpdateTimestamp IS NULL")
     List<SRNDetails> findBySrnName(String srnName);
 
-    @Query(value = "SELECT COALESCE(SUM(srn_amount), 0) FROM srn_details WHERE po_id = :poId AND ms_name = :msName", nativeQuery = true)
-    BigDecimal sumSrnAmountsByPoIdAndMsName(Long poId, String msName);
+    @Query(value = "SELECT COALESCE(SUM(s.srn_amount), 0) FROM srn_details s WHERE s.po_id = :poId AND s.ms_id = :msId AND s.lastUpdateTimestamp IS NULL", nativeQuery = true)
+    BigDecimal sumSrnAmountsByPoIdAndMsId(Long poId, Long msId);
 
-    @Query(value = "SELECT COALESCE(SUM(srn_amount), 0) FROM srn_details WHERE po_id = :poId", nativeQuery = true)
+    @Query(value = "SELECT COALESCE(SUM(srn_amount), 0) FROM srn_details WHERE po_id = :poId AND lastUpdateTimestamp IS NULL", nativeQuery = true)
     BigDecimal sumSrnAmountsByPoId(Long poId);
 }

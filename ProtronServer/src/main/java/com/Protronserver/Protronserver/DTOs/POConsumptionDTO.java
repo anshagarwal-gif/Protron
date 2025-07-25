@@ -5,7 +5,7 @@ import java.util.Date;
 public class POConsumptionDTO {
 
     private String poNumber;
-    private String msName;
+    private Long msId;
     private Integer amount;
     private String currency;
     private String utilizationType;
@@ -21,12 +21,12 @@ public class POConsumptionDTO {
     public POConsumptionDTO() {
     }
 
-    public POConsumptionDTO(String poNumber, String msName, Integer amount, String currency,
+    public POConsumptionDTO(String poNumber, Long msId , Integer amount, String currency,
             String utilizationType, String resourceOrProject, String workDesc,
             Date workAssignDate, Date workCompletionDate, String remarks,
             String systemName, String updatedBy) {
         this.poNumber = poNumber;
-        this.msName = msName;
+        this.msId = msId;
         this.amount = amount;
         this.currency = currency;
         this.utilizationType = utilizationType;
@@ -48,12 +48,12 @@ public class POConsumptionDTO {
         this.poNumber = poNumber;
     }
 
-    public String getMsName() {
-        return msName;
+    public Long getMsId() {
+        return msId;
     }
 
-    public void setMsName(String msName) {
-        this.msName = msName;
+    public void setMsId(Long msId) {
+        this.msId = msId;
     }
 
     public Integer getAmount() {

@@ -119,12 +119,12 @@ public class POConsumptionController {
      */
     @GetMapping("/balance/{poNumber}")
     public ResponseEntity<?> getPOConsumptionBalance(@PathVariable String poNumber,
-            @RequestParam(required = false) String msName) {
+            @RequestParam(required = false) Long msId) {
         try {
-            BigDecimal balance = poConsumptionService.getPOConsumptionBalance(poNumber, msName);
+            BigDecimal balance = poConsumptionService.getPOConsumptionBalance(poNumber, msId);
 
-            String balanceType = (msName != null && !msName.trim().isEmpty())
-                    ? "Milestone '" + msName + "'"
+            String balanceType = (msId != null)
+                    ? "Milestone '" + msId + "'"
                     : "PO '" + poNumber + "'";
 
             return ResponseEntity.ok().body(new BalanceResponse(balanceType, balance));

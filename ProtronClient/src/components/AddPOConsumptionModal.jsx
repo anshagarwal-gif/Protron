@@ -7,7 +7,7 @@ import {useSession} from "../Context/SessionContext";
 const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     poNumber: "",
-    msName: "",
+    msId: "",
     amount: "",
     currency: "USD",
     utilizationType: "Fixed",
@@ -253,11 +253,11 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         const token = sessionStorage.getItem('token');
         let balanceEndpoint = '';
         let balanceType = '';
-        
-        if (formData.msName && formData.msName.trim()) {
+
+        if (formData.msId && formData.msId.trim()) {
           // Check milestone balance
-          balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}?msName=${encodeURIComponent(formData.msName)}`;
-          balanceType = `Milestone "${formData.msName}"`;
+          balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}?msId=${encodeURIComponent(formData.msId)}`;
+          balanceType = `Milestone "${formData.msId}"`;
         } else {
           // Check PO balance
           balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}`;
@@ -314,7 +314,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
       const submitData = {
         poNumber: formData.poNumber,
-        msName: formData.msName || null,
+        msId: formData.msId || null,
         amount: parseInt(formData.amount) || 0,
         currency: formData.currency,
         utilizationType: formData.utilizationType,
@@ -369,7 +369,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const handleClose = () => {
     setFormData({
       poNumber: "",
-      msName: "",
+      msId: "",
       amount: "",
       currency: "USD",
       utilizationType: "Fixed",
@@ -468,18 +468,18 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   Milestone (Optional)
                 </label>
                 <select
-                  name="msName"
-                  value={formData.msName}
+                  name="msId"
+                  value={formData.msId}
                   onChange={handleInputChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading}
-                  title={formData.msName ? `Selected Milestone: ${formData.msName}` : "Select a milestone (optional)"}
+                  title={formData.msId ? `Selected Milestone: ${formData.msName}` : "Select a milestone (optional)"}
                 >
                   <option value="" title="No specific milestone selected">No specific milestone</option>
                   {milestoneList.map(milestone => (
                     <option 
                       key={milestone.msId} 
-                      value={milestone.msName}
+                      value={milestone.msId}S
                       title={`Milestone: ${milestone.msName} | Amount: ${milestone.msAmount ? getCurrencySymbol(milestone.msCurrency)+(milestone.msAmount).toLocaleString() : 'N/A'}`}
                     >
                       {milestone.msName.length > 20 ? `${milestone.msName.substring(0, 20)}...` : milestone.msName}

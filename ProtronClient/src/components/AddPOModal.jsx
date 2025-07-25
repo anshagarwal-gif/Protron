@@ -1,9 +1,9 @@
-// AddPOModal.js
 import React, { useEffect, useState, useRef } from 'react';
 import Select from 'react-select';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import CreatableSelect from 'react-select/creatable';
 import {
     X,
     Calendar,
@@ -39,7 +39,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         startDate: '',
         endDate: '',
         projectDescription: '',
-        poAttachment: null,
+        poAttachments: [], // Changed from null to array
         milestones: []
     });
 
@@ -48,10 +48,10 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     const EndDateInputRef = useRef(null);
     const [projects, setProjects] = useState([]);
     const projectOptions = projects.map((project) => ({
-    value: project.projectName,
-    label: project.projectName,
-  }));
-
+        value: project.projectName,
+        label: project.projectName,
+    }));
+    const [activeTab, setActiveTab] = useState('details');
     const fetchUsers = async () => {
         try {
             const token = sessionStorage.getItem('token');
@@ -94,11 +94,17 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     };
 
     const handleFileChange = (field) => (event) => {
-        const file = event.target.files[0];
-        setFormData((prev) => ({
-            ...prev,
-            [field]: file
-        }));
+        // Handle multiple files for PO attachments, limited to 4
+        if (field === 'poAttachments') {
+            const files = Array.from(event.target.files).slice(0, 4);
+            if (event.target.files.length > 4) {
+                alert("You can only upload a maximum of 4 files for the PO.");
+            }
+            setFormData((prev) => ({
+                ...prev,
+                [field]: files
+            }));
+        }
     };
 
     const handleAddMilestone = () => {
@@ -136,8 +142,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     };
 
     const onCellValueChanged = (params) => {
-        console.log('Cell changed:', params.colDef.field, params.newValue);
-
         const updatedMilestones = [...formData.milestones];
         const rowIndex = params.node.rowIndex;
 
@@ -148,7 +152,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         } else if (params.colDef.field === 'currency') {
             updatedMilestones[rowIndex].currency = params.newValue;
         } else {
-            // Clear placeholder text when user starts typing
             if (params.colDef.field === 'milestoneName' && params.oldValue === 'Click to add milestone name') {
                 updatedMilestones[rowIndex][params.colDef.field] = params.newValue === 'Click to add milestone name' ? '' : params.newValue;
             } else if (params.colDef.field === 'milestoneDescription' && params.oldValue === 'Click to add description') {
@@ -166,7 +169,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         }));
     };
 
-    // AG Grid column definitions for milestones
     const milestoneColumnDefs = [
         {
             headerName: '#',
@@ -311,6 +313,37 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         resizable: true
     };
 
+    const uploadAttachment = async (poNumber, entityType, entityId, slot, file, user) => {
+        const uploadFormData = new FormData();
+        uploadFormData.append('poNumber', poNumber);
+        uploadFormData.append('entityType', entityType);
+        if (entityId) {
+            uploadFormData.append('entityId', entityId);
+        }
+        uploadFormData.append('attachmentSlot', slot);
+        uploadFormData.append('file', file);
+        uploadFormData.append('updatedBy', user);
+
+        try {
+            const token = sessionStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `${token}`,
+                },
+                body: uploadFormData,
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Attachment upload failed: ${errorText}`);
+            }
+            console.log(`Attachment for ${entityType} ${entityId || ''} in slot ${slot} uploaded successfully.`);
+        } catch (error) {
+            console.error(`Error uploading attachment for ${entityType}:`, error);
+        }
+    };
+
     const handleSubmit = async () => {
         try {
             const poPayload = {
@@ -327,8 +360,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 poEndDate: formData.endDate || null,
             };
 
-            console.log('PO Payload:', poPayload);
-
             const token = sessionStorage.getItem('token');
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL}/api/po/add`,
@@ -343,12 +374,23 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             );
 
             if (response.ok) {
-                const data = await response.json();
-                console.log('PO Created:', data);
+                const poData = await response.json();
+                console.log('PO Created:', poData);
+                const currentUser = sessionStorage.getItem('username') || 'system';
 
+                // --- MODIFIED: Upload PO Attachments (up to 4) ---
+                if (formData.poAttachments.length > 0) {
+                    for (const [index, file] of formData.poAttachments.entries()) {
+                        // The loop is already limited to 4 by handleFileChange
+                        await uploadAttachment(poData.poNumber, 'PO', null, `po_attachment${index + 1}`, file, currentUser);
+                    }
+                }
+
+                // --- MODIFIED: Upload Milestone Attachments with a 4-file limit ---
                 if (formData.milestones.length > 0) {
+                    let milestoneAttachmentCount = 0;
                     for (const milestone of formData.milestones) {
-                        if (milestone.milestoneName && milestone.milestoneName.trim()) {
+                        if (milestone.milestoneName && milestone.milestoneName.trim() && milestone.milestoneName !== 'Click to add milestone name') {
                             const milestonePayload = {
                                 msName: milestone.milestoneName,
                                 msDesc: milestone.milestoneDescription || '',
@@ -357,12 +399,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 msDate: milestone.date || null,
                                 msDuration: parseInt(milestone.duration) || 0,
                                 msRemarks: milestone.remark || '',
-                                poId: data.poId || data.id,
+                                poId: poData.poId || poData.id,
                                 poNumber: formData.poNumber
                             };
-
-                            console.log('Milestone data:', milestone);
-                            console.log('Milestone payload:', milestonePayload);
 
                             const milestoneResponse = await fetch(
                                 `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
@@ -376,18 +415,29 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 }
                             );
 
-                            if (!milestoneResponse.ok) {
-                                const milestoneError = await milestoneResponse.text();
-                                console.error('Milestone error:', milestoneError);
-                            } else {
+                            if (milestoneResponse.ok) {
                                 const milestoneData = await milestoneResponse.json();
                                 console.log('Milestone created:', milestoneData);
+
+                                // If this milestone has an attachment, upload it, respecting the limit
+                                if (milestone.attachment) {
+                                    milestoneAttachmentCount++;
+                                    if (milestoneAttachmentCount <= 4) {
+                                        await uploadAttachment(poData.poNumber, 'MS', milestoneData.msId, `ms_attachment${milestoneAttachmentCount}`, milestone.attachment, currentUser);
+                                    } else {
+                                        console.warn(`Skipping milestone attachment upload: Maximum of 4 milestone attachments reached.`);
+                                        alert('Warning: Maximum of 4 milestone attachments reached. Some files were not uploaded.');
+                                    }
+                                }
+                            } else {
+                                const milestoneError = await milestoneResponse.text();
+                                console.error('Milestone creation error:', milestoneError);
                             }
                         }
                     }
                 }
 
-                onSubmit?.(data);
+                onSubmit?.(poData);
                 handleReset();
                 onClose();
             } else {
@@ -414,7 +464,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             startDate: '',
             endDate: '',
             projectDescription: '',
-            poAttachment: null,
+            poAttachments: [],
             milestones: []
         });
     };
@@ -423,7 +473,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full mx-4 max-h-[95vh] overflow-hidden">
+            <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-green-900">Create New PO</h2>
                     <button
@@ -434,184 +484,228 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-3 gap-4">
+                <div className="border-b border-gray-200">
+                    <nav className="flex px-6" aria-label="Tabs">
+                        <button
+                            onClick={() => setActiveTab('details')}
+                            className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'details'
+                                ? 'border-green-500 text-green-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                } transition-colors`}
+                        >
+                            PO Details
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('milestones')}
+                            className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'milestones'
+                                ? 'border-green-500 text-green-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                } transition-colors`}
+                        >
+                            Milestone Details
+                        </button>
+                    </nav>
+                </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter here"
-                                    value={formData.poNumber}
-                                    onChange={handleChange('poNumber')}
-                                    className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Type</label>
-                                <select
-                                    value={formData.poType}
-                                    onChange={handleChange('poType')}
-                                    className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                >
-                                    <option value="">Select from list</option>
-                                    <option value="FIXED">Fixed</option>
-                                    <option value="T_AND_M">T & M</option>
-                                    <option value="MIXED">Mixed</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                                <select
-                                    value={formData.currency}
-                                    onChange={handleChange('currency')}
-                                    className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                >
-                                    <option value="USD">USD</option>
-                                    <option value="INR">INR</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="GBP">GBP</option>
-                                    <option value="JPY">JPY</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
-                                        {currencySymbols[formData.currency] || '$'}
-                                    </span>
-                                    <input
-                                        type="number"
-                                        placeholder="Enter here"
-                                        value={formData.poAmount}
-                                        onChange={handleChange('poAmount')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                                <div
-                                    onClick={() => StartDateInputRef.current?.showPicker?.()}
-                                    className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
-                                >
-                                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <input
-                                        ref={StartDateInputRef}
-                                        type="date"
-                                        value={formData.startDate}
-                                        onChange={handleChange('startDate')}
-                                        className="w-full h-full bg-transparent outline-none cursor-pointer"
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                                <div onClick={() => EndDateInputRef.current?.showPicker?.()} className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500">
-                                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <input
-                                        ref={EndDateInputRef}
-                                        type="date"
-                                        value={formData.endDate}
-                                        onChange={handleChange('endDate')}
-                                        className="w-full h-full bg-transparent outline-none cursor-pointer"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PM/SPOC Name</label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                <div className="p-6 overflow-y-auto flex-grow">
+                    {activeTab === 'details' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
                                     <input
                                         type="text"
                                         placeholder="Enter here"
-                                        value={formData.spocName}
-                                        onChange={handleChange('spocName')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        value={formData.poNumber}
+                                        onChange={handleChange('poNumber')}
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                     />
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-                                <div className="relative">
-                                    <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
-                                    <div className="pl-10">
-                                        <Select
-                                            options={projectOptions}
-                                            value={projectOptions.find(option => option.value === formData.projectName)}
-                                            onChange={(selectedOption) =>
-                                                handleChange('projectName')({ target: { value: selectedOption.value } })
-                                            }
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Type</label>
+                                    <select
+                                        value={formData.poType}
+                                        onChange={handleChange('poType')}
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    >
+                                        <option value="">Select from list</option>
+                                        <option value="FIXED">Fixed</option>
+                                        <option value="T_AND_M">T & M</option>
+                                        <option value="MIXED">Mixed</option>
+                                    </select>
+                                </div>
+                                <div className='lg:col-span-1'>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                                    <select
+                                        value={formData.currency}
+                                        onChange={handleChange('currency')}
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    >
+                                        <option value="USD">USD</option>
+                                        <option value="INR">INR</option>
+                                        <option value="EUR">EUR</option>
+                                        <option value="GBP">GBP</option>
+                                        <option value="JPY">JPY</option>
+                                    </select>
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
+                                            {currencySymbols[formData.currency] || '$'}
+                                        </span>
+                                        <input
+                                            type="number"
                                             placeholder="Enter here"
-                                            isSearchable
+                                            value={formData.poAmount}
+                                            onChange={handleChange('poAmount')}
+                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                    <div
+                                        onClick={() => StartDateInputRef.current?.showPicker?.()}
+                                        className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
+                                    >
+                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                        <input
+                                            ref={StartDateInputRef}
+                                            type="date"
+                                            value={formData.startDate}
+                                            onChange={handleChange('startDate')}
+                                            className="w-full bg-transparent outline-none cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                                    <div onClick={() => EndDateInputRef.current?.showPicker?.()} className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 flex items-center">
+                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                        <input
+                                            ref={EndDateInputRef}
+                                            type="date"
+                                            value={formData.endDate}
+                                            onChange={handleChange('endDate')}
+                                            className="w-full bg-transparent outline-none cursor-pointer"
                                         />
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                                <div className="relative">
-                                    <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <input
-                                        type="text"
-                                        placeholder="Enter customer name"
-                                        value={formData.customerName}
-                                        onChange={handleChange('customerName')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">PM/SPOC Name</label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                        <input
+                                            type="text"
+                                            placeholder="Enter here"
+                                            value={formData.spocName}
+                                            onChange={handleChange('spocName')}
+                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Project Name
+                                    </label>
+                                    <div className="relative w-full">
+                                        <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
+                                        <CreatableSelect
+                                            options={projectOptions}
+                                            value={
+                                                formData.projectName
+                                                    ? { label: formData.projectName, value: formData.projectName }
+                                                    : null
+                                            }
+                                            onChange={(selectedOption) => {
+                                                handleChange('projectName')({
+                                                    target: { value: selectedOption?.value || '' },
+                                                });
+                                            }}
+                                            className="react-select-container"
+                                            classNamePrefix="react-select"
+                                            placeholder="Type or select project"
+                                            isSearchable
+                                            isClearable
+                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                            styles={{
+                                                control: (base) => ({ ...base, height: '40px', paddingLeft: '28px', borderColor: '#d1d5db' }),
+                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                                    <div className="relative">
+                                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                        <input
+                                            type="text"
+                                            placeholder="Enter customer name"
+                                            value={formData.customerName}
+                                            onChange={handleChange('customerName')}
+                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
+                                    <div className="relative">
+                                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                        <input
+                                            type="text"
+                                            placeholder="Enter supplier name"
+                                            value={formData.supplierName}
+                                            onChange={handleChange('supplierName')}
+                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="lg:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            id="po-attachment-input"
+                                            multiple
+                                            onChange={handleFileChange('poAttachments')}
+                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            className="hidden"
+                                        />
+                                        <label htmlFor="po-attachment-input" className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer">
+                                            <Upload className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                            <span className="text-gray-500 truncate">
+                                                {formData.poAttachments.length > 0
+                                                    ? `${formData.poAttachments.length} file(s) selected`
+                                                    : 'Click to select files'
+                                                }
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
+
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
-                                <div className="relative">
-                                    <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <input
-                                        type="text"
-                                        placeholder="Enter supplier name"
-                                        value={formData.supplierName}
-                                        onChange={handleChange('supplierName')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachment</label>
-                                <div className="relative">
-                                    <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <input
-                                        type="file"
-                                        onChange={handleFileChange('poAttachment')}
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                                    />
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
+                                <textarea
+                                    placeholder="Enter here"
+                                    rows={3}
+                                    value={formData.projectDescription}
+                                    onChange={handleChange('projectDescription')}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                    maxLength={500}
+                                />
                             </div>
                         </div>
+                    )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
-                            <textarea
-                                placeholder="Enter here"
-                                rows={3}
-                                value={formData.projectDescription}
-                                onChange={handleChange('projectDescription')}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                maxLength={500}
-                            />
-                        </div>
-
-                        <div>
-                            <div className="flex justify-between items-center mb-4">
+                    {activeTab === 'milestones' && (
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-center">
                                 <h3 className="text-lg font-semibold text-green-900">Milestones Details</h3>
                                 <button
                                     onClick={handleAddMilestone}
@@ -622,36 +716,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 </button>
                             </div>
 
-                            <div className="h-80 w-full border border-gray-200 rounded-md">
+                            <div className="h-96 w-full border border-gray-200 rounded-md">
                                 <div className="ag-theme-alpine h-full w-full">
-                                    <style jsx>{`
-                                        .ag-theme-alpine .ag-header {
-                                            background-color: #15803d !important;
-                                            color: white;
-                                            font-weight: 600;
-                                            border-bottom: 2px solid #047857;
-                                        }
-                                        .ag-theme-alpine .ag-header-cell {
-                                            color: white;
-                                            border-right: 1px solid #047857;
-                                            font-weight: 600;
-                                            font-size: 14px;
-                                        }
-                                        .ag-theme-alpine .ag-header-cell:hover {
-                                            background-color: #047857;
-                                        }
-                                        .ag-theme-alpine .ag-row {
-                                            border-bottom: 1px solid #e5e7eb;
-                                        }
-                                        .ag-theme-alpine .ag-row:hover {
-                                            background-color: #f0fdf4;
-                                        }
-                                        .ag-theme-alpine .ag-cell {
-                                            border-right: 1px solid #e5e7eb;
-                                            padding: 8px 12px;
-                                            font-size: 14px;
-                                        }
-                                    `}</style>
                                     <AgGridReact
                                         columnDefs={milestoneColumnDefs}
                                         rowData={formData.milestones}
@@ -676,28 +742,28 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 </div>
                             </div>
                         </div>
+                    )}
+                </div>
 
-                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                            <button
-                                onClick={onClose}
-                                className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleReset}
-                                className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                            >
-                                Reset
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
-                            >
-                                Create PO
-                            </button>
-                        </div>
-                    </div>
+                <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleReset}
+                        className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+                    >
+                        Reset
+                    </button>
+                    <button
+                        onClick={handleSubmit}
+                        className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
+                    >
+                        Create PO
+                    </button>
                 </div>
             </div>
         </div>

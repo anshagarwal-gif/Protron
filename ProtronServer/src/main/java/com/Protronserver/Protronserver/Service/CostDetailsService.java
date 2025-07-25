@@ -36,12 +36,12 @@ public class CostDetailsService {
      * Calculates the remaining balance for a specific milestone.
      * Note: Requires poId in addition to msName to uniquely identify the milestone.
      */
-    public BigDecimal getMilestoneBalance(Long poId, String msName) {
-        Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsName(poId, msName)
-                .orElseThrow(() -> new EntityNotFoundException("Milestone '" + msName + "' not found for PO id: " + poId));
+    public BigDecimal getMilestoneBalance(Long poId, Long msId) {
+        Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, msId)
+                .orElseThrow(() -> new EntityNotFoundException("Milestone '" + msId + "' not found for PO id: " + poId));
 
         BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
-        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsName(poId, msName);
+        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsId(poId, msId);
 
         return milestoneAmount.subtract(totalSrnPaid);
     }
@@ -57,7 +57,7 @@ public class CostDetailsService {
         return allMilestones.stream()
                 // Map each milestone to a new DTO that includes the calculated balance
                 .map(milestone -> {
-                    BigDecimal balance = getMilestoneBalance(poId, milestone.getMsName());
+                    BigDecimal balance = getMilestoneBalance(poId, milestone.getMsId());
                     return new EligibleMilestone(milestone.getMsId(), milestone.getMsName(), balance);
                 })
                 // Filter the list to include only those with a balance greater than zero

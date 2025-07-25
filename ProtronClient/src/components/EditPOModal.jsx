@@ -1,9 +1,9 @@
-// EditPOModal.js
 import React, { useEffect, useState, useRef } from 'react';
 import Select from 'react-select';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import CreatableSelect from 'react-select/creatable';
 import {
     X,
     Calendar,
@@ -40,7 +40,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         poStartDate: '',
         poEndDate: '',
         poDesc: '',
-        poAttachment: null,
+        poAttachments: [], // Changed to handle multiple attachments
         milestones: []
     });
 
@@ -51,9 +51,10 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const startDateRef = useRef(null);
     const endDateRef = useRef(null);
     const projectOptions = projects.map((project) => ({
-    value: project.projectName,
-    label: project.projectName,
-  }));
+        value: project.projectName,
+        label: project.projectName,
+    }));
+    const [activeTab, setActiveTab] = useState('details');
 
     const fetchUsers = async () => {
         try {
@@ -88,22 +89,16 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         setLoading(true);
         try {
             const token = sessionStorage.getItem('token');
-
-            // Fetch PO details
             const poResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po/${poId}`, {
                 headers: { Authorization: `${token}` }
             });
             const poData = await poResponse.json();
 
-            // Fetch milestones for this PO
             const milestonesResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/po/${poId}`, {
                 headers: { Authorization: `${token}` }
             });
             const milestonesData = await milestonesResponse.json();
 
-            console.log('Raw milestones data from API:', milestonesData); // Debug log
-
-            // Map the backend data to form structure
             const mappedFormData = {
                 poId: poData.poId,
                 poNumber: poData.poNumber || '',
@@ -117,17 +112,13 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 poStartDate: poData.poStartDate || '',
                 poEndDate: poData.poEndDate || '',
                 poDesc: poData.poDesc || '',
-                poAttachment: null, // File attachments need to be handled separately
+                poAttachments: [], // Existing attachments are not fetched, user can only add new ones
                 milestones: milestonesData.map(milestone => {
-                    console.log('Processing milestone:', milestone); // Debug log
-
-                    // Handle date formatting - convert from backend date to YYYY-MM-DD format
                     let formattedDate = '';
                     if (milestone.msDate) {
                         const date = new Date(milestone.msDate);
                         formattedDate = date.toISOString().split('T')[0];
                     }
-
                     return {
                         msId: milestone.msId,
                         milestoneName: milestone.msName || '',
@@ -136,8 +127,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                         currency: milestone.msCurrency || poData.poCurrency || 'USD',
                         date: formattedDate,
                         duration: milestone.msDuration || 0,
-                        remark: milestone.msRemarks || '', // This should now work correctly
-                        attachment: null // File attachments need to be handled separately
+                        remark: milestone.msRemarks || '',
+                        attachment: null // New attachments can be added
                     };
                 })
             };
@@ -168,116 +159,16 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     };
 
     const handleFileChange = (field) => (event) => {
-        const file = event.target.files[0];
-        setFormData((prev) => ({
-            ...prev,
-            [field]: file
-        }));
-    };
-
-    // AG Grid column definitions for milestones
-    const milestoneColumnDefs = [
-        {
-            headerName: '#',
-            valueGetter: 'node.rowIndex + 1',
-            width: 50,
-            pinned: 'left',
-            cellStyle: { textAlign: 'center' },
-            sortable: false,
-            filter: false
-        },
-        {
-            headerName: 'Milestone Name',
-            field: 'milestoneName',
-            flex: 1,
-            editable: true,
-            cellEditor: 'agTextCellEditor'
-        },
-        {
-            headerName: 'Milestone Description',
-            field: 'milestoneDescription',
-            flex: 2,
-            editable: true,
-            cellEditor: 'agTextCellEditor'
-        },
-        {
-            headerName: 'Amount',
-            field: 'amount',
-            width: 120,
-            editable: true,
-            cellEditor: 'agNumberCellEditor',
-            valueFormatter: (params) => {
-                const amount = params.value;
-                const currency = params.data.currency || formData.poCurrency;
-                const symbol = currencySymbols[currency] || '$';
-                return amount ? `${symbol}${Number(amount).toLocaleString()}` : '';
+        if (field === 'poAttachments') {
+            const files = Array.from(event.target.files).slice(0, 4);
+            if (event.target.files.length > 4) {
+                alert("You can only upload a maximum of 4 files for the PO.");
             }
-        },
-        {
-            headerName: 'Currency',
-            field: 'currency',
-            width: 100,
-            editable: true,
-            cellEditor: 'agSelectCellEditor',
-            cellEditorParams: {
-                values: ['USD', 'INR', 'EUR', 'GBP', 'JPY']
-            }
-        },
-        {
-            headerName: 'Date',
-            field: 'date',
-            width: 150,
-            editable: true,
-            cellEditor: 'agDateCellEditor',
-            valueFormatter: (params) => {
-                return params.value ? new Date(params.value).toLocaleDateString() : '';
-            }
-        },
-        {
-            headerName: 'Duration (Days)',
-            field: 'duration',
-            width: 130,
-            editable: true,
-            cellEditor: 'agNumberCellEditor'
-        },
-        {
-            headerName: 'Remark',
-            field: 'remark',
-            flex: 1,
-            editable: true,
-            cellEditor: 'agTextCellEditor'
-        },
-        {
-            headerName: 'Attachment',
-            field: 'attachment',
-            width: 120,
-            editable: false,
-            cellRenderer: 'attachmentRenderer'
-        },
-        {
-            headerName: 'Actions',
-            field: 'actions',
-            width: 100,
-            sortable: false,
-            filter: false,
-            cellRenderer: (params) => (
-                <div className="flex justify-center items-center h-full">
-                    <button
-                        onClick={() => handleRemoveMilestone(params.node.rowIndex)}
-                        className="p-1 rounded-full hover:bg-red-100 text-red-600 transition-colors"
-                        title="Remove milestone"
-                    >
-                        <Trash2 size={16} />
-                    </button>
-                </div>
-            )
+            setFormData((prev) => ({
+                ...prev,
+                [field]: files
+            }));
         }
-    ];
-
-    const defaultColDef = {
-        sortable: true,
-        filter: true,
-        resizable: true
     };
 
     const handleAddMilestone = () => {
@@ -314,14 +205,22 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             milestones: updatedMilestones
         }));
     };
+    
+    const onCellValueChanged = (params) => {
+        const updatedMilestones = [...formData.milestones];
+        const rowIndex = params.node.rowIndex;
+        updatedMilestones[rowIndex][params.colDef.field] = params.newValue;
+        setFormData(prev => ({
+            ...prev,
+            milestones: updatedMilestones
+        }));
+    };
 
-    // Custom cell renderer component
     const AttachmentRenderer = (params) => {
         const rowIndex = params.node.rowIndex;
-        const fileInputId = 'editfile' + rowIndex;
-
+        const fileInputId = `edit-milestone-file-${rowIndex}`;
         return (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <div className="flex justify-center items-center h-full">
                 <input
                     type="file"
                     id={fileInputId}
@@ -331,45 +230,54 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 />
                 <button
                     onClick={() => document.getElementById(fileInputId).click()}
-                    style={{
-                        padding: '4px',
-                        borderRadius: '50%',
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        color: '#2563eb'
-                    }}
-                    title="Upload attachment"
+                    className="p-1 rounded-full hover:bg-blue-100 text-blue-600 transition-colors"
+                    title="Upload or replace attachment"
                 >
-                    📎
+                    <Upload size={16} />
                 </button>
                 {params.data.attachment && (
-                    <span style={{ marginLeft: '4px', fontSize: '12px', color: '#059669' }}>✓</span>
+                    <span className="ml-1 text-xs text-green-600">✓ New</span>
                 )}
             </div>
         );
     };
 
-    const onCellValueChanged = (params) => {
-        console.log('Cell changed:', params.colDef.field, params.newValue);
+    const milestoneColumnDefs = [
+        { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50, pinned: 'left' },
+        { headerName: 'Milestone Name', field: 'milestoneName', flex: 1, editable: true },
+        { headerName: 'Milestone Description', field: 'milestoneDescription', flex: 2, editable: true },
+        { headerName: 'Amount', field: 'amount', width: 120, editable: true, valueFormatter: p => (p.value ? `${currencySymbols[p.data.currency] || '$'}${Number(p.value).toLocaleString()}`: '') },
+        { headerName: 'Currency', field: 'currency', width: 100, editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['USD', 'INR', 'EUR', 'GBP', 'JPY'] } },
+        { headerName: 'Date', field: 'date', width: 150, editable: true, cellEditor: 'agDateCellEditor' },
+        { headerName: 'Duration (Days)', field: 'duration', width: 130, editable: true },
+        { headerName: 'Remark', field: 'remark', flex: 1, editable: true },
+        { headerName: 'Attachment', field: 'attachment', width: 120, cellRenderer: AttachmentRenderer },
+        { headerName: 'Actions', width: 100, cellRenderer: (params) => (<button onClick={() => handleRemoveMilestone(params.node.rowIndex)} className="p-1 rounded-full hover:bg-red-100 text-red-600"><Trash2 size={16} /></button>) }
+    ];
 
-        const updatedMilestones = [...formData.milestones];
-        const rowIndex = params.node.rowIndex;
+    const defaultColDef = { sortable: true, filter: true, resizable: true };
 
-        if (params.colDef.field === 'amount') {
-            updatedMilestones[rowIndex].amount = parseFloat(params.newValue) || 0;
-        } else if (params.colDef.field === 'duration') {
-            updatedMilestones[rowIndex].duration = parseInt(params.newValue) || 0;
-        } else if (params.colDef.field === 'currency') {
-            updatedMilestones[rowIndex].currency = params.newValue;
-        } else {
-            updatedMilestones[rowIndex][params.colDef.field] = params.newValue;
+    const uploadAttachment = async (poNumber, entityType, entityId, slot, file, user) => {
+        const uploadFormData = new FormData();
+        uploadFormData.append('poNumber', poNumber);
+        uploadFormData.append('entityType', entityType);
+        if (entityId) uploadFormData.append('entityId', entityId);
+        uploadFormData.append('attachmentSlot', slot);
+        uploadFormData.append('file', file);
+        uploadFormData.append('updatedBy', user);
+
+        try {
+            const token = sessionStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `${token}` },
+                body: uploadFormData,
+            });
+            if (!response.ok) throw new Error(await response.text());
+            console.log(`Attachment for ${entityType} in slot ${slot} uploaded.`);
+        } catch (error) {
+            console.error(`Error uploading attachment for ${entityType}:`, error);
         }
-
-        setFormData(prev => ({
-            ...prev,
-            milestones: updatedMilestones
-        }));
     };
 
     const handleSubmit = async () => {
@@ -377,373 +285,183 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             const poPayload = {
                 poNumber: formData.poNumber,
                 poType: formData.poType,
-                poDesc: formData.poDesc || '',
+                poDesc: formData.poDesc,
                 poAmount: parseFloat(formData.poAmount) || 0,
                 poCurrency: formData.poCurrency,
                 poSpoc: formData.poSpoc,
                 supplier: formData.supplier,
                 customer: formData.customer,
                 projectName: formData.projectName,
-                poStartDate: formData.poStartDate || null,
-                poEndDate: formData.poEndDate || null,
+                poStartDate: formData.poStartDate,
+                poEndDate: formData.poEndDate,
             };
 
-            console.log('Updating PO with payload:', poPayload);
-
             const token = sessionStorage.getItem('token');
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/po/edit/${poId}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(poPayload)
-                }
-            );
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po/edit/${poId}`, {
+                method: 'PUT',
+                headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+                body: JSON.stringify(poPayload)
+            });
 
             if (response.ok) {
-                const data = await response.json();
-                console.log('PO Updated:', data);
+                const updatedPO = await response.json();
+                console.log('PO Updated:', updatedPO);
+                const currentUser = sessionStorage.getItem('username') || 'system';
 
-                // Handle milestones - update existing and create new ones
+                // --- Upload new PO attachments ---
+                if (formData.poAttachments.length > 0) {
+                    for (const [index, file] of formData.poAttachments.entries()) {
+                        await uploadAttachment(updatedPO.poNumber, 'PO', null, `po_attachment${index + 1}`, file, currentUser);
+                    }
+                }
+
+                // --- Handle Milestones and their attachments ---
+                let milestoneAttachmentCount = 0;
                 for (const milestone of formData.milestones) {
                     if (milestone.milestoneName && milestone.milestoneName.trim()) {
                         const milestonePayload = {
                             msName: milestone.milestoneName,
-                            msDesc: milestone.milestoneDescription || '',
+                            msDesc: milestone.milestoneDescription,
                             msAmount: parseInt(milestone.amount) || 0,
-                            msCurrency: milestone.currency || formData.poCurrency,
-                            msDate: milestone.date || null,
+                            msCurrency: milestone.currency,
+                            msDate: milestone.date,
                             msDuration: parseInt(milestone.duration) || 0,
-                            msRemarks: milestone.remark || '',
+                            msRemarks: milestone.remark,
                             poId: poId,
                             poNumber: formData.poNumber
                         };
 
-                        console.log('Processing milestone:', milestone);
+                        let milestoneResponse;
+                        if (milestone.msId) { // Existing milestone -> Update
+                            milestoneResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/edit/${milestone.msId}`, {
+                                method: 'PUT',
+                                headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+                                body: JSON.stringify(milestonePayload)
+                            });
+                        } else { // New milestone -> Add
+                            milestoneResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/add`, {
+                                method: 'POST',
+                                headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+                                body: JSON.stringify(milestonePayload)
+                            });
+                        }
 
-                        if (milestone.msId) {
-                            // Update existing milestone
-                            const milestoneResponse = await fetch(
-                                `${import.meta.env.VITE_API_URL}/api/po-milestone/edit/${milestone.msId}`,
-                                {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Authorization': `${token}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(milestonePayload)
+                        if (milestoneResponse.ok) {
+                            const milestoneData = await milestoneResponse.json();
+                            if (milestone.attachment) {
+                                milestoneAttachmentCount++;
+                                if (milestoneAttachmentCount <= 4) {
+                                    await uploadAttachment(formData.poNumber, 'MS', milestoneData.msId, `ms_attachment${milestoneAttachmentCount}`, milestone.attachment, currentUser);
+                                } else {
+                                    console.warn(`Skipping milestone attachment: Max of 4 reached.`);
+                                    alert('Warning: Maximum of 4 milestone attachments reached. Some files were not uploaded.');
                                 }
-                            );
-
-                            if (!milestoneResponse.ok) {
-                                const milestoneError = await milestoneResponse.text();
-                                console.error('Failed to update milestone:', milestoneError);
                             }
                         } else {
-                            // Create new milestone
-                            const milestoneResponse = await fetch(
-                                `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
-                                {
-                                    method: 'POST',
-                                    headers: {
-                                        'Authorization': `${token}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(milestonePayload)
-                                }
-                            );
-
-                            if (!milestoneResponse.ok) {
-                                const milestoneError = await milestoneResponse.text();
-                                console.error('Failed to create milestone:', milestoneError);
-                            }
+                            console.error('Failed to save milestone:', await milestoneResponse.text());
                         }
                     }
                 }
 
-                onSubmit?.(data);
+                onSubmit?.(updatedPO);
                 onClose();
             } else {
-                const errorData = await response.text();
-                console.error('PO Update Error:', errorData);
-                alert('Failed to update PO. Please check the console for details.');
+                console.error('PO Update Error:', await response.text());
+                alert('Failed to update PO.');
             }
         } catch (error) {
-            console.error('Error updating PO:', error);
+            console.error('Error submitting form:', error);
             alert('Network error. Please try again.');
         }
     };
-
-    const handleReset = () => {
-        setFormData({ ...initialFormData });
-    };
+    
+    const handleReset = () => setFormData({ ...initialFormData });
 
     if (!open) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full mx-4 max-h-[95vh] overflow-hidden">
+            <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-green-900">Edit PO</h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
+                    <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full"><X size={20} /></button>
                 </div>
 
-                <div className="p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
+                <div className="border-b border-gray-200">
+                    <nav className="flex px-6" aria-label="Tabs">
+                        <button onClick={() => setActiveTab('details')} className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'details' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>PO Details</button>
+                        <button onClick={() => setActiveTab('milestones')} className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'milestones' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}>Milestone Details</button>
+                    </nav>
+                </div>
+
+                <div className="p-6 overflow-y-auto flex-grow">
                     {loading ? (
-                        <div className="flex items-center justify-center h-64">
-                            <div className="text-center">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto"></div>
-                                <p className="mt-4 text-gray-600">Loading PO data...</p>
-                            </div>
-                        </div>
+                        <div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700"></div></div>
                     ) : (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter here"
-                                        value={formData.poNumber}
-                                        onChange={handleChange('poNumber')}
-                                        className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Type</label>
-                                    <select
-                                        value={formData.poType}
-                                        onChange={handleChange('poType')}
-                                        className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    >
-                                        <option value="">Select from list</option>
-                                        <option value="FIXED">Fixed</option>
-                                        <option value="T_AND_M">T & M</option>
-                                        <option value="MIXED">Mixed</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                                    <select
-                                        value={formData.poCurrency}
-                                        onChange={handleChange('poCurrency')}
-                                        className="w-full h-14 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    >
-                                        <option value="USD">USD</option>
-                                        <option value="INR">INR</option>
-                                        <option value="EUR">EUR</option>
-                                        <option value="GBP">GBP</option>
-                                        <option value="JPY">JPY</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
-                                            {currencySymbols[formData.poCurrency] || '$'}
-                                        </span>
-                                        <input
-                                            type="number"
-                                            placeholder="Enter here"
-                                            value={formData.poAmount}
-                                            onChange={handleChange('poAmount')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
+                        <>
+                            {activeTab === 'details' && (
+                                <div className="space-y-6">
+                                    {/* PO Details Form Fields */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                                         {/* PO Number, Type, Currency, Amount, Dates */}
+                                         <div className="lg:col-span-1">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
+                                            <input type="text" value={formData.poNumber} onChange={handleChange('poNumber')} className="w-full h-10 px-4 border border-gray-300 rounded-md"/>
+                                        </div>
+                                        <div className="lg:col-span-1">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PO Type</label>
+                                            <select value={formData.poType} onChange={handleChange('poType')} className="w-full h-10 px-4 border border-gray-300 rounded-md">
+                                                <option value="">Select</option><option value="FIXED">Fixed</option><option value="T_AND_M">T & M</option><option value="MIXED">Mixed</option>
+                                            </select>
+                                        </div>
+                                        <div className='lg:col-span-1'>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                                            <select value={formData.poCurrency} onChange={handleChange('poCurrency')} className="w-full h-10 px-4 border border-gray-300 rounded-md">
+                                                <option value="USD">USD</option><option value="INR">INR</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="JPY">JPY</option>
+                                            </select>
+                                        </div>
+                                        <div className="lg:col-span-1">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount</label>
+                                            <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">{currencySymbols[formData.poCurrency] || '$'}</span><input type="number" value={formData.poAmount} onChange={handleChange('poAmount')} className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md"/></div>
+                                        </div>
+                                        <div className="lg:col-span-1">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                            <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center"><Calendar className="absolute left-3 text-green-600" size={20} /><input ref={startDateRef} type="date" value={formData.poStartDate} onChange={handleChange('poStartDate')} className="w-full h-full bg-transparent outline-none cursor-pointer pl-10"/></div>
+                                        </div>
+                                        <div className="lg:col-span-1">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                                            <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center"><Calendar className="absolute left-3 text-green-600" size={20} /><input ref={endDateRef} type="date" value={formData.poEndDate} onChange={handleChange('poEndDate')} className="w-full h-full bg-transparent outline-none cursor-pointer pl-10"/></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-                                    <div
-                                        onClick={() => startDateRef.current?.showPicker?.()}
-                                        className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
-                                    >
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            ref={startDateRef}
-                                            type="date"
-                                            value={formData.poStartDate}
-                                            onChange={handleChange('poStartDate')}
-                                            className="w-full h-full bg-transparent outline-none cursor-pointer"
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {/* SPOC, Project, Customer, Supplier, Attachments */}
+                                        <div><label className="block text-sm font-medium text-gray-700 mb-2">PM/SPOC Name</label><div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} /><input type="text" value={formData.poSpoc} onChange={handleChange('poSpoc')} className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md"/></div></div>
+                                        <div><label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label><div className="relative w-full"><Folder className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10" size={20} /><CreatableSelect options={projectOptions} value={formData.projectName ? { label: formData.projectName, value: formData.projectName } : null} onChange={(opt) => handleChange('projectName')({ target: { value: opt?.value || '' }})} styles={{control: (base) => ({ ...base, height: '40px', paddingLeft: '28px' })}}/></div></div>
+                                        <div><label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} /><input type="text" value={formData.customer} onChange={handleChange('customer')} className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md"/></div></div>
+                                        <div><label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label><div className="relative"><Building className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} /><input type="text" value={formData.supplier} onChange={handleChange('supplier')} className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md"/></div></div>
+                                        <div className="lg:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-2">Add/Replace PO Attachments (Max 4)</label><div className="relative"><input type="file" id="po-attachment-input-edit" multiple onChange={handleFileChange('poAttachments')} className="hidden"/><label htmlFor="po-attachment-input-edit" className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"><Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} /><span className="text-gray-500 truncate">{formData.poAttachments.length > 0 ? `${formData.poAttachments.length} new file(s) selected` : 'Click to select files'}</span></label></div></div>
                                     </div>
+                                    <div><label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label><textarea rows={3} value={formData.poDesc} onChange={handleChange('poDesc')} className="w-full px-4 py-3 border border-gray-300 rounded-md"></textarea></div>
                                 </div>
-
-                                <div className="mt-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-                                    <div
-                                        onClick={() => endDateRef.current?.showPicker?.()}
-                                        className="relative w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer"
-                                    >
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            ref={endDateRef}
-                                            type="date"
-                                            value={formData.poEndDate}
-                                            onChange={handleChange('poEndDate')}
-                                            className="w-full h-full bg-transparent outline-none cursor-pointer"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PM/SPOC Name</label>
-                                    <div className="relative">
-                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter here"
-                                            value={formData.poSpoc}
-                                            onChange={handleChange('poSpoc')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter customer name"
-                                            value={formData.customer}
-                                            onChange={handleChange('customer')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter supplier name"
-                                            value={formData.supplier}
-                                            onChange={handleChange('supplier')}
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        />
-                                    </div>
-                                </div>
-                                <div >
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-                                    <div className="relative w-full h-14">
-                                    <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
-                                    <div className="pl-10">
-                                        <Select
-                                            options={projectOptions}
-                                            value={projectOptions.find(option => option.value === formData.projectName)}
-                                            onChange={(selectedOption) =>
-                                                handleChange('projectName')({ target: { value: selectedOption.value } })
-                                            }
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
-                                            placeholder="Enter here"
-                                            isSearchable
-                                        />
+                            )}
+                            {activeTab === 'milestones' && (
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center"><h3 className="text-lg font-semibold text-green-900">Milestones Details</h3><button onClick={handleAddMilestone} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"><Plus size={16} className="mr-2" />Add Row</button></div>
+                                    <div className="h-96 w-full border border-gray-200 rounded-md">
+                                        <div className="ag-theme-alpine h-full w-full">
+                                            <AgGridReact columnDefs={milestoneColumnDefs} rowData={formData.milestones} defaultColDef={defaultColDef} onCellValueChanged={onCellValueChanged} rowHeight={48} headerHeight={48} components={{ AttachmentRenderer }}/>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
-                                    <textarea
-                                        placeholder="Enter here"
-                                        rows={3}
-                                        value={formData.poDesc}
-                                        onChange={handleChange('poDesc')}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                        maxLength={500}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachment</label>
-                                    <div className="relative">
-                                        <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="file"
-                                            onChange={handleFileChange('poAttachment')}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div className="flex justify-between items-center mb-4">
-                                    <h3 className="text-lg font-semibold text-green-900">Milestones Details</h3>
-                                    <button
-                                        onClick={handleAddMilestone}
-                                        className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors"
-                                    >
-                                        <Plus size={16} className="mr-2" />
-                                        Add Row
-                                    </button>
-                                </div>
-
-                                <div className="h-80 w-full border border-gray-200 rounded-md">
-                                    <div className="ag-theme-alpine h-full w-full">
-                                        <AgGridReact
-                                            columnDefs={milestoneColumnDefs}
-                                            rowData={formData.milestones}
-                                            defaultColDef={defaultColDef}
-                                            suppressMovableColumns={true}
-                                            enableCellTextSelection={true}
-                                            suppressRowClickSelection={true}
-                                            onCellValueChanged={onCellValueChanged}
-                                            animateRows={true}
-                                            rowHeight={48}
-                                            headerHeight={48}
-                                            components={{
-                                                attachmentRenderer: AttachmentRenderer
-                                            }}
-                                            noRowsOverlayComponent={() => (
-                                                <div className="flex items-center justify-center h-full text-gray-500">
-                                                    No milestones found. Click "Add Row" to add new milestones.
-                                                </div>
-                                            )}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                                <button
-                                    onClick={onClose}
-                                    className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleReset}
-                                    className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                                >
-                                    Reset
-                                </button>
-                                <button
-                                    onClick={handleSubmit}
-                                    className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
-                                >
-                                    Update PO
-                                </button>
-                            </div>
-                        </div>
+                            )}
+                        </>
                     )}
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+                    <button onClick={onClose} className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50">Cancel</button>
+                    <button onClick={handleReset} className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50">Reset</button>
+                    <button onClick={handleSubmit} className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 font-semibold">Update PO</button>
                 </div>
             </div>
         </div>

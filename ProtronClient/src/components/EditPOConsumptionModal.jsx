@@ -6,7 +6,7 @@ import axios from "axios";
 const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const [formData, setFormData] = useState({
     poNumber: "",
-    msName: "",
+    msId: "",
     amount: "",
     currency: "USD",
     utilizationType: "Fixed",
@@ -91,7 +91,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
           setFormData({
             poNumber: consumption.poNumber || "",
-            msName: consumption.msName || "",
+            msId: consumption.msId || "",
             amount: consumption.amount?.toString() || "",
             currency: consumption.currency || "USD",
             utilizationType: consumption.utilizationType || "Fixed",
@@ -255,10 +255,10 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       const token = sessionStorage.getItem('token');
       let balanceEndpoint = '';
       let balanceType = '';
-      
-      if (formData.msName && formData.msName.trim()) {
-        balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}?msName=${encodeURIComponent(formData.msName)}`;
-        balanceType = `Milestone "${formData.msName}"`;
+
+      if (formData.msId && formData.msId.trim()) {
+        balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}?msId=${encodeURIComponent(formData.msId)}`;
+        balanceType = `Milestone "${formData.msId}"`;
       } else {
         balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}`;
         balanceType = `PO "${formData.poNumber}"`;
@@ -411,7 +411,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
       const submitData = {
         poNumber: formData.poNumber,
-        msName: formData.msName || null,
+        msId: formData.msId || null,
         amount: parseInt(formData.amount) || 0,
         currency: formData.currency,
         utilizationType: formData.utilizationType,
@@ -465,7 +465,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const handleClose = () => {
     setFormData({
       poNumber: "",
-      msName: "",
+      msId: "",
       amount: "",
       currency: "USD",
       utilizationType: "Fixed",
@@ -568,8 +568,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   Milestone
                 </label>
                 <select
-                  name="msName"
-                  value={formData.msName}
+                  name="msId"
+                  value={formData.msId}
                   onChange={handleInputChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading || initialLoading}
@@ -579,7 +579,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   {milestoneList.map(milestone => (
                     <TruncatedOption 
                       key={milestone.msId} 
-                      value={milestone.msName} 
+                      value={milestone.msId} 
                       text={milestone.msName}
                       maxLength={25}
                     />

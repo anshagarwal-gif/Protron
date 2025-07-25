@@ -4,7 +4,7 @@ public class SRNDTO {
 
     private Long poId;
     private String poNumber;
-    private String msName;
+    private Long msId;
     private String srnName;
     private String srnDsc;
     private Integer srnAmount;
@@ -28,12 +28,12 @@ public class SRNDTO {
         this.poNumber = poNumber;
     }
 
-    public String getMsName() {
-        return msName;
+    public Long getMsId() {
+        return msId;
     }
 
-    public void setMsName(String msName) {
-        this.msName = msName;
+    public void setMsId(Long msId) {
+        this.msId = msId;
     }
 
     public String getSrnName() {
