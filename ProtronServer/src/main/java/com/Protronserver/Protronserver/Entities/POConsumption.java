@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.Arrays;
 import java.util.Date;
@@ -17,8 +18,10 @@ public class POConsumption {
     @Column(name = "po_number", nullable = false, length = 250)
     private String poNumber;
 
-    @Column(name = "ms_name")
-    private String msName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ms_id", referencedColumnName = "ms_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "poDetail" })
+    private POMilestone milestone;
 
     @Column(name = "amount")
     private Integer amount;
@@ -81,12 +84,12 @@ public class POConsumption {
         this.poNumber = poNumber;
     }
 
-    public String getMsName() {
-        return msName;
+    public POMilestone getMilestone() {
+        return milestone;
     }
 
-    public void setMsName(String msName) {
-        this.msName = msName;
+    public void setMilestone(POMilestone milestone) {
+        this.milestone = milestone;
     }
 
     public Integer getAmount() {

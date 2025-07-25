@@ -23,8 +23,10 @@ public class SRNDetails {
     @Column(name = "po_number", length = 250)
     private String poNumber;
 
-    @Column(name = "ms_name")
-    private String msName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ms_id", referencedColumnName = "ms_id", nullable = false)
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "poDetail" })
+    private POMilestone milestone;
 
     @Column(name = "srn_name", length = 100)
     private String srnName;
@@ -78,12 +80,12 @@ public class SRNDetails {
         this.poNumber = poNumber;
     }
 
-    public String getMsName() {
-        return msName;
+    public POMilestone getMilestone() {
+        return milestone;
     }
 
-    public void setMsName(String msName) {
-        this.msName = msName;
+    public void setMilestone(POMilestone milestone) {
+        this.milestone = milestone;
     }
 
     public String getSrnName() {

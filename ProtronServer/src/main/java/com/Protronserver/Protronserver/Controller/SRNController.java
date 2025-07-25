@@ -26,6 +26,7 @@ public class SRNController {
             SRNDetails createdSRN = srnService.addSRN(dto);
             return ResponseEntity.ok(createdSRN);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

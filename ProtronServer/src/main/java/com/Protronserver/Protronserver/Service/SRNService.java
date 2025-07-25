@@ -42,22 +42,22 @@ public class SRNService {
         BigDecimal newSrnAmount = new BigDecimal(dto.getSrnAmount());
 
         // Check if the SRN is being submitted against a specific milestone
-        if (dto.getMsName() != null && !dto.getMsName().isBlank()) {
+        if (dto.getMsId() != null) {
             // --- Milestone-level Validation ---
 
             // Get the total amount for the specified milestone
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsName(poDetail.getPoId(), dto.getMsName())
-                    .orElseThrow(() -> new RuntimeException("Milestone '" + dto.getMsName() + "' not found for this PO."));
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poDetail.getPoId(), dto.getMsId())
+                    .orElseThrow(() -> new RuntimeException("Milestone '" + dto.getMsId() + "' not found for this PO."));
 
             // Get the sum of all SRNs already paid against this milestone
-            BigDecimal paidAmount = srnRepository.sumSrnAmountsByPoIdAndMsName(poDetail.getPoId(), dto.getMsName());
+            BigDecimal paidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), dto.getMsId());
 
             BigDecimal milestoneBalance = new BigDecimal(milestoneAmountInt).subtract(paidAmount);
 
             // Check if the new SRN amount exceeds the remaining milestone balance
             if (newSrnAmount.compareTo(milestoneBalance) > 0) {
                 throw new IllegalArgumentException("SRN amount exceeds the remaining milestone balance. " +
-                        "Remaining balance for '" + dto.getMsName() + "': " + milestoneBalance);
+                        "Remaining balance for '" + dto.getMsId() + "': " + milestoneBalance);
             }
         } else {
             // --- PO-level Validation (when no milestone is specified) ---
@@ -85,7 +85,10 @@ public class SRNService {
         SRNDetails srnDetails = new SRNDetails();
         srnDetails.setPoDetail(poDetail);
         srnDetails.setPoNumber(dto.getPoNumber());
-        srnDetails.setMsName(dto.getMsName()); // Can be null
+        if (dto.getMsId() != null) {
+            srnDetails.setMilestone(poMilestoneRepository.findById(dto.getMsId())
+                    .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + dto.getMsId())));
+        } // Can be null
         srnDetails.setSrnName(dto.getSrnName());
         srnDetails.setSrnDsc(dto.getSrnDsc());
         srnDetails.setSrnAmount(dto.getSrnAmount());
@@ -120,17 +123,19 @@ public class SRNService {
         }
 
         // Use the new milestone name from the DTO, or the existing one if not provided.
-        String milestoneName = (dto.getMsName() != null) ? dto.getMsName() : srnDetails.getMsName();
+        Long milestoneId = (dto.getMsId() != null)
+                ? dto.getMsId()
+                : (srnDetails.getMilestone() != null ? srnDetails.getMilestone().getMsId() : null);
 
         // Check if the SRN is being submitted against a specific milestone
-        if (milestoneName != null && !milestoneName.isBlank()) {
+        if (milestoneId != null) {
             // --- Milestone-level Validation ---
 
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsName(poDetail.getPoId(), milestoneName)
-                    .orElseThrow(() -> new RuntimeException("Milestone '" + milestoneName + "' not found for this PO."));
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poDetail.getPoId(), milestoneId)
+                    .orElseThrow(() -> new RuntimeException("Milestone '" + milestoneId + "' not found for this PO."));
 
             // Get the sum of all SRNs already paid against this milestone (this sum includes the originalSrnAmount)
-            BigDecimal currentPaidAmount = srnRepository.sumSrnAmountsByPoIdAndMsName(poDetail.getPoId(), milestoneName);
+            BigDecimal currentPaidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), milestoneId);
 
             // Calculate the balance available for the update.
             // (Milestone Total) - (Current Paid Amount) + (This SRN's Original Amount)
@@ -165,7 +170,10 @@ public class SRNService {
         // 3. If validations pass, apply updates to the entity
         // Note: We don't allow changing the parent PO during an SRN update.
         if (dto.getPoNumber() != null) srnDetails.setPoNumber(dto.getPoNumber());
-        if (dto.getMsName() != null) srnDetails.setMsName(dto.getMsName());
+        if (dto.getMsId() != null) {
+            srnDetails.setMilestone(poMilestoneRepository.findById(dto.getMsId())
+                    .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + dto.getMsId())));
+        }
         if (dto.getSrnName() != null) srnDetails.setSrnName(dto.getSrnName());
         if (dto.getSrnDsc() != null) srnDetails.setSrnDsc(dto.getSrnDsc());
         if (dto.getSrnAmount() != null) srnDetails.setSrnAmount(dto.getSrnAmount());
@@ -196,7 +204,7 @@ public class SRNService {
     }
 
     public List<SRNDetails> getSRNsByMilestoneName(String msName) {
-        return srnRepository.findByMsName(msName);
+        return srnRepository.findByMilestone_MsName(msName);
     }
 
     public void deleteSRN(Long srnId) {

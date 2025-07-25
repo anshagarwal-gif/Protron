@@ -23,8 +23,8 @@ public interface POMilestoneRepository extends JpaRepository<POMilestone, Long> 
     @Query(value = "SELECT COUNT(*) FROM po_milestone WHERE po_id = :poId", nativeQuery = true)
     long countByPoId(Long poId);
 
-    @Query(value = "SELECT ms_amount FROM po_milestone WHERE po_id = :poId AND ms_name = :msName", nativeQuery = true)
-    Optional<Integer> findAmountByPoIdAndMsName(Long poId, String msName);
+    @Query(value = "SELECT ms_amount FROM po_milestone WHERE po_id = :poId AND ms_id = :msId", nativeQuery = true)
+    Optional<Integer> findAmountByPoIdAndMsId(Long poId, Long msId);
 
     @Query(value = "SELECT COALESCE(SUM(ms_amount), 0) FROM po_milestone WHERE po_id = :poId", nativeQuery = true)
     BigDecimal sumMilestoneAmountsByPoId(Long poId);
@@ -32,13 +32,17 @@ public interface POMilestoneRepository extends JpaRepository<POMilestone, Long> 
     /**
      * Check if milestone exists for a PO by PO number and milestone name
      */
-    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM POMilestone m WHERE m.poDetail.poNumber = :poNumber AND m.msName = :msName")
-    boolean existsByPoDetail_PoNumberAndMsName(@Param("poNumber") String poNumber, @Param("msName") String msName);
+    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM POMilestone m WHERE m.poDetail.poNumber = :poNumber AND m.msId = :msId")
+    boolean existsByPoDetail_PoNumberAndMsId(@Param("poNumber") String poNumber, @Param("msId") Long msId);
 
     /**
      * Count milestones by PO number
      */
     @Query("SELECT COUNT(m) FROM POMilestone m WHERE m.poDetail.poNumber = :poNumber")
     long countByPoDetail_PoNumber(@Param("poNumber") String poNumber);
+
+    @Query(value = "SELECT * FROM po_milestone WHERE po_number = :poNumber AND ms_id = :msId", nativeQuery = true)
+    Optional<POMilestone> findByPoNumberAndMsId(@Param("poNumber") String poNumber, @Param("msId") Long msId);
+
 
 }

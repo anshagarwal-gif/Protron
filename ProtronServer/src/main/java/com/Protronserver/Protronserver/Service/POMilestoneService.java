@@ -85,9 +85,9 @@ public class POMilestoneService {
         }
 
         // Check 2: The new milestone amount cannot be less than what has already been paid via SRNs.
-        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsName(
+        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsId(
                 poDetail.getPoId(),
-                existingMilestone.getMsName() // Use the existing name for lookup
+                existingMilestone.getMsId() // Use the existing name for lookup
         );
 
         if (newMilestoneAmount.compareTo(totalSrnPaid) < 0) {

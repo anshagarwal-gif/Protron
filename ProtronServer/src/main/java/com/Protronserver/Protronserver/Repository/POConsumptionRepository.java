@@ -12,44 +12,29 @@ import java.util.List;
 @Repository
 public interface POConsumptionRepository extends JpaRepository<POConsumption, Long> {
 
-    /**
-     * Find all PO consumptions by PO number
-     */
     List<POConsumption> findByPoNumber(String poNumber);
 
-    /**
-     * Find all PO consumptions by PO number and milestone name
-     */
-    List<POConsumption> findByPoNumberAndMsName(String poNumber, String msName);
+    List<POConsumption> findByPoNumberAndMilestone_MsName(String poNumber, String msName);
 
-    /**
-     * Sum all consumption amounts for a specific PO
-     */
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM POConsumption p WHERE p.poNumber = :poNumber")
     BigDecimal sumConsumptionAmountsByPoNumber(@Param("poNumber") String poNumber);
 
-    /**
-     * Sum all consumption amounts for a specific PO and milestone
-     */
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM POConsumption p WHERE p.poNumber = :poNumber AND p.msName = :msName")
-    BigDecimal sumConsumptionAmountsByPoNumberAndMsName(@Param("poNumber") String poNumber,
-            @Param("msName") String msName);
-
-    /**
-     * Sum all consumption amounts for a specific PO excluding a particular
-     * consumption record
-     * (Useful for update operations)
-     */
     @Query("SELECT COALESCE(SUM(p.amount), 0) FROM POConsumption p WHERE p.poNumber = :poNumber AND p.utilizationId != :utilizationId")
     BigDecimal sumConsumptionAmountsByPoNumberExcludingId(@Param("poNumber") String poNumber,
-            @Param("utilizationId") Long utilizationId);
+                                                          @Param("utilizationId") Long utilizationId);
 
-    /**
-     * Sum all consumption amounts for a specific PO and milestone excluding a
-     * particular consumption record
-     * (Useful for update operations)
-     */
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM POConsumption p WHERE p.poNumber = :poNumber AND p.msName = :msName AND p.utilizationId != :utilizationId")
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM POConsumption p WHERE p.poNumber = :poNumber AND p.milestone.msId = :msId AND p.utilizationId != :utilizationId")
     BigDecimal sumConsumptionAmountsByPoNumberAndMsNameExcludingId(@Param("poNumber") String poNumber,
-            @Param("msName") String msName, @Param("utilizationId") Long utilizationId);
+                                                                   @Param("msId") Long msId,
+                                                                   @Param("utilizationId") Long utilizationId);
+
+    @Query(value = "SELECT COALESCE(SUM(p.amount), 0) FROM po_utilization p WHERE p.po_number = :poNumber AND p.ms_id = :msId", nativeQuery = true)
+    BigDecimal sumConsumptionAmountsByPoNumberAndMsId(@Param("poNumber") String poNumber,
+                                                      @Param("msId") Long msId);
+
+    @Query(value = "SELECT COALESCE(SUM(p.amount), 0) FROM po_utilization p WHERE p.po_number = :poNumber AND p.ms_id = :msId AND utilization_id <> :excludeId", nativeQuery = true)
+    BigDecimal sumConsumptionAmountsByPoNumberAndMsIdExcludingId(@Param("poNumber") String poNumber,
+                                                                 @Param("msId") Long msId,
+                                                                 @Param("excludeId") Long excludeId);
+
 }

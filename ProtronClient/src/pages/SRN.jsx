@@ -179,7 +179,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     return (
       srn.poNumber?.toLowerCase().includes(searchLower) ||
       srn.srnId?.toString().includes(searchLower) ||
-      srn.msName?.toLowerCase().includes(searchLower) ||
+      srn.milestone?.msName?.toLowerCase().includes(searchLower) ||
       srn.srnName?.toLowerCase().includes(searchLower) ||
       srn.srnDsc?.toLowerCase().includes(searchLower) ||
       srn.srnAmount?.toString().includes(searchLower) ||
@@ -195,7 +195,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         'S.No': index + 1,
         'PO Number': srn.poNumber || 'N/A',
         'SRN ID': srn.srnId || 'N/A',
-        'Milestone Name': srn.msName || 'N/A',
+        'Milestone Name': srn.milestone?.msName || 'N/A',
         'SRN Name': srn.srnName || 'N/A',
         'SRN Description': srn.srnDsc || 'N/A',
         'Currency': srn.srnCurrency || 'N/A',
@@ -393,8 +393,8 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Milestone Name",
-      field: "msName",
-      valueGetter: params => params.data.msName || 'N/A',
+      field: "milestone.msName",
+      valueGetter: params => params.data.milestone?.msName || 'N/A',
       flex: 1,
       minWidth: 150,
       sortable: true,

@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.POConsumptionDTO;
 import com.Protronserver.Protronserver.Entities.POConsumption;
+import com.Protronserver.Protronserver.Entities.POMilestone;
 import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
@@ -44,12 +45,12 @@ public class POConsumptionService {
 
         // 4. Check if milestone exists for this PO (if msName is provided)
         boolean hasMilestones = false;
-        if (dto.getMsName() != null && !dto.getMsName().trim().isEmpty()) {
+        if (dto.getMsId() != null) {
             // Check if milestone exists for this PO
-            boolean milestoneExists = poMilestoneRepository.existsByPoDetail_PoNumberAndMsName(poNumber,
-                    dto.getMsName());
+            boolean milestoneExists = poMilestoneRepository.existsByPoDetail_PoNumberAndMsId(poNumber,
+                    dto.getMsId());
             if (!milestoneExists) {
-                throw new IllegalArgumentException("Milestone '" + dto.getMsName() + "' not found for PO: " + poNumber);
+                throw new IllegalArgumentException("Milestone '" + dto.getMsId() + "' not found for PO: " + poNumber);
             }
             hasMilestones = true;
         } else {
@@ -60,15 +61,15 @@ public class POConsumptionService {
 
         BigDecimal newConsumptionAmount = new BigDecimal(dto.getAmount());
 
-        if (hasMilestones && dto.getMsName() != null && !dto.getMsName().trim().isEmpty()) {
+        if (hasMilestones && dto.getMsId() != null) {
             // Case A: PO has milestones and milestone is specified
             // Check against milestone balance
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsName(poId, dto.getMsName())
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone amount not found"));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
-            BigDecimal existingConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumberAndMsName(poNumber,
-                    dto.getMsName());
+            BigDecimal existingConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumberAndMsId(poNumber,
+                    dto.getMsId());
 
             if (existingConsumption.add(newConsumptionAmount).compareTo(milestoneAmount) > 0) {
                 BigDecimal availableBalance = milestoneAmount.subtract(existingConsumption);
@@ -95,7 +96,11 @@ public class POConsumptionService {
         // Create and populate the entity
         POConsumption consumption = new POConsumption();
         consumption.setPoNumber(dto.getPoNumber());
-        consumption.setMsName(dto.getMsName());
+        POMilestone milestone = poMilestoneRepository
+                .findByPoNumberAndMsId(poNumber, dto.getMsId())
+                .orElseThrow(() -> new RuntimeException("Milestone not found"));
+
+        consumption.setMilestone(milestone);
         consumption.setAmount(dto.getAmount());
         consumption.setCurrency(dto.getCurrency());
         consumption.setUtilizationType(dto.getUtilizationType());
@@ -136,11 +141,11 @@ public class POConsumptionService {
 
         // 5. Check milestone existence and determine validation approach
         boolean hasMilestones = false;
-        if (dto.getMsName() != null && !dto.getMsName().trim().isEmpty()) {
-            boolean milestoneExists = poMilestoneRepository.existsByPoDetail_PoNumberAndMsName(poNumber,
-                    dto.getMsName());
+        if (dto.getMsId() != null) {
+            boolean milestoneExists = poMilestoneRepository.existsByPoDetail_PoNumberAndMsId(poNumber,
+                    dto.getMsId());
             if (!milestoneExists) {
-                throw new IllegalArgumentException("Milestone '" + dto.getMsName() + "' not found for PO: " + poNumber);
+                throw new IllegalArgumentException("Milestone '" + dto.getMsId() + "' not found for PO: " + poNumber);
             }
             hasMilestones = true;
         } else {
@@ -150,14 +155,14 @@ public class POConsumptionService {
 
         BigDecimal newConsumptionAmount = new BigDecimal(dto.getAmount());
 
-        if (hasMilestones && dto.getMsName() != null && !dto.getMsName().trim().isEmpty()) {
+        if (hasMilestones && dto.getMsId() != null) {
             // Case A: Milestone-based validation
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsName(poId, dto.getMsName())
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone amount not found"));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
             BigDecimal existingConsumptionExcludingCurrent = poConsumptionRepository
-                    .sumConsumptionAmountsByPoNumberAndMsNameExcludingId(poNumber, dto.getMsName(), utilizationId);
+                    .sumConsumptionAmountsByPoNumberAndMsNameExcludingId(poNumber, dto.getMsId(), utilizationId);
 
             if (existingConsumptionExcludingCurrent.add(newConsumptionAmount).compareTo(milestoneAmount) > 0) {
                 BigDecimal availableBalance = milestoneAmount.subtract(existingConsumptionExcludingCurrent);
@@ -183,7 +188,15 @@ public class POConsumptionService {
 
         // Update the entity
         existingConsumption.setPoNumber(dto.getPoNumber());
-        existingConsumption.setMsName(dto.getMsName());
+        if (dto.getMsId() != null) {
+            POMilestone milestone = poMilestoneRepository
+                    .findByPoNumberAndMsId(poNumber, dto.getMsId())
+                    .orElseThrow(() -> new RuntimeException("Milestone not found"));
+
+            existingConsumption.setMilestone(milestone);
+        } else {
+            existingConsumption.setMilestone(null); // if clearing milestone
+        }
         existingConsumption.setAmount(dto.getAmount());
         existingConsumption.setCurrency(dto.getCurrency());
         existingConsumption.setUtilizationType(dto.getUtilizationType());
@@ -213,24 +226,24 @@ public class POConsumptionService {
     }
 
     public List<POConsumption> getPOConsumptionsByPoNumberAndMilestone(String poNumber, String msName) {
-        return poConsumptionRepository.findByPoNumberAndMsName(poNumber, msName);
+        return poConsumptionRepository.findByPoNumberAndMilestone_MsName(poNumber, msName);
     }
 
     /**
      * Calculate remaining balance for PO consumption
      */
-    public BigDecimal getPOConsumptionBalance(String poNumber, String msName) {
+    public BigDecimal getPOConsumptionBalance(String poNumber, Long msId) {
         // Check if milestone is specified and exists
-        if (msName != null && !msName.trim().isEmpty()) {
+        if (msId != null) {
             Long poId = poRepository.findPoIdByPoNumber(poNumber)
                     .orElseThrow(() -> new RuntimeException("PO not found with number: " + poNumber));
 
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsName(poId, msName)
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, msId)
                     .orElseThrow(() -> new RuntimeException("Milestone not found"));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
-            BigDecimal totalConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumberAndMsName(poNumber,
-                    msName);
+            BigDecimal totalConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumberAndMsId(poNumber,
+                    msId);
 
             return milestoneAmount.subtract(totalConsumption);
         } else {

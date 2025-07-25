@@ -34,7 +34,7 @@ const AddSRNModal = ({ open, onClose }) => {
     const [formData, setFormData] = useState({
         poId: '',
         poNumber: '',
-        msName: '',
+        msId: '',
         srnName: '',
         srnDsc: '',
         srnAmount: '',
@@ -132,7 +132,7 @@ const AddSRNModal = ({ open, onClose }) => {
             const srnPayload = {
                 poId: parseInt(formData.poId),
                 poNumber: formData.poNumber,
-                msName: formData.msName || '',
+                msId: parseInt(formData.msId),
                 srnName: formData.srnName.trim(),
                 srnDsc: formData.srnDsc.trim() || '',
                 srnAmount: parseInt(formData.srnAmount),
@@ -261,14 +261,14 @@ const AddSRNModal = ({ open, onClose }) => {
                                 <div className="relative">
                                     <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
                                     <select
-                                        value={formData.msName}
-                                        onChange={handleChange('msName')}
+                                        value={formData.msId}
+                                        onChange={handleChange('msId')}
                                         className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                         disabled={!formData.poId}
                                     >
                                         <option value="">Select milestone (optional)</option>
                                         {milestoneList.map((milestone) => (
-                                            <option key={milestone.msId} value={milestone.msName}>
+                                            <option key={milestone.msId} value={milestone.msId}>
                                                 {milestone.msName}
                                             </option>
                                         ))}

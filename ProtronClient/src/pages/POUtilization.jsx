@@ -195,7 +195,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     return (
       consumption.poNumber?.toLowerCase().includes(searchLower) ||
       consumption.utilizationId?.toString().includes(searchLower) ||
-      consumption.msName?.toLowerCase().includes(searchLower) ||
+      consumption.milestone?.msName?.toLowerCase().includes(searchLower) ||
       consumption.utilizationType?.toLowerCase().includes(searchLower) ||
       consumption.resourceOrProject?.toLowerCase().includes(searchLower) ||
       consumption.workDesc?.toLowerCase().includes(searchLower) ||
@@ -214,7 +214,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         'S.No': index + 1,
         'PO Number': consumption.poNumber || 'N/A',
         'Utilization ID': consumption.utilizationId || 'N/A',
-        'Milestone Name': consumption.msName || 'N/A',
+        'Milestone Name': consumption.milestone?.msName || 'N/A',
         'Utilization Type': consumption.utilizationType || 'N/A',
         'Resource/Project': consumption.resourceOrProject || 'N/A',
         'Work Description': consumption.workDesc || 'N/A',
@@ -426,8 +426,8 @@ const columnDefs = useMemo(() => [
   },
   {
     headerName: "Milestone",
-    field: "msName",
-    valueGetter: params => params.data.msName || 'N/A',
+    field: "milestone.msName",
+    valueGetter: params => params.data.milestone?.msName || 'N/A',
     width: 120,
     minWidth: 120,
     sortable: true,
