@@ -36,7 +36,11 @@ public interface POConsumptionRepository extends JpaRepository<POConsumption, Lo
                                                                    @Param("utilizationId") Long utilizationId);
 
     // 🔹 Sum by PO Number and Milestone ID (native)
-    @Query(value = "SELECT COALESCE(SUM(p.amount), 0) FROM po_utilization p WHERE p.po_number = :poNumber AND p.ms_id = :msId AND p.lastupdate_timestamp IS NULL", nativeQuery = true)
+    @Query(value = "SELECT COALESCE(SUM(p.amount), 0) \n" +
+            "FROM \"po_utilization\" p \n" +
+            "WHERE p.po_number = :poNumber \n" +
+            "  AND p.ms_id = :msId \n" +
+            "  AND p.lastupdate_timestamp IS NULL", nativeQuery = true)
     BigDecimal sumConsumptionAmountsByPoNumberAndMsId(@Param("poNumber") String poNumber,
                                                       @Param("msId") Long msId);
 
