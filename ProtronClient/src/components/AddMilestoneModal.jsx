@@ -271,7 +271,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   value={formData.msCurrency}
                   onChange={handleInputChange}
                   className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={loading}
+                  disabled={true}
                 >
                   <option value="USD">USD</option>
                   <option value="INR">INR</option>

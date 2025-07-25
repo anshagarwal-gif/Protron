@@ -492,7 +492,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   value={formData.currency}
                   onChange={handleInputChange}
                   className="w-full px-1 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={loading}
+                  disabled={true}
                   title={`Selected Currency: ${formData.currency} (${getCurrencySymbol(formData.currency)})`}
                 >
                   <option value="USD" title="US Dollar ($)">USD</option>
