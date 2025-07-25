@@ -6,10 +6,12 @@ import com.Protronserver.Protronserver.Entities.POMilestone;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.SRNRepository;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,6 +25,9 @@ public class POMilestoneService {
 
     @Autowired
     private SRNRepository srnRepository;
+
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
 
     public POMilestone addMilestone(POMilestoneAddDTO dto) {
         // 1. Fetch the parent PO
@@ -60,7 +65,9 @@ public class POMilestoneService {
         milestone.setMsDate(dto.getMsDate());
         milestone.setMsDuration(dto.getMsDuration());
         milestone.setMsRemarks(dto.getMsRemarks());
-
+        milestone.setStartTimestamp(LocalDateTime.now());
+        milestone.setEndTimestamp(null);
+        milestone.setLastUpdateBy(null);
         return poMilestoneRepository.save(milestone);
     }
 
@@ -71,23 +78,19 @@ public class POMilestoneService {
 
         PODetails poDetail = existingMilestone.getPoDetail();
 
-        // Store the original amount for calculation, and get the new amount from the DTO
         BigDecimal originalMilestoneAmount = new BigDecimal(existingMilestone.getMsAmount());
         BigDecimal newMilestoneAmount = new BigDecimal(dto.getMsAmount());
 
-
         // --- VALIDATION START ---
 
-        // Currency Check: The new currency must match the PO's currency.
         if (dto.getMsCurrency() != null && !dto.getMsCurrency().equalsIgnoreCase(poDetail.getPoCurrency())) {
             throw new IllegalArgumentException("Milestone currency (" + dto.getMsCurrency() +
                     ") does not match the PO currency (" + poDetail.getPoCurrency() + ").");
         }
 
-        // Check 2: The new milestone amount cannot be less than what has already been paid via SRNs.
         BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsId(
                 poDetail.getPoId(),
-                existingMilestone.getMsId() // Use the existing name for lookup
+                existingMilestone.getMsId()
         );
 
         if (newMilestoneAmount.compareTo(totalSrnPaid) < 0) {
@@ -95,11 +98,9 @@ public class POMilestoneService {
                     ") cannot be less than the total SRN amount already paid (" + totalSrnPaid + ").");
         }
 
-        // Check 1: The total of all milestone amounts (with this update) should not exceed the PO amount.
         BigDecimal poAmount = poDetail.getPoAmount();
         BigDecimal currentTotalMilestoneSum = poMilestoneRepository.sumMilestoneAmountsByPoId(poDetail.getPoId());
 
-        // Calculate the available budget space in the PO for this update
         BigDecimal availableBudget = poAmount.subtract(currentTotalMilestoneSum).add(originalMilestoneAmount);
 
         if (newMilestoneAmount.compareTo(availableBudget) > 0) {
@@ -109,21 +110,34 @@ public class POMilestoneService {
 
         // --- VALIDATION END ---
 
+        // Mark current version as ended
+        existingMilestone.setEndTimestamp(LocalDateTime.now());
+        existingMilestone.setLastUpdateBy(loggedInUserUtils.getLoggedInUser().getEmail());
+        poMilestoneRepository.save(existingMilestone);
 
-        // 3. If validations pass, apply the updates to the entity
-        existingMilestone.setMsName(dto.getMsName());
-        existingMilestone.setMsDesc(dto.getMsDesc());
-        existingMilestone.setMsAmount(dto.getMsAmount());
-        existingMilestone.setMsCurrency(dto.getMsCurrency());
-        existingMilestone.setMsDate(dto.getMsDate());
-        existingMilestone.setMsDuration(dto.getMsDuration());
-        existingMilestone.setMsRemarks(dto.getMsRemarks());
+        // Create new version
+        POMilestone newMilestone = new POMilestone();
+        newMilestone.setPoDetail(poDetail); // maintain the association
 
-        return poMilestoneRepository.save(existingMilestone);
+        newMilestone.setMsName(dto.getMsName());
+        newMilestone.setMsDesc(dto.getMsDesc());
+        newMilestone.setMsAmount(dto.getMsAmount());
+        newMilestone.setMsCurrency(dto.getMsCurrency());
+        newMilestone.setMsDate(dto.getMsDate());
+        newMilestone.setMsDuration(dto.getMsDuration());
+        newMilestone.setMsRemarks(dto.getMsRemarks());
+
+        // Versioning fields
+        newMilestone.setStartTimestamp(LocalDateTime.now());
+        newMilestone.setEndTimestamp(null);
+        newMilestone.setLastUpdateBy(null);
+
+        return poMilestoneRepository.save(newMilestone);
     }
 
+
     public List<POMilestone> getAllMilestones() {
-        return poMilestoneRepository.findAll();
+        return poMilestoneRepository.findAllActiveMilestones();
     }
 
     public List<POMilestone> getMilestonesByPoId(Long poId) {

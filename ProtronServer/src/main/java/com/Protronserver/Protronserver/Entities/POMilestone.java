@@ -1,6 +1,8 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -43,14 +45,14 @@ public class POMilestone {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "start_timestamp")
-    private Date startTimestamp;
+    private LocalDateTime startTimestamp;
 
     @Column(name = "last_update_by")
     private String lastUpdateBy;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "end_timestamp")
-    private Date endTimestamp;
+    private LocalDateTime endTimestamp;
 
     // Getters and Setters
 
@@ -134,11 +136,11 @@ public class POMilestone {
         this.msRemarks = msRemarks;
     }
 
-    public Date getStartTimestamp() {
+    public LocalDateTime getStartTimestamp() {
         return startTimestamp;
     }
 
-    public void setStartTimestamp(Date startTimestamp) {
+    public void setStartTimestamp(LocalDateTime startTimestamp) {
         this.startTimestamp = startTimestamp;
     }
 
@@ -150,11 +152,11 @@ public class POMilestone {
         this.lastUpdateBy = lastUpdateBy;
     }
 
-    public Date getEndTimestamp() {
+    public LocalDateTime getEndTimestamp() {
         return endTimestamp;
     }
 
-    public void setEndTimestamp(Date endTimestamp) {
+    public void setEndTimestamp(LocalDateTime endTimestamp) {
         this.endTimestamp = endTimestamp;
     }
 }
