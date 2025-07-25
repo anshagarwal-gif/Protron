@@ -31,9 +31,9 @@ public interface SRNRepository extends JpaRepository<SRNDetails, Long> {
     @Query("SELECT s FROM SRNDetails s WHERE s.srnName = :srnName AND s.lastUpdateTimestamp IS NULL")
     List<SRNDetails> findBySrnName(String srnName);
 
-    @Query(value = "SELECT COALESCE(SUM(s.srn_amount), 0) FROM srn_details s WHERE s.po_id = :poId AND s.ms_id = :msId AND s.lastUpdateTimestamp IS NULL")
+    @Query(value = "SELECT COALESCE(SUM(s.srn_amount), 0) FROM srn_details s WHERE s.po_id = :poId AND s.ms_id = :msId AND s.lastupdate_timestamp IS NULL", nativeQuery = true)
     BigDecimal sumSrnAmountsByPoIdAndMsId(Long poId, Long msId);
 
-    @Query(value = "SELECT COALESCE(SUM(s.srn_amount), 0) FROM srn_details s WHERE s.po_id = :poId AND s.lastUpdateTimestamp IS NULL")
+    @Query(value = "SELECT COALESCE(SUM(s.srn_amount), 0) FROM srn_details s WHERE s.po_id = :poId AND s.lastupdate_timestamp IS NULL", nativeQuery = true)
     BigDecimal sumSrnAmountsByPoId(Long poId);
 }
