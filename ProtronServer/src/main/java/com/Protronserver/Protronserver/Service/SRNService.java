@@ -93,7 +93,9 @@ public class SRNService {
         if (dto.getMsId() != null) {
             srnDetails.setMilestone(poMilestoneRepository.findById(dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + dto.getMsId())));
-        } // Can be null
+        }else{
+            srnDetails.setMilestone(null);
+        }
         srnDetails.setSrnName(dto.getSrnName());
         srnDetails.setSrnDsc(dto.getSrnDsc());
         srnDetails.setSrnAmount(dto.getSrnAmount());
@@ -171,6 +173,8 @@ public class SRNService {
         if (dto.getMsId() != null) {
             newSRN.setMilestone(poMilestoneRepository.findById(dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + dto.getMsId())));
+        }else{
+            newSRN.setMilestone(null);
         }
 
         newSRN.setSrnName(dto.getSrnName());

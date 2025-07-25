@@ -101,11 +101,16 @@ public class POConsumptionService {
         // Create and populate the entity
         POConsumption consumption = new POConsumption();
         consumption.setPoNumber(dto.getPoNumber());
-        POMilestone milestone = poMilestoneRepository
-                .findByPoNumberAndMsId(poNumber, dto.getMsId())
-                .orElseThrow(() -> new RuntimeException("Milestone not found"));
 
-        consumption.setMilestone(milestone);
+        if(dto.getMsId() == null){
+            consumption.setMilestone(null);
+        }else{
+            POMilestone milestone = poMilestoneRepository
+                    .findByPoNumberAndMsId(poNumber, dto.getMsId())
+                    .orElseThrow(() -> new RuntimeException("Milestone not found"));
+            consumption.setMilestone(milestone);
+        }
+
         consumption.setAmount(dto.getAmount());
         consumption.setCurrency(dto.getCurrency());
         consumption.setUtilizationType(dto.getUtilizationType());
