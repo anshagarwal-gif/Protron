@@ -36,6 +36,34 @@ public class SRNDetails {
     @Column(name = "srn_dsc", length = 500)
     private String srnDsc;
 
+    public enum SRNTypeEnum {
+        FULL("full"),
+        PARTIAL("partial");
+
+        private final String value;
+
+        SRNTypeEnum(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public static boolean isValid(String value) {
+            for (SRNTypeEnum type : values()) {
+                if (type.getValue().equalsIgnoreCase(value)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+
+    @Column(name = "srn_type", nullable = false, length = 20)
+    private String srnType;
+
     @Column(name = "srn_amount")
     private Integer srnAmount;
 
@@ -150,5 +178,16 @@ public class SRNDetails {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public String getSrnType() {
+        return srnType;
+    }
+
+    public void setSrnType(String srnType) {
+        if (!SRNTypeEnum.isValid(srnType)) {
+            throw new IllegalArgumentException("Invalid srnType value. Allowed values: full, partial");
+        }
+        this.srnType = srnType.toLowerCase(); // normalize to lowercase if needed
     }
 }

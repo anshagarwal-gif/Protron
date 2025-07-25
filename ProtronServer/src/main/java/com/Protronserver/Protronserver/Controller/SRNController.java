@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -129,6 +130,32 @@ public class SRNController {
     public ResponseEntity<Integer> getTotalSRNAmountByPoId(@PathVariable Long poId) {
         try {
             Integer totalAmount = srnService.getTotalSRNAmountByPoId(poId);
+            return ResponseEntity.ok(totalAmount);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkExistingSRNs(
+            @RequestParam Long poId,
+            @RequestParam(required = false) Long msId
+    ) {
+        try {
+            boolean hasExistingSRNs = srnService.checkExistingSRNs(poId, msId);
+            return ResponseEntity.ok(hasExistingSRNs);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/total-amount")
+    public ResponseEntity<BigDecimal> getTotalSRNAmount(
+            @RequestParam Long poId,
+            @RequestParam(required = false) Long msId
+    ) {
+        try {
+            BigDecimal totalAmount = srnService.getTotalSRNAmount(poId, msId);
             return ResponseEntity.ok(totalAmount);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();

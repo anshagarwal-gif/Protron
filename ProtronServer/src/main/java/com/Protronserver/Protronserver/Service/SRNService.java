@@ -46,43 +46,52 @@ public class SRNService {
 
         BigDecimal newSrnAmount = new BigDecimal(dto.getSrnAmount());
 
-        // Check if the SRN is being submitted against a specific milestone
-        if (dto.getMsId() != null) {
-            // --- Milestone-level Validation ---
+        String srnType = dto.getSrnType().toLowerCase();
 
-            // Get the total amount for the specified milestone
+        if (dto.getMsId() != null) {
+            // Milestone-level SRN
             Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poDetail.getPoId(), dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone '" + dto.getMsId() + "' not found for this PO."));
 
-            // Get the sum of all SRNs already paid against this milestone
+            BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
             BigDecimal paidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), dto.getMsId());
 
-            BigDecimal milestoneBalance = new BigDecimal(milestoneAmountInt).subtract(paidAmount);
-
-            // Check if the new SRN amount exceeds the remaining milestone balance
-            if (newSrnAmount.compareTo(milestoneBalance) > 0) {
-                throw new IllegalArgumentException("SRN amount exceeds the remaining milestone balance. " +
-                        "Remaining balance for '" + dto.getMsId() + "': " + milestoneBalance);
+            if (srnType.equals("full")) {
+                if (paidAmount.compareTo(BigDecimal.ZERO) > 0) {
+                    throw new IllegalArgumentException("Full SRN not allowed: milestone already has SRNs.");
+                }
+                if (newSrnAmount.compareTo(milestoneAmount) != 0) {
+                    throw new IllegalArgumentException("SRN amount must match milestone amount for full SRN.");
+                }
+            } else {
+                BigDecimal remaining = milestoneAmount.subtract(paidAmount);
+                if (newSrnAmount.compareTo(remaining) > 0) {
+                    throw new IllegalArgumentException("Partial SRN exceeds remaining milestone balance: " + remaining);
+                }
             }
         } else {
-            // --- PO-level Validation (when no milestone is specified) ---
-
-            // First, check that this PO doesn't have any milestones.
+            // PO-level SRN
             if (poMilestoneRepository.countByPoId(poDetail.getPoId()) > 0) {
-                throw new IllegalArgumentException("This PO has milestones. SRN must be associated with a specific milestone name.");
+                throw new IllegalArgumentException("PO has milestones. SRN must be against a milestone.");
             }
 
-            // Get the sum of all SRNs already paid against this entire PO
             BigDecimal totalPaidForPO = srnRepository.sumSrnAmountsByPoId(poDetail.getPoId());
 
-            BigDecimal poBalance = poDetail.getPoAmount().subtract(totalPaidForPO);
-
-            // Check if the new SRN amount exceeds the remaining PO balance
-            if (newSrnAmount.compareTo(poBalance) > 0) {
-                throw new IllegalArgumentException("SRN amount exceeds the remaining PO balance. " +
-                        "Remaining PO balance: " + poBalance);
+            if (srnType.equals("full")) {
+                if (totalPaidForPO.compareTo(BigDecimal.ZERO) > 0) {
+                    throw new IllegalArgumentException("Full SRN not allowed: PO already has SRNs.");
+                }
+                if (newSrnAmount.compareTo(poDetail.getPoAmount()) != 0) {
+                    throw new IllegalArgumentException("SRN amount must match PO amount for full SRN.");
+                }
+            } else {
+                BigDecimal poBalance = poDetail.getPoAmount().subtract(totalPaidForPO);
+                if (newSrnAmount.compareTo(poBalance) > 0) {
+                    throw new IllegalArgumentException("Partial SRN exceeds remaining PO balance: " + poBalance);
+                }
             }
         }
+
 
         // --- VALIDATION END ---
 
@@ -98,6 +107,7 @@ public class SRNService {
         }
         srnDetails.setSrnName(dto.getSrnName());
         srnDetails.setSrnDsc(dto.getSrnDsc());
+        srnDetails.setSrnType(dto.getSrnType());
         srnDetails.setSrnAmount(dto.getSrnAmount());
         srnDetails.setSrnCurrency(dto.getSrnCurrency());
         srnDetails.setSrnRemarks(dto.getSrnRemarks());
@@ -126,37 +136,61 @@ public class SRNService {
                     ") does not match PO currency (" + poDetail.getPoCurrency() + ").");
         }
 
+        String srnType = dto.getSrnType().toLowerCase();
+
         Long milestoneId = (dto.getMsId() != null)
                 ? dto.getMsId()
                 : (existingSRN.getMilestone() != null ? existingSRN.getMilestone().getMsId() : null);
 
         if (milestoneId != null) {
+            // Milestone-level update
             Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poDetail.getPoId(), milestoneId)
                     .orElseThrow(() -> new RuntimeException("Milestone '" + milestoneId + "' not found for this PO."));
-            BigDecimal currentPaidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), milestoneId);
-            BigDecimal availableBalance = new BigDecimal(milestoneAmountInt)
-                    .subtract(currentPaidAmount)
-                    .add(originalSrnAmount);
 
-            if (newSrnAmount.compareTo(availableBalance) > 0) {
-                throw new IllegalArgumentException("Updated SRN amount exceeds the remaining milestone balance. " +
-                        "Available balance for update: " + availableBalance);
+            BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
+            BigDecimal currentPaidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), milestoneId);
+            BigDecimal availableBalance = milestoneAmount.subtract(currentPaidAmount).add(originalSrnAmount);
+
+            if (srnType.equals("full")) {
+                // Ensure this is the ONLY SRN for the milestone
+                List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), milestoneId);
+                if (srns.size() > 1 || (srns.size() == 1 && !srns.get(0).getSrnId().equals(existingSRN.getSrnId()))) {
+                    throw new IllegalArgumentException("Full SRN not allowed: milestone already has other SRNs.");
+                }
+                if (newSrnAmount.compareTo(milestoneAmount) != 0) {
+                    throw new IllegalArgumentException("Full SRN must equal milestone amount.");
+                }
+            } else {
+                if (newSrnAmount.compareTo(availableBalance) > 0) {
+                    throw new IllegalArgumentException("Partial SRN exceeds remaining milestone balance: " + availableBalance);
+                }
             }
+
         } else {
+            // PO-level update
             if (poMilestoneRepository.countByPoId(poDetail.getPoId()) > 0) {
-                throw new IllegalArgumentException("This PO has milestones. SRN must be associated with a specific milestone name.");
+                throw new IllegalArgumentException("PO has milestones. SRN must be against a milestone.");
             }
 
             BigDecimal totalPaidForPO = srnRepository.sumSrnAmountsByPoId(poDetail.getPoId());
-            BigDecimal availableBalance = poDetail.getPoAmount()
-                    .subtract(totalPaidForPO)
-                    .add(originalSrnAmount);
+            BigDecimal availableBalance = poDetail.getPoAmount().subtract(totalPaidForPO).add(originalSrnAmount);
 
-            if (newSrnAmount.compareTo(availableBalance) > 0) {
-                throw new IllegalArgumentException("Updated SRN amount exceeds the remaining PO balance. " +
-                        "Available PO balance for update: " + availableBalance);
+            if (srnType.equals("full")) {
+                // Ensure this is the ONLY SRN for the PO
+                List<SRNDetails> srns = srnRepository.findByPoIdWithoutMs(poDetail.getPoId());
+                if (srns.size() > 1 || (srns.size() == 1 && !srns.get(0).getSrnId().equals(existingSRN.getSrnId()))) {
+                    throw new IllegalArgumentException("Full SRN not allowed: PO already has other SRNs.");
+                }
+                if (newSrnAmount.compareTo(poDetail.getPoAmount()) != 0) {
+                    throw new IllegalArgumentException("Full SRN must equal PO amount.");
+                }
+            } else {
+                if (newSrnAmount.compareTo(availableBalance) > 0) {
+                    throw new IllegalArgumentException("Partial SRN exceeds remaining PO balance: " + availableBalance);
+                }
             }
         }
+
 
         // --- VALIDATION END ---
 
@@ -179,6 +213,7 @@ public class SRNService {
 
         newSRN.setSrnName(dto.getSrnName());
         newSRN.setSrnDsc(dto.getSrnDsc());
+        newSRN.setSrnType(dto.getSrnType());
         newSRN.setSrnAmount(dto.getSrnAmount());
         newSRN.setSrnCurrency(dto.getSrnCurrency());
         newSRN.setSrnRemarks(dto.getSrnRemarks());
@@ -228,5 +263,27 @@ public class SRNService {
         return srnList.stream()
                 .mapToInt(srn -> srn.getSrnAmount() != null ? srn.getSrnAmount() : 0)
                 .sum();
+    }
+
+    public boolean checkExistingSRNs(Long poId, Long msId) {
+        if (msId != null) {
+            // Check for milestone-level SRNs
+            List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(poId, msId);
+            return !srns.isEmpty();
+        } else {
+            // Check for PO-level SRNs
+            List<SRNDetails> srns = srnRepository.findByPoIdWithoutMs(poId);
+            return !srns.isEmpty();
+        }
+    }
+
+    public BigDecimal getTotalSRNAmount(Long poId, Long msId) {
+        if (msId != null) {
+            // Fetch total SRN amount for a milestone
+            return srnRepository.sumSrnAmountsByPoIdAndMsId(poId, msId);
+        } else {
+            // Fetch total SRN amount for a PO
+            return srnRepository.sumSrnAmountsByPoId(poId);
+        }
     }
 }

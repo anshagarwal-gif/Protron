@@ -392,6 +392,15 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       }
     },
     {
+    headerName: "SRN Type",
+    field: "srnType",
+    valueGetter: params => params.data.srnType || 'N/A',
+    width: 120,
+    sortable: true,
+    filter: true,
+    cellStyle: { fontWeight: 'bold', color: '#374151' }
+  },
+    {
       headerName: "Milestone Name",
       field: "milestone.msName",
       valueGetter: params => params.data.milestone?.msName || 'N/A',

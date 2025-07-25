@@ -12,6 +12,12 @@ import java.util.List;
 @Repository
 public interface SRNRepository extends JpaRepository<SRNDetails, Long> {
 
+    @Query("SELECT s FROM SRNDetails s WHERE s.poDetail.poId = :poId AND s.milestone.msId = :msId AND s.lastUpdateTimestamp IS NULL")
+    List<SRNDetails> findByPoIdAndMsId(@Param("poId") Long poId, @Param("msId") Long msId);
+
+    @Query("SELECT s FROM SRNDetails s WHERE s.poDetail.poId = :poId AND s.lastUpdateTimestamp IS NULL")
+    List<SRNDetails> findByPoIdWithoutMs(@Param("poId") Long poId);
+
     @Query("SELECT s FROM SRNDetails s WHERE s.lastUpdateTimestamp IS NULL")
     List<SRNDetails> findAllActive();
 

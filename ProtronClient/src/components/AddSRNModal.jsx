@@ -40,7 +40,8 @@ const AddSRNModal = ({ open, onClose }) => {
         srnAmount: '',
         srnCurrency: 'USD',
         srnRemarks: '',
-        srnAttachment: null
+        srnAttachment: null,
+        srnType: 'partial'
     });
 
     const [poList, setPOList] = useState([]);
@@ -76,32 +77,101 @@ const AddSRNModal = ({ open, onClose }) => {
         }
     };
 
+    const checkExistingSRNs = async (poId, msId = null) => {
+        try {
+            const token = sessionStorage.getItem('token');
+            const url = msId
+                ? `${import.meta.env.VITE_API_URL}/api/srn/check?poId=${poId}&msId=${msId}`
+                : `${import.meta.env.VITE_API_URL}/api/srn/check?poId=${poId}`;
+            const response = await fetch(url, {
+                headers: { Authorization: `${token}` }
+            });
+            const data = await response.json();
+            return data; // Assume API returns a boolean
+        } catch (error) {
+            console.error('Error checking existing SRNs:', error);
+            return true; // Default to true to prevent invalid SRNs
+        }
+    };
+
     useEffect(() => {
         if (open) {
             fetchPOList();
         }
     }, [open]);
 
-    const handleChange = (field) => (event) => {
+    const handleChange = (field) => async (event) => {
         const value = event.target.value;
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value
-        }));
 
-        // When PO is selected, fetch its milestones and auto-fill PO number
-        if (field === 'poId' && value) {
+        // Handle changes to srnType
+        if (field === 'srnType') {
+            if (value === 'full') {
+                if (formData.msId) {
+                    // Check if milestone has existing SRNs
+                    const hasExistingSRNs = await checkExistingSRNs(formData.poId, formData.msId);
+                    console.log(hasExistingSRNs)
+                    if (hasExistingSRNs) {
+                        alert('This milestone already has SRNs. Full SRN is not allowed.');
+                        return;
+                    }
+
+                    // Auto-fill milestone amount
+                    const selectedMilestone = milestoneList.find(m => m.msId == formData.msId);
+                    if (selectedMilestone) {
+                        setFormData(prev => ({
+                            ...prev,
+                            srnAmount: selectedMilestone.msAmount || '',
+                            srnType: value
+                        }));
+                    }
+                } else {
+                    // Check if PO has existing SRNs
+                    const hasExistingSRNs = await checkExistingSRNs(formData.poId);
+                    if (hasExistingSRNs) {
+                        alert('This PO already has SRNs. Full SRN is not allowed.');
+                        return;
+                    }
+
+                    // Auto-fill PO amount
+                    const selectedPO = poList.find(po => po.poId == formData.poId);
+                    if (selectedPO) {
+                        setFormData(prev => ({
+                            ...prev,
+                            srnAmount: selectedPO.poAmount || '',
+                            srnType: value
+                        }));
+                    }
+                }
+            } else {
+                // Reset srnAmount for partial type
+                setFormData(prev => ({
+                    ...prev,
+                    srnType: value,
+                    srnAmount: ''
+                }));
+            }
+        } else if (field === 'poId') {
+            // When PO is selected, fetch its milestones and auto-fill PO number
             const selectedPO = poList.find(po => po.poId == value);
             if (selectedPO) {
                 setFormData(prev => ({
                     ...prev,
+                    poId: value,
                     poNumber: selectedPO.poNumber || '',
-                    srnCurrency: selectedPO.poCurrency || 'USD'
+                    srnCurrency: selectedPO.poCurrency || 'USD',
+                    msId: '', // Reset milestone
+                    srnAmount: '' // Reset amount
                 }));
                 fetchMilestones(value);
             }
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [field]: value
+            }));
         }
     };
+
 
     const handleFileChange = (field) => (event) => {
         const file = event.target.files[0];
@@ -138,6 +208,7 @@ const AddSRNModal = ({ open, onClose }) => {
                 srnAmount: parseInt(formData.srnAmount),
                 srnCurrency: formData.srnCurrency,
                 srnRemarks: formData.srnRemarks.trim() || '',
+                srnType: formData.srnType,
                
             };
             
@@ -256,6 +327,20 @@ const AddSRNModal = ({ open, onClose }) => {
 
                         {/* Second Row - Milestone Name, Currency, SRN Amount, Attachment */}
                         <div className="grid grid-cols-4 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    SRN Type <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.srnType}
+                                    onChange={handleChange('srnType')}
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    required
+                                >
+                                    <option value="partial">Partial</option>
+                                    <option value="full">Full</option>
+                                </select>
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Milestone Name</label>
                                 <div className="relative">

@@ -7,6 +7,7 @@ public class SRNDTO {
     private Long msId;
     private String srnName;
     private String srnDsc;
+    private String srnType;
     private Integer srnAmount;
     private String srnCurrency;
     private String srnRemarks;
@@ -76,4 +77,11 @@ public class SRNDTO {
         this.srnRemarks = srnRemarks;
     }
 
+    public String getSrnType() {
+        return srnType;
+    }
+
+    public void setSrnType(String srnType) {
+        this.srnType = srnType;
+    }
 }
