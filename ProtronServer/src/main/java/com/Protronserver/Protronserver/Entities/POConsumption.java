@@ -40,11 +40,9 @@ public class POConsumption {
     @Column(name = "work_desc")
     private String workDesc;
 
-    @Temporal(TemporalType.DATE)
     @Column(name = "work_assigndate")
     private Date workAssignDate;
 
-    @Temporal(TemporalType.DATE)
     @Column(name = "work_completiondate")
     private Date workCompletionDate;
 
@@ -54,11 +52,9 @@ public class POConsumption {
     @Column(name = "system_name")
     private String systemName;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_timestamp")
     private LocalDateTime createdTimestamp;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "lastupdate_timestamp")
     private LocalDateTime lastUpdateTimestamp;
 

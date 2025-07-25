@@ -96,11 +96,9 @@ public class POAttachments {
     @Column(name = "utilization_attachment3", columnDefinition="LONGBLOB")
     private byte[] utilizationAttachment3;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "start_timestamp")
     private Date startTimestamp;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "end_timestamp")
     private Date endTimestamp;
 

@@ -51,14 +51,12 @@ public class PODetails {
     @Column(name = "po_enddate")
     private LocalDate poEndDate;
 
-    @CreationTimestamp
     @Column(name = "create_timestamp", updatable = false)
     private LocalDateTime createTimestamp;
 
     @Column(name = "last_update_by", length = 100)
     private String lastUpdateBy;
 
-    @UpdateTimestamp
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
