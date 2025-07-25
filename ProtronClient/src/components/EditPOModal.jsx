@@ -416,7 +416,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         </div>
                                         <div className='lg:col-span-1'>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                                            <select value={formData.poCurrency} onChange={handleChange('poCurrency')} className="w-full h-10 px-4 border border-gray-300 rounded-md">
+                                            <select value={formData.poCurrency} onChange={handleChange('poCurrency')} className="w-full h-10 px-4 border border-gray-300 rounded-md" disabled>
                                                 <option value="USD">USD</option><option value="INR">INR</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="JPY">JPY</option>
                                             </select>
                                         </div>

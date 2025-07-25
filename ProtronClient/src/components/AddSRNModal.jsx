@@ -280,6 +280,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                 <select
                                     value={formData.srnCurrency}
                                     onChange={handleChange('srnCurrency')}
+                                    disabled
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 >
                                     <option value="USD">USD</option>
