@@ -19,19 +19,19 @@ public class POAttachments {
     private Long poId;
 
     @Lob
-    @Column(name = "po_attachment1")
+    @Column(name = "po_attachment1", columnDefinition="LONGBLOB")
     private byte[] poAttachment1;
 
     @Lob
-    @Column(name = "po_attachment2")
+    @Column(name = "po_attachment2", columnDefinition="LONGBLOB")
     private byte[] poAttachment2;
 
     @Lob
-    @Column(name = "po_attachment3")
+    @Column(name = "po_attachment3", columnDefinition="LONGBLOB")
     private byte[] poAttachment3;
 
     @Lob
-    @Column(name = "po_attachment4")
+    @Column(name = "po_attachment4", columnDefinition="LONGBLOB")
     private byte[] poAttachment4;
 
     // Milestone-level
@@ -42,19 +42,19 @@ public class POAttachments {
     private String msNumber;
 
     @Lob
-    @Column(name = "ms_attachment1")
+    @Column(name = "ms_attachment1", columnDefinition="LONGBLOB")
     private byte[] msAttachment1;
 
     @Lob
-    @Column(name = "ms_attachment2")
+    @Column(name = "ms_attachment2", columnDefinition="LONGBLOB")
     private byte[] msAttachment2;
 
     @Lob
-    @Column(name = "ms_attachment3")
+    @Column(name = "ms_attachment3", columnDefinition="LONGBLOB")
     private byte[] msAttachment3;
 
     @Lob
-    @Column(name = "ms_attachment4")
+    @Column(name = "ms_attachment4", columnDefinition="LONGBLOB")
     private byte[] msAttachment4;
 
     // SRN-level
@@ -65,19 +65,19 @@ public class POAttachments {
     private String srnName;
 
     @Lob
-    @Column(name = "srn_attachment1")
+    @Column(name = "srn_attachment1", columnDefinition="LONGBLOB")
     private byte[] srnAttachment1;
 
     @Lob
-    @Column(name = "srn_attachment2")
+    @Column(name = "srn_attachment2", columnDefinition="LONGBLOB")
     private byte[] srnAttachment2;
 
     @Lob
-    @Column(name = "srn_attachment3")
+    @Column(name = "srn_attachment3", columnDefinition="LONGBLOB")
     private byte[] srnAttachment3;
 
     @Lob
-    @Column(name = "srn_attachment4")
+    @Column(name = "srn_attachment4", columnDefinition="LONGBLOB")
     private byte[] srnAttachment4;
 
     // Utilization-level
@@ -85,15 +85,15 @@ public class POAttachments {
     private Long utilizationId;
 
     @Lob
-    @Column(name = "utilization_attachment1")
+    @Column(name = "utilization_attachment1", columnDefinition="LONGBLOB")
     private byte[] utilizationAttachment1;
 
     @Lob
-    @Column(name = "utilization_attachment2")
+    @Column(name = "utilization_attachment2", columnDefinition="LONGBLOB")
     private byte[] utilizationAttachment2;
 
     @Lob
-    @Column(name = "utilization_attachment3")
+    @Column(name = "utilization_attachment3", columnDefinition="LONGBLOB")
     private byte[] utilizationAttachment3;
 
     @Temporal(TemporalType.TIMESTAMP)
