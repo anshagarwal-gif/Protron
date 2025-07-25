@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building } from "lucide-react";
 import axios from "axios";
+import {useSession} from "../Context/SessionContext";
 
 const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -24,6 +25,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [projectList, setProjectList] = useState([]);
   const [descCharCount, setDescCharCount] = useState(0);
   const [remarksCharCount, setRemarksCharCount] = useState(0);
+  const {sessionData} = useSession();
 
   // Fetch PO list and projects on modal open
   useEffect(() => {
@@ -43,7 +45,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
           // Fetch projects list (same as AddPOModal)
           const projectResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/projects`,
+            `${import.meta.env.VITE_API_URL}/api/tenants/${sessionData.tenantId}/projects`,
             {
               headers: { Authorization: `${token}` }
             }
