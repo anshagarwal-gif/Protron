@@ -186,8 +186,8 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
 
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active':
+    switch (status.toLowerCase()) {
+      case 'active':
         return 'text-green-500';
       case 'hold':
         return 'text-yellow-500';
@@ -395,7 +395,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                       <td className="py-2 px-4 border-r border-t">{member.systemImpacted.systemName}</td>
                       <td className="py-2 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
                       <td className="py-2 px-4 border-r border-t">
-                        <span className={`px-2 py-1 rounded-full font-medium ${getStatusColor(member.status)}`}>
+                        <span className={`capitalize px-2 py-1 rounded-full font-medium ${getStatusColor(member.status)}`}>
                           {member.status}
                         </span>
                       </td>
@@ -554,7 +554,6 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         projectName={projectDetails?.project?.projectName}
         onAddMember={handleAddMember}
         project={projectDetails}
-        users={users} 
       />
 
       {/* Add this before closing div */}
