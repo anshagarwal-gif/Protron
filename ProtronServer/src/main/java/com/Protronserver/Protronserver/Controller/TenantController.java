@@ -51,6 +51,11 @@ public class TenantController {
         return tenantService.getTeamTableUsersByTenantId(tenantId);
     }
 
+    @GetMapping("/{tenantId}/users-not-in/{projectId}")
+    public List<TeamTableResultDTO> getUsersNotInProject(@PathVariable("tenantId") Long tenantId, @PathVariable("projectId") Long projectId){
+        return tenantService.getUsersNotInTeam(tenantId, projectId);
+    }
+
     @GetMapping("/{tenantId}/userstable")
     public List<UsersTableResultDTO> getUsersforUserTable(@PathVariable Long tenantId){
         return tenantService.getUsersByTenantId(tenantId);
