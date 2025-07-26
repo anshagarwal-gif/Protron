@@ -54,7 +54,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         label: project.projectName,
     }));
     const [activeTab, setActiveTab] = useState('details');
-    
+
     // Add state for milestone modal
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
@@ -198,8 +198,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             editable: false,
             cellRenderer: (params) => {
                 const description = params.value || '';
-                return description.length > 50 ? 
-                    <span title={description}>{description.substring(0, 50)}...</span> : 
+                return description.length > 50 ?
+                    <span title={description}>{description.substring(0, 50)}...</span> :
                     description;
             }
         },
@@ -243,8 +243,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             editable: false,
             cellRenderer: (params) => {
                 const remark = params.value || '';
-                return remark.length > 30 ? 
-                    <span title={remark}>{remark.substring(0, 30)}...</span> : 
+                return remark.length > 30 ?
+                    <span title={remark}>{remark.substring(0, 30)}...</span> :
                     remark;
             }
         },
@@ -528,7 +528,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             placeholder="Enter here"
                                             value={formData.poNumber}
                                             onChange={handleChange('poNumber')}
-                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            title={formData.poNumber} // Tooltip on hover
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
                                         />
                                     </div>
                                     <div className="lg:col-span-1">
@@ -536,7 +537,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         <select
                                             value={formData.poType}
                                             onChange={handleChange('poType')}
-                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            title={formData.poType || 'Select from list'} // Tooltip on hover
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
                                         >
                                             <option value="">Select from list</option>
                                             <option value="FIXED">Fixed</option>
@@ -544,12 +546,14 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             <option value="MIXED">Mixed</option>
                                         </select>
                                     </div>
-                                    <div className='lg:col-span-1'>
+
+                                    <div className="lg:col-span-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
                                         <select
                                             value={formData.currency}
                                             onChange={handleChange('currency')}
-                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            title={formData.currency} // Tooltip to show full selected value
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
                                         >
                                             <option value="USD">USD</option>
                                             <option value="INR">INR</option>
@@ -558,6 +562,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             <option value="JPY">JPY</option>
                                         </select>
                                     </div>
+
                                     <div className="lg:col-span-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount</label>
                                         <div className="relative">
@@ -569,26 +574,34 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 placeholder="Enter here"
                                                 value={formData.poAmount}
                                                 onChange={handleChange('poAmount')}
-                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                title={formData.poAmount?.toString() || 'Enter Amount'} // Tooltip on hover
+                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
                                             />
                                         </div>
                                     </div>
+
                                     <div className="lg:col-span-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                                         <div
                                             onClick={() => StartDateInputRef.current?.showPicker?.()}
                                             className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
                                         >
-                                            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                            <Calendar
+                                                className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none"
+                                                size={20}
+                                            />
                                             <input
                                                 ref={StartDateInputRef}
                                                 type="date"
                                                 value={formData.startDate}
                                                 onChange={handleChange('startDate')}
-                                                className="w-full bg-transparent outline-none cursor-pointer"
+                                                className="w-full bg-transparent outline-none cursor-pointer appearance-none"
+                                                min="1900-01-01"
+                                                max="2100-12-31"
                                             />
                                         </div>
                                     </div>
+
                                     <div className="lg:col-span-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
                                         <div onClick={() => EndDateInputRef.current?.showPicker?.()} className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 flex items-center">
@@ -604,27 +617,42 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">PM/SPOC Name</label>
+                                <div className="grid grid-cols-4 gap-4">
+                                    <div className="lg:col-span-1">
+                                        <label htmlFor="spocName" className="block text-sm font-medium text-gray-700 mb-2">
+                                            PM/SPOC Name
+                                        </label>
                                         <div className="relative">
-                                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
+                                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={20} />
                                             <input
+                                                id="spocName"
                                                 type="text"
                                                 placeholder="Enter here"
                                                 value={formData.spocName}
                                                 onChange={handleChange('spocName')}
                                                 className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                autoComplete="off"
+                                                title={formData.spocName || 'Enter SPOC Name'}
                                             />
                                         </div>
                                     </div>
+
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label
+                                            htmlFor="projectName"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
                                             Project Name
                                         </label>
                                         <div className="relative w-full">
-                                            <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10" size={20} />
+                                            <Folder
+                                                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 z-10"
+                                                size={20}
+                                                title="Select or create project"
+                                            />
                                             <CreatableSelect
+                                                inputId="projectName"
                                                 options={projectOptions}
                                                 value={
                                                     formData.projectName
@@ -643,12 +671,18 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 isClearable
                                                 formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                                 styles={{
-                                                    control: (base) => ({ ...base, height: '40px', paddingLeft: '28px', borderColor: '#d1d5db' }),
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
                                                     valueContainer: (base) => ({ ...base, padding: '0 6px' }),
                                                 }}
                                             />
                                         </div>
                                     </div>
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
                                         <div className="relative">
@@ -659,6 +693,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 value={formData.customerName}
                                                 onChange={handleChange('customerName')}
                                                 className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                title={formData.customerName || 'Enter customer name'}
                                             />
                                         </div>
                                     </div>
@@ -672,8 +707,10 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 value={formData.supplierName}
                                                 onChange={handleChange('supplierName')}
                                                 className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                title={formData.supplierName || 'Enter supplier name'}
                                             />
                                         </div>
+                                    
                                     </div>
                                     <div className="lg:col-span-2">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
@@ -708,6 +745,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         onChange={handleChange('projectDescription')}
                                         className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
                                         maxLength={500}
+                                        title={formData.projectDescription || 'Enter project description'}
                                     />
                                 </div>
                             </div>
