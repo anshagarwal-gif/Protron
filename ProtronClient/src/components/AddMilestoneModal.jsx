@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock } from "lucide-react";
 import axios from "axios";
 
-const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
+const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
   const [formData, setFormData] = useState({
     msName: "",
     msDesc: "",
@@ -21,6 +21,12 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   const [poDetails, setPODetails] = useState(null);
   const [descWordCount, setDescWordCount] = useState(0);
   const [remarksWordCount, setRemarksWordCount] = useState(0);
+
+  useEffect(() => {
+  if (initialData) {
+    setFormData(initialData);
+  }
+}, [initialData]);
 
   // Fetch PO details to get PO number and currency
   useEffect(() => {
@@ -176,8 +182,18 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
           }
         }
       );
-
-      onSubmit(response.data);
+      console.log('Milestone added successfully:', response.data);
+      const mst = {
+        milestoneName : response.data.msName,
+        milestoneDescription : response.data.msDesc,
+        amount : response.data.msAmount,
+        currency : response.data.msCurrency, 
+        date: new Date(response.data.msDate).toISOString().split('T')[0], // ✅ returns 'YYYY-MM-DD'
+        remarks : response.data.msRemarks,
+        attachment : response.data.msAttachment,
+        duration : response.data.msDuration,
+      }
+      onSubmit(mst);
       handleClose();
     } catch (error) {
       console.error("Error adding milestone:", error);

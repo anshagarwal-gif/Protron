@@ -18,9 +18,9 @@ import {
   Paperclip,
   AlertCircle,
   User,
-  Layout
+  Layout,
+  ExternalLink
 } from 'lucide-react';
-import { useSession } from '../Context/SessionContext';
 
 const TaskDetailsModal = ({ 
   isOpen, 
@@ -47,7 +47,6 @@ const TaskDetailsModal = ({
 }) => {
   const [previewAttachment, setPreviewAttachment] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const { sessionData } = useSession();
 
   // Close modal on escape key
   useEffect(() => {
@@ -184,15 +183,54 @@ const TaskDetailsModal = ({
     if (!attachment) return;
     
     try {
-      if (isImageFile(attachment.fileName)) {
-        setPreviewAttachment(attachment);
+      if (attachment.fileData) {
+        // Create a blob URL and open in new tab
+        const mimeType = getMimeType(attachment.fileName);
+        const base64Data = attachment.fileData.includes(',') ? 
+          attachment.fileData.split(',')[1] : 
+          attachment.fileData;
+        
+        // Convert base64 to binary
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        
+        // Create blob and URL
+        const blob = new Blob([byteArray], { type: mimeType });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        // Open in new tab
+        const newTab = window.open(blobUrl, '_blank');
+        
+        // Clean up the blob URL after a delay to allow the tab to load
+        if (newTab) {
+          setTimeout(() => {
+            URL.revokeObjectURL(blobUrl);
+          }, 1000);
+        } else {
+          // If popup was blocked, fall back to the original behavior for images
+          URL.revokeObjectURL(blobUrl);
+          if (isImageFile(attachment.fileName)) {
+            setPreviewAttachment(attachment);
+          } else {
+            alert('Please allow popups to view attachments in a new tab.');
+          }
+        }
       } else {
+        // Use the original handleViewAttachment function which should open in new tab
         handleViewAttachment?.(taskDetail?.taskId, attachment.attachmentId);
       }
     } catch (error) {
       console.error('Error previewing attachment:', error);
+      // Fallback to modal preview for images if there's an error
+      if (isImageFile(attachment.fileName)) {
+        setPreviewAttachment(attachment);
+      }
     }
-  }, [isImageFile, handleViewAttachment, taskDetail?.taskId]);
+  }, [getMimeType, isImageFile, handleViewAttachment, taskDetail?.taskId]);
 
   const handleDownload = useCallback((attachment) => {
     if (!attachment) return;
@@ -459,58 +497,59 @@ const TaskDetailsModal = ({
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-  {taskDetail.attachments.map((attachment, index) => {
-    if (!attachment) return null;
-    
-    const FileIcon = getFileIcon(attachment.fileName);
-    const attachmentKey = attachment.attachmentId || `attachment-${index}`;
-    
-    return (
-      <div 
-        key={attachmentKey} 
-        className="p-4 bg-white/80 backdrop-blur-sm rounded-xl hover:bg-white/90 transition-all duration-200 border border-emerald-100/50 shadow-sm hover:shadow-md flex-shrink-0 flex flex-col h-full"
-      >
-        <div className="flex items-start gap-3 mb-3 flex-1">
-          <div className="p-2 bg-emerald-100 rounded-lg flex-shrink-0">
-            <FileIcon className="h-5 w-5 text-emerald-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div 
-              className="font-semibold text-gray-800 text-sm leading-tight cursor-pointer"
-              title={attachment.fileName || `Attachment ${index + 1}`}
-            >
-              <span className="block truncate">
-                {attachment.fileName || `Attachment ${index + 1}`}
-              </span>
-            </div>
-            <div className="text-xs text-gray-500 mt-1 font-medium">
-              {attachment.fileSize ? 
-                `${(attachment.fileSize / 1024).toFixed(1)} KB` : 
-                formatFileSize(attachment.fileData)
-              }
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-2 mt-auto">
-          <button
-            onClick={() => handlePreview(attachment)}
-            className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-colors font-semibold shadow-sm"
-            aria-label={`View ${attachment.fileName || 'attachment'}`}
-          >
-            <Eye className="h-3 w-3 mr-1.5" /> View
-          </button>
-          <button
-            onClick={() => handleDownload(attachment)}
-            className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-sm"
-            aria-label={`Download ${attachment.fileName || 'attachment'}`}
-          >
-            <Download className="h-3 w-3 mr-1.5" /> Download
-          </button>
-        </div>
-      </div>
-    );
-  })}
-</div>
+                      {taskDetail.attachments.map((attachment, index) => {
+                        if (!attachment) return null;
+                        
+                        const FileIcon = getFileIcon(attachment.fileName);
+                        const attachmentKey = attachment.attachmentId || `attachment-${index}`;
+                        
+                        return (
+                          <div 
+                            key={attachmentKey} 
+                            className="p-4 bg-white/80 backdrop-blur-sm rounded-xl hover:bg-white/90 transition-all duration-200 border border-emerald-100/50 shadow-sm hover:shadow-md flex-shrink-0 flex flex-col h-full"
+                          >
+                            <div className="flex items-start gap-3 mb-3 flex-1">
+                              <div className="p-2 bg-emerald-100 rounded-lg flex-shrink-0">
+                                <FileIcon className="h-5 w-5 text-emerald-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div 
+                                  className="font-semibold text-gray-800 text-sm leading-tight cursor-pointer"
+                                  title={attachment.fileName || `Attachment ${index + 1}`}
+                                >
+                                  <span className="block truncate">
+                                    {attachment.fileName || `Attachment ${index + 1}`}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1 font-medium">
+                                  {attachment.fileSize ? 
+                                    `${(attachment.fileSize / 1024).toFixed(1)} KB` : 
+                                    formatFileSize(attachment.fileData)
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 mt-auto">
+                              <button
+                                onClick={() => handlePreview(attachment)}
+                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-colors font-semibold shadow-sm"
+                                aria-label={`View ${attachment.fileName || 'attachment'}`}
+                                title="Opens in new tab"
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1.5" /> View
+                              </button>
+                              <button
+                                onClick={() => handleDownload(attachment)}
+                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-sm"
+                                aria-label={`Download ${attachment.fileName || 'attachment'}`}
+                              >
+                                <Download className="h-3 w-3 mr-1.5" /> Download
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -519,7 +558,7 @@ const TaskDetailsModal = ({
         </div>
       </div>
 
-      {/* Image Preview Modal */}
+      {/* Image Preview Modal (Fallback) */}
       {previewAttachment && (
         <div 
           className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"

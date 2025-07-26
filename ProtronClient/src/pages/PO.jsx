@@ -1,7 +1,9 @@
 // POManagement.js
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, use } from "react";
 import { useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
+import { Eye } from "lucide-react";
+import ViewPOModal from "../components/ViewPOModal";
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
@@ -38,10 +40,12 @@ const POManagement = () => {
   const [activeTab, setActiveTab] = useState("details");
   const [searchQuery, setSearchQuery] = useState("");
   const [poList, setPOList] = useState([]);
+  const [selectedPO, setSelectedPO] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPOId, setSelectedPOId] = useState(null);
 
   // SRN specific state
@@ -64,6 +68,12 @@ const POManagement = () => {
 
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
+  };
+  const handleViewPO = (po) => {
+    setSelectedPOId(po.poId || po.id);
+    setSelectedPO(po);
+    console.log("Viewing PO:", po);
+    setIsViewModalOpen(true);
   };
 
   // Custom loading overlay component
@@ -138,7 +148,7 @@ const POManagement = () => {
       'VUV': 'VT',
       'WST': 'WS$'
     };
-    
+
     return currencySymbols[currencyCode] || currencyCode || '$';
   };
 
@@ -176,7 +186,7 @@ const POManagement = () => {
   // Filter PO data based on search
   const filteredPOData = poList.filter(po => {
     if (searchQuery === "") return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
     return (
       po.poNumber?.toLowerCase().includes(searchLower) ||
@@ -253,21 +263,21 @@ const POManagement = () => {
   const handleAddPO = () => {
     setIsAddModalOpen(true);
   };
-// Add these functions to your POManagement.js file
+  // Add these functions to your POManagement.js file
 
-// PO Consumption Excel download function
-const downloadConsumptionExcel = () => {
-  if (poRef.current && poRef.current.downloadConsumptionExcel) {
-    poRef.current.downloadConsumptionExcel();
-  }
-};
+  // PO Consumption Excel download function
+  const downloadConsumptionExcel = () => {
+    if (poRef.current && poRef.current.downloadConsumptionExcel) {
+      poRef.current.downloadConsumptionExcel();
+    }
+  };
 
-// Handle Add PO Consumption
-const handleAddConsumption = () => {
-  if (poRef.current && poRef.current.handleAddConsumption) {
-    poRef.current.handleAddConsumption();
-  }
-};
+  // Handle Add PO Consumption
+  const handleAddConsumption = () => {
+    if (poRef.current && poRef.current.handleAddConsumption) {
+      poRef.current.handleAddConsumption();
+    }
+  };
   const handleAddSRN = () => {
     if (srnRef.current && srnRef.current.handleAddSRN) {
       srnRef.current.handleAddSRN();
@@ -344,28 +354,19 @@ const handleAddConsumption = () => {
         const type = params.value;
         const typeColors = {
           'FIXED': 'bg-blue-100 text-blue-800',
-          'T_AND_M': 'bg-green-100 text-green-800', 
+          'T_AND_M': 'bg-green-100 text-green-800',
           'MIXED': 'bg-purple-100 text-purple-800'
         };
         const colorClass = typeColors[type] || 'bg-gray-100 text-gray-800';
-        const displayText = type === 'T_AND_M' ? 'T & M' : 
-                           type === 'FIXED' ? 'Fixed' : 
-                           type === 'MIXED' ? 'Mixed' : type;
+        const displayText = type === 'T_AND_M' ? 'T & M' :
+          type === 'FIXED' ? 'Fixed' :
+            type === 'MIXED' ? 'Mixed' : type;
         return (
           <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>
             {displayText}
           </span>
         );
       }
-    },
-    {
-      headerName: "PO Amount",
-      field: "poAmount",
-      valueGetter: params => formatCurrency(params.data.poAmount, params.data.poCurrency),
-      width: 140,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' }
     },
     {
       headerName: "Currency",
@@ -377,41 +378,91 @@ const handleAddConsumption = () => {
       cellStyle: { fontWeight: 'bold', color: '#374151' }
     },
     {
+      headerName: "PO Amount",
+      field: "poAmount",
+      valueGetter: params => formatCurrency(params.data.poAmount, params.data.poCurrency),
+      width: 140,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#059669' }
+    },
+    
+    {
       headerName: "Customer",
       field: "customer",
       valueGetter: params => params.data.customer || 'N/A',
+      tooltipValueGetter: params => params.data.customer || 'N/A',
       flex: 1,
       minWidth: 150,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <div
+          className="truncate max-w-full overflow-hidden whitespace-nowrap"
+          title={params.value}
+        >
+          {params.value}
+        </div>
+      )
     },
+
     {
       headerName: "Supplier",
       field: "supplier",
       valueGetter: params => params.data.supplier || 'N/A',
+      tooltipValueGetter: params => params.data.supplier || 'N/A',
       flex: 1,
       minWidth: 150,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <div
+          className="truncate max-w-full overflow-hidden whitespace-nowrap"
+          title={params.value}
+        >
+          {params.value}
+        </div>
+      )
     },
+
     {
       headerName: "Project Name",
       field: "projectName",
       valueGetter: params => params.data.projectName || 'N/A',
+      tooltipValueGetter: params => params.data.projectName || 'N/A',
       flex: 1,
       minWidth: 180,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <div
+          className="truncate max-w-full overflow-hidden whitespace-nowrap"
+          title={params.value}
+        >
+          {params.value}
+        </div>
+      )
     },
+
     {
       headerName: "SPOC Name",
       field: "poSpoc",
       valueGetter: params => params.data.poSpoc || 'N/A',
+      tooltipValueGetter: params => params.data.poSpoc || 'N/A',
       flex: 1,
       minWidth: 150,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <div
+          className="truncate max-w-full overflow-hidden whitespace-nowrap"
+          title={params.value}
+        >
+          {params.value}
+        </div>
+      )
     },
+
     {
       headerName: "Actions",
       field: "actions",
@@ -423,6 +474,13 @@ const handleAddConsumption = () => {
         const po = params.data;
         return (
           <div className="flex justify-center gap-2 h-full items-center">
+            <button
+              onClick={() => handleViewPO(po)}
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              title="View PO"
+            >
+              <Eye size={16} className="text-blue-600" />
+            </button>
             <button
               onClick={() => handleEditPO(po)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
@@ -784,7 +842,7 @@ const handleAddConsumption = () => {
           </div>
         );
       case "utilization":
-        return <POConsumptionManagement ref={poRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery}/>
+        return <POConsumptionManagement ref={poRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
       case "srn":
         return <SRNManagement ref={srnRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       default:
@@ -804,15 +862,14 @@ const handleAddConsumption = () => {
               className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
               style={{
                 width: 'calc(33.333% - 2px)',
-                left: activeTab === "details" ? '4px' : 
-                      activeTab === "utilization" ? 'calc(33.333% + 2px)' : 
-                      'calc(66.666% + 1px)'
+                left: activeTab === "details" ? '4px' :
+                  activeTab === "utilization" ? 'calc(33.333% + 2px)' :
+                    'calc(66.666% + 1px)'
               }}
             />
             <button
-              className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 w-1/3 text-sm font-medium ${
-                activeTab === "details" ? "text-green-600" : "text-gray-600"
-              }`}
+              className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 w-1/3 text-sm font-medium ${activeTab === "details" ? "text-green-600" : "text-gray-600"
+                }`}
               onClick={() => setActiveTab("details")}
             >
               <div className="flex items-center justify-center whitespace-nowrap">
@@ -821,9 +878,8 @@ const handleAddConsumption = () => {
               </div>
             </button>
             <button
-              className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 w-1/3 text-sm font-medium ${
-                activeTab === "utilization" ? "text-green-600" : "text-gray-600"
-              }`}
+              className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 w-1/3 text-sm font-medium ${activeTab === "utilization" ? "text-green-600" : "text-gray-600"
+                }`}
               onClick={() => setActiveTab("utilization")}
             >
               <div className="flex items-center justify-center whitespace-nowrap">
@@ -832,9 +888,8 @@ const handleAddConsumption = () => {
               </div>
             </button>
             <button
-              className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 w-1/3 text-sm font-medium ${
-                activeTab === "srn" ? "text-green-600" : "text-gray-600"
-              }`}
+              className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 w-1/3 text-sm font-medium ${activeTab === "srn" ? "text-green-600" : "text-gray-600"
+                }`}
               onClick={() => setActiveTab("srn")}
             >
               <div className="flex items-center justify-center whitespace-nowrap">
@@ -871,20 +926,20 @@ const handleAddConsumption = () => {
 
         {/* Right side - Search and action buttons */}
         <div className="flex items-center gap-4">
-     {/* Search input - show for all tabs */}
-  {(activeTab === "details" || activeTab === "utilization" || activeTab === "srn") && (
-    <div className="relative w-64">
-      <input
-        type="text"
-        placeholder={
-          activeTab === "details" ? "Search POs..." : 
-          activeTab === "utilization" ? "Search PO Consumptions..." :
-          "Search SRNs..."
-        }
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-      />
+          {/* Search input - show for all tabs */}
+          {(activeTab === "details" || activeTab === "utilization" || activeTab === "srn") && (
+            <div className="relative w-64">
+              <input
+                type="text"
+                placeholder={
+                  activeTab === "details" ? "Search POs..." :
+                    activeTab === "utilization" ? "Search PO Consumptions..." :
+                      "Search SRNs..."
+                }
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
               <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
             </div>
           )}
@@ -898,16 +953,16 @@ const handleAddConsumption = () => {
               <Download size={18} className="mr-2" />
               Download Excel
             </button>
-          )} 
-           {activeTab === "utilization" && (
-    <button
-      className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
-      onClick={downloadConsumptionExcel}
-    >
-      <Download size={18} className="mr-2" />
-      Download Excel
-    </button>
-  )}
+          )}
+          {activeTab === "utilization" && (
+            <button
+              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={downloadConsumptionExcel}
+            >
+              <Download size={18} className="mr-2" />
+              Download Excel
+            </button>
+          )}
 
           {activeTab === "srn" && (
             <button
@@ -930,14 +985,14 @@ const handleAddConsumption = () => {
             </button>
           )}
           {activeTab === "utilization" && (
-    <button
-      className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
-      onClick={handleAddConsumption}
-    >
-      <Plus size={18} className="mr-2" />
-      Add Consumption
-    </button>
-  )}
+            <button
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={handleAddConsumption}
+            >
+              <Plus size={18} className="mr-2" />
+              Add Consumption
+            </button>
+          )}
 
           {activeTab === "srn" && (
             <button
@@ -962,14 +1017,21 @@ const handleAddConsumption = () => {
       {renderContent()}
 
       {/* Add PO Modal */}
-      <AddPOModal 
+      <ViewPOModal
+        open={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        poData={selectedPO}
+      />
+
+
+      <AddPOModal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleModalSubmit}
       />
 
       {/* Edit PO Modal */}
-      <EditPOModal 
+      <EditPOModal
         open={isEditModalOpen}
         onClose={() => {
           setIsEditModalOpen(false);
