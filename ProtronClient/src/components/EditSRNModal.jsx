@@ -11,7 +11,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     srnDsc: "",
     srnAmount: "",
     srnCurrency: "USD",
-    srnType: "Progress",
+    srnType: "",
     srnRemarks: "",
     attachment: null,
     existingAttachment: null
@@ -86,7 +86,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnDsc: srn.srnDsc || "",
             srnAmount: srn.srnAmount?.toString() || "",
             srnCurrency: srn.srnCurrency || "USD",
-            srnType: srn.srnType || "Progress",
+            srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
             attachment: null,
             existingAttachment: srn.attachments && srn.attachments.length > 0 ? srn.attachments[0] : null
@@ -197,10 +197,10 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     
     // Check character limits
     if (name === 'srnName') {
-      if (value.length > 200) {
+      if (value.length > 100) {
         setErrors(prev => ({
           ...prev,
-          [name]: "SRN name cannot exceed 200 characters"
+          [name]: "SRN name cannot exceed 100 characters"
         }));
         return;
       }
@@ -387,7 +387,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       srnDsc: "",
       srnAmount: "",
       srnCurrency: "USD",
-      srnType: "Progress",
+      srnType: "",
       srnRemarks: "",
       attachment: null,
       existingAttachment: null
@@ -566,11 +566,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   disabled={loading || initialLoading}
                 >
                   <option value="">Select SRN Type</option>
-                  <option value="Progress">Progress</option>
-                  <option value="Advance">Advance</option>
-                  <option value="Final">Final</option>
-                  <option value="Penalty">Penalty</option>
-                  <option value="Milestone">Milestone</option>
+                  <option value="partial">Partial</option>
+                  <option value="full">Full</option>
                 </select>
                 {errors.srnType && (
                   <p className="mt-1 text-xs text-red-600">{errors.srnType}</p>
@@ -582,7 +579,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   <FileText size={14} className="inline mr-1" />
                   SRN Name *
                   <span className="float-right text-xs text-gray-500">
-                    {nameCharCount}/200 characters
+                    {nameCharCount}/100 characters
                   </span>
                 </label>
                 <input

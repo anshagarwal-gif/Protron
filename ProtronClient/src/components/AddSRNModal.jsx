@@ -103,19 +103,30 @@ const AddSRNModal = ({ open, onClose }) => {
     const handleChange = (field) => async (event) => {
         const value = event.target.value;
 
+        // Enforce character limits
+        if (field === 'srnName' && value.length > 100) {
+            alert('SRN Name cannot exceed 100 characters.');
+            return;
+        }
+        if (field === 'srnDsc' && value.length > 500) {
+            alert('SRN Description cannot exceed 500 characters.');
+            return;
+        }
+        if (field === 'srnRemarks' && value.length > 500) {
+            alert('SRN Remarks cannot exceed 500 characters.');
+            return;
+        }
+
         // Handle changes to srnType
         if (field === 'srnType') {
             if (value === 'full') {
                 if (formData.msId) {
-                    // Check if milestone has existing SRNs
                     const hasExistingSRNs = await checkExistingSRNs(formData.poId, formData.msId);
-                    console.log(hasExistingSRNs)
                     if (hasExistingSRNs) {
                         alert('This milestone already has SRNs. Full SRN is not allowed.');
                         return;
                     }
 
-                    // Auto-fill milestone amount
                     const selectedMilestone = milestoneList.find(m => m.msId == formData.msId);
                     if (selectedMilestone) {
                         setFormData(prev => ({
@@ -125,14 +136,12 @@ const AddSRNModal = ({ open, onClose }) => {
                         }));
                     }
                 } else {
-                    // Check if PO has existing SRNs
                     const hasExistingSRNs = await checkExistingSRNs(formData.poId);
                     if (hasExistingSRNs) {
                         alert('This PO already has SRNs. Full SRN is not allowed.');
                         return;
                     }
 
-                    // Auto-fill PO amount
                     const selectedPO = poList.find(po => po.poId == formData.poId);
                     if (selectedPO) {
                         setFormData(prev => ({
@@ -143,7 +152,6 @@ const AddSRNModal = ({ open, onClose }) => {
                     }
                 }
             } else {
-                // Reset srnAmount for partial type
                 setFormData(prev => ({
                     ...prev,
                     srnType: value,
@@ -151,7 +159,6 @@ const AddSRNModal = ({ open, onClose }) => {
                 }));
             }
         } else if (field === 'poId') {
-            // When PO is selected, fetch its milestones and auto-fill PO number
             const selectedPO = poList.find(po => po.poId == value);
             if (selectedPO) {
                 setFormData(prev => ({
@@ -159,8 +166,8 @@ const AddSRNModal = ({ open, onClose }) => {
                     poId: value,
                     poNumber: selectedPO.poNumber || '',
                     srnCurrency: selectedPO.poCurrency || 'USD',
-                    msId: '', // Reset milestone
-                    srnAmount: '' // Reset amount
+                    msId: '',
+                    srnAmount: ''
                 }));
                 fetchMilestones(value);
             }
@@ -184,7 +191,7 @@ const AddSRNModal = ({ open, onClose }) => {
     const handleSubmit = async () => {
         try {
             setLoading(true);
-            
+
             // Validation
             if (!formData.poId) {
                 alert('Please select a PO');
@@ -213,17 +220,17 @@ const AddSRNModal = ({ open, onClose }) => {
                 srnCurrency: formData.srnCurrency,
                 srnRemarks: formData.srnRemarks.trim() || '',
                 srnType: formData.srnType,
-               
+
             };
-            
+
             console.log('SRN Payload:', srnPayload);
-            
+
             const token = sessionStorage.getItem('token');
             const response = await fetch(
                 `${import.meta.env.VITE_API_URL}/api/srn/add`,
                 {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Authorization': `${token}`,
                         'Content-Type': 'application/json'
                     },
@@ -234,14 +241,14 @@ const AddSRNModal = ({ open, onClose }) => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('SRN Created:', data);
-                
+
                 // TODO: Handle file upload if attachment is selected
                 if (formData.srnAttachment) {
                     console.log('File attachment to be implemented:', formData.srnAttachment);
                 }
-                
-                
-                
+
+
+
                 onClose();
             } else {
                 const errorData = await response.text();
@@ -256,7 +263,7 @@ const AddSRNModal = ({ open, onClose }) => {
         }
     };
 
-   
+
 
     if (!open) return null;
 
@@ -312,9 +319,14 @@ const AddSRNModal = ({ open, onClose }) => {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <div className='flex justify-between items-center mb-2'>
+                                    <label className="block text-sm font-medium text-gray-700">
                                     SRN Name <span className="text-red-500">*</span>
                                 </label>
+                                <p className="text-xs text-gray-500">
+                                        {formData.srnName.length}/100 characters
+                                    </p>
+                                </div>
                                 <div className="relative">
                                     <Receipt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
                                     <input
@@ -323,6 +335,7 @@ const AddSRNModal = ({ open, onClose }) => {
                                         value={formData.srnName}
                                         onChange={handleChange('srnName')}
                                         className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                        maxLength={100} // Enforce limit
                                         required
                                     />
                                 </div>
@@ -421,7 +434,12 @@ const AddSRNModal = ({ open, onClose }) => {
 
                         {/* Third Row - SRN Description */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">SRN Description</label>
+                           <div className='flex justify-between items-center mb-2'>
+                             <label className="block text-sm font-medium text-gray-700">SRN Description</label>
+                            <p className="text-xs text-gray-500">
+                                    {formData.srnDsc.length}/500 characters
+                                </p>
+                           </div>
                             <div className="relative">
                                 <MessageSquare className="absolute left-3 top-4 text-green-600" size={20} />
                                 <textarea
@@ -430,14 +448,20 @@ const AddSRNModal = ({ open, onClose }) => {
                                     value={formData.srnDsc}
                                     onChange={handleChange('srnDsc')}
                                     className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                    maxLength={500}
+                                    maxLength={500} // Enforce limit
                                 />
+                                
                             </div>
                         </div>
 
                         {/* Fourth Row - SRN Remarks */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">SRN Remarks</label>
+                            <div className='flex justify-between items-center mb-2'>
+                                <label className="block text-sm font-medium text-gray-700">SRN Remarks</label>
+                            <p className="text-xs text-gray-500">
+                                    {formData.srnRemarks.length}/500 characters
+                                </p>
+                            </div>
                             <div className="relative">
                                 <MessageSquare className="absolute left-3 top-4 text-green-600" size={20} />
                                 <textarea
@@ -446,14 +470,15 @@ const AddSRNModal = ({ open, onClose }) => {
                                     value={formData.srnRemarks}
                                     onChange={handleChange('srnRemarks')}
                                     className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                    maxLength={500} // Enforce limit
                                 />
                             </div>
                         </div>
 
-                        
+
                         {/* Action Buttons */}
                         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                           
+
                             <button
                                 onClick={onClose}
                                 className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
