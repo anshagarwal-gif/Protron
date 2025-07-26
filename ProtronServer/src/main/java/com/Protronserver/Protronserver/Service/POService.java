@@ -1,10 +1,7 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.PODetailsDTO;
-import com.Protronserver.Protronserver.Entities.POConsumption;
-import com.Protronserver.Protronserver.Entities.PODetails;
-import com.Protronserver.Protronserver.Entities.POMilestone;
-import com.Protronserver.Protronserver.Entities.SRNDetails;
+import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
@@ -50,6 +47,9 @@ public class POService {
         po.setPoStartDate(dto.getPoStartDate());
         po.setPoEndDate(dto.getPoEndDate());
 
+        User loggedInUser = loggedInUserUtils.getLoggedInUser();
+        po.setTenantId(loggedInUser.getTenant().getTenantId());
+
         po.setCreateTimestamp(LocalDateTime.now());
         po.setEndTimestamp(null);
         po.setLastUpdateBy(null);
@@ -58,6 +58,9 @@ public class POService {
     }
 
     public PODetails updatePO(Long id, PODetailsDTO dto) {
+
+        Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
         PODetails oldPo = poRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("PO not found with ID: " + id));
 
@@ -68,16 +71,16 @@ public class POService {
 
         if (dto.getPoAmount() != null) {
             BigDecimal newPoAmount = dto.getPoAmount();
-            long milestoneCount = poMilestoneRepository.countByPoId(id);
+            long milestoneCount = poMilestoneRepository.countByPoId(id, currentTenantId);
 
             if (milestoneCount > 0) {
-                BigDecimal totalMilestoneAmount = poMilestoneRepository.sumMilestoneAmountsByPoId(id);
+                BigDecimal totalMilestoneAmount = poMilestoneRepository.sumMilestoneAmountsByPoId(id, currentTenantId);
                 if (newPoAmount.compareTo(totalMilestoneAmount) < 0) {
                     throw new IllegalArgumentException("PO amount cannot be less than the total of its milestones. " +
                             "Current milestone total: " + totalMilestoneAmount);
                 }
             } else {
-                BigDecimal totalSrnAmount = srnRepository.sumSrnAmountsByPoId(id);
+                BigDecimal totalSrnAmount = srnRepository.sumSrnAmountsByPoId(id, currentTenantId);
                 if (newPoAmount.compareTo(totalSrnAmount) < 0) {
                     throw new IllegalArgumentException("PO amount cannot be less than the total of its SRNs. " +
                             "Current SRN total: " + totalSrnAmount);
@@ -107,13 +110,14 @@ public class POService {
         newPo.setPoStartDate(dto.getPoStartDate());
         newPo.setPoEndDate(dto.getPoEndDate());
         newPo.setCreateTimestamp(LocalDateTime.now());
+        newPo.setTenantId(oldPo.getTenantId());
         newPo.setEndTimestamp(null);
         newPo.setLastUpdateBy(null);
 
         PODetails savedNewPo = poRepository.save(newPo);
 
         // 3. Update poDetail & poNumber in active milestones
-        List<POMilestone> activeMilestones = poMilestoneRepository.findByPoDetail_PoId(oldPo.getPoId());
+        List<POMilestone> activeMilestones = poMilestoneRepository.findByPoDetail_PoId(oldPo.getPoId(), currentTenantId);
         for (POMilestone ms : activeMilestones) {
             ms.setPoDetail(savedNewPo);
             ms.setPoNumber(savedNewPo.getPoNumber());
@@ -121,14 +125,14 @@ public class POService {
         }
 
         // 4. Update poNumber in active POConsumption
-        List<POConsumption> activeConsumptions = poConsumptionRepository.findByPoNumber(oldPo.getPoNumber());
+        List<POConsumption> activeConsumptions = poConsumptionRepository.findByPoNumber(oldPo.getPoNumber(), currentTenantId);
         for (POConsumption con : activeConsumptions) {
             con.setPoNumber(savedNewPo.getPoNumber());
             poConsumptionRepository.save(con);
         }
 
         // 5. Update poDetail & poNumber in active SRNs
-        List<SRNDetails> activeSrns = srnRepository.findByPoIdWithoutMs(oldPo.getPoId());
+        List<SRNDetails> activeSrns = srnRepository.findByPoIdWithoutMs(oldPo.getPoId(), currentTenantId);
         for (SRNDetails srn : activeSrns) {
             srn.setPoDetail(savedNewPo);
             srn.setPoNumber(savedNewPo.getPoNumber());
@@ -141,7 +145,7 @@ public class POService {
 
 
     public List<PODetails> getAllPOs() {
-        return poRepository.findAllActivePOs();
+        return poRepository.findAllActivePOs(loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     public PODetails getPOById(Long id) {

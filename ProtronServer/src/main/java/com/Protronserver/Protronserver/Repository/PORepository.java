@@ -13,22 +13,23 @@ import java.util.Optional;
 @Repository
 public interface PORepository extends JpaRepository<PODetails, Long> {
 
-    @Query(value = "SELECT po_amount FROM po_detail WHERE po_id = :poId", nativeQuery = true)
-    Optional<BigDecimal> findPoAmountById(@Param("poId") Long poId);
+    // 1. Native query — also needs tenant check
+    @Query(value = "SELECT po_amount FROM po_detail WHERE po_id = :poId AND tenant_id = :tenantId", nativeQuery = true)
+    Optional<BigDecimal> findPoAmountById(@Param("poId") Long poId, @Param("tenantId") Long tenantId);
 
-    // PO ID by number — only active POs
-    @Query("SELECT p.poId FROM PODetails p WHERE p.poNumber = :poNumber AND p.endTimestamp IS NULL")
-    Optional<Long> findPoIdByPoNumber(@Param("poNumber") String poNumber);
+    // 2. PO ID by number (only active POs)
+    @Query("SELECT p.poId FROM PODetails p WHERE p.poNumber = :poNumber AND p.tenantId = :tenantId AND p.endTimestamp IS NULL")
+    Optional<Long> findPoIdByPoNumber(@Param("poNumber") String poNumber, @Param("tenantId") Long tenantId);
 
-    // Currency by PO number — only active POs
-    @Query("SELECT p.poCurrency FROM PODetails p WHERE p.poNumber = :poNumber AND p.endTimestamp IS NULL")
-    Optional<String> findPoCurrencyByPoNumber(@Param("poNumber") String poNumber);
+    // 3. Currency by PO number (only active POs)
+    @Query("SELECT p.poCurrency FROM PODetails p WHERE p.poNumber = :poNumber AND p.tenantId = :tenantId AND p.endTimestamp IS NULL")
+    Optional<String> findPoCurrencyByPoNumber(@Param("poNumber") String poNumber, @Param("tenantId") Long tenantId);
 
-    // PO Amount by PO number — only active POs
-    @Query("SELECT p.poAmount FROM PODetails p WHERE p.poNumber = :poNumber AND p.endTimestamp IS NULL")
-    Optional<BigDecimal> findPoAmountByPoNumber(@Param("poNumber") String poNumber);
+    // 4. PO Amount by PO number (only active POs)
+    @Query("SELECT p.poAmount FROM PODetails p WHERE p.poNumber = :poNumber AND p.tenantId = :tenantId AND p.endTimestamp IS NULL")
+    Optional<BigDecimal> findPoAmountByPoNumber(@Param("poNumber") String poNumber, @Param("tenantId") Long tenantId);
 
-    @Query("SELECT p FROM PODetails p WHERE p.endTimestamp IS NULL")
-    List<PODetails> findAllActivePOs();
-
+    // 5. All Active POs for a tenant
+    @Query("SELECT p FROM PODetails p WHERE p.tenantId = :tenantId AND p.endTimestamp IS NULL")
+    List<PODetails> findAllActivePOs(@Param("tenantId") Long tenantId);
 }

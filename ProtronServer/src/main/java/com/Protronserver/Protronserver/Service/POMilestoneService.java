@@ -1,10 +1,7 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.POMilestoneAddDTO;
-import com.Protronserver.Protronserver.Entities.POConsumption;
-import com.Protronserver.Protronserver.Entities.PODetails;
-import com.Protronserver.Protronserver.Entities.POMilestone;
-import com.Protronserver.Protronserver.Entities.SRNDetails;
+import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
@@ -50,7 +47,7 @@ public class POMilestoneService {
 
         // Cost Check: Ensure total milestone value does not exceed PO value
         BigDecimal poAmount = poDetail.getPoAmount();
-        BigDecimal existingMilestonesTotal = poMilestoneRepository.sumMilestoneAmountsByPoId(dto.getPoId());
+        BigDecimal existingMilestonesTotal = poMilestoneRepository.sumMilestoneAmountsByPoId(dto.getPoId(), loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
         BigDecimal newMilestoneAmount = new BigDecimal(dto.getMsAmount());
 
         if (existingMilestonesTotal.add(newMilestoneAmount).compareTo(poAmount) > 0) {
@@ -72,12 +69,19 @@ public class POMilestoneService {
         milestone.setMsDuration(dto.getMsDuration());
         milestone.setMsRemarks(dto.getMsRemarks());
         milestone.setStartTimestamp(LocalDateTime.now());
+
+        User loggedInUser = loggedInUserUtils.getLoggedInUser();
+        milestone.setTenantId(loggedInUser.getTenant().getTenantId());
+
         milestone.setEndTimestamp(null);
         milestone.setLastUpdateBy(null);
         return poMilestoneRepository.save(milestone);
     }
 
     public POMilestone updateMilestone(Long id, POMilestoneAddDTO dto) {
+
+        Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
         POMilestone existingMilestone = poMilestoneRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + id));
 
@@ -93,7 +97,7 @@ public class POMilestoneService {
         }
 
         BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsId(
-                poDetail.getPoId(), existingMilestone.getMsId());
+                poDetail.getPoId(), existingMilestone.getMsId(), currentTenantId);
 
         if (newMilestoneAmount.compareTo(totalSrnPaid) < 0) {
             throw new IllegalArgumentException("New milestone amount (" + newMilestoneAmount +
@@ -101,7 +105,7 @@ public class POMilestoneService {
         }
 
         BigDecimal poAmount = poDetail.getPoAmount();
-        BigDecimal currentTotalMilestoneSum = poMilestoneRepository.sumMilestoneAmountsByPoId(poDetail.getPoId());
+        BigDecimal currentTotalMilestoneSum = poMilestoneRepository.sumMilestoneAmountsByPoId(poDetail.getPoId(), currentTenantId);
         BigDecimal availableBudget = poAmount.subtract(currentTotalMilestoneSum).add(originalMilestoneAmount);
 
         if (newMilestoneAmount.compareTo(availableBudget) > 0) {
@@ -129,12 +133,13 @@ public class POMilestoneService {
         newMilestone.setMsDuration(dto.getMsDuration());
         newMilestone.setMsRemarks(dto.getMsRemarks());
         newMilestone.setStartTimestamp(LocalDateTime.now());
+        newMilestone.setTenantId(existingMilestone.getTenantId());
         newMilestone.setEndTimestamp(null);
         newMilestone.setLastUpdateBy(null);
 
         POMilestone savedNewMilestone = poMilestoneRepository.save(newMilestone);
 
-        List<SRNDetails> srnsToUpdate = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), id);
+        List<SRNDetails> srnsToUpdate = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), id, currentTenantId);
         for (SRNDetails srn : srnsToUpdate) {
             srn.setMilestone(savedNewMilestone);
             srnRepository.save(srn);
@@ -142,7 +147,7 @@ public class POMilestoneService {
 
         // 4. Update milestone in active POConsumptions
         List<POConsumption> consumptionsToUpdate = poConsumptionRepository.findByPoNumberAndMilestone_MsName(
-                poDetail.getPoNumber(), existingMilestone.getMsName());
+                poDetail.getPoNumber(), existingMilestone.getMsName(), currentTenantId);
         for (POConsumption consumption : consumptionsToUpdate) {
             consumption.setMilestone(savedNewMilestone);
             poConsumptionRepository.save(consumption);
@@ -154,11 +159,11 @@ public class POMilestoneService {
 
 
     public List<POMilestone> getAllMilestones() {
-        return poMilestoneRepository.findAllActiveMilestones();
+        return poMilestoneRepository.findAllActiveMilestones(loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     public List<POMilestone> getMilestonesByPoId(Long poId) {
-        return poMilestoneRepository.findByPoDetail_PoId(poId);
+        return poMilestoneRepository.findByPoDetail_PoId(poId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     public POMilestone getMilestoneByMsId(Long id) {

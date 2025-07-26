@@ -82,7 +82,19 @@ public class SRNDetails {
     @Column(name = "updatedby")
     private String updatedBy;
 
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
+
     // ------------------ Getters and Setters ------------------
+
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
 
     public Long getSrnId() {
         return srnId;
