@@ -1,6 +1,6 @@
 // AddPOConsumptionModal.js
 import { useState, useEffect } from "react";
-import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building } from "lucide-react";
+import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip } from "lucide-react";
 import axios from "axios";
 import {useSession} from "../Context/SessionContext";
 
@@ -15,6 +15,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     workDesc: "",
     workAssignDate: "",
     workCompletionDate: "",
+    attachment: null,
     remarks: "",
     systemName: ""
   });
@@ -157,6 +158,63 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      if (file.size > maxSize) {
+        setErrors(prev => ({
+          ...prev,
+          attachment: "File size must be less than 10MB"
+        }));
+        return;
+      }
+      
+      // Validate file type (common document and image types)
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'text/plain'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        setErrors(prev => ({
+          ...prev,
+          attachment: "File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT files."
+        }));
+        return;
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        attachment: file
+      }));
+      
+      // Clear error if file is valid
+      if (errors.attachment) {
+        setErrors(prev => ({
+          ...prev,
+          attachment: ""
+        }));
+      }
+    }
+  };
+
+  // Function to handle date input clicks
+  const handleDateInputClick = (inputName) => {
+    const dateInput = document.getElementsByName(inputName)[0];
+    if (dateInput) {
+      dateInput.showPicker();
+    }
+  };
+
   // Helper function to get currency symbol
   const getCurrencySymbol = (currencyCode) => {
     const currencySymbols = {
@@ -226,6 +284,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const validateForm = async () => {
     const newErrors = {};
 
+    // Only validate required fields: PO Number, Amount, and Type
     if (!formData.poNumber?.trim()) {
       newErrors.poNumber = "PO Number is required";
     }
@@ -236,10 +295,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
     if (!formData.utilizationType?.trim()) {
       newErrors.utilizationType = "Utilization type is required";
-    }
-
-    if (!formData.workDesc?.trim()) {
-      newErrors.workDesc = "Work description is required";
     }
 
     // Balance validation for amount
@@ -307,21 +362,29 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         throw new Error("Missing authentication credentials");
       }
 
-      const submitData = {
-        poNumber: formData.poNumber,
-        msId: formData.msId || null,
-        amount: parseInt(formData.amount) || 0,
-        currency: formData.currency,
-        utilizationType: formData.utilizationType,
-        resourceOrProject: formData.resourceOrProject,
-        workDesc: formData.workDesc,
-        workAssignDate: formData.workAssignDate || null,
-        workCompletionDate: formData.workCompletionDate || null,
-        remarks: formData.remarks || "",
-        systemName: formData.systemName || ""
-      };
+      // Create FormData for file upload
+      const submitData = new FormData();
+      submitData.append('poNumber', formData.poNumber);
+      submitData.append('msId', formData.msId || '');
+      submitData.append('amount', parseInt(formData.amount) || 0);
+      submitData.append('currency', formData.currency);
+      submitData.append('utilizationType', formData.utilizationType);
+      submitData.append('resourceOrProject', formData.resourceOrProject || '');
+      submitData.append('workDesc', formData.workDesc || '');
+      submitData.append('workAssignDate', formData.workAssignDate || '');
+      submitData.append('workCompletionDate', formData.workCompletionDate || '');
+      submitData.append('remarks', formData.remarks || '');
+      submitData.append('systemName', formData.systemName || '');
+      
+      // Add file if present
+      if (formData.attachment) {
+        submitData.append('attachment', formData.attachment);
+      }
 
-      console.log('Submitting PO consumption data:', submitData);
+      console.log('Submitting PO consumption data with file:', {
+        ...Object.fromEntries(submitData.entries()),
+        attachment: formData.attachment ? formData.attachment.name : null
+      });
 
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/po-consumption/add`,
@@ -329,7 +392,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         {
           headers: { 
             Authorization: `${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'multipart/form-data'
           }
         }
       );
@@ -372,6 +435,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       workDesc: "",
       workAssignDate: "",
       workCompletionDate: "",
+      attachment: null,
       remarks: "",
       systemName: ""
     });
@@ -474,7 +538,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   {milestoneList.map(milestone => (
                     <option 
                       key={milestone.msId} 
-                      value={milestone.msId}S
+                      value={milestone.msId}
                       title={`Milestone: ${milestone.msName} | Amount: ${milestone.msAmount ? getCurrencySymbol(milestone.msCurrency)+(milestone.msAmount).toLocaleString() : 'N/A'}`}
                     >
                       {milestone.msName.length > 20 ? `${milestone.msName.substring(0, 20)}...` : milestone.msName}
@@ -558,15 +622,13 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               <div className="col-span-4">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
-                  Resource/Project *
+                  Resource/Project
                 </label>
                 <select
                   name="resourceOrProject"
                   value={formData.resourceOrProject}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.resourceOrProject ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading}
                   title={formData.resourceOrProject ? `Selected Project: ${formData.resourceOrProject}` : "Select a project"}
                 >
@@ -581,11 +643,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                     </option>
                   ))}
                 </select>
-                {errors.resourceOrProject && (
-                  <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.resourceOrProject}`}>
-                    {errors.resourceOrProject.length > 30 ? `${errors.resourceOrProject.substring(0, 30)}...` : errors.resourceOrProject}
-                  </p>
-                )}
                 {projectList.length === 0 && (
                   <p className="mt-1 text-xs text-gray-500" title="Loading projects from server...">Loading projects...</p>
                 )}
@@ -611,7 +668,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               <div className="col-span-3"></div> {/* Spacer */}
             </div>
 
-            {/* Row 3: Work Assign Date and Work Completion Date */}
+            {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-3">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -623,9 +680,10 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   name="workAssignDate"
                   value={formData.workAssignDate}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  onClick={() => handleDateInputClick('workAssignDate')}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 cursor-pointer"
                   disabled={loading}
-                  title={formData.workAssignDate ? `Work Assigned: ${new Date(formData.workAssignDate).toLocaleDateString()}` : "Select work assignment date (optional)"}
+                  title={formData.workAssignDate ? `Work Assigned: ${new Date(formData.workAssignDate).toLocaleDateString()}` : "Click to select work assignment date (optional)"}
                 />
               </div>
 
@@ -639,20 +697,48 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   name="workCompletionDate"
                   value={formData.workCompletionDate}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  onClick={() => handleDateInputClick('workCompletionDate')}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 cursor-pointer"
                   disabled={loading}
-                  title={formData.workCompletionDate ? `Work Completed: ${new Date(formData.workCompletionDate).toLocaleDateString()}` : "Select work completion date (optional)"}
+                  title={formData.workCompletionDate ? `Work Completed: ${new Date(formData.workCompletionDate).toLocaleDateString()}` : "Click to select work completion date (optional)"}
                 />
               </div>
 
-              <div className="col-span-6"></div> {/* Spacer */}
+              <div className="col-span-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Paperclip size={14} className="inline mr-1" />
+                  Attachment
+                </label>
+                <input
+                  type="file"
+                  name="attachment"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  disabled={loading}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  title="Upload document or image file (max 10MB)"
+                />
+                {formData.attachment && (
+                  <p className="mt-1 text-xs text-gray-600" title={`Selected file: ${formData.attachment.name} (${(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)`}>
+                    {formData.attachment.name.length > 30 ? `${formData.attachment.name.substring(0, 30)}...` : formData.attachment.name} 
+                    ({(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)
+                  </p>
+                )}
+                {errors.attachment && (
+                  <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.attachment}`}>
+                    {errors.attachment.length > 50 ? `${errors.attachment.substring(0, 50)}...` : errors.attachment}
+                  </p>
+                )}
+              </div>
+
+              <div className="col-span-3"></div> {/* Spacer */}
             </div>
 
             {/* Row 4: Work Description */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <FileText size={14} className="inline mr-1" />
-                Work Description *
+                Work Description
                 <span className="float-right text-xs text-gray-500">
                   {descCharCount}/500 characters
                 </span>
@@ -667,7 +753,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 }`}
                 placeholder="Enter detailed work description including tasks, deliverables, scope, and requirements... (Max 500 characters)"
                 disabled={loading}
-                title={formData.workDesc ? `Work Description (${descCharCount}/500 chars): ${formData.workDesc}` : "Enter detailed work description (required)"}
+                title={formData.workDesc ? `Work Description (${descCharCount}/500 chars): ${formData.workDesc}` : "Enter detailed work description (optional)"}
               />
               {errors.workDesc && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.workDesc}`}>

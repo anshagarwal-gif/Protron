@@ -18,13 +18,260 @@ import {
   FileText,
   Trash2,
   Calendar,
-  Eye
+  Eye,
+  Paperclip,
+  X,
+  File,
+  Image,
+  Archive
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
 import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddPOConsumptionModal from "../components/AddPOConsumptionModal";
 import EditPOConsumptionModal from "../components/EditPOConsumptionModal";
+// ViewDetailsModal Component - Fixed with correct milestone properties
+const ViewDetailsModal = ({ open, onClose, consumption }) => {
+  if (!open || !consumption) return null;
+
+  const formatCurrency = (amount, currencyCode) => {
+    if (!amount) return 'N/A';
+    const getCurrencySymbol = (currencyCode) => {
+      const currencySymbols = {
+        'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
+        'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥'
+      };
+      return currencySymbols[currencyCode] || currencyCode || '$';
+    };
+    const symbol = getCurrencySymbol(currencyCode);
+    return `${symbol}${amount.toLocaleString()}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getFileIcon = (fileName) => {
+    if (!fileName) return <File size={16} />;
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension)) {
+      return <Image size={16} className="text-green-600" />;
+    } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+      return <Archive size={16} className="text-purple-600" />;
+    } else {
+      return <File size={16} className="text-blue-600" />;
+    }
+  };
+
+  const handleAttachmentClick = (attachment) => {
+    if (attachment.url) {
+      window.open(attachment.url, '_blank');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="bg-green-700 text-white p-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10">
+          <div>
+            <h2 className="text-xl font-bold">PO Consumption Details</h2>
+      
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-green-700 rounded-full transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* PO Consumption Information */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                <FileText size={20} className="mr-2" />
+                PO CONSUMPTION INFORMATION
+              </h3>
+              
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">PO Number</label>
+                    <p className="text-gray-900 font-semibold break-words">{consumption.poNumber || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Utilization ID</label>
+                    <p className="text-green-600 font-semibold break-words">{consumption.utilizationId || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Utilization Type</label>
+                    <span className="inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {consumption.utilizationType || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Amount</label>
+                    <p className="text-green-600 font-bold text-lg break-words">
+                      {formatCurrency(consumption.amount, consumption.currency)}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Resource/Project</label>
+                  <p className="text-gray-900 font-medium break-words">{consumption.resourceOrProject || 'N/A'}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Work Assign Date</label>
+                    <p className="text-gray-700">{formatDate(consumption.workAssignDate)}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Work Completion Date</label>
+                    <p className="text-gray-700">{formatDate(consumption.workCompletionDate)}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">System Name</label>
+                  <p className="text-gray-700 break-words">{consumption.systemName || 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Milestone Details - FIXED with correct property names */}
+            <div className="bg-green-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                <Calendar size={20} className="mr-2" />
+                MILESTONE DETAILS
+              </h3>
+              
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Name</label>
+                    <p className="text-gray-900 font-semibold break-words">
+                      {consumption.milestone?.msName || 'N/A'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Amount</label>
+                    <p className="text-green-600 font-bold break-words">
+                      {consumption.milestone?.msAmount ? 
+                        formatCurrency(consumption.milestone.msAmount, consumption.milestone.msCurrency) : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Date</label>
+                    <p className="text-gray-700">
+                      {formatDate(consumption.milestone?.msDate)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Duration (Days)</label>
+                    <p className="text-gray-700">
+                      {consumption.milestone?.msDuration ? `${consumption.milestone.msDuration} days` : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Description</label>
+                  <div className="text-gray-700 text-sm leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-24 overflow-y-auto bg-white p-2 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+                    {consumption.milestone?.msDesc || 'No description available'}
+                  </div>
+                </div>
+
+                {/* Milestone Remarks */}
+                {consumption.milestone?.msRemarks && (
+                  <div>
+                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Remarks</label>
+                    <div className="text-gray-700 text-sm leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-24 overflow-y-auto bg-white p-2 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+                      {consumption.milestone.msRemarks}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Work Description */}
+          <div className="bg-purple-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+              <FileText size={20} className="mr-2" />
+              WORK DESCRIPTION
+            </h3>
+            <div className="text-gray-700 leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-32 overflow-y-auto bg-white p-3 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+              {consumption.workDesc || 'No work description provided'}
+            </div>
+          </div>
+
+          {/* Remarks */}
+          {(consumption.remarks && consumption.remarks.trim() !== '') && (
+            <div className="bg-yellow-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
+                <Edit size={20} className="mr-2" />
+                REMARKS
+              </h3>
+              <div className="text-gray-700 leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-32 overflow-y-auto bg-white p-3 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+                {consumption.remarks}
+              </div>
+            </div>
+          )}
+
+          {/* Attachments */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <Paperclip size={20} className="mr-2" />
+              ATTACHMENTS ({consumption.attachments?.length || 0})
+            </h3>
+            
+            {consumption.attachments && consumption.attachments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
+                {consumption.attachments.map((attachment, index) => (
+                  <div 
+                    key={index}
+                    onClick={() => handleAttachmentClick(attachment)}
+                    className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="flex-shrink-0 mr-3">
+                      {getFileIcon(attachment.fileName || attachment.name || attachment.filename)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600" title={attachment.fileName || attachment.name || attachment.filename}>
+                        {attachment.fileName || attachment.name || attachment.filename || `Attachment ${index + 1}`}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {attachment.fileSize || attachment.size || 'Unknown size'}
+                      </p>
+                    </div>
+                    <Download size={14} className="text-gray-400 group-hover:text-blue-600" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Paperclip size={48} className="mx-auto text-gray-300 mb-2" />
+                <p className="text-gray-500">No attachments available</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const navigate = useNavigate();
@@ -36,7 +283,9 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   const [error, setError] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedConsumptionId, setSelectedConsumptionId] = useState(null);
+  const [selectedConsumption, setSelectedConsumption] = useState(null);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -156,7 +405,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     );
   };
 
-  // Fetch PO Consumption data
+  // Fetch PO Consumption data - UPDATED WITHOUT MOCK DATA
   const fetchConsumptionData = async () => {
     setLoading(true);
     setError(null);
@@ -173,6 +422,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         }
       );
 
+      // Use real data only - no mock attachments
       setConsumptionList(response.data);
     } catch (error) {
       console.error("Error fetching PO Consumption data:", error);
@@ -222,6 +472,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         'Amount': consumption.amount ? `${getCurrencySymbol(consumption.currency)}${consumption.amount.toLocaleString()}` : 'N/A',
         'Work Assign Date': consumption.workAssignDate ? new Date(consumption.workAssignDate).toLocaleDateString() : 'N/A',
         'Work Completion Date': consumption.workCompletionDate ? new Date(consumption.workCompletionDate).toLocaleDateString() : 'N/A',
+        'Attachments': consumption.attachments ? consumption.attachments.length : 0,
         'Remarks': consumption.remarks || 'N/A',
         'System Name': consumption.systemName || 'N/A',
       }));
@@ -257,6 +508,11 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   };
 
   // Handle PO Consumption actions
+  const handleViewConsumption = (consumption) => {
+    setSelectedConsumption(consumption);
+    setIsViewModalOpen(true);
+  };
+
   const handleEditConsumption = (consumption) => {
     console.log('Editing PO Consumption:', consumption);
     setSelectedConsumptionId(consumption.utilizationId);
@@ -523,6 +779,30 @@ const columnDefs = useMemo(() => [
     }
   },
   {
+    headerName: "Attachments",
+    field: "attachments",
+    valueGetter: params => params.data.attachments?.length || 0,
+    width: 100,
+    sortable: true,
+    filter: true,
+    cellStyle: { textAlign: 'center' },
+    cellRenderer: params => {
+      const attachmentCount = params.value;
+      return (
+        <div className="flex items-center justify-center h-full">
+          {attachmentCount > 0 ? (
+            <span className="flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+              <Paperclip size={12} className="mr-1" />
+              {attachmentCount}
+            </span>
+          ) : (
+            <span className="text-gray-400 text-xs">No files</span>
+          )}
+        </div>
+      );
+    }
+  },
+  {
     headerName: "Assigned",
     field: "workAssignDate",
     valueGetter: params => formatDate(params.data.workAssignDate),
@@ -593,7 +873,7 @@ const columnDefs = useMemo(() => [
   {
     headerName: "Actions",
     field: "actions",
-    width: 100,
+    width: 120,
     sortable: false,
     filter: false,
     suppressMenu: true,
@@ -601,6 +881,13 @@ const columnDefs = useMemo(() => [
       const consumption = params.data;
       return (
         <div className="flex justify-center gap-1 h-full items-center">
+          <button
+            onClick={() => handleViewConsumption(consumption)}
+            className="p-1.5 rounded-full hover:bg-green-100 transition-colors"
+            title="View Details"
+          >
+            <Eye size={14} className="text-green-600" />
+          </button>
           <button
             onClick={() => handleEditConsumption(consumption)}
             className="p-1.5 rounded-full hover:bg-blue-100 transition-colors"
@@ -978,6 +1265,16 @@ const columnDefs = useMemo(() => [
         </div>
       </div>
 
+      {/* View Details Modal */}
+      <ViewDetailsModal
+        open={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedConsumption(null);
+        }}
+        consumption={selectedConsumption}
+      />
+
       {/* Add PO Consumption Modal */}
       <AddPOConsumptionModal 
         open={isAddModalOpen}
@@ -991,8 +1288,7 @@ const columnDefs = useMemo(() => [
         }}
       />
 
-      {/* Edit PO Consumption Modal - Uncomment when modal components are available */}
-    
+      {/* Edit PO Consumption Modal */}
       <EditPOConsumptionModal 
         open={isEditModalOpen}
         onClose={() => {

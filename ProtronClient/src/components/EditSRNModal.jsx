@@ -1,35 +1,31 @@
-// EditPOConsumptionModal.js
+// EditSRNModal.js
 import { useState, useEffect } from "react";
-import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip } from "lucide-react";
+import { X, Receipt, DollarSign, FileText, AlertCircle, Activity, Paperclip } from "lucide-react";
 import axios from "axios";
 
-const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
+const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   const [formData, setFormData] = useState({
     poNumber: "",
     msId: "",
-    amount: "",
-    currency: "USD",
-    utilizationType: "Fixed",
-    resourceOrProject: "",
-    workDesc: "",
-    workAssignDate: "",
-    workCompletionDate: "",
+    srnName: "",
+    srnDsc: "",
+    srnAmount: "",
+    srnCurrency: "USD",
+    srnType: "Progress",
+    srnRemarks: "",
     attachment: null,
-    existingAttachment: null,
-    remarks: "",
-    systemName: ""
+    existingAttachment: null
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [poList, setPOList] = useState([]);
   const [milestoneList, setMilestoneList] = useState([]);
-  const [projectList, setProjectList] = useState([]);
   const [descCharCount, setDescCharCount] = useState(0);
   const [remarksCharCount, setRemarksCharCount] = useState(0);
+  const [nameCharCount, setNameCharCount] = useState(0);
   const [initialLoading, setInitialLoading] = useState(false);
 
-  // Fetch existing consumption data when modal opens
-   // Truncate text utility function
+  // Truncate text utility function
   const truncateText = (text, maxLength = 50) => {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
@@ -43,13 +39,12 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     if (!isOverflow) {
       return <span className={className}>{text}</span>;
     }
-     return (
+    return (
       <span 
         className={`${className} cursor-help relative group`}
         title={text}
       >
         {truncated}
-        {/* Tooltip */}
         <div className="invisible group-hover:visible absolute z-10 w-64 p-2 mt-1 text-xs text-white bg-gray-900 rounded-md shadow-lg -top-2 left-0 break-words">
           {text}
           <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
@@ -68,60 +63,53 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   };
 
   useEffect(() => {
-    const fetchConsumptionData = async () => {
-      if (open && consumptionId) {
+    const fetchSRNData = async () => {
+      if (open && srnId) {
         setInitialLoading(true);
         try {
           const token = sessionStorage.getItem('token');
           
-          // Fetch consumption details
-          const consumptionResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/po-consumption/${consumptionId}`,
+          // Fetch SRN details
+          const srnResponse = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/srn/${srnId}`,
             {
               headers: { Authorization: `${token}` }
             }
           );
 
-          const consumption = consumptionResponse.data;
+          const srn = srnResponse.data;
           
-          // Format dates for input fields
-          const formatDate = (dateString) => {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toISOString().split('T')[0];
-          };
-
           setFormData({
-            poNumber: consumption.poNumber || "",
-            msId: consumption.msId || "",
-            amount: consumption.amount?.toString() || "",
-            currency: consumption.currency || "USD",
-            utilizationType: consumption.utilizationType || "Fixed",
-            resourceOrProject: consumption.resourceOrProject || "",
-            workDesc: consumption.workDesc || "",
-            workAssignDate: formatDate(consumption.workAssignDate),
-            workCompletionDate: formatDate(consumption.workCompletionDate),
+            poNumber: srn.poNumber || "",
+            msId: srn.milestone?.msId || "",
+            srnName: srn.srnName || "",
+            srnDsc: srn.srnDsc || "",
+            srnAmount: srn.srnAmount?.toString() || "",
+            srnCurrency: srn.srnCurrency || "USD",
+            srnType: srn.srnType || "Progress",
+            srnRemarks: srn.srnRemarks || "",
             attachment: null,
-            existingAttachment: consumption.attachment || null,
-            remarks: consumption.remarks || "",
-            systemName: consumption.systemName || ""
+            existingAttachment: srn.attachments && srn.attachments.length > 0 ? srn.attachments[0] : null
           });
 
+          console.log('Fetched SRN data:', srn);
+          console.log('SRN Type from response:', srn.srnType);
+
         } catch (error) {
-          console.error("Error fetching consumption data:", error);
-          setErrors({ submit: "Failed to load consumption data" });
+          console.error("Error fetching SRN data:", error);
+          setErrors({ submit: "Failed to load SRN data" });
         } finally {
           setInitialLoading(false);
         }
       }
     };
 
-    fetchConsumptionData();
-  }, [open, consumptionId]);
+    fetchSRNData();
+  }, [open, srnId]);
 
-  // Fetch PO list and projects when modal opens
+  // Fetch PO list when modal opens
   useEffect(() => {
-    const fetchPOListAndProjects = async () => {
+    const fetchPOList = async () => {
       if (open) {
         try {
           const token = sessionStorage.getItem('token');
@@ -134,23 +122,14 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
             }
           );
           setPOList(poResponse.data);
-
-          // Fetch projects list
-          const projectResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/projects`,
-            {
-              headers: { Authorization: `${token}` }
-            }
-          );
-          setProjectList(projectResponse.data);
           
         } catch (error) {
-          console.error("Error fetching PO list and projects:", error);
+          console.error("Error fetching PO list:", error);
         }
       }
     };
 
-    fetchPOListAndProjects();
+    fetchPOList();
   }, [open]);
 
   // Fetch milestones when PO is selected
@@ -181,10 +160,10 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
             }
             
             // Update currency based on selected PO (only if not already set)
-            if (!formData.currency || formData.currency === 'USD') {
+            if (!formData.srnCurrency || formData.srnCurrency === 'USD') {
               setFormData(prev => ({
                 ...prev,
-                currency: selectedPO.poCurrency || "USD"
+                srnCurrency: selectedPO.poCurrency || "USD"
               }));
             }
           }
@@ -202,9 +181,10 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
   // Initialize character counts when form data is set
   useEffect(() => {
-    setDescCharCount(formData.workDesc.length);
-    setRemarksCharCount(formData.remarks.length);
-  }, [formData.workDesc, formData.remarks]);
+    setNameCharCount(formData.srnName.length);
+    setDescCharCount(formData.srnDsc.length);
+    setRemarksCharCount(formData.srnRemarks.length);
+  }, [formData.srnName, formData.srnDsc, formData.srnRemarks]);
 
   useEffect(() => {
     if (open) {
@@ -215,17 +195,26 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Check character limit for description and remarks
-    if (name === 'workDesc') {
+    // Check character limits
+    if (name === 'srnName') {
+      if (value.length > 200) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "SRN name cannot exceed 200 characters"
+        }));
+        return;
+      }
+      setNameCharCount(value.length);
+    } else if (name === 'srnDsc') {
       if (value.length > 500) {
         setErrors(prev => ({
           ...prev,
-          [name]: "Work description cannot exceed 500 characters"
+          [name]: "SRN description cannot exceed 500 characters"
         }));
         return;
       }
       setDescCharCount(value.length);
-    } else if (name === 'remarks') {
+    } else if (name === 'srnRemarks') {
       if (value.length > 500) {
         setErrors(prev => ({
           ...prev,
@@ -299,145 +288,28 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     }
   };
 
-  // Function to handle date input clicks
-  const handleDateInputClick = (inputName) => {
-    const dateInput = document.getElementsByName(inputName)[0];
-    if (dateInput) {
-      dateInput.showPicker();
-    }
-  };
-
-  const checkBalance = async () => {
-    if (!formData.poNumber || !formData.amount || formData.amount <= 0) {
-      return true;
-    }
-
-    try {
-      const token = sessionStorage.getItem('token');
-      let balanceEndpoint = '';
-      let balanceType = '';
-
-      if (formData.msId && formData.msId.trim()) {
-        balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}?msId=${encodeURIComponent(formData.msId)}`;
-        balanceType = `Milestone "${formData.msId}"`;
-      } else {
-        balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}`;
-        balanceType = `PO "${formData.poNumber}"`;
-      }
-
-      const balanceResponse = await axios.get(balanceEndpoint, {
-        headers: { Authorization: `${token}` }
-      });
-
-      const availableBalance = balanceResponse.data.remainingBalance;
-      const requestedAmount = parseFloat(formData.amount);
-
-      if (requestedAmount > availableBalance) {
-        const currencySymbol = getCurrencySymbol(formData.currency);
-        const errorMessage = `Amount exceeds available balance. ${balanceType} has ${currencySymbol}${availableBalance.toLocaleString()} remaining, but you're trying to consume ${currencySymbol}${requestedAmount.toLocaleString()}.`;
-        
-        setErrors(prev => ({
-          ...prev,
-          amount: errorMessage
-        }));
-        return false;
-      }
-
-      return true;
-    } catch (balanceError) {
-      console.error("Error checking balance:", balanceError);
-      setErrors(prev => ({
-        ...prev,
-        amount: "Unable to verify balance. Please check the amount manually."
-      }));
-      return false;
-    }
-  };
-
   const validateBasicForm = () => {
     const newErrors = {};
 
-    // Only validate required fields: PO Number, Amount, and Type
+    // Required fields validation based on the table structure
     if (!formData.poNumber?.trim()) {
       newErrors.poNumber = "PO Number is required";
     }
 
-    if (!formData.amount || formData.amount <= 0) {
-      newErrors.amount = "Valid amount is required";
+    if (!formData.srnName?.trim()) {
+      newErrors.srnName = "SRN Name is required";
     }
 
-    if (!formData.utilizationType?.trim()) {
-      newErrors.utilizationType = "Utilization type is required";
+    if (!formData.srnAmount || formData.srnAmount <= 0) {
+      newErrors.srnAmount = "Valid SRN amount is required";
+    }
+
+    if (!formData.srnType?.trim()) {
+      newErrors.srnType = "SRN Type is required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Helper function to get currency symbol
-  const getCurrencySymbol = (currencyCode) => {
-    const currencySymbols = {
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£',
-      'JPY': '¥',
-      'INR': '₹',
-      'CAD': 'C$',
-      'AUD': 'A$',
-      'CHF': 'CHF',
-      'CNY': '¥',
-      'SEK': 'kr',
-      'NOK': 'kr',
-      'MXN': '$',
-      'NZD': 'NZ$',
-      'SGD': 'S$',
-      'HKD': 'HK$',
-      'ZAR': 'R',
-      'BRL': 'R$',
-      'RUB': '₽',
-      'KRW': '₩',
-      'TRY': '₺',
-      'PLN': 'zł',
-      'THB': '฿',
-      'IDR': 'Rp',
-      'MYR': 'RM',
-      'PHP': '₱',
-      'CZK': 'Kč',
-      'HUF': 'Ft',
-      'ILS': '₪',
-      'CLP': '$',
-      'PEN': 'S/',
-      'COP': '$',
-      'ARS': '$',
-      'EGP': 'E£',
-      'SAR': 'SR',
-      'AED': 'د.إ',
-      'QAR': 'QR',
-      'KWD': 'KD',
-      'BHD': 'BD',
-      'OMR': 'OMR',
-      'JOD': 'JD',
-      'LBP': 'L£',
-      'PKR': 'Rs',
-      'BDT': '৳',
-      'LKR': 'Rs',
-      'NPR': 'Rs',
-      'MMK': 'K',
-      'VND': '₫',
-      'KHR': '៛',
-      'LAK': '₭',
-      'TWD': 'NT$',
-      'MOP': 'MOP$',
-      'BND': 'B$',
-      'FJD': 'FJ$',
-      'PGK': 'K',
-      'TOP': 'T$',
-      'SBD': 'SI$',
-      'VUV': 'VT',
-      'WST': 'WS$'
-    };
-    
-    return currencySymbols[currencyCode] || currencyCode || '$';
   };
 
   const handleSubmit = async (e) => {
@@ -451,49 +323,32 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     setLoading(true);
     
     try {
-      // Check balance
-      const balanceValid = await checkBalance();
-      if (!balanceValid) {
-        setLoading(false);
-        return;
-      }
-
       const token = sessionStorage.getItem('token');
       if (!token) {
         throw new Error("Missing authentication credentials");
       }
 
-      // Create FormData for file upload
-      const submitData = new FormData();
-      submitData.append('poNumber', formData.poNumber);
-      submitData.append('msId', formData.msId || '');
-      submitData.append('amount', parseInt(formData.amount) || 0);
-      submitData.append('currency', formData.currency);
-      submitData.append('utilizationType', formData.utilizationType);
-      submitData.append('resourceOrProject', formData.resourceOrProject || '');
-      submitData.append('workDesc', formData.workDesc || '');
-      submitData.append('workAssignDate', formData.workAssignDate || '');
-      submitData.append('workCompletionDate', formData.workCompletionDate || '');
-      submitData.append('remarks', formData.remarks || '');
-      submitData.append('systemName', formData.systemName || '');
-      
-      // Add file if present
-      if (formData.attachment) {
-        submitData.append('attachment', formData.attachment);
-      }
+      // Prepare the update data according to SRNDTO structure
+      const updateData = {
+        poNumber: formData.poNumber,
+        msId: formData.msId || null,
+        srnName: formData.srnName,
+        srnDsc: formData.srnDsc || '',
+        srnAmount: parseInt(formData.srnAmount) || 0,
+        srnCurrency: formData.srnCurrency,
+        srnType: formData.srnType,
+        srnRemarks: formData.srnRemarks || ''
+      };
 
-      console.log('Updating PO consumption data with file:', {
-        ...Object.fromEntries(submitData.entries()),
-        attachment: formData.attachment ? formData.attachment.name : null
-      });
+      console.log('Updating SRN data:', updateData);
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/po-consumption/update/${consumptionId}`,
-        submitData,
+        `${import.meta.env.VITE_API_URL}/api/srn/edit/${srnId}`,
+        updateData,
         {
           headers: { 
             Authorization: `${token}`,
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/json'
           }
         }
       );
@@ -501,10 +356,10 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       onSubmit(response.data);
       handleClose();
     } catch (error) {
-      console.error("Error updating PO consumption:", error);
+      console.error("Error updating SRN:", error);
       
       // Enhanced error message handling
-      let errorMessage = "Failed to update PO consumption";
+      let errorMessage = "Failed to update SRN";
       
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
@@ -528,24 +383,21 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     setFormData({
       poNumber: "",
       msId: "",
-      amount: "",
-      currency: "USD",
-      utilizationType: "Fixed",
-      resourceOrProject: "",
-      workDesc: "",
-      workAssignDate: "",
-      workCompletionDate: "",
+      srnName: "",
+      srnDsc: "",
+      srnAmount: "",
+      srnCurrency: "USD",
+      srnType: "Progress",
+      srnRemarks: "",
       attachment: null,
-      existingAttachment: null,
-      remarks: "",
-      systemName: ""
+      existingAttachment: null
     });
     setErrors({});
+    setNameCharCount(0);
     setDescCharCount(0);
     setRemarksCharCount(0);
     setPOList([]);
     setMilestoneList([]);
-    setProjectList([]);
     onClose();
   };
 
@@ -557,8 +409,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            <Activity size={20} className="mr-2 text-green-600" />
-            Edit PO Consumption
+            <Receipt size={20} className="mr-2 text-green-600" />
+            Edit SRN
           </h2>
           <button
             onClick={handleClose}
@@ -574,7 +426,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
             <div className="flex items-center space-x-2">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-              <span className="text-green-700 font-medium">Loading consumption data...</span>
+              <span className="text-green-700 font-medium">Loading SRN data...</span>
             </div>
           </div>
         )}
@@ -585,13 +437,12 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
               <AlertCircle size={18} className="text-red-500 mr-2" />
-              <span className="text-red-700 text-sm">{errors.submit}</span>
-              <TruncatedText text={errors.submit} maxLength={100} />
+              <TruncatedText text={errors.submit} maxLength={100} className="text-red-700 text-sm" />
             </div>
           )}
 
           <div className="space-y-4">
-            {/* Row 1: PO Number, Milestone, Currency, and Amount */}
+            {/* Row 1: PO Number, Milestone Name, Currency, and SRN Amount */}
             <div className="grid grid-cols-12 gap-4">
               <div className="col-span-3">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -619,17 +470,16 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   ))}
                 </select>
                 {errors.poNumber && (
-                  <p className="mt-1 text-xs text-red-600">{errors.poNumber}
-                  <TruncatedText text={errors.poNumber} maxLength={50} />
+                  <p className="mt-1 text-xs text-red-600">
+                    <TruncatedText text={errors.poNumber} maxLength={50} />
                   </p>
-                  
                 )}
               </div>
 
               <div className="col-span-3">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Activity size={14} className="inline mr-1" />
-                  Milestone (Optional)
+                  Milestone Name (Optional)
                 </label>
                 <select
                   name="msId"
@@ -656,12 +506,11 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   Currency
                 </label>
                 <select
-                  name="currency"
-                  value={formData.currency}
+                  name="srnCurrency"
+                  value={formData.srnCurrency}
                   onChange={handleInputChange}
                   className="w-full px-1 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={true}
-                  
                 >
                   <option value="USD">USD</option>
                   <option value="INR">INR</option>
@@ -674,140 +523,86 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
               <div className="col-span-3">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <DollarSign size={14} className="inline mr-1" />
-                  Amount *
+                  SRN Amount *
                 </label>
                 <input
                   type="number"
-                  name="amount"
-                  value={formData.amount}
+                  name="srnAmount"
+                  value={formData.srnAmount}
                   onChange={handleInputChange}
                   step="1"
                   min="0"
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.amount ? 'border-red-500' : 'border-gray-300'
+                    errors.srnAmount ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="0"
                   disabled={loading || initialLoading}
-                  title={formData.amount}
+                  title={formData.srnAmount}
                 />
-                {errors.amount && (
+                {errors.srnAmount && (
                   <div className="mt-1">
-                    <p className="text-xs text-red-600 leading-relaxed">{errors.amount}</p>
+                    <p className="text-xs text-red-600 leading-relaxed">{errors.srnAmount}</p>
                   </div>
                 )}
               </div>
 
-              <div className="col-span-2"></div> {/* Spacer */}
+              <div className="col-span-2"></div>
             </div>
 
-            {/* Row 2: Utilization Type, Resource/Project, System Name */}
+            {/* Row 2: SRN Type, SRN Name, and Attachment */}
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Activity size={14} className="inline mr-1" />
-                  Type *
+                  <Receipt size={14} className="inline mr-1" />
+                  SRN Type *
                 </label>
                 <select
-                  name="utilizationType"
-                  value={formData.utilizationType}
+                  name="srnType"
+                  value={formData.srnType}
                   onChange={handleInputChange}
                   className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.utilizationType ? 'border-red-500' : 'border-gray-300'
+                    errors.srnType ? 'border-red-500' : 'border-gray-300'
                   }`}
                   disabled={loading || initialLoading}
                 >
-                  <option value="Fixed">Fixed</option>
-                  <option value="T&M">T&M</option>
-                  <option value="Mixed">Mixed</option>
+                  <option value="">Select SRN Type</option>
+                  <option value="Progress">Progress</option>
+                  <option value="Advance">Advance</option>
+                  <option value="Final">Final</option>
+                  <option value="Penalty">Penalty</option>
+                  <option value="Milestone">Milestone</option>
                 </select>
-                {errors.utilizationType && (
-                  <p className="mt-1 text-xs text-red-600">{errors.utilizationType}</p>
+                {errors.srnType && (
+                  <p className="mt-1 text-xs text-red-600">{errors.srnType}</p>
                 )}
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Building size={14} className="inline mr-1" />
-                  Resource/Project
-                </label>
-                <select
-                  name="resourceOrProject"
-                  value={formData.resourceOrProject}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={loading || initialLoading}
-                  title={formData.resourceOrProject}
-                >
-                  <option value="">Select project</option>
-                  {projectList.map((project, index) => (
-                  <TruncatedOption 
-                      key={project.projectId || index} 
-                      value={project.projectName} 
-                      text={project.projectName}
-                      maxLength={25}
-                    />
-                  ))}
-                </select>
-                {projectList.length === 0 && (
-                  <p className="mt-1 text-xs text-gray-500">Loading projects...</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Building size={14} className="inline mr-1" />
-                  System Name
+                  <FileText size={14} className="inline mr-1" />
+                  SRN Name *
+                  <span className="float-right text-xs text-gray-500">
+                    {nameCharCount}/200 characters
+                  </span>
                 </label>
                 <input
                   type="text"
-                  name="systemName"
-                  value={formData.systemName}
+                  name="srnName"
+                  value={formData.srnName}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  placeholder="Enter system name"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
+                    errors.srnName ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Enter SRN name"
                   disabled={loading || initialLoading}
-                  title={formData.systemName}
+                  title={formData.srnName}
                 />
-              </div>
-            </div>
-
-            {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Calendar size={14} className="inline mr-1" />
-                  Work Assign Date
-                </label>
-                <input
-                  type="date"
-                  name="workAssignDate"
-                  value={formData.workAssignDate}
-                  onChange={handleInputChange}
-                  onClick={() => handleDateInputClick('workAssignDate')}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 cursor-pointer"
-                  disabled={loading || initialLoading}
-                  title={formData.workAssignDate ? `Work Assigned: ${new Date(formData.workAssignDate).toLocaleDateString()}` : "Click to select work assignment date (optional)"}
-                />
+                {errors.srnName && (
+                  <p className="mt-1 text-xs text-red-600">{errors.srnName}</p>
+                )}
               </div>
 
-              <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Calendar size={14} className="inline mr-1" />
-                  Work Completion Date
-                </label>
-                <input
-                  type="date"
-                  name="workCompletionDate"
-                  value={formData.workCompletionDate}
-                  onChange={handleInputChange}
-                  onClick={() => handleDateInputClick('workCompletionDate')}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 cursor-pointer"
-                  disabled={loading || initialLoading}
-                  title={formData.workCompletionDate ? `Work Completed: ${new Date(formData.workCompletionDate).toLocaleDateString()}` : "Click to select work completion date (optional)"}
-                />
-              </div>
-
-              <div className="col-span-3">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
                   Attachment
@@ -840,48 +635,46 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   </p>
                 )}
               </div>
-
-              <div className="col-span-3"></div> {/* Spacer */}
             </div>
 
-            {/* Row 4: Work Description */}
+            {/* Row 3: SRN Description */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <FileText size={14} className="inline mr-1" />
-                Work Description
+                SRN Description
                 <span className="float-right text-xs text-gray-500">
                   {descCharCount}/500 characters
                 </span>
               </label>
               <textarea
-                name="workDesc"
-                value={formData.workDesc}
+                name="srnDsc"
+                value={formData.srnDsc}
                 onChange={handleInputChange}
                 rows={4}
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  errors.workDesc ? 'border-red-500' : 'border-gray-300'
+                  errors.srnDsc ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Enter detailed work description including tasks, deliverables, scope, and requirements... (Max 500 characters)"
+                placeholder="Enter detailed SRN description including scope, deliverables, and requirements... (Max 500 characters)"
                 disabled={loading || initialLoading}
-                title={formData.workDesc ? `Work Description (${descCharCount}/500 chars): ${formData.workDesc}` : "Enter detailed work description (optional)"}
+                title={formData.srnDsc ? `SRN Description (${descCharCount}/500 chars): ${formData.srnDsc}` : "Enter detailed SRN description (optional)"}
               />
-              {errors.workDesc && (
-                <p className="mt-1 text-xs text-red-600">{errors.workDesc}</p>
+              {errors.srnDsc && (
+                <p className="mt-1 text-xs text-red-600">{errors.srnDsc}</p>
               )}
             </div>
 
-            {/* Row 5: Remarks */}
+            {/* Row 4: SRN Remarks */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <FileText size={14} className="inline mr-1" />
-                Remarks
+                SRN Remarks
                 <span className="float-right text-xs text-gray-500">
                   {remarksCharCount}/500 characters
                 </span>
               </label>
               <textarea
-                name="remarks"
-                value={formData.remarks}
+                name="srnRemarks"
+                value={formData.srnRemarks}
                 onChange={handleInputChange}
                 rows={3}
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
@@ -889,10 +682,10 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 }`}
                 placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 characters)"
                 disabled={loading || initialLoading}
-                title={formData.remarks ? `Remarks (${remarksCharCount}/500 chars): ${formData.remarks}` : "Enter additional remarks (optional)"}
+                title={formData.srnRemarks ? `Remarks (${remarksCharCount}/500 chars): ${formData.srnRemarks}` : "Enter additional remarks (optional)"}
               />
-              {errors.remarks && (
-                <p className="mt-1 text-xs text-red-600">{errors.remarks}</p>
+              {errors.srnRemarks && (
+                <p className="mt-1 text-xs text-red-600">{errors.srnRemarks}</p>
               )}
             </div>
           </div>
@@ -919,8 +712,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 </>
               ) : (
                 <>
-                  <Activity size={14} className="mr-2" />
-                  Update Consumption
+                  <Receipt size={14} className="mr-2" />
+                  Update SRN
                 </>
               )}
             </button>
@@ -931,4 +724,4 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   );
 };
 
-export default EditPOConsumptionModal;
+export default EditSRNModal;

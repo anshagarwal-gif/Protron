@@ -25,6 +25,7 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSRNModal from "../components/AddSRNModal";
 import SRNDetailsModal from "../components/SRNDetailsModal";
+import EditSRNModal from "../components/EditSRNModal";
 // import EditSRNModal from "../components/EditSRNModal";
 
 const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
@@ -952,7 +953,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
       />
 
       {/* Edit SRN Modal - Uncomment when modal components are available */}
-      {/*
+      
       <EditSRNModal 
         open={isEditModalOpen}
         onClose={() => {
@@ -962,7 +963,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
         onSubmit={handleEditModalSubmit}
         srnId={selectedSRNId}
       />
-      */}
+     
 
       {/* Global Snackbar */}
       <GlobalSnackbar

@@ -1332,3 +1332,6 @@ WHERE p.po_number = ?
 2025-07-25 23:34:18 INFO  - [2025-07-25 23:34:18] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
 2025-07-25 23:34:23 INFO  - [2025-07-25 23:34:22] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
 2025-07-25 23:34:23 INFO  - [2025-07-25 23:34:23] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-26 05:00:23 INFO  - [2025-07-26 05:00:23] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-26 05:00:24 INFO  - [2025-07-26 05:00:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-26 05:00:24 INFO  - [2025-07-26 05:00:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
