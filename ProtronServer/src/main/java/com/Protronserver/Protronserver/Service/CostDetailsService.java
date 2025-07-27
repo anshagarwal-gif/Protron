@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
 import com.Protronserver.Protronserver.Repository.SRNRepository;
 import com.Protronserver.Protronserver.ResultDTOs.EligibleMilestone;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.Protronserver.Protronserver.Utils.MilestoneInfo;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +21,16 @@ public class CostDetailsService {
     @Autowired private PORepository poRepository;
     @Autowired private POMilestoneRepository poMilestoneRepository;
     @Autowired private SRNRepository srnRepository;
+    @Autowired private LoggedInUserUtils loggedInUserUtils;
 
     /**
      * Calculates the remaining balance for a specific PO.
      */
     public BigDecimal getPOBalance(Long poId) {
-        BigDecimal poAmount = poRepository.findPoAmountById(poId)
+        BigDecimal poAmount = poRepository.findPoAmountById(poId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId())
                 .orElseThrow(() -> new EntityNotFoundException("PO not found with id: " + poId));
 
-        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoId(poId);
+        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoId(poId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
         return poAmount.subtract(totalSrnPaid);
     }
 
@@ -37,11 +39,11 @@ public class CostDetailsService {
      * Note: Requires poId in addition to msName to uniquely identify the milestone.
      */
     public BigDecimal getMilestoneBalance(Long poId, Long msId) {
-        Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, msId)
+        Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, msId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId())
                 .orElseThrow(() -> new EntityNotFoundException("Milestone '" + msId + "' not found for PO id: " + poId));
 
         BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
-        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsId(poId, msId);
+        BigDecimal totalSrnPaid = srnRepository.sumSrnAmountsByPoIdAndMsId(poId, msId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
 
         return milestoneAmount.subtract(totalSrnPaid);
     }
@@ -52,7 +54,7 @@ public class CostDetailsService {
      */
     public List<EligibleMilestone> getRemainingMilestones(Long poId) {
         // This part remains the same
-        List<MilestoneInfo> allMilestones = poMilestoneRepository.findMilestoneInfoByPoId(poId);
+        List<MilestoneInfo> allMilestones = poMilestoneRepository.findMilestoneInfoByPoId(poId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
 
         return allMilestones.stream()
                 // Map each milestone to a new DTO that includes the calculated balance

@@ -1,7 +1,8 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.PODetailsDTO;
-import com.Protronserver.Protronserver.Entities.PODetails;
+import com.Protronserver.Protronserver.Entities.*;
+import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.SRNRepository;
@@ -11,9 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class POService {
@@ -30,6 +29,9 @@ public class POService {
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
 
+    @Autowired
+    private POConsumptionRepository poConsumptionRepository;
+
     public PODetails addPO(PODetailsDTO dto) {
         PODetails po = new PODetails();
 
@@ -45,6 +47,9 @@ public class POService {
         po.setPoStartDate(dto.getPoStartDate());
         po.setPoEndDate(dto.getPoEndDate());
 
+        User loggedInUser = loggedInUserUtils.getLoggedInUser();
+        po.setTenantId(loggedInUser.getTenant().getTenantId());
+
         po.setCreateTimestamp(LocalDateTime.now());
         po.setEndTimestamp(null);
         po.setLastUpdateBy(null);
@@ -53,47 +58,45 @@ public class POService {
     }
 
     public PODetails updatePO(Long id, PODetailsDTO dto) {
-        // 1. Fetch the existing PO from the database
-        PODetails po = poRepository.findById(id)
+
+        Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        PODetails oldPo = poRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("PO not found with ID: " + id));
 
         // --- VALIDATION START ---
-
-        // Check 1: The PO currency cannot be changed.
-        if (dto.getPoCurrency() != null && !dto.getPoCurrency().equalsIgnoreCase(po.getPoCurrency())) {
+        if (dto.getPoCurrency() != null && !dto.getPoCurrency().equalsIgnoreCase(oldPo.getPoCurrency())) {
             throw new IllegalArgumentException("PO currency cannot be changed.");
         }
 
-        // Check 2: The PO amount cannot be less than the amount already allocated.
-        // We only perform this check if a new amount is actually provided in the DTO.
         if (dto.getPoAmount() != null) {
             BigDecimal newPoAmount = dto.getPoAmount();
-            long milestoneCount = poMilestoneRepository.countByPoId(id);
+            long milestoneCount = poMilestoneRepository.countByPoId(id, currentTenantId);
 
             if (milestoneCount > 0) {
-                // Case A: PO has milestones, so check against the sum of milestone amounts.
-                BigDecimal totalMilestoneAmount = poMilestoneRepository.sumMilestoneAmountsByPoId(id);
+                BigDecimal totalMilestoneAmount = poMilestoneRepository.sumMilestoneAmountsByPoId(id, currentTenantId);
                 if (newPoAmount.compareTo(totalMilestoneAmount) < 0) {
                     throw new IllegalArgumentException("PO amount cannot be less than the total of its milestones. " +
                             "Current milestone total: " + totalMilestoneAmount);
                 }
             } else {
-                // Case B: PO has no milestones, so check against the sum of SRN amounts.
-                BigDecimal totalSrnAmount = srnRepository.sumSrnAmountsByPoId(id);
+                BigDecimal totalSrnAmount = srnRepository.sumSrnAmountsByPoId(id, currentTenantId);
                 if (newPoAmount.compareTo(totalSrnAmount) < 0) {
                     throw new IllegalArgumentException("PO amount cannot be less than the total of its SRNs. " +
                             "Current SRN total: " + totalSrnAmount);
                 }
             }
         }
-
         // --- VALIDATION END ---
 
-        po.setEndTimestamp(LocalDateTime.now());
-        po.setLastUpdateBy(loggedInUserUtils.getLoggedInUser().getEmail());
-        poRepository.save(po);
+        String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
 
-        // 3. If validations pass, update the fields from the DTO
+        // 1. Mark old PO as inactive
+        oldPo.setEndTimestamp(LocalDateTime.now());
+        oldPo.setLastUpdateBy(updatedBy);
+        poRepository.save(oldPo);
+
+        // 2. Create new PO
         PODetails newPo = new PODetails();
         newPo.setPoNumber(dto.getPoNumber());
         newPo.setPoType(PODetails.POType.valueOf(dto.getPoType()));
@@ -106,17 +109,43 @@ public class POService {
         newPo.setProjectName(dto.getProjectName());
         newPo.setPoStartDate(dto.getPoStartDate());
         newPo.setPoEndDate(dto.getPoEndDate());
-
-        // Versioning fields
         newPo.setCreateTimestamp(LocalDateTime.now());
+        newPo.setTenantId(oldPo.getTenantId());
         newPo.setEndTimestamp(null);
         newPo.setLastUpdateBy(null);
 
-        return poRepository.save(newPo);
+        PODetails savedNewPo = poRepository.save(newPo);
+
+        // 3. Update poDetail & poNumber in active milestones
+        List<POMilestone> activeMilestones = poMilestoneRepository.findByPoDetail_PoId(oldPo.getPoId(), currentTenantId);
+        for (POMilestone ms : activeMilestones) {
+            ms.setPoDetail(savedNewPo);
+            ms.setPoNumber(savedNewPo.getPoNumber());
+            poMilestoneRepository.save(ms);
+        }
+
+        // 4. Update poNumber in active POConsumption
+        List<POConsumption> activeConsumptions = poConsumptionRepository.findByPoNumber(oldPo.getPoNumber(), currentTenantId);
+        for (POConsumption con : activeConsumptions) {
+            con.setPoNumber(savedNewPo.getPoNumber());
+            poConsumptionRepository.save(con);
+        }
+
+        // 5. Update poDetail & poNumber in active SRNs
+        List<SRNDetails> activeSrns = srnRepository.findByPoIdWithoutMs(oldPo.getPoId(), currentTenantId);
+        for (SRNDetails srn : activeSrns) {
+            srn.setPoDetail(savedNewPo);
+            srn.setPoNumber(savedNewPo.getPoNumber());
+            srnRepository.save(srn);
+        }
+
+        return savedNewPo;
     }
 
+
+
     public List<PODetails> getAllPOs() {
-        return poRepository.findAllActivePOs();
+        return poRepository.findAllActivePOs(loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     public PODetails getPOById(Long id) {

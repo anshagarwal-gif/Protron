@@ -61,10 +61,21 @@ public class POConsumption {
     @Column(name = "updatedby")
     private String updatedBy;
 
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
+
     // Allowed utilization types
     private static final List<String> ALLOWED_TYPES = Arrays.asList("Fixed", "T&M", "Mixed");
 
     // ------------------ Getters and Setters ------------------
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
 
     public Long getUtilizationId() {
         return utilizationId;
