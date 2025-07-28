@@ -180,3 +180,19 @@
 2025-07-27 02:01:12 INFO  - [2025-07-27 02:01:12] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
 2025-07-27 02:01:12 INFO  - [2025-07-27 02:01:12] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
 2025-07-27 02:01:14 INFO  - [2025-07-27 02:01:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:29:59 WARN  - [2025-07-27 13:29:58] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 401 | Error: Invalid credentials
+2025-07-27 13:30:15 WARN  - [2025-07-27 13:30:15] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 401 | Error: Invalid credentials
+2025-07-27 13:30:25 INFO  - [2025-07-27 13:30:25] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:26 INFO  - [2025-07-27 13:30:26] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:26 INFO  - [2025-07-27 13:30:26] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:28 INFO  - [2025-07-27 13:30:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:29 INFO  - [2025-07-27 13:30:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:31 INFO  - [2025-07-27 13:30:30] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:31 INFO  - [2025-07-27 13:30:31] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:39 INFO  - [2025-07-27 13:30:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:39 INFO  - [2025-07-27 13:30:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:42 INFO  - [2025-07-27 13:30:42] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:42 INFO  - [2025-07-27 13:30:42] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:43 INFO  - [2025-07-27 13:30:43] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:43 INFO  - [2025-07-27 13:30:43] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 13:30:45 INFO  - [2025-07-27 13:30:45] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/users/logout/1 | IP: 0:0:0:0:0:0:0:1 | Status: 200
