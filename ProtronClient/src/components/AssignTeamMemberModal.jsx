@@ -22,10 +22,11 @@ import ComputerIcon from '@mui/icons-material/Computer';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
-const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, onAddMember }) => {
+const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMember }) => {
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
-  console.log(project)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -37,6 +38,22 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
     tasktype: '',
     systemImpacted: ''
   });
+
+  const fetchUsersNotInProject = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users-not-in/${project?.project?.projectId}`, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` }
+      })
+      setUsers(res.data)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    fetchUsersNotInProject();
+  }, [project]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     console.log(name, value)
@@ -139,7 +156,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
 
       <DialogContent sx={{ p: 3, overflow: 'hidden' }}>
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          
+
           {/* First Row: Email, Name, Employee Code */}
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Box sx={{ flex: 1 }}>
@@ -197,7 +214,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
                 )}
               />
             </Box>
-            
+
             <Box sx={{ flex: 1 }}>
               <TextField
                 fullWidth
@@ -377,7 +394,7 @@ const AssignTeamMemberModal = ({ users, isOpen, onClose, projectName, project, o
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2, pt: 2, borderTop: '1px solid #e0e0e0' }}>
             <Button
               type="button"
-              onClick={()=>{
+              onClick={() => {
                 handleReset();
                 onClose();
               }}

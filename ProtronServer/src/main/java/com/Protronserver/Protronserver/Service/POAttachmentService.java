@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.Entities.POAttachments;
 import com.Protronserver.Protronserver.Entities.PODetails;
 import com.Protronserver.Protronserver.Repository.POAttachmentRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,9 +22,15 @@ public class POAttachmentService {
     @Autowired
     private PORepository poRepository;
 
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
+
     @Transactional
     public POAttachments addOrUpdateAttachment(String poNumber, String entityType, Long entityId, String attachmentSlot, MultipartFile file, String updatedBy) throws IOException {
-        Long poId = poRepository.findPoIdByPoNumber(poNumber)
+
+        Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        Long poId = poRepository.findPoIdByPoNumber(poNumber, currentTenantId)
                 .orElseThrow(()-> new IllegalArgumentException("Po not found with Po number: " + poNumber));
         POAttachments attachments = poAttachmentRepository.findByPoNumber(poNumber)
                 .orElseGet(() -> {

@@ -1,3 +1,186 @@
+2025-07-27 00:12:25 INFO  - [2025-07-27 00:12:25] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:12:25 INFO  - [2025-07-27 00:12:25] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:12:27 INFO  - [2025-07-27 00:12:27] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:12:27 INFO  - [2025-07-27 00:12:27] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:12:28 INFO  - [2025-07-27 00:12:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:12:28 INFO  - [2025-07-27 00:12:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:12:29 INFO  - [2025-07-27 00:12:29] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:12:29 INFO  - [2025-07-27 00:12:29] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:14:10 INFO  - [2025-07-27 00:14:10] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:14:10 INFO  - [2025-07-27 00:14:10] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:14:11 INFO  - [2025-07-27 00:14:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:14:11 INFO  - [2025-07-27 00:14:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:18:48 INFO  - [2025-07-27 00:18:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:18:48 INFO  - [2025-07-27 00:18:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:18:49 INFO  - [2025-07-27 00:18:49] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:13 INFO  - [2025-07-27 00:34:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:22 INFO  - [2025-07-27 00:34:22] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/19 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:24 INFO  - [2025-07-27 00:34:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:26 INFO  - [2025-07-27 00:34:26] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:36 INFO  - [2025-07-27 00:34:36] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:37 INFO  - [2025-07-27 00:34:37] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:37 INFO  - [2025-07-27 00:34:37] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:37 INFO  - [2025-07-27 00:34:37] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:47 INFO  - [2025-07-27 00:34:47] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:49 INFO  - [2025-07-27 00:34:49] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:50 INFO  - [2025-07-27 00:34:50] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:50 INFO  - [2025-07-27 00:34:50] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:50 INFO  - [2025-07-27 00:34:50] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:34:54 INFO  - [2025-07-27 00:34:54] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:03 INFO  - [2025-07-27 00:35:03] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:04 INFO  - [2025-07-27 00:35:04] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:04 INFO  - [2025-07-27 00:35:04] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:04 INFO  - [2025-07-27 00:35:04] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:10 INFO  - [2025-07-27 00:35:10] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:12 INFO  - [2025-07-27 00:35:12] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:13 INFO  - [2025-07-27 00:35:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:13 INFO  - [2025-07-27 00:35:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:13 INFO  - [2025-07-27 00:35:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:15 INFO  - [2025-07-27 00:35:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:16 INFO  - [2025-07-27 00:35:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:17 INFO  - [2025-07-27 00:35:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:17 INFO  - [2025-07-27 00:35:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:17 INFO  - [2025-07-27 00:35:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:20 INFO  - [2025-07-27 00:35:20] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:21 INFO  - [2025-07-27 00:35:21] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:22 INFO  - [2025-07-27 00:35:22] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:22 INFO  - [2025-07-27 00:35:22] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:22 INFO  - [2025-07-27 00:35:22] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:24 INFO  - [2025-07-27 00:35:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:25 INFO  - [2025-07-27 00:35:25] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:27 INFO  - [2025-07-27 00:35:27] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:27 INFO  - [2025-07-27 00:35:27] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:27 INFO  - [2025-07-27 00:35:27] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:28 INFO  - [2025-07-27 00:35:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:32 INFO  - [2025-07-27 00:35:32] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:32 INFO  - [2025-07-27 00:35:32] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:32 INFO  - [2025-07-27 00:35:32] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:33 INFO  - [2025-07-27 00:35:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:36 INFO  - [2025-07-27 00:35:36] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:39 INFO  - [2025-07-27 00:35:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:41 INFO  - [2025-07-27 00:35:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:41 INFO  - [2025-07-27 00:35:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:35:41 INFO  - [2025-07-27 00:35:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:36:09 INFO  - [2025-07-27 00:36:09] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:36:10 INFO  - [2025-07-27 00:36:10] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:36:13 INFO  - [2025-07-27 00:36:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:36:13 INFO  - [2025-07-27 00:36:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:36:16 INFO  - [2025-07-27 00:36:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:36:16 INFO  - [2025-07-27 00:36:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:24 INFO  - [2025-07-27 00:37:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:24 WARN  - [2025-07-27 00:37:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: This PO is inactive (soft-deleted or updated).
+2025-07-27 00:37:24 INFO  - [2025-07-27 00:37:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:24 WARN  - [2025-07-27 00:37:24] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/17 | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: This PO is inactive (soft-deleted or updated).
+2025-07-27 00:37:26 INFO  - [2025-07-27 00:37:26] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:26 INFO  - [2025-07-27 00:37:26] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:28 INFO  - [2025-07-27 00:37:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:28 INFO  - [2025-07-27 00:37:28] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:30 INFO  - [2025-07-27 00:37:30] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:33 INFO  - [2025-07-27 00:37:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:34 INFO  - [2025-07-27 00:37:34] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:34 INFO  - [2025-07-27 00:37:34] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:35 INFO  - [2025-07-27 00:37:35] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:36 INFO  - [2025-07-27 00:37:36] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:41 INFO  - [2025-07-27 00:37:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:41 INFO  - [2025-07-27 00:37:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/30 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:41 INFO  - [2025-07-27 00:37:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/22 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:53 INFO  - [2025-07-27 00:37:53] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:53 INFO  - [2025-07-27 00:37:53] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:58 INFO  - [2025-07-27 00:37:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:58 INFO  - [2025-07-27 00:37:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:59 INFO  - [2025-07-27 00:37:59] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:37:59 INFO  - [2025-07-27 00:37:59] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:00 INFO  - [2025-07-27 00:38:00] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:00 INFO  - [2025-07-27 00:38:00] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:20 INFO  - [2025-07-27 00:38:20] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:20 INFO  - [2025-07-27 00:38:20] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:25 INFO  - [2025-07-27 00:38:25] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:25 INFO  - [2025-07-27 00:38:25] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:41 INFO  - [2025-07-27 00:38:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/29 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:44 INFO  - [2025-07-27 00:38:44] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 00:38:44 INFO  - [2025-07-27 00:38:44] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:50:33 INFO  - [2025-07-27 01:50:32] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:50:33 INFO  - [2025-07-27 01:50:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:50:33 INFO  - [2025-07-27 01:50:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:50:34 WARN  - [2025-07-27 01:50:34] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:50:34 WARN  - [2025-07-27 01:50:34] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:50:38 INFO  - [2025-07-27 01:50:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:50:38 INFO  - [2025-07-27 01:50:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:50:39 WARN  - [2025-07-27 01:50:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:50:39 WARN  - [2025-07-27 01:50:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:50:40 INFO  - [2025-07-27 01:50:40] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:50:41 INFO  - [2025-07-27 01:50:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:27 INFO  - [2025-07-27 01:51:27] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/users/logout/1 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:30 INFO  - [2025-07-27 01:51:30] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:30 INFO  - [2025-07-27 01:51:30] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:31 INFO  - [2025-07-27 01:51:31] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:31 WARN  - [2025-07-27 01:51:31] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:51:31 INFO  - [2025-07-27 01:51:31] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:31 WARN  - [2025-07-27 01:51:31] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:51:35 WARN  - [2025-07-27 01:51:35] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:51:35 WARN  - [2025-07-27 01:51:35] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:51:41 INFO  - [2025-07-27 01:51:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:41 INFO  - [2025-07-27 01:51:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:41 INFO  - [2025-07-27 01:51:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:42 INFO  - [2025-07-27 01:51:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:42 INFO  - [2025-07-27 01:51:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:42 INFO  - [2025-07-27 01:51:42] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:51:47 WARN  - [2025-07-27 01:51:47] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:51:47 WARN  - [2025-07-27 01:51:47] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:53:48 INFO  - [2025-07-27 01:53:47] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:53:48 INFO  - [2025-07-27 01:53:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:53:48 INFO  - [2025-07-27 01:53:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 127.0.0.1 | Status: 200
+2025-07-27 01:53:51 WARN  - [2025-07-27 01:53:51] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 127.0.0.1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:53:51 WARN  - [2025-07-27 01:53:51] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:54:04 INFO  - [2025-07-27 01:54:04] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:54:04 INFO  - [2025-07-27 01:54:04] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:54:07 WARN  - [2025-07-27 01:54:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:54:07 WARN  - [2025-07-27 01:54:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:54:09 INFO  - [2025-07-27 01:54:09] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:54:09 INFO  - [2025-07-27 01:54:09] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:54:13 WARN  - [2025-07-27 01:54:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:54:13 WARN  - [2025-07-27 01:54:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:08 INFO  - [2025-07-27 01:57:07] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:08 INFO  - [2025-07-27 01:57:08] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:08 INFO  - [2025-07-27 01:57:08] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:11 WARN  - [2025-07-27 01:57:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:11 WARN  - [2025-07-27 01:57:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:13 INFO  - [2025-07-27 01:57:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:13 INFO  - [2025-07-27 01:57:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:14 WARN  - [2025-07-27 01:57:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:14 WARN  - [2025-07-27 01:57:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:16 INFO  - [2025-07-27 01:57:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:16 INFO  - [2025-07-27 01:57:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:21 WARN  - [2025-07-27 01:57:21] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:23 INFO  - [2025-07-27 01:57:23] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:33 WARN  - [2025-07-27 01:57:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:33 WARN  - [2025-07-27 01:57:33] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:38 INFO  - [2025-07-27 01:57:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:38 INFO  - [2025-07-27 01:57:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:57:39 WARN  - [2025-07-27 01:57:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:57:40 WARN  - [2025-07-27 01:57:40] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:58:40 INFO  - [2025-07-27 01:58:40] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:58:40 INFO  - [2025-07-27 01:58:40] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:58:41 WARN  - [2025-07-27 01:58:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 01:58:58 INFO  - [2025-07-27 01:58:58] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 01:59:02 WARN  - [2025-07-27 01:59:02] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Could not write JSON: JDBC exception executing SQL [select a1_0.po_id
+2025-07-27 02:01:04 INFO  - [2025-07-27 02:01:04] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:05 INFO  - [2025-07-27 02:01:05] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:05 INFO  - [2025-07-27 02:01:05] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:06 INFO  - [2025-07-27 02:01:06] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:06 INFO  - [2025-07-27 02:01:06] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:07 INFO  - [2025-07-27 02:01:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:07 INFO  - [2025-07-27 02:01:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:07 INFO  - [2025-07-27 02:01:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:07 INFO  - [2025-07-27 02:01:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:08 INFO  - [2025-07-27 02:01:08] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:08 INFO  - [2025-07-27 02:01:08] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:10 INFO  - [2025-07-27 02:01:10] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:10 INFO  - [2025-07-27 02:01:10] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:12 INFO  - [2025-07-27 02:01:12] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:12 INFO  - [2025-07-27 02:01:12] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-07-27 02:01:14 INFO  - [2025-07-27 02:01:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+
 2025-07-24 22:11:56 INFO  - [2025-07-24 22:11:54] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
 2025-07-24 22:11:57 INFO  - [2025-07-24 22:11:57] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
 2025-07-24 22:11:57 INFO  - [2025-07-24 22:11:57] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200

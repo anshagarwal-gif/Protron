@@ -12,7 +12,9 @@ import {
     Receipt,
     Hash,
     MessageSquare,
-    Upload
+    Upload,
+    AlertCircle,
+    Activity
 } from 'lucide-react';
 
 // Currency symbols mapping
@@ -33,7 +35,6 @@ const currencySymbols = {
 const AddSRNModal = ({ open, onClose }) => {
     const [formData, setFormData] = useState({
         poId: '',
-        poNumber: '',
         msId: '',
         srnName: '',
         srnDsc: '',
@@ -41,12 +42,21 @@ const AddSRNModal = ({ open, onClose }) => {
         srnCurrency: 'USD',
         srnRemarks: '',
         srnAttachment: null,
-        srnType: 'partial'
+        srnType: 'partial',
+        srnDate: ''
     });
 
     const [poList, setPOList] = useState([]);
     const [milestoneList, setMilestoneList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [descCharCount, setDescCharCount] = useState(0);
+    const [remarksCharCount, setRemarksCharCount] = useState(0);
+
+    // Helper function to get currency symbol
+    const getCurrencySymbol = (currencyCode) => {
+        return currencySymbols[currencyCode] || currencyCode || '$';
+    };
 
     // Fetch PO list
     const fetchPOList = async () => {
@@ -87,132 +97,232 @@ const AddSRNModal = ({ open, onClose }) => {
                 headers: { Authorization: `${token}` }
             });
             const data = await response.json();
-            return data; // Assume API returns a boolean
+            return data;
         } catch (error) {
             console.error('Error checking existing SRNs:', error);
-            return true; // Default to true to prevent invalid SRNs
+            return true;
         }
     };
 
     useEffect(() => {
         if (open) {
             fetchPOList();
+            setErrors({});
         }
     }, [open]);
 
-    const handleChange = (field) => async (event) => {
-        const value = event.target.value;
+    // Initialize character counts when form data is set
+    useEffect(() => {
+        setDescCharCount(formData.srnDsc.length);
+        setRemarksCharCount(formData.srnRemarks.length);
+    }, [formData.srnDsc, formData.srnRemarks]);
 
-        // Enforce character limits
-        if (field === 'srnName' && value.length > 100) {
-            alert('SRN Name cannot exceed 100 characters.');
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        
+        // Check character limits
+        if (name === 'srnName' && value.length > 100) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: "SRN Name cannot exceed 100 characters"
+            }));
             return;
         }
-        if (field === 'srnDsc' && value.length > 500) {
-            alert('SRN Description cannot exceed 500 characters.');
-            return;
+        if (name === 'srnDsc') {
+            if (value.length > 500) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: "SRN Description cannot exceed 500 characters"
+                }));
+                return;
+            }
+            setDescCharCount(value.length);
         }
-        if (field === 'srnRemarks' && value.length > 500) {
-            alert('SRN Remarks cannot exceed 500 characters.');
-            return;
+        if (name === 'srnRemarks') {
+            if (value.length > 500) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: "SRN Remarks cannot exceed 500 characters"
+                }));
+                return;
+            }
+            setRemarksCharCount(value.length);
         }
 
         // Handle changes to srnType
-        if (field === 'srnType') {
-            if (value === 'full') {
-                if (formData.msId) {
-                    const hasExistingSRNs = await checkExistingSRNs(formData.poId, formData.msId);
-                    if (hasExistingSRNs) {
-                        alert('This milestone already has SRNs. Full SRN is not allowed.');
-                        return;
-                    }
-
-                    const selectedMilestone = milestoneList.find(m => m.msId == formData.msId);
-                    if (selectedMilestone) {
-                        setFormData(prev => ({
-                            ...prev,
-                            srnAmount: selectedMilestone.msAmount || '',
-                            srnType: value
-                        }));
-                    }
-                } else {
-                    const hasExistingSRNs = await checkExistingSRNs(formData.poId);
-                    if (hasExistingSRNs) {
-                        alert('This PO already has SRNs. Full SRN is not allowed.');
-                        return;
-                    }
-
-                    const selectedPO = poList.find(po => po.poId == formData.poId);
-                    if (selectedPO) {
-                        setFormData(prev => ({
-                            ...prev,
-                            srnAmount: selectedPO.poAmount || '',
-                            srnType: value
-                        }));
-                    }
-                }
-            } else {
-                setFormData(prev => ({
-                    ...prev,
-                    srnType: value,
-                    srnAmount: ''
-                }));
-            }
-        } else if (field === 'poId') {
-            const selectedPO = poList.find(po => po.poId == value);
-            if (selectedPO) {
-                setFormData(prev => ({
-                    ...prev,
-                    poId: value,
-                    poNumber: selectedPO.poNumber || '',
-                    srnCurrency: selectedPO.poCurrency || 'USD',
-                    msId: '',
-                    srnAmount: ''
-                }));
-                fetchMilestones(value);
-            }
+        if (name === 'srnType') {
+            handleSrnTypeChange(value);
+        } else if (name === 'poId') {
+            handlePOChange(value);
         } else {
             setFormData(prev => ({
                 ...prev,
-                [field]: value
+                [name]: value
+            }));
+        }
+        
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ""
             }));
         }
     };
 
+    const handleSrnTypeChange = async (value) => {
+        if (value === 'full') {
+            if (formData.msId) {
+                const hasExistingSRNs = await checkExistingSRNs(formData.poId, formData.msId);
+                if (hasExistingSRNs) {
+                    setErrors(prev => ({
+                        ...prev,
+                        srnType: 'This milestone already has SRNs. Full SRN is not allowed.'
+                    }));
+                    return;
+                }
 
-    const handleFileChange = (field) => (event) => {
-        const file = event.target.files[0];
-        setFormData((prev) => ({
-            ...prev,
-            [field]: file
-        }));
+                const selectedMilestone = milestoneList.find(m => m.msId == formData.msId);
+                if (selectedMilestone) {
+                    setFormData(prev => ({
+                        ...prev,
+                        srnAmount: selectedMilestone.msAmount || '',
+                        srnType: value
+                    }));
+                }
+            } else {
+                const hasExistingSRNs = await checkExistingSRNs(formData.poId);
+                if (hasExistingSRNs) {
+                    setErrors(prev => ({
+                        ...prev,
+                        srnType: 'This PO already has SRNs. Full SRN is not allowed.'
+                    }));
+                    return;
+                }
+
+                const selectedPO = poList.find(po => po.poId == formData.poId);
+                if (selectedPO) {
+                    setFormData(prev => ({
+                        ...prev,
+                        srnAmount: selectedPO.poAmount || '',
+                        srnType: value
+                    }));
+                }
+            }
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                srnType: value,
+                srnAmount: ''
+            }));
+        }
     };
 
-    const handleSubmit = async () => {
-        try {
-            setLoading(true);
+    const handlePOChange = (value) => {
+        const selectedPO = poList.find(po => po.poId == value);
+        if (selectedPO) {
+            setFormData(prev => ({
+                ...prev,
+                poId: value,
+                srnCurrency: selectedPO.poCurrency || 'USD',
+                msId: '',
+                srnAmount: ''
+            }));
+            fetchMilestones(value);
+        }
+    };
 
-            // Validation
-            if (!formData.poId) {
-                alert('Please select a PO');
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file size (max 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+            if (file.size > maxSize) {
+                setErrors(prev => ({
+                    ...prev,
+                    srnAttachment: "File size must be less than 10MB"
+                }));
                 return;
             }
-            if (milestoneList.length > 0 && !formData.msId) {
-                alert('Please select a Milestone');
+            
+            // Validate file type
+            const allowedTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'text/plain'
+            ];
+            
+            if (!allowedTypes.includes(file.type)) {
+                setErrors(prev => ({
+                    ...prev,
+                    srnAttachment: "File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT files."
+                }));
                 return;
             }
-            if (!formData.srnName.trim()) {
-                alert('Please enter SRN name');
-                return;
+            
+            setFormData(prev => ({
+                ...prev,
+                srnAttachment: file
+            }));
+            
+            // Clear error if file is valid
+            if (errors.srnAttachment) {
+                setErrors(prev => ({
+                    ...prev,
+                    srnAttachment: ""
+                }));
             }
-            if (!formData.srnAmount || formData.srnAmount <= 0) {
-                alert('Please enter a valid SRN amount');
+        }
+    };
+
+    // Function to handle date input clicks
+    const handleDateInputClick = (inputName) => {
+        const dateInput = document.getElementsByName(inputName)[0];
+        if (dateInput) {
+            dateInput.showPicker();
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (!formData.poId) {
+            newErrors.poId = "Please select a PO";
+        }
+        if (milestoneList.length > 0 && !formData.msId) {
+            newErrors.msId = "Please select a Milestone";
+        }
+        if (!formData.srnName.trim()) {
+            newErrors.srnName = "SRN name is required";
+        }
+        if (!formData.srnAmount || formData.srnAmount <= 0) {
+            newErrors.srnAmount = "Valid SRN amount is required";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        setLoading(true);
+        
+        try {
+            const isValid = validateForm();
+            if (!isValid) {
+                setLoading(false);
                 return;
             }
 
             const srnPayload = {
                 poId: parseInt(formData.poId),
-                poNumber: formData.poNumber,
                 msId: parseInt(formData.msId),
                 srnName: formData.srnName.trim(),
                 srnDsc: formData.srnDsc.trim() || '',
@@ -220,7 +330,7 @@ const AddSRNModal = ({ open, onClose }) => {
                 srnCurrency: formData.srnCurrency,
                 srnRemarks: formData.srnRemarks.trim() || '',
                 srnType: formData.srnType,
-
+                srnDate: formData.srnDate || ''
             };
 
             console.log('SRN Payload:', srnPayload);
@@ -247,255 +357,392 @@ const AddSRNModal = ({ open, onClose }) => {
                     console.log('File attachment to be implemented:', formData.srnAttachment);
                 }
 
-
-
-                onClose();
+                handleClose();
             } else {
                 const errorData = await response.text();
                 console.error('SRN Creation Error:', errorData);
-                alert('Failed to create SRN. Please check the console for details.');
+                setErrors({ 
+                    submit: 'Failed to create SRN. Please check the console for details.'
+                });
             }
         } catch (error) {
             console.error('Error creating SRN:', error);
-            alert('Network error. Please try again.');
+            setErrors({ 
+                submit: 'Network error. Please try again.'
+            });
         } finally {
             setLoading(false);
         }
     };
 
-
+    const handleClose = () => {
+        setFormData({
+            poId: '',
+            msId: '',
+            srnName: '',
+            srnDsc: '',
+            srnAmount: '',
+            srnCurrency: 'USD',
+            srnRemarks: '',
+            srnAttachment: null,
+            srnType: 'partial',
+            srnDate: ''
+        });
+        setErrors({});
+        setDescCharCount(0);
+        setRemarksCharCount(0);
+        setPOList([]);
+        setMilestoneList([]);
+        onClose();
+    };
 
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center flex-shrink-0">
-                    <h2 className="text-xl font-semibold text-green-900 flex items-center">
-                        <Receipt size={24} className="mr-2 text-green-600" />
-                        Create New SRN
-                    </h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                            <Receipt size={20} className="mr-2 text-green-600" />
+                            Create New SRN
+                        </h2>
+                        {errors.srnAmount && (
+                            <p className="mt-1 text-red-600" style={{ fontSize: '10px' }}>
+                                {errors.srnAmount}
+                            </p>
+                        )}
+                    </div>
                     <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                        onClick={handleClose}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        disabled={loading}
                     >
-                        <X size={20} />
+                        <X size={20} className="text-gray-400" />
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-1">
-                    <div className="space-y-6">
-                        {/* First Row - SRN ID, PO Number, Select PO, SRN Name */}
-                        <div className="grid grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {/* Error Display */}
+                    {errors.submit && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
+                            <AlertCircle size={18} className="text-red-500 mr-2" />
+                            <span className="text-red-700 text-sm">{errors.submit}</span>
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        {/* Row 1: Select PO, Milestone, SRN Type, Currency, and Amount */}
+                        <div className="grid grid-cols-12 gap-4">
+                            <div className="col-span-3">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <FileText size={14} className="inline mr-1" />
+                                    Select PO *
+                                </label>
+                                <select
+                                    name="poId"
+                                    value={formData.poId}
+                                    onChange={handleInputChange}
+                                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
+                                        errors.poId ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    disabled={loading}
+                                    title={formData.poId ? `Selected PO` : "Select a PO"}
+                                >
+                                    <option value="" title="No PO selected">Select PO</option>
+                                    {poList.map((po) => (
+                                        <option 
+                                            key={po.poId} 
+                                            value={po.poId}
+                                            title={`PO: ${po.poNumber} | Project: ${po.projectName || 'No Project'} | Currency: ${po.poCurrency || 'USD'} | Amount: ${po.poAmount ? getCurrencySymbol(po.poCurrency)+(po.poAmount).toLocaleString() : 'N/A'}`}
+                                        >
+                                            {po.poNumber.length > 20 ? `${po.poNumber.substring(0, 20)}...` : po.poNumber} - {po.projectName && po.projectName.length > 15 ? `${po.projectName.substring(0, 15)}...` : po.projectName || 'No Project'}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.poId && (
+                                    <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.poId}`}>
+                                        {errors.poId.length > 30 ? `${errors.poId.substring(0, 30)}...` : errors.poId}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="col-span-3">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <Folder size={14} className="inline mr-1" />
+                                    Milestone (Optional)
+                                </label>
+                                <select
+                                    name="msId"
+                                    value={formData.msId}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                                    disabled={!formData.poId || loading}
+                                    title={formData.msId ? `Selected Milestone` : "Select a milestone (optional)"}
+                                >
+                                    <option value="" title="No specific milestone selected">Select milestone (optional)</option>
+                                    {milestoneList.map((milestone) => (
+                                        <option 
+                                            key={milestone.msId} 
+                                            value={milestone.msId}
+                                            title={`Milestone: ${milestone.msName} | Amount: ${milestone.msAmount ? getCurrencySymbol(milestone.msCurrency)+(milestone.msAmount).toLocaleString() : 'N/A'}`}
+                                        >
+                                            {milestone.msName.length > 25 ? `${milestone.msName.substring(0, 25)}...` : milestone.msName}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.msId && (
+                                    <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.msId}`}>
+                                        {errors.msId.length > 30 ? `${errors.msId.substring(0, 30)}...` : errors.msId}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="col-span-2">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <Activity size={14} className="inline mr-1" />
+                                    SRN Type *
+                                </label>
+                                <select
+                                    name="srnType"
+                                    value={formData.srnType}
+                                    onChange={handleInputChange}
+                                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
+                                        errors.srnType ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    disabled={loading}
+                                    title={`Selected Type: ${formData.srnType}`}
+                                >
+                                    <option value="partial" title="Partial SRN - For partial amount of PO/Milestone">Partial</option>
+                                    <option value="full" title="Full SRN - For complete amount of PO/Milestone">Full</option>
+                                </select>
+                                {errors.srnType && (
+                                    <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.srnType}`}>
+                                        {errors.srnType.length > 30 ? `${errors.srnType.substring(0, 30)}...` : errors.srnType}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="col-span-1">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Currency
+                                </label>
+                                <select
+                                    name="srnCurrency"
+                                    value={formData.srnCurrency}
+                                    onChange={handleInputChange}
+                                    className="w-full px-1 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                                    disabled={true}
+                                    title={`Selected Currency: ${formData.srnCurrency} (${getCurrencySymbol(formData.srnCurrency)})`}
+                                >
+                                    <option value="USD" title="US Dollar ($)">USD</option>
+                                    <option value="INR" title="Indian Rupee (₹)">INR</option>
+                                    <option value="EUR" title="Euro (€)">EUR</option>
+                                    <option value="GBP" title="British Pound (£)">GBP</option>
+                                    <option value="JPY" title="Japanese Yen (¥)">JPY</option>
+                                    <option value="CAD" title="Canadian Dollar (C$)">CAD</option>
+                                    <option value="AUD" title="Australian Dollar (A$)">AUD</option>
+                                    <option value="CHF" title="Swiss Franc (CHF)">CHF</option>
+                                    <option value="CNY" title="Chinese Yuan (¥)">CNY</option>
+                                    <option value="SEK" title="Swedish Krona (kr)">SEK</option>
+                                    <option value="NOK" title="Norwegian Krone (kr)">NOK</option>
+                                </select>
+                            </div>
+
+                            <div className="col-span-3">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <DollarSign size={14} className="inline mr-1" />
+                                    SRN Amount *
+                                </label>
+                                <input
+                                    type="number"
+                                    name="srnAmount"
+                                    value={formData.srnAmount}
+                                    onChange={handleInputChange}
+                                    step="1"
+                                    min="0"
+                                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
+                                        errors.srnAmount ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    placeholder="0"
+                                    disabled={loading}
+                                    title={formData.srnAmount ? `Amount: ${getCurrencySymbol(formData.srnCurrency)}${parseFloat(formData.srnAmount).toLocaleString()}` : "Enter SRN amount"}
+                                />
+                                {errors.srnAmount && (
+                                    <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.srnAmount}`}>
+                                        {errors.srnAmount.length > 30 ? `${errors.srnAmount.substring(0, 30)}...` : errors.srnAmount}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Row 2: SRN Name, SRN Date, and Attachment */}
+                        <div className="grid grid-cols-12 gap-4">
+                            <div className="col-span-4">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <Receipt size={14} className="inline mr-1" />
+                                    SRN Name *
+                                    <span className="float-right text-xs text-gray-500">
+                                        {formData.srnName.length}/100 characters
+                                    </span>
+                                </label>
                                 <input
                                     type="text"
-                                    placeholder="Auto-filled from PO"
-                                    value={formData.poNumber}
-                                    onChange={handleChange('poNumber')}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    name="srnName"
+                                    value={formData.srnName}
+                                    onChange={handleInputChange}
+                                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
+                                        errors.srnName ? 'border-red-500' : 'border-gray-300'
+                                    }`}
+                                    placeholder="Enter SRN name"
+                                    maxLength={100}
+                                    disabled={loading}
+                                    title={formData.srnName ? `SRN Name (${formData.srnName.length}/100 chars): ${formData.srnName}` : "Enter SRN name (required)"}
                                 />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Select PO <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <select
-                                        value={formData.poId}
-                                        onChange={handleChange('poId')}
-                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    >
-                                        <option value="">Select PO</option>
-                                        {poList.map((po) => (
-                                            <option key={po.poId} value={po.poId}>
-                                                {po.poNumber} - {po.projectName || 'No Project'}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <div className='flex justify-between items-center mb-2'>
-                                    <label className="block text-sm font-medium text-gray-700">
-                                    SRN Name <span className="text-red-500">*</span>
-                                </label>
-                                <p className="text-xs text-gray-500">
-                                        {formData.srnName.length}/100 characters
+                                {errors.srnName && (
+                                    <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.srnName}`}>
+                                        {errors.srnName.length > 40 ? `${errors.srnName.substring(0, 40)}...` : errors.srnName}
                                     </p>
-                                </div>
-                                <div className="relative">
-                                    <Receipt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <input
-                                        type="text"
-                                        placeholder="Enter SRN name"
-                                        value={formData.srnName}
-                                        onChange={handleChange('srnName')}
-                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        maxLength={100} // Enforce limit
-                                        required
-                                    />
-                                </div>
+                                )}
                             </div>
-                        </div>
 
-                        {/* Second Row - Milestone Name, Currency, SRN Amount, Attachment */}
-                        <div className="grid grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    SRN Type <span className="text-red-500">*</span>
+                            <div className="col-span-3">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <Calendar size={14} className="inline mr-1" />
+                                    SRN Date
                                 </label>
-                                <select
-                                    value={formData.srnType}
-                                    onChange={handleChange('srnType')}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
-                                    <option value="partial">Partial</option>
-                                    <option value="full">Full</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Milestone Name</label>
-                                <div className="relative">
-                                    <Folder className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <select
-                                        value={formData.msId}
-                                        onChange={handleChange('msId')}
-                                        className="w-full h-14 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        disabled={!formData.poId}
-                                    >
-                                        <option value="">Select milestone (optional)</option>
-                                        {milestoneList.map((milestone) => (
-                                            <option key={milestone.msId} value={milestone.msId}>
-                                                {milestone.msName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                                <select
-                                    value={formData.srnCurrency}
-                                    onChange={handleChange('srnCurrency')}
-                                    disabled
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                >
-                                    <option value="USD">USD</option>
-                                    <option value="INR">INR</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="GBP">GBP</option>
-                                    <option value="JPY">JPY</option>
-                                    <option value="CAD">CAD</option>
-                                    <option value="AUD">AUD</option>
-                                    <option value="CHF">CHF</option>
-                                    <option value="CNY">CNY</option>
-                                    <option value="SEK">SEK</option>
-                                    <option value="NOK">NOK</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    SRN Amount <span className="text-red-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
-                                        {currencySymbols[formData.srnCurrency] || '$'}
-                                    </span>
-                                    <input
-                                        type="number"
-                                        placeholder="Enter amount"
-                                        value={formData.srnAmount}
-                                        onChange={handleChange('srnAmount')}
-                                        min="0"
-                                        step="0.01"
-                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachment</label>
-                                <div className="relative">
-                                    <Upload className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600" size={20} />
-                                    <input
-                                        type="file"
-                                        onChange={handleFileChange('srnAttachment')}
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
-                                        className="w-full h-10 pl-12 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Third Row - SRN Description */}
-                        <div>
-                           <div className='flex justify-between items-center mb-2'>
-                             <label className="block text-sm font-medium text-gray-700">SRN Description</label>
-                            <p className="text-xs text-gray-500">
-                                    {formData.srnDsc.length}/500 characters
-                                </p>
-                           </div>
-                            <div className="relative">
-                                <MessageSquare className="absolute left-3 top-4 text-green-600" size={20} />
-                                <textarea
-                                    placeholder="Enter SRN description"
-                                    rows={4}
-                                    value={formData.srnDsc}
-                                    onChange={handleChange('srnDsc')}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                    maxLength={500} // Enforce limit
-                                />
-                                
-                            </div>
-                        </div>
-
-                        {/* Fourth Row - SRN Remarks */}
-                        <div>
-                            <div className='flex justify-between items-center mb-2'>
-                                <label className="block text-sm font-medium text-gray-700">SRN Remarks</label>
-                            <p className="text-xs text-gray-500">
-                                    {formData.srnRemarks.length}/500 characters
-                                </p>
-                            </div>
-                            <div className="relative">
-                                <MessageSquare className="absolute left-3 top-4 text-green-600" size={20} />
-                                <textarea
-                                    placeholder="Enter remarks (optional)"
-                                    rows={3}
-                                    value={formData.srnRemarks}
-                                    onChange={handleChange('srnRemarks')}
-                                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                    maxLength={500} // Enforce limit
+                                <input
+                                    type="date"
+                                    name="srnDate"
+                                    value={formData.srnDate}
+                                    onChange={handleInputChange}
+                                    onClick={() => handleDateInputClick('srnDate')}
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 cursor-pointer"
+                                    disabled={loading}
+                                    title={formData.srnDate ? `SRN Date: ${new Date(formData.srnDate).toLocaleDateString()}` : "Click to select SRN date (optional)"}
                                 />
                             </div>
+
+                            <div className="col-span-3">
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    <Upload size={14} className="inline mr-1" />
+                                    SRN Attachment
+                                </label>
+                                <input
+                                    type="file"
+                                    name="srnAttachment"
+                                    onChange={handleFileChange}
+                                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                                    disabled={loading}
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                                    title="Upload document or image file (max 10MB)"
+                                />
+                                {formData.srnAttachment && (
+                                    <p className="mt-1 text-xs text-gray-600" title={`Selected file: ${formData.srnAttachment.name} (${(formData.srnAttachment.size / 1024 / 1024).toFixed(2)} MB)`}>
+                                        {formData.srnAttachment.name.length > 30 ? `${formData.srnAttachment.name.substring(0, 30)}...` : formData.srnAttachment.name} 
+                                        ({(formData.srnAttachment.size / 1024 / 1024).toFixed(2)} MB)
+                                    </p>
+                                )}
+                                {errors.srnAttachment && (
+                                    <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.srnAttachment}`}>
+                                        {errors.srnAttachment.length > 50 ? `${errors.srnAttachment.substring(0, 50)}...` : errors.srnAttachment}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="col-span-2"></div> {/* Spacer */}
                         </div>
 
-
-                        {/* Action Buttons */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-
-                            <button
-                                onClick={onClose}
-                                className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+                        {/* Row 3: SRN Description */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <MessageSquare size={14} className="inline mr-1" />
+                                SRN Description
+                                <span className="float-right text-xs text-gray-500">
+                                    {descCharCount}/500 characters
+                                </span>
+                            </label>
+                            <textarea
+                                name="srnDsc"
+                                value={formData.srnDsc}
+                                onChange={handleInputChange}
+                                rows={4}
+                                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
+                                    errors.srnDsc ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="Enter detailed SRN description including scope, deliverables, and requirements... (Max 500 characters)"
+                                maxLength={500}
                                 disabled={loading}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={formData.srnDsc ? `SRN Description (${descCharCount}/500 chars): ${formData.srnDsc}` : "Enter detailed SRN description (optional)"}
+                            />
+                            {errors.srnDsc && (
+                                <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.srnDsc}`}>
+                                    {errors.srnDsc.length > 50 ? `${errors.srnDsc.substring(0, 50)}...` : errors.srnDsc}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Row 4: SRN Remarks */}
+                        <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                                <MessageSquare size={14} className="inline mr-1" />
+                                SRN Remarks
+                                <span className="float-right text-xs text-gray-500">
+                                    {remarksCharCount}/500 characters
+                                </span>
+                            </label>
+                            <textarea
+                                name="srnRemarks"
+                                value={formData.srnRemarks}
+                                onChange={handleInputChange}
+                                rows={3}
+                                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
+                                    remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="Enter additional remarks, notes, special instructions, or any other relevant information... (Max 500 characters)"
+                                maxLength={500}
                                 disabled={loading}
-                            >
-                                {loading ? 'Creating...' : 'Create SRN'}
-                            </button>
+                                title={formData.srnRemarks ? `SRN Remarks (${remarksCharCount}/500 chars): ${formData.srnRemarks}` : "Enter additional remarks (optional)"}
+                            />
+                            {errors.srnRemarks && (
+                                <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.srnRemarks}`}>
+                                    {errors.srnRemarks.length > 50 ? `${errors.srnRemarks.substring(0, 50)}...` : errors.srnRemarks}
+                                </p>
+                            )}
                         </div>
                     </div>
-                </div>
+
+                    {/* Form Actions */}
+                    <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                            disabled={loading}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        >
+                            {loading ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <Receipt size={14} className="mr-2" />
+                                    Create SRN
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );

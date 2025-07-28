@@ -1,5 +1,5 @@
 import React, { use } from 'react'
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -122,6 +122,7 @@ const IndividualTimesheet = () => {
   const [showLogTimeModal, setShowLogTimeModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
+  const hiddenDateInputRef = useRef(null);
 
   const getTargetHours = () => {
     return viewMode === "Weekly" ? 40 : 184;
@@ -871,7 +872,8 @@ const IndividualTimesheet = () => {
                   </button>
                   <div className="relative flex items-center">
                     <button
-                      onClick={goToCurrentPeriod}
+                      
+                      onClick={() => {console.log(hiddenDateInputRef.current); hiddenDateInputRef.current?.showPicker()}}
                       className="px-4 py-2 text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
                     >
                       {getCurrentDateString()}
@@ -897,6 +899,7 @@ const IndividualTimesheet = () => {
                             setCurrentMonthRange({ start: firstDay, end: lastDay });
                           }
                         }}
+                        ref={hiddenDateInputRef}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
                       <Calendar className="h-4 w-4 text-gray-600 hover:text-gray-800 transition-colors ml-2" />

@@ -106,6 +106,10 @@ public class TenantService {
         return tenantRepository.getTeamUsersByTenant(tenantId);
     }
 
+    public List<TeamTableResultDTO> getUsersNotInTeam(Long tenantId, Long projectId){
+        return tenantRepository.getUsersNotInProjectTeam(tenantId, projectId);
+    }
+
     public List<Object> getAllUsers(Long tenantId) throws Exception {
 
         QueryResponseJsonString projection = tenantRepository.findAllUsersAsJson(tenantId);

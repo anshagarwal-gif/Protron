@@ -51,7 +51,18 @@ public class POMilestone {
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
+
     // Getters and Setters
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
 
     public Long getMsId() {
         return msId;

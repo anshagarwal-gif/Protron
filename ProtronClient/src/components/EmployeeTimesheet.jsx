@@ -1,5 +1,5 @@
 // TimesheetManager.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon, Trash2, SquarePen } from "lucide-react";
 import LogTimeModal from "./LogTimeModal";
@@ -93,6 +93,7 @@ const TimesheetManager = () => {
   const [taskDetail, setTaskDetail] = useState(null);
   const { hasAccess } = useAccess();
   const { employee } = location.state || {};
+  const hiddenDateInputRef = useRef(null);
 
   // Toast state
   const [toast, setToast] = useState({
@@ -824,7 +825,7 @@ const TimesheetManager = () => {
                   <ChevronLeft className="h-4 w-4 text-gray-600" />
                 </button>
                 <button
-                  onClick={goToCurrentPeriod}
+                  onClick={() => hiddenDateInputRef.current.showPicker()}
                   className="px-4 py-2 text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
                 >
                   {getCurrentDateString()}
@@ -832,6 +833,7 @@ const TimesheetManager = () => {
                 <div className="relative cursor-pointer">
                   <input
                     type="date"
+                    ref={hiddenDateInputRef}
                     onChange={(e) => {
                       // Add timezone offset to handle UTC conversion
                       const selectedDate = e.target.value;

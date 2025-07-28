@@ -25,7 +25,7 @@ const TimesheetManager = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [gridApi, setGridApi] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const {sessionData} = useSession();
+  const { sessionData } = useSession();
 
   // Ref for hidden date input
   const hiddenDateInputRef = useRef(null);
@@ -94,7 +94,7 @@ const TimesheetManager = () => {
   // Search functionality
   const handleSearch = useCallback((term) => {
     setSearchTerm(term);
-    
+
     if (!term.trim()) {
       setFilteredData(timesheetData);
       return;
@@ -107,7 +107,7 @@ const TimesheetManager = () => {
         employee.email.toLowerCase().includes(searchLower)
       );
     });
-    
+
     setFilteredData(filtered);
   }, [timesheetData]);
 
@@ -530,7 +530,7 @@ const TimesheetManager = () => {
           <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:block`}>
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
               <div className='text-2xl font-bold text-green-800'>Admin Timesheet</div>
-              
+
               <div className='flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-6'>
                 {/* Week Navigation */}
                 <div className="flex items-center space-x-2 relative">
@@ -551,13 +551,14 @@ const TimesheetManager = () => {
                   </button>
 
                   {/* Date input */}
-                  <div className="relative">
+                  <div className="relative" onClick={openCalendar}>
                     <input
                       type="date"
                       value={currentWeek.toISOString().split('T')[0]}
                       onChange={(e) => handleDateSelect(e.target.value)}
-                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
+                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-32 cursor-pointer"
                       title="Select date"
+                      ref={hiddenDateInputRef} // Ensure the ref is passed to the input
                     />
                   </div>
                 </div>

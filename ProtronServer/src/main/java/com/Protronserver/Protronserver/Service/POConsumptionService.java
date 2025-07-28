@@ -3,6 +3,7 @@ package com.Protronserver.Protronserver.Service;
 import com.Protronserver.Protronserver.DTOs.POConsumptionDTO;
 import com.Protronserver.Protronserver.Entities.POConsumption;
 import com.Protronserver.Protronserver.Entities.POMilestone;
+import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
@@ -31,15 +32,17 @@ public class POConsumptionService {
     private LoggedInUserUtils loggedInUserUtils;
 
     public POConsumption addPOConsumption(POConsumptionDTO dto) {
+
+        Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         // --- VALIDATION START ---
 
         // 1. Validate that the PO exists
         String poNumber = dto.getPoNumber();
-        Long poId = poRepository.findPoIdByPoNumber(poNumber)
+        Long poId = poRepository.findPoIdByPoNumber(poNumber, currentTenantId)
                 .orElseThrow(() -> new RuntimeException("PO not found with number: " + poNumber));
 
         // 2. Get PO details for currency validation
-        String poCurrency = poRepository.findPoCurrencyByPoNumber(poNumber)
+        String poCurrency = poRepository.findPoCurrencyByPoNumber(poNumber, currentTenantId)
                 .orElseThrow(() -> new RuntimeException("PO currency not found for PO number: " + poNumber));
 
         // 3. Validate currency matches PO currency
@@ -53,14 +56,14 @@ public class POConsumptionService {
         if (dto.getMsId() != null) {
             // Check if milestone exists for this PO
             boolean milestoneExists = poMilestoneRepository.existsByPoDetail_PoNumberAndMsId(poNumber,
-                    dto.getMsId());
+                    dto.getMsId(), currentTenantId);
             if (!milestoneExists) {
                 throw new IllegalArgumentException("Milestone '" + dto.getMsId() + "' not found for PO: " + poNumber);
             }
             hasMilestones = true;
         } else {
             // Check if PO has any milestones
-            long milestoneCount = poMilestoneRepository.countByPoDetail_PoNumber(poNumber);
+            long milestoneCount = poMilestoneRepository.countByPoDetail_PoNumber(poNumber, currentTenantId);
             hasMilestones = milestoneCount > 0;
         }
 
@@ -69,12 +72,12 @@ public class POConsumptionService {
         if (hasMilestones && dto.getMsId() != null) {
             // Case A: PO has milestones and milestone is specified
             // Check against milestone balance
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, dto.getMsId())
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, dto.getMsId(), currentTenantId)
                     .orElseThrow(() -> new RuntimeException("Milestone amount not found"));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
             BigDecimal existingConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumberAndMsId(poNumber,
-                    dto.getMsId());
+                    dto.getMsId(), currentTenantId);
 
             if (existingConsumption.add(newConsumptionAmount).compareTo(milestoneAmount) > 0) {
                 BigDecimal availableBalance = milestoneAmount.subtract(existingConsumption);
@@ -84,10 +87,10 @@ public class POConsumptionService {
         } else {
             // Case B: PO has no milestones OR milestone not specified
             // Check against PO balance
-            BigDecimal poAmount = poRepository.findPoAmountByPoNumber(poNumber)
+            BigDecimal poAmount = poRepository.findPoAmountByPoNumber(poNumber, currentTenantId)
                     .orElseThrow(() -> new RuntimeException("PO amount not found"));
 
-            BigDecimal existingConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumber(poNumber);
+            BigDecimal existingConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumber(poNumber, currentTenantId);
 
             if (existingConsumption.add(newConsumptionAmount).compareTo(poAmount) > 0) {
                 BigDecimal availableBalance = poAmount.subtract(existingConsumption);
@@ -106,7 +109,7 @@ public class POConsumptionService {
             consumption.setMilestone(null);
         }else{
             POMilestone milestone = poMilestoneRepository
-                    .findByPoNumberAndMsId(poNumber, dto.getMsId())
+                    .findByPoNumberAndMsId(poNumber, dto.getMsId(), currentTenantId)
                     .orElseThrow(() -> new RuntimeException("Milestone not found"));
             consumption.setMilestone(milestone);
         }
@@ -120,6 +123,10 @@ public class POConsumptionService {
         consumption.setWorkCompletionDate(dto.getWorkCompletionDate());
         consumption.setRemarks(dto.getRemarks());
         consumption.setSystemName(dto.getSystemName());
+
+        User loggedInUser = loggedInUserUtils.getLoggedInUser();
+        consumption.setTenantId(loggedInUser.getTenant().getTenantId());
+
         consumption.setUpdatedBy(null);
         consumption.setCreatedTimestamp(LocalDateTime.now());
         consumption.setLastUpdateTimestamp(null);
@@ -128,17 +135,20 @@ public class POConsumptionService {
     }
 
     public POConsumption updatePOConsumption(Long utilizationId, POConsumptionDTO dto) {
+
+        Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
         // 1. Fetch existing consumption
         POConsumption existingConsumption = poConsumptionRepository.findById(utilizationId)
                 .orElseThrow(() -> new RuntimeException("PO Consumption not found with ID: " + utilizationId));
 
         // 2. Validate PO existence
         String poNumber = dto.getPoNumber();
-        Long poId = poRepository.findPoIdByPoNumber(poNumber)
+        Long poId = poRepository.findPoIdByPoNumber(poNumber, currentTenantId)
                 .orElseThrow(() -> new RuntimeException("PO not found with number: " + poNumber));
 
         // 3. Get PO currency for validation
-        String poCurrency = poRepository.findPoCurrencyByPoNumber(poNumber)
+        String poCurrency = poRepository.findPoCurrencyByPoNumber(poNumber, currentTenantId)
                 .orElseThrow(() -> new RuntimeException("PO currency not found for PO number: " + poNumber));
 
         // 4. Currency validation
@@ -150,13 +160,13 @@ public class POConsumptionService {
         // 5. Check milestone existence and validation type
         boolean hasMilestones = false;
         if (dto.getMsId() != null) {
-            boolean milestoneExists = poMilestoneRepository.existsByPoDetail_PoNumberAndMsId(poNumber, dto.getMsId());
+            boolean milestoneExists = poMilestoneRepository.existsByPoDetail_PoNumberAndMsId(poNumber, dto.getMsId(), currentTenantId);
             if (!milestoneExists) {
                 throw new IllegalArgumentException("Milestone '" + dto.getMsId() + "' not found for PO: " + poNumber);
             }
             hasMilestones = true;
         } else {
-            long milestoneCount = poMilestoneRepository.countByPoDetail_PoNumber(poNumber);
+            long milestoneCount = poMilestoneRepository.countByPoDetail_PoNumber(poNumber, currentTenantId);
             hasMilestones = milestoneCount > 0;
         }
 
@@ -164,12 +174,12 @@ public class POConsumptionService {
 
         if (hasMilestones && dto.getMsId() != null) {
             // Milestone-based validation
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, dto.getMsId())
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, dto.getMsId(), currentTenantId)
                     .orElseThrow(() -> new RuntimeException("Milestone amount not found"));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
             BigDecimal existingConsumptionExcludingCurrent = poConsumptionRepository
-                    .sumConsumptionAmountsByPoNumberAndMsNameExcludingId(poNumber, dto.getMsId(), utilizationId);
+                    .sumConsumptionAmountsByPoNumberAndMsNameExcludingId(poNumber, dto.getMsId(), utilizationId, currentTenantId);
 
             if (existingConsumptionExcludingCurrent.add(newConsumptionAmount).compareTo(milestoneAmount) > 0) {
                 BigDecimal availableBalance = milestoneAmount.subtract(existingConsumptionExcludingCurrent);
@@ -178,11 +188,11 @@ public class POConsumptionService {
             }
         } else {
             // PO-based validation
-            BigDecimal poAmount = poRepository.findPoAmountByPoNumber(poNumber)
+            BigDecimal poAmount = poRepository.findPoAmountByPoNumber(poNumber, currentTenantId)
                     .orElseThrow(() -> new RuntimeException("PO amount not found"));
 
             BigDecimal existingConsumptionExcludingCurrent = poConsumptionRepository
-                    .sumConsumptionAmountsByPoNumberExcludingId(poNumber, utilizationId);
+                    .sumConsumptionAmountsByPoNumberExcludingId(poNumber, utilizationId, currentTenantId);
 
             if (existingConsumptionExcludingCurrent.add(newConsumptionAmount).compareTo(poAmount) > 0) {
                 BigDecimal availableBalance = poAmount.subtract(existingConsumptionExcludingCurrent);
@@ -202,7 +212,7 @@ public class POConsumptionService {
 
         if (dto.getMsId() != null) {
             POMilestone milestone = poMilestoneRepository
-                    .findByPoNumberAndMsId(poNumber, dto.getMsId())
+                    .findByPoNumberAndMsId(poNumber, dto.getMsId(), currentTenantId)
                     .orElseThrow(() -> new RuntimeException("Milestone not found"));
             newConsumption.setMilestone(milestone);
         } else {
@@ -218,6 +228,7 @@ public class POConsumptionService {
         newConsumption.setWorkCompletionDate(dto.getWorkCompletionDate());
         newConsumption.setRemarks(dto.getRemarks());
         newConsumption.setSystemName(dto.getSystemName());
+        newConsumption.setTenantId(existingConsumption.getTenantId());
 
         // Versioning fields
         newConsumption.setCreatedTimestamp(LocalDateTime.now());
@@ -229,7 +240,7 @@ public class POConsumptionService {
 
 
     public List<POConsumption> getAllPOConsumptions() {
-        return poConsumptionRepository.findAllActive();
+        return poConsumptionRepository.findAllActive(loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     public POConsumption getPOConsumptionById(Long utilizationId) {
@@ -238,36 +249,39 @@ public class POConsumptionService {
     }
 
     public List<POConsumption> getPOConsumptionsByPoNumber(String poNumber) {
-        return poConsumptionRepository.findByPoNumber(poNumber);
+        return poConsumptionRepository.findByPoNumber(poNumber, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     public List<POConsumption> getPOConsumptionsByPoNumberAndMilestone(String poNumber, String msName) {
-        return poConsumptionRepository.findByPoNumberAndMilestone_MsName(poNumber, msName);
+        return poConsumptionRepository.findByPoNumberAndMilestone_MsName(poNumber, msName, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     /**
      * Calculate remaining balance for PO consumption
      */
     public BigDecimal getPOConsumptionBalance(String poNumber, Long msId) {
+
+        Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
         // Check if milestone is specified and exists
         if (msId != null) {
-            Long poId = poRepository.findPoIdByPoNumber(poNumber)
+            Long poId = poRepository.findPoIdByPoNumber(poNumber, currentTenantId)
                     .orElseThrow(() -> new RuntimeException("PO not found with number: " + poNumber));
 
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, msId)
+            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poId, msId, currentTenantId)
                     .orElseThrow(() -> new RuntimeException("Milestone not found"));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
             BigDecimal totalConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumberAndMsId(poNumber,
-                    msId);
+                    msId, currentTenantId);
 
             return milestoneAmount.subtract(totalConsumption);
         } else {
             // PO level balance
-            BigDecimal poAmount = poRepository.findPoAmountByPoNumber(poNumber)
+            BigDecimal poAmount = poRepository.findPoAmountByPoNumber(poNumber, currentTenantId)
                     .orElseThrow(() -> new RuntimeException("PO amount not found"));
 
-            BigDecimal totalConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumber(poNumber);
+            BigDecimal totalConsumption = poConsumptionRepository.sumConsumptionAmountsByPoNumber(poNumber, currentTenantId);
 
             return poAmount.subtract(totalConsumption);
         }

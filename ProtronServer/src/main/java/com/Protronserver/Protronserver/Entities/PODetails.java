@@ -60,6 +60,9 @@ public class PODetails {
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
+    @Column(name = "tenant_id", nullable = false)
+    private Long tenantId;
+
     // Enum for PO Type
     public enum POType {
         FIXED("Fixed"),
@@ -78,6 +81,16 @@ public class PODetails {
     }
 
     // Getters and Setters
+
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
+    }
+
     public Long getPoId() {
         return poId;
     }

@@ -23,6 +23,20 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
             "WHERE u.tenant.tenantId = :tenantId AND u.endTimestamp IS NULL")
     List<TeamTableResultDTO> getTeamUsersByTenant(@Param("tenantId") Long tenantId);
 
+    @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO(" +
+            "u.userId, CONCAT(u.firstName, ' ', u.lastName), u.empCode, u.email, u.mobilePhone, " +
+            "u.city, u.state, u.country, u.cost, u.dateOfJoining, u.status) " +
+            "FROM User u " +
+            "LEFT JOIN ProjectTeam pt ON pt.user.userId = u.userId " +
+            "AND pt.project.projectId = :projectId " +
+            "AND pt.endTimestamp IS NULL " +
+            "WHERE u.tenant.tenantId = :tenantId " +
+            "AND u.endTimestamp IS NULL " +
+            "AND pt.user.userId IS NULL")
+    List<TeamTableResultDTO> getUsersNotInProjectTeam(
+            @Param("tenantId") Long tenantId,
+            @Param("projectId") Long projectId);
+
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO(" +
             "u.userId, CONCAT(u.firstName, ' ', u.lastName), u.email, u.mobilePhone, " +
             "u.city, u.country, u.status, t.tenantName, r) " +
