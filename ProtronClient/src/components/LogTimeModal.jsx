@@ -53,7 +53,6 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     projectId: '',
     attachments: [] // Changed to array for multiple attachments
   });
-
   const [projects, setProjects] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
@@ -290,6 +289,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     // Time validation (optional, but if provided must be valid)
     const hours = parseInt(formData.hours, 10) || 0;
     const minutes = parseInt(formData.minutes, 10) || 0;
+
+    if (hours === 0 && minutes === 0) {
+        showSnackbar("Please enter Time", 'error');
+        return false;
+    }
 
     // Hours validation (only if hours is entered)
     if (formData.hours !== '' && (hours < 0 || hours > 24)) {
@@ -733,142 +737,85 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
               </Box>
 
               {/* Row 2: Time Entry */}
-              <Box sx={{ display: 'flex', gap: 3 }}>
-                <Box sx={{ flex: 0.4 }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <TextField
-                      type="number"
-                      label="Hours"
-                      value={formData.hours}
-                      onChange={handleInputChange('hours')}
-                      placeholder="HH"
-                      onKeyDown={(e) => {
-                        if (
-                          !/[0-9]/.test(e.key) && // Allow only numbers
-                          e.key !== 'Backspace' && // Allow backspace
-                          e.key !== 'Delete' && // Allow delete
-                          e.key !== 'ArrowLeft' && // Allow left arrow
-                          e.key !== 'ArrowRight' && // Allow right arrow
-                          e.key !== 'Tab' // Allow tab
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                      inputProps={{ min: 0, max: 24 }}
-                      sx={{ flex: 1 }}
-                      error={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24)}
-                      helperText={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24) ? "0-24" : error ? error : ""}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <AccessTimeIcon sx={{ color: greenPrimary }} />
-                          </InputAdornment>
-                        ),
-                        sx: { height: fieldHeight }
-                      }}
-                    />
-                    <Typography variant="h6" sx={{ color: 'text.secondary', mx: 0.5 }}>
-                      :
-                    </Typography>
-                    <TextField
-                      type="number"
-                      label="Minutes"
-                      value={formData.minutes}
-                      onChange={handleInputChange('minutes')}
-                      placeholder="MM"
-                      onKeyDown={(e) => {
-                        if (
-                          !/[0-9]/.test(e.key) && // Allow only numbers
-                          e.key !== 'Backspace' && // Allow backspace
-                          e.key !== 'Delete' && // Allow delete
-                          e.key !== 'ArrowLeft' && // Allow left arrow
-                          e.key !== 'ArrowRight' && // Allow right arrow
-                          e.key !== 'Tab' // Allow tab
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                      inputProps={{ min: 0, max: 59 }}
-                      sx={{ flex: 1 }}
-                      error={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60)}
-                      helperText={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60) ? "0-59" : error ? error : ""}
-                      InputProps={{
-                        sx: { height: fieldHeight }
-                      }}
-                    />
-                  </Box>
-                </Box>
-
-                {/* Compact Attachment Upload */}
-                <Box sx={{ flex: 0.6 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary', fontWeight: 600 }}>
-                    Attachments ({formData.attachments.length}/4)
-                  </Typography>
-                  <Box sx={{
-                    border: '1px dashed #ccc',
-                    borderRadius: 1,
-                    p: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: '#fafafa',
-                    minHeight: '50px',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      borderColor: greenPrimary,
-                      bgcolor: 'rgba(27, 94, 32, 0.02)'
-                    }
-                  }}>
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
-                      multiple
-                      style={{ display: 'none' }}
-                      id="file-upload"
-                      disabled={formData.attachments.length >= 4}
-                    />
-                    <label htmlFor="file-upload" style={{ cursor: 'pointer', textAlign: 'center', width: '100%' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                        <CloudUploadIcon sx={{ color: greenPrimary, fontSize: 20 }} />
-                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                          {formData.attachments.length >= 4 ? 'Max files reached' : 'Upload files'}
-                        </Typography>
-                      </Box>
-                    </label>
-                  </Box>
-
-                  {/* Display uploaded files */}
-                  {formData.attachments.length > 0 && (
-                    <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {formData.attachments.map((file, index) => (
-                        <Chip
-                          key={index}
-                          label={
-                            <span>
-                              {file.isExisting && "📎 "}{truncateText(file.name, 15)}
-                              {file.isExisting && " (existing)"}
-                            </span>
-                          }
-                          size="small"
-                          onDelete={() => handleRemoveAttachment(index)}
-                          deleteIcon={<DeleteIcon />}
-                          sx={{
-                            bgcolor: file.isExisting ? 'rgba(76, 175, 80, 0.1)' : 'rgba(27, 94, 32, 0.1)',
-                            color: file.isExisting ? '#4caf50' : greenPrimary,
-                            '& .MuiChip-deleteIcon': {
-                              color: file.isExisting ? '#4caf50' : greenPrimary,
-                              '&:hover': {
-                                color: greenHover
-                              }
-                            }
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-              </Box>
+<Box sx={{ display: 'flex', gap: 3 }}>
+  <Box sx={{ flex: 0.4 }}>
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+      <TextField
+        type="number"
+        label="Hours"
+        value={formData.hours}
+        onChange={handleInputChange('hours')}
+        placeholder="HH"
+        onKeyDown={(e) => {
+          if (
+            !/[0-9]/.test(e.key) && // Allow only numbers
+            e.key !== 'Backspace' && // Allow backspace
+            e.key !== 'Delete' && // Allow delete
+            e.key !== 'ArrowLeft' && // Allow left arrow
+            e.key !== 'ArrowRight' && // Allow right arrow
+            e.key !== 'Tab' // Allow tab
+          ) {
+            e.preventDefault();
+          }
+        }}
+        inputProps={{ min: 0, max: 24 }}
+        sx={{ flex: 1 }}
+        error={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24)}
+        helperText={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24) ? "0-24" : error ? error : ""}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <AccessTimeIcon sx={{ color: greenPrimary }} />
+            </InputAdornment>
+          ),
+          sx: { height: fieldHeight }
+        }}
+      />
+      <Typography variant="h6" sx={{ color: 'text.secondary', mx: 0.5 }}>
+        :
+      </Typography>
+      <TextField
+        type="number"
+        label="Minutes"
+        value={formData.minutes}
+        onChange={handleInputChange('minutes')}
+        placeholder="MM"
+        onKeyDown={(e) => {
+          if (
+            !/[0-9]/.test(e.key) && // Allow only numbers
+            e.key !== 'Backspace' && // Allow backspace
+            e.key !== 'Delete' && // Allow delete
+            e.key !== 'ArrowLeft' && // Allow left arrow
+            e.key !== 'ArrowRight' && // Allow right arrow
+            e.key !== 'Tab' // Allow tab
+          ) {
+            e.preventDefault();
+          }
+        }}
+        inputProps={{ min: 0, max: 59 }}
+        sx={{ flex: 1 }}
+        error={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60)}
+        helperText={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60) ? "0-59" : error ? error : ""}
+        InputProps={{
+          sx: { height: fieldHeight }
+        }}
+      />
+    </Box>
+    {/* Remaining Time Display */}
+    {/* Remaining Time Display */}
+<Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+  Remaining Time: {(() => {
+    const remainingMinutes = Math.max(
+      0,
+      1440 - existingTime - ((parseInt(formData.hours, 10) || 0) * 60 + (parseInt(formData.minutes, 10) || 0))
+    );
+    const hours = Math.floor(remainingMinutes / 60);
+    const minutes = remainingMinutes % 60;
+    return `${hours}h ${minutes}m`;
+  })()}
+</Typography>
+  </Box>
+</Box>
 
               {/* Row 3: Large Description */}
               <Box>

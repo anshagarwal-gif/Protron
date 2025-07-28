@@ -880,6 +880,13 @@ const TimesheetManager = () => {
                 </button>
               )}
               <button
+                onClick={()=>setShowLogTimeModal(true)}
+                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+              >
+                
+                <span>Add Timesheet Task</span>
+              </button>
+              <button
                 onClick={downloadExcel}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
               >
