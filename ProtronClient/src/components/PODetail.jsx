@@ -2,6 +2,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
+import { Eye } from "lucide-react";
+import ViewPOModal from "./ViewPOModal";
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 
@@ -219,7 +221,6 @@ const PODetailsPage = () => {
     setSelectedMilestoneId(milestone.msId);
     setIsEditMilestoneModalOpen(true);
   };
-
   const handleAddMilestone = () => {
     setIsAddMilestoneModalOpen(true);
   };
