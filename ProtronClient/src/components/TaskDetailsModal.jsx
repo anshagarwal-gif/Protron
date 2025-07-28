@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  FileText, 
-  X, 
-  Calendar, 
-  Folder, 
-  CheckCircle, 
-  XCircle, 
-  Eye, 
+import {
+  FileText,
+  X,
+  Calendar,
+  Folder,
+  CheckCircle,
+  XCircle,
+  Eye,
   Download,
   Clock,
   Edit3,
@@ -21,18 +21,19 @@ import {
   Layout,
   ExternalLink
 } from 'lucide-react';
+import axios from 'axios';
 
-const TaskDetailsModal = ({ 
-  isOpen, 
-  onClose, 
-  taskDetail, 
-  onEdit, 
+const TaskDetailsModal = ({
+  isOpen,
+  onClose,
+  taskDetail,
+  onEdit,
   onDelete,
   employee,
   isEmployeeView,
   hasAccess = () => true,
-  handleViewAttachment = () => {},
-  handleDownloadAttachment = () => {},
+  handleViewAttachment = () => { },
+  handleDownloadAttachment = () => { },
   formatDateDisplay = (date) => {
     try {
       return new Date(date).toLocaleDateString();
@@ -86,12 +87,12 @@ const TaskDetailsModal = ({
 
   const handleEdit = useCallback(() => {
     if (!taskDetail) return;
-    
+
     try {
       console.log("Editing task:", taskDetail);
-      const updatedTask = { 
-        ...taskDetail, 
-        date: taskDetail.date ? new Date(taskDetail.date) : new Date() 
+      const updatedTask = {
+        ...taskDetail,
+        date: taskDetail.date ? new Date(taskDetail.date) : new Date()
       };
       onEdit?.(updatedTask);
     } catch (error) {
@@ -101,7 +102,7 @@ const TaskDetailsModal = ({
 
   const handleDelete = useCallback(() => {
     if (!taskDetail) return;
-    
+
     try {
       onDelete?.(taskDetail);
     } catch (error) {
@@ -111,10 +112,10 @@ const TaskDetailsModal = ({
 
   const getFileIcon = useCallback((fileName) => {
     if (!fileName || typeof fileName !== 'string') return FileText;
-    
+
     const ext = fileName.split('.').pop()?.toLowerCase();
     if (!ext) return FileText;
-    
+
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'].includes(ext)) {
       return FileImage;
     } else if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'].includes(ext)) {
@@ -135,7 +136,7 @@ const TaskDetailsModal = ({
 
   const getMimeType = useCallback((fileName) => {
     if (!fileName || typeof fileName !== 'string') return 'application/octet-stream';
-    
+
     const ext = fileName.split('.').pop()?.toLowerCase();
     const mimeTypes = {
       'jpg': 'image/jpeg',
@@ -155,17 +156,17 @@ const TaskDetailsModal = ({
       'mp3': 'audio/mpeg',
       'zip': 'application/zip'
     };
-    
+
     return mimeTypes[ext] || 'application/octet-stream';
   }, []);
 
   const formatFileSize = useCallback((base64String) => {
     if (!base64String || typeof base64String !== 'string') return 'Unknown size';
-    
+
     try {
       const base64Data = base64String.includes(',') ? base64String.split(',')[1] : base64String;
       const sizeInBytes = (base64Data.length * 3) / 4;
-      
+
       if (sizeInBytes < 1024) {
         return `${Math.round(sizeInBytes)} B`;
       } else if (sizeInBytes < 1024 * 1024) {
@@ -178,84 +179,117 @@ const TaskDetailsModal = ({
       return 'Unknown size';
     }
   }, []);
-
-  const handlePreview = useCallback((attachment) => {
-    if (!attachment) return;
-    
+  const fetchAttachment = useCallback(async (attachmentId) => {
     try {
-      if (attachment.fileData) {
-        // Create a blob URL and open in new tab
-        const mimeType = getMimeType(attachment.fileName);
-        const base64Data = attachment.fileData.includes(',') ? 
-          attachment.fileData.split(',')[1] : 
-          attachment.fileData;
-        
-        // Convert base64 to binary
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        
-        // Create blob and URL
-        const blob = new Blob([byteArray], { type: mimeType });
-        const blobUrl = URL.createObjectURL(blob);
-        
-        // Open in new tab
-        const newTab = window.open(blobUrl, '_blank');
-        
-        // Clean up the blob URL after a delay to allow the tab to load
-        if (newTab) {
-          setTimeout(() => {
-            URL.revokeObjectURL(blobUrl);
-          }, 1000);
-        } else {
-          // If popup was blocked, fall back to the original behavior for images
-          URL.revokeObjectURL(blobUrl);
-          if (isImageFile(attachment.fileName)) {
-            setPreviewAttachment(attachment);
-          } else {
-            alert('Please allow popups to view attachments in a new tab.');
-          }
-        }
-      } else {
-        // Use the original handleViewAttachment function which should open in new tab
-        handleViewAttachment?.(taskDetail?.taskId, attachment.attachmentId);
-      }
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/timesheet-tasks/attachments/${attachmentId}`, {
+        responseType: 'blob',
+         headers: {
+          Authorization: `${sessionStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = URL.createObjectURL(blob);
+      return url;
     } catch (error) {
-      console.error('Error previewing attachment:', error);
-      // Fallback to modal preview for images if there's an error
-      if (isImageFile(attachment.fileName)) {
-        setPreviewAttachment(attachment);
-      }
+      console.error('Error fetching attachment:', error);
+      throw new Error('Failed to fetch attachment');
     }
-  }, [getMimeType, isImageFile, handleViewAttachment, taskDetail?.taskId]);
+  }, []);
 
-  const handleDownload = useCallback((attachment) => {
+  const handlePreview = useCallback(async (attachment) => {
     if (!attachment) return;
-    
+
     try {
-      if (attachment.fileData) {
-        const mimeType = getMimeType(attachment.fileName);
-        const base64Data = attachment.fileData.includes(',') ? 
-          attachment.fileData : 
-          `data:${mimeType};base64,${attachment.fileData}`;
-        
+      if (attachment.attachmentId) {
+        // Fetch the file as a blob and preview it
+        const fileUrl = await fetchAttachment(attachment.attachmentId);
+        console.log(fileUrl)
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.click();
+
+        console.log(`Opened ${attachment.fileName || 'attachment'} in new tab`);
+      } else if (attachment.fileData) {
+        // Optional: Support inline base64 preview if available
+        const mimeType = getMimeType(attachment.fileName || '');
+        let base64Data = attachment.fileData;
+
+        if (!base64Data.startsWith('data:')) {
+          const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+          base64Data = `data:${mimeType};base64,${cleanBase64}`;
+        }
+
         const link = document.createElement('a');
         link.href = base64Data;
-        link.download = attachment.fileName || 'attachment';
-        document.body.appendChild(link);
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
         link.click();
-        document.body.removeChild(link);
       } else {
-        handleDownloadAttachment?.(taskDetail?.taskId, attachment.attachmentId, attachment.fileName);
+        console.warn('No file data or attachment ID available for preview');
+        alert('Unable to preview this attachment. File data is not available.');
       }
     } catch (error) {
-      console.error('Error downloading attachment:', error);
+      console.error('Error opening attachment in new tab:', error);
+      alert('Failed to open attachment. Please try again.');
     }
-  }, [getMimeType, handleDownloadAttachment, taskDetail?.taskId]);
+  }, [fetchAttachment, getMimeType]);
 
+  const handleDownload = useCallback(async (attachment) => {
+  if (!attachment) return;
+
+  try {
+    const fileName = attachment.fileName || 'downloaded_file';
+
+    if (attachment.attachmentId) {
+      // Fetch file blob from server and download
+      const fileUrl = await fetchAttachment(attachment.attachmentId);
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url); // Clean up
+      console.log(`Downloaded ${fileName}`);
+    } else if (attachment.fileData) {
+      // Handle base64 file data
+      const mimeType = getMimeType(fileName);
+      let base64Data = attachment.fileData;
+
+      if (!base64Data.startsWith('data:')) {
+        const cleanBase64 = base64Data.includes(',') ? base64Data.split(',')[1] : base64Data;
+        base64Data = `data:${mimeType};base64,${cleanBase64}`;
+      }
+
+      const link = document.createElement('a');
+      link.href = base64Data;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      console.log(`Downloaded ${fileName} from base64`);
+    } else {
+      console.warn('No file data or attachment ID available for download');
+      alert('Unable to download this attachment. File data is not available.');
+    }
+  } catch (error) {
+    console.error('Error downloading attachment:', error);
+    alert('Failed to download attachment. Please try again.');
+  }
+}, [fetchAttachment, getMimeType]);
+
+
+  // Enhanced function to download attachment
+  
   // Early return if modal should not be shown
   if (!isOpen || !taskDetail) return null;
 
@@ -288,12 +322,12 @@ const TaskDetailsModal = ({
   return (
     <>
       {/* Main Modal */}
-      <div 
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-6"
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-6xl h-[80vh] border border-emerald-100/50 flex flex-col animate-in fade-in-0 zoom-in-95 duration-300">
-          
+
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-50 via-green-50 to-teal-50 px-8 py-6 border-b border-emerald-100 flex-shrink-0 rounded-t-3xl">
             <div className="flex justify-between items-center">
@@ -305,10 +339,10 @@ const TaskDetailsModal = ({
                   <h2 className="text-2xl font-bold text-gray-900">Task Details</h2>
                   <p className="text-gray-600 text-sm font-medium">Comprehensive task overview and management</p>
                 </div>
-                
+
               </div>
               <div className='flex'>
-              <div className="flex gap-2">
+                <div className="flex gap-2">
                   {hasAccess("timesheet", "edit") && isEmployeeView && (
                     <button
                       onClick={handleEdit}
@@ -330,13 +364,13 @@ const TaskDetailsModal = ({
                     </button>
                   )}
                 </div>
-              <button 
-                onClick={onClose}
-                className="p-3 hover:bg-white/60 rounded-2xl transition-all duration-200 group"
-                aria-label="Close modal"
-              >
-                <X className="h-6 w-6 text-gray-500 group-hover:text-gray-700" />
-              </button>
+                <button
+                  onClick={onClose}
+                  className="p-3 hover:bg-white/60 rounded-2xl transition-all duration-200 group"
+                  aria-label="Close modal"
+                >
+                  <X className="h-6 w-6 text-gray-500 group-hover:text-gray-700" />
+                </button>
               </div>
             </div>
           </div>
@@ -347,25 +381,23 @@ const TaskDetailsModal = ({
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
-                
+
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
-                      isActive
-                        ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md'
-                        : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'
-                    }`}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${isActive
+                      ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md'
+                      : 'text-gray-600 hover:bg-emerald-50 hover:text-emerald-700'
+                      }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span>{tab.label}</span>
                     {tab.count !== null && (
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                        isActive 
-                          ? 'bg-white/20 text-white' 
-                          : 'bg-emerald-100 text-emerald-700'
-                      }`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${isActive
+                        ? 'bg-white/20 text-white'
+                        : 'bg-emerald-100 text-emerald-700'
+                        }`}>
                         {tab.count}
                       </span>
                     )}
@@ -412,12 +444,12 @@ const TaskDetailsModal = ({
                         <label className="text-xs font-semibold text-teal-700 uppercase tracking-wider">Project</label>
                         <div className="flex items-center gap-2 mt-2">
                           <Folder className="h-4 w-4 text-teal-600" />
-                          <span 
+                          <span
                             className="text-gray-800 text-sm font-semibold cursor-help hover:text-teal-700 transition-colors truncate"
                             title={taskDetail.project?.projectName || "No project assigned"}
                           >
-                            {taskDetail.project?.projectName 
-                              ? truncateText(taskDetail.project.projectName, 15) 
+                            {taskDetail.project?.projectName
+                              ? truncateText(taskDetail.project.projectName, 15)
                               : "No project"}
                           </span>
                         </div>
@@ -495,17 +527,18 @@ const TaskDetailsModal = ({
                         {taskDetail.attachments.length} file{taskDetail.attachments.length !== 1 ? 's' : ''} attached to this task
                       </p>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {taskDetail.attachments.map((attachment, index) => {
                         if (!attachment) return null;
-                        
+
                         const FileIcon = getFileIcon(attachment.fileName);
                         const attachmentKey = attachment.attachmentId || `attachment-${index}`;
-                        
+                        console.log(attachment)
+
                         return (
-                          <div 
-                            key={attachmentKey} 
+                          <div
+                            key={attachmentKey}
                             className="p-4 bg-white/80 backdrop-blur-sm rounded-xl hover:bg-white/90 transition-all duration-200 border border-emerald-100/50 shadow-sm hover:shadow-md flex-shrink-0 flex flex-col h-full"
                           >
                             <div className="flex items-start gap-3 mb-3 flex-1">
@@ -513,7 +546,7 @@ const TaskDetailsModal = ({
                                 <FileIcon className="h-5 w-5 text-emerald-600" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div 
+                                <div
                                   className="font-semibold text-gray-800 text-sm leading-tight cursor-pointer"
                                   title={attachment.fileName || `Attachment ${index + 1}`}
                                 >
@@ -522,8 +555,8 @@ const TaskDetailsModal = ({
                                   </span>
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1 font-medium">
-                                  {attachment.fileSize ? 
-                                    `${(attachment.fileSize / 1024).toFixed(1)} KB` : 
+                                  {attachment.fileSize ?
+                                    `${(attachment.fileSize / 1024).toFixed(1)} KB` :
                                     formatFileSize(attachment.fileData)
                                   }
                                 </div>
@@ -532,16 +565,17 @@ const TaskDetailsModal = ({
                             <div className="flex gap-2 mt-auto">
                               <button
                                 onClick={() => handlePreview(attachment)}
-                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-colors font-semibold shadow-sm"
-                                aria-label={`View ${attachment.fileName || 'attachment'}`}
+                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-colors font-semibold shadow-sm hover:shadow-md transform hover:scale-105"
+                                aria-label={`View ${attachment.fileName || 'attachment'} in new tab`}
                                 title="Opens in new tab"
                               >
                                 <ExternalLink className="h-3 w-3 mr-1.5" /> View
                               </button>
                               <button
                                 onClick={() => handleDownload(attachment)}
-                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-sm"
+                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-sm hover:shadow-md transform hover:scale-105"
                                 aria-label={`Download ${attachment.fileName || 'attachment'}`}
+                                title="Download file"
                               >
                                 <Download className="h-3 w-3 mr-1.5" /> Download
                               </button>
@@ -557,52 +591,6 @@ const TaskDetailsModal = ({
           </div>
         </div>
       </div>
-
-      {/* Image Preview Modal (Fallback) */}
-      {previewAttachment && (
-        <div 
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-4"
-          onClick={(e) => e.target === e.currentTarget && setPreviewAttachment(null)}
-        >
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl max-w-5xl max-h-[90vh] overflow-hidden border border-emerald-100">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-green-50">
-              <h3 className="text-xl font-bold text-gray-900">
-                {previewAttachment.fileName || 'Image Preview'}
-              </h3>
-              <button
-                onClick={() => setPreviewAttachment(null)}
-                className="p-2 hover:bg-white/60 rounded-xl transition-colors"
-                aria-label="Close preview"
-              >
-                <X className="h-6 w-6 text-gray-500" />
-              </button>
-            </div>
-            <div className="p-8 max-h-[70vh] overflow-auto">
-              {previewAttachment.fileData ? (
-                <img
-                  src={previewAttachment.fileData.includes(',') ? 
-                    previewAttachment.fileData : 
-                    `data:image/jpeg;base64,${previewAttachment.fileData}`}
-                  alt={previewAttachment.fileName || 'Preview'}
-                  className="max-w-full h-auto rounded-2xl shadow-lg"
-                  onError={() => {
-                    console.error('Failed to load image preview');
-                    setPreviewAttachment(null);
-                  }}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-64 text-gray-500">
-                  <div className="text-center">
-                    <AlertCircle className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                    <p className="font-medium">Unable to preview image</p>
-                    <p className="text-sm text-gray-400">Image data not available</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       <style jsx>{`
         .custom-scrollbar {
