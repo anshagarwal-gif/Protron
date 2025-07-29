@@ -472,7 +472,8 @@ const ProjectManagement = () => {
         'Project Manager': project.projectManager ?
           `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'N/A',
         'Team Size': project.projectTeam ? project.projectTeam.length : 0,
-        'Project Cost': project.projectCost ? `₹${project.projectCost}` : 'N/A',
+        'Unit': project.unit || 'N/A',
+        'Project Cost': project.projectCost ? `${project.projectCost}` : 'N/A',
         'Sponsor': project.sponsor ? `${project.sponsor.firstName} ${project.sponsor.lastName}` : 'N/A',
       }));
 
