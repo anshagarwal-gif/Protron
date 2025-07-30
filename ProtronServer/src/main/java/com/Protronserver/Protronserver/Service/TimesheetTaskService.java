@@ -49,6 +49,7 @@ public class TimesheetTaskService {
         task.setDate(dto.getDate());
         task.setHoursSpent(dto.getHoursSpent());
         task.setMinutesSpent(dto.getMinutesSpent());
+        task.setTaskTopic(dto.getTaskTopic());
         task.setDescription(dto.getDescription());
 
         task.setStartTimestamp(LocalDateTime.now());
@@ -132,6 +133,7 @@ public class TimesheetTaskService {
         for (TimesheetTask oldTask : lastWeekTasks) {
             TimesheetTask newTask = new TimesheetTask();
             newTask.setTaskType(oldTask.getTaskType());
+            newTask.setTaskTopic(oldTask.getTaskTopic());
             newTask.setDescription(oldTask.getDescription());
             newTask.setHoursSpent(oldTask.getHoursSpent());
             newTask.setMinutesSpent(oldTask.getMinutesSpent());
@@ -203,6 +205,7 @@ public class TimesheetTaskService {
         newTask.setTaskType(dto.getTaskType());
         newTask.setDescription(dto.getDescription());
         newTask.setHoursSpent(dto.getHoursSpent());
+        newTask.setTaskTopic(dto.getTaskTopic());
         newTask.setMinutesSpent(dto.getMinutesSpent());
         newTask.setDate(dto.getDate());
 

@@ -12,6 +12,7 @@ public class TimesheetTaskRequestDTO {
     private Date date;
     private int hoursSpent;
     private int minutesSpent;
+    private String taskTopic;
     private String description;
     private Long projectId;
     private List<AttachmentDTO> attachments; // Changed from List<byte[]> to List<AttachmentDTO>
@@ -74,5 +75,13 @@ public class TimesheetTaskRequestDTO {
 
     public void setAttachments(List<AttachmentDTO> attachments) {
         this.attachments = attachments;
+    }
+
+    public String getTaskTopic() {
+        return taskTopic;
+    }
+
+    public void setTaskTopic(String taskTopic) {
+        this.taskTopic = taskTopic;
     }
 }

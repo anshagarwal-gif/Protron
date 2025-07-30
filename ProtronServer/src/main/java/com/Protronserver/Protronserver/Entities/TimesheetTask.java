@@ -25,6 +25,8 @@ public class TimesheetTask {
     private Date date;
     private int hoursSpent;
     private int minutesSpent;
+    @Column(length = 50)
+    private String taskTopic;
     @Column(length = 500)
     private String description;
     private boolean isSubmitted = true;
@@ -164,5 +166,13 @@ public class TimesheetTask {
 
     public void setLastUpdatedBy(String lastUpdatedBy) {
         this.lastUpdatedBy = lastUpdatedBy;
+    }
+
+    public String getTaskTopic() {
+        return taskTopic;
+    }
+
+    public void setTaskTopic(String taskTopic) {
+        this.taskTopic = taskTopic;
     }
 }
