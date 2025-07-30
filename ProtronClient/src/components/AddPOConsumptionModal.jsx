@@ -27,6 +27,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [descCharCount, setDescCharCount] = useState(0);
   const [remarksCharCount, setRemarksCharCount] = useState(0);
   const {sessionData} = useSession();
+  const [poBalance,setPOBalance] = useState(null);
+  const [poId, setPoId] = useState("");
 
   // Fetch PO list and projects on modal open
   useEffect(() => {
@@ -70,6 +72,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       try {
         const token = sessionStorage.getItem('token');
         const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
+        console.log('Selected PO:', selectedPO);
         
         if (selectedPO) {
           console.log('Selected PO:', selectedPO);

@@ -14,7 +14,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     srnType: "",
     srnRemarks: "",
     attachment: null,
-    existingAttachment: null
+    existingAttachment: null,
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -24,6 +24,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   const [remarksCharCount, setRemarksCharCount] = useState(0);
   const [nameCharCount, setNameCharCount] = useState(0);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [poBalance, setPOBalance] = useState(null);
+  const [poId, setPoId] = useState("");
 
   // Truncate text utility function
   const truncateText = (text, maxLength = 50) => {
@@ -40,7 +42,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       return <span className={className}>{text}</span>;
     }
     return (
-      <span 
+      <span
         className={`${className} cursor-help relative group`}
         title={text}
       >
@@ -68,7 +70,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         setInitialLoading(true);
         try {
           const token = sessionStorage.getItem('token');
-          
+
           // Fetch SRN details
           const srnResponse = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/srn/${srnId}`,
@@ -78,7 +80,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           );
 
           const srn = srnResponse.data;
-          
+          console.log('SRN response:', srn);
           setFormData({
             poNumber: srn.poNumber || "",
             msId: srn.milestone?.msId || "",
@@ -89,9 +91,9 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
             attachment: null,
-            existingAttachment: srn.attachments && srn.attachments.length > 0 ? srn.attachments[0] : null
+            existingAttachment: srn.attachments && srn.attachments.length > 0 ? srn.attachments[0] : null,
           });
-
+          setPoId(srn.poDetail.poId || "");
           console.log('Fetched SRN data:', srn);
           console.log('SRN Type from response:', srn.srnType);
 
@@ -107,13 +109,35 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     fetchSRNData();
   }, [open, srnId]);
 
+  useEffect(() => {
+    const fetchPOBalance = async (poId) => {
+      if (poId) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+            {
+              headers: { Authorization: `${token}` }
+            }
+          );
+          console.log('PO Balance response:', response.data);
+          setPOBalance(response.data);
+        } catch (error) {
+          console.error("Error fetching PO balance:", error);
+        }
+      }
+    };
+
+    fetchPOBalance(poId);
+  }, [poId]);
+
   // Fetch PO list when modal opens
   useEffect(() => {
     const fetchPOList = async () => {
       if (open) {
         try {
           const token = sessionStorage.getItem('token');
-          
+
           // Fetch PO list
           const poResponse = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/po/all`,
@@ -122,7 +146,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             }
           );
           setPOList(poResponse.data);
-          
+
         } catch (error) {
           console.error("Error fetching PO list:", error);
         }
@@ -139,10 +163,10 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         try {
           const token = sessionStorage.getItem('token');
           const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
-          
+
           if (selectedPO) {
             console.log('Selected PO:', selectedPO);
-            
+
             try {
               const milestoneResponse = await axios.get(
                 `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${selectedPO.poId}`,
@@ -150,15 +174,15 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   headers: { Authorization: `${token}` }
                 }
               );
-              
+
               console.log('Milestone response:', milestoneResponse.data);
               setMilestoneList(milestoneResponse.data || []);
-              
+
             } catch (milestoneError) {
               console.error("Error fetching milestones:", milestoneError);
               setMilestoneList([]);
             }
-            
+
             // Update currency based on selected PO (only if not already set)
             if (!formData.srnCurrency || formData.srnCurrency === 'USD') {
               setFormData(prev => ({
@@ -194,7 +218,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Check character limits
     if (name === 'srnName') {
       if (value.length > 100) {
@@ -224,12 +248,12 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       }
       setRemarksCharCount(value.length);
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -251,7 +275,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         }));
         return;
       }
-      
+
       // Validate file type (common document and image types)
       const allowedTypes = [
         'application/pdf',
@@ -264,7 +288,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         'image/gif',
         'text/plain'
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         setErrors(prev => ({
           ...prev,
@@ -272,12 +296,12 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         }));
         return;
       }
-      
+
       setFormData(prev => ({
         ...prev,
         attachment: file
       }));
-      
+
       // Clear error if file is valid
       if (errors.attachment) {
         setErrors(prev => ({
@@ -314,14 +338,14 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // First validate basic form fields
     if (!validateBasicForm()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const token = sessionStorage.getItem('token');
       if (!token) {
@@ -346,7 +370,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         `${import.meta.env.VITE_API_URL}/api/srn/edit/${srnId}`,
         updateData,
         {
-          headers: { 
+          headers: {
             Authorization: `${token}`,
             'Content-Type': 'application/json'
           }
@@ -357,10 +381,10 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       handleClose();
     } catch (error) {
       console.error("Error updating SRN:", error);
-      
+
       // Enhanced error message handling
       let errorMessage = "Failed to update SRN";
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data) {
@@ -370,8 +394,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      setErrors({ 
+
+      setErrors({
         submit: errorMessage
       });
     } finally {
@@ -453,17 +477,16 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   name="poNumber"
                   value={formData.poNumber}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.poNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.poNumber ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   disabled={loading || initialLoading}
                   title={formData.poNumber}
                 >
                   <option value="">Select PO</option>
                   {poList.map(po => (
-                    <TruncatedOption 
-                      key={po.poId} 
-                      value={po.poNumber} 
+                    <TruncatedOption
+                      key={po.poId}
+                      value={po.poNumber}
                       text={po.poNumber}
                       maxLength={25}
                     />
@@ -491,9 +514,9 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 >
                   <option value="">No specific milestone</option>
                   {milestoneList.map(milestone => (
-                    <TruncatedOption 
-                      key={milestone.msId} 
-                      value={milestone.msId} 
+                    <TruncatedOption
+                      key={milestone.msId}
+                      value={milestone.msId}
                       text={milestone.msName}
                       maxLength={25}
                     />
@@ -532,13 +555,17 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   onChange={handleInputChange}
                   step="1"
                   min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.srnAmount ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="0"
                   disabled={loading || initialLoading}
                   title={formData.srnAmount}
                 />
+                <label className="text-xs text-gray-500 mt-1">
+                  <span className="text-red-500">
+                    PO Balance: {poBalance !== null ? `${poBalance} ${formData.srnCurrency}` : 'Loading...'}
+                  </span>
+                </label>
                 {errors.srnAmount && (
                   <div className="mt-1">
                     <p className="text-xs text-red-600 leading-relaxed">{errors.srnAmount}</p>
@@ -560,9 +587,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   name="srnType"
                   value={formData.srnType}
                   onChange={handleInputChange}
-                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.srnType ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.srnType ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   disabled={loading || initialLoading}
                 >
                   <option value="">Select SRN Type</option>
@@ -587,9 +613,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   name="srnName"
                   value={formData.srnName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.srnName ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter SRN name"
                   disabled={loading || initialLoading}
                   title={formData.srnName}
@@ -622,7 +647,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 {/* Show new attachment */}
                 {formData.attachment && (
                   <p className="mt-1 text-xs text-green-600" title={`New file: ${formData.attachment.name} (${(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)`}>
-                    New: {formData.attachment.name.length > 25 ? `${formData.attachment.name.substring(0, 25)}...` : formData.attachment.name} 
+                    New: {formData.attachment.name.length > 25 ? `${formData.attachment.name.substring(0, 25)}...` : formData.attachment.name}
                     ({(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
@@ -648,9 +673,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 value={formData.srnDsc}
                 onChange={handleInputChange}
                 rows={4}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  errors.srnDsc ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.srnDsc ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter detailed SRN description including scope, deliverables, and requirements... (Max 500 characters)"
                 disabled={loading || initialLoading}
                 title={formData.srnDsc ? `SRN Description (${descCharCount}/500 chars): ${formData.srnDsc}` : "Enter detailed SRN description (optional)"}
@@ -674,9 +698,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 value={formData.srnRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 characters)"
                 disabled={loading || initialLoading}
                 title={formData.srnRemarks ? `Remarks (${remarksCharCount}/500 chars): ${formData.srnRemarks}` : "Enter additional remarks (optional)"}
