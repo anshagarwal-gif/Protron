@@ -14,6 +14,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { useSession } from '../Context/SessionContext';
+import ExcelJS from 'exceljs';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -469,55 +470,67 @@ const TimesheetManager = () => {
   };
 
   // Frontend-only Excel download functionality
-  const downloadExcel = () => {
-    const weekdays = getWeekdays();
-    try {
-        const startParam = weekStart.toISOString().split('T')[0];
-        const endParam = weekEnd.toISOString().split('T')[0];
+  const downloadExcel = async () => {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet('Timesheet');
 
-        // Combine weekday and date into a single header
-        const formattedWeekdays = weekdays.map(day =>
-                day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
-            )
-        console.log('Weekdays:', formattedWeekdays);
-        const headers = [
-            'Employee ID',
-            'Name',
-            'Email',
-            ...formattedWeekdays.map((day)=>day.replace(/,/g, '')), // Use formatted weekdays as headers
-            'Total Hours',
-            'Expected Hours'
-        ];
+  const weekdays = getWeekdays();
+  const formattedWeekdays = weekdays.map(day =>
+    day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
+  );
 
-        // Map data to match the headers
-        const csvContent = [
-            headers.join(','), // Join headers with commas
-            ...filteredData.map((emp, index) => [
-                index + 1, // Employee ID
-                `"${emp.name}"`, // Name
-                emp.email, // Email 
-                ...emp.dailyHours.map(h => `${h.worked.hours}h ${h.worked.minutes}m`), // Combine hours and minutes
-                `${emp.totalHours.hours}h ${emp.totalHours.minutes}m`, // Total Hours
-                `${emp.expectedHours.hours}h ${emp.expectedHours.minutes}m` // Expected Hours
-            ].join(',')) // Join row values with commas
-        ].join('\n'); // Join rows with newlines
+  // Prepare header rows
+  const headerRow1 = ['Employee ID', 'Name', 'Email'];
+  const headerRow2 = ['', '', ''];
 
-        // Create and download the CSV file
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `timesheet_${startParam}_to_${endParam}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    } catch (error) {
-        console.error('Error creating Excel file:', error);
-        alert('Failed to create Excel file. Please try again.');
-    }
-  };
+  formattedWeekdays.forEach((day, index) => {
+    headerRow1.push(day.replace(/,/g, ''), ''); // Add day and placeholder for merging
+    headerRow2.push('Hours', 'Minutes');
+  });
+
+  headerRow1.push('Total Hours', 'Total Minutes', 'Expected Hours', 'Expected Minutes');
+  headerRow2.push('', '', '', '');
+
+  // Add header rows
+  sheet.addRow(headerRow1);
+  sheet.addRow(headerRow2);
+
+  // Merge headers for each date
+  const mergeStart = 4; // because first 3 columns are static
+  for (let i = 0; i < formattedWeekdays.length; i++) {
+    const colStart = mergeStart + i * 2;
+    sheet.mergeCells(1, colStart, 1, colStart + 1); // Merge day cell over Hours & Minutes
+  }
+
+  // Sample data rows (replace with your actual data)
+  filteredData.forEach((emp, index) => {
+    const row = [
+      index + 1,
+      emp.name,
+      emp.email,
+      ...emp.dailyHours.flatMap(h => [h.worked.hours, h.worked.minutes]),
+      emp.totalHours.hours,
+      emp.totalHours.minutes,
+      emp.expectedHours.hours,
+      emp.expectedHours.minutes
+    ];
+    sheet.addRow(row);
+  });
+
+  // Style header rows (optional)
+  sheet.getRow(1).font = { bold: true };
+  sheet.getRow(2).font = { bold: true };
+
+  // Download the Excel file
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `timesheet_${weekStart.toISOString().split('T')[0]}_to_${weekEnd.toISOString().split('T')[0]}.xlsx`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
 
   // Loading component
   const LoadingSpinner = () => (

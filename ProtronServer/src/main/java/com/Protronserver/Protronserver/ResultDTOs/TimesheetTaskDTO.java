@@ -14,6 +14,7 @@ public class TimesheetTaskDTO {
     private Long projectId;
     private int hoursSpent;
     private int minutesSpent;
+    private String taskTopic;
     private String description;
     private boolean submitted;
 
@@ -21,7 +22,7 @@ public class TimesheetTaskDTO {
     private List<TimesheetTaskAttachmentDTO> attachments;
 
     public TimesheetTaskDTO(Long taskId, String taskType, Date date, String projectName, Long projectId,
-                            int hoursSpent, int minutesSpent, String description, boolean submitted) {
+                            int hoursSpent, int minutesSpent,String taskTopic, String description, boolean submitted) {
         this.taskId = taskId;
         this.taskType = taskType;
         this.date = date;
@@ -29,8 +30,17 @@ public class TimesheetTaskDTO {
         this.projectId = projectId;
         this.hoursSpent = hoursSpent;
         this.minutesSpent = minutesSpent;
+        this.taskTopic = taskTopic;
         this.description = description;
         this.submitted = submitted;
+    }
+
+    public String getTaskTopic() {
+        return taskTopic;
+    }
+
+    public void setTaskTopic(String taskTopic) {
+        this.taskTopic = taskTopic;
     }
 
     public Long getTaskId() {

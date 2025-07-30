@@ -245,6 +245,7 @@ const TimesheetManager = () => {
 
       const mappedData = res.data.map(task => ({
         taskId: task.taskId,
+        taskTopic: task.taskTopic || "",
         date: task.date,
         hoursSpent: task.hoursSpent,
         minutesSpent: task.minutesSpent,
@@ -419,6 +420,9 @@ const TimesheetManager = () => {
   };
   // Save handler for LogTimeModal
   const handleLogTimeSave = async (taskData) => {
+    if (!taskData.date) {
+    taskData.date = selectedCell.date.toISOString().split("T")[0]; // Ensure the correct date is used
+  }
     if (editingTask) {
       console.log({
         ...taskData,
@@ -430,6 +434,7 @@ const TimesheetManager = () => {
           `${API_BASE_URL}/api/timesheet-tasks/edit/${editingTask.taskId}`,
           {
             taskType: taskData.taskType,
+            taskTopic: taskData.taskTopic,
             hoursSpent: taskData.hoursSpent,
             minutesSpent: taskData.minutesSpent,
             description: taskData.description,
@@ -557,7 +562,7 @@ const TimesheetManager = () => {
       const dates = getVisibleDates();
       const periodType = viewMode === "Weekly" ? "week" : "month";
       const BOM = "\uFEFF";
-      const headers = ["Date", "Task", "Hours", "Description", "Project"];
+      const headers = ["Date", "Task", "Hours","Minutes", "Description", "Project"];
       let csvContent = BOM + headers.map((h) => `"${h}"`).join(",") + "\r\n";
       dates.forEach((date) => {
         const entries = getTimeEntries(date);
@@ -565,9 +570,10 @@ const TimesheetManager = () => {
           const row = [
             `"${formatDateDisplay(date)}"`,
             `"${entry.task}"`,
-            `"${entry.hours}h"`,
+            `"${entry.hours}"`,
+            `"${entry.minutes}"`,
             `"${entry.description}"`,
-            `"${entry.project}"`,
+            `"${entry.project.projectName || ""}"` // Ensure project name is used,
 
           ];
           csvContent += row.join(",") + "\r\n";
@@ -880,7 +886,10 @@ const TimesheetManager = () => {
                 </button>
               )}
               <button
-                onClick={()=>setShowLogTimeModal(true)}
+                onClick={() => {
+    setSelectedCell({ date: new Date() }); // Ensure the current date is passed
+    setShowLogTimeModal(true);
+  }}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
               >
                 
