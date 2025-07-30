@@ -184,4 +184,60 @@ public class ManageUserController {
         return ResponseEntity.ok("Status Updated: User Activated");
     }
 
+    @GetMapping("/{userId}/editable-details")
+    public ResponseEntity<UserEditableProfileDTO> getEditableDetails(@PathVariable Long userId) {
+        Optional<UserEditableProfileDTO> dtoOptional = userRepository.findEditableProfileByUserId(userId);
+
+        if (dtoOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        UserEditableProfileDTO dto = dtoOptional.get();
+
+        // Fetch photo separately
+        userRepository.findById(userId).ifPresent(user -> {
+            dto.setPhoto(user.getPhoto()); // sets the byte[]
+        });
+
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping(value = "/{userId}/editable-details", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateEditableDetails(
+            @PathVariable Long userId,
+            @ModelAttribute UserEditableProfileDTO dto
+    ) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        User user = optionalUser.get();
+
+        user.setFirstName(dto.getFirstName());
+        user.setMiddleName(dto.getMiddleName());
+        user.setLastName(dto.getLastName());
+        user.setMobilePhone(dto.getMobilePhone());
+        user.setAddressLine1(dto.getAddressLine1());
+        user.setAddressLine2(dto.getAddressLine2());
+        user.setAddressLine3(dto.getAddressLine3());
+        user.setCity(dto.getCity());
+        user.setState(dto.getState());
+        user.setZipCode(dto.getZipCode());
+        user.setCountry(dto.getCountry());
+        user.setCost(dto.getCost());
+        user.setCost_time(dto.getCostTime());
+        user.setUnit(dto.getUnit());
+
+        // Set photo only if provided
+        if (dto.getPhoto() != null && dto.getPhoto().length > 0) {
+            user.setPhoto(dto.getPhoto());
+        }
+
+        userRepository.save(user);
+        return ResponseEntity.ok("User details updated successfully");
+    }
+
+
+
 }

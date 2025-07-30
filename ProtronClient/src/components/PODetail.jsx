@@ -334,7 +334,7 @@ const PODetailsPage = () => {
       }
     },
     {
-      headerName: "Date",
+      headerName: "Milestone Date",
       field: "startDate",
       valueGetter: params => params.data.startDate ? new Date(params.data.startDate).toLocaleDateString() : 'N/A',
       width: 120,
