@@ -21,7 +21,9 @@ import {
   Layout,
   ExternalLink
 } from 'lucide-react';
+import GlobalSnackbar from './GlobalSnackbar';
 import axios from 'axios';
+
 
 const TaskDetailsModal = ({
   isOpen,
@@ -48,6 +50,7 @@ const TaskDetailsModal = ({
 }) => {
   const [previewAttachment, setPreviewAttachment] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [snackbar, setSnackbar] = useState("")
 
   // Close modal on escape key
   useEffect(() => {
@@ -229,11 +232,19 @@ const TaskDetailsModal = ({
         link.click();
       } else {
         console.warn('No file data or attachment ID available for preview');
-        alert('Unable to preview this attachment. File data is not available.');
+        setSnackbar({
+          open: true,
+          message: 'Unable to preview this attachment. File data is not available.',
+          severity: 'warning',
+        })
       }
     } catch (error) {
       console.error('Error opening attachment in new tab:', error);
-      alert('Failed to open attachment. Please try again.');
+      setSnackbar({
+        open: true,
+        message: 'Failed to open attachment. Please try again.',
+        severity: 'error',
+      });
     }
   }, [fetchAttachment, getMimeType]);
 
@@ -279,11 +290,19 @@ const TaskDetailsModal = ({
       console.log(`Downloaded ${fileName} from base64`);
     } else {
       console.warn('No file data or attachment ID available for download');
-      alert('Unable to download this attachment. File data is not available.');
+      setSnackbar({
+        open: true,
+        message: 'Unable to download this attachment. File data is not available.',
+        severity: 'warning',
+      });
     }
   } catch (error) {
     console.error('Error downloading attachment:', error);
-    alert('Failed to download attachment. Please try again.');
+    setSnackbar({
+      open: true,
+      message: 'Failed to download attachment. Please try again.',
+      severity: 'error',
+    });
   }
 }, [fetchAttachment, getMimeType]);
 
