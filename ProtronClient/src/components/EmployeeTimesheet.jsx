@@ -1,12 +1,13 @@
 // TimesheetManager.jsx
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon, Trash2, SquarePen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Download, Plus, X, Eye, Download as DownloadIcon, Trash2, SquarePen, Edit, TimerIcon } from "lucide-react";
 import LogTimeModal from "./LogTimeModal";
 import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext";
 import TaskDetailsModal from "./TaskDetailsModal";
+
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -21,7 +22,7 @@ const formatDateDisplay = (date) =>
 const truncateText = (text, maxLength = 15) => {
   if (!text) return "";
   if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + "...";
+  // return text.substring(0, maxLength) + "...";
 };
 const isWeekend = (date) => {
   const day = date.getDay();
@@ -421,8 +422,8 @@ const TimesheetManager = () => {
   // Save handler for LogTimeModal
   const handleLogTimeSave = async (taskData) => {
     if (!taskData.date) {
-    taskData.date = selectedCell.date.toISOString().split("T")[0]; // Ensure the correct date is used
-  }
+      taskData.date = selectedCell.date.toISOString().split("T")[0]; // Ensure the correct date is used
+    }
     if (editingTask) {
       console.log({
         ...taskData,
@@ -562,7 +563,7 @@ const TimesheetManager = () => {
       const dates = getVisibleDates();
       const periodType = viewMode === "Weekly" ? "week" : "month";
       const BOM = "\uFEFF";
-      const headers = ["Date", "Task", "Hours","Minutes", "Description", "Project"];
+      const headers = ["Date", "Task", "Hours", "Minutes", "Description", "Project"];
       let csvContent = BOM + headers.map((h) => `"${h}"`).join(",") + "\r\n";
       dates.forEach((date) => {
         const entries = getTimeEntries(date);
@@ -734,39 +735,39 @@ const TimesheetManager = () => {
                     </div>
                   )}
                   {isOverflowOpen && (
-                <div
-                  className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
-                  style={{
-                    // Position dropdown above if it's in the last few rows, below otherwise
-                    ...(index >= gridCells.length - 22
-                      ? { bottom: '100%', marginBottom: '8px' }
-                      : { top: '100%', marginTop: '8px' })
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="pb-3">
-                    <div className="text-xs font-semibold text-blue-700 mb-2 border-b border-blue-200 pb-2 bg-blue-50 p-3 rounded-t-lg flex items-center justify-between">
-                      <span>Additional tasks for {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}</span>
-                    </div>
-                    <div className="space-y-2 px-2">
-                      {overflowTasks.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity bg-green-200 border-green-200`}
-                          title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTaskDetail(entry.fullTask);
-                          }}
-                        >
-                          <span className="font-semibold">{entry.task}</span>
-                          <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
+                    <div
+                      className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
+                      style={{
+                        // Position dropdown above if it's in the last few rows, below otherwise
+                        ...(index >= gridCells.length - 22
+                          ? { bottom: '100%', marginBottom: '8px' }
+                          : { top: '100%', marginTop: '8px' })
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="pb-3">
+                        <div className="text-xs font-semibold text-blue-700 mb-2 border-b border-blue-200 pb-2 bg-blue-50 p-3 rounded-t-lg flex items-center justify-between">
+                          <span>Additional tasks for {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}</span>
                         </div>
-                      ))}
+                        <div className="space-y-2 px-2">
+                          {overflowTasks.map((entry) => (
+                            <div
+                              key={entry.id}
+                              className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity bg-green-200 border-green-200`}
+                              title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTaskDetail(entry.fullTask);
+                              }}
+                            >
+                              <span className="font-semibold">{entry.task}</span>
+                              <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  )}
                 </div>
               );
             })}
@@ -887,12 +888,12 @@ const TimesheetManager = () => {
               )}
               <button
                 onClick={() => {
-    setSelectedCell({ date: new Date() }); // Ensure the current date is passed
-    setShowLogTimeModal(true);
-  }}
+                  setSelectedCell({ date: new Date() }); // Ensure the current date is passed
+                  setShowLogTimeModal(true);
+                }}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
               >
-                
+
                 <span>Add Timesheet Task</span>
               </button>
               <button
@@ -1025,47 +1026,76 @@ const TimesheetManager = () => {
                               {entries.map((entry) => (
                                 <div
                                   key={entry.id}
-                                  className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full bg-green-50 border-green-200 
-                   ${isWeekendDay ? 'opacity-90' : ''}`}
-                                  style={{
-                                    boxSizing: "border-box",
-                                    height: "150px",
-                                  }}
+                                  className={`border rounded-xl p-2 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-between h-[150px] bg-green-50 border-green-200 ${isWeekendDay ? 'opacity-90' : ''
+                                    }`}
                                   onClick={() => setTaskDetail(entry.fullTask)}
                                 >
-                                  {/* Entry Content */}
-                                  <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
-                                    <div className="flex items-center gap-2">
-                                      <FileText className="h-4 w-4 text-blue-500" />
-                                      <span className="text-base font-semibold text-gray-900">{entry.hours}h {entry.minutes}m</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
                                       {entry.project && (
-                                        <span
-                                          className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                                          title={entry.project.projectName || "-"} // Full project name on hover
-                                        >
-                                          <Folder className="h-3 w-3 mr-1" />
-                                          {truncateText(entry.project.projectName, 12)}
-                                        </span>
+                                        <div className="flex justify-center mt-1">
+                                          <span
+                                            className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium cursor-help max-w-[130px] truncate"
+                                            title={entry.project.projectName || "-"}
+                                          >
+                                            <Folder className="h-3 w-3 mr-1" />
+                                            {entry.project.projectName}
+                                          </span>
+                                        </div>
                                       )}
+                                  {/* Time and Task Topic */}
+                                  
+
+                                    <div className="flex justify-center items-center gap-2">
+                                      <FileText className="h-4 w-4 text-blue-500" />
+                                      <span className="text-sm font-semibold text-gray-900 truncate max-w-[120px]" title={entry.fullTask.taskTopic}>
+                                        {entry.fullTask.taskTopic}
+                                      </span>
                                     </div>
-                                    <div className="w-full">
-                                      <div
-                                        className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""
-                                          }`}
-                                        style={{
-                                          maxHeight: "50px",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                          whiteSpace: "normal",
+                                    
+                                    <div className="flex justify-between items-center gap-2">
+                                      <div className="flex items-center gap-1">
+                                      <TimerIcon className="h-4 w-4 text-blue-500" />
+                                      <span className="text-xs font-semibold text-gray-900">
+                                        {entry.hours}h {entry.minutes}m
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center justify-end gap-2">
+
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setTaskDetail(entry.fullTask);
                                         }}
+                                        >
+                                        <Eye className="h-4 w-4 text-green-500 hover:text-gray-600" />
+                                      </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingTask(entry.fullTask);
+                                        setShowLogTimeModal(true);
+                                      }}
+                                    >
+                                      <Edit className="h-4 w-4 text-blue-500 hover:text-blue-600" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteTimeEntry(date, entry.id);
+                                      }}
                                       >
-                                        {entry.description ? entry.description : "No description"}
+                                      <Trash2 className="h-4 w-4 text-red-500 hover:text-red-600" />
+                                    </button>
                                       </div>
                                     </div>
-                                  </div>
+
+                                    
+                                  {/* Project badge */}
+
+                                  
+                                  {/* Action buttons */}
+                                  
                                 </div>
+
                               ))}
 
                               {/* Add New Entry Button */}
@@ -1111,6 +1141,7 @@ const TimesheetManager = () => {
         editingTask={editingTask}
         timesheetData={timesheetData}
       />
+
 
       {/* Task Details Modal */}
       {taskDetail && (

@@ -455,7 +455,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
@@ -490,8 +490,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
           <div className="space-y-4">
             {/* Row 1: PO Number, Milestone, Currency, and Amount */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-2">
+            <div className="grid grid-cols-5 gap-4">
+              <div >
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
                   PO Number *
@@ -524,7 +524,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 )}
               </div>
 
-              <div className="col-span-3">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Activity size={14} className="inline mr-1" />
                   Milestone (Optional)
@@ -550,7 +550,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 </select>
               </div>
 
-              <div className="col-span-1">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Currency
                 </label>
@@ -570,7 +570,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 </select>
               </div>
 
-              <div className="col-span-2">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <DollarSign size={14} className="inline mr-1" />
                   Amount *
@@ -591,12 +591,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 />
               </div>
 
-              <div className="col-span-4"></div> {/* Spacer */}
-            </div>
-
-            {/* Row 2: Utilization Type, Resource/Project, System Name */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-2">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Activity size={14} className="inline mr-1" />
                   Type *
@@ -621,8 +616,13 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   </p>
                 )}
               </div>
+            </div>
 
-              <div className="col-span-4">
+            {/* Row 2: Utilization Type, Resource/Project, System Name */}
+            <div className="grid grid-cols-5 gap-4">
+              
+
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
                   Resource/Project
@@ -651,7 +651,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 )}
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
                   System Name
@@ -668,12 +668,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 />
               </div>
 
-              <div className="col-span-3"></div> {/* Spacer */}
-            </div>
-
-            {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
                   Work Assign Date
@@ -690,7 +685,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
                   Work Completion Date
@@ -706,8 +701,13 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   title={formData.workCompletionDate ? `Work Completed: ${new Date(formData.workCompletionDate).toLocaleDateString()}` : "Click to select work completion date (optional)"}
                 />
               </div>
+            </div>
 
-              <div className="col-span-3">
+            {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
+            <div className="grid grid-cols-12 gap-4">
+              
+
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
                   Attachment
@@ -734,7 +734,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 )}
               </div>
 
-              <div className="col-span-3"></div> {/* Spacer */}
+              <div className=""></div> {/* Spacer */}
             </div>
 
             {/* Row 4: Work Description */}

@@ -76,7 +76,6 @@ const ViewPOModal = ({ open, onClose, poData }) => {
           <div className="flex items-center space-x-3">
             <div>
               <h2 className="text-2xl font-bold text-white">Purchase Order Details</h2>
-              <p className="text-green-100 text-sm">Comprehensive PO overview and management</p>
             </div>
           </div>
           <button
@@ -93,7 +92,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
             {/* Left Column - Basic PO Information */}
             <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-6">PO INFORMATION</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">PO Number</label>
                   <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poData.poNumber || "N/A"}</p>
@@ -122,7 +121,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
             {/* Right Column - Contact & Timeline Information */}
             <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-100 h-full">
               <h3 className="text-lg font-semibold text-teal-800 mb-6">CONTACT & TIMELINE</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">Customer</label>
                   <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poData.customer || "N/A"}</p>

@@ -15,7 +15,8 @@ import {
     Trash2,
     Upload,
     FileText,
-    Edit2
+    Edit2,
+    UserCheck
 } from 'lucide-react';
 import AddMilestoneModal from './AddMilestoneModal'; // Import the AddMilestoneModal
 import axios from 'axios';
@@ -645,7 +646,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             PM/SPOC Name
                                         </label>
                                         <div className="relative w-full">
-                                            <Folder
+                                            <UserCheck
                                                 className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
                                                 size={20}
                                                 title="Select or create project"
