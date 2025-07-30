@@ -308,7 +308,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
 
       {/* Project Details */}
       {projectDetails && (
-        <div className="grid grid-cols-3 gap-6 mb-8 bg-[#AECCE4] p-4 rounded-lg">
+        <div className="grid grid-cols-3 gap-6 mb-8 bg-[#aee4be] p-4 rounded-lg">
           <div>
             <p className="text-gray-500 text-sm">Project Name: <span className="font-medium text-gray-700">{projectDetails.project.projectName}</span></p>
             <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{formatDate(projectDetails.project.startDate)}</span></p>
