@@ -7,8 +7,7 @@ import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +22,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class InvoiceService {
 
-    private final InvoiceRepository invoiceRepository;
+    private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
 
     /**
      * Generates a custom invoice ID in format: INV-MMDDYYYY-100001

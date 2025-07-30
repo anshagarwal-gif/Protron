@@ -1,12 +1,11 @@
 package com.Protronserver.Protronserver.Controller;
 
-import com.Protronserver.Protronserver.Entities.Invoice;
-import com.Protronserver.Protronserver.Repository.InvoiceRepository;
-import com.Protronserver.Protronserver.Service.InvoiceService;
 import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
+import com.Protronserver.Protronserver.Service.InvoiceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,17 +13,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import jakarta.validation.Valid;
-import java.util.List;
+
 import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/invoices")
-@RequiredArgsConstructor
 public class InvoiceController {
 
-    private final InvoiceService invoiceService;
-    private final ObjectMapper objectMapper;
+    @Autowired
+    private InvoiceService invoiceService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping("/generate")
     public ResponseEntity<?> generateInvoice(@Valid @RequestBody InvoiceRequestDTO requestDTO) {

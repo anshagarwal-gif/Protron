@@ -156,4 +156,252 @@ public class Invoice {
             fileNames.add(attachment4FileName);
         return fileNames;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getInvoiceId() {
+        return invoiceId;
+    }
+
+    public void setInvoiceId(String invoiceId) {
+        this.invoiceId = invoiceId;
+    }
+
+    public String getInvoiceName() {
+        return invoiceName;
+    }
+
+    public void setInvoiceName(String invoiceName) {
+        this.invoiceName = invoiceName;
+    }
+
+    public String getCustomerName() {
+        return customerName;
+    }
+
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getCustomerAddress() {
+        return customerAddress;
+    }
+
+    public void setCustomerAddress(String customerAddress) {
+        this.customerAddress = customerAddress;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getSupplierAddress() {
+        return supplierAddress;
+    }
+
+    public void setSupplierAddress(String supplierAddress) {
+        this.supplierAddress = supplierAddress;
+    }
+
+    public String getEmployeeName() {
+        return employeeName;
+    }
+
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public BigDecimal getRate() {
+        return rate;
+    }
+
+    public void setRate(BigDecimal rate) {
+        this.rate = rate;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public LocalDate getFromDate() {
+        return fromDate;
+    }
+
+    public void setFromDate(LocalDate fromDate) {
+        this.fromDate = fromDate;
+    }
+
+    public LocalDate getToDate() {
+        return toDate;
+    }
+
+    public void setToDate(LocalDate toDate) {
+        this.toDate = toDate;
+    }
+
+    public Integer getHoursSpent() {
+        return hoursSpent;
+    }
+
+    public void setHoursSpent(Integer hoursSpent) {
+        this.hoursSpent = hoursSpent;
+    }
+
+    public BigDecimal getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(BigDecimal totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
+
+    public byte[] getPdfData() {
+        return pdfData;
+    }
+
+    public void setPdfData(byte[] pdfData) {
+        this.pdfData = pdfData;
+    }
+
+    public String getPdfFileName() {
+        return pdfFileName;
+    }
+
+    public void setPdfFileName(String pdfFileName) {
+        this.pdfFileName = pdfFileName;
+    }
+
+    public byte[] getAttachment1Data() {
+        return attachment1Data;
+    }
+
+    public void setAttachment1Data(byte[] attachment1Data) {
+        this.attachment1Data = attachment1Data;
+    }
+
+    public String getAttachment1FileName() {
+        return attachment1FileName;
+    }
+
+    public void setAttachment1FileName(String attachment1FileName) {
+        this.attachment1FileName = attachment1FileName;
+    }
+
+    public String getAttachment1ContentType() {
+        return attachment1ContentType;
+    }
+
+    public void setAttachment1ContentType(String attachment1ContentType) {
+        this.attachment1ContentType = attachment1ContentType;
+    }
+
+    public byte[] getAttachment2Data() {
+        return attachment2Data;
+    }
+
+    public void setAttachment2Data(byte[] attachment2Data) {
+        this.attachment2Data = attachment2Data;
+    }
+
+    public String getAttachment2FileName() {
+        return attachment2FileName;
+    }
+
+    public void setAttachment2FileName(String attachment2FileName) {
+        this.attachment2FileName = attachment2FileName;
+    }
+
+    public String getAttachment2ContentType() {
+        return attachment2ContentType;
+    }
+
+    public void setAttachment2ContentType(String attachment2ContentType) {
+        this.attachment2ContentType = attachment2ContentType;
+    }
+
+    public byte[] getAttachment3Data() {
+        return attachment3Data;
+    }
+
+    public void setAttachment3Data(byte[] attachment3Data) {
+        this.attachment3Data = attachment3Data;
+    }
+
+    public String getAttachment3FileName() {
+        return attachment3FileName;
+    }
+
+    public void setAttachment3FileName(String attachment3FileName) {
+        this.attachment3FileName = attachment3FileName;
+    }
+
+    public String getAttachment3ContentType() {
+        return attachment3ContentType;
+    }
+
+    public void setAttachment3ContentType(String attachment3ContentType) {
+        this.attachment3ContentType = attachment3ContentType;
+    }
+
+    public byte[] getAttachment4Data() {
+        return attachment4Data;
+    }
+
+    public void setAttachment4Data(byte[] attachment4Data) {
+        this.attachment4Data = attachment4Data;
+    }
+
+    public String getAttachment4FileName() {
+        return attachment4FileName;
+    }
+
+    public void setAttachment4FileName(String attachment4FileName) {
+        this.attachment4FileName = attachment4FileName;
+    }
+
+    public String getAttachment4ContentType() {
+        return attachment4ContentType;
+    }
+
+    public void setAttachment4ContentType(String attachment4ContentType) {
+        this.attachment4ContentType = attachment4ContentType;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }
