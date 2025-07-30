@@ -433,7 +433,7 @@ const IndividualTimesheet = () => {
                 minutes: res.data.minutesSpent || 0, // Handle optional minutes
                 description: res.data.description,
                 task: res.data.taskType,
-                project: res.data.project?.projectName || "",
+                project: res.data.project,
                 submitted: res.data.submitted,
                 attachments: res.data.attachments,
                 fullTask: res.data,
@@ -460,7 +460,7 @@ const IndividualTimesheet = () => {
             minutes: taskData.minutesSpent || 0, // Handle optional minutes
             description: taskData.description,
             task: taskData.taskType,
-            project: taskData.project?.projectName || "",
+            project: taskData.project,
             submitted: taskData.submitted,
             attachments: taskData.attachments,
             fullTask: taskData,

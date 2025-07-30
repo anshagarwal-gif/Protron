@@ -31,12 +31,19 @@ const currencySymbols = {
 };
 
 const AddPOModal = ({ open, onClose, onSubmit }) => {
+    const [currentStep, setCurrentStep] = useState(1); // Step 1: PO Details, Step 2: Milestones
+    const [poId, setPoId] = useState(null); // Store the created PO ID
     const [formData, setFormData] = useState({
         poNumber: '',
         poType: '',
         poAmount: '',
         currency: 'USD',
         customerName: '',
+        sponsorName: '',
+        sponsorLob: '',
+        budgetLineItem: '',
+        budgetLineAmount: '',
+        budgetLineRemarks: '',
         supplierName: sessionStorage.getItem('tenantName') || '',
         projectName: '',
         spocName: '',
@@ -52,12 +59,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     const EndDateInputRef = useRef(null);
     const [projects, setProjects] = useState([]);
 
-    const [activeTab, setActiveTab] = useState('details');
-
     // Add state for milestone modal
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
-    const [tempPoId, setTempPoId] = useState('temp-' + Date.now());
 
     const fetchUsers = async () => {
         try {
@@ -69,7 +73,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             const data = await res.json();
             setUsers(data);
         } catch (error) {
-            console.log({ message: error });
+            console.error('Error fetching users:', error);
         }
     };
 
@@ -80,10 +84,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/projects`, {
                 headers: { Authorization: `${token}` }
             });
-            console.log('Projects response:', res);
             setProjects(res.data);
         } catch (error) {
-            console.log({ message: error });
+            console.error('Error fetching projects:', error);
         }
     };
 
@@ -93,12 +96,12 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             fetchProjects();
         }
     }, [open]);
-    console.log("Projects fetched:", projects);
+
     const projectOptions = projects.map((project) => ({
         value: project.projectName,
         label: project.projectName,
     }));
-    console.log(users)
+
     const userOptions = users.map((user) => ({
         value: user.name,
         label: user.name,
@@ -134,37 +137,16 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     // Handle milestone submission from modal
     const handleMilestoneSubmit = (milestoneData) => {
         if (editingMilestone !== null) {
-            // Edit existing milestone
             const updatedMilestones = [...formData.milestones];
-            updatedMilestones[editingMilestone] = {
-                milestoneName: milestoneData.milestoneName,
-                milestoneDescription: milestoneData.milestoneDescription,
-                amount: milestoneData.amount,
-                currency: milestoneData.currency,
-                date: milestoneData.date,
-                duration: milestoneData.duration,
-                remark: milestoneData.remarks,
-                attachment: milestoneData.attachment
-            };
-            setFormData(prev => ({
+            updatedMilestones[editingMilestone] = milestoneData;
+            setFormData((prev) => ({
                 ...prev,
                 milestones: updatedMilestones
             }));
         } else {
-            // Add new milestone
-            const newMilestone = {
-                milestoneName: milestoneData.milestoneName,
-                milestoneDescription: milestoneData.milestoneDescription,
-                amount: milestoneData.amount,
-                currency: milestoneData.currency,
-                date: milestoneData.date,
-                duration: milestoneData.duration,
-                remark: milestoneData.remarks,
-                attachment: milestoneData.attachment
-            };
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
-                milestones: [...prev.milestones, newMilestone]
+                milestones: [...prev.milestones, milestoneData]
             }));
         }
         setMilestoneModalOpen(false);
@@ -179,10 +161,95 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     };
 
     const handleRemoveMilestone = (index) => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             milestones: prev.milestones.filter((_, i) => i !== index)
         }));
+    };
+
+    const handleCreatePO = async () => {
+        try {
+            const poPayload = {
+                poNumber: formData.poNumber,
+                poType: formData.poType,
+                poDesc: formData.projectDescription || '',
+                poAmount: parseFloat(formData.poAmount) || 0,
+                poCurrency: formData.currency,
+                poSpoc: formData.spocName,
+                supplier: formData.supplierName,
+                customer: formData.customerName,
+                sponsorName: formData.sponsorName || '',
+                budgetLineItem: formData.budgetLineItem || '',
+                budgetLineAmount: formData.budgetLineAmount || '',
+                budgetLineRemarks: formData.budgetLineRemarks || '',
+                sponsorLob: formData.sponsorLob || '',
+                projectName: formData.projectName,
+                poStartDate: formData.startDate || null,
+                poEndDate: formData.endDate || null
+            };
+
+            const token = sessionStorage.getItem('token');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po/add`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(poPayload)
+            });
+
+            if (response.ok) {
+                const poData = await response.json();
+                setPoId(poData.poId || poData.id); // Store the created PO ID
+                setCurrentStep(2); // Move to the Milestones step
+            } else {
+                const errorData = await response.text();
+                console.error('PO Creation Error:', errorData);
+                alert('Failed to create PO. Please check the console for details.');
+            }
+        } catch (error) {
+            console.error('Error creating PO:', error);
+            alert('Network error. Please try again.');
+        }
+    };
+
+    const handleSubmitMilestones = async () => {
+        try {
+            const token = sessionStorage.getItem('token');
+            for (const milestone of formData.milestones) {
+                const milestonePayload = {
+                    msName: milestone.milestoneName,
+                    msDesc: milestone.milestoneDescription || '',
+                    msAmount: parseFloat(milestone.amount) || 0,
+                    msCurrency: milestone.currency || formData.currency,
+                    msDate: milestone.date || null,
+                    msDuration: parseInt(milestone.duration) || 0,
+                    msRemarks: milestone.remark || '',
+                    poId: poId, // Use the created PO ID
+                    poNumber: formData.poNumber
+                };
+
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/add`, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(milestonePayload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Milestone Creation Error:', errorData);
+                }
+            }
+
+            onSubmit?.();
+            onClose();
+        } catch (error) {
+            console.error('Error submitting milestones:', error);
+            alert('Network error. Please try again.');
+        }
     };
 
     // Updated milestone column definitions for display only
@@ -349,111 +416,113 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         }));
     };
 
-    const handleSubmit = async () => {
-        try {
-            const poPayload = {
-                poNumber: formData.poNumber,
-                poType: formData.poType,
-                poDesc: formData.projectDescription || '',
-                poAmount: parseFloat(formData.poAmount) || 0,
-                poCurrency: formData.currency,
-                poSpoc: formData.spocName,
-                supplier: formData.supplierName,
-                customer: formData.customerName,
-                projectName: formData.projectName,
-                poStartDate: formData.startDate || null,
-                poEndDate: formData.endDate || null,
-            };
+    // const handleSubmit = async () => {
+    //     try {
+    //         const poPayload = {
+    //             poNumber: formData.poNumber,
+    //             poType: formData.poType,
+    //             poDesc: formData.projectDescription || '',
+    //             poAmount: parseFloat(formData.poAmount) || 0,
+    //             poCurrency: formData.currency,
+    //             poSpoc: formData.spocName,
+    //             supplier: formData.supplierName,
+    //             customer: formData.customerName,
+    //             sponsorName: formData.sponsorName || '',
+    //             sponsorLob: formData.sponsorLob || '',
+    //             projectName: formData.projectName,
+    //             poStartDate: formData.startDate || null,
+    //             poEndDate: formData.endDate || null,
+    //         };
 
-            const token = sessionStorage.getItem('token');
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/po/add`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(poPayload)
-                }
-            );
+    //         const token = sessionStorage.getItem('token');
+    //         const response = await fetch(
+    //             `${import.meta.env.VITE_API_URL}/api/po/add`,
+    //             {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Authorization': `${token}`,
+    //                     'Content-Type': 'application/json'
+    //                 },
+    //                 body: JSON.stringify(poPayload)
+    //             }
+    //         );
 
-            if (response.ok) {
-                const poData = await response.json();
-                console.log('PO Created:', poData);
-                const currentUser = sessionStorage.getItem('username') || 'system';
+    //         if (response.ok) {
+    //             const poData = await response.json();
+    //             console.log('PO Created:', poData);
+    //             const currentUser = sessionStorage.getItem('username') || 'system';
 
-                // Upload PO Attachments (up to 4)
-                if (formData.poAttachments.length > 0) {
-                    for (const [index, file] of formData.poAttachments.entries()) {
-                        await uploadAttachment(poData.poNumber, 'PO', null, `po_attachment${index + 1}`, file, currentUser);
-                    }
-                }
+    //             // Upload PO Attachments (up to 4)
+    //             if (formData.poAttachments.length > 0) {
+    //                 for (const [index, file] of formData.poAttachments.entries()) {
+    //                     await uploadAttachment(poData.poNumber, 'PO', null, `po_attachment${index + 1}`, file, currentUser);
+    //                 }
+    //             }
 
-                // Upload Milestone Attachments with a 4-file limit
-                if (formData.milestones.length > 0) {
-                    let milestoneAttachmentCount = 0;
-                    for (const milestone of formData.milestones) {
-                        if (milestone.milestoneName && milestone.milestoneName.trim()) {
-                            const milestonePayload = {
-                                msName: milestone.milestoneName,
-                                msDesc: milestone.milestoneDescription || '',
-                                msAmount: parseInt(milestone.amount) || 0,
-                                msCurrency: milestone.currency || formData.currency,
-                                msDate: milestone.date || null,
-                                msDuration: parseInt(milestone.duration) || 0,
-                                msRemarks: milestone.remark || '',
-                                poId: poData.poId || poData.id,
-                                poNumber: formData.poNumber
-                            };
+    //             // Upload Milestone Attachments with a 4-file limit
+    //             if (formData.milestones.length > 0) {
+    //                 let milestoneAttachmentCount = 0;
+    //                 for (const milestone of formData.milestones) {
+    //                     if (milestone.milestoneName && milestone.milestoneName.trim()) {
+    //                         const milestonePayload = {
+    //                             msName: milestone.milestoneName,
+    //                             msDesc: milestone.milestoneDescription || '',
+    //                             msAmount: parseInt(milestone.amount) || 0,
+    //                             msCurrency: milestone.currency || formData.currency,
+    //                             msDate: milestone.date || null,
+    //                             msDuration: parseInt(milestone.duration) || 0,
+    //                             msRemarks: milestone.remark || '',
+    //                             poId: poData.poId || poData.id,
+    //                             poNumber: formData.poNumber
+    //                         };
 
-                            const milestoneResponse = await fetch(
-                                `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
-                                {
-                                    method: 'POST',
-                                    headers: {
-                                        'Authorization': `${token}`,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(milestonePayload)
-                                }
-                            );
+    //                         const milestoneResponse = await fetch(
+    //                             `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
+    //                             {
+    //                                 method: 'POST',
+    //                                 headers: {
+    //                                     'Authorization': `${token}`,
+    //                                     'Content-Type': 'application/json'
+    //                                 },
+    //                                 body: JSON.stringify(milestonePayload)
+    //                             }
+    //                         );
 
-                            if (milestoneResponse.ok) {
-                                const milestoneData = await milestoneResponse.json();
-                                console.log('Milestone created:', milestoneData);
+    //                         if (milestoneResponse.ok) {
+    //                             const milestoneData = await milestoneResponse.json();
+    //                             console.log('Milestone created:', milestoneData);
 
-                                // If this milestone has an attachment, upload it, respecting the limit
-                                if (milestone.attachment) {
-                                    milestoneAttachmentCount++;
-                                    if (milestoneAttachmentCount <= 4) {
-                                        await uploadAttachment(poData.poNumber, 'MS', milestoneData.msId, `ms_attachment${milestoneAttachmentCount}`, milestone.attachment, currentUser);
-                                    } else {
-                                        console.warn(`Skipping milestone attachment upload: Maximum of 4 milestone attachments reached.`);
-                                        alert('Warning: Maximum of 4 milestone attachments reached. Some files were not uploaded.');
-                                    }
-                                }
-                            } else {
-                                const milestoneError = await milestoneResponse.text();
-                                console.error('Milestone creation error:', milestoneError);
-                            }
-                        }
-                    }
-                }
+    //                             // If this milestone has an attachment, upload it, respecting the limit
+    //                             if (milestone.attachment) {
+    //                                 milestoneAttachmentCount++;
+    //                                 if (milestoneAttachmentCount <= 4) {
+    //                                     await uploadAttachment(poData.poNumber, 'MS', milestoneData.msId, `ms_attachment${milestoneAttachmentCount}`, milestone.attachment, currentUser);
+    //                                 } else {
+    //                                     console.warn(`Skipping milestone attachment upload: Maximum of 4 milestone attachments reached.`);
+    //                                     alert('Warning: Maximum of 4 milestone attachments reached. Some files were not uploaded.');
+    //                                 }
+    //                             }
+    //                         } else {
+    //                             const milestoneError = await milestoneResponse.text();
+    //                             console.error('Milestone creation error:', milestoneError);
+    //                         }
+    //                     }
+    //                 }
+    //             }
 
-                onSubmit?.(poData);
-                handleReset();
-                onClose();
-            } else {
-                const errorData = await response.text();
-                console.error('PO Creation Error:', errorData);
-                alert('Failed to create PO. Please check the console for details.');
-            }
-        } catch (error) {
-            console.error('Error creating PO:', error);
-            alert('Network error. Please try again.');
-        }
-    };
+    //             onSubmit?.(poData);
+    //             handleReset();
+    //             onClose();
+    //         } else {
+    //             const errorData = await response.text();
+    //             console.error('PO Creation Error:', errorData);
+    //             alert('Failed to create PO. Please check the console for details.');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error creating PO:', error);
+    //         alert('Network error. Please try again.');
+    //     }
+    // };
 
     const handleReset = () => {
         setFormData({
@@ -462,6 +531,11 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             poAmount: '',
             currency: 'USD',
             customerName: '',
+            sponsorName: '',
+            sponsorLob: '',
+            budgetLineItem: '',
+            budgetLineAmount: '',
+            budgetLineRemarks: '',
             supplierName: sessionStorage.getItem('tenantName') || '',
             projectName: '',
             spocName: '',
@@ -475,34 +549,16 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         setEditingMilestone(null);
     };
 
-    // Prepare initial data for editing milestone
-    const getInitialMilestoneData = () => {
-        if (editingMilestone !== null) {
-            const milestone = formData.milestones[editingMilestone];
-            return {
-                msName: milestone.milestoneName || '',
-                msDesc: milestone.milestoneDescription || '',
-                msAmount: milestone.amount || '',
-                msCurrency: milestone.currency || formData.currency,
-                msDate: milestone.date || '',
-                msDuration: milestone.duration || '',
-                msRemarks: milestone.remark || '',
-                msAttachment: milestone.attachment || null,
-                poId: tempPoId,
-                poNumber: formData.poNumber || ''
-            };
-        }
-        return null;
-    };
-
     if (!open) return null;
-    console.log(userOptions)
+
     return (
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                 <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                     <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                        <h2 className="text-xl font-semibold text-green-900">Create New PO</h2>
+                        <h2 className="text-xl font-semibold text-green-900">
+                            {currentStep === 1 ? 'Create New PO' : 'Add Milestones'}
+                        </h2>
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-gray-200 rounded-full transition-colors"
@@ -511,31 +567,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                         </button>
                     </div>
 
-                    <div className="border-b border-gray-200">
-                        <nav className="flex px-6" aria-label="Tabs">
-                            <button
-                                onClick={() => setActiveTab('details')}
-                                className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'details'
-                                    ? 'border-green-500 text-green-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    } transition-colors`}
-                            >
-                                PO Details
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('milestones')}
-                                className={`py-4 px-4 text-sm font-medium border-b-2 ${activeTab === 'milestones'
-                                    ? 'border-green-500 text-green-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    } transition-colors`}
-                            >
-                                Milestone Details ({formData.milestones.length})
-                            </button>
-                        </nav>
-                    </div>
-
                     <div className="p-6 overflow-y-auto flex-grow">
-                        {activeTab === 'details' && (
+                        {currentStep === 1 && (
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
                                     <div className="lg:col-span-1">
@@ -759,6 +792,161 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
                                     </div>
 
+                                    <div>
+                                        <label
+                                            htmlFor="sponsorName"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            Sponsor Name
+                                        </label>
+                                        <div className="relative w-full">
+                                            <UserCheck
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                                size={20}
+                                                title="Select or create sponsor"
+                                            />
+                                            <CreatableSelect
+                                                inputId="sponsorName"
+                                                options={userOptions}
+                                                value={
+                                                    formData.sponsorName
+                                                        ? { label: formData.sponsorName, value: formData.sponsorName }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    handleChange('sponsorName')({
+                                                        target: { value: selectedOption?.value || '' },
+                                                    });
+                                                }}
+                                                className="react-select-container"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Sponsor"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="sponsorLob"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            Sponsor LOB
+                                        </label>
+                                        <div className="relative w-full">
+                                            <UserCheck
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                                size={20}
+                                                title="Select or create project"
+                                            />
+                                            <CreatableSelect
+                                                inputId="sponsorLob"
+                                                options={userOptions}
+                                                value={
+                                                    formData.sponsorLob
+                                                        ? { label: formData.sponsorLob, value: formData.sponsorLob }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    handleChange('sponsorLob')({
+                                                        target: { value: selectedOption?.value || '' },
+                                                    });
+                                                }}
+                                                className="react-select-container"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Sponsor LOB"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="budgetLineItem"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            Budget Line Item
+                                        </label>
+                                        <div className="relative w-full">
+                                            <UserCheck
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                                size={20}
+                                                title="Select Budget Line Item"
+                                            />
+                                            <CreatableSelect
+                                                inputId="budgetLineItem"
+                                                options={userOptions}
+                                                value={
+                                                    formData.budgetLineItem
+                                                        ? { label: formData.budgetLineItem, value: formData.budgetLineItem }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    handleChange('budgetLineItem')({
+                                                        target: { value: selectedOption?.value || '' },
+                                                    });
+                                                }}
+                                                className="react-select-container"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Budget Line Item"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Budget Line Amount</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 font-semibold">
+                                                {currencySymbols[formData.currency] || '$'}
+                                            </span>
+                                            <input
+                                                type="number"
+                                                placeholder="Enter here"
+                                                value={formData.budgetLineAmount}
+                                                onChange={handleChange('budgetLineAmount')}
+                                                title={formData.budgetLineAmount?.toString() || 'Enter Amount'} // Tooltip on hover
+                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                            />
+                                        </div>
+                                    </div>
+
                                 </div>
                                 <div className="lg:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
@@ -802,23 +990,37 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         ))}
                                     </ul>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
-                                    <textarea
-                                        placeholder="Enter here"
-                                        rows={3}
-                                        value={formData.projectDescription}
-                                        onChange={handleChange('projectDescription')}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
-                                        maxLength={500}
-                                        title={formData.projectDescription || 'Enter project description'}
-                                    />
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Project Description</label>
+                                        <textarea
+                                            placeholder="Enter here"
+                                            rows={3}
+                                            value={formData.projectDescription}
+                                            onChange={handleChange('projectDescription')}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                            maxLength={500}
+                                            title={formData.projectDescription || 'Enter project description'}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Budget Line Remarks</label>
+                                        <textarea
+                                            placeholder="Enter here"
+                                            rows={3}
+                                            value={formData.budgetLineRemarks}
+                                            onChange={handleChange('budgetLineRemarks')}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                            maxLength={500}
+                                            title={formData.budgetLineRemarks || 'Enter budget line remarks'}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        {activeTab === 'milestones' && (
+                        {currentStep === 2 && (
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center">
                                     <h3 className="text-lg font-semibold text-green-900">Milestones Details</h3>
@@ -860,24 +1062,19 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleReset}
-                            className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
-                        >
-                            Reset
-                        </button>
-                        <button
-                            onClick={handleSubmit}
+                        {currentStep === 1 ? (
+                            <button
+                                onClick={handleCreatePO}
+                                className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
+                            >
+                                Next
+                            </button>
+                        ) : (<button
+                            onClick={handleSubmitMilestones}
                             className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
                         >
-                            Create PO
-                        </button>
+                            Submit Milestones
+                        </button>)}
                     </div>
                 </div>
             </div>
@@ -890,8 +1087,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     setEditingMilestone(null);
                 }}
                 onSubmit={handleMilestoneSubmit}
-                poId={tempPoId}
-                initialData={getInitialMilestoneData()}
+                poId={poId}
             />
         </>
     );

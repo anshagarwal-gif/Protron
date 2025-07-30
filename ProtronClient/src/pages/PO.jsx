@@ -699,6 +699,7 @@ const POManagement = () => {
         onClose={() => {
           setIsEditModalOpen(false);
           setSelectedPOId(null);
+          fetchPOData();
         }}
         onSubmit={handleEditModalSubmit}
         poId={selectedPOId}

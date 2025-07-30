@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock } from "lucide-react";
 import axios from "axios";
 
-const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
+const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   const [formData, setFormData] = useState({
     msName: "",
     msDesc: "",
@@ -22,12 +22,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
   const [descWordCount, setDescWordCount] = useState(0);
   const [remarksWordCount, setRemarksWordCount] = useState(0);
   const [poBalance, setPOBalance] = useState(null);
-
-  useEffect(() => {
-  if (initialData) {
-    setFormData(initialData);
-  }
-}, [initialData]);
 
   // Fetch PO details to get PO number and currency
   useEffect(() => {
@@ -98,7 +92,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
-    
+
     if (type === 'file') {
       setFormData(prev => ({
         ...prev,
@@ -127,13 +121,13 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
         }
         setRemarksWordCount(wordCount);
       }
-      
+
       setFormData(prev => ({
         ...prev,
         [name]: value
       }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -168,17 +162,33 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
-    setLoading(true);
-    try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        throw new Error("Missing authentication credentials");
-      }
+    if (onSubmit) {
+
+      const submitData = {
+          milestoneName: formData.msName,
+          milestoneDescription: formData.msDesc,
+          amount: parseInt(formData.msAmount) || 0,
+          currency: formData.msCurrency,
+          date: new Date(formData.msDate).toISOString().split('T')[0],
+          duration: parseInt(formData.msDuration) || 0,
+          remark: formData.msRemarks || "",
+          attachment: formData.msAttachment || null,
+        };
+
+      onSubmit(submitData);
+      handleClose();
+    } else {
+      setLoading(true);
+      try {
+        const token = sessionStorage.getItem('token');
+        if (!token) {
+          throw new Error("Missing authentication credentials");
+        }
 
       const submitData = {
         msName: formData.msName,
@@ -192,38 +202,37 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
         poNumber: formData.poNumber
       };
 
-      console.log('Submitting milestone data:', submitData);
+        console.log('Submitting milestone data:', submitData);
 
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
-        submitData,
-        {
-          headers: { 
-            Authorization: `${token}`,
-            'Content-Type': 'application/json'
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
+          submitData,
+          {
+            headers: {
+              Authorization: `${token}`,
+              'Content-Type': 'application/json'
+            }
           }
+        );
+        console.log('Milestone added successfully:', response.data);
+        const mst = {
+          milestoneName: response.data.msName,
+          milestoneDescription: response.data.msDesc,
+          amount: response.data.msAmount,
+          currency: response.data.msCurrency,
+          date: new Date(response.data.msDate).toISOString().split('T')[0], // ✅ returns 'YYYY-MM-DD'
+          remarks: response.data.msRemarks,
+          attachment: response.data.msAttachment,
+          duration: response.data.msDuration,
         }
-      );
-      console.log('Milestone added successfully:', response.data);
-      const mst = {
-        milestoneName : response.data.msName,
-        milestoneDescription : response.data.msDesc,
-        amount : response.data.msAmount,
-        currency : response.data.msCurrency, 
-        date: new Date(response.data.msDate).toISOString().split('T')[0], // ✅ returns 'YYYY-MM-DD'
-        remarks : response.data.msRemarks,
-        attachment : response.data.msAttachment,
-        duration : response.data.msDuration,
+      } catch (error) {
+        console.error("Error adding milestone:", error);
+        setErrors({
+          submit: error.response?.data?.message || error.message || "Failed to add milestone"
+        });
+      } finally {
+        setLoading(false);
       }
-      onSubmit(mst);
-      handleClose();
-    } catch (error) {
-      console.error("Error adding milestone:", error);
-      setErrors({ 
-        submit: error.response?.data?.message || error.message || "Failed to add milestone" 
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -289,9 +298,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
                   name="msName"
                   value={formData.msName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.msName ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msName ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter milestone name"
                   disabled={loading}
                 />
@@ -331,9 +339,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
                   onChange={handleInputChange}
                   step="1"
                   min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.msAmount ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msAmount ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="0"
                   disabled={loading}
                 />
@@ -361,9 +368,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
                   value={formData.msDuration}
                   onChange={handleInputChange}
                   min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.msDuration ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msDuration ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="0"
                   disabled={loading}
                 />
@@ -417,9 +423,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
                 value={formData.msDesc}
                 onChange={handleInputChange}
                 rows={4}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  errors.msDesc ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max 500 words)"
                 disabled={loading}
               />
@@ -442,9 +447,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
                 value={formData.msRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 words)"
                 disabled={loading}
               />

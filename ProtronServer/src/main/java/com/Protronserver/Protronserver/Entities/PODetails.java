@@ -42,6 +42,19 @@ public class PODetails {
     @Column(name = "customer", length = 250)
     private String customer;
 
+    @Column(name="sponsor_name", length = 250)
+    private String sponsorName;
+
+    @Column(name="sponsor_lob", length = 250)
+    private String sponsorLob;
+
+    @Column(name="budget_line_item", length = 250)
+    private String budgetLineItem;
+    @Column(name="budget_line_amount", precision = 10, scale = 2)
+    private BigDecimal budgetLineAmount;
+    @Column(name="budget_line_remarks", length = 500)
+    private String budgetLineRemarks;
+
     @Column(name = "project_name", length = 250)
     private String projectName;
 
@@ -82,6 +95,46 @@ public class PODetails {
 
     // Getters and Setters
 
+
+    public String getBudgetLineItem() {
+        return budgetLineItem;
+    }
+
+    public void setBudgetLineItem(String budgetLineItem) {
+        this.budgetLineItem = budgetLineItem;
+    }
+
+    public BigDecimal getBudgetLineAmount() {
+        return budgetLineAmount;
+    }
+
+    public void setBudgetLineAmount(BigDecimal budgetLineAmount) {
+        this.budgetLineAmount = budgetLineAmount;
+    }
+
+    public String getBudgetLineRemarks() {
+        return budgetLineRemarks;
+    }
+
+    public void setBudgetLineRemarks(String budgetLineRemarks) {
+        this.budgetLineRemarks = budgetLineRemarks;
+    }
+
+    public String getSponsorName() {
+        return sponsorName;
+    }
+
+    public void setSponsorName(String sponsorName) {
+        this.sponsorName = sponsorName;
+    }
+
+    public String getSponsorLob() {
+        return sponsorLob;
+    }
+
+    public void setSponsorLob(String sponsorLob) {
+        this.sponsorLob = sponsorLob;
+    }
 
     public Long getTenantId() {
         return tenantId;

@@ -13,9 +13,54 @@ public class PODetailsDTO {
     private String poSpoc;
     private String supplier;
     private String customer;
+    private String sponsorName;
+    private String sponsorLob;
+    private String budgetLineItem;
+    private BigDecimal budgetLineAmount;
+    private String budgetLineRemarks;
     private String projectName;
     private LocalDate poStartDate;
     private LocalDate poEndDate;
+
+    public String getBudgetLineItem() {
+        return budgetLineItem;
+    }
+
+    public void setBudgetLineItem(String budgetLineItem) {
+        this.budgetLineItem = budgetLineItem;
+    }
+
+    public BigDecimal getBudgetLineAmount() {
+        return budgetLineAmount;
+    }
+
+    public void setBudgetLineAmount(BigDecimal budgetLineAmount) {
+        this.budgetLineAmount = budgetLineAmount;
+    }
+
+    public String getBudgetLineRemarks() {
+        return budgetLineRemarks;
+    }
+
+    public void setBudgetLineRemarks(String budgetLineRemarks) {
+        this.budgetLineRemarks = budgetLineRemarks;
+    }
+
+    public String getSponsorName() {
+        return sponsorName;
+    }
+
+    public void setSponsorName(String sponsorName) {
+        this.sponsorName = sponsorName;
+    }
+
+    public String getSponsorLob() {
+        return sponsorLob;
+    }
+
+    public void setSponsorLob(String sponsorLob) {
+        this.sponsorLob = sponsorLob;
+    }
 
     public LocalDate getPoEndDate() {
         return poEndDate;

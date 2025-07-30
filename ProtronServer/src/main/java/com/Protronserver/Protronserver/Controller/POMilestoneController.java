@@ -48,7 +48,7 @@ public class POMilestoneController {
         return ResponseEntity.ok(poMilestoneService.getMilestonesByPoId(poId));
     }
 
-    @GetMapping("/milestonebalance/{id}/{name}")
+    @GetMapping("/milestonebalance/{id}/{Id}")
     public BigDecimal getMilestoneBalance(@PathVariable Long id, @PathVariable Long Id){
         return costDetailsService.getMilestoneBalance(id, Id);
     }

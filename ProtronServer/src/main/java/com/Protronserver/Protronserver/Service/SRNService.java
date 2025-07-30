@@ -32,6 +32,9 @@ public class SRNService {
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
 
+    @Autowired
+    private CostDetailsService costDetailsService;
+
     public SRNDetails addSRN(SRNDTO dto) {
 
         Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
@@ -75,7 +78,7 @@ public class SRNService {
             }
         } else {
             // PO-level SRN
-            if (poMilestoneRepository.countByPoId(poDetail.getPoId(), currentTenantId) > 0) {
+            if (costDetailsService.getRemainingMilestones(poDetail.getPoId()).size() > 0) {
                 throw new IllegalArgumentException("PO has milestones. SRN must be against a milestone.");
             }
 
@@ -102,7 +105,7 @@ public class SRNService {
         // 3. If validations pass, create and save the SRN
         SRNDetails srnDetails = new SRNDetails();
         srnDetails.setPoDetail(poDetail);
-        srnDetails.setPoNumber(dto.getPoNumber());
+        srnDetails.setPoNumber(poDetail.getPoNumber());
         if (dto.getMsId() != null) {
             srnDetails.setMilestone(poMilestoneRepository.findById(dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + dto.getMsId())));

@@ -53,6 +53,7 @@ const AddSRNModal = ({ open, onClose }) => {
     const [descCharCount, setDescCharCount] = useState(0);
     const [remarksCharCount, setRemarksCharCount] = useState(0);
     const [poBalance, setPOBalance] = useState(null);
+    const [milestoneBalance, setMilestoneBalance] = useState(null);
 
     // Helper function to get currency symbol
     const getCurrencySymbol = (currencyCode) => {
@@ -91,15 +92,37 @@ const AddSRNModal = ({ open, onClose }) => {
             }
         };
 
+        const fetchMilestone = async (poId, msId) => {
+            if (poId && msId) {
+                try {
+                    const token = sessionStorage.getItem('token');
+                    const response = await axios.get(
+                        `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance/${poId}/${msId}`,
+                        {
+                            headers: { Authorization: `${token}` }
+                        }
+                    );
+                    setMilestoneBalance(response.data);
+                } catch (error) {
+                    console.error("Error fetching milestone balance:", error);
+                }
+            }
+        };
+
         fetchPOBalance(formData.poId);
-    }, [formData.poId]);
+        if (formData.poId && formData.msId) {
+            fetchMilestone(formData.poId, formData.msId);
+        } else {
+            setMilestoneBalance(null);
+        }
+    }, [formData.poId, formData.msId]);
 
 
     // Fetch milestones for selected PO
     const fetchMilestones = async (poId) => {
         try {
             const token = sessionStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/po/${poId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneForPo/${poId}`, {
                 headers: { Authorization: `${token}` }
             });
             const data = await response.json();
@@ -318,14 +341,26 @@ const AddSRNModal = ({ open, onClose }) => {
         if (!formData.poId) {
             newErrors.poId = "Please select a PO";
         }
-        if (milestoneList.length > 0 && !formData.msId) {
-            newErrors.msId = "Please select a Milestone";
-        }
+
         if (!formData.srnName.trim()) {
             newErrors.srnName = "SRN name is required";
         }
         if (!formData.srnAmount || formData.srnAmount <= 0) {
             newErrors.srnAmount = "Valid SRN amount is required";
+        }
+
+        if (milestoneList.length === 0) {
+            // No milestones available, check against PO balance
+            if (formData.srnAmount && poBalance !== null && Number(formData.srnAmount) > Number(poBalance)) {
+                newErrors.srnAmount = `SRN amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
+            }
+        } else {
+            // Milestones exist
+            if (!formData.msId) {
+                newErrors.msId = "Please select a milestone for this PO";
+            } else if (formData.srnAmount && milestoneBalance !== null && Number(formData.srnAmount) > Number(milestoneBalance)) {
+                newErrors.srnAmount = `SRN amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
+            }
         }
 
         setErrors(newErrors);
@@ -569,7 +604,7 @@ const AddSRNModal = ({ open, onClose }) => {
                             <div className='flex gap-2 items-center justify-between'>
                             <label className="block text-sm font-medium text-gray-700 mb-2">SRN Amount *</label>
                             <span className="text-[10px] text-red-500">
-                                PO Balance: {poBalance ?? 'Loading...'} {formData.srnCurrency}
+                                {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
                             </span>
                             </div>
                             

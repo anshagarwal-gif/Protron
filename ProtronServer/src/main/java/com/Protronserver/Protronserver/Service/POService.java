@@ -43,6 +43,11 @@ public class POService {
         po.setPoSpoc(dto.getPoSpoc());
         po.setSupplier(dto.getSupplier());
         po.setCustomer(dto.getCustomer());
+        po.setSponsorName(dto.getSponsorName());
+        po.setSponsorLob(dto.getSponsorLob());
+        po.setBudgetLineItem(dto.getBudgetLineItem());
+        po.setBudgetLineAmount(dto.getBudgetLineAmount());
+        po.setBudgetLineRemarks(dto.getBudgetLineRemarks());
         po.setProjectName(dto.getProjectName());
         po.setPoStartDate(dto.getPoStartDate());
         po.setPoEndDate(dto.getPoEndDate());
@@ -66,7 +71,28 @@ public class POService {
 
         // --- VALIDATION START ---
         if (dto.getPoCurrency() != null && !dto.getPoCurrency().equalsIgnoreCase(oldPo.getPoCurrency())) {
-            throw new IllegalArgumentException("PO currency cannot be changed.");
+            String newCurrency = dto.getPoCurrency();
+
+            // 1. Update currency in active milestones
+            List<POMilestone> activeMilestones = poMilestoneRepository.findByPoDetail_PoId(oldPo.getPoId(), currentTenantId);
+            for (POMilestone ms : activeMilestones) {
+                ms.setMsCurrency(newCurrency);
+                poMilestoneRepository.save(ms);
+            }
+
+            // 2. Update currency in active POConsumption
+            List<POConsumption> activeConsumptions = poConsumptionRepository.findByPoNumber(oldPo.getPoNumber(), currentTenantId);
+            for (POConsumption con : activeConsumptions) {
+                con.setCurrency(newCurrency);
+                poConsumptionRepository.save(con);
+            }
+
+            // 3. Update currency in active SRNs
+            List<SRNDetails> activeSrns = srnRepository.findByPoIdWithoutMs(oldPo.getPoId(), currentTenantId);
+            for (SRNDetails srn : activeSrns) {
+                srn.setSrnCurrency(newCurrency);
+                srnRepository.save(srn);
+            }
         }
 
         if (dto.getPoAmount() != null) {
@@ -106,6 +132,11 @@ public class POService {
         newPo.setPoSpoc(dto.getPoSpoc());
         newPo.setSupplier(dto.getSupplier());
         newPo.setCustomer(dto.getCustomer());
+        newPo.setSponsorName(dto.getSponsorName());
+        newPo.setSponsorLob(dto.getSponsorLob());
+        newPo.setBudgetLineItem(dto.getBudgetLineItem());
+        newPo.setBudgetLineAmount(dto.getBudgetLineAmount());
+        newPo.setBudgetLineRemarks(dto.getBudgetLineRemarks());
         newPo.setProjectName(dto.getProjectName());
         newPo.setPoStartDate(dto.getPoStartDate());
         newPo.setPoEndDate(dto.getPoEndDate());
