@@ -21,6 +21,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
   const [poDetails, setPODetails] = useState(null);
   const [descWordCount, setDescWordCount] = useState(0);
   const [remarksWordCount, setRemarksWordCount] = useState(0);
+  const [poBalance, setPOBalance] = useState(null);
 
   useEffect(() => {
   if (initialData) {
@@ -55,6 +56,27 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
 
     fetchPODetails();
   }, [open, poId]);
+  useEffect(() => {
+    const fetchPOBalance = async () => {
+      if (poId) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+            {
+              headers: { Authorization: `${token}` }
+            }
+          );
+          console.log(response.data);
+          setPOBalance(response.data);
+          console.log(poId, response.data);
+        } catch (error) {
+          console.error("Error fetching PO balance:", error);
+        }
+      }
+    };
+    fetchPOBalance();
+  }, [poId]);
 
   // Initialize word counts when form data is set
   useEffect(() => {
@@ -318,6 +340,9 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId, initialData }) => {
                 {errors.msAmount && (
                   <p className="mt-1 text-xs text-red-600">{errors.msAmount}</p>
                 )}
+                <label className="text-xs text-red-500 mt-1">
+                  PO Balance: {poBalance !== null ? `${poBalance} ${formData.msCurrency}` : 'Loading...'}
+                </label>
               </div>
 
               <div className="col-span-1"></div> {/* Small spacer */}

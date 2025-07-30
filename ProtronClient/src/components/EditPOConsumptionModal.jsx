@@ -592,8 +592,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
           <div className="space-y-4">
             {/* Row 1: PO Number, Milestone, Currency, and Amount */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-3">
+            <div className="grid grid-cols-5 gap-4">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
                   PO Number *
@@ -626,7 +626,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 )}
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Activity size={14} className="inline mr-1" />
                   Milestone (Optional)
@@ -671,7 +671,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 </select>
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <DollarSign size={14} className="inline mr-1" />
                   Amount *
@@ -773,7 +773,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
             {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
             <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
                   Work Assign Date
@@ -790,7 +790,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
                   Work Completion Date
@@ -807,7 +807,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
                   Attachment
@@ -841,7 +841,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 )}
               </div>
 
-              <div className="col-span-3"></div> {/* Spacer */}
+              <div className=""></div> {/* Spacer */}
             </div>
 
             {/* Row 4: Work Description */}

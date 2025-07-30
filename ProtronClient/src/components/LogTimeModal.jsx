@@ -852,7 +852,79 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     const minutes = remainingMinutes % 60;
     return `${hours}h ${minutes}m`;
   })()}
+
 </Typography>
+
+                </Box>
+
+                {/* Compact Attachment Upload */}
+                <Box sx={{ flex: 0.6 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary', fontWeight: 600 }}>
+                    Attachments ({formData.attachments.length}/4)
+                  </Typography>
+                  <Box sx={{
+                    border: '1px dashed #ccc',
+                    borderRadius: 1,
+                    p: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: '#fafafa',
+                    minHeight: '50px',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: greenPrimary,
+                      bgcolor: 'rgba(27, 94, 32, 0.02)'
+                    }
+                  }}>
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+                      multiple
+                      style={{ display: 'none' }}
+                      id="file-upload"
+                      disabled={formData.attachments.length >= 4}
+                    />
+                    <label htmlFor="file-upload" style={{ cursor: 'pointer', textAlign: 'center', width: '100%' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <CloudUploadIcon sx={{ color: greenPrimary, fontSize: 20 }} />
+                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                          {formData.attachments.length >= 4 ? 'Max files reached' : 'Upload files'}
+                        </Typography>
+                      </Box>
+                    </label>
+                  </Box>
+
+                  {/* Display uploaded files */}
+                  {formData.attachments.length > 0 && (
+                    <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {formData.attachments.map((file, index) => (
+                        <Chip
+                          key={index}
+                          label={
+                            <span>
+                              {file.isExisting && "📎 "}{truncateText(file.name, 15)}
+                              {file.isExisting && " (existing)"}
+                            </span>
+                          }
+                          size="small"
+                          onDelete={() => handleRemoveAttachment(index)}
+                          deleteIcon={<DeleteIcon />}
+                          sx={{
+                            bgcolor: file.isExisting ? 'rgba(76, 175, 80, 0.1)' : 'rgba(27, 94, 32, 0.1)',
+                            color: file.isExisting ? '#4caf50' : greenPrimary,
+                            '& .MuiChip-deleteIcon': {
+                              color: file.isExisting ? '#4caf50' : greenPrimary,
+                              '&:hover': {
+                                color: greenHover
+                              }
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  )}
   </Box>
 </Box>
 

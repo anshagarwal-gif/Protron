@@ -56,6 +56,10 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         value: project.projectName,
         label: project.projectName,
     }));
+    const userOptions = users.map((user) => ({
+        value: user.name,
+        label: user.name,
+    }));
     const [activeTab, setActiveTab] = useState('details');
 
     const fetchUsers = async () => {
@@ -75,7 +79,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const fetchProjects = async () => {
         try {
             const token = sessionStorage.getItem('token');
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/projects`, {
+            const tenantId = sessionStorage.getItem('tenantId');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/projects`, {
                 headers: { Authorization: `${token}` }
             });
             const data = await res.json();
@@ -160,18 +165,23 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         }));
     };
 
-    const handleFileChange = (field) => (event) => {
-        if (field === 'poAttachments') {
-            const files = Array.from(event.target.files).slice(0, 4);
-            if (event.target.files.length > 4) {
-                alert("You can only upload a maximum of 4 files for the PO.");
-            }
-            setFormData((prev) => ({
-                ...prev,
-                [field]: files
-            }));
+    const handleFileChange = (e, field) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (formData[field].length >= 4) {
+            alert("You can upload a maximum of 4 attachments.");
+            return;
         }
+
+        setFormData((prev) => ({
+            ...prev,
+            [field]: [...prev[field], file],
+        }));
+
+        // Reset input value to allow re-selecting the same file
+        e.target.value = null;
     };
+
 
     const handleAddMilestone = () => {
         setIsAddMilestoneModalOpen(true);
@@ -213,6 +223,12 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         setFormData(prev => ({
             ...prev,
             milestones: updatedMilestones
+        }));
+    };
+    const removeAttachment = (indexToRemove) => {
+        setFormData((prev) => ({
+            ...prev,
+            poAttachments: prev.poAttachments.filter((_, i) => i !== indexToRemove),
         }));
     };
 
@@ -451,7 +467,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
+            <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-green-900 truncate">Edit PO</h2>
                     <button
@@ -602,22 +618,50 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                                         {/* SPOC, Project, Customer, Supplier, Attachments */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PM/SPOC Name">
-                                                PM/SPOC Name <span className="text-red-500">*</span>
+                                            <label
+                                                htmlFor="spocName"
+                                                className="block text-sm font-medium text-gray-700 mb-2"
+                                                title="Select an existing project or type a new one to create"
+                                            >
+                                                PM/SPOC Name
                                             </label>
-                                            <div className="relative">
-                                                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                                <input
-                                                    type="text"
-                                                    value={formData.poSpoc}
-                                                    onChange={handleChange('poSpoc')}
-                                                    className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
-                                                    title={formData.poSpoc || "Enter PM/SPOC Name"}
-                                                    placeholder="Enter PM/SPOC Name"
-                                                    required
+                                            <div className="relative w-full">
+                                                <Folder
+                                                    className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10"
+                                                    size={20}
+                                                    title="Select or create project"
+                                                />
+                                                <CreatableSelect
+                                                    inputId="spocName"
+                                                    options={userOptions}
+                                                    value={
+                                                        formData.spocName
+                                                            ? { label: formData.spocName, value: formData.spocName }
+                                                            : null
+                                                    }
+                                                    onChange={(selectedOption) => {
+                                                        handleChange('spocName')({
+                                                            target: { value: selectedOption?.value || '' },
+                                                        });
+                                                    }}
+                                                    className="react-select-container"
+                                                    classNamePrefix="react-select"
+                                                    placeholder="Select PM/SPOC"
+                                                    isSearchable
+                                                    isClearable
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    styles={{
+                                                        control: (base) => ({
+                                                            ...base,
+                                                            height: '40px',
+                                                            paddingLeft: '28px',
+                                                            borderColor: '#d1d5db',
+                                                        }),
+                                                        valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                    }}
                                                 />
                                             </div>
                                         </div>
@@ -684,30 +728,53 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="lg:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Add/Replace PO Attachments (Max 4)">
-                                                Add/Replace PO Attachments (Max 4)
+
+
+                                    </div>
+                                    <div className="lg:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Add/Replace PO Attachments (Max 4)">
+                                            Add/Replace PO Attachments (Max 4)
+                                        </label>
+                                        <div className="relative w-[200px]">
+                                            <input
+                                                type="file"
+                                                id="po-attachment-input-edit"
+                                                onChange={(e) => handleFileChange(e, 'poAttachments')}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                className="hidden"
+                                            />
+                                            <label
+                                                htmlFor="po-attachment-input-edit"
+                                                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
+                                                title={formData.poAttachments.length > 0 ? `${formData.poAttachments.length} new file(s) selected` : 'Click to select files'}
+                                            >
+                                                <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                                                <span className="text-gray-500 truncate">
+                                                    {formData.poAttachments.length > 0
+                                                        ? `${formData.poAttachments.length} new file(s) selected`
+                                                        : 'Click to select files'}
+                                                </span>
                                             </label>
-                                            <div className="relative w-[200px]">
-                                                <input
-                                                    type="file"
-                                                    id="po-attachment-input-edit"
-                                                    multiple
-                                                    onChange={handleFileChange('poAttachments')}
-                                                    className="hidden"
-                                                />
-                                                <label
-                                                    htmlFor="po-attachment-input-edit"
-                                                    className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
-                                                    title={formData.poAttachments.length > 0 ? `${formData.poAttachments.length} new file(s) selected` : 'Click to select files'}
-                                                >
-                                                    <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                                    <span className="text-gray-500 truncate">
-                                                        {formData.poAttachments.length > 0 ? `${formData.poAttachments.length} new file(s) selected` : 'Click to select files'}
-                                                    </span>
-                                                </label>
-                                            </div>
                                         </div>
+
+                                        <ul className="mt-2 text-sm text-gray-700 space-y-1">
+                                            {formData.poAttachments.map((file, index) => (
+                                                <li
+                                                    key={index}
+                                                    className="flex max-w-[200px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                                >
+                                                    <span className="truncate max-w-[140px]" title={file.name}>{file.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeAttachment(index)}
+                                                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
@@ -722,7 +789,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             placeholder="Enter Project Description"
                                         />
                                     </div>
+
                                 </div>
+
                             )}
                             {activeTab === 'milestones' && (
                                 <div className="space-y-6">
