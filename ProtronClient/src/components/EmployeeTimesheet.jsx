@@ -7,6 +7,7 @@ import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from
 import { Link } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext";
 import TaskDetailsModal from "./TaskDetailsModal";
+import AddInvoiceModal from "./AddInvoice"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -94,6 +95,7 @@ const TimesheetManager = () => {
   const { hasAccess } = useAccess();
   const { employee } = location.state || {};
   const hiddenDateInputRef = useRef(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   // Toast state
   const [toast, setToast] = useState({
@@ -550,7 +552,86 @@ const TimesheetManager = () => {
     }
   };
 
+const handleInvoiceSubmit = async (invoiceData) => {
+  try {
+    showToast("Generating invoice...", "info");
+    
+    const response = await axios.post(
+      `${API_BASE_URL}/api/invoices/generate`,
+      {
+        invoiceName: invoiceData.invoiceName,
+        customerName: invoiceData.customerName,
+        customerAddress: invoiceData.customerAddress || "",
+        supplierName: invoiceData.supplierName,
+        supplierAddress: invoiceData.supplierAddress || "",
+        employeeName: invoiceData.employeeName,
+        rate: invoiceData.rate,
+        currency: invoiceData.currency,
+        fromDate: invoiceData.fromDate,
+        toDate: invoiceData.toDate,
+        hoursSpent: invoiceData.hoursSpent,
+        totalAmount: invoiceData.totalAmount,
+        remarks: invoiceData.remarks || ""
+      },
+      {
+        headers: {
+          Authorization: sessionStorage.getItem("token"),
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
+    console.log('Invoice generated successfully:', response.data);
+    showToast("Invoice generated successfully!", "success");
+    
+    // Optional: Offer to download the generated PDF
+    if (response.data.invoiceId) {
+      setTimeout(() => {
+        if (confirm("Would you like to download the generated invoice PDF?")) {
+          handleDownloadInvoice(response.data.invoiceId, response.data.invoiceName);
+        }
+      }, 1000);
+    }
+    
+  } catch (error) {
+    console.error("Failed to generate invoice:", error);
+    if (error.response?.data) {
+      showToast(`Failed to generate invoice: ${error.response.data}`, "error");
+    } else {
+      showToast("Failed to generate invoice. Please try again.", "error");
+    }
+  }
+};
+const handleDownloadInvoice = async (invoiceId, invoiceName) => {
+  try {
+    showToast("Downloading invoice...", "info");
+    
+    const response = await axios.get(
+      `${API_BASE_URL}/api/invoices/download/${invoiceId}`,
+      {
+        headers: {
+          Authorization: sessionStorage.getItem("token")
+        },
+        responseType: 'blob'
+      }
+    );
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${invoiceName || invoiceId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    
+    showToast("Invoice downloaded successfully!", "success");
+  } catch (error) {
+    console.error("Failed to download invoice:", error);
+    showToast("Failed to download invoice", "error");
+  }
+};
   // Download as CSV with attachment information
   const downloadExcel = () => {
     try {
@@ -893,6 +974,13 @@ const TimesheetManager = () => {
                 <Download className="h-4 w-4" />
                 <span>Download Excel</span>
               </button>
+               <button
+    onClick={() => setShowInvoiceModal(true)}
+    className="flex items-center space-x-2 px-3 py-2 bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+  >
+    <FileText className="h-4 w-4" />
+    <span>Generate Invoice</span>
+  </button>
             </div>
           </div>
         </div>
@@ -1102,7 +1190,11 @@ const TimesheetManager = () => {
         editingTask={editingTask}
         timesheetData={timesheetData}
       />
-
+   <AddInvoiceModal
+  open={showInvoiceModal}
+  onClose={() => setShowInvoiceModal(false)}
+  onSubmit={handleInvoiceSubmit}
+/>
       {/* Task Details Modal */}
       {taskDetail && (
         <TaskDetailsModal
