@@ -484,22 +484,6 @@ const TaskDetailsModal = ({
                           </span>
                         </div>
                       </div>
-
-                      {/* Status */}
-                      <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-green-100/50 shadow-sm sm:col-span-2">
-                        <label className="text-xs font-semibold text-green-700 uppercase tracking-wider">Status</label>
-                        <div className="mt-2">
-                          {taskDetail.submitted ? (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-green-500 text-white text-sm font-medium">
-                              <CheckCircle className="h-3 w-3 mr-1.5" /> Submitted
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-medium">
-                              <XCircle className="h-3 w-3 mr-1.5" /> Pending
-                            </span>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -582,14 +566,7 @@ const TaskDetailsModal = ({
                               </div>
                             </div>
                             <div className="flex gap-2 mt-auto">
-                              <button
-                                onClick={() => handlePreview(attachment)}
-                                className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 transition-colors font-semibold shadow-sm hover:shadow-md transform hover:scale-105"
-                                aria-label={`View ${attachment.fileName || 'attachment'} in new tab`}
-                                title="Opens in new tab"
-                              >
-                                <ExternalLink className="h-3 w-3 mr-1.5" /> View
-                              </button>
+                              
                               <button
                                 onClick={() => handleDownload(attachment)}
                                 className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors font-semibold shadow-sm hover:shadow-md transform hover:scale-105"

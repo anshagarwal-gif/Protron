@@ -4,6 +4,7 @@ import { AiOutlineDownload } from 'react-icons/ai';
 import axios from 'axios';
 import EditTeamMemberModal from './EditTeamMemberModal';
 import * as XLSX from "xlsx";
+import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 
 // Import the AssignTeamMemberModal component
 import AssignTeamMemberModal from './AssignTeamMemberModal';
@@ -17,7 +18,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
   ]);
   const [projectDetails, setProjectDetails] = useState(null); // State for project details
   const [users, setUsers] = useState([]);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(100);
   const [currentPage, setCurrentPage] = useState(1);
   const [actionsOpen, setActionsOpen] = useState({});
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,6 +30,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
   const [editingMember, setEditingMember] = useState(null);
 
   const fetchTeammates = async () => {
+    setIsLoading(true);
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
       headers: { Authorization: `${sessionStorage.getItem('token')}` },
@@ -47,6 +49,8 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
     setTeamMembers(mappedTeamMembers);
   } catch (error) {
     console.error("Failed to fetch team members:", error);
+  } finally{
+    setIsLoading(false); 
   }
 };
 
@@ -344,8 +348,12 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
             </button>
           </div>
         </div>
-
-        {/* Team Members Table */}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <CircularProgress />
+          </div>
+        ) : (
+        
         <div className="border rounded overflow-visible relative">
           {/* Responsive Team Members Table */}
           <div className="border rounded overflow-hidden">
@@ -545,6 +553,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
             </div>
           </div>
         </div>
+      )}
       </div>
 
       {/* Add Member Modal */}

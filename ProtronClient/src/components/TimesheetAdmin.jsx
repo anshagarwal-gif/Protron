@@ -472,45 +472,50 @@ const TimesheetManager = () => {
   const downloadExcel = () => {
     const weekdays = getWeekdays();
     try {
-      const startParam = weekStart.toISOString().split('T')[0];
-      const endParam = weekEnd.toISOString().split('T')[0];
+        const startParam = weekStart.toISOString().split('T')[0];
+        const endParam = weekEnd.toISOString().split('T')[0];
 
-      const headers = [
-        'Employee ID',
-        'Name',
-        'Email',
-        ...weekdays.map(day =>
-          day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
-        ),
-        'Total Hours',
-        'Expected Hours'
-      ];
+        // Combine weekday and date into a single header
+        const formattedWeekdays = weekdays.map(day =>
+                day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
+            )
+        console.log('Weekdays:', formattedWeekdays);
+        const headers = [
+            'Employee ID',
+            'Name',
+            'Email',
+            ...formattedWeekdays.map((day)=>day.replace(/,/g, '')), // Use formatted weekdays as headers
+            'Total Hours',
+            'Expected Hours'
+        ];
 
-      const csvContent = [
-        headers.join(','),
-        ...filteredData.map((emp, index) => [
-          index + 1,
-          `"${emp.name}"`,
-          emp.email,
-          ...emp.dailyHours.map(h => Math.round(h.worked * 100) / 100),
-          emp.totalHours,
-          emp.expectedHours
-        ].join(','))
-      ].join('\n');
+        // Map data to match the headers
+        const csvContent = [
+            headers.join(','), // Join headers with commas
+            ...filteredData.map((emp, index) => [
+                index + 1, // Employee ID
+                `"${emp.name}"`, // Name
+                emp.email, // Email 
+                ...emp.dailyHours.map(h => `${h.worked.hours}h ${h.worked.minutes}m`), // Combine hours and minutes
+                `${emp.totalHours.hours}h ${emp.totalHours.minutes}m`, // Total Hours
+                `${emp.expectedHours.hours}h ${emp.expectedHours.minutes}m` // Expected Hours
+            ].join(',')) // Join row values with commas
+        ].join('\n'); // Join rows with newlines
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `timesheet_${startParam}_to_${endParam}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+        // Create and download the CSV file
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `timesheet_${startParam}_to_${endParam}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error creating Excel file:', error);
-      alert('Failed to create Excel file. Please try again.');
+        console.error('Error creating Excel file:', error);
+        alert('Failed to create Excel file. Please try again.');
     }
   };
 
