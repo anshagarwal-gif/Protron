@@ -16,7 +16,7 @@ public interface TimesheetTaskRepository extends JpaRepository<TimesheetTask, Lo
     List<TimesheetTask> findByDateBetweenAndUserAndIsSubmittedTrueAndEndTimestampIsNull(Date start, Date end, User user);
 
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.TimesheetTaskDTO(" +
-            "t.taskId, t.taskType, t.date, p.projectName, p.projectId, t.hoursSpent, t.minutesSpent, t.description, t.isSubmitted) " +
+            "t.taskId, t.taskType, t.date, p.projectName, p.projectId, t.hoursSpent, t.minutesSpent,t.taskTopic, t.description, t.isSubmitted) " +
             "FROM TimesheetTask t " +
             "JOIN t.project p " +
             "WHERE t.date BETWEEN :startDate AND :endDate AND t.user.userId = :userId AND t.endTimestamp IS NULL")

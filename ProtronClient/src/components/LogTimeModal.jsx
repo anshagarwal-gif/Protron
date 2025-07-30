@@ -51,6 +51,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     minutes: '',
     description: '',
     projectId: '',
+    taskTopic: '',
     attachments: [] // Changed to array for multiple attachments
   });
   const [projects, setProjects] = useState([]);
@@ -85,10 +86,12 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
   // Update currentDate when selectedDate changes
   useEffect(() => {
-    if (selectedDate) {
-      setCurrentDate(new Date(selectedDate));
-    }
-  }, [selectedDate]);
+  if (selectedDate) {
+    const localDate = new Date(selectedDate);
+    localDate.setHours(0, 0, 0, 0); // Reset time to avoid timezone issues
+    setCurrentDate(localDate);
+  }
+}, [selectedDate]);
   // Add this new function to load existing attachments
   const loadExistingAttachments = async (task) => {
     if (!task.taskId) {
@@ -180,6 +183,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
         setFormData({
           taskType: editingTask.taskType || editingTask.task || '',
+          taskTopic: editingTask.taskTopic || '',
           hours: hours ? String(hours) : '',
           minutes: minutes ? String(minutes) : '',
           description: editingTask.description || '',
@@ -191,6 +195,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
         // Reset form for new task
         setFormData({
           taskType: '',
+          taskTopic: '',
           hours: '',
           minutes: '',
           description: '',
@@ -235,13 +240,22 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
   // Auto-select project if only one available
   useEffect(() => {
-    if (projects.length === 1 && !editingTask && formData.projectId === '') {
+    if (projects.length > 0 && !editingTask && formData.projectId === '') {
       setFormData(prev => ({
         ...prev,
         projectId: projects[0].projectId.toString()
       }));
     }
   }, [projects, editingTask, formData.projectId]);
+
+  useEffect(() => {
+  if (isOpen && !editingTask && formData.taskType === '') {
+    setFormData((prev) => ({
+      ...prev,
+      taskType: 'Documentation',
+    }));
+  }
+}, [isOpen, editingTask, formData.taskType]);
 
   const fetchProjects = async () => {
     try {
@@ -312,6 +326,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       showSnackbar("When hours is 24, minutes must be 0", 'error');
       return false;
     }
+
+    if (formData.taskTopic.length > 50) {
+    showSnackbar("Task Topic cannot exceed 50 characters", 'error');
+    return false;
+  }
 
     return true;
   };
@@ -477,6 +496,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
       const payload = {
         taskType: formData.taskType,
+        taskTopic: formData.taskTopic,
         date: currentDate,
         hoursSpent: parseInt(formData.hours, 10) || 0,
         minutesSpent: parseInt(formData.minutes, 10) || 0,
@@ -734,6 +754,25 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     </Select>
                   </FormControl>
                 </Box>
+                <Box>
+  <TextField
+    fullWidth
+    label="Task Topic"
+    placeholder="Enter task topic..."
+    value={formData.taskTopic}
+    onChange={handleInputChange('taskTopic')}
+    inputProps={{ maxLength: 50 }}
+    helperText={`${formData.taskTopic?.length} / 50`}
+    InputProps={{
+      startAdornment: (
+        <InputAdornment position="start">
+          <TaskIcon sx={{ color: greenPrimary }} />
+        </InputAdornment>
+      ),
+    }}
+    FormHelperTextProps={{ sx: { margin: 0, paddingRight: 1 } }}
+  />
+</Box>
               </Box>
 
               {/* Row 2: Time Entry */}
