@@ -560,7 +560,30 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                             {currentStep === 1 ? 'Create New PO' : 'Add Milestones'}
                         </h2>
                         <button
-                            onClick={onClose}
+                            onClick={() => {
+                                onClose();
+                                setCurrentStep(1);
+                                setFormData({
+                                    poNumber: '',
+                                    poType: '',
+                                    poAmount: '',
+                                    currency: 'USD',
+                                    customerName: '',
+                                    sponsorName: '',
+                                    sponsorLob: '',
+                                    budgetLineItem: '',
+                                    budgetLineAmount: '',
+                                    budgetLineRemarks: '',
+                                    supplierName: sessionStorage.getItem('tenantName') || '',
+                                    projectName: '',
+                                    spocName: '',
+                                    startDate: '',
+                                    endDate: '',
+                                    projectDescription: '',
+                                    poAttachments: [],
+                                    milestones: []
+                                });
+                            }}
                             className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                         >
                             <X size={20} />
@@ -570,7 +593,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     <div className="p-6 overflow-y-auto flex-grow">
                         {currentStep === 1 && (
                             <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
                                     <div className="lg:col-span-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
                                         <input
@@ -632,7 +655,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     </div>
 
                                     <div className="lg:col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO Start Date</label>
                                         <div
                                             onClick={() => StartDateInputRef.current?.showPicker?.()}
                                             className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
@@ -653,8 +676,12 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         </div>
                                     </div>
 
+
+                                </div>
+
+                                <div className="grid grid-cols-5 gap-4">
                                     <div className="lg:col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO End Date</label>
                                         <div onClick={() => EndDateInputRef.current?.showPicker?.()} className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center">
                                             <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={20} />
                                             <input
@@ -666,10 +693,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             />
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="grid grid-cols-6 gap-4">
-
                                     <div>
                                         <label
                                             htmlFor="spocName"
@@ -680,7 +703,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         </label>
                                         <div className="relative w-full">
                                             <UserCheck
-                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-20"
                                                 size={20}
                                                 title="Select or create project"
                                             />
@@ -697,7 +720,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                         target: { value: selectedOption?.value || '' },
                                                     });
                                                 }}
-                                                className="react-select-container"
+                                                className="react-select-container z-15"
                                                 classNamePrefix="react-select"
                                                 placeholder="Select PM/SPOC"
                                                 isSearchable
@@ -726,7 +749,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         </label>
                                         <div className="relative w-full">
                                             <Folder
-                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-15"
                                                 size={20}
                                                 title="Create project"
                                             />
@@ -743,7 +766,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                         target: { value: selectedOption?.value || '' },
                                                     });
                                                 }}
-                                                className="react-select-container"
+                                                className="react-select-container z-11"
                                                 classNamePrefix="react-select"
                                                 placeholder="Select Project"
                                                 isSearchable
@@ -761,21 +784,53 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             />
                                         </div>
                                     </div>
-
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                                        <div className="relative">
-                                            <Building className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600" size={20} />
-                                            <input
-                                                type="text"
-                                                placeholder="Enter customer name"
-                                                value={formData.customerName}
-                                                onChange={handleChange('customerName')}
-                                                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                                title={formData.customerName || 'Enter customer name'}
+                                        <label
+                                            htmlFor="customerName"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            Customer Name
+                                        </label>
+                                        <div className="relative w-full">
+                                            <Building
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-15"
+                                                size={20}
+                                                title="Customer name"
+                                            />
+                                            <CreatableSelect
+                                                inputId="customerName"
+                                                options={userOptions}
+                                                value={
+                                                    formData.customerName
+                                                        ? { label: formData.customerName, value: formData.customerName }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    handleChange('customerName')({
+                                                        target: { value: selectedOption?.value || '' },
+                                                    });
+                                                }}
+                                                className="react-select-container z-11"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Customer"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
                                             />
                                         </div>
                                     </div>
+
+                                    
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
                                         <div className="relative">
@@ -802,9 +857,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         </label>
                                         <div className="relative w-full">
                                             <UserCheck
-                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-15"
                                                 size={20}
-                                                title="Select or create sponsor"
+                                                title="Select or create project"
                                             />
                                             <CreatableSelect
                                                 inputId="sponsorName"
@@ -819,7 +874,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                         target: { value: selectedOption?.value || '' },
                                                     });
                                                 }}
-                                                className="react-select-container"
+                                                className="react-select-container z-10"
                                                 classNamePrefix="react-select"
                                                 placeholder="Select Sponsor"
                                                 isSearchable

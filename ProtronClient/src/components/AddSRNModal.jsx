@@ -491,7 +491,7 @@ const AddSRNModal = ({ open, onClose }) => {
                     )}
 
                     {/* Row 1: Select PO, Milestone, SRN Type, Currency, and Amount */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-15 items-end">
                         <div className="lg:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 Select PO *
@@ -519,6 +519,34 @@ const AddSRNModal = ({ open, onClose }) => {
                             {errors.poId && (
                                 <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.poId}`}>
                                     {errors.poId}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                SRN Name *
+                                <span className="float-right text-sm text-gray-500">
+                                    {formData.srnName.length}/100 characters
+                                </span>
+                            </label>
+                            <div className="relative">
+                                <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                                <input
+                                    type="text"
+                                    name="srnName"
+                                    value={formData.srnName}
+                                    onChange={handleInputChange}
+                                    className={`w-full h-10 pl-10 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                    placeholder="Enter here"
+                                    maxLength={100}
+                                    disabled={loading}
+                                    title={formData.srnName ? `SRN Name (${formData.srnName.length}/100 chars): ${formData.srnName}` : "Enter SRN name (required)"}
+                                />
+                            </div>
+                            {errors.srnName && (
+                                <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.srnName}`}>
+                                    {errors.srnName}
                                 </p>
                             )}
                         </div>
@@ -575,7 +603,8 @@ const AddSRNModal = ({ open, onClose }) => {
                                 </p>
                             )}
                         </div>
-
+                    </div>
+                    <div className='grid grid-cols-5 gap-15'>
                         <div className="lg:col-span-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
                             <select
@@ -655,38 +684,10 @@ const AddSRNModal = ({ open, onClose }) => {
                                 />
                             </div>
                         </div>
-                    </div>
-
+                        </div>
                     {/* Row 2: SRN Name and Attachment */}
                     <div className="grid grid-cols-6 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                SRN Name *
-                                <span className="float-right text-sm text-gray-500">
-                                    {formData.srnName.length}/100 characters
-                                </span>
-                            </label>
-                            <div className="relative">
-                                <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                <input
-                                    type="text"
-                                    name="srnName"
-                                    value={formData.srnName}
-                                    onChange={handleInputChange}
-                                    className={`w-full h-10 pl-10 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    placeholder="Enter here"
-                                    maxLength={100}
-                                    disabled={loading}
-                                    title={formData.srnName ? `SRN Name (${formData.srnName.length}/100 chars): ${formData.srnName}` : "Enter SRN name (required)"}
-                                />
-                            </div>
-                            {errors.srnName && (
-                                <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.srnName}`}>
-                                    {errors.srnName}
-                                </p>
-                            )}
-                        </div>
+                        
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachment</label>

@@ -287,8 +287,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
           <div className="space-y-4">
             {/* Row 1: Milestone Name, Currency, and Amount (all at top) */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-6">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Target size={14} className="inline mr-1" />
                   Milestone Name *
@@ -308,7 +308,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 )}
               </div>
 
-              <div className="col-span-2">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Currency
                 </label>
@@ -327,7 +327,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 </select>
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <DollarSign size={14} className="inline mr-1" />
                   Amount *
@@ -352,12 +352,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 </label>
               </div>
 
-              <div className="col-span-1"></div> {/* Small spacer */}
-            </div>
-
-            {/* Row 2: Duration, Date and Attachment */}
-            <div className="grid grid-cols-8 gap-4">
-              <div className="col-span-2">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Clock size={14} className="inline mr-1" />
                   Duration (Days)
@@ -377,8 +372,13 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   <p className="mt-1 text-xs text-red-600">{errors.msDuration}</p>
                 )}
               </div>
+            </div>
 
-              <div className="col-span-3">
+            {/* Row 2: Duration, Date and Attachment */}
+            <div className="grid grid-cols-4 gap-4">
+              
+
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
                   Milestone Date
@@ -393,7 +393,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
                   Attachment

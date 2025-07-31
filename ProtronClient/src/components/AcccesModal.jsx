@@ -298,14 +298,6 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                   }}
                 />
               </Box>
-            </Box>
-
-            {/* Row 2: First Name, Last Name, and Role */}
-            <Box sx={{ 
-              display: "flex", 
-              flexDirection: isMobile ? "column" : "row",
-              gap: isMobile ? 2 : 3 
-            }}>
               <Box sx={{ flex: 1 }}>
                 <TextField
                   fullWidth
@@ -360,6 +352,15 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                   </Select>
                 </FormControl>
               </Box>
+            </Box>
+
+            {/* Row 2: First Name, Last Name, and Role */}
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: isMobile ? "column" : "row",
+              gap: isMobile ? 2 : 3 
+            }}>
+              
             </Box>
 
             

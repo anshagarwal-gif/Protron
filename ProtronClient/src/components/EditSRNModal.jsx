@@ -516,7 +516,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             )}
 
             {/* Row 1: PO Number, Milestone Name, Currency, and SRN Amount */}
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-15 items-end">
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   PO Number *
@@ -596,7 +596,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             </div>
 
 
-            <div className="grid grid-cols-5">
+            <div className="grid grid-cols-5 gap-15">
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
                 <select
@@ -645,8 +645,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   <p className="mt-1 text-sm text-red-600">{errors.srnAmount}</p>
                 )}
               </div>
-            </div>
-            <div className="lg:col-span-1">
+              <div className="lg:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">SRN Date</label>
               <div
                 onClick={() => handleDateInputClick('srnDate')}
@@ -666,6 +665,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 />
               </div>
             </div>
+            </div>
+            
 
 
 

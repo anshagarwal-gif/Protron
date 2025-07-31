@@ -8,6 +8,9 @@ import {
   X,
   Search
 } from 'lucide-react';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import dayjs from 'dayjs';
+
 import { Link } from 'react-router-dom';
 import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
@@ -19,7 +22,7 @@ import ExcelJS from 'exceljs';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const TimesheetManager = () => {
-  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [currentWeek, setCurrentWeek] = useState(dayjs());
   const [timesheetData, setTimesheetData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,11 +31,13 @@ const TimesheetManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { sessionData } = useSession();
 
-  // Ref for hidden date input
-  const hiddenDateInputRef = useRef(null);
+  // Ref for hidden date input;
 
   const API_BASE_URL = import.meta.env.VITE_API_URL;
-
+  const hiddenDateInputRef = useRef(null);
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [isOpen, setIsOpen] = useState(false);
+  const spanRef = useRef(null);
   // Custom AG Grid theme styles
   const gridStyle = {
     '--ag-header-background-color': '#15803d',
@@ -468,69 +473,68 @@ const TimesheetManager = () => {
       }
     }
   };
-
   // Frontend-only Excel download functionality
   const downloadExcel = async () => {
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet('Timesheet');
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Timesheet');
 
-  const weekdays = getWeekdays();
-  const formattedWeekdays = weekdays.map(day =>
-    day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
-  );
+    const weekdays = getWeekdays();
+    const formattedWeekdays = weekdays.map(day =>
+      day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
+    );
 
-  // Prepare header rows
-  const headerRow1 = ['Employee ID', 'Name', 'Email'];
-  const headerRow2 = ['', '', ''];
+    // Prepare header rows
+    const headerRow1 = ['Employee ID', 'Name', 'Email'];
+    const headerRow2 = ['', '', ''];
 
-  formattedWeekdays.forEach((day, index) => {
-    headerRow1.push(day.replace(/,/g, ''), ''); // Add day and placeholder for merging
-    headerRow2.push('Hours', 'Minutes');
-  });
+    formattedWeekdays.forEach((day, index) => {
+      headerRow1.push(day.replace(/,/g, ''), ''); // Add day and placeholder for merging
+      headerRow2.push('Hours', 'Minutes');
+    });
 
-  headerRow1.push('Total Hours', 'Total Minutes', 'Expected Hours', 'Expected Minutes');
-  headerRow2.push('', '', '', '');
+    headerRow1.push('Total Hours', 'Total Minutes', 'Expected Hours', 'Expected Minutes');
+    headerRow2.push('', '', '', '');
 
-  // Add header rows
-  sheet.addRow(headerRow1);
-  sheet.addRow(headerRow2);
+    // Add header rows
+    sheet.addRow(headerRow1);
+    sheet.addRow(headerRow2);
 
-  // Merge headers for each date
-  const mergeStart = 4; // because first 3 columns are static
-  for (let i = 0; i < formattedWeekdays.length; i++) {
-    const colStart = mergeStart + i * 2;
-    sheet.mergeCells(1, colStart, 1, colStart + 1); // Merge day cell over Hours & Minutes
-  }
+    // Merge headers for each date
+    const mergeStart = 4; // because first 3 columns are static
+    for (let i = 0; i < formattedWeekdays.length; i++) {
+      const colStart = mergeStart + i * 2;
+      sheet.mergeCells(1, colStart, 1, colStart + 1); // Merge day cell over Hours & Minutes
+    }
 
-  // Sample data rows (replace with your actual data)
-  filteredData.forEach((emp, index) => {
-    const row = [
-      index + 1,
-      emp.name,
-      emp.email,
-      ...emp.dailyHours.flatMap(h => [h.worked.hours, h.worked.minutes]),
-      emp.totalHours.hours,
-      emp.totalHours.minutes,
-      emp.expectedHours.hours,
-      emp.expectedHours.minutes
-    ];
-    sheet.addRow(row);
-  });
+    // Sample data rows (replace with your actual data)
+    filteredData.forEach((emp, index) => {
+      const row = [
+        index + 1,
+        emp.name,
+        emp.email,
+        ...emp.dailyHours.flatMap(h => [h.worked.hours, h.worked.minutes]),
+        emp.totalHours.hours,
+        emp.totalHours.minutes,
+        emp.expectedHours.hours,
+        emp.expectedHours.minutes
+      ];
+      sheet.addRow(row);
+    });
 
-  // Style header rows (optional)
-  sheet.getRow(1).font = { bold: true };
-  sheet.getRow(2).font = { bold: true };
+    // Style header rows (optional)
+    sheet.getRow(1).font = { bold: true };
+    sheet.getRow(2).font = { bold: true };
 
-  // Download the Excel file
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `timesheet_${weekStart.toISOString().split('T')[0]}_to_${weekEnd.toISOString().split('T')[0]}.xlsx`;
-  link.click();
-  URL.revokeObjectURL(url);
-};
+    // Download the Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `timesheet_${weekStart.toISOString().split('T')[0]}_to_${weekEnd.toISOString().split('T')[0]}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Loading component
   const LoadingSpinner = () => (
@@ -551,35 +555,59 @@ const TimesheetManager = () => {
 
               <div className='flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-6'>
                 {/* Week Navigation */}
-                <div className="flex items-center space-x-2 relative">
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={goToPreviousWeek}
                     className="p-2 hover:bg-gray-100 rounded"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <span className="text-sm font-medium whitespace-nowrap">
+
+                  <span
+                    ref={spanRef}
+                    onClick={() => setIsOpen(true)}
+                    className="text-sm font-medium whitespace-nowrap cursor-pointer hover:underline"
+                    title="Click to select week"
+                  >
                     {formatDate(weekStart)} - {formatDate(weekEnd)}
                   </span>
+
                   <button
                     onClick={goToNextWeek}
                     className="p-2 hover:bg-gray-100 rounded"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
-
-                  {/* Date input */}
-                  <div className="relative" onClick={openCalendar}>
-                    <input
-                      type="date"
-                      value={currentWeek.toISOString().split('T')[0]}
-                      onChange={(e) => handleDateSelect(e.target.value)}
-                      className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-32 cursor-pointer"
-                      title="Select date"
-                      ref={hiddenDateInputRef} // Ensure the ref is passed to the input
-                    />
-                  </div>
                 </div>
+
+                {isOpen && (
+          <DatePicker
+            open
+            onClose={() => setIsOpen(false)}
+            value={dayjs(currentWeek)}
+            onChange={(newDate) => {
+              setCurrentWeek(newDate);
+              setIsOpen(false);
+            }}
+            slotProps={{
+              textField: {
+                style: { display: 'none' }
+              },
+              popper: {
+                placement: 'bottom-start',
+                modifiers: [
+                  {
+                    name: 'offset',
+                    options: {
+                      offset: [0, 4], // Optional spacing
+                    },
+                  },
+                ],
+                anchorEl: spanRef.current // 🎯 anchor to span
+              }
+            }}
+          />
+        )}
 
                 {/* Search Bar */}
                 <div className="relative">
@@ -966,7 +994,7 @@ const TimesheetManager = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };
 

@@ -490,7 +490,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     {currentStep === 1 && (
                         <div className="space-y-6">
                             {/* PO Details Form Fields */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
                                 {/* PO Number, Type, Currency, Amount, Dates */}
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Number">
@@ -562,7 +562,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                 </div>
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Start Date">
-                                        Start Date <span className="text-red-500">*</span>
+                                        PO Start Date <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center">
                                         <Calendar className="absolute left-3 text-green-600" size={20} />
@@ -579,7 +579,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                 </div>
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="End Date">
-                                        End Date <span className="text-red-500">*</span>
+                                        PO End Date <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center">
                                         <Calendar className="absolute left-3 text-green-600" size={20} />
@@ -594,9 +594,6 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         />
                                     </div>
                                 </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-                                {/* SPOC, Project, Customer, Supplier, Attachments */}
                                 <div>
                                     <label
                                         htmlFor="poSpoc"
@@ -607,7 +604,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     </label>
                                     <div className="relative w-full">
                                         <Folder
-                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10"
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11"
                                             size={20}
                                             title="Select or create project"
                                         />
@@ -624,7 +621,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     target: { value: selectedOption?.value || '' },
                                                 });
                                             }}
-                                            className="react-select-container"
+                                            className="react-select-container z-10"
                                             classNamePrefix="react-select"
                                             placeholder="Select PM/SPOC"
                                             isSearchable
@@ -647,7 +644,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         Project Name <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative w-full">
-                                        <Folder className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10" size={20} />
+                                        <Folder className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11" size={20} />
                                         <CreatableSelect
                                             options={projectOptions}
                                             value={formData.projectName ? { label: formData.projectName, value: formData.projectName } : null}
@@ -665,6 +662,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     overflow: 'hidden'
                                                 })
                                             }}
+                                            className="react-select-container z-10"
                                             placeholder="Select or create project"
                                             title={formData.projectName || "Select or create project"}
                                             required
@@ -675,15 +673,28 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Customer Name">
                                         Customer Name <span className="text-red-500">*</span>
                                     </label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            value={formData.customer}
-                                            onChange={handleChange('customer')}
-                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
-                                            title={formData.customer || "Enter Customer Name"}
-                                            placeholder="Enter Customer Name"
+                                    <div className="relative w-full">
+                                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11" size={20} />
+                                        <CreatableSelect
+                                            options={userOptions}
+                                            value={formData.customer ? { label: formData.customer, value: formData.customer } : null}
+                                            onChange={(opt) => handleChange('customer')({ target: { value: opt?.value || '' } })}
+                                            styles={{
+                                                control: (base) => ({
+                                                    ...base,
+                                                    height: '40px',
+                                                    paddingLeft: '28px'
+                                                }),
+                                                singleValue: (base) => ({
+                                                    ...base,
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden'
+                                                })
+                                            }}
+                                            className="react-select-container z-10"
+                                            placeholder="Select or create project"
+                                            title={formData.customer || "Select or create customer"}
                                             required
                                         />
                                     </div>
@@ -706,6 +717,10 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     </div>
                                 </div>
 
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                {/* SPOC, Project, Customer, Supplier, Attachments */}
+                                
                                 <div>
                                     <label
                                         htmlFor="sponsorName"
@@ -762,7 +777,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     </label>
                                     <div className="relative w-full">
                                         <UserCheck
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
                                             size={20}
                                             title="Select or create project"
                                         />
@@ -808,7 +823,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     </label>
                                     <div className="relative w-full">
                                         <UserCheck
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
                                             size={20}
                                             title="Select or create project"
                                         />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserIcon, PhoneIcon, MapPinIcon, UploadIcon, Loader2 } from "lucide-react";
+import { UserIcon, PhoneIcon, MapPinIcon, UploadIcon, Loader2, X, User, DollarSign, Clock, Phone, MapPin, Globe, Building, Loader2Icon } from "lucide-react";
 import axios from "axios";
 import GlobalSnackbar from "./GlobalSnackbar";
 
@@ -256,281 +256,358 @@ console.log(name, value);
 
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-6">Edit User Information</h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                  First Name
-                </label>
-                <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2 border"
-                />
-              </div>
-              <div>
-                <label htmlFor="middleName" className="block text-sm font-medium text-gray-700">
-                  Middle Name
-                </label>
-                <input
-                  id="middleName"
-                  name="middleName"
-                  type="text"
-                  value={formData.middleName}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2 border"
-                />
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  Last Name
-                </label>
-                <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2 border"
-                />
-              </div>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+  <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
+    <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+      <h2 className="text-xl font-semibold text-green-900 truncate">
+        Edit User Information
+      </h2>
+      <button
+        onClick={onCancel}
+        className="p-2 hover:bg-gray-200 rounded-full"
+        title="Close"
+      >
+        <X size={20} />
+      </button>
+    </div>
 
-            {/* Cost Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="unit" className="block text-sm font-medium text-gray-700">
-                  Currency Unit
-                </label>
-                <select
-                  id="unit"
-                  name="unit"
-                  value={formData.unit}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="INR">INR</option>
-                  <option value="AUD">AUD</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="cost" className="block text-sm font-medium text-gray-700">
-                  Cost
-                </label>
-                <input
-                  id="cost"
-                  name="cost"
-                  type="number"
-                  value={formData.cost}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                />
-              </div>
-              <div>
-                <label htmlFor="cost_time" className="block text-sm font-medium text-gray-700">
-                  Cost Time
-                </label>
-                <select
-                  id="cost_time"
-                  name="cost_time"
-                  value={formData.cost_time}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                >
-                  {timePeriods.map((period) => (
-                    <option key={period.value} value={period.value}>
-                      {period.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Mobile Phone */}
-            <div>
-              <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700">
-                Mobile Phone
-              </label>
-              <div className="flex">
-                <select
-                  id="mobileCountryCode"
-                  name="mobileCountryCode"
-                  value={formData.mobileCountryCode}
-                  onChange={handleChange}
-                  className="border-gray-300 rounded-l-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                >
-                  {countriesno.map((country, index) => (
-                    <option key={index} value={country.dialCode}>
-                      {country.dialCode}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  id="mobileNumber"
-                  name="mobileNumber"
-                  type="tel"
-                  value={formData.mobileNumber}
-                  onChange={handleChange}
-                  className="flex-1 border-gray-300 rounded-r-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                />
-              </div>
-            </div>
-
-            {/* Address Section */}
-            <div>
-              <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700">
-                Address Line 1
-              </label>
+    <div className="p-6 overflow-y-auto flex-grow">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Name Fields */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="First Name">
+              First Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
               <input
-                id="addressLine1"
-                name="addressLine1"
+                id="firstName"
+                name="firstName"
                 type="text"
-                value={formData.addressLine1}
+                value={formData.firstName}
                 onChange={handleChange}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.firstName || "Enter First Name"}
+                placeholder="Enter First Name"
               />
             </div>
-            <div>
-              <label htmlFor="addressLine2" className="block text-sm font-medium text-gray-700">
-                Address Line 2
-              </label>
+          </div>
+          <div>
+            <label htmlFor="middleName" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Middle Name">
+              Middle Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
               <input
-                id="addressLine2"
-                name="addressLine2"
+                id="middleName"
+                name="middleName"
                 type="text"
-                value={formData.addressLine2}
+                value={formData.middleName}
                 onChange={handleChange}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.middleName || "Enter Middle Name"}
+                placeholder="Enter Middle Name"
               />
             </div>
-            <div>
-              <label htmlFor="addressLine3" className="block text-sm font-medium text-gray-700">
-                Address Line 3
-              </label>
+          </div>
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Last Name">
+              Last Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
               <input
-                id="addressLine3"
-                name="addressLine3"
+                id="lastName"
+                name="lastName"
                 type="text"
-                value={formData.addressLine3}
+                value={formData.lastName}
                 onChange={handleChange}
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.lastName || "Enter Last Name"}
+                placeholder="Enter Last Name"
               />
             </div>
-
-            {/* Country, State, City, ZIP */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-                  Country
-                </label>
-                <select
-                  id="country"
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                >
-                  <option value="">Select Country</option>
-                  {countries.map((country) => (
-                    <option key={country.code} value={country.code}>
-                      {country.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                  State
-                </label>
-                <select
-                  id="state"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                >
-                  <option value="">Select State</option>
-                  {states?.map((state) => (
-                    <option key={state.code} value={state.name}>
-                      {state.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                  City
-                </label>
-                <select
-                  id="city"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                >
-                  <option value="">Select City</option>
-                  {cities?.map((city) => (
-                    <option key={city.geonameId} value={city.name}>
-                      {city.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
-                  ZIP Code
-                </label>
-                <input
-                  id="zipCode"
-                  name="zipCode"
-                  type="text"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm p-2"
-                />
-              </div>
+          </div>
+          <div>
+            <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Currency Unit">
+              Currency Unit
+            </label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <select
+                id="unit"
+                name="unit"
+                value={formData.unit}
+                onChange={handleChange}
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.unit || "Select Currency Unit"}
+              >
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="INR">INR</option>
+                <option value="AUD">AUD</option>
+              </select>
             </div>
+          </div>
+          <div>
+            <label htmlFor="cost" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Cost">
+              Cost
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
+                {formData.unit === 'USD' ? '$' : formData.unit === 'EUR' ? '€' : formData.unit === 'GBP' ? '£' : formData.unit === 'INR' ? '₹' : '$'}
+              </span>
+              <input
+                id="cost"
+                name="cost"
+                type="number"
+                value={formData.cost}
+                onChange={handleChange}
+                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.cost || "Enter Cost"}
+                placeholder="Enter Cost"
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="cost_time" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Cost Time">
+              Cost Time
+            </label>
+            <div className="relative">
+              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <select
+                id="cost_time"
+                name="cost_time"
+                value={formData.cost_time}
+                onChange={handleChange}
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.cost_time || "Select Cost Time"}
+              >
+                {timePeriods.map((period) => (
+                  <option key={period.value} value={period.value}>
+                    {period.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+        {/* Mobile Phone */}
+        <div>
+          <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Mobile Phone">
+            Mobile Phone
+          </label>
+          <div className="flex w-[300px]">
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <select
+                id="mobileCountryCode"
+                name="mobileCountryCode"
+                value={formData.mobileCountryCode}
+                onChange={handleChange}
+                className="h-10 pl-10  w-[120px] border border-gray-300 rounded-l-md border-r-0"
+                title={formData.mobileCountryCode || "Select Country Code"}
+              >
+                {countriesno.map((country, index) => (
+                  <option key={index} className="w-[100px]" value={country.dialCode}>
+                    {country.dialCode}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <input
+              id="mobileNumber"
+              name="mobileNumber"
+              type="tel"
+              value={formData.mobileNumber}
+              onChange={handleChange}
+              className="flex-1 w-[200px] h-10 px-4 border border-gray-300 rounded-r-md truncate"
+              title={formData.mobileNumber || "Enter Mobile Number"}
+              placeholder="Enter Mobile Number"
+              maxLength={10}
+            />
+          </div>
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2"
-          >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            <span>{loading ? "Saving..." : "Save Changes"}</span>
-          </button>
+        {/* Address Section */}
+        <div>
+          <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Address Line 1">
+            Address Line 1
+          </label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+            <input
+              id="addressLine1"
+              name="addressLine1"
+              type="text"
+              value={formData.addressLine1}
+              onChange={handleChange}
+              className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+              title={formData.addressLine1 || "Enter Address Line 1"}
+              placeholder="Enter Address Line 1"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="addressLine2" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Address Line 2">
+            Address Line 2
+          </label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+            <input
+              id="addressLine2"
+              name="addressLine2"
+              type="text"
+              value={formData.addressLine2}
+              onChange={handleChange}
+              className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+              title={formData.addressLine2 || "Enter Address Line 2"}
+              placeholder="Enter Address Line 2"
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="addressLine3" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Address Line 3">
+            Address Line 3
+          </label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+            <input
+              id="addressLine3"
+              name="addressLine3"
+              type="text"
+              value={formData.addressLine3}
+              onChange={handleChange}
+              className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+              title={formData.addressLine3 || "Enter Address Line 3"}
+              placeholder="Enter Address Line 3"
+            />
+          </div>
+        </div>
+
+        {/* Country, State, City, ZIP */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Country">
+              Country
+            </label>
+            <div className="relative">
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <select
+                id="country"
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.country || "Select Country"}
+              >
+                <option value="">Select Country</option>
+                {countries.map((country) => (
+                  <option key={country.code} value={country.code}>
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="State">
+              State
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <select
+                id="state"
+                name="state"
+                value={formData.state}
+                onChange={handleChange}
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.state || "Select State"}
+              >
+                <option value="">Select State</option>
+                {states?.map((state) => (
+                  <option key={state.code} value={state.name}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="City">
+              City
+            </label>
+            <div className="relative">
+              <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <select
+                id="city"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.city || "Select City"}
+              >
+                <option value="">Select City</option>
+                {cities?.map((city) => (
+                  <option key={city.geonameId} value={city.name}>
+                    {city.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="ZIP Code">
+              ZIP Code
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <input
+                id="zipCode"
+                name="zipCode"
+                type="text"
+                value={formData.zipCode}
+                onChange={handleChange}
+                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
+                title={formData.zipCode || "Enter ZIP Code"}
+                placeholder="Enter ZIP Code"
+              />
+            </div>
+          </div>
         </div>
       </form>
-
-      <GlobalSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      />
-        </div>
-      </div>
     </div>
+
+    {/* Action Buttons */}
+    <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+      <button
+        type="button"
+        onClick={onCancel}
+        className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors duration-200"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        onClick={handleSubmit}
+        disabled={loading}
+        className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2"
+      >
+        {loading && <Loader2Icon className="w-4 h-4 animate-spin" />}
+        <span>{loading ? "Saving..." : "Save Changes"}</span>
+      </button>
+    </div>
+
+    <GlobalSnackbar
+      open={snackbar.open}
+      message={snackbar.message}
+      severity={snackbar.severity}
+      onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+    />
+  </div>
+</div>
   );
 };
 
