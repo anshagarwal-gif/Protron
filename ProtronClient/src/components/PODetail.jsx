@@ -7,6 +7,7 @@ import ViewPOModal from "./ViewPOModal";
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import GetSRNDetailsByPO from "./GetSRNDetailsByPO";
+import GetConsumptionByPO from "./GetConsumptionByPO";
 
 import {
   ArrowLeft,
@@ -692,6 +693,9 @@ const PODetailsPage = () => {
       </div>
       <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
         <GetSRNDetailsByPO poId={poId} />
+      </div>
+      <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
+        <GetConsumptionByPO poId={poId} />
       </div>
 
       {/* Add Milestone Modal */}
