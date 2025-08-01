@@ -618,7 +618,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     <div className="p-6 overflow-y-auto flex-grow">
                         {currentStep === 1 && (
                             <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
+                                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
                                     <div className="lg:col-span-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">PO Number</label>
                                         <input
@@ -717,11 +717,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             />
                                         </div>
                                     </div>
-
-
-                                </div>
-
-                                <div className="grid grid-cols-5 gap-4">
                                     <div className="lg:col-span-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">PO End Date</label>
                                         <div onClick={() => EndDateInputRef.current?.showPicker?.()} className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center">
@@ -1010,7 +1005,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 }}
                                                 className="react-select-container"
                                                 classNamePrefix="react-select"
-                                                placeholder="Select Budget Line Item"
+                                                placeholder="Select Budget Line"
                                                 isSearchable
                                                 isClearable
                                                 formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
@@ -1061,7 +1056,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         </div>
                                     </div>
 
+
                                 </div>
+
                                 <div className="lg:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
                                     <div className="relative">

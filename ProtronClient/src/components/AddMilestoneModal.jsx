@@ -329,7 +329,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <DollarSign size={14} className="inline mr-1" />
                   Amount *
                 </label>
                 <input
