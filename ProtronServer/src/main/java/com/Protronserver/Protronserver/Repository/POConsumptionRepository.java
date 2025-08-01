@@ -15,6 +15,9 @@ public interface POConsumptionRepository extends JpaRepository<POConsumption, Lo
     @Query("SELECT p FROM POConsumption p WHERE p.poNumber = :poNumber AND p.tenantId = :tenantId AND p.lastUpdateTimestamp IS NULL")
     List<POConsumption> findByPoNumber(@Param("poNumber") String poNumber, @Param("tenantId") Long tenantId);
 
+    @Query("SELECT p FROM POConsumption p WHERE p.poId = :poNumber AND p.tenantId = :tenantId AND p.lastUpdateTimestamp IS NULL")
+    List<POConsumption> findByPoId(@Param("poNumber") String poNumber, @Param("tenantId") Long tenantId);
+
     // 🔹 Get all active POConsumptions by PO Number and Milestone Name
     @Query("SELECT p FROM POConsumption p WHERE p.poNumber = :poNumber AND p.milestone.msName = :msName AND p.tenantId = :tenantId AND p.lastUpdateTimestamp IS NULL")
     List<POConsumption> findByPoNumberAndMilestone_MsName(@Param("poNumber") String poNumber,

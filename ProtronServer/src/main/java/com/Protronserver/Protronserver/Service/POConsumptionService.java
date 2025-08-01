@@ -252,6 +252,10 @@ public class POConsumptionService {
         return poConsumptionRepository.findByPoNumber(poNumber, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
+    public List<POConsumption> getPOConsumptionsByPoId(String poNumber) {
+        return poConsumptionRepository.findByPoNumber(poNumber, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
+    }
+
     public List<POConsumption> getPOConsumptionsByPoNumberAndMilestone(String poNumber, String msName) {
         return poConsumptionRepository.findByPoNumberAndMilestone_MsName(poNumber, msName, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }

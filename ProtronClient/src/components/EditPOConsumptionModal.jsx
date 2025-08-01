@@ -645,20 +645,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Currency
                 </label>
-                <select
-                  name="currency"
-                  value={formData.currency}
-                  onChange={handleInputChange}
-                  className="w-full px-1 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={true}
-                  
-                >
-                  <option value="USD">USD</option>
-                  <option value="INR">INR</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="JPY">JPY</option>
-                </select>
+                <input type="text" value={formData.currency} readOnly className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100" />
               </div>
 
               <div className="">
