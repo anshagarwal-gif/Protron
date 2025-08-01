@@ -457,34 +457,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
       </div>
 
       {/* Summary section */}
-      <div className="mt-4 bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-medium text-gray-800 mb-2">Summary</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Total Amount: </span>
-            <span className="font-medium">
-              {new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR'
-              }).format(
-                srnDetails.reduce((sum, item) => sum + (item.srnAmount || 0), 0)
-              )}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-600">Partial Payments: </span>
-            <span className="font-medium">
-              {srnDetails.filter(item => item.srnType === 'partial').length}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-600">Full Payments: </span>
-            <span className="font-medium">
-              {srnDetails.filter(item => item.srnType === 'full').length}
-            </span>
-          </div>
-        </div>
-      </div>
+      
       <AddSRNModal
         open={isAddSRNOpen}
         onClose={handleCloseSRNModal} />

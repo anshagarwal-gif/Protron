@@ -543,7 +543,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
@@ -673,12 +673,6 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   </div>
                 )}
               </div>
-
-              <div className="col-span-2"></div> {/* Spacer */}
-            </div>
-
-            {/* Row 2: Utilization Type, Resource/Project, System Name */}
-            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Activity size={14} className="inline mr-1" />
@@ -746,10 +740,6 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   title={formData.systemName}
                 />
               </div>
-            </div>
-
-            {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
-            <div className="grid grid-cols-12 gap-4">
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
@@ -783,6 +773,12 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   title={formData.workCompletionDate ? `Work Completed: ${new Date(formData.workCompletionDate).toLocaleDateString()}` : "Click to select work completion date (optional)"}
                 />
               </div>
+            </div>
+
+
+            {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
+            <div className="grid grid-cols-5 gap-4">
+              
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">

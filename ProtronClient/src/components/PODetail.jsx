@@ -695,7 +695,7 @@ const PODetailsPage = () => {
         <GetSRNDetailsByPO poId={poId} />
       </div>
       <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
-        <GetConsumptionByPO poId={poId} />
+        <GetConsumptionByPO poNumber={poDetails.poNumber} />
       </div>
 
       {/* Add Milestone Modal */}

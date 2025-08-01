@@ -681,7 +681,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
             </div>
 
             {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
-            <div className="grid grid-cols-12 gap-4">
+            <div className="grid grid-cols-5 gap-4">
               
 
               <div className="">
