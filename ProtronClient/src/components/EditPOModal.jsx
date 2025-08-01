@@ -19,6 +19,7 @@ import {
     UserCheck,
     Edit2
 } from 'lucide-react';
+import axios from 'axios';
 
 // Currency symbols mapping
 const currencySymbols = {
@@ -45,6 +46,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         budgetLineItem: '',
         budgetLineAmount: '',
         budgetLineRemarks: '',
+        poCountry: '',
+        businessValueAmount: '',
         poSpoc: '',
         poStartDate: '',
         poEndDate: '',
@@ -70,6 +73,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     budgetLineItem: formData.budgetLineItem,
                     budgetLineAmount: parseFloat(formData.budgetLineAmount) || 0,
                     budgetLineRemarks: formData.budgetLineRemarks,
+                    poCountry: formData.poCountry || '',
+                    businessValueAmount: parseFloat(formData.businessValueAmount) || 0,
                     projectName: formData.projectName,
                     poStartDate: formData.poStartDate,
                     poEndDate: formData.poEndDate,
@@ -111,6 +116,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         value: user.name,
         label: user.name,
     }));
+    const [countries, setCountries] = useState([]);
 
     const fetchUsers = async () => {
         try {
@@ -168,6 +174,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 budgetLineItem: poData.budgetLineItem || '',
                 budgetLineAmount: poData.budgetLineAmount || '',
                 budgetLineRemarks: poData.budgetLineRemarks || '',
+                poCountry: poData.poCountry || '',
+                businessValueAmount: poData.businessValueAmount || '',
                 supplier: poData.supplier || '',
                 projectName: poData.projectName || '',
                 poSpoc: poData.poSpoc || '',
@@ -209,6 +217,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         if (open && poId) {
             fetchUsers();
             fetchProjects();
+            fetchCountries();
             fetchPOData();
         }
     }, [open, poId]);
@@ -463,6 +472,21 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         }));
     };
 
+    const fetchCountries = async () => {
+        try {
+          const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
+          const countriesData = response.data.geonames.map(country => ({
+            code: country.countryCode,
+            name: country.countryName,
+            geonameId: country.geonameId
+          })).sort((a, b) => a.name.localeCompare(b.name));
+
+          setCountries(countriesData);
+        } catch (error) {
+          console.error("Failed to fetch countries:", error);
+        }
+      };
+
     if (!open) return null;
 
     return (
@@ -523,6 +547,22 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <option value="MIXED">Mixed</option>
                                     </select>
                                 </div>
+                                <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO Country</label>
+                                        <select
+                                            value={formData.poCountry}
+                                            onChange={handleChange('poCountry')}
+                                            title={formData.poCountry || 'Select from list'} // Tooltip on hover
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        >
+                                            <option value="">Select from list</option>
+                                            {countries.map((country) => (
+                                                <option key={country.code} value={country.name}>
+                                                    {country.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 <div className='lg:col-span-1'>
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Currency">
                                         Currency <span className="text-red-500">*</span>
@@ -872,6 +912,26 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             onChange={handleChange('budgetLineAmount')}
                                             className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
                                             title={formData.budgetLineAmount || "Enter Budget Line Amount"}
+                                            placeholder="Enter Amount"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Business Value Amount">
+                                        Business Value Amount
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
+                                            {currencySymbols[formData.poCurrency] || '$'}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            value={formData.businessValueAmount}
+                                            onChange={handleChange('businessValueAmount')}
+                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
+                                            title={formData.businessValueAmount || "Enter Business Value Amount"}
                                             placeholder="Enter Amount"
                                             required
                                         />

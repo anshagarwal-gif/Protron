@@ -44,6 +44,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         budgetLineItem: '',
         budgetLineAmount: '',
         budgetLineRemarks: '',
+        businessValueAmount: '',
+        poCountry: '',
         supplierName: sessionStorage.getItem('tenantName') || '',
         projectName: '',
         spocName: '',
@@ -62,6 +64,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     // Add state for milestone modal
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
+    const [countries, setCountries] = useState([]);
 
     const fetchUsers = async () => {
         try {
@@ -94,6 +97,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         if (open) {
             fetchUsers();
             fetchProjects();
+            fetchCountries(); 
         }
     }, [open]);
 
@@ -182,6 +186,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 budgetLineItem: formData.budgetLineItem || '',
                 budgetLineAmount: formData.budgetLineAmount || '',
                 budgetLineRemarks: formData.budgetLineRemarks || '',
+                poCountry: formData.poCountry || '',
+                businessValueAmount: parseFloat(formData.businessValueAmount) || 0,
                 sponsorLob: formData.sponsorLob || '',
                 projectName: formData.projectName,
                 poStartDate: formData.startDate || null,
@@ -536,6 +542,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             budgetLineItem: '',
             budgetLineAmount: '',
             budgetLineRemarks: '',
+            businessValueAmount: '',
+            poCountry: '',
             supplierName: sessionStorage.getItem('tenantName') || '',
             projectName: '',
             spocName: '',
@@ -548,6 +556,21 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         setMilestoneModalOpen(false);
         setEditingMilestone(null);
     };
+
+    const fetchCountries = async () => {
+    try {
+      const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
+      const countriesData = response.data.geonames.map(country => ({
+        code: country.countryCode,
+        name: country.countryName,
+        geonameId: country.geonameId
+      })).sort((a, b) => a.name.localeCompare(b.name))
+
+      setCountries(countriesData);
+    } catch (error) {
+      console.error("Failed to fetch countries:", error);
+    }
+  };
 
     if (!open) return null;
 
@@ -574,6 +597,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     budgetLineItem: '',
                                     budgetLineAmount: '',
                                     budgetLineRemarks: '',
+                                    businessValueAmount: '',
+                                    poCountry: '',
                                     supplierName: sessionStorage.getItem('tenantName') || '',
                                     projectName: '',
                                     spocName: '',
@@ -617,6 +642,23 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             <option value="FIXED">Fixed</option>
                                             <option value="T_AND_M">T & M</option>
                                             <option value="MIXED">Mixed</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO Country</label>
+                                        <select
+                                            value={formData.poCountry}
+                                            onChange={handleChange('poCountry')}
+                                            title={formData.poCountry || 'Select from list'} // Tooltip on hover
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        >
+                                            <option value="">Select from list</option>
+                                            {countries.map((country) => (
+                                                <option key={country.code} value={country.name}>
+                                                    {country.name}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 
@@ -997,6 +1039,23 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 value={formData.budgetLineAmount}
                                                 onChange={handleChange('budgetLineAmount')}
                                                 title={formData.budgetLineAmount?.toString() || 'Enter Amount'} // Tooltip on hover
+                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Business Value Amount</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 font-semibold">
+                                                {currencySymbols[formData.currency] || '$'}
+                                            </span>
+                                            <input
+                                                type="number"
+                                                placeholder="Enter here"
+                                                value={formData.businessValueAmount}
+                                                onChange={handleChange('businessValueAmount')}
+                                                title={formData.businessValueAmount?.toString() || 'Enter Amount'} // Tooltip on hover
                                                 className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
                                             />
                                         </div>

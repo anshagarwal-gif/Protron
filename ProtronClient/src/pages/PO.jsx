@@ -529,94 +529,93 @@ const POManagement = () => {
       {/* Header with navigation, search and actions */}
       <div className="flex justify-between items-center mb-6">
         {/* Left side - 4-Slider toggle buttons and title */}
-        <div className="flex items-center gap-6">
-          {/* 4-Slider toggle buttons */}
+        <div className="flex items-center gap-4">
           <div className="relative bg-gray-200 p-1 rounded-full flex">
-            <div
-              className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-              style={{
-                width: 'calc(25% - 2px)',
-                left: activeTab === "details" ? '4px' :
-                  activeTab === "utilization" ? 'calc(25% + 2px)' :
-                    activeTab === "srn" ? 'calc(50% + 1px)' :
-                      'calc(75% + 1px)'
-              }}
-            />
-            <button
-              className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-                activeTab === "details" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("details")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <FileText size={16} className="mr-1" />
-                PO Details
-              </div>
-            </button>
-            <button
-              className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-                activeTab === "utilization" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("utilization")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <TrendingUp size={16} className="mr-1" />
-                PO Utilization
-              </div>
-            </button>
-            <button
-              className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-                activeTab === "srn" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("srn")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <Receipt size={16} className="mr-1" />
-                SRN
-              </div>
-            </button>
-            <button
-              className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-                activeTab === "invoice" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("invoice")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <CreditCard size={16} className="mr-1" />
-                Invoice
-              </div>
-            </button>
-          </div>
+          <div
+            className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+            style={{
+              width: activeTab === "utilization" ? 'calc(25% + 8px)' : 'calc(25% - 2px)',
+              left: activeTab === "details" ? '4px' :
+                activeTab === "utilization" ? 'calc(25% - 2px)' :
+                  activeTab === "srn" ? 'calc(50% + 2px)' :
+                    'calc(75% + 2px)'
+            }}
+          />
+          <button
+            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+              activeTab === "details" ? "text-green-600" : "text-gray-600"
+            }`}
+            onClick={() => setActiveTab("details")}
+          >
+            <div className="flex items-center justify-center whitespace-nowrap">
+              <FileText size={16} className="mr-1" />
+              PO Details
+            </div>
+          </button>
+          <button
+            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+              activeTab === "utilization" ? "text-green-600" : "text-gray-600"
+            }`}
+            onClick={() => setActiveTab("utilization")}
+          >
+            <div className="flex items-center justify-center whitespace-nowrap">
+              <TrendingUp size={16} className="mr-1" />
+              PO Consumption
+            </div>
+          </button>
+          <button
+            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+              activeTab === "srn" ? "text-green-600" : "text-gray-600"
+            }`}
+            onClick={() => setActiveTab("srn")}
+          >
+            <div className="flex items-center justify-center whitespace-nowrap">
+              <Receipt size={16} className="mr-1" />
+              SRN
+            </div>
+          </button>
+          <button
+            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+              activeTab === "invoice" ? "text-green-600" : "text-gray-600"
+            }`}
+            onClick={() => setActiveTab("invoice")}
+          >
+            <div className="flex items-center justify-center whitespace-nowrap">
+              <CreditCard size={16} className="mr-1" />
+              Invoice
+            </div>
+          </button>
+        </div>
 
-          {/* Dynamic title based on active tab */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              {activeTab === "details" && (
-                <>
-                  <FileText size={24} className="mr-2 text-green-600" />
-                  PO List
-                </>
-              )}
-              {activeTab === "utilization" && (
-                <>
-                  <TrendingUp size={24} className="mr-2 text-green-600" />
-                  PO Utilization
-                </>
-              )}
-              {activeTab === "srn" && (
-                <>
-                  <Receipt size={24} className="mr-2 text-green-600" />
-                  SRN Management
-                </>
-              )}
-              {activeTab === "invoice" && (
-                <>
-                  <CreditCard size={24} className="mr-2 text-green-600" />
-                  Invoice Management
-                </>
-              )}
-            </h2>
-          </div>
+        {/* Dynamic title based on active tab */}
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+            {activeTab === "details" && (
+              <>
+                <FileText size={24} className="mr-2 text-green-600" />
+                PO List
+              </>
+            )}
+            {activeTab === "utilization" && (
+              <>
+                <TrendingUp size={24} className="mr-2 text-green-600" />
+                PO Consumption
+              </>
+            )}
+            {activeTab === "srn" && (
+              <>
+                <Receipt size={24} className="mr-2 text-green-600" />
+                SRN Management
+              </>
+            )}
+            {activeTab === "invoice" && (
+              <>
+                <CreditCard size={24} className="mr-2 text-green-600" />
+                Invoice Management
+              </>
+            )}
+          </h2>
+        </div>
         </div>
 
         {/* Right side - Search and action buttons */}

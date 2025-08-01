@@ -104,14 +104,14 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
                     <p className="text-gray-900 font-semibold break-words">{consumption.poNumber || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Utilization ID</label>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Consumption ID</label>
                     <p className="text-green-600 font-semibold break-words">{consumption.utilizationId || 'N/A'}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Utilization Type</label>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Consumption Type</label>
                     <span className="inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {consumption.utilizationType || 'N/A'}
                     </span>
@@ -463,9 +463,8 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       const excelData = filteredConsumptionData.map((consumption, index) => ({
         'S.No': index + 1,
         'PO Number': consumption.poNumber || 'N/A',
-        'Utilization ID': consumption.utilizationId || 'N/A',
         'Milestone Name': consumption.milestone?.msName || 'N/A',
-        'Utilization Type': consumption.utilizationType || 'N/A',
+        'Consumption Type': consumption.utilizationType || 'N/A',
         'Resource/Project': consumption.resourceOrProject || 'N/A',
         'Work Description': consumption.workDesc || 'N/A',
         'Currency': consumption.currency || 'N/A',
@@ -653,31 +652,6 @@ const columnDefs = useMemo(() => [
         );
       }
       return <span className="text-gray-500" title={poNumber}>{truncateWithTooltip(poNumber, 12)}</span>;
-    }
-  },
-  {
-    headerName: "Util ID",
-    field: "utilizationId",
-    valueGetter: params => params.data.utilizationId || 'N/A',
-    width: 80,
-    sortable: true,
-    filter: true,
-    cellStyle: { fontWeight: 'bold', color: '#059669' },
-    cellRenderer: params => {
-      const utilizationId = params.value;
-      const consumption = params.data;
-      if (utilizationId && utilizationId !== 'N/A') {
-        return (
-          <button
-            onClick={() => handleConsumptionIdClick(consumption)}
-            className="text-green-600 hover:text-green-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left truncate block w-full"
-            title={`View consumption details for ${utilizationId}`}
-          >
-            {truncateWithTooltip(utilizationId.toString(), 8)}
-          </button>
-        );
-      }
-      return <span className="text-gray-500" title={utilizationId}>{truncateWithTooltip(utilizationId?.toString() || 'N/A', 8)}</span>;
     }
   },
   {

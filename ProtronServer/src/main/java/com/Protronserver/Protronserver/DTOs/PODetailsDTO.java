@@ -18,9 +18,27 @@ public class PODetailsDTO {
     private String budgetLineItem;
     private BigDecimal budgetLineAmount;
     private String budgetLineRemarks;
+    private BigDecimal businessValueAmount;
+    private String poCountry;
     private String projectName;
     private LocalDate poStartDate;
     private LocalDate poEndDate;
+
+    public BigDecimal getBusinessValueAmount() {
+        return businessValueAmount;
+    }
+
+    public void setBusinessValueAmount(BigDecimal businessValueAmount) {
+        this.businessValueAmount = businessValueAmount;
+    }
+
+    public String getPoCountry() {
+        return poCountry;
+    }
+
+    public void setPoCountry(String poCountry) {
+        this.poCountry = poCountry;
+    }
 
     public String getBudgetLineItem() {
         return budgetLineItem;

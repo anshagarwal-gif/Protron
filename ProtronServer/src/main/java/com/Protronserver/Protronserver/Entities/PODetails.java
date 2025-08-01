@@ -55,6 +55,12 @@ public class PODetails {
     @Column(name="budget_line_remarks", length = 500)
     private String budgetLineRemarks;
 
+    @Column(name="business_value_amount", precision = 10, scale = 2)
+    private BigDecimal businessValueAmount;
+
+    @Column(name="po_country", length = 100)
+    private String poCountry;
+
     @Column(name = "project_name", length = 250)
     private String projectName;
 
@@ -95,6 +101,22 @@ public class PODetails {
 
     // Getters and Setters
 
+
+    public BigDecimal getBusinessValueAmount() {
+        return businessValueAmount;
+    }
+
+    public void setBusinessValueAmount(BigDecimal businessValueAmount) {
+        this.businessValueAmount = businessValueAmount;
+    }
+
+    public String getPoCountry() {
+        return poCountry;
+    }
+
+    public void setPoCountry(String poCountry) {
+        this.poCountry = poCountry;
+    }
 
     public String getBudgetLineItem() {
         return budgetLineItem;
