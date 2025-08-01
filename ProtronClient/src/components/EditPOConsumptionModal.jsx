@@ -166,7 +166,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
             
             try {
               const milestoneResponse = await axios.get(
-                `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${selectedPO.poId}`,
+                `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneForPo/${selectedPO.poId}`,
                 {
                   headers: { Authorization: `${token}` }
                 }
@@ -476,16 +476,6 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       submitData.append('workCompletionDate', formData.workCompletionDate || '');
       submitData.append('remarks', formData.remarks || '');
       submitData.append('systemName', formData.systemName || '');
-      
-      // Add file if present
-      if (formData.attachment) {
-        submitData.append('attachment', formData.attachment);
-      }
-
-      console.log('Updating PO consumption data with file:', {
-        ...Object.fromEntries(submitData.entries()),
-        attachment: formData.attachment ? formData.attachment.name : null
-      });
 
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/po-consumption/update/${consumptionId}`,
@@ -493,7 +483,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
         {
           headers: { 
             Authorization: `${token}`,
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/json'
           }
         }
       );

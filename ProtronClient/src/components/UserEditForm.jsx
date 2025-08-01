@@ -334,7 +334,7 @@ console.log(name, value);
               Currency Unit
             </label>
             <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600">{getCurrentCurrencySymbol()}</span>
               <select
                 id="unit"
                 name="unit"
@@ -377,20 +377,7 @@ console.log(name, value);
             </label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-              <select
-                id="cost_time"
-                name="cost_time"
-                value={formData.cost_time}
-                onChange={handleChange}
-                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
-                title={formData.cost_time || "Select Cost Time"}
-              >
-                {timePeriods.map((period) => (
-                  <option key={period.value} value={period.value}>
-                    {period.label}
-                  </option>
-                ))}
-              </select>
+              <input disabled type="text" id="cost_time" name="cost_time" value={formData.cost_time} className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate" title={formData.cost_time} />
             </div>
           </div>
         </div>

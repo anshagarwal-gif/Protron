@@ -80,7 +80,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
           // Fetch milestones using the same API endpoint as SRN modal
           try {
             const milestoneResponse = await axios.get(
-              `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${selectedPO.poId}`,
+              `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneForPo/${selectedPO.poId}`,
               {
                 headers: { Authorization: `${token}` }
               }
@@ -378,16 +378,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       submitData.append('workCompletionDate', formData.workCompletionDate || '');
       submitData.append('remarks', formData.remarks || '');
       submitData.append('systemName', formData.systemName || '');
-      
-      // Add file if present
-      if (formData.attachment) {
-        submitData.append('attachment', formData.attachment);
-      }
-
-      console.log('Submitting PO consumption data with file:', {
-        ...Object.fromEntries(submitData.entries()),
-        attachment: formData.attachment ? formData.attachment.name : null
-      });
 
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/po-consumption/add`,
@@ -395,7 +385,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         {
           headers: { 
             Authorization: `${token}`,
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/json'
           }
         }
       );
