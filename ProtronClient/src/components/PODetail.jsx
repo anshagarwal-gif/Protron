@@ -6,6 +6,7 @@ import { Eye } from "lucide-react";
 import ViewPOModal from "./ViewPOModal";
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import GetSRNDetailsByPO from "./GetSRNDetailsByPO";
 
 import {
   ArrowLeft,
@@ -28,6 +29,7 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddMilestoneModal from "../components/AddMilestoneModal";
 import EditMilestoneModal from "../components/EditMilestoneModal";
+import { Try } from "@mui/icons-material";
 
 const PODetailsPage = () => {
   const { poId } = useParams();
@@ -160,7 +162,7 @@ const PODetailsPage = () => {
   // Filter milestones based on search
   const filteredMilestones = milestones.filter(milestone => {
     if (searchQuery === "") return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
     return (
       milestone.milestoneName?.toLowerCase().includes(searchLower) ||
@@ -183,7 +185,7 @@ const PODetailsPage = () => {
         'Duration (Days)': milestone.duration || 0,
         'Remark': milestone.remark || 'N/A',
         'Attachment': milestone.attachment ? 'Yes' : 'No',
-        
+
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -225,12 +227,36 @@ const PODetailsPage = () => {
     setIsAddMilestoneModalOpen(true);
   };
 
-  const handleMilestoneModalSubmit = (data) => {
+  const handleMilestoneModalSubmit = async (data) => {
+    const payload = {
+      poId: Number(poId),                          // ensure poId is sent as a number (Long)
+      msName: data.milestoneName,
+      msDesc: data.milestoneDescription,
+      msAmount: data.amount,
+      msCurrency: data.currency,
+      msDate: data.date,
+      msDuration: data.duration,
+      msRemarks: data.remark
+    };
+
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/po-milestone/add`, payload, {
+        headers: {
+          Authorization: sessionStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log(res.data);
+    } catch (error) {
+      console.error("Error adding milestone:", error);
+      showSnackbar("Failed to add milestone", "error");
+    }
+
     showSnackbar("Milestone created successfully!", "success");
     fetchMilestones(); // Refresh the table
   };
 
-  const handleEditMilestoneModalSubmit = (data) => {
+  const handleEditMilestoneModalSubmit = async (data) => {
     showSnackbar("Milestone updated successfully!", "success");
     fetchMilestones(); // Refresh the table
   };
@@ -243,10 +269,10 @@ const PODetailsPage = () => {
       'COMPLETED': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
       'ON_HOLD': { color: 'bg-red-100 text-red-800', icon: AlertCircle }
     };
-    
+
     const config = statusConfig[status] || statusConfig['PENDING'];
     const Icon = config.icon;
-    
+
     return {
       colorClass: config.color,
       icon: <Icon size={14} className="mr-1" />,
@@ -258,8 +284,8 @@ const PODetailsPage = () => {
   const TruncatedCellRenderer = (params) => {
     const value = params.value || 'N/A';
     return (
-      <div 
-        className="truncate w-full cursor-pointer" 
+      <div
+        className="truncate w-full cursor-pointer"
         title={value}
       >
         {value}
@@ -490,8 +516,8 @@ const PODetailsPage = () => {
           {/* First Row */}
           <div>
             <p className="text-sm font-medium text-blue-600 mb-1">PO Number</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poNumber}
             >
               {poDetails.poNumber}
@@ -500,8 +526,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-green-600 mb-1">PO Amount</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={formatCurrency(poDetails.poAmount, poDetails.poCurrency)}
             >
               {formatCurrency(poDetails.poAmount, poDetails.poCurrency)}
@@ -510,8 +536,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-purple-600 mb-1">Customer</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.customer || 'N/A'}
             >
               {poDetails.customer || 'N/A'}
@@ -520,8 +546,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-orange-600 mb-1">SPOC</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poSpoc || 'N/A'}
             >
               {poDetails.poSpoc || 'N/A'}
@@ -530,22 +556,22 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-indigo-600 mb-1">PO Type</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
-              title={poDetails.poType === 'T_AND_M' ? 'T & M' : 
-                     poDetails.poType === 'FIXED' ? 'Fixed' : 
-                     poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
+              title={poDetails.poType === 'T_AND_M' ? 'T & M' :
+                poDetails.poType === 'FIXED' ? 'Fixed' :
+                  poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
             >
-              {poDetails.poType === 'T_AND_M' ? 'T & M' : 
-               poDetails.poType === 'FIXED' ? 'Fixed' : 
-               poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
+              {poDetails.poType === 'T_AND_M' ? 'T & M' :
+                poDetails.poType === 'FIXED' ? 'Fixed' :
+                  poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-yellow-600 mb-1">Supplier</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.supplier || 'N/A'}
             >
               {poDetails.supplier || 'N/A'}
@@ -554,8 +580,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-teal-600 mb-1">Project Name</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.projectName || 'N/A'}
             >
               {poDetails.projectName || 'N/A'}
@@ -664,9 +690,12 @@ const PODetailsPage = () => {
           />
         </div>
       </div>
+      <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
+        <GetSRNDetailsByPO poId={poId} />
+      </div>
 
       {/* Add Milestone Modal */}
-      <AddMilestoneModal 
+      <AddMilestoneModal
         open={isAddMilestoneModalOpen}
         onClose={() => setIsAddMilestoneModalOpen(false)}
         onSubmit={handleMilestoneModalSubmit}
@@ -674,7 +703,7 @@ const PODetailsPage = () => {
       />
 
       {/* Edit Milestone Modal */}
-      <EditMilestoneModal 
+      <EditMilestoneModal
         open={isEditMilestoneModalOpen}
         onClose={() => {
           setIsEditMilestoneModalOpen(false);

@@ -33,8 +33,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
-
-  // Truncate component with hover tooltip
+  console.log(srnId)
+  // Truncate compnent with hover tooltip
   const currencySymbols = {
     USD: "$",
     INR: "₹",
@@ -414,21 +414,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         srnType: formData.srnType,
         srnRemarks: formData.srnRemarks || ''
       };
-
-      console.log('Updating SRN data:', updateData);
-
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/srn/edit/${srnId}`,
-        updateData,
-        {
-          headers: {
-            Authorization: `${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      onSubmit(response.data);
+      onSubmit(updateData);
       handleClose();
     } catch (error) {
       console.error("Error updating SRN:", error);

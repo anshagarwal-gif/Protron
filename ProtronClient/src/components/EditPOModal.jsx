@@ -514,7 +514,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     {currentStep === 1 && (
                         <div className="space-y-6">
                             {/* PO Details Form Fields */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
+                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
                                 {/* PO Number, Type, Currency, Amount, Dates */}
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Number">
@@ -756,11 +756,6 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         />
                                     </div>
                                 </div>
-
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                                {/* SPOC, Project, Customer, Supplier, Attachments */}
-                                
                                 <div>
                                     <label
                                         htmlFor="sponsorName"
@@ -937,6 +932,12 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         />
                                     </div>
                                 </div>
+
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                {/* SPOC, Project, Customer, Supplier, Attachments */}
+                                
+                                
 
 
 
