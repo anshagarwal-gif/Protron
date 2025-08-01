@@ -585,19 +585,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             <div className="grid grid-cols-5 gap-15">
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
-                <select
-                  name="srnCurrency"
-                  value={formData.srnCurrency}
-                  onChange={handleInputChange}
-                  className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  disabled={true}
-                >
-                  <option value="USD">USD</option>
-                  <option value="INR">INR</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="JPY">JPY</option>
-                </select>
+                <input type="text" value={formData.srnCurrency} readOnly className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100" />
               </div>
 
 
