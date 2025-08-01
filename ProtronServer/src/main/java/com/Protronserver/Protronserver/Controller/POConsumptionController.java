@@ -98,6 +98,16 @@ public class POConsumptionController {
         }
     }
 
+    @GetMapping("/by-po/{poId}")
+    public ResponseEntity<List<POConsumption>> getPOConsumptionsByPoId(@PathVariable String poId) {
+        try {
+            List<POConsumption> consumptions = poConsumptionService.getPOConsumptionsByPoId(poId);
+            return ResponseEntity.ok(consumptions);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
     /**
      * Get all PO consumptions by PO number and milestone
      */
