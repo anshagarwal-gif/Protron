@@ -49,6 +49,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     taskType: '',
     hours: '',
     minutes: '',
+    remainingHours: '',
+    remainingMinutes: '',
     description: '',
     projectId: '',
     taskTopic: '',
@@ -186,6 +188,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
           taskTopic: editingTask.taskTopic || '',
           hours: hours ? String(hours) : '',
           minutes: minutes ? String(minutes) : '',
+          remainingHours: editingTask.remainingHours || '',
+          remainingMinutes: editingTask.remainingMinutes || '',
           description: editingTask.description || '',
           projectId: editingTask.projectId?.toString() || editingTask.project?.projectId?.toString() || '',
           attachments: [] // Don't prefill file input for security reasons
@@ -198,6 +202,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
           taskTopic: '',
           hours: '',
           minutes: '',
+          remainingHours: '',
+          remainingMinutes: '',
           description: '',
           projectId: '',
           attachments: []
@@ -447,6 +453,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       taskType: '',
       hours: '',
       minutes: '',
+      remainingHours: '',
+      remainingMinutes: '',
       description: '',
       projectId: projects.length === 1 ? projects[0].projectId.toString() : '',
       attachments: []
@@ -500,6 +508,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
         date: currentDate,
         hoursSpent: parseInt(formData.hours, 10) || 0,
         minutesSpent: parseInt(formData.minutes, 10) || 0,
+        remainingHours: parseInt(formData.remainingHours, 10) || 0,
+        remainingMinutes: parseInt(formData.remainingMinutes, 10) || 0,
         description: formData.description,
         projectId: parseInt(formData.projectId),
         attachments: attachmentData,
@@ -864,6 +874,72 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
                 </Box>
 
+                <Box sx={{ flex: 0.4 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <TextField
+                      type="number"
+                      label="Remaining Hours"
+                      value={formData.remainingHours}
+                      onChange={handleInputChange('remainingHours')}
+                      placeholder="HH"
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) && // Allow only numbers
+                          e.key !== 'Backspace' && // Allow backspace
+                          e.key !== 'Delete' && // Allow delete
+                          e.key !== 'ArrowLeft' && // Allow left arrow
+                          e.key !== 'ArrowRight' && // Allow right arrow
+                          e.key !== 'Tab' // Allow tab
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      inputProps={{ min: 0, max: 24 }}
+                      sx={{ flex: 1 }}
+                      error={formData.remainingHours !== '' && (parseInt(formData.remainingHours, 10) < 0 || parseInt(formData.remainingHours, 10) > 24)}
+                      helperText={formData.remainingHours !== '' && (parseInt(formData.remainingHours, 10) < 0 || parseInt(formData.remainingHours, 10) > 24) ? "0-24" : error ? error : ""}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <AccessTimeIcon sx={{ color: greenPrimary }} />
+                          </InputAdornment>
+                        ),
+                        sx: { height: fieldHeight }
+                      }}
+                    />
+                    <Typography variant="h6" sx={{ color: 'text.secondary', mx: 0.5 }}>
+                      :
+                    </Typography>
+                    <TextField
+                      type="number"
+                      label="Minutes"
+                      value={formData.remainingMinutes}
+                      onChange={handleInputChange('remainingMinutes')}
+                      placeholder="MM"
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) && // Allow only numbers
+                          e.key !== 'Backspace' && // Allow backspace
+                          e.key !== 'Delete' && // Allow delete
+                          e.key !== 'ArrowLeft' && // Allow left arrow
+                          e.key !== 'ArrowRight' && // Allow right arrow
+                          e.key !== 'Tab' // Allow tab
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      inputProps={{ min: 0, max: 59 }}
+                      sx={{ flex: 1 }}
+                      error={formData.remainingMinutes !== '' && (parseInt(formData.remainingMinutes, 10) < 0 || parseInt(formData.remainingMinutes, 10) >= 60)}
+                      helperText={formData.remainingMinutes !== '' && (parseInt(formData.remainingMinutes, 10) < 0 || parseInt(formData.remainingMinutes, 10) >= 60) ? "0-59" : error ? error : ""}
+                      InputProps={{
+                        sx: { height: fieldHeight }
+                      }}
+                    />
+                  </Box>
+
+                </Box>
+</Box>
                 {/* Compact Attachment Upload */}
                 <Box sx={{ flex: 0.6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary', fontWeight: 600 }}>
@@ -933,7 +1009,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     </Box>
                   )}
                 </Box>
-              </Box>
+              
 
               {/* Row 3: Large Description */}
               <Box>
