@@ -132,7 +132,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             }
           );
           console.log('PO Balance response:', response.data);
-          setPOBalance(response.data);
+          setPOBalance(response.data + (parseInt(formData.srnAmount) || 0));
         } catch (error) {
           console.error("Error fetching PO balance:", error);
         }
@@ -149,7 +149,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
               headers: { Authorization: `${token}` }
             }
           );
-          setMilestoneBalance(response.data);
+          setMilestoneBalance(response.data + (parseInt(formData.srnAmount) || 0));
         } catch (error) {
           console.error("Error fetching milestone balance:", error);
         }
@@ -592,8 +592,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
               <div className="lg:col-span-1">
                 <div className="flex gap-2 items-center justify-between">
                   <label className="block text-sm font-medium text-gray-700 mb-2">SRN Amount *</label>
-                  <span className="text-[9px] text-red-500">
-                    PO Balance: {poBalance !== null ? `${poBalance} ${formData.srnCurrency}` : 'Loading...'}
+                  <span className="text-[10px] text-red-500">
+                      {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
                   </span>
                 </div>
                 <div className="relative">

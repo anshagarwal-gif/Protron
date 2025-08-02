@@ -48,4 +48,7 @@ public class POController {
         return costDetailsService.getPOBalance(id);
     }
 
+    @GetMapping("/pobalance-con/{id}")
+    public BigDecimal getPoBalanceForConsumptions(@PathVariable Long id) { return costDetailsService.getPOBalanceBasedOnConsumption(id); }
+
 }

@@ -5,20 +5,21 @@ import axios from "axios";
 
 const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const [formData, setFormData] = useState({
-    poNumber: "",
-    msId: "",
-    amount: "",
-    currency: "USD",
-    utilizationType: "Fixed",
-    resourceOrProject: "",
-    workDesc: "",
-    workAssignDate: "",
-    workCompletionDate: "",
-    attachment: null,
-    existingAttachment: null,
-    remarks: "",
-    systemName: ""
-  });
+  poNumber: "",
+  msId: "",
+  amount: "",
+  currency: "USD",
+  utilizationType: "Fixed",
+  resource: "",
+  project: "",
+  workDesc: "",
+  workAssignDate: "",
+  workCompletionDate: "",
+  attachment: null,
+  existingAttachment: null,
+  remarks: "",
+  systemName: ""
+});
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [poList, setPOList] = useState([]);
@@ -27,6 +28,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const [descCharCount, setDescCharCount] = useState(0);
   const [remarksCharCount, setRemarksCharCount] = useState(0);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [poBalance, setPOBalance] = useState(null);
+  const [milestoneBalance, setMilestoneBalance] = useState(null);
+  const [users, setUsers] = useState([]);
 
   // Fetch existing consumption data when modal opens
    // Truncate text utility function
@@ -92,20 +96,21 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           };
 
           setFormData({
-            poNumber: consumption.poNumber || "",
-            msId: consumption.msId || "",
-            amount: consumption.amount?.toString() || "",
-            currency: consumption.currency || "USD",
-            utilizationType: consumption.utilizationType || "Fixed",
-            resourceOrProject: consumption.resourceOrProject || "",
-            workDesc: consumption.workDesc || "",
-            workAssignDate: formatDate(consumption.workAssignDate),
-            workCompletionDate: formatDate(consumption.workCompletionDate),
-            attachment: null,
-            existingAttachment: consumption.attachment || null,
-            remarks: consumption.remarks || "",
-            systemName: consumption.systemName || ""
-          });
+  poNumber: consumption.poNumber || "",
+  msId: consumption.milestone?.msId || "",
+  amount: consumption.amount?.toString() || "",
+  currency: consumption.currency || "USD",
+  utilizationType: consumption.utilizationType || "Fixed",
+  resource: consumption.resource || "",
+  project: consumption.project || "",
+  workDesc: consumption.workDesc || "",
+  workAssignDate: formatDate(consumption.workAssignDate),
+  workCompletionDate: formatDate(consumption.workCompletionDate),
+  attachment: null,
+  existingAttachment: consumption.attachment || null,
+  remarks: consumption.remarks || "",
+  systemName: consumption.systemName || ""
+});
 
         } catch (error) {
           console.error("Error fetching consumption data:", error);
@@ -150,8 +155,72 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       }
     };
 
+    const fetchUsers = async () => {
+        try {
+            const token = sessionStorage.getItem('token');
+            const tenantId = sessionStorage.getItem('tenantId');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, {
+                headers: { Authorization: `${token}` }
+            });
+            const data = await res.json();
+            setUsers(data);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
+
     fetchPOListAndProjects();
+    fetchUsers();
   }, [open]);
+
+  useEffect(() => {
+      const fetchPOBalance = async (poId) => {
+        if (poId) {
+          try {
+            const token = sessionStorage.getItem('token');
+            const response = await axios.get(
+              `${import.meta.env.VITE_API_URL}/api/po/pobalance-con/${poId}`,
+              {
+                headers: { Authorization: `${token}` }
+              }
+            );
+            console.log('PO Balance response:', response.data);
+            setPOBalance(response.data + (parseInt(formData.amount) || 0));
+          } catch (error) {
+            console.error("Error fetching PO balance:", error);
+          }
+        }
+      };
+  
+      const fetchMilestone = async (poId, msId) => {
+        if (poId && msId) {
+          try {
+            const token = sessionStorage.getItem('token');
+            const response = await axios.get(
+              `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance-consumption/${poId}/${msId}`,
+              {
+                headers: { Authorization: `${token}` }
+              }
+            );
+            setMilestoneBalance(response.data + (parseInt(formData.amount) || 0));
+          } catch (error) {
+            console.error("Error fetching milestone balance:", error);
+          }
+        }
+      };
+
+      const poId = poList.find(po => po.poNumber === formData.poNumber)?.poId;
+  
+      fetchPOBalance(poId);
+      if (poId && formData.msId) {
+        fetchMilestone(poId, formData.msId);
+      } else {
+        setMilestoneBalance(null);
+      }
+  
+  
+  
+    }, [formData.poNumber, formData.msId]);
 
   // Fetch milestones when PO is selected
   useEffect(() => {
@@ -166,7 +235,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
             
             try {
               const milestoneResponse = await axios.get(
-                `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneForPo/${selectedPO.poId}`,
+                `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${selectedPO.poId}`,
                 {
                   headers: { Authorization: `${token}` }
                 }
@@ -316,20 +385,17 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       const token = sessionStorage.getItem('token');
       let balanceEndpoint = '';
       let balanceType = '';
-
-      if (formData.msId && formData.msId.trim()) {
-        balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}?msId=${encodeURIComponent(formData.msId)}`;
-        balanceType = `Milestone "${formData.msId}"`;
+      let availableBalance = 0;
+      if (formData.msId) {
+        availableBalance = milestoneBalance;
       } else {
-        balanceEndpoint = `${import.meta.env.VITE_API_URL}/api/po-consumption/balance/${formData.poNumber}`;
-        balanceType = `PO "${formData.poNumber}"`;
+        availableBalance = poBalance;
       }
 
       const balanceResponse = await axios.get(balanceEndpoint, {
         headers: { Authorization: `${token}` }
       });
 
-      const availableBalance = balanceResponse.data.remainingBalance;
       const requestedAmount = parseFloat(formData.amount);
 
       if (requestedAmount > availableBalance) {
@@ -470,7 +536,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       submitData.append('amount', parseInt(formData.amount) || 0);
       submitData.append('currency', formData.currency);
       submitData.append('utilizationType', formData.utilizationType);
-      submitData.append('resourceOrProject', formData.resourceOrProject || '');
+      submitData.append('resource', formData.resource || '');
+submitData.append('project', formData.project || '');
       submitData.append('workDesc', formData.workDesc || '');
       submitData.append('workAssignDate', formData.workAssignDate || '');
       submitData.append('workCompletionDate', formData.workCompletionDate || '');
@@ -521,7 +588,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       amount: "",
       currency: "USD",
       utilizationType: "Fixed",
-      resourceOrProject: "",
+      resource: "",
+  project: "",
       workDesc: "",
       workAssignDate: "",
       workCompletionDate: "",
@@ -584,62 +652,34 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
             {/* Row 1: PO Number, Milestone, Currency, and Amount */}
             <div className="grid grid-cols-5 gap-4">
               <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <FileText size={14} className="inline mr-1" />
-                  PO Number *
-                </label>
-                <select
-                  name="poNumber"
-                  value={formData.poNumber}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.poNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  disabled={loading || initialLoading}
-                  title={formData.poNumber}
-                >
-                  <option value="">Select PO</option>
-                  {poList.map(po => (
-                    <TruncatedOption 
-                      key={po.poId} 
-                      value={po.poNumber} 
-                      text={po.poNumber}
-                      maxLength={25}
-                    />
-                  ))}
-                </select>
-                {errors.poNumber && (
-                  <p className="mt-1 text-xs text-red-600">{errors.poNumber}
-                  <TruncatedText text={errors.poNumber} maxLength={50} />
-                  </p>
-                  
-                )}
-              </div>
+  <label className="block text-xs font-medium text-gray-700 mb-1">
+    <FileText size={14} className="inline mr-1" />
+    PO Number *
+  </label>
+  <input
+    type="text"
+    name="poNumber"
+    value={formData.poNumber}
+    readOnly
+    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
+    title={formData.poNumber}
+  />
+</div>
 
               <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Activity size={14} className="inline mr-1" />
-                  Milestone (Optional)
-                </label>
-                <select
-                  name="msId"
-                  value={formData.msId}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={loading || initialLoading}
-                  title={formData.msName}
-                >
-                  <option value="">No specific milestone</option>
-                  {milestoneList.map(milestone => (
-                    <TruncatedOption 
-                      key={milestone.msId} 
-                      value={milestone.msId} 
-                      text={milestone.msName}
-                      maxLength={25}
-                    />
-                  ))}
-                </select>
-              </div>
+  <label className="block text-xs font-medium text-gray-700 mb-1">
+    <Activity size={14} className="inline mr-1" />
+    Milestone
+  </label>
+  <input
+    type="text"
+    name="msId"
+    value={milestoneList.find(ms => ms.msId === formData.msId)?.msName || ''}
+    readOnly
+    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
+    title={formData.msId}
+  />
+</div>
 
               <div className="col-span-1">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -667,6 +707,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   disabled={loading || initialLoading}
                   title={formData.amount}
                 />
+                <span className="text-[10px] text-red-500">
+                      {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.currency}
+                  </span>
                 {errors.amount && (
                   <div className="mt-1">
                     <p className="text-xs text-red-600 leading-relaxed">{errors.amount}</p>
@@ -696,33 +739,59 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 )}
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Building size={14} className="inline mr-1" />
-                  Resource/Project
-                </label>
-                <select
-                  name="resourceOrProject"
-                  value={formData.resourceOrProject}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={loading || initialLoading}
-                  title={formData.resourceOrProject}
-                >
-                  <option value="">Select project</option>
-                  {projectList.map((project, index) => (
-                  <TruncatedOption 
-                      key={project.projectId || index} 
-                      value={project.projectName} 
-                      text={project.projectName}
-                      maxLength={25}
-                    />
-                  ))}
-                </select>
-                {projectList.length === 0 && (
-                  <p className="mt-1 text-xs text-gray-500">Loading projects...</p>
-                )}
-              </div>
+              <div className="">
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      <Building size={14} className="inline mr-1" />
+      Resource
+    </label>
+    <select
+      name="resource"
+      value={formData.resource}
+      onChange={handleInputChange}
+      className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+      disabled={loading || initialLoading}
+      title={formData.resource ? `Selected Resource: ${formData.resource}` : "Select a resource"}
+    >
+      <option value="" title="No resource selected">Select resource</option>
+      {users.map((user, index) => (
+        <TruncatedOption 
+          key={user.userId || index} 
+          value={user.name} 
+          text={`${user.name}`} 
+          maxLength={25}
+        />
+      ))}
+    </select>
+  </div>
+
+  <div className="">
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      <Building size={14} className="inline mr-1" />
+      Project
+    </label>
+    <select
+      name="project"
+      value={formData.project}
+      onChange={handleInputChange}
+      className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+      disabled={loading || initialLoading}
+      title={formData.project ? `Selected Project: ${formData.project}` : "Select a project"}
+    >
+      <option value="" title="No project selected">Select project</option>
+      {projectList.map((project, index) => (
+        <option 
+          key={project.projectId || index} 
+          value={project.projectName}
+          title={`Project: ${project.projectName}${project.projectDescription ? ` | Description: ${project.projectDescription}` : ''}`}
+        >
+          {project.projectName.length > 25 ? `${project.projectName.substring(0, 25)}...` : project.projectName}
+        </option>
+      ))}
+    </select>
+    {projectList.length === 0 && (
+      <p className="mt-1 text-xs text-gray-500" title="Loading projects from server...">Loading projects...</p>
+    )}
+  </div>
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">

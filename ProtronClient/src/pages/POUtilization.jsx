@@ -126,7 +126,7 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
 
                 <div>
                   <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Resource/Project</label>
-                  <p className="text-gray-900 font-medium break-words">{consumption.resourceOrProject || 'N/A'}</p>
+                  <p className="text-gray-900 font-medium break-words">{consumption.project || 'N/A'}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -447,7 +447,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       consumption.utilizationId?.toString().includes(searchLower) ||
       consumption.milestone?.msName?.toLowerCase().includes(searchLower) ||
       consumption.utilizationType?.toLowerCase().includes(searchLower) ||
-      consumption.resourceOrProject?.toLowerCase().includes(searchLower) ||
+      consumption.project?.toLowerCase().includes(searchLower) ||
       consumption.workDesc?.toLowerCase().includes(searchLower) ||
       consumption.amount?.toString().includes(searchLower) ||
       consumption.currency?.toLowerCase().includes(searchLower) ||
@@ -465,7 +465,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         'PO Number': consumption.poNumber || 'N/A',
         'Milestone Name': consumption.milestone?.msName || 'N/A',
         'Consumption Type': consumption.utilizationType || 'N/A',
-        'Resource/Project': consumption.resourceOrProject || 'N/A',
+        'Project': consumption.project || 'N/A',
         'Work Description': consumption.workDesc || 'N/A',
         'Currency': consumption.currency || 'N/A',
         'Amount': consumption.amount ? `${getCurrencySymbol(consumption.currency)}${consumption.amount.toLocaleString()}` : 'N/A',
@@ -680,8 +680,8 @@ const columnDefs = useMemo(() => [
   },
   {
     headerName: "Project",
-    field: "resourceOrProject",
-    valueGetter: params => params.data.resourceOrProject || 'N/A',
+    field: "project",
+    valueGetter: params => params.data?.project || 'N/A',
     width: 120,
     minWidth: 120,
     sortable: true,

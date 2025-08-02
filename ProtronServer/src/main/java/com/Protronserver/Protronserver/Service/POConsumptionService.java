@@ -117,7 +117,8 @@ public class POConsumptionService {
         consumption.setAmount(dto.getAmount());
         consumption.setCurrency(dto.getCurrency());
         consumption.setUtilizationType(dto.getUtilizationType());
-        consumption.setResourceOrProject(dto.getResourceOrProject());
+        consumption.setResource(dto.getResource());
+        consumption.setProject(dto.getProject());
         consumption.setWorkDesc(dto.getWorkDesc());
         consumption.setWorkAssignDate(dto.getWorkAssignDate());
         consumption.setWorkCompletionDate(dto.getWorkCompletionDate());
@@ -222,7 +223,8 @@ public class POConsumptionService {
         newConsumption.setAmount(dto.getAmount());
         newConsumption.setCurrency(dto.getCurrency());
         newConsumption.setUtilizationType(dto.getUtilizationType());
-        newConsumption.setResourceOrProject(dto.getResourceOrProject());
+        newConsumption.setResource(dto.getResource());
+        newConsumption.setProject(dto.getProject());
         newConsumption.setWorkDesc(dto.getWorkDesc());
         newConsumption.setWorkAssignDate(dto.getWorkAssignDate());
         newConsumption.setWorkCompletionDate(dto.getWorkCompletionDate());

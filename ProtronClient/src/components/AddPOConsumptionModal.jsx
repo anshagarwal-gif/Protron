@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip } from "lucide-react";
 import axios from "axios";
-import {useSession} from "../Context/SessionContext";
+import { useSession } from "../Context/SessionContext";
 
 const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -11,7 +11,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     amount: "",
     currency: "USD",
     utilizationType: "Fixed",
-    resourceOrProject: "",
+    resource: "",
+    project: "",
     workDesc: "",
     workAssignDate: "",
     workCompletionDate: "",
@@ -26,9 +27,11 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [projectList, setProjectList] = useState([]);
   const [descCharCount, setDescCharCount] = useState(0);
   const [remarksCharCount, setRemarksCharCount] = useState(0);
-  const {sessionData} = useSession();
-  const [poBalance,setPOBalance] = useState(null);
+  const { sessionData } = useSession();
+  const [poBalance, setPOBalance] = useState(null);
+  const [milestoneBalance, setMilestoneBalance] = useState(null);
   const [poId, setPoId] = useState("");
+  const [users, setUsers] = useState([]);
 
   // Fetch PO list and projects on modal open
   useEffect(() => {
@@ -36,7 +39,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       if (open) {
         try {
           const token = sessionStorage.getItem('token');
-          
+
           // Fetch PO list
           const poResponse = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/po/all`,
@@ -55,61 +58,76 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
           );
           setProjectList(projectResponse.data);
           console.log('Projects fetched:', projectResponse.data);
-          
+
         } catch (error) {
           console.error("Error fetching PO list and projects:", error);
         }
       }
     };
+    const fetchUsers = async () => {
+        try {
+            const token = sessionStorage.getItem('token');
+            const tenantId = sessionStorage.getItem('tenantId');
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, {
+                headers: { Authorization: `${token}` }
+            });
+            const data = await res.json();
+            setUsers(data);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
 
     fetchPOListAndProjects();
+    fetchUsers();
+
   }, [open]);
 
   // Fetch milestones when PO is selected
   useEffect(() => {
-  const fetchMilestones = async () => {
-    if (formData.poNumber) {
-      try {
-        const token = sessionStorage.getItem('token');
-        const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
-        console.log('Selected PO:', selectedPO);
-        
-        if (selectedPO) {
+    const fetchMilestones = async () => {
+      if (formData.poNumber) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
           console.log('Selected PO:', selectedPO);
-          
-          // Fetch milestones using the same API endpoint as SRN modal
-          try {
-            const milestoneResponse = await axios.get(
-              `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneForPo/${selectedPO.poId}`,
-              {
-                headers: { Authorization: `${token}` }
-              }
-            );
-            
-            console.log('Milestone response:', milestoneResponse.data);
-            setMilestoneList(milestoneResponse.data || []);
-          } catch (milestoneError) {
-            console.error("Error fetching milestones:", milestoneError);
-            setMilestoneList([]); // No milestones found
-          }
-          
-          // Update currency based on selected PO
-          setFormData(prev => ({
-            ...prev,
-            currency: selectedPO.poCurrency || "USD"
-          }));
-        }
-      } catch (error) {
-        console.error("Error in fetchMilestones:", error);
-        setMilestoneList([]); // No milestones found
-      }
-    } else {
-      setMilestoneList([]); // No PO selected, clear milestones
-    }
-  };
 
-  fetchMilestones();
-}, [formData.poNumber, poList]);
+          if (selectedPO) {
+            console.log('Selected PO:', selectedPO);
+
+            // Fetch milestones using the same API endpoint as SRN modal
+            try {
+              const milestoneResponse = await axios.get(
+                `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneForPoForCon/${selectedPO.poId}`,
+                {
+                  headers: { Authorization: `${token}` }
+                }
+              );
+
+              console.log('Milestone response:', milestoneResponse.data);
+              setMilestoneList(milestoneResponse.data || []);
+            } catch (milestoneError) {
+              console.error("Error fetching milestones:", milestoneError);
+              setMilestoneList([]); // No milestones found
+            }
+
+            // Update currency based on selected PO
+            setFormData(prev => ({
+              ...prev,
+              currency: selectedPO.poCurrency || "USD"
+            }));
+          }
+        } catch (error) {
+          console.error("Error in fetchMilestones:", error);
+          setMilestoneList([]); // No milestones found
+        }
+      } else {
+        setMilestoneList([]); // No PO selected, clear milestones
+      }
+    };
+
+    fetchMilestones();
+  }, [formData.poNumber, poList]);
 
   // Initialize character counts when form data is set
   useEffect(() => {
@@ -125,7 +143,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Check character limit for description and remarks
     if (name === 'workDesc') {
       if (value.length > 500) {
@@ -146,12 +164,28 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       }
       setRemarksCharCount(value.length);
     }
-    
+
+    if (name === 'poNumber') {
+    setFormData(prev => ({
+      ...prev,
+      poNumber: value,
+      msId: "",
+    }));
+    fetchPOBalance(value);
+    setMilestoneBalance(null); // Clear milestone balance when PO changes
+  } else if (name === 'msId') {
+    setFormData(prev => ({
+      ...prev,
+      msId: value,
+    }));
+    fetchMilestoneBalance(formData.poNumber, value);
+  } else {
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+  }
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -173,7 +207,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         }));
         return;
       }
-      
+
       // Validate file type (common document and image types)
       const allowedTypes = [
         'application/pdf',
@@ -186,7 +220,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         'image/gif',
         'text/plain'
       ];
-      
+
       if (!allowedTypes.includes(file.type)) {
         setErrors(prev => ({
           ...prev,
@@ -194,12 +228,12 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         }));
         return;
       }
-      
+
       setFormData(prev => ({
         ...prev,
         attachment: file
       }));
-      
+
       // Clear error if file is valid
       if (errors.attachment) {
         setErrors(prev => ({
@@ -280,7 +314,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       'PEN': 'S/',
       'COP': '$'
     };
-    
+
     return currencySymbols[currencyCode] || currencyCode || '$';
   };
 
@@ -290,6 +324,10 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     // Only validate required fields: PO Number, Amount, and Type
     if (!formData.poNumber?.trim()) {
       newErrors.poNumber = "PO Number is required";
+    }
+
+    if(milestoneList.length > 0 && !formData.msId) {
+      newErrors.msId = "Milestone is required when PO has milestones";
     }
 
     if (!formData.amount || formData.amount <= 0) {
@@ -327,7 +365,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         if (requestedAmount > availableBalance) {
           const currencySymbol = getCurrencySymbol(formData.currency);
           newErrors.amount = `Amount exceeds available balance. ${balanceType} has ${currencySymbol}${availableBalance.toLocaleString()} remaining, but you're trying to consume ${currencySymbol}${requestedAmount.toLocaleString()}.`;
-          
+
           // Auto-clear the error after 1 second
           setTimeout(() => {
             setErrors(prev => ({
@@ -350,9 +388,9 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     setLoading(true);
-    
+
     try {
       const isValid = await validateForm();
       if (!isValid) {
@@ -372,7 +410,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       submitData.append('amount', parseInt(formData.amount) || 0);
       submitData.append('currency', formData.currency);
       submitData.append('utilizationType', formData.utilizationType);
-      submitData.append('resourceOrProject', formData.resourceOrProject || '');
+      submitData.append('resource', formData.resource || '');
+      submitData.append('project', formData.project || '');
       submitData.append('workDesc', formData.workDesc || '');
       submitData.append('workAssignDate', formData.workAssignDate || '');
       submitData.append('workCompletionDate', formData.workCompletionDate || '');
@@ -383,7 +422,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         `${import.meta.env.VITE_API_URL}/api/po-consumption/add`,
         submitData,
         {
-          headers: { 
+          headers: {
             Authorization: `${token}`,
             'Content-Type': 'application/json'
           }
@@ -394,10 +433,10 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       handleClose();
     } catch (error) {
       console.error("Error adding PO consumption:", error);
-      
+
       // Enhanced error message handling
       let errorMessage = "Failed to add PO consumption";
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data) {
@@ -408,8 +447,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
-      setErrors({ 
+
+      setErrors({
         submit: errorMessage
       });
     } finally {
@@ -424,7 +463,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       amount: "",
       currency: "USD",
       utilizationType: "Fixed",
-      resourceOrProject: "",
+      resource: "",
+      project: "",
       workDesc: "",
       workAssignDate: "",
       workCompletionDate: "",
@@ -439,6 +479,48 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     setMilestoneList([]);
     setProjectList([]);
     onClose();
+  };
+
+  // Function to fetch PO balance
+  const fetchPOBalance = async (poNumber) => {
+    if (poNumber) {
+
+      const poId = poList.find(po => po.poNumber === poNumber)?.poId;
+
+      try {
+        const token = sessionStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/po/pobalance-con/${poId}`,
+          {
+            headers: { Authorization: `${token}` }
+          }
+        );
+        setPOBalance(response.data);
+      } catch (error) {
+        console.error("Error fetching PO balance:", error);
+        setPOBalance(null);
+      }
+    }
+  };
+
+  // Function to fetch milestone balance
+  const fetchMilestoneBalance = async (poNumber, msId) => {
+    if (poNumber && msId) {
+      const poId = poList.find(po => po.poNumber === poNumber)?.poId;
+      try {
+        const token = sessionStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance-consumption/${poId}/${msId}`,
+          {
+            headers: { Authorization: `${token}` }
+          }
+        );
+        setMilestoneBalance(response.data);
+      } catch (error) {
+        console.error("Error fetching milestone balance:", error);
+        setMilestoneBalance(null);
+      }
+    }
   };
 
   if (!open) return null;
@@ -490,18 +572,17 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   name="poNumber"
                   value={formData.poNumber}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.poNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.poNumber ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   disabled={loading}
                   title={formData.poNumber ? `Selected PO: ${formData.poNumber}` : "Select a PO Number"}
                 >
                   <option value="" title="No PO selected">Select PO</option>
                   {poList.map(po => (
-                    <option 
-                      key={po.poId} 
+                    <option
+                      key={po.poId}
                       value={po.poNumber}
-                      title={`PO: ${po.poNumber} | Currency: ${po.poCurrency || 'USD'} | Amount: ${po.poAmount ? getCurrencySymbol(po.poCurrency)+(po.poAmount).toLocaleString() : 'N/A'}`}
+                      title={`PO: ${po.poNumber} | Currency: ${po.poCurrency || 'USD'} | Amount: ${po.poAmount ? getCurrencySymbol(po.poCurrency) + (po.poAmount).toLocaleString() : 'N/A'}`}
                     >
                       {po.poNumber.length > 15 ? `${po.poNumber.substring(0, 15)}...` : po.poNumber}
                     </option>
@@ -529,10 +610,10 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 >
                   <option value="" title="No specific milestone selected">No specific milestone</option>
                   {milestoneList.map(milestone => (
-                    <option 
-                      key={milestone.msId} 
+                    <option
+                      key={milestone.msId}
                       value={milestone.msId}
-                      title={`Milestone: ${milestone.msName} | Amount: ${milestone.msAmount ? getCurrencySymbol(milestone.msCurrency)+(milestone.msAmount).toLocaleString() : 'N/A'}`}
+                      title={`Milestone: ${milestone.msName} | Amount: ${milestone.msAmount ? getCurrencySymbol(milestone.msCurrency) + (milestone.msAmount).toLocaleString() : 'N/A'}`}
                     >
                       {milestone.msName.length > 20 ? `${milestone.msName.substring(0, 20)}...` : milestone.msName}
                     </option>
@@ -559,13 +640,15 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   onChange={handleInputChange}
                   step="1"
                   min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.amount ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.amount ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="0"
                   disabled={loading}
                   title={formData.amount ? `Amount: ${getCurrencySymbol(formData.currency)}${parseFloat(formData.amount).toLocaleString()}` : "Enter consumption amount"}
                 />
+                <span className="text-[10px] text-red-500">
+                                {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
+                            </span>
               </div>
 
               <div className="">
@@ -577,9 +660,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   name="utilizationType"
                   value={formData.utilizationType}
                   onChange={handleInputChange}
-                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.utilizationType ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.utilizationType ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   disabled={loading}
                   title={`Selected Type: ${formData.utilizationType}`}
                 >
@@ -597,25 +679,40 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
             {/* Row 2: Utilization Type, Resource/Project, System Name */}
             <div className="grid grid-cols-5 gap-4">
-              
+
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
-                  Resource/Project
+                  Resource
+                </label>
+                <select name="resource" id="resource" value={formData.resource} onChange={handleInputChange} className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.resource ? 'border-red-500' : 'border-gray-300'}`} disabled={loading} title={formData.resource ? `Resource: ${formData.resource}` : "Select a resource"}>
+                  <option value="" title="No resource selected">Select resource</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.name} title={`User: ${user.name}`}>
+                      {user.name.length > 25 ? `${user.name.substring(0, 25)}...` : user.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Building size={14} className="inline mr-1" />
+                  Project
                 </label>
                 <select
-                  name="resourceOrProject"
-                  value={formData.resourceOrProject}
+                  name="project"
+                  value={formData.project}
                   onChange={handleInputChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading}
-                  title={formData.resourceOrProject ? `Selected Project: ${formData.resourceOrProject}` : "Select a project"}
+                  title={formData.project ? `Selected Project: ${formData.project}` : "Select a project"}
                 >
                   <option value="" title="No project selected">Select project</option>
                   {projectList.map((project, index) => (
-                    <option 
-                      key={project.projectId || index} 
+                    <option
+                      key={project.projectId || index}
                       value={project.projectName}
                       title={`Project: ${project.projectName}${project.projectDescription ? ` | Description: ${project.projectDescription}` : ''}`}
                     >
@@ -682,7 +779,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
             {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
             <div className="grid grid-cols-5 gap-4">
-              
+
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -700,7 +797,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 />
                 {formData.attachment && (
                   <p className="mt-1 text-xs text-gray-600" title={`Selected file: ${formData.attachment.name} (${(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)`}>
-                    {formData.attachment.name.length > 30 ? `${formData.attachment.name.substring(0, 30)}...` : formData.attachment.name} 
+                    {formData.attachment.name.length > 30 ? `${formData.attachment.name.substring(0, 30)}...` : formData.attachment.name}
                     ({(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
@@ -728,9 +825,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 value={formData.workDesc}
                 onChange={handleInputChange}
                 rows={4}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  errors.workDesc ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.workDesc ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter detailed work description including tasks, deliverables, scope, and requirements... (Max 500 characters)"
                 disabled={loading}
                 title={formData.workDesc ? `Work Description (${descCharCount}/500 chars): ${formData.workDesc}` : "Enter detailed work description (optional)"}
@@ -756,9 +852,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 value={formData.remarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 characters)"
                 disabled={loading}
                 title={formData.remarks ? `Remarks (${remarksCharCount}/500 chars): ${formData.remarks}` : "Enter additional remarks (optional)"}

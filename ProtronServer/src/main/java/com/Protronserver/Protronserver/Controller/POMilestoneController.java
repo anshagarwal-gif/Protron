@@ -53,9 +53,19 @@ public class POMilestoneController {
         return costDetailsService.getMilestoneBalance(id, Id);
     }
 
+    @GetMapping("milestonebalance-consumption/{id}/{Id}")
+    public BigDecimal getMilestoneBalanceForConsumption(@PathVariable Long id, @PathVariable Long Id){
+        return costDetailsService.getMilestoneBalanceBasedOnConsumption(id, Id);
+    }
+
     @GetMapping("/getMilestoneForPo/{id}")
     public List<EligibleMilestone> getMilestoneForPo(@PathVariable Long id){
         return costDetailsService.getRemainingMilestones(id);
+    }
+
+    @GetMapping("/getMilestoneForPoForCon/{id}")
+    public List<EligibleMilestone> getMilestoneForPoForCon(@PathVariable Long id){
+        return costDetailsService.getRemainingMilestonesForCon(id);
     }
 
 }
