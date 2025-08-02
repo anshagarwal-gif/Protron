@@ -17,7 +17,7 @@ public class PODetails {
     @Column(name = "po_id")
     private Long poId;
 
-    @Column(name = "po_number", length = 250)
+    @Column(name = "po_number", length = 250, unique = true)
     private String poNumber;
 
     @Enumerated(EnumType.STRING)

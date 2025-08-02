@@ -209,9 +209,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 setPoId(poData.poId || poData.id); // Store the created PO ID
                 setCurrentStep(2); // Move to the Milestones step
             } else {
-                const errorData = await response.text();
+                const errorData = await response.json();
                 console.error('PO Creation Error:', errorData);
-                alert('Failed to create PO. Please check the console for details.');
+                alert(`Failed to create PO. ${errorData?.message} `);
             }
         } catch (error) {
             console.error('Error creating PO:', error);

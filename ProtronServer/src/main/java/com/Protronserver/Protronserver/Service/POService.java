@@ -33,6 +33,13 @@ public class POService {
     private POConsumptionRepository poConsumptionRepository;
 
     public PODetails addPO(PODetailsDTO dto) {
+
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        if (poRepository.existsByPoNumberAndTenantId(dto.getPoNumber(), tenantId)) {
+            throw new IllegalArgumentException("PO Number already exists");
+        }
+
         PODetails po = new PODetails();
 
         po.setPoNumber(dto.getPoNumber());
@@ -67,6 +74,10 @@ public class POService {
     public PODetails updatePO(Long id, PODetailsDTO dto) {
 
         Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        if (poRepository.existsByPoNumberAndTenantId(dto.getPoNumber(), currentTenantId)) {
+            throw new IllegalArgumentException("PO Number already exists");
+        }
 
         PODetails oldPo = poRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("PO not found with ID: " + id));

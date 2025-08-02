@@ -90,8 +90,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 if (response.ok) {
                     setCurrentStep(2); // Move to the Milestones step
                 } else {
-                    console.error('PO Update Error:', await response.text());
-                    alert('Failed to update PO.');
+                    const errorData = await response.json();
+                    console.error('PO Update Error:', errorData);
+                    alert(`Failed to update PO. ${errorData?.message} `);
                 }
             } catch (error) {
                 console.error('Error updating PO:', error);
