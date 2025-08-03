@@ -229,35 +229,13 @@ const PODetailsPage = () => {
   };
 
   const handleMilestoneModalSubmit = async (data) => {
-    const payload = {
-      poId: Number(poId),                          // ensure poId is sent as a number (Long)
-      msName: data.milestoneName,
-      msDesc: data.milestoneDescription,
-      msAmount: data.amount,
-      msCurrency: data.currency,
-      msDate: data.date,
-      msDuration: data.duration,
-      msRemarks: data.remark
-    };
-
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/po-milestone/add`, payload, {
-        headers: {
-          Authorization: sessionStorage.getItem('token'),
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log(res.data);
-    } catch (error) {
-      console.error("Error adding milestone:", error);
-      showSnackbar("Failed to add milestone", "error");
-    }
-
+    setIsAddMilestoneModalOpen(false);
     showSnackbar("Milestone created successfully!", "success");
     fetchMilestones(); // Refresh the table
   };
 
   const handleEditMilestoneModalSubmit = async (data) => {
+    setIsEditMilestoneModalOpen(false);
     showSnackbar("Milestone updated successfully!", "success");
     fetchMilestones(); // Refresh the table
   };

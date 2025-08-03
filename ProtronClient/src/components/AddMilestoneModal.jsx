@@ -1,6 +1,6 @@
 // AddMilestoneModal.js
 import { useState, useEffect } from "react";
-import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock } from "lucide-react";
+import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock, Upload } from "lucide-react";
 import axios from "axios";
 
 const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
@@ -12,7 +12,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     msDate: "",
     msDuration: "",
     msRemarks: "",
-    msAttachment: null,
     poId: poId,
     poNumber: ""
   });
@@ -22,6 +21,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   const [descWordCount, setDescWordCount] = useState(0);
   const [remarksWordCount, setRemarksWordCount] = useState(0);
   const [poBalance, setPOBalance] = useState(null);
+  const [milestoneFiles, setMilestoneFiles] = useState([]);
 
   // Fetch PO details to get PO number and currency
   useEffect(() => {
@@ -137,6 +137,24 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     }
   };
 
+  const handleMSFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Check max limit of 4 files
+    if (milestoneFiles.length + files.length > 4) {
+      alert("You can upload a maximum of 4 attachments.");
+      return;
+    }
+
+    setMilestoneFiles(prev => [...prev, ...files]);
+    e.target.value = null;
+  };
+
+  const removeMilestoneAttachment = (index) => {
+    setMilestoneFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -166,29 +184,15 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     if (!validateForm()) {
       return;
     }
+    console.log(onSubmit)
 
-    if (onSubmit) {
-
-      const submitData = {
-          milestoneName: formData.msName,
-          milestoneDescription: formData.msDesc,
-          amount: parseInt(formData.msAmount) || 0,
-          currency: formData.msCurrency,
-          date: new Date(formData.msDate).toISOString().split('T')[0],
-          duration: parseInt(formData.msDuration) || 0,
-          remark: formData.msRemarks || "",
-          attachment: formData.msAttachment || null,
-        };
-
-      onSubmit(submitData);
-      handleClose();
-    } else {
-      setLoading(true);
-      try {
-        const token = sessionStorage.getItem('token');
-        if (!token) {
-          throw new Error("Missing authentication credentials");
-        }
+    console.log("elseCall", milestoneFiles);
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        throw new Error("Missing authentication credentials");
+      }
 
       const submitData = {
         msName: formData.msName,
@@ -202,37 +206,67 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         poNumber: formData.poNumber
       };
 
-        console.log('Submitting milestone data:', submitData);
+      console.log('Submitting milestone data:', submitData);
 
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
-          submitData,
-          {
-            headers: {
-              Authorization: `${token}`,
-              'Content-Type': 'application/json'
-            }
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
+        submitData,
+        {
+          headers: {
+            Authorization: `${token}`,
+            'Content-Type': 'application/json'
           }
-        );
-        console.log('Milestone added successfully:', response.data);
-        const mst = {
-          milestoneName: response.data.msName,
-          milestoneDescription: response.data.msDesc,
-          amount: response.data.msAmount,
-          currency: response.data.msCurrency,
-          date: new Date(response.data.msDate).toISOString().split('T')[0], // ✅ returns 'YYYY-MM-DD'
-          remarks: response.data.msRemarks,
-          attachment: response.data.msAttachment,
-          duration: response.data.msDuration,
         }
-      } catch (error) {
-        console.error("Error adding milestone:", error);
-        setErrors({
-          submit: error.response?.data?.message || error.message || "Failed to add milestone"
-        });
-      } finally {
-        setLoading(false);
+      );
+      console.log('Milestone added successfully:', response.data);
+      const milestoneId = response.data.id || response.data.msId;
+      const milestoneName = response.data.msName;
+
+      if (milestoneFiles.length > 0) {
+        for (const file of milestoneFiles) {
+          const attachmentForm = new FormData();
+          attachmentForm.append("file", file);
+          attachmentForm.append("level", "MS");
+          attachmentForm.append("referenceId", milestoneId);
+          attachmentForm.append("referenceNumber", milestoneName || "");
+
+          try {
+            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+              method: "POST",
+              headers: {
+                Authorization: `${token}`
+              },
+              body: attachmentForm
+            });
+
+            if (!uploadRes.ok) {
+              console.error(`Attachment upload failed for ${file.name}`);
+            }
+          } catch (err) {
+            console.error("Attachment upload error:", err);
+          }
+        }
       }
+
+      onSubmit({
+          milestoneName: formData.msName,
+          milestoneDescription: formData.msDesc,
+          amount: parseInt(formData.msAmount) || 0,
+          currency: formData.msCurrency,
+          date: formData.msDate ? new Date(formData.msDate).toISOString().split('T')[0] : null,
+          duration: parseInt(formData.msDuration) || 0,
+          remark: formData.msRemarks || "",
+          attachments: milestoneFiles
+        });
+
+    } catch (error) {
+      console.error("Error adding milestone:", error);
+      setErrors({
+        submit: error.response?.data?.message || error.message || "Failed to add milestone"
+      });
+    } finally {
+      setLoading(false);
+
     }
   };
 
@@ -245,7 +279,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       msDate: "",
       msDuration: "",
       msRemarks: "",
-      msAttachment: null,
       poId: poId,
       poNumber: poDetails?.poNumber || ""
     });
@@ -375,7 +408,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
             {/* Row 2: Duration, Date and Attachment */}
             <div className="grid grid-cols-4 gap-4">
-              
+
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -395,16 +428,47 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
-                  Attachment
+                  Milestone Attachments (Max 4)
                 </label>
-                <input
-                  type="file"
-                  name="msAttachment"
-                  onChange={handleInputChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                  disabled={loading}
-                />
+
+                <div className="relative">
+                  <input
+                    type="file"
+                    multiple
+                    id="ms-attachment-input"
+                    onChange={handleMSFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
+                    className="hidden"
+                    disabled={loading}
+                  />
+                  <label
+                    htmlFor="ms-attachment-input"
+                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="text-gray-600">
+                      {milestoneFiles.length > 0 ? `${milestoneFiles.length} file(s) selected` : 'Click to select files'}
+                    </span>
+                    <Upload size={16} className="text-green-600" />
+                  </label>
+                </div>
+
+                <ul className="mt-2 text-xs text-gray-700 space-y-1">
+                  {milestoneFiles.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                    >
+                      <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeMilestoneAttachment(index)}
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 

@@ -52,7 +52,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         startDate: '',
         endDate: '',
         projectDescription: '',
-        poAttachments: [],
         milestones: []
     });
 
@@ -65,6 +64,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
     const [countries, setCountries] = useState([]);
+    const [poFiles, setPoFiles] = useState([]);
 
     const fetchUsers = async () => {
         try {
@@ -97,7 +97,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         if (open) {
             fetchUsers();
             fetchProjects();
-            fetchCountries(); 
+            fetchCountries();
         }
     }, [open]);
 
@@ -118,19 +118,22 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         }));
     };
 
-    const handleFileChange = (e, field) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (formData[field].length >= 4) {
-            alert("You can upload a maximum of 4 attachments.");
-            return;
-        }
+    const handleFileChange = (e) => {
+        const selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length === 0) return;
 
-        setFormData((prev) => ({
-            ...prev,
-            [field]: [...prev[field], file],
-        }));
-        e.target.value = null;
+        setPoFiles((prevFiles) => {
+            const totalFiles = prevFiles.length + selectedFiles.length;
+
+            if (totalFiles > 4) {
+                alert(`Maximum 4 attachments allowed. You already selected ${prevFiles.length}.`);
+                return prevFiles;
+            }
+
+            return [...prevFiles, ...selectedFiles];
+        });
+
+        e.target.value = null; // reset file input
     };
 
     const handleAddMilestone = () => {
@@ -138,8 +141,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         setMilestoneModalOpen(true);
     };
 
-    // Handle milestone submission from modal
+    
     const handleMilestoneSubmit = (milestoneData) => {
+        console.log("Milestone Data Submitted:", milestoneData);
         if (editingMilestone !== null) {
             const updatedMilestones = [...formData.milestones];
             updatedMilestones[editingMilestone] = milestoneData;
@@ -165,10 +169,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     };
 
     const handleRemoveMilestone = (index) => {
-        setFormData((prev) => ({
-            ...prev,
-            milestones: prev.milestones.filter((_, i) => i !== index)
-        }));
+        setPoFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
     };
 
     const handleCreatePO = async () => {
@@ -204,59 +205,66 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 body: JSON.stringify(poPayload)
             });
 
-            if (response.ok) {
-                const poData = await response.json();
-                setPoId(poData.poId || poData.id); // Store the created PO ID
-                setCurrentStep(2); // Move to the Milestones step
-            } else {
+            if (!response.ok) {
                 const errorData = await response.json();
                 console.error('PO Creation Error:', errorData);
-                alert(`Failed to create PO. ${errorData?.message} `);
+                alert(`Failed to create PO. ${errorData?.message || ''}`);
+                return;
             }
+
+            const poData = await response.json();
+            const poId = poData.poId || poData.id;
+            setPoId(poId);
+
+            if (poFiles.length > 4) {
+                alert('You can attach a maximum of 4 files at once.');
+                return;
+            }
+
+            // === UPLOAD PO ATTACHMENTS ===
+            for (let file of poFiles) {
+
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`File "${file.name}" exceeds 10MB limit and will be skipped.`);
+                    continue;
+                }
+
+                const attachmentFormData = new FormData();
+                attachmentFormData.append('file', file);
+                attachmentFormData.append('level', 'PO');
+                attachmentFormData.append('referenceId', poId);
+                attachmentFormData.append('referenceNumber', poPayload.poNumber);
+
+                const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `${token}`
+                    },
+                    body: attachmentFormData
+                });
+
+                if (!uploadResponse.ok) {
+                    const uploadError = await uploadResponse.text();
+                    console.warn(`Attachment upload failed: ${file.name} - ${uploadError}`);
+                    // Optionally: show error toast or retry
+                }
+            }
+
+            alert('PO created successfully.');
+            setCurrentStep(2);
+
         } catch (error) {
             console.error('Error creating PO:', error);
             alert('Network error. Please try again.');
         }
     };
 
+
     const handleSubmitMilestones = async () => {
-        try {
-            const token = sessionStorage.getItem('token');
-            for (const milestone of formData.milestones) {
-                const milestonePayload = {
-                    msName: milestone.milestoneName,
-                    msDesc: milestone.milestoneDescription || '',
-                    msAmount: parseFloat(milestone.amount) || 0,
-                    msCurrency: milestone.currency || formData.currency,
-                    msDate: milestone.date || null,
-                    msDuration: parseInt(milestone.duration) || 0,
-                    msRemarks: milestone.remark || '',
-                    poId: poId, // Use the created PO ID
-                    poNumber: formData.poNumber
-                };
-
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/add`, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(milestonePayload)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.text();
-                    console.error('Milestone Creation Error:', errorData);
-                }
-            }
-
-            onSubmit?.();
-            onClose();
-        } catch (error) {
-            console.error('Error submitting milestones:', error);
-            alert('Network error. Please try again.');
-        }
+        onSubmit?.();
+        onClose();
     };
+
 
     // Updated milestone column definitions for display only
     const milestoneColumnDefs = [
@@ -340,7 +348,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             cellRenderer: (params) => {
                 return (
                     <div className="flex justify-center items-center h-full">
-                        {params.data.attachment ? (
+                        {params.data.attachments ? (
                             <span className="text-xs text-green-600 flex items-center">
                                 <FileText size={14} className="mr-1" />
                                 File
@@ -385,41 +393,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         resizable: true
     };
 
-    const uploadAttachment = async (poNumber, entityType, entityId, slot, file, user) => {
-        const uploadFormData = new FormData();
-        uploadFormData.append('poNumber', poNumber);
-        uploadFormData.append('entityType', entityType);
-        if (entityId) {
-            uploadFormData.append('entityId', entityId);
-        }
-        uploadFormData.append('attachmentSlot', slot);
-        uploadFormData.append('file', file);
-        uploadFormData.append('updatedBy', user);
-
-        try {
-            const token = sessionStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `${token}`,
-                },
-                body: uploadFormData,
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Attachment upload failed: ${errorText}`);
-            }
-            console.log(`Attachment for ${entityType} ${entityId || ''} in slot ${slot} uploaded successfully.`);
-        } catch (error) {
-            console.error(`Error uploading attachment for ${entityType}:`, error);
-        }
-    };
     const removeAttachment = (indexToRemove) => {
-        setFormData((prev) => ({
-            ...prev,
-            poAttachments: prev.poAttachments.filter((_, i) => i !== indexToRemove),
-        }));
+        setPoFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
     };
 
     // const handleSubmit = async () => {
@@ -550,7 +525,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             startDate: '',
             endDate: '',
             projectDescription: '',
-            poAttachments: [],
             milestones: []
         });
         setMilestoneModalOpen(false);
@@ -558,19 +532,19 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     };
 
     const fetchCountries = async () => {
-    try {
-      const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
-      const countriesData = response.data.geonames.map(country => ({
-        code: country.countryCode,
-        name: country.countryName,
-        geonameId: country.geonameId
-      })).sort((a, b) => a.name.localeCompare(b.name))
+        try {
+            const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
+            const countriesData = response.data.geonames.map(country => ({
+                code: country.countryCode,
+                name: country.countryName,
+                geonameId: country.geonameId
+            })).sort((a, b) => a.name.localeCompare(b.name))
 
-      setCountries(countriesData);
-    } catch (error) {
-      console.error("Failed to fetch countries:", error);
-    }
-  };
+            setCountries(countriesData);
+        } catch (error) {
+            console.error("Failed to fetch countries:", error);
+        }
+    };
 
     if (!open) return null;
 
@@ -605,7 +579,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     startDate: '',
                                     endDate: '',
                                     projectDescription: '',
-                                    poAttachments: [],
                                     milestones: []
                                 });
                             }}
@@ -867,7 +840,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         </div>
                                     </div>
 
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
                                         <div className="relative">
@@ -1060,12 +1033,15 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 </div>
 
                                 <div className="lg:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        PO Attachments (Max 4)
+                                    </label>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             id="po-attachment-input"
-                                            onChange={(e) => handleFileChange(e, 'poAttachments')}
+                                            multiple
+                                            onChange={handleFileChange}
                                             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                             className="hidden"
                                         />
@@ -1073,23 +1049,20 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             htmlFor="po-attachment-input"
                                             className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
                                         >
-                                            <Upload className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600" size={20} />
+                                            <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
                                             <span className="text-gray-500 truncate">
-                                                {formData.poAttachments.length > 0
-                                                    ? `${formData.poAttachments.length} file(s) selected`
-                                                    : 'Click to select files'}
+                                                {poFiles.length > 0 ? `${poFiles.length} file(s) selected` : 'Click to select files'}
                                             </span>
                                         </label>
                                     </div>
 
-                                    {/* List of selected files */}
                                     <ul className="mt-2 text-sm text-gray-700 space-y-1">
-                                        {formData.poAttachments.map((file, index) => (
+                                        {poFiles.map((file, index) => (
                                             <li
                                                 key={index}
-                                                className="flex max-w-[200px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                                className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
                                             >
-                                                <span className="truncate max-w-[140px]" title={file.name}>{file.name}</span>
+                                                <span className="truncate max-w-[220px]" title={file.name}>{file.name}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => removeAttachment(index)}
@@ -1101,6 +1074,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         ))}
                                     </ul>
                                 </div>
+
                                 <div>
 
                                     <div>

@@ -68,6 +68,72 @@ public class InvoiceRequestDTO {
         private Integer totalMinutes;
         private Integer targetHours;
         private java.util.List<TimesheetEntryDTO> entries;
+
+        public String getViewMode() {
+            return viewMode;
+        }
+
+        public void setViewMode(String viewMode) {
+            this.viewMode = viewMode;
+        }
+
+        public String getPeriod() {
+            return period;
+        }
+
+        public void setPeriod(String period) {
+            this.period = period;
+        }
+
+        public String getEmployeeName() {
+            return employeeName;
+        }
+
+        public void setEmployeeName(String employeeName) {
+            this.employeeName = employeeName;
+        }
+
+        public String getEmployeeEmail() {
+            return employeeEmail;
+        }
+
+        public void setEmployeeEmail(String employeeEmail) {
+            this.employeeEmail = employeeEmail;
+        }
+
+        public Integer getTotalHours() {
+            return totalHours;
+        }
+
+        public void setTotalHours(Integer totalHours) {
+            this.totalHours = totalHours;
+        }
+
+        public Integer getTotalMinutes() {
+            return totalMinutes;
+        }
+
+        public void setTotalMinutes(Integer totalMinutes) {
+            this.totalMinutes = totalMinutes;
+        }
+
+        public Integer getTargetHours() {
+            return targetHours;
+        }
+
+        public void setTargetHours(Integer targetHours) {
+            this.targetHours = targetHours;
+        }
+
+        public java.util.List<TimesheetEntryDTO> getEntries() {
+            return entries;
+        }
+
+        public void setEntries(java.util.List<TimesheetEntryDTO> entries) {
+            this.entries = entries;
+        }
+
+
     }
 
     // Nested DTO for individual timesheet entries
@@ -85,6 +151,88 @@ public class InvoiceRequestDTO {
         private String description;
         private String project;
         private Boolean submitted;
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+
+        public String getDayOfWeek() {
+            return dayOfWeek;
+        }
+
+        public void setDayOfWeek(String dayOfWeek) {
+            this.dayOfWeek = dayOfWeek;
+        }
+
+        public Boolean getIsWeekend() {
+            return isWeekend;
+        }
+
+        public void setIsWeekend(Boolean isWeekend) {
+            this.isWeekend = isWeekend;
+        }
+
+        public String getTaskType() {
+            return taskType;
+        }
+
+        public void setTaskType(String taskType) {
+            this.taskType = taskType;
+        }
+
+        public String getTaskTopic() {
+            return taskTopic;
+        }
+
+        public void setTaskTopic(String taskTopic) {
+            this.taskTopic = taskTopic;
+        }
+
+        public Integer getHours() {
+            return hours;
+        }
+
+        public void setHours(Integer hours) {
+            this.hours = hours;
+        }
+
+        public Integer getMinutes() {
+            return minutes;
+        }
+
+        public void setMinutes(Integer minutes) {
+            this.minutes = minutes;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getProject() {
+            return project;
+        }
+
+        public void setProject(String project) {
+            this.project = project;
+        }
+
+        public Boolean getSubmitted() {
+            return submitted;
+        }
+
+        public void setSubmitted(Boolean submitted) {
+            this.submitted = submitted;
+        }
+
+
     }
 
     public @NotBlank(message = "Invoice name is required") @Size(max = 100, message = "Invoice name must not exceed 100 characters") String getInvoiceName() {
@@ -211,4 +359,6 @@ public class InvoiceRequestDTO {
     public boolean hasTimesheetData() {
         return timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty();
     }
+
+
 }

@@ -13,9 +13,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     srnCurrency: "USD",
     srnType: "",
     srnRemarks: "",
-    attachment: null,
-    existingAttachment: null,
   });
+  const [srnAttachments, setSrnAttachments] = useState([]); // Holds both existing and new attachments
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [poList, setPOList] = useState([]);
@@ -75,6 +74,24 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     );
   };
 
+  const fetchSRNAttachments = async (srnId) => {
+  try {
+    const token = sessionStorage.getItem("token");
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=SRN&referenceId=${srnId}`, {
+      headers: { Authorization: token }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setSrnAttachments(data); // Attach to edit modal state
+    } else {
+      console.error("Failed to fetch SRN attachments");
+    }
+  } catch (err) {
+    console.error("Error fetching SRN attachments:", err);
+  }
+};
+
   useEffect(() => {
     const fetchSRNData = async () => {
       if (open && srnId) {
@@ -101,8 +118,6 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnCurrency: srn.srnCurrency || "USD",
             srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
-            attachment: null,
-            existingAttachment: srn.attachments && srn.attachments.length > 0 ? srn.attachments[0] : null,
           });
           setPoId(srn.poDetail.poId || "");
           console.log('Fetched SRN data:', srn);
@@ -118,6 +133,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     };
 
     fetchSRNData();
+    fetchSRNAttachments(srnId);
   }, [open, srnId]);
 
   useEffect(() => {
@@ -300,52 +316,50 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-      if (file.size > maxSize) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: "File size must be less than 10MB"
-        }));
-        return;
-      }
+    const files = Array.from(e.target.files);
+    const maxFiles = 4;
 
-      // Validate file type (common document and image types)
-      const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'text/plain'
-      ];
-
-      if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: "File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT files."
-        }));
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        attachment: file
-      }));
-
-      // Clear error if file is valid
-      if (errors.attachment) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: ""
-        }));
-      }
+    // Check if adding these files exceeds the limit
+    if (srnAttachments.length + files.length > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Max ${maxFiles} attachments allowed.` }));
+      return;
     }
+
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    const validFiles = files.filter(file => {
+      if (file.size > maxSize) {
+        setErrors(prev => ({ ...prev, attachment: `File ${file.name} must be under 10MB.` }));
+        return false;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, attachment: `Unsupported file type for ${file.name}.` }));
+        return false;
+      }
+      return true;
+    });
+
+    // Add valid files to state
+    setSrnAttachments(prev => [...prev, ...validFiles]);
+    setErrors(prev => ({ ...prev, attachment: "" }));
+    e.target.value = null; // Reset file input
+  };
+
+  // Remove an attachment
+  const removeAttachment = (index) => {
+    setSrnAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const validateBasicForm = () => {
@@ -369,18 +383,18 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     }
 
     if (milestoneList.length === 0) {
-            // No milestones available, check against PO balance
-            if (formData.srnAmount && poBalance !== null && Number(formData.srnAmount) > Number(poBalance)) {
-                newErrors.srnAmount = `SRN amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
-            }
-        } else {
-            // Milestones exist
-            if (!formData.msId) {
-                newErrors.msId = "Please select a milestone for this PO";
-            } else if (formData.srnAmount && milestoneBalance !== null && Number(formData.srnAmount) > Number(milestoneBalance)) {
-                newErrors.srnAmount = `SRN amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
-            }
-        }
+      // No milestones available, check against PO balance
+      if (formData.srnAmount && poBalance !== null && Number(formData.srnAmount) > Number(poBalance)) {
+        newErrors.srnAmount = `SRN amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
+      }
+    } else {
+      // Milestones exist
+      if (!formData.msId) {
+        newErrors.msId = "Please select a milestone for this PO";
+      } else if (formData.srnAmount && milestoneBalance !== null && Number(formData.srnAmount) > Number(milestoneBalance)) {
+        newErrors.srnAmount = `SRN amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
+      }
+    }
 
 
     setErrors(newErrors);
@@ -390,7 +404,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // First validate basic form fields
+    // Validate basic form fields
     if (!validateBasicForm()) {
       return;
     }
@@ -403,7 +417,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         throw new Error("Missing authentication credentials");
       }
 
-      // Prepare the update data according to SRNDTO structure
+      // Prepare the update data
       const updateData = {
         poNumber: formData.poNumber,
         msId: formData.msId || null,
@@ -414,27 +428,48 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         srnType: formData.srnType,
         srnRemarks: formData.srnRemarks || ''
       };
-      onSubmit(updateData);
+
+      // Submit SRN data
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/srn/edit/${srnId}`,
+        updateData,
+        {
+          headers: {
+            Authorization: `${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Upload attachments
+      if (srnAttachments.length > 0) {
+        for (const file of srnAttachments) {
+          if (file instanceof File) { // Only upload new files
+            const fileData = new FormData();
+            fileData.append("file", file);
+            fileData.append("level", "SRN");
+            fileData.append("referenceId", response.data.srnId);
+
+            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+              method: "POST",
+              headers: {
+                Authorization: `${token}`
+              },
+              body: fileData
+            });
+
+            if (!uploadRes.ok) {
+              console.error(`Attachment upload failed for ${file.name}`);
+            }
+          }
+        }
+      }
+
+      onSubmit(response.data);
       handleClose();
     } catch (error) {
       console.error("Error updating SRN:", error);
-
-      // Enhanced error message handling
-      let errorMessage = "Failed to update SRN";
-
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      setErrors({
-        submit: errorMessage
-      });
+      setErrors({ submit: "Failed to update SRN" });
     } finally {
       setLoading(false);
     }
@@ -450,9 +485,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       srnCurrency: "USD",
       srnType: "",
       srnRemarks: "",
-      attachment: null,
-      existingAttachment: null
     });
+    setSrnAttachments([]);
     setErrors({});
     setNameCharCount(0);
     setDescCharCount(0);
@@ -508,12 +542,12 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   PO Number *
                 </label>
                 <input
-      type="text"
-      value={formData.poNumber}
-      className="w-full h-10 px-4 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
-      disabled
-      readOnly
-    />
+                  type="text"
+                  value={formData.poNumber}
+                  className="w-full h-10 px-4 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                  disabled
+                  readOnly
+                />
                 {errors.poNumber && (
                   <p className="mt-1 text-sm text-red-600">
                     <TruncatedText text={errors.poNumber} maxLength={50} />
@@ -551,14 +585,14 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Milestone Name
                 </label>
-              
+
                 <input
-      type="text"
-      value={milestoneList.find(ms => ms.msId === formData.msId)?.msName || ""}
-      className="w-full h-10 px-4 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
-      disabled
-      readOnly
-    />
+                  type="text"
+                  value={milestoneList.find(ms => ms.msId === formData.msId)?.msName || ""}
+                  className="w-full h-10 px-4 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                  disabled
+                  readOnly
+                />
               </div>
 
               <div className="lg:col-span-1">
@@ -593,7 +627,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 <div className="flex gap-2 items-center justify-between">
                   <label className="block text-sm font-medium text-gray-700 mb-2">SRN Amount *</label>
                   <span className="text-[10px] text-red-500">
-                      {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
+                    {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
                   </span>
                 </div>
                 <div className="relative">
@@ -620,27 +654,27 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 )}
               </div>
               <div className="lg:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">SRN Date</label>
-              <div
-                onClick={() => handleDateInputClick('srnDate')}
-                className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
-              >
-                <Calendar
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none"
-                  size={20}
-                />
-                <input
-                  type="date"
-                  name="srnDate"
-                  value={formData.srnDate}
-                  onChange={handleInputChange}
-                  className="w-full bg-transparent outline-none cursor-pointer appearance-none"
-                  disabled={loading || initialLoading}
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Date</label>
+                <div
+                  onClick={() => handleDateInputClick('srnDate')}
+                  className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
+                >
+                  <Calendar
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none"
+                    size={20}
+                  />
+                  <input
+                    type="date"
+                    name="srnDate"
+                    value={formData.srnDate}
+                    onChange={handleInputChange}
+                    className="w-full bg-transparent outline-none cursor-pointer appearance-none"
+                    disabled={loading || initialLoading}
+                  />
+                </div>
               </div>
             </div>
-            </div>
-            
+
 
 
 
@@ -649,46 +683,44 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             {/* Row 2: SRN Name and Attachment */}
             <div className="grid grid-cols-6  gap-4">
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachment</label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    id="srn-attachment-input-edit"
-                    name="attachment"
-                    onChange={handleFileChange}
-                    className="hidden"
-                    disabled={loading || initialLoading}
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  />
-                  <label
-                    htmlFor="srn-attachment-input-edit"
-                    className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
-                  >
-                    <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                    <span className="text-gray-500 truncate">
-                      {formData.attachment ? formData.attachment.name :
-                        formData.existingAttachment ? formData.existingAttachment : 'Click to select files'}
-                    </span>
-                  </label>
-                </div>
-                {/* Show existing attachment */}
-                {formData.existingAttachment && !formData.attachment && (
-                  <p className="mt-1 text-sm text-blue-600" title={`Current attachment: ${formData.existingAttachment}`}>
-                    Current: {formData.existingAttachment.length > 25 ? `${formData.existingAttachment.substring(0, 25)}...` : formData.existingAttachment}
-                  </p>
-                )}
-                {/* Show new attachment */}
-                {formData.attachment && (
-                  <p className="mt-1 text-sm text-green-600" title={`New file: ${formData.attachment.name} (${(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)`}>
-                    New: {formData.attachment.name.length > 25 ? `${formData.attachment.name.substring(0, 25)}...` : formData.attachment.name}
-                    ({(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
-                )}
+              <div className="">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Paperclip size={14} className="inline mr-1" />
+                  SRN Attachments (Max 4)
+                </label>
+
+                <input
+                  type="file"
+                  name="srnAttachment"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  disabled={loading || initialLoading}
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  title="Upload document or image file (max 10MB)"
+                />
+
+                {/* Display existing and newly added attachments */}
+                <ul className="mt-2 text-xs text-gray-700 space-y-1">
+                  {srnAttachments.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                    >
+                      <span className="truncate max-w-[200px]" title={file.fileName || file.name}>{file.fileName || file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(index)}
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
                 {errors.attachment && (
-                  <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.attachment}`}>
-                    {errors.attachment}
-                  </p>
+                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
                 )}
               </div>
             </div>
