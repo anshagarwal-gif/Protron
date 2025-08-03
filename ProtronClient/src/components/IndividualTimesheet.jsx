@@ -419,6 +419,8 @@ const IndividualTimesheet = () => {
             taskTopic: taskData.taskTopic,
             hoursSpent: taskData.hoursSpent,
             minutesSpent: taskData.minutesSpent || 0, // Handle optional minutes
+            remainingHours: taskData.remainingHours || 0, // Handle optional remaining hours
+            remainingMinutes: taskData.remainingMinutes || 0, // Handle optional remaining minutes
             description: taskData.description,
             projectId: taskData.projectId || null, // Ensure projectId is passed correctly
             attachments: taskData.attachments || null, // Handle optional attachment
@@ -442,6 +444,8 @@ const IndividualTimesheet = () => {
                 id: res.data.taskId,
                 hours: res.data.hoursSpent,
                 minutes: res.data.minutesSpent || 0, // Handle optional minutes
+                remainingHours: res.data.remainingHours || 0, // Handle optional remaining hours
+                remainingMinutes: res.data.remainingMinutes || 0, // Handle optional remaining minutes
                 description: res.data.description,
                 task: res.data.taskType,
                 project: res.data.project,
@@ -469,6 +473,8 @@ const IndividualTimesheet = () => {
             id: taskData.taskId,
             hours: taskData.hoursSpent,
             minutes: taskData.minutesSpent || 0, // Handle optional minutes
+            remainingHours: taskData.remainingHours || 0, // Handle optional remaining hours
+            remainingMinutes: taskData.remainingMinutes || 0, // Handle optional remaining minutes
             description: taskData.description,
             task: taskData.taskType,
             project: taskData.project,

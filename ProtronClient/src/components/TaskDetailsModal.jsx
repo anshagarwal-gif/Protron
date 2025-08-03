@@ -401,19 +401,12 @@ const TaskDetailsModal = ({
         <div className="bg-emerald-50 rounded-2xl border border-emerald-100 p-3 flex-shrink-0">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1.5 h-8 bg-emerald-500 rounded-full"></div>
-            <h3 className="text-lg font-bold text-gray-900">Basic Details</h3>
+            <h3 className="text-lg font-bold text-gray-900">{taskDetail.taskTopic || "(No Topic Specified)"} <span className="inline-flex ml-3 px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg truncate max-w-full">
+                  {taskDetail.taskType || 'Unknown'}
+                </span> </h3>
           </div>
           
           <div className="grid grid-cols-4 gap-4">
-            {/* Task Type */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-emerald-100/50 shadow-sm">
-              <label className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Task Type</label>
-              <div className="mt-2">
-                <span className="inline-flex px-3 py-1.5 bg-emerald-500 text-white text-sm font-medium rounded-lg truncate max-w-full">
-                  {taskDetail.taskType || 'Unknown'}
-                </span>
-              </div>
-            </div>
 
             {/* Date */}
             <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-100/50 shadow-sm">
@@ -450,6 +443,17 @@ const TaskDetailsModal = ({
                 </span>
               </div>
             </div>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-amber-100/50 shadow-sm">
+              <label className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Remaining Hours</label>
+              <div className="flex items-center gap-2 mt-2">
+                <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                <span className="inline-flex items-center px-2 py-1 rounded-lg bg-blue-500 text-white text-sm font-bold">
+                  {taskDetail.remainingHours || 0}h {taskDetail.remainingMinutes || 0}m
+                </span>
+              </div>
+            </div>
+
           </div>
         </div>
 

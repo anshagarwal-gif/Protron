@@ -260,7 +260,8 @@ const POManagement = () => {
     {
       headerName: "#",
       valueGetter: "node.rowIndex + 1",
-      width: 70,
+      width: 50,
+      maxWidth: 50,
       pinned: "left",
       sortable: false,
       filter: false,
@@ -272,7 +273,7 @@ const POManagement = () => {
       field: "poNumber",
       valueGetter: params => params.data.poNumber || 'N/A',
       flex: 1,
-      minWidth: 150,
+      maxWidth: 140,
       sortable: true,
       filter: true,
       cellStyle: { fontWeight: 'bold', color: '#1f2937' },
@@ -297,7 +298,7 @@ const POManagement = () => {
       headerName: "PO Type",
       field: "poType",
       valueGetter: params => params.data.poType || 'N/A',
-      width: 120,
+      maxWidth: 120,
       sortable: true,
       filter: true,
       cellRenderer: params => {
@@ -319,15 +320,6 @@ const POManagement = () => {
       }
     },
     {
-      headerName: "Currency",
-      field: "poCurrency",
-      valueGetter: params => params.data.poCurrency || 'N/A',
-      width: 100,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#374151' }
-    },
-    {
       headerName: "PO Amount",
       field: "poAmount",
       valueGetter: params => formatCurrency(params.data.poAmount, params.data.poCurrency),
@@ -342,6 +334,7 @@ const POManagement = () => {
       valueGetter: params => params.data.customer || 'N/A',
       flex: 1,
       minWidth: 150,
+      maxWidth: 200,
       sortable: true,
       filter: true,
       cellRenderer: params => (
@@ -356,6 +349,7 @@ const POManagement = () => {
       valueGetter: params => params.data.supplier || 'N/A',
       flex: 1,
       minWidth: 150,
+      maxWidth: 200,
       sortable: true,
       filter: true,
       cellRenderer: params => (
@@ -369,7 +363,8 @@ const POManagement = () => {
       field: "projectName",
       valueGetter: params => params.data.projectName || 'N/A',
       flex: 1,
-      minWidth: 180,
+      minWidth: 150,
+      maxWidth: 200,
       sortable: true,
       filter: true,
       cellRenderer: params => (
@@ -384,6 +379,7 @@ const POManagement = () => {
       valueGetter: params => params.data.poSpoc || 'N/A',
       flex: 1,
       minWidth: 150,
+      maxWidth: 180,
       sortable: true,
       filter: true,
       cellRenderer: params => (
@@ -391,6 +387,39 @@ const POManagement = () => {
           {params.value}
         </div>
       )
+    },
+    {
+      headerName: "Budget Line Item",
+      field: "budgetLineItem",
+      valueGetter: params => params.data.budgetLineItem || 'N/A',
+      flex: 1,
+      minWidth: 150,
+      maxWidth: 180,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => (
+        <div className="truncate max-w-full overflow-hidden whitespace-nowrap" title={params.value}>
+          {params.value}
+        </div>
+      )
+    },
+    {
+      headerName: "Budget Line Amount",
+      field: "budgetLineAmount",
+      valueGetter: params => formatCurrency(params.data.budgetLineAmount, params.data.poCurrency),
+      width: 140,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#059669' }
+    },
+    {
+      headerName: "Business Value",
+      field: "businessValue",
+      valueGetter: params => formatCurrency(params.data.businessValue, params.data.poCurrency),
+      width: 140,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#059669' }
     },
     {
       headerName: "Actions",
@@ -529,94 +558,94 @@ const POManagement = () => {
       {/* Header with navigation, search and actions */}
       <div className="flex justify-between items-center mb-6">
         {/* Left side - 4-Slider toggle buttons and title */}
-        <div className="flex items-center gap-4">
-          <div className="relative bg-gray-200 p-1 rounded-full flex">
-          <div
-            className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-            style={{
-              width: activeTab === "utilization" ? 'calc(25% + 8px)' : 'calc(25% - 2px)',
-              left: activeTab === "details" ? '4px' :
-                activeTab === "utilization" ? 'calc(25% - 2px)' :
-                  activeTab === "srn" ? 'calc(50% + 2px)' :
-                    'calc(75% + 2px)'
-            }}
-          />
-          <button
-            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-              activeTab === "details" ? "text-green-600" : "text-gray-600"
-            }`}
-            onClick={() => setActiveTab("details")}
-          >
-            <div className="flex items-center justify-center whitespace-nowrap">
-              <FileText size={16} className="mr-1" />
-              PO Details
-            </div>
-          </button>
-          <button
-            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-              activeTab === "utilization" ? "text-green-600" : "text-gray-600"
-            }`}
-            onClick={() => setActiveTab("utilization")}
-          >
-            <div className="flex items-center justify-center whitespace-nowrap">
-              <TrendingUp size={16} className="mr-1" />
-              PO Consumption
-            </div>
-          </button>
-          <button
-            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-              activeTab === "srn" ? "text-green-600" : "text-gray-600"
-            }`}
-            onClick={() => setActiveTab("srn")}
-          >
-            <div className="flex items-center justify-center whitespace-nowrap">
-              <Receipt size={16} className="mr-1" />
-              SRN
-            </div>
-          </button>
-          <button
-            className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-              activeTab === "invoice" ? "text-green-600" : "text-gray-600"
-            }`}
-            onClick={() => setActiveTab("invoice")}
-          >
-            <div className="flex items-center justify-center whitespace-nowrap">
-              <CreditCard size={16} className="mr-1" />
-              Invoice
-            </div>
-          </button>
-        </div>
+        <div className="flex items-center gap-6">
+      <div className="relative bg-gray-200 p-1 rounded-full flex">
+        <div
+          className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+          style={{
+            width: activeTab === "utilization" ? 'calc(25% + 20px)' : activeTab === 'srn' ? 'calc(25% - 25px)' : activeTab === 'invoice' ? 'calc(25% - 10px)' : 'calc(25% - 2px)',
+            left: activeTab === "details" ? '4px' :
+              activeTab === "utilization" ? '25%' :
+                activeTab === "srn" ? '55%' :
+                  'calc(75% + 2px)'
+          }}
+        />
+        <button
+          className={`relative z-10 py-2 px-3 mr-2 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+            activeTab === "details" ? "text-green-600" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTab("details")}
+        >
+          <div className="flex items-center justify-center whitespace-nowrap">
+            <FileText size={16} className="mr-1" />
+            PO Details
+          </div>
+        </button>
+        <button
+          className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+            activeTab === "utilization" ? "text-green-600" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTab("utilization")}
+        >
+          <div className="flex items-center justify-center whitespace-nowrap">
+            <TrendingUp size={16} className="mr-1" />
+            PO Consumption
+          </div>
+        </button>
+        <button
+          className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+            activeTab === "srn" ? "text-green-600" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTab("srn")}
+        >
+          <div className="flex items-center justify-center whitespace-nowrap">
+            <Receipt size={16} className="mr-1" />
+            SRN
+          </div>
+        </button>
+        <button
+          className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
+            activeTab === "invoice" ? "text-green-600" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTab("invoice")}
+        >
+          <div className="flex items-center justify-center whitespace-nowrap">
+            <CreditCard size={16} className="mr-1" />
+            Invoice
+          </div>
+        </button>
+      </div>
 
-        {/* Dynamic title based on active tab */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-            {activeTab === "details" && (
-              <>
-                <FileText size={24} className="mr-2 text-green-600" />
-                PO List
-              </>
-            )}
-            {activeTab === "utilization" && (
-              <>
-                <TrendingUp size={24} className="mr-2 text-green-600" />
-                PO Consumption
-              </>
-            )}
-            {activeTab === "srn" && (
-              <>
-                <Receipt size={24} className="mr-2 text-green-600" />
-                SRN Management
-              </>
-            )}
-            {activeTab === "invoice" && (
-              <>
-                <CreditCard size={24} className="mr-2 text-green-600" />
-                Invoice Management
-              </>
-            )}
-          </h2>
-        </div>
-        </div>
+      {/* Dynamic title based on active tab */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+          {activeTab === "details" && (
+            <>
+              <FileText size={24} className="mr-2 text-green-600" />
+              PO List
+            </>
+          )}
+          {activeTab === "utilization" && (
+            <>
+              <TrendingUp size={24} className="mr-2 text-green-600" />
+              PO Consumption
+            </>
+          )}
+          {activeTab === "srn" && (
+            <>
+              <Receipt size={24} className="mr-2 text-green-600" />
+              SRN Management
+            </>
+          )}
+          {activeTab === "invoice" && (
+            <>
+              <CreditCard size={24} className="mr-2 text-green-600" />
+              Invoice Management
+            </>
+          )}
+        </h2>
+      </div>
+    </div>
 
         {/* Right side - Search and action buttons */}
         <div className="flex items-center gap-4">

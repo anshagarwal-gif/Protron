@@ -25,6 +25,8 @@ public class TimesheetTask {
     private Date date;
     private int hoursSpent;
     private int minutesSpent;
+    private int remainingHours;
+    private int remainingMinutes;
     @Column(length = 50)
     private String taskTopic;
     @Column(length = 500)
@@ -55,6 +57,22 @@ public class TimesheetTask {
     @JoinColumn(name = "tenant_id")
     @JsonIgnoreProperties({ "certificates", "projectTeams", "roleAccesses", "projects", "roles", "users" })
     private Tenant tenant;
+
+    public int getRemainingHours() {
+        return remainingHours;
+    }
+
+    public void setRemainingHours(int remainingHours) {
+        this.remainingHours = remainingHours;
+    }
+
+    public int getRemainingMinutes() {
+        return remainingMinutes;
+    }
+
+    public void setRemainingMinutes(int remainingMinutes) {
+        this.remainingMinutes = remainingMinutes;
+    }
 
     public Long getTaskId() {
         return taskId;
