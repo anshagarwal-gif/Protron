@@ -5,6 +5,7 @@ import com.Protronserver.Protronserver.Entities.Invoice;
 import com.Protronserver.Protronserver.Repository.InvoiceRepository;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
 import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +99,7 @@ public class InvoiceService {
             invoice.setRemarks(requestDTO.getRemarks());
 
             // Generate PDF
-            byte[] pdfBytes = generateInvoicePDF(invoice);
+            byte[] pdfBytes = generateInvoicePDF(invoice, requestDTO.getTimesheetData());
             invoice.setPdfData(pdfBytes);
             invoice.setPdfFileName(customInvoiceId + ".pdf");
 
@@ -151,7 +152,7 @@ public class InvoiceService {
             }
 
             // Generate PDF
-            byte[] pdfBytes = generateInvoicePDF(invoice);
+            byte[] pdfBytes = generateInvoicePDF(invoice, requestDTO.getTimesheetData());
             invoice.setPdfData(pdfBytes);
             invoice.setPdfFileName(customInvoiceId + ".pdf");
 
@@ -325,23 +326,25 @@ public class InvoiceService {
                 .collect(Collectors.toList());
     }
 
-    private byte[] generateInvoicePDF(Invoice invoice) throws DocumentException {
+    private byte[] generateInvoicePDF(Invoice invoice, InvoiceRequestDTO.TimesheetDataDTO timesheetData)
+            throws DocumentException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Document document = new Document();
         PdfWriter.getInstance(document, baos);
 
         document.open();
 
-        // Add title
+        // Define fonts
         Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
+        Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+        Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
+        Font smallFont = new Font(Font.FontFamily.HELVETICA, 8);
+
+        // Add title
         Paragraph title = new Paragraph("INVOICE", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         title.setSpacingAfter(20);
         document.add(title);
-
-        // Invoice details
-        Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-        Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
 
         // Invoice ID and Name
         document.add(new Paragraph("Invoice ID: " + invoice.getInvoiceId(), headerFont));
@@ -393,6 +396,11 @@ public class InvoiceService {
         total.setSpacingAfter(20);
         document.add(total);
 
+        // Add timesheet table if timesheet data is provided
+        if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
+            addTimesheetSection(document, timesheetData, headerFont, normalFont, smallFont);
+        }
+
         // Attachments info
         if (invoice.getAttachmentCount() > 0) {
             document.add(new Paragraph("Attachments:", headerFont));
@@ -411,6 +419,186 @@ public class InvoiceService {
 
         document.close();
         return baos.toByteArray();
+    }
+
+    /**
+     * Add timesheet section to the PDF
+     */
+    private void addTimesheetSection(Document document, InvoiceRequestDTO.TimesheetDataDTO timesheetData,
+            Font headerFont, Font normalFont, Font smallFont) throws DocumentException {
+
+        // Timesheet header
+        document.add(new Paragraph("\n"));
+        Paragraph timesheetHeader = new Paragraph("TIMESHEET DETAILS (" + timesheetData.getViewMode() + " View)",
+                headerFont);
+        timesheetHeader.setAlignment(Element.ALIGN_CENTER);
+        timesheetHeader.setSpacingAfter(10);
+        document.add(timesheetHeader);
+
+        // Timesheet summary
+        PdfPTable summaryTable = new PdfPTable(4);
+        summaryTable.setWidthPercentage(100);
+        summaryTable.setSpacingAfter(15);
+
+        // Summary headers
+        PdfPCell periodCell = new PdfPCell(new Phrase("Period", headerFont));
+        periodCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        summaryTable.addCell(periodCell);
+
+        PdfPCell employeeCell = new PdfPCell(new Phrase("Employee", headerFont));
+        employeeCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        summaryTable.addCell(employeeCell);
+
+        PdfPCell totalHoursCell = new PdfPCell(new Phrase("Total Hours", headerFont));
+        totalHoursCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        summaryTable.addCell(totalHoursCell);
+
+        PdfPCell targetHoursCell = new PdfPCell(new Phrase("Target Hours", headerFont));
+        targetHoursCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        summaryTable.addCell(targetHoursCell);
+
+        // Summary data
+        summaryTable.addCell(new Phrase(timesheetData.getPeriod(), normalFont));
+        summaryTable.addCell(new Phrase(timesheetData.getEmployeeName(), normalFont));
+        summaryTable.addCell(
+                new Phrase(timesheetData.getTotalHours() + "h " + timesheetData.getTotalMinutes() + "m", normalFont));
+        summaryTable.addCell(new Phrase(timesheetData.getTargetHours() + "h", normalFont));
+
+        document.add(summaryTable);
+
+        // Detailed timesheet table
+        document.add(new Paragraph("Detailed Time Entries:", headerFont));
+
+        // Create table with appropriate columns based on view mode
+        PdfPTable timesheetTable;
+        if ("Weekly".equals(timesheetData.getViewMode())) {
+            timesheetTable = new PdfPTable(7); // Date, Day, Task Type, Task Topic, Hours, Project, Description
+            timesheetTable.setWidths(new float[] { 1.5f, 1f, 2f, 2f, 1f, 2f, 3f });
+        } else {
+            timesheetTable = new PdfPTable(6); // Date, Task Type, Task Topic, Hours, Project, Description
+            timesheetTable.setWidths(new float[] { 1.5f, 2f, 2f, 1f, 2f, 3f });
+        }
+
+        timesheetTable.setWidthPercentage(100);
+        timesheetTable.setSpacingAfter(15);
+
+        // Table headers
+        addTimesheetTableHeaders(timesheetTable, timesheetData.getViewMode(), headerFont);
+
+        // Table data
+        for (InvoiceRequestDTO.TimesheetEntryDTO entry : timesheetData.getEntries()) {
+            addTimesheetTableRow(timesheetTable, entry, timesheetData.getViewMode(), normalFont, smallFont);
+        }
+
+        document.add(timesheetTable);
+    }
+
+    /**
+     * Add headers to the timesheet table
+     */
+    private void addTimesheetTableHeaders(PdfPTable table, String viewMode, Font headerFont) {
+        // Common headers
+        PdfPCell dateHeader = new PdfPCell(new Phrase("Date", headerFont));
+        dateHeader.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        dateHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(dateHeader);
+
+        if ("Weekly".equals(viewMode)) {
+            PdfPCell dayHeader = new PdfPCell(new Phrase("Day", headerFont));
+            dayHeader.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            dayHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(dayHeader);
+        }
+
+        PdfPCell taskTypeHeader = new PdfPCell(new Phrase("Task Type", headerFont));
+        taskTypeHeader.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        taskTypeHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(taskTypeHeader);
+
+        PdfPCell taskTopicHeader = new PdfPCell(new Phrase("Task Topic", headerFont));
+        taskTopicHeader.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        taskTopicHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(taskTopicHeader);
+
+        PdfPCell hoursHeader = new PdfPCell(new Phrase("Hours", headerFont));
+        hoursHeader.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        hoursHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(hoursHeader);
+
+        PdfPCell projectHeader = new PdfPCell(new Phrase("Project", headerFont));
+        projectHeader.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        projectHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(projectHeader);
+
+        PdfPCell descriptionHeader = new PdfPCell(new Phrase("Description", headerFont));
+        descriptionHeader.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        descriptionHeader.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(descriptionHeader);
+    }
+
+    /**
+     * Add a row to the timesheet table
+     */
+    private void addTimesheetTableRow(PdfPTable table, InvoiceRequestDTO.TimesheetEntryDTO entry,
+            String viewMode, Font normalFont, Font smallFont) {
+
+        // Date cell
+        PdfPCell dateCell = new PdfPCell(new Phrase(entry.getDate(), normalFont));
+        if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
+            dateCell.setBackgroundColor(new BaseColor(245, 245, 245)); // Light gray for weekends
+        }
+        table.addCell(dateCell);
+
+        // Day cell (only for weekly view)
+        if ("Weekly".equals(viewMode)) {
+            PdfPCell dayCell = new PdfPCell(new Phrase(entry.getDayOfWeek(), smallFont));
+            if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
+                dayCell.setBackgroundColor(new BaseColor(245, 245, 245));
+            }
+            table.addCell(dayCell);
+        }
+
+        // Task Type cell
+        PdfPCell taskTypeCell = new PdfPCell(
+                new Phrase(entry.getTaskType() != null ? entry.getTaskType() : "", normalFont));
+        if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
+            taskTypeCell.setBackgroundColor(new BaseColor(245, 245, 245));
+        }
+        table.addCell(taskTypeCell);
+
+        // Task Topic cell
+        PdfPCell taskTopicCell = new PdfPCell(
+                new Phrase(entry.getTaskTopic() != null ? entry.getTaskTopic() : "", smallFont));
+        if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
+            taskTopicCell.setBackgroundColor(new BaseColor(245, 245, 245));
+        }
+        table.addCell(taskTopicCell);
+
+        // Hours cell
+        String hoursText = (entry.getHours() != null ? entry.getHours() : 0) + "h " +
+                (entry.getMinutes() != null ? entry.getMinutes() : 0) + "m";
+        PdfPCell hoursCell = new PdfPCell(new Phrase(hoursText, normalFont));
+        hoursCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
+            hoursCell.setBackgroundColor(new BaseColor(245, 245, 245));
+        }
+        table.addCell(hoursCell);
+
+        // Project cell
+        PdfPCell projectCell = new PdfPCell(
+                new Phrase(entry.getProject() != null ? entry.getProject() : "", smallFont));
+        if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
+            projectCell.setBackgroundColor(new BaseColor(245, 245, 245));
+        }
+        table.addCell(projectCell);
+
+        // Description cell
+        PdfPCell descriptionCell = new PdfPCell(
+                new Phrase(entry.getDescription() != null ? entry.getDescription() : "", smallFont));
+        if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
+            descriptionCell.setBackgroundColor(new BaseColor(245, 245, 245));
+        }
+        table.addCell(descriptionCell);
     }
 
     private InvoiceResponseDTO convertToResponseDTO(Invoice invoice) {
