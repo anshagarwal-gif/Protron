@@ -662,7 +662,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <DollarSign size={14} className="inline mr-1" />
                   Amount *
                 </label>
                 <input
@@ -711,7 +710,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
             {/* Row 2: Utilization Type, Resource/Project, System Name */}
             <div className="grid grid-cols-5 gap-4">
-
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">

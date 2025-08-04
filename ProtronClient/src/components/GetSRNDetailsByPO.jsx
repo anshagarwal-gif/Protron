@@ -6,6 +6,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 import { Search, Download, Plus, Banknote, Edit } from 'lucide-react'
 import AddSRNModal from './AddSRNModal'
 import EditSRNModal from './EditSRNModal'
+import CreateNewSRNModal from './podetailspage/CreateNewSRNModal'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -39,24 +40,24 @@ const GetSRNDetailsByPO = ({ poId }) => {
     setSelectedSRN(srn.srnId)
     setEditSRNModalOpen(true)
   }
-  const handleCloseSRNEdit = () =>{
+  const handleCloseSRNEdit = () => {
     setEditSRNModalOpen(false)
   }
-  const downloadSRNExcel = () =>{
+  const downloadSRNExcel = () => {
     try {
       const excelData = srnDetails.map
-      ((srn, index) => ({
-        'S.No': index + 1,
-        'SRN Name': srn.srnName || 'N/A',
-        'PO Number': srn.poNumber || 'N/A',
-        'Amount': srn.srnAmount ? srn.srnAmount.toLocaleString() : 'N/A',
-        'Currency': srn.srnCurrency || 'N/A',
-        'Type': srn.srnType || 'N/A',
-        'Description': srn.srnDsc || 'N/A',
-        'Remarks': srn.srnRemarks || 'N/A',
-        'Created Date': srn.createdTimestamp ? new Date(srn.createdTimestamp).toLocaleDateString() : 'N/A',
-        'Milestone': srn.milestone || 'N/A',
-      }));
+        ((srn, index) => ({
+          'S.No': index + 1,
+          'SRN Name': srn.srnName || 'N/A',
+          'PO Number': srn.poNumber || 'N/A',
+          'Amount': srn.srnAmount ? srn.srnAmount.toLocaleString() : 'N/A',
+          'Currency': srn.srnCurrency || 'N/A',
+          'Type': srn.srnType || 'N/A',
+          'Description': srn.srnDsc || 'N/A',
+          'Remarks': srn.srnRemarks || 'N/A',
+          'Created Date': srn.createdTimestamp ? new Date(srn.createdTimestamp).toLocaleDateString() : 'N/A',
+          'Milestone': srn.milestone.msName || 'N/A',
+        }));
       const headers = Object.keys(excelData[0] || {});
       const csvContent = [
         headers.join(','),
@@ -80,177 +81,174 @@ const GetSRNDetailsByPO = ({ poId }) => {
         link.click();
         document.body.removeChild(link);
       }
+    }
+    catch (error) {
+      console.error('Error downloading milestones Excel:', error);
+      showSnackbar('Failed to download Excel file. Please try again.', 'error');
+    }
   }
-  catch (error) {
-    console.error('Error downloading milestones Excel:', error);
-    showSnackbar('Failed to download Excel file. Please try again.', 'error');
-  }
-  }
+  useEffect(()=>{
+    if(isAddSRNOpen){
+      document.body.classList.add('overflow-hidden')
+    }else{
+      document.body.classList.remove('overflow-hidden')
+    }
+  })
   const filteredSRNDetails = srnDetails.filter(srnDetails => {
     if (searchQuery === "") return true;
 
     const searchLower = searchQuery.toLowerCase();
     return (
-     srnDetails.srnName?.toLowerCase().includes(searchLower) ||
-     srnDetails.poNumber?.toLowerCase().includes(searchLower) ||
-     srnDetails.srnAmount?.toString().includes(searchLower)
+      srnDetails.srnName?.toLowerCase().includes(searchLower) ||
+      srnDetails.poNumber?.toLowerCase().includes(searchLower) ||
+      srnDetails.srnAmount?.toString().includes(searchLower)
     );
   });
   // Column definitions for AG Grid
   const columnDefs = [
-  {
-    headerName: 'SRN ID',
-    field: 'srnId',
-    flex: 1,
-    maxWidth: 70,
-    sortable: true,
-    filter: true,
-    tooltipField: 'srnId',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'SRN Name',
-    field: 'srnName',
-    flex: 1,
-    maxWidth: 150,
-    sortable: true,
-    filter: true,
-    tooltipField: 'srnName',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'PO Number',
-    field: 'poNumber',
-    flex: 1,
-    maxWidth: 150,
-    sortable: true,
-    filter: true,
-    tooltipField: 'poNumber',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'Amount',
-    field: 'srnAmount',
-    flex: 1,
-    maxWidth: 130,
-    sortable: true,
-    filter: 'agNumberColumnFilter',
-    valueFormatter: (params) => {
-      if (params.value) {
-        return new Intl.NumberFormat('en-IN', {
-          style: 'currency',
-          currency: 'INR'
-        }).format(params.value)
-      }
-      return ''
+    {
+      headerName: 'SRN ID',
+      field: 'srnId',
+      flex: 1,
+      maxWidth: 70,
+      sortable: true,
+      filter: true,
+      tooltipField: 'srnId',
+      cellClass: 'truncate-cell',
     },
-    tooltipField: 'srnAmount',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'Currency',
-    field: 'srnCurrency',
-    flex: 1,
-    maxWidth: 100,
-    sortable: true,
-    filter: true,
-    tooltipField: 'srnCurrency',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'Type',
-    field: 'srnType',
-    flex: 1,
-    maxWidth: 100,
-    sortable: true,
-    filter: true,
-    cellStyle: (params) => {
-      if (params.value === 'partial') {
-        return { backgroundColor: '#fff3cd', color: '#856404' }
-      } else if (params.value === 'full') {
-        return { backgroundColor: '#d4edda', color: '#155724' }
-      }
-      return null
+    {
+      headerName: 'SRN Name',
+      field: 'srnName',
+      flex: 1,
+      maxWidth: 150,
+      sortable: true,
+      filter: true,
+      tooltipField: 'srnName',
+      cellClass: 'truncate-cell',
     },
-    tooltipField: 'srnType',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'Description',
-    field: 'srnDsc',
-    flex: 1,
-    minWidth: 150,
-    sortable: true,
-    filter: true,
-    tooltipField: 'srnDsc',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'Remarks',
-    field: 'srnRemarks',
-    flex: 1,
-    minWidth: 150,
-    sortable: true,
-    filter: true,
-    tooltipField: 'srnRemarks',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'Created Date',
-    field: 'createdTimestamp',
-    flex: 1.5,
-    maxWidth: 150,
-    sortable: true,
-    filter: 'agDateColumnFilter',
-    valueFormatter: (params) => {
-      if (params.value) {
-        return new Date(params.value).toLocaleString('en-IN', {
-          year: 'numeric',
-          month: 'short',
-          day: '2-digit',
-        })
-      }
-      return ''
+    {
+      headerName: 'PO Number',
+      field: 'poNumber',
+      flex: 1,
+      maxWidth: 150,
+      sortable: true,
+      filter: true,
+      tooltipField: 'poNumber',
+      cellClass: 'truncate-cell',
     },
-    tooltipField: 'createdTimestamp',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: 'Milestone',
-    field: 'milestone',
-    flex: 1,
-    maxWidth: 120,
-    sortable: true,
-    filter: true,
-    valueFormatter: (params) => params.value || 'N/A',
-    tooltipField: 'milestone',
-    cellClass: 'truncate-cell',
-  },
-  {
-    headerName: "Actions",
-    field: "actions",
-    minWidth: 50,
-    maxWidth: 100,
-    flex: 0,
-    sortable: false,
-    filter: false,
-    suppressMenu: true,
-    cellRenderer: params => {
-      const srn = params.data;
-      return (
-        <div className="flex justify-center gap-2 h-full items-center">
-          <button
-            onClick={() => handleEditSRN(srn)}
-            className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-            title="Edit srn"
-          >
-            <Edit size={16} className="text-blue-600" />
-          </button>
-        </div>
-      );
+    {
+      headerName: 'Amount',
+      field: 'srnAmount',
+      flex: 1,
+      maxWidth: 130,
+      sortable: true,
+      filter: 'agNumberColumnFilter',
+      valueFormatter: (params) => {
+        if (params.value) {
+          return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR'
+          }).format(params.value)
+        }
+        return ''
+      },
+      tooltipField: 'srnAmount',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: 'Type',
+      field: 'srnType',
+      flex: 1,
+      maxWidth: 100,
+      sortable: true,
+      filter: true,
+      cellStyle: (params) => {
+        if (params.value === 'partial') {
+          return { backgroundColor: '#fff3cd', color: '#856404' }
+        } else if (params.value === 'full') {
+          return { backgroundColor: '#d4edda', color: '#155724' }
+        }
+        return null
+      },
+      tooltipField: 'srnType',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: 'Description',
+      field: 'srnDsc',
+      flex: 1,
+      minWidth: 150,
+      sortable: true,
+      filter: true,
+      tooltipField: 'srnDsc',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: 'Remarks',
+      field: 'srnRemarks',
+      flex: 1,
+      minWidth: 150,
+      sortable: true,
+      filter: true,
+      tooltipField: 'srnRemarks',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: 'Created Date',
+      field: 'createdTimestamp',
+      flex: 1.5,
+      maxWidth: 150,
+      sortable: true,
+      filter: 'agDateColumnFilter',
+      valueFormatter: (params) => {
+        if (params.value) {
+          return new Date(params.value).toLocaleString('en-IN', {
+            year: 'numeric',
+            month: 'short',
+            day: '2-digit',
+          })
+        }
+        return ''
+      },
+      tooltipField: 'createdTimestamp',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: 'Milestone',
+      field: 'milestone.msName',
+      flex: 1,
+      maxWidth: 120,
+      sortable: true,
+      filter: true,
+      valueFormatter: (params) => params.value || 'N/A',
+      tooltipField: 'milestone.msName',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: "Actions",
+      field: "actions",
+      minWidth: 50,
+      maxWidth: 100,
+      flex: 0,
+      sortable: false,
+      filter: false,
+      suppressMenu: true,
+      cellRenderer: params => {
+        const srn = params.data;
+        return (
+          <div className="flex justify-center gap-2 h-full items-center">
+            <button
+              onClick={() => handleEditSRN(srn)}
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              title="Edit srn"
+            >
+              <Edit size={16} className="text-blue-600" />
+            </button>
+          </div>
+        );
+      }
     }
-  }
-];
+  ];
 
 
   // Grid options
@@ -375,14 +373,14 @@ const GetSRNDetailsByPO = ({ poId }) => {
           </div>
           <button
             className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
-          onClick={downloadSRNExcel}
-          disabled={filteredSRNDetails.length === 0}
+            onClick={downloadSRNExcel}
+            disabled={filteredSRNDetails.length === 0}
           >
             <Download size={18} className="mr-2" />
             Download Excel
           </button>
           <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handleOpenSRNModal}
           // disabled={filteredMilestones.length === 0}
           >
@@ -457,10 +455,16 @@ const GetSRNDetailsByPO = ({ poId }) => {
       </div>
 
       {/* Summary section */}
-      
-      <AddSRNModal
+      <CreateNewSRNModal poId={poId}
         open={isAddSRNOpen}
-        onClose={handleCloseSRNModal} />
+        onClose={handleCloseSRNModal}
+      />
+
+      {/* <AddSRNModal
+        open={isAddSRNOpen}
+        onClose={handleCloseSRNModal}
+        poNumber={srnDetails[0]?.poNumber}
+        poId={poId} /> */}
       <EditSRNModal
         open={editSRNModalOpen}
         onClose={handleCloseSRNEdit}
