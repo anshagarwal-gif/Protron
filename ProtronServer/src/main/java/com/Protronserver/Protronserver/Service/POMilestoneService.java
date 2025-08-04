@@ -161,6 +161,37 @@ public class POMilestoneService {
         return savedNewMilestone;
     }
 
+    @Transactional
+    public void deleteMilestone(Long msId) {
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        POMilestone milestone = poMilestoneRepository.findById(msId)
+                .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + msId));
+
+        // Check for active SRNs referencing this milestone
+        List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(
+                milestone.getPoDetail().getPoId(), milestone.getMsId(), tenantId);
+
+        if (!srns.isEmpty()) {
+            throw new IllegalStateException("Cannot delete milestone: Active SRNs exist referencing this milestone.");
+        }
+
+        // Check for active POConsumptions referencing this milestone
+        List<POConsumption> consumptions = poConsumptionRepository.findByPoNumberAndMilestone_MsName(
+                milestone.getPoNumber(), milestone.getMsName(), tenantId);
+
+        if (!consumptions.isEmpty()) {
+            throw new IllegalStateException("Cannot delete milestone: Active POConsumptions exist referencing this milestone.");
+        }
+
+        // Soft-delete: mark milestone as ended
+        milestone.setEndTimestamp(LocalDateTime.now());
+        milestone.setLastUpdateBy(loggedInUserUtils.getLoggedInUser().getEmail());
+        poMilestoneRepository.save(milestone);
+
+        // Delete all attachments for this milestone
+        poAttachmentRepository.deleteByLevelAndReferenceId("MS", msId);
+    }
 
 
     public List<POMilestone> getAllMilestones() {

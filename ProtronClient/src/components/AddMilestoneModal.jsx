@@ -249,6 +249,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       }
 
       onSubmit({
+          msId: milestoneId,
           milestoneName: formData.msName,
           milestoneDescription: formData.msDesc,
           amount: parseInt(formData.msAmount) || 0,
