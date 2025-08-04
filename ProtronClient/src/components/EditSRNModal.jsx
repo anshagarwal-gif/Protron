@@ -357,10 +357,35 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     e.target.value = null; // Reset file input
   };
 
-  // Remove an attachment
-  const removeAttachment = (index) => {
-    setSrnAttachments(prev => prev.filter((_, i) => i !== index));
-  };
+  const removeAttachment = async (index) => {
+  const attachmentToRemove = srnAttachments[index];
+
+  // Check if the attachment has an ID (existing attachment)
+  if (attachmentToRemove.id) {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachmentToRemove.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to delete attachment with ID: ${attachmentToRemove.id}`);
+        return;
+      }
+
+      console.log(`Attachment with ID: ${attachmentToRemove.id} deleted successfully`);
+    } catch (error) {
+      console.error(`Error deleting attachment with ID: ${attachmentToRemove.id}`, error);
+      return;
+    }
+  }
+
+  // Update state to remove the attachment
+  setSrnAttachments((prev) => prev.filter((_, i) => i !== index));
+};
 
   const validateBasicForm = () => {
     const newErrors = {};

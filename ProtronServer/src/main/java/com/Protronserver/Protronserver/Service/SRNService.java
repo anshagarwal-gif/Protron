@@ -1,9 +1,11 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.SRNDTO;
+import com.Protronserver.Protronserver.Entities.POAttachments;
 import com.Protronserver.Protronserver.Entities.PODetails;
 import com.Protronserver.Protronserver.Entities.SRNDetails;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Repository.POAttachmentRepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.SRNRepository;
@@ -34,6 +36,9 @@ public class SRNService {
 
     @Autowired
     private CostDetailsService costDetailsService;
+
+    @Autowired
+    private POAttachmentRepository poAttachmentRepository;
 
     public SRNDetails addSRN(SRNDTO dto) {
 
@@ -236,7 +241,15 @@ public class SRNService {
         newSRN.setLastUpdateTimestamp(null);
         newSRN.setUpdatedBy(null);
 
-        return srnRepository.save(newSRN);
+        SRNDetails savedNewSRN = srnRepository.save(newSRN);
+
+        List<POAttachments> srnAttachments = poAttachmentRepository.findByLevelAndReferenceId("SRN", existingSRN.getSrnId());
+        for (POAttachments attachment : srnAttachments) {
+            attachment.setReferenceId(savedNewSRN.getSrnId());
+            poAttachmentRepository.save(attachment);
+        }
+
+        return savedNewSRN;
     }
 
 
@@ -269,6 +282,9 @@ public class SRNService {
         srn.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
 
         srnRepository.save(srn);
+
+        poAttachmentRepository.deleteByLevelAndReferenceId("SRN", srnId);
+
     }
 
 
