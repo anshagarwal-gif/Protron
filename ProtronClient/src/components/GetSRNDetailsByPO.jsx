@@ -307,22 +307,6 @@ const GetSRNDetailsByPO = ({ poId }) => {
 
   const handleEditModalSubmit = async (data) => {
     try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        throw new Error("Missing authentication credentials");
-      }
-
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/srn/edit/${selectedSRN}`,
-        data,
-        {
-          headers: {
-            Authorization: `${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
       fetchSRNDetails();
       setEditSRNModalOpen(false);
       setSelectedSRN(null);
