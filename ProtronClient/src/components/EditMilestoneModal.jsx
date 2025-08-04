@@ -12,7 +12,6 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     msDate: "",
     msDuration: "",
     msRemarks: "",
-    msAttachment: null,
     poId: "",
     poNumber: ""
   });
@@ -21,6 +20,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   const [errors, setErrors] = useState({});
   const [descWordCount, setDescWordCount] = useState(0);
   const [remarksWordCount, setRemarksWordCount] = useState(0);
+  const [milestoneAttachments, setMilestoneAttachments] = useState([]);
 
   // Helper function to count words
   const countWords = (text) => {
@@ -32,6 +32,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   useEffect(() => {
     if (open && milestoneId) {
       fetchMilestoneData();
+      fetchMilestoneAttachments(milestoneId);
     }
   }, [open, milestoneId]);
 
@@ -40,6 +41,25 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     setDescWordCount(countWords(formData.msDesc));
     setRemarksWordCount(countWords(formData.msRemarks));
   }, [formData.msDesc, formData.msRemarks]);
+
+  const fetchMilestoneAttachments = async (milestoneId) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=MS&referenceId=${milestoneId}`, {
+        headers: { Authorization: token }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMilestoneAttachments(data); // Assuming you're storing file meta here
+      } else {
+        console.error("Failed to fetch milestone attachments");
+      }
+    } catch (err) {
+      console.error("Error fetching milestone attachments:", err);
+    }
+  };
+
 
   const fetchMilestoneData = async () => {
     setFetchLoading(true);
@@ -68,23 +88,44 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
         msDate: milestone.msDate ? milestone.msDate.split('T')[0] : "",
         msDuration: milestone.msDuration || "",
         msRemarks: milestone.msRemarks || "",
-        msAttachment: null, // File attachments handled separately
         poId: milestone.poId || "",
         poNumber: milestone.poNumber || ""
       });
     } catch (error) {
       console.error("Error fetching milestone:", error);
-      setErrors({ 
-        fetch: error.response?.data?.message || error.message || "Failed to fetch milestone data" 
+      setErrors({
+        fetch: error.response?.data?.message || error.message || "Failed to fetch milestone data"
       });
     } finally {
       setFetchLoading(false);
     }
   };
 
+  const removeAttachment = async (index) => {
+    const attachmentToRemove = milestoneAttachments[index];
+
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachmentToRemove.id}`, {
+        method: "DELETE",
+        headers: { Authorization: token },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to delete attachment with ID: ${attachmentToRemove.id}`);
+        return;
+      }
+
+      console.log(`Attachment with ID: ${attachmentToRemove.id} deleted successfully`);
+      setMilestoneAttachments((prev) => prev.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error(`Error deleting attachment with ID: ${attachmentToRemove.id}`, error);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
-    
+
     if (type === 'file') {
       setFormData(prev => ({
         ...prev,
@@ -113,13 +154,13 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
         }
         setRemarksWordCount(wordCount);
       }
-      
+
       setFormData(prev => ({
         ...prev,
         [name]: value
       }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -127,6 +168,56 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
         [name]: ""
       }));
     }
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    const maxFiles = 4;
+
+    if (milestoneAttachments.length + files.length > maxFiles) {
+      setErrors(prev => ({
+        ...prev,
+        attachment: `You can upload a maximum of ${maxFiles} attachments.`
+      }));
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    const validFiles = files.filter(file => {
+      if (file.size > maxSize) {
+        setErrors(prev => ({
+          ...prev,
+          attachment: `File ${file.name} exceeds the maximum size of 10MB.`
+        }));
+        return false;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        setErrors(prev => ({
+          ...prev,
+          attachment: `File type for ${file.name} is not supported.`
+        }));
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length > 0) {
+      setMilestoneAttachments(prev => [...prev, ...validFiles]);
+    }
+
+    e.target.value = null; // Reset file input
   };
 
   const validateForm = () => {
@@ -154,7 +245,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -166,6 +257,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
         throw new Error("Missing authentication credentials");
       }
 
+      // Prepare milestone data
       const submitData = {
         msName: formData.msName,
         msDesc: formData.msDesc,
@@ -180,23 +272,46 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
 
       console.log('Submitting milestone update:', submitData);
 
+      // Update milestone data
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/po-milestone/edit/${milestoneId}`,
         submitData,
         {
-          headers: { 
+          headers: {
             Authorization: `${token}`,
             'Content-Type': 'application/json'
           }
         }
       );
 
+      // Upload new attachments
+      if (milestoneAttachments.length > 0) {
+        for (const file of milestoneAttachments) {
+          if (file instanceof File) { // Ensure only new files are uploaded
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("level", "MS");
+            formData.append("referenceId", response.data.msId); // Use the updated milestone ID
+
+            const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+              method: "POST",
+              headers: { Authorization: token },
+              body: formData
+            });
+
+            if (!uploadResponse.ok) {
+              console.error(`Failed to upload file: ${file.name}`);
+            }
+          }
+        }
+      }
+
       onSubmit(response.data);
       handleClose();
     } catch (error) {
       console.error("Error updating milestone:", error);
-      setErrors({ 
-        submit: error.response?.data?.message || error.message || "Failed to update milestone" 
+      setErrors({
+        submit: error.response?.data?.message || error.message || "Failed to update milestone"
       });
     } finally {
       setLoading(false);
@@ -212,7 +327,6 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
       msDate: "",
       msDuration: "",
       msRemarks: "",
-      msAttachment: null,
       poId: "",
       poNumber: ""
     });
@@ -294,9 +408,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                     name="msName"
                     value={formData.msName}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                      errors.msName ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msName ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="Enter milestone name"
                     disabled={loading}
                   />
@@ -336,9 +449,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                     onChange={handleInputChange}
                     step="1"
                     min="0"
-                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                      errors.msAmount ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msAmount ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="0"
                     disabled={loading}
                   />
@@ -363,9 +475,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                     value={formData.msDuration}
                     onChange={handleInputChange}
                     min="0"
-                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                      errors.msDuration ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msDuration ? 'border-red-500' : 'border-gray-300'
+                      }`}
                     placeholder="0"
                     disabled={loading}
                   />
@@ -392,16 +503,33 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                 <div className="col-span-3">
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     <FileText size={14} className="inline mr-1" />
-                    Attachment
+                    Attachments (Max 4)
                   </label>
                   <input
                     type="file"
                     name="msAttachment"
-                    onChange={handleInputChange}
+                    onChange={handleFileChange}
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
                     className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
                     disabled={loading}
+                    multiple
                   />
+                  <ul className="mt-2 text-xs text-gray-700 space-y-1">
+                    {milestoneAttachments.map((file, index) => (
+                      <li key={index} className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded">
+                        <span className="truncate max-w-[200px]" title={file.fileName || file.name}>
+                          {file.fileName || file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(index)}
+                          className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
 
@@ -419,9 +547,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   value={formData.msDesc}
                   onChange={handleInputChange}
                   rows={4}
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                    errors.msDesc ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max 500 words)"
                   disabled={loading}
                 />
@@ -444,9 +571,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   value={formData.msRemarks}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                    remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 words)"
                   disabled={loading}
                 />

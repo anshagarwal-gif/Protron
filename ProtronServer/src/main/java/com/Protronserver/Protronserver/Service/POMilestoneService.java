@@ -2,11 +2,9 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.POMilestoneAddDTO;
 import com.Protronserver.Protronserver.Entities.*;
-import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
-import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
-import com.Protronserver.Protronserver.Repository.PORepository;
-import com.Protronserver.Protronserver.Repository.SRNRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +29,9 @@ public class POMilestoneService {
 
     @Autowired
     private POConsumptionRepository poConsumptionRepository;
+
+    @Autowired
+    private POAttachmentRepository poAttachmentRepository;
 
     public POMilestone addMilestone(POMilestoneAddDTO dto) {
         // 1. Fetch the parent PO
@@ -78,6 +79,7 @@ public class POMilestoneService {
         return poMilestoneRepository.save(milestone);
     }
 
+    @Transactional
     public POMilestone updateMilestone(Long id, POMilestoneAddDTO dto) {
 
         Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
@@ -139,6 +141,9 @@ public class POMilestoneService {
 
         POMilestone savedNewMilestone = poMilestoneRepository.save(newMilestone);
 
+        poAttachmentRepository.updateReferenceId("MS", existingMilestone.getMsId(), savedNewMilestone.getMsId());
+
+
         List<SRNDetails> srnsToUpdate = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), id, currentTenantId);
         for (SRNDetails srn : srnsToUpdate) {
             srn.setMilestone(savedNewMilestone);
@@ -156,6 +161,37 @@ public class POMilestoneService {
         return savedNewMilestone;
     }
 
+    @Transactional
+    public void deleteMilestone(Long msId) {
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        POMilestone milestone = poMilestoneRepository.findById(msId)
+                .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + msId));
+
+        // Check for active SRNs referencing this milestone
+        List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(
+                milestone.getPoDetail().getPoId(), milestone.getMsId(), tenantId);
+
+        if (!srns.isEmpty()) {
+            throw new IllegalStateException("Cannot delete milestone: Active SRNs exist referencing this milestone.");
+        }
+
+        // Check for active POConsumptions referencing this milestone
+        List<POConsumption> consumptions = poConsumptionRepository.findByPoNumberAndMilestone_MsName(
+                milestone.getPoNumber(), milestone.getMsName(), tenantId);
+
+        if (!consumptions.isEmpty()) {
+            throw new IllegalStateException("Cannot delete milestone: Active POConsumptions exist referencing this milestone.");
+        }
+
+        // Soft-delete: mark milestone as ended
+        milestone.setEndTimestamp(LocalDateTime.now());
+        milestone.setLastUpdateBy(loggedInUserUtils.getLoggedInUser().getEmail());
+        poMilestoneRepository.save(milestone);
+
+        // Delete all attachments for this milestone
+        poAttachmentRepository.deleteByLevelAndReferenceId("MS", msId);
+    }
 
 
     public List<POMilestone> getAllMilestones() {

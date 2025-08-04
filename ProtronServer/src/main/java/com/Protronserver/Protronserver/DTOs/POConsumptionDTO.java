@@ -9,7 +9,8 @@ public class POConsumptionDTO {
     private Integer amount;
     private String currency;
     private String utilizationType;
-    private String resourceOrProject;
+    private String resource;
+    private String project;
     private String workDesc;
     private Date workAssignDate;
     private Date workCompletionDate;
@@ -22,7 +23,7 @@ public class POConsumptionDTO {
     }
 
     public POConsumptionDTO(String poNumber, Long msId , Integer amount, String currency,
-            String utilizationType, String resourceOrProject, String workDesc,
+            String utilizationType, String resource, String project, String workDesc,
             Date workAssignDate, Date workCompletionDate, String remarks,
             String systemName, String updatedBy) {
         this.poNumber = poNumber;
@@ -30,7 +31,8 @@ public class POConsumptionDTO {
         this.amount = amount;
         this.currency = currency;
         this.utilizationType = utilizationType;
-        this.resourceOrProject = resourceOrProject;
+        this.resource = resource;
+        this.project = project;
         this.workDesc = workDesc;
         this.workAssignDate = workAssignDate;
         this.workCompletionDate = workCompletionDate;
@@ -80,12 +82,20 @@ public class POConsumptionDTO {
         this.utilizationType = utilizationType;
     }
 
-    public String getResourceOrProject() {
-        return resourceOrProject;
+    public String getResource() {
+        return resource;
     }
 
-    public void setResourceOrProject(String resourceOrProject) {
-        this.resourceOrProject = resourceOrProject;
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
+
+    public String getProject() {
+        return project;
+    }
+
+    public void setProject(String project) {
+        this.project = project;
     }
 
     public String getWorkDesc() {

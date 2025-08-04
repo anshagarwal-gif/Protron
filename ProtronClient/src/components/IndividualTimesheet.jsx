@@ -15,7 +15,9 @@ import {
   CalendarIcon,
   Trash2,
   SquarePen,
-  Calendar
+  Calendar,
+  TimerIcon,
+  Edit
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios';
@@ -23,6 +25,7 @@ import { useAccess } from '../Context/AccessContext';
 import { useSession } from '../Context/SessionContext';
 import LogTimeModal from './LogTimeModal';
 import TaskDetailsModal from './TaskDetailsModal';
+import AddInvoiceModal from "../components/AddInvoice";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -122,6 +125,7 @@ const IndividualTimesheet = () => {
   const [showLogTimeModal, setShowLogTimeModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const hiddenDateInputRef = useRef(null);
 
   const getTargetHours = () => {
@@ -135,7 +139,14 @@ const IndividualTimesheet = () => {
       type
     });
   };
-
+ const handleGenerateInvoice = () => {
+    setShowInvoiceModal(true);
+  };
+  const handleInvoiceSubmit = (invoiceData) => {
+    console.log('Invoice generated:', invoiceData);
+    showToast("Invoice generated successfully!", "success");
+    // You can add additional logic here if needed
+  };
   const hideToast = () => {
     setToast(prev => ({ ...prev, isVisible: false }));
   };
@@ -301,12 +312,13 @@ const IndividualTimesheet = () => {
 
       const mappedData = res.data.map(task => ({
         taskId: task.taskId,
+        taskTopic: task.taskTopic || "", // New field
         date: task.date,
         hoursSpent: task.hoursSpent,
         minutesSpent: task.minutesSpent,
         description: task.description,
         taskType: task.taskType,
-        project: {projectName: task.projectName || "", projectId: task.projectId || ""},
+        project: { projectName: task.projectName || "", projectId: task.projectId || "" },
         submitted: task.submitted,
         attachments: task.attachments
       }));
@@ -320,7 +332,7 @@ const IndividualTimesheet = () => {
         grouped[dateKey].push({
           id: task.taskId,
           hours: task.hoursSpent,
-          minutes: task.minutesSpent || 0, 
+          minutes: task.minutesSpent || 0,
           description: task.description,
           task: task.taskType,
           project: task.project,
@@ -390,6 +402,9 @@ const IndividualTimesheet = () => {
   };
 
   const handleLogTimeSave = async (taskData) => {
+    if (!taskData.date) {
+      taskData.date = selectedCell.date.toISOString().split("T")[0]; // Ensure the correct date is used
+    }
     if (editingTask) {
       console.log({
         ...taskData,
@@ -401,8 +416,11 @@ const IndividualTimesheet = () => {
           `${API_BASE_URL}/api/timesheet-tasks/edit/${editingTask.taskId}`,
           {
             taskType: taskData.taskType,
+            taskTopic: taskData.taskTopic,
             hoursSpent: taskData.hoursSpent,
             minutesSpent: taskData.minutesSpent || 0, // Handle optional minutes
+            remainingHours: taskData.remainingHours || 0, // Handle optional remaining hours
+            remainingMinutes: taskData.remainingMinutes || 0, // Handle optional remaining minutes
             description: taskData.description,
             projectId: taskData.projectId || null, // Ensure projectId is passed correctly
             attachments: taskData.attachments || null, // Handle optional attachment
@@ -426,9 +444,11 @@ const IndividualTimesheet = () => {
                 id: res.data.taskId,
                 hours: res.data.hoursSpent,
                 minutes: res.data.minutesSpent || 0, // Handle optional minutes
+                remainingHours: res.data.remainingHours || 0, // Handle optional remaining hours
+                remainingMinutes: res.data.remainingMinutes || 0, // Handle optional remaining minutes
                 description: res.data.description,
                 task: res.data.taskType,
-                project: res.data.project?.projectName || "",
+                project: res.data.project,
                 submitted: res.data.submitted,
                 attachments: res.data.attachments,
                 fullTask: res.data,
@@ -453,9 +473,11 @@ const IndividualTimesheet = () => {
             id: taskData.taskId,
             hours: taskData.hoursSpent,
             minutes: taskData.minutesSpent || 0, // Handle optional minutes
+            remainingHours: taskData.remainingHours || 0, // Handle optional remaining hours
+            remainingMinutes: taskData.remainingMinutes || 0, // Handle optional remaining minutes
             description: taskData.description,
             task: taskData.taskType,
-            project: taskData.project?.projectName || "",
+            project: taskData.project,
             submitted: taskData.submitted,
             attachments: taskData.attachments,
             fullTask: taskData,
@@ -469,31 +491,31 @@ const IndividualTimesheet = () => {
   };
 
   const getDayTotalTime = (date) => {
-  const entries = getTimeEntries(date);
-  let totalMinutes = entries.reduce((total, entry) => {
-    return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
-  }, 0);
+    const entries = getTimeEntries(date);
+    let totalMinutes = entries.reduce((total, entry) => {
+      return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
+    }, 0);
 
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
 
-  return { hours, minutes };
-};
+    return { hours, minutes };
+  };
 
   const getTotalTimeForPeriod = () => {
-  const dates = getVisibleDates();
-  let totalMinutes = 0;
+    const dates = getVisibleDates();
+    let totalMinutes = 0;
 
-  dates.forEach((date) => {
-    const { hours, minutes } = getDayTotalTime(date);
-    totalMinutes += hours * 60 + minutes;
-  });
+    dates.forEach((date) => {
+      const { hours, minutes } = getDayTotalTime(date);
+      totalMinutes += hours * 60 + minutes;
+    });
 
-  const totalHours = Math.floor(totalMinutes / 60);
-  const remainingMinutes = totalMinutes % 60;
+    const totalHours = Math.floor(totalMinutes / 60);
+    const remainingMinutes = totalMinutes % 60;
 
-  return { hours: totalHours, minutes: remainingMinutes };
-};
+    return { hours: totalHours, minutes: remainingMinutes };
+  };
 
   // Navigation
   const navigatePeriod = (direction) => {
@@ -580,7 +602,7 @@ const IndividualTimesheet = () => {
       const dates = getVisibleDates();
       const periodType = viewMode === "Weekly" ? "week" : "month";
       const BOM = "\uFEFF";
-      const headers = ["Date", "Task", "Hours", "Description", "Project"];
+      const headers = ["Date", "Task", "Hours", "Minutes", "Description", "Project"];
       let csvContent = BOM + headers.map((h) => `"${h}"`).join(",") + "\r\n";
       dates.forEach((date) => {
         const entries = getTimeEntries(date);
@@ -588,9 +610,10 @@ const IndividualTimesheet = () => {
           const row = [
             `"${formatDateDisplay(date)}"`,
             `"${entry.task}"`,
-            `"${entry.hours}h"`,
+            `"${entry.hours}"`,
+            `"${entry.minutes}"`,
             `"${entry.description}"`,
-            `"${entry.project}"`,
+            `"${entry.project.projectName || ""}"` // Ensure project name is used,
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -614,195 +637,195 @@ const IndividualTimesheet = () => {
     }
   };
 
- const renderMonthlyView = () => {
-  let dates = getMonthDates();
+  const renderMonthlyView = () => {
+    let dates = getMonthDates();
 
-  // Create an array for grid cells (including empty cells for alignment)
-  const gridCells = [null].concat(dates);
+    // Create an array for grid cells (including empty cells for alignment)
+    const gridCells = [null].concat(dates);
 
-  return (
-    <div className="flex flex-col h-full">
-      {/* Header Row with Navigation Arrows */}
-      <div className="flex items-center justify-between bg-gray-100 p-2 border-b border-gray-200 h-full">
-        <button
-          onClick={() => navigatePeriod("prev")}
-          className="p-2 hover:bg-white rounded-md transition-colors h-full"
-        >
-          <ChevronLeft className="h-4 w-4 text-gray-600" />
-        </button>
-       
-        
-    
+    return (
+      <div className="flex flex-col h-full">
+        {/* Header Row with Navigation Arrows */}
+        <div className="flex items-center justify-between bg-gray-100 p-2 border-b border-gray-200 h-full">
+          <button
+            onClick={() => navigatePeriod("prev")}
+            className="p-2 hover:bg-white rounded-md transition-colors h-full"
+          >
+            <ChevronLeft className="h-4 w-4 text-gray-600" />
+          </button>
 
-      {/* Grid for Monthly View */}
-      <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
-        
-        {gridCells.map((date, index) => {
-          if (!date) {
-            // Render the single empty cell
-            return (
-              <div
-                key={index}
-                className="border border-gray-200 bg-gray-50"
-                style={{
-                  aspectRatio: "5/6",
-                }}
-              ></div>
-            );
-          }
 
-          const entries = getTimeEntries(date);
-          const isToday = date.toDateString() === new Date().toDateString();
-          const isWeekendDay = isWeekend(date);
-          const maxVisibleTasks = 5;
-          const visibleTasks = entries.slice(0, maxVisibleTasks);
-          const overflowTasks = entries.slice(maxVisibleTasks);
-          const remainingTasksCount = overflowTasks.length;
-          const dateKey = date.toISOString();
-          const isOverflowOpen = showOverflowTasks && overflowTasksDate === dateKey;
 
-          // Calculate total hours and minutes for the day
-          const { hours: totalHours, minutes: totalMinutes } = getDayTotalTime(date);
 
-          return (
-            <div
-              key={dateKey}
-              className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
-                ? "border-blue-400 bg-blue-50 shadow-md z-20"
-                : `border-gray-200 ${isToday
-                  ? "bg-blue-50"
-                  : isWeekendDay
-                    ? "bg-gray-100"
-                    : "bg-white"
-                }`
-                }`}
-              style={{
-                aspectRatio: "5/6"
-              }}
-              onMouseEnter={() => setHoveredCell(dateKey)}
-              onMouseLeave={() => setHoveredCell(null)}
-              onClick={(e) => {
-                // Prevent modal opening if clicking on a task
-                if (e.target.closest(".task-entry")) return;
-                if (sessionData.email === employee.email) handleCellClick(date);
-              }}
-            >
-              <div className={`text-xs font-medium ${isWeekendDay ? 'text-gray-600' : 'text-gray-500'}`}>
-                {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
-              </div>
+          {/* Grid for Monthly View */}
+          <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
 
-              <div className="space-y-1 mt-2">
-                {/* Visible tasks */}
-                {visibleTasks.map((entry) => (
+            {gridCells.map((date, index) => {
+              if (!date) {
+                // Render the single empty cell
+                return (
                   <div
-                    key={entry.id}
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity bg-green-200 border-green-200
-                      } ${isWeekendDay ? 'opacity-90' : ''}`}
-                    title={`${entry.task} - ${entry.hours}h ${entry.minutes}m - ${entry.project}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setTaskDetail(entry.fullTask);
+                    key={index}
+                    className="border border-gray-200 bg-gray-50"
+                    style={{
+                      aspectRatio: "5/6",
                     }}
-                  >
-                    <span className="font-semibold">{entry.task}</span>
-                    <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
-                  </div>
-                ))}
+                  ></div>
+                );
+              }
 
-                {/* Show more button */}
-                {remainingTasksCount > 0 && (
-                  <div
-                    className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${isWeekendDay ? 'opacity-90' : ''
-                      }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowOverflowTasks(!isOverflowOpen);
-                      setOverflowTasksDate(isOverflowOpen ? null : dateKey);
-                    }}
-                  >
-                    <span className="font-semibold">
-                      {isOverflowOpen ? `- Hide ${remainingTasksCount} tasks` : `+ ${remainingTasksCount} more tasks`}
-                    </span>
-                  </div>
-                )}
-              </div>
+              const entries = getTimeEntries(date);
+              const isToday = date.toDateString() === new Date().toDateString();
+              const isWeekendDay = isWeekend(date);
+              const maxVisibleTasks = 5;
+              const visibleTasks = entries.slice(0, maxVisibleTasks);
+              const overflowTasks = entries.slice(maxVisibleTasks);
+              const remainingTasksCount = overflowTasks.length;
+              const dateKey = date.toISOString();
+              const isOverflowOpen = showOverflowTasks && overflowTasksDate === dateKey;
 
-              {hoveredCell === dateKey && sessionData.email === employee.email && (
-              <div
-                className={`absolute flex items-center justify-center transition-all ${entries.length === 0
-                  ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12"
-                  : overflowTasks.length > 0
-                    ? "top-2.5 right-2 w-4 h-4"
-                    : "bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6"
-                  }`}
-              >
-                <button
-                  className={`bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg ${entries.length === 0 ? "text-xl" : "text-sm"
-                    }`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCellClick(date);
-                  }}
-                >
-                  <Plus className={`${entries.length === 0 ? "h-6 w-6" : "h-3 w-3"} ${entries.length === 0
-                    ? "h-6 w-6"
-                    : overflowTasks.length > 0
-                      ? "h-3 w-3"
-                      : "h-5 w-5"
-                    }`} />
-                </button>
-              </div>
-            )}
+              // Calculate total hours and minutes for the day
+              const { hours: totalHours, minutes: totalMinutes } = getDayTotalTime(date);
 
-            {isOverflowOpen && (
+              return (
                 <div
-                  className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
+                  key={dateKey}
+                  className={`relative cursor-pointer border p-2 transition-all duration-200 ${isOverflowOpen
+                    ? "border-blue-400 bg-blue-50 shadow-md z-20"
+                    : `border-gray-200 ${isToday
+                      ? "bg-blue-50"
+                      : isWeekendDay
+                        ? "bg-gray-100"
+                        : "bg-white"
+                    }`
+                    }`}
                   style={{
-                    // Position dropdown above if it's in the last few rows, below otherwise
-                    ...(index >= gridCells.length - 22
-                      ? { bottom: '100%', marginBottom: '8px' }
-                      : { top: '100%', marginTop: '8px' })
+                    aspectRatio: "5/6"
                   }}
-                  onClick={(e) => e.stopPropagation()}
+                  onMouseEnter={() => setHoveredCell(dateKey)}
+                  onMouseLeave={() => setHoveredCell(null)}
+                  onClick={(e) => {
+                    // Prevent modal opening if clicking on a task
+                    if (e.target.closest(".task-entry")) return;
+                    if (sessionData.email === employee.email) handleCellClick(date);
+                  }}
                 >
-                  <div className="pb-3">
-                    <div className="text-xs font-semibold text-blue-700 mb-2 border-b border-blue-200 pb-2 bg-blue-50 p-3 rounded-t-lg flex items-center justify-between">
-                      <span>Additional tasks for {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}</span>
-                    </div>
-                    <div className="space-y-2 px-2">
-                      {overflowTasks.map((entry) => (
-                        <div
-                          key={entry.id}
-                          className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacitybg-green-200 border-green-200`}
-                          title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setTaskDetail(entry.fullTask);
-                          }}
-                        >
-                          <span className="font-semibold">{entry.task}</span>
-                          <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className={`text-xs font-medium ${isWeekendDay ? 'text-gray-600' : 'text-gray-500'}`}>
+                    {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
                   </div>
+
+                  <div className="space-y-1 mt-2">
+                    {/* Visible tasks */}
+                    {visibleTasks.map((entry) => (
+                      <div
+                        key={entry.id}
+                        className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacity bg-green-200 border-green-200
+                      } ${isWeekendDay ? 'opacity-90' : ''}`}
+                        title={`${entry.task} - ${entry.hours}h ${entry.minutes}m - ${entry.project}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTaskDetail(entry.fullTask);
+                        }}
+                      >
+                        <span className="font-semibold">{entry.task}</span>
+                        <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
+                      </div>
+                    ))}
+
+                    {/* Show more button */}
+                    {remainingTasksCount > 0 && (
+                      <div
+                        className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 bg-blue-100 border-blue-200 cursor-pointer hover:bg-blue-200 transition-colors ${isWeekendDay ? 'opacity-90' : ''
+                          }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowOverflowTasks(!isOverflowOpen);
+                          setOverflowTasksDate(isOverflowOpen ? null : dateKey);
+                        }}
+                      >
+                        <span className="font-semibold">
+                          {isOverflowOpen ? `- Hide ${remainingTasksCount} tasks` : `+ ${remainingTasksCount} more tasks`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {hoveredCell === dateKey && sessionData.email === employee.email && (
+                    <div
+                      className={`absolute flex items-center justify-center transition-all ${entries.length === 0
+                        ? "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12"
+                        : overflowTasks.length > 0
+                          ? "top-2.5 right-2 w-4 h-4"
+                          : "bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6"
+                        }`}
+                    >
+                      <button
+                        className={`bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg ${entries.length === 0 ? "text-xl" : "text-sm"
+                          }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCellClick(date);
+                        }}
+                      >
+                        <Plus className={`${entries.length === 0 ? "h-6 w-6" : "h-3 w-3"} ${entries.length === 0
+                          ? "h-6 w-6"
+                          : overflowTasks.length > 0
+                            ? "h-3 w-3"
+                            : "h-5 w-5"
+                          }`} />
+                      </button>
+                    </div>
+                  )}
+
+                  {isOverflowOpen && (
+                    <div
+                      className="absolute left-0 right-0 z-30 bg-white border-2 border-blue-400 rounded-lg shadow-2xl max-h-52 overflow-y-auto ring-4 ring-blue-100"
+                      style={{
+                        // Position dropdown above if it's in the last few rows, below otherwise
+                        ...(index >= gridCells.length - 22
+                          ? { bottom: '100%', marginBottom: '8px' }
+                          : { top: '100%', marginTop: '8px' })
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="pb-3">
+                        <div className="text-xs font-semibold text-blue-700 mb-2 border-b border-blue-200 pb-2 bg-blue-50 p-3 rounded-t-lg flex items-center justify-between">
+                          <span>Additional tasks for {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}</span>
+                        </div>
+                        <div className="space-y-2 px-2">
+                          {overflowTasks.map((entry) => (
+                            <div
+                              key={entry.id}
+                              className={`task-entry border pl-2 text-xs text-gray-700 truncate flex items-center gap-1 hover:opacity-80 transition-opacitybg-green-200 border-green-200`}
+                              title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setTaskDetail(entry.fullTask);
+                              }}
+                            >
+                              <span className="font-semibold">{entry.task}</span>
+                              <span className="text-gray-500">{entry.hours}h {entry.minutes}m</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      
+              );
+            })}
+
+          </div>
+          <button
+            onClick={() => navigatePeriod("next")}
+            className="p-2 hover:bg-white rounded-md transition-colors h-full"
+          >
+            <ChevronRight className="h-4 w-4 text-gray-600" />
+          </button>
+        </div>
       </div>
-      <button
-          onClick={() => navigatePeriod("next")}
-          className="p-2 hover:bg-white rounded-md transition-colors h-full"
-        >
-          <ChevronRight className="h-4 w-4 text-gray-600" />
-        </button>
-      </div>
-    </div>
-  );
-};
+    );
+  };
 
   return (
     <div className="h-[92vh] bg-gray-50 flex flex-col overflow-hidden">
@@ -872,8 +895,8 @@ const IndividualTimesheet = () => {
                   </button>
                   <div className="relative flex items-center">
                     <button
-                      
-                      onClick={() => {console.log(hiddenDateInputRef.current); hiddenDateInputRef.current?.showPicker()}}
+
+                      onClick={() => { console.log(hiddenDateInputRef.current); hiddenDateInputRef.current?.showPicker() }}
                       className="px-4 py-2 text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
                     >
                       {getCurrentDateString()}
@@ -925,6 +948,23 @@ const IndividualTimesheet = () => {
               )}
 
               <button
+                onClick={() => {
+                  setSelectedCell({ date: new Date() }); // Ensure the current date is passed
+                  setShowLogTimeModal(true);
+                }}
+                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+              >
+
+                <span>Add Timesheet Task</span>
+              </button>
+             <button
+                onClick={handleGenerateInvoice}
+                className="flex items-center space-x-2 px-3 py-2 bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Generate Invoice</span>
+              </button>
+              <button
                 onClick={downloadExcel}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
               >
@@ -938,36 +978,36 @@ const IndividualTimesheet = () => {
 
       {/* Progress Bar */}
       <div className="bg-white border-b border-gray-200 flex-shrink-0">
-  <div className="px-6 py-3">
-    <div className="flex items-center space-x-4">
-      <span className="text-sm font-medium text-gray-700">
-        {getTotalTimeForPeriod().hours}h {getTotalTimeForPeriod().minutes}m
-      </span>
-      <div className="flex-1 bg-gray-200 rounded-full h-2 relative">
-        <div
-          className="bg-green-500 h-2 rounded-full transition-all duration-300"
-          style={{
-            width: `${Math.min(
-              (getTotalTimeForPeriod().hours * 60 + getTotalTimeForPeriod().minutes) /
-                (getTargetHours() * 60) *
-                100,
-              100
-            )}%`,
-          }}
-        ></div>
+        <div className="px-6 py-3">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm font-medium text-gray-700">
+              {getTotalTimeForPeriod().hours}h {getTotalTimeForPeriod().minutes}m
+            </span>
+            <div className="flex-1 bg-gray-200 rounded-full h-2 relative">
+              <div
+                className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.min(
+                    (getTotalTimeForPeriod().hours * 60 + getTotalTimeForPeriod().minutes) /
+                    (getTargetHours() * 60) *
+                    100,
+                    100
+                  )}%`,
+                }}
+              ></div>
+            </div>
+            <span className="text-sm font-medium text-gray-700">
+              {getTargetHours()}h 0m
+            </span>
+            <span className="text-sm font-medium text-green-600">
+              {getTotalTimeForPeriod().hours * 60 + getTotalTimeForPeriod().minutes >=
+                getTargetHours() * 60
+                ? "✅"
+                : ""}
+            </span>
+          </div>
+        </div>
       </div>
-      <span className="text-sm font-medium text-gray-700">
-        {getTargetHours()}h 0m
-      </span>
-      <span className="text-sm font-medium text-green-600">
-        {getTotalTimeForPeriod().hours * 60 + getTotalTimeForPeriod().minutes >=
-        getTargetHours() * 60
-          ? "✅"
-          : ""}
-      </span>
-    </div>
-  </div>
-</div>
 
       {/* Timesheet Table */}
       <div className="flex-1 overflow-hidden py-6">
@@ -1007,8 +1047,8 @@ const IndividualTimesheet = () => {
                                 {getDayName(date)}, {date.getDate()} {date.toLocaleDateString("en-GB", { month: "short" })}
                               </span>
                               <span className={`text-xs mt-1 ${isWeekendDay ? 'text-gray-500' : 'text-gray-400'}`}>
-  {getDayTotalTime(date).hours}h {getDayTotalTime(date).minutes}m
-</span>
+                                {getDayTotalTime(date).hours}h {getDayTotalTime(date).minutes}m
+                              </span>
                             </div>
                           </th>
                         );
@@ -1029,99 +1069,128 @@ const IndividualTimesheet = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white">
-  <tr>
-    {/* Empty cell for Previous Period Button */}
-    <td
-      className=""
-      style={{ width: "50px" }}
-    ></td>
+                    <tr>
+                      {/* Empty cell for Previous Period Button */}
+                      <td
+                        className=""
+                        style={{ width: "50px" }}
+                      ></td>
 
-    {/* Date Columns */}
-    {getVisibleDates().map((date) => {
-      const entries = getTimeEntries(date);
-      const isToday = date.toDateString() === new Date().toDateString();
-      const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
-      const isWeekendDay = isWeekend(date);
-      return (
-        <td
-          key={date.toISOString()}
-          className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${isWeekendDay ? 'bg-gray-50' : ''
-            }`}
-          style={{ width: "150px", height: "200px" }}
-          onMouseEnter={() => handleCellHover(date, true)}
-          onMouseLeave={() => handleCellHover(date, false)}
-        >
-          <div className="space-y-3 h-full">
-            {/* Existing Time Entries */}
-            {entries.map((entry) => (
-              <div
-                key={entry.id}
-                className={`border rounded-lg p-4 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-center items-center gap-2 h-full bg-green-50 border-green-200
-                   ${isWeekendDay ? 'opacity-90' : ''}`}
-                style={{
-                  boxSizing: "border-box",
-                  height: "150px",
-                }}
-                onClick={() => setTaskDetail(entry.fullTask)}
-              >
-                {/* Entry Content */}
-                <div className="w-full h-full flex flex-col justify-center items-center gap-2 group-hover:blur-sm transition-all duration-300">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-blue-500" />
-                    <span className="text-base font-semibold text-gray-900">{entry.hours}h {entry.minutes}m</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {entry.project && (
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-sm font-semibold cursor-help"
-                        title={entry.project.projectName || "-"}
-                      >
-                        <Folder className="h-3 w-3 mr-1" />
-                        {truncateText(entry.project.projectName, 12)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="w-full">
-                    <div
-                      className={`w-full m-auto text-sm text-gray-600 rounded px-2 py-1 mt-1 ${!entry.description ? "italic text-gray-400" : ""
-                        }`}
-                      style={{
-                        maxHeight: "50px",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "normal",
-                      }}
-                    >
-                      {entry.description ? entry.description : "No description"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+                      {/* Date Columns */}
+                      {getVisibleDates().map((date) => {
+                        const entries = getTimeEntries(date);
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const isHovered = hoveredCell?.date.toDateString() === date.toDateString();
+                        const isWeekendDay = isWeekend(date);
+                        return (
+                          <td
+                            key={date.toISOString()}
+                            className={`px-4 py-6 text-center relative align-top border-r border-gray-100 ${isWeekendDay ? 'bg-gray-50' : ''
+                              }`}
+                            style={{ width: "150px", height: "200px" }}
+                            onMouseEnter={() => handleCellHover(date, true)}
+                            onMouseLeave={() => handleCellHover(date, false)}
+                          >
+                            <div className="space-y-3 h-full">
+                              {/* Existing Time Entries */}
+                              {entries.map((entry) => (
+                                <div
+                                  key={entry.id}
+                                  className={`border rounded-xl p-2 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-between h-[150px] bg-green-50 border-green-200 ${isWeekendDay ? 'opacity-90' : ''
+                                    }`}
+                                  onClick={() => setTaskDetail(entry.fullTask)}
+                                >
+                                  {entry.project && (
+                                    <div className="flex justify-center mt-1">
+                                      <span
+                                        className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium cursor-help max-w-[130px] truncate"
+                                        title={entry.project.projectName || "-"}
+                                      >
+                                        <Folder className="h-3 w-3 mr-1" />
+                                        {entry.project.projectName}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {/* Time and Task Topic */}
 
-            {/* Add New Entry Button */}
-            <div className="flex items-center justify-center">
-              {(isHovered && hasAccess("timesheet", "edit")) && (sessionData.email === employee.email) && (
-                <button
-                  onClick={() => handleCellClick(date)}
-                  className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-          </div>
+
+                                  <div className="flex justify-center items-center gap-2">
+                                    <FileText className="h-4 w-4 text-blue-500" />
+                                    <span className="text-sm font-semibold text-gray-900 truncate max-w-[120px]" title={entry.fullTask.taskTopic}>
+                                      {entry.fullTask.taskTopic}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex justify-between items-center gap-2">
+                                    <div className="flex items-center gap-1">
+                                      <TimerIcon className="h-4 w-4 text-blue-500" />
+                                      <span className="text-xs font-semibold text-gray-900">
+                                        {entry.hours}h {entry.minutes}m
+                                      </span>
+                                    </div>
+                                    {sessionStorage.getItem('email') === employee?.email && (
+                                      <div className="flex items-center justify-end gap-2">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setTaskDetail(entry.fullTask);
+                                          }}
+                                        >
+                                          <Eye className="h-4 w-4 text-green-500 hover:text-gray-600" />
+                                        </button>
+
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEditingTask(entry.fullTask);
+                                            setShowLogTimeModal(true);
+                                          }}
+                                        >
+                                          <Edit className="h-4 w-4 text-blue-500 hover:text-blue-600" />
+                                        </button>
+
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteTimeEntry(date, entry.id);
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4 text-red-500 hover:text-red-600" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+
+
+
+                                  </div>
+
+                              ))}
+
+
+                                  {/* Add New Entry Button */}
+                                  <div className="flex items-center justify-center">
+                                    {(isHovered && hasAccess("timesheet", "edit")) && (sessionData.email === employee.email) && (
+                                      <button
+                                        onClick={() => handleCellClick(date)}
+                                        className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg"
+                                      >
+                                        <Plus className="h-5 w-5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
         </td>
-      );
-    })}
+                        );
+                      })}
 
-    {/* Empty cell for Next Period Button */}
-    <td
-      className=""
-      style={{ width: "50px" }}
-    ></td>
-  </tr>
-</tbody>
+                      {/* Empty cell for Next Period Button */}
+                      <td
+                        className=""
+                        style={{ width: "50px" }}
+                      ></td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
             </div>
@@ -1140,6 +1209,16 @@ const IndividualTimesheet = () => {
         editingTask={editingTask}
         timesheetData={timesheetData}
       />
+       <AddInvoiceModal
+        open={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        onSubmit={handleInvoiceSubmit}
+        timesheetData={timesheetData}
+        viewMode={viewMode}
+        currentWeekStart={currentWeekStart}
+        currentMonthRange={currentMonthRange}
+        employee={employee}
+      />
 
       {taskDetail && (
         <TaskDetailsModal
@@ -1156,7 +1235,7 @@ const IndividualTimesheet = () => {
             setTaskDetail(null);
           }}
           employee={employee}
-          isEmployeeView={ sessionData.email === employee.email}
+          isEmployeeView={sessionData.email === employee.email}
         />
       )}
     </div>

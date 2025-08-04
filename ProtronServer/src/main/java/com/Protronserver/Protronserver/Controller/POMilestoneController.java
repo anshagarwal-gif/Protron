@@ -48,14 +48,31 @@ public class POMilestoneController {
         return ResponseEntity.ok(poMilestoneService.getMilestonesByPoId(poId));
     }
 
-    @GetMapping("/milestonebalance/{id}/{name}")
+    @GetMapping("/milestonebalance/{id}/{Id}")
     public BigDecimal getMilestoneBalance(@PathVariable Long id, @PathVariable Long Id){
         return costDetailsService.getMilestoneBalance(id, Id);
+    }
+
+    @GetMapping("milestonebalance-consumption/{id}/{Id}")
+    public BigDecimal getMilestoneBalanceForConsumption(@PathVariable Long id, @PathVariable Long Id){
+        return costDetailsService.getMilestoneBalanceBasedOnConsumption(id, Id);
     }
 
     @GetMapping("/getMilestoneForPo/{id}")
     public List<EligibleMilestone> getMilestoneForPo(@PathVariable Long id){
         return costDetailsService.getRemainingMilestones(id);
     }
+
+    @GetMapping("/getMilestoneForPoForCon/{id}")
+    public List<EligibleMilestone> getMilestoneForPoForCon(@PathVariable Long id){
+        return costDetailsService.getRemainingMilestonesForCon(id);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteMilestone(@PathVariable Long id) {
+        poMilestoneService.deleteMilestone(id);
+        return ResponseEntity.ok("Milestone deleted successfully.");
+    }
+
 
 }

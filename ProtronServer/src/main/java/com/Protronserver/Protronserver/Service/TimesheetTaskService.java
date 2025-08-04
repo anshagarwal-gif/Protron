@@ -49,6 +49,9 @@ public class TimesheetTaskService {
         task.setDate(dto.getDate());
         task.setHoursSpent(dto.getHoursSpent());
         task.setMinutesSpent(dto.getMinutesSpent());
+        task.setRemainingHours(dto.getRemainingHours());
+        task.setRemainingMinutes(dto.getRemainingMinutes());
+        task.setTaskTopic(dto.getTaskTopic());
         task.setDescription(dto.getDescription());
 
         task.setStartTimestamp(LocalDateTime.now());
@@ -132,9 +135,12 @@ public class TimesheetTaskService {
         for (TimesheetTask oldTask : lastWeekTasks) {
             TimesheetTask newTask = new TimesheetTask();
             newTask.setTaskType(oldTask.getTaskType());
+            newTask.setTaskTopic(oldTask.getTaskTopic());
             newTask.setDescription(oldTask.getDescription());
             newTask.setHoursSpent(oldTask.getHoursSpent());
             newTask.setMinutesSpent(oldTask.getMinutesSpent());
+            newTask.setRemainingHours(oldTask.getRemainingHours());
+            newTask.setRemainingMinutes(oldTask.getRemainingMinutes());
 
             // Add 7 days to each date to copy to next week
             Date newDate = new Date(oldTask.getDate().getTime() + (7 * 24 * 60 * 60 * 1000L));
@@ -203,7 +209,10 @@ public class TimesheetTaskService {
         newTask.setTaskType(dto.getTaskType());
         newTask.setDescription(dto.getDescription());
         newTask.setHoursSpent(dto.getHoursSpent());
+        newTask.setTaskTopic(dto.getTaskTopic());
         newTask.setMinutesSpent(dto.getMinutesSpent());
+        newTask.setRemainingHours(dto.getRemainingHours());
+        newTask.setRemainingMinutes(dto.getRemainingMinutes());
         newTask.setDate(dto.getDate());
 
         Project project = projectRepository.findById(dto.getProjectId())

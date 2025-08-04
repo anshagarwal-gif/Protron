@@ -2,8 +2,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
+import { Eye } from "lucide-react";
+import ViewPOModal from "./ViewPOModal";
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
+import GetSRNDetailsByPO from "./GetSRNDetailsByPO";
+import GetConsumptionByPO from "./GetConsumptionByPO";
+import ViewMilestoneModal from "../components/ViewMilestoneModal";
 
 import {
   ArrowLeft,
@@ -26,6 +31,7 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddMilestoneModal from "../components/AddMilestoneModal";
 import EditMilestoneModal from "../components/EditMilestoneModal";
+import { Try } from "@mui/icons-material";
 
 const PODetailsPage = () => {
   const { poId } = useParams();
@@ -41,6 +47,15 @@ const PODetailsPage = () => {
   const [isAddMilestoneModalOpen, setIsAddMilestoneModalOpen] = useState(false);
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
+const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
+
+
+  useEffect(() => {
+  if (selectedMilestone) {
+    setIsViewMilestoneModalOpen(true);
+  }
+}, [selectedMilestone]);
 
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -158,7 +173,7 @@ const PODetailsPage = () => {
   // Filter milestones based on search
   const filteredMilestones = milestones.filter(milestone => {
     if (searchQuery === "") return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
     return (
       milestone.milestoneName?.toLowerCase().includes(searchLower) ||
@@ -181,7 +196,7 @@ const PODetailsPage = () => {
         'Duration (Days)': milestone.duration || 0,
         'Remark': milestone.remark || 'N/A',
         'Attachment': milestone.attachment ? 'Yes' : 'No',
-        
+
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -219,17 +234,18 @@ const PODetailsPage = () => {
     setSelectedMilestoneId(milestone.msId);
     setIsEditMilestoneModalOpen(true);
   };
-
   const handleAddMilestone = () => {
     setIsAddMilestoneModalOpen(true);
   };
 
-  const handleMilestoneModalSubmit = (data) => {
+  const handleMilestoneModalSubmit = async (data) => {
+    setIsAddMilestoneModalOpen(false);
     showSnackbar("Milestone created successfully!", "success");
     fetchMilestones(); // Refresh the table
   };
 
-  const handleEditMilestoneModalSubmit = (data) => {
+  const handleEditMilestoneModalSubmit = async (data) => {
+    setIsEditMilestoneModalOpen(false);
     showSnackbar("Milestone updated successfully!", "success");
     fetchMilestones(); // Refresh the table
   };
@@ -242,10 +258,10 @@ const PODetailsPage = () => {
       'COMPLETED': { color: 'bg-green-100 text-green-800', icon: CheckCircle },
       'ON_HOLD': { color: 'bg-red-100 text-red-800', icon: AlertCircle }
     };
-    
+
     const config = statusConfig[status] || statusConfig['PENDING'];
     const Icon = config.icon;
-    
+
     return {
       colorClass: config.color,
       icon: <Icon size={14} className="mr-1" />,
@@ -257,8 +273,8 @@ const PODetailsPage = () => {
   const TruncatedCellRenderer = (params) => {
     const value = params.value || 'N/A';
     return (
-      <div 
-        className="truncate w-full cursor-pointer" 
+      <div
+        className="truncate w-full cursor-pointer"
         title={value}
       >
         {value}
@@ -291,49 +307,26 @@ const PODetailsPage = () => {
       tooltipField: "milestoneName"
     },
     {
-      headerName: "Description",
-      field: "milestoneDescription",
-      valueGetter: params => params.data.milestoneDescription || 'N/A',
-      flex: 2,
-      minWidth: 200,
-      sortable: true,
-      filter: true,
-      cellStyle: { color: '#4b5563' },
-      cellRenderer: TruncatedCellRenderer,
-      tooltipField: "milestoneDescription"
-    },
-    {
-      headerName: "Currency",
-      field: "milestoneCurrency",
-      valueGetter: params => params.data.milestoneCurrency || poDetails?.poCurrency || 'USD',
-      width: 100,
-      sortable: true,
-      filter: true,
-      cellStyle: { color: '#4b5563' },
-      cellRenderer: TruncatedCellRenderer,
-      tooltipField: "milestoneCurrency"
-    },
-    {
-      headerName: "Amount",
-      field: "milestoneAmount",
-      valueGetter: params => {
-        const amount = params.data.milestoneAmount;
-        if (!amount) return 'N/A';
-        return amount.toLocaleString();
-      },
-      width: 140,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' },
-      cellRenderer: TruncatedCellRenderer,
-      tooltipValueGetter: params => {
-        const amount = params.data.milestoneAmount;
-        if (!amount) return 'N/A';
-        return amount.toLocaleString();
+    headerName: 'Amount',
+    field: 'milestoneAmount',
+    flex: 1,
+    maxWidth: 130,
+    sortable: true,
+    filter: 'agNumberColumnFilter',
+    valueFormatter: (params) => {
+      if (params.value) {
+        return new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR'
+        }).format(params.value)
       }
+      return ''
     },
+    tooltipField: 'milestoneAmount',
+    cellClass: 'truncate-cell',
+  },
     {
-      headerName: "Date",
+      headerName: "Milestone Date",
       field: "startDate",
       valueGetter: params => params.data.startDate ? new Date(params.data.startDate).toLocaleDateString() : 'N/A',
       width: 120,
@@ -352,6 +345,18 @@ const PODetailsPage = () => {
       cellStyle: { textAlign: 'center' },
       cellRenderer: TruncatedCellRenderer,
       tooltipValueGetter: params => params.data.duration || 0
+    },
+    {
+      headerName: "Description",
+      field: "milestoneDescription",
+      valueGetter: params => params.data.milestoneDescription || 'N/A',
+      flex: 2,
+      minWidth: 200,
+      sortable: true,
+      filter: true,
+      cellStyle: { color: '#4b5563' },
+      cellRenderer: TruncatedCellRenderer,
+      tooltipField: "milestoneDescription"
     },
     {
       headerName: "Remark",
@@ -400,12 +405,20 @@ const PODetailsPage = () => {
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             <button
+            onClick={() => setSelectedMilestone(milestone)}
+            className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+            title="View Milestone"
+          >
+            <Eye size={16} className="text-blue-600" />
+          </button>
+            <button
               onClick={() => handleEditMilestone(milestone)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
               title="Edit Milestone"
             >
               <Edit size={16} className="text-blue-600" />
             </button>
+            
           </div>
         );
       }
@@ -489,8 +502,8 @@ const PODetailsPage = () => {
           {/* First Row */}
           <div>
             <p className="text-sm font-medium text-blue-600 mb-1">PO Number</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poNumber}
             >
               {poDetails.poNumber}
@@ -499,8 +512,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-green-600 mb-1">PO Amount</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={formatCurrency(poDetails.poAmount, poDetails.poCurrency)}
             >
               {formatCurrency(poDetails.poAmount, poDetails.poCurrency)}
@@ -509,8 +522,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-purple-600 mb-1">Customer</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.customer || 'N/A'}
             >
               {poDetails.customer || 'N/A'}
@@ -519,8 +532,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-orange-600 mb-1">SPOC</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poSpoc || 'N/A'}
             >
               {poDetails.poSpoc || 'N/A'}
@@ -529,22 +542,22 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-indigo-600 mb-1">PO Type</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
-              title={poDetails.poType === 'T_AND_M' ? 'T & M' : 
-                     poDetails.poType === 'FIXED' ? 'Fixed' : 
-                     poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
+              title={poDetails.poType === 'T_AND_M' ? 'T & M' :
+                poDetails.poType === 'FIXED' ? 'Fixed' :
+                  poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
             >
-              {poDetails.poType === 'T_AND_M' ? 'T & M' : 
-               poDetails.poType === 'FIXED' ? 'Fixed' : 
-               poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
+              {poDetails.poType === 'T_AND_M' ? 'T & M' :
+                poDetails.poType === 'FIXED' ? 'Fixed' :
+                  poDetails.poType === 'MIXED' ? 'Mixed' : poDetails.poType || 'N/A'}
             </p>
           </div>
 
           <div>
             <p className="text-sm font-medium text-yellow-600 mb-1">Supplier</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.supplier || 'N/A'}
             >
               {poDetails.supplier || 'N/A'}
@@ -553,8 +566,8 @@ const PODetailsPage = () => {
 
           <div>
             <p className="text-sm font-medium text-teal-600 mb-1">Project Name</p>
-            <p 
-              className="text-base font-bold text-gray-900 truncate cursor-pointer" 
+            <p
+              className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.projectName || 'N/A'}
             >
               {poDetails.projectName || 'N/A'}
@@ -609,6 +622,9 @@ const PODetailsPage = () => {
         {/* Milestones Table */}
         <div className="ag-theme-alpine" style={{ height: '60vh', width: '100%' }}>
           <style jsx>{`
+          .ag-theme-alpine {
+  font-family: 'Segoe UI', 'Noto Sans', 'Roboto', 'Arial', sans-serif;
+}
             .ag-theme-alpine .ag-header {
               background-color: #15803d!important;
               color: white;
@@ -663,9 +679,15 @@ const PODetailsPage = () => {
           />
         </div>
       </div>
+      <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
+        <GetSRNDetailsByPO poId={poId} />
+      </div>
+      <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
+        <GetConsumptionByPO poNumber={poDetails.poNumber} poId={poId} />
+      </div>
 
       {/* Add Milestone Modal */}
-      <AddMilestoneModal 
+      <AddMilestoneModal
         open={isAddMilestoneModalOpen}
         onClose={() => setIsAddMilestoneModalOpen(false)}
         onSubmit={handleMilestoneModalSubmit}
@@ -673,7 +695,7 @@ const PODetailsPage = () => {
       />
 
       {/* Edit Milestone Modal */}
-      <EditMilestoneModal 
+      <EditMilestoneModal
         open={isEditMilestoneModalOpen}
         onClose={() => {
           setIsEditMilestoneModalOpen(false);
@@ -690,6 +712,15 @@ const PODetailsPage = () => {
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
       />
+
+      <ViewMilestoneModal
+  open={isViewMilestoneModalOpen}
+  onClose={() => {
+    setIsViewMilestoneModalOpen(false);
+    setSelectedMilestone(null);
+  }}
+  milestoneData={selectedMilestone}
+/>
     </div>
   );
 };

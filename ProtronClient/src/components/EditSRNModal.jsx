@@ -1,6 +1,6 @@
 // EditSRNModal.js
 import { useState, useEffect } from "react";
-import { X, Receipt, DollarSign, FileText, AlertCircle, Activity, Paperclip } from "lucide-react";
+import { X, Receipt, DollarSign, FileText, AlertCircle, Activity, Paperclip, Calendar, Upload } from "lucide-react";
 import axios from "axios";
 
 const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
@@ -13,9 +13,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     srnCurrency: "USD",
     srnType: "",
     srnRemarks: "",
-    attachment: null,
-    existingAttachment: null
   });
+  const [srnAttachments, setSrnAttachments] = useState([]); // Holds both existing and new attachments
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [poList, setPOList] = useState([]);
@@ -24,14 +23,27 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   const [remarksCharCount, setRemarksCharCount] = useState(0);
   const [nameCharCount, setNameCharCount] = useState(0);
   const [initialLoading, setInitialLoading] = useState(false);
+  const [poBalance, setPOBalance] = useState(null);
+  const [poId, setPoId] = useState("");
+  const [milestoneBalance, setMilestoneBalance] = useState(null);
 
   // Truncate text utility function
   const truncateText = (text, maxLength = 50) => {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
-
-  // Truncate component with hover tooltip
+  console.log(srnId)
+  // Truncate compnent with hover tooltip
+  const currencySymbols = {
+    USD: "$",
+    INR: "₹",
+    EUR: "€",
+    GBP: "£",
+    JPY: "¥"
+  };
+  const getCurrencySymbol = (currency) => {
+    return currencySymbols[currency] || currency;
+  }
   const TruncatedText = ({ text, maxLength = 50, className = "" }) => {
     const truncated = truncateText(text, maxLength);
     const isOverflow = text && text.length > maxLength;
@@ -40,7 +52,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       return <span className={className}>{text}</span>;
     }
     return (
-      <span 
+      <span
         className={`${className} cursor-help relative group`}
         title={text}
       >
@@ -62,13 +74,31 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     );
   };
 
+  const fetchSRNAttachments = async (srnId) => {
+  try {
+    const token = sessionStorage.getItem("token");
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=SRN&referenceId=${srnId}`, {
+      headers: { Authorization: token }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setSrnAttachments(data); // Attach to edit modal state
+    } else {
+      console.error("Failed to fetch SRN attachments");
+    }
+  } catch (err) {
+    console.error("Error fetching SRN attachments:", err);
+  }
+};
+
   useEffect(() => {
     const fetchSRNData = async () => {
       if (open && srnId) {
         setInitialLoading(true);
         try {
           const token = sessionStorage.getItem('token');
-          
+
           // Fetch SRN details
           const srnResponse = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/srn/${srnId}`,
@@ -78,7 +108,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           );
 
           const srn = srnResponse.data;
-          
+          console.log('SRN response:', srn);
           setFormData({
             poNumber: srn.poNumber || "",
             msId: srn.milestone?.msId || "",
@@ -88,10 +118,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnCurrency: srn.srnCurrency || "USD",
             srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
-            attachment: null,
-            existingAttachment: srn.attachments && srn.attachments.length > 0 ? srn.attachments[0] : null
           });
-
+          setPoId(srn.poDetail.poId || "");
           console.log('Fetched SRN data:', srn);
           console.log('SRN Type from response:', srn.srnType);
 
@@ -105,7 +133,55 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     };
 
     fetchSRNData();
+    fetchSRNAttachments(srnId);
   }, [open, srnId]);
+
+  useEffect(() => {
+    const fetchPOBalance = async (poId) => {
+      if (poId) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+            {
+              headers: { Authorization: `${token}` }
+            }
+          );
+          console.log('PO Balance response:', response.data);
+          setPOBalance(response.data + (parseInt(formData.srnAmount) || 0));
+        } catch (error) {
+          console.error("Error fetching PO balance:", error);
+        }
+      }
+    };
+
+    const fetchMilestone = async (poId, msId) => {
+      if (poId && msId) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance/${poId}/${msId}`,
+            {
+              headers: { Authorization: `${token}` }
+            }
+          );
+          setMilestoneBalance(response.data + (parseInt(formData.srnAmount) || 0));
+        } catch (error) {
+          console.error("Error fetching milestone balance:", error);
+        }
+      }
+    };
+
+    fetchPOBalance(poId);
+    if (poId && formData.msId) {
+      fetchMilestone(poId, formData.msId);
+    } else {
+      setMilestoneBalance(null);
+    }
+
+
+
+  }, [poId, formData.msId]);
 
   // Fetch PO list when modal opens
   useEffect(() => {
@@ -113,7 +189,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       if (open) {
         try {
           const token = sessionStorage.getItem('token');
-          
+
           // Fetch PO list
           const poResponse = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/po/all`,
@@ -122,7 +198,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             }
           );
           setPOList(poResponse.data);
-          
+
         } catch (error) {
           console.error("Error fetching PO list:", error);
         }
@@ -139,10 +215,10 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         try {
           const token = sessionStorage.getItem('token');
           const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
-          
+
           if (selectedPO) {
             console.log('Selected PO:', selectedPO);
-            
+
             try {
               const milestoneResponse = await axios.get(
                 `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${selectedPO.poId}`,
@@ -150,15 +226,15 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   headers: { Authorization: `${token}` }
                 }
               );
-              
+
               console.log('Milestone response:', milestoneResponse.data);
               setMilestoneList(milestoneResponse.data || []);
-              
+
             } catch (milestoneError) {
               console.error("Error fetching milestones:", milestoneError);
               setMilestoneList([]);
             }
-            
+
             // Update currency based on selected PO (only if not already set)
             if (!formData.srnCurrency || formData.srnCurrency === 'USD') {
               setFormData(prev => ({
@@ -194,7 +270,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Check character limits
     if (name === 'srnName') {
       if (value.length > 100) {
@@ -224,12 +300,12 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       }
       setRemarksCharCount(value.length);
     }
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -240,53 +316,76 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-      if (file.size > maxSize) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: "File size must be less than 10MB"
-        }));
-        return;
-      }
-      
-      // Validate file type (common document and image types)
-      const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'text/plain'
-      ];
-      
-      if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: "File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT files."
-        }));
-        return;
-      }
-      
-      setFormData(prev => ({
-        ...prev,
-        attachment: file
-      }));
-      
-      // Clear error if file is valid
-      if (errors.attachment) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: ""
-        }));
-      }
+    const files = Array.from(e.target.files);
+    const maxFiles = 4;
+
+    // Check if adding these files exceeds the limit
+    if (srnAttachments.length + files.length > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Max ${maxFiles} attachments allowed.` }));
+      return;
     }
+
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    const validFiles = files.filter(file => {
+      if (file.size > maxSize) {
+        setErrors(prev => ({ ...prev, attachment: `File ${file.name} must be under 10MB.` }));
+        return false;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, attachment: `Unsupported file type for ${file.name}.` }));
+        return false;
+      }
+      return true;
+    });
+
+    // Add valid files to state
+    setSrnAttachments(prev => [...prev, ...validFiles]);
+    setErrors(prev => ({ ...prev, attachment: "" }));
+    e.target.value = null; // Reset file input
   };
+
+  const removeAttachment = async (index) => {
+  const attachmentToRemove = srnAttachments[index];
+
+  // Check if the attachment has an ID (existing attachment)
+  if (attachmentToRemove.id) {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachmentToRemove.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to delete attachment with ID: ${attachmentToRemove.id}`);
+        return;
+      }
+
+      console.log(`Attachment with ID: ${attachmentToRemove.id} deleted successfully`);
+    } catch (error) {
+      console.error(`Error deleting attachment with ID: ${attachmentToRemove.id}`, error);
+      return;
+    }
+  }
+
+  // Update state to remove the attachment
+  setSrnAttachments((prev) => prev.filter((_, i) => i !== index));
+};
 
   const validateBasicForm = () => {
     const newErrors = {};
@@ -308,27 +407,42 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       newErrors.srnType = "SRN Type is required";
     }
 
+    if (milestoneList.length === 0) {
+      // No milestones available, check against PO balance
+      if (formData.srnAmount && poBalance !== null && Number(formData.srnAmount) > Number(poBalance)) {
+        newErrors.srnAmount = `SRN amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
+      }
+    } else {
+      // Milestones exist
+      if (!formData.msId) {
+        newErrors.msId = "Please select a milestone for this PO";
+      } else if (formData.srnAmount && milestoneBalance !== null && Number(formData.srnAmount) > Number(milestoneBalance)) {
+        newErrors.srnAmount = `SRN amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
+      }
+    }
+
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // First validate basic form fields
+
+    // Validate basic form fields
     if (!validateBasicForm()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const token = sessionStorage.getItem('token');
       if (!token) {
         throw new Error("Missing authentication credentials");
       }
 
-      // Prepare the update data according to SRNDTO structure
+      // Prepare the update data
       const updateData = {
         poNumber: formData.poNumber,
         msId: formData.msId || null,
@@ -340,40 +454,47 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         srnRemarks: formData.srnRemarks || ''
       };
 
-      console.log('Updating SRN data:', updateData);
-
+      // Submit SRN data
       const response = await axios.put(
         `${import.meta.env.VITE_API_URL}/api/srn/edit/${srnId}`,
         updateData,
         {
-          headers: { 
+          headers: {
             Authorization: `${token}`,
             'Content-Type': 'application/json'
           }
         }
       );
 
+      // Upload attachments
+      if (srnAttachments.length > 0) {
+        for (const file of srnAttachments) {
+          if (file instanceof File) { // Only upload new files
+            const fileData = new FormData();
+            fileData.append("file", file);
+            fileData.append("level", "SRN");
+            fileData.append("referenceId", response.data.srnId);
+
+            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+              method: "POST",
+              headers: {
+                Authorization: `${token}`
+              },
+              body: fileData
+            });
+
+            if (!uploadRes.ok) {
+              console.error(`Attachment upload failed for ${file.name}`);
+            }
+          }
+        }
+      }
+
       onSubmit(response.data);
       handleClose();
     } catch (error) {
       console.error("Error updating SRN:", error);
-      
-      // Enhanced error message handling
-      let errorMessage = "Failed to update SRN";
-      
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data) {
-        if (typeof error.response.data === 'string') {
-          errorMessage = error.response.data;
-        }
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setErrors({ 
-        submit: errorMessage
-      });
+      setErrors({ submit: "Failed to update SRN" });
     } finally {
       setLoading(false);
     }
@@ -389,9 +510,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       srnCurrency: "USD",
       srnType: "",
       srnRemarks: "",
-      attachment: null,
-      existingAttachment: null
     });
+    setSrnAttachments([]);
     setErrors({});
     setNameCharCount(0);
     setDescCharCount(0);
@@ -404,20 +524,19 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
+        <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-green-900 flex items-center">
             <Receipt size={20} className="mr-2 text-green-600" />
             Edit SRN
           </h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
             disabled={loading || initialLoading}
           >
-            <X size={20} className="text-gray-400" />
+            <X size={20} />
           </button>
         </div>
 
@@ -431,215 +550,211 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Error Display */}
-          {errors.submit && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
-              <AlertCircle size={18} className="text-red-500 mr-2" />
-              <TruncatedText text={errors.submit} maxLength={100} className="text-red-700 text-sm" />
-            </div>
-          )}
+        <div className="p-6 overflow-y-auto flex-grow">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Display */}
+            {errors.submit && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
+                <AlertCircle size={18} className="text-red-500 mr-2" />
+                <TruncatedText text={errors.submit} maxLength={100} className="text-red-700 text-sm" />
+              </div>
+            )}
 
-          <div className="space-y-4">
             {/* Row 1: PO Number, Milestone Name, Currency, and SRN Amount */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <FileText size={14} className="inline mr-1" />
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-15 items-end">
+              <div className="lg:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   PO Number *
                 </label>
-                <select
-                  name="poNumber"
+                <input
+                  type="text"
                   value={formData.poNumber}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.poNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  disabled={loading || initialLoading}
-                  title={formData.poNumber}
-                >
-                  <option value="">Select PO</option>
-                  {poList.map(po => (
-                    <TruncatedOption 
-                      key={po.poId} 
-                      value={po.poNumber} 
-                      text={po.poNumber}
-                      maxLength={25}
-                    />
-                  ))}
-                </select>
+                  className="w-full h-10 px-4 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                  disabled
+                  readOnly
+                />
                 {errors.poNumber && (
-                  <p className="mt-1 text-xs text-red-600">
+                  <p className="mt-1 text-sm text-red-600">
                     <TruncatedText text={errors.poNumber} maxLength={50} />
                   </p>
                 )}
               </div>
-
-              <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Activity size={14} className="inline mr-1" />
-                  Milestone Name (Optional)
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  SRN Name *
+                  <span className="float-right text-sm text-gray-500">
+                    {nameCharCount}/100 characters
+                  </span>
                 </label>
-                <select
-                  name="msId"
-                  value={formData.msId}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={loading || initialLoading}
-                  title={formData.msName}
-                >
-                  <option value="">No specific milestone</option>
-                  {milestoneList.map(milestone => (
-                    <TruncatedOption 
-                      key={milestone.msId} 
-                      value={milestone.msId} 
-                      text={milestone.msName}
-                      maxLength={25}
-                    />
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-span-1">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Currency
-                </label>
-                <select
-                  name="srnCurrency"
-                  value={formData.srnCurrency}
-                  onChange={handleInputChange}
-                  className="w-full px-1 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
-                  disabled={true}
-                >
-                  <option value="USD">USD</option>
-                  <option value="INR">INR</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="JPY">JPY</option>
-                </select>
-              </div>
-
-              <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <DollarSign size={14} className="inline mr-1" />
-                  SRN Amount *
-                </label>
-                <input
-                  type="number"
-                  name="srnAmount"
-                  value={formData.srnAmount}
-                  onChange={handleInputChange}
-                  step="1"
-                  min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.srnAmount ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="0"
-                  disabled={loading || initialLoading}
-                  title={formData.srnAmount}
-                />
-                {errors.srnAmount && (
-                  <div className="mt-1">
-                    <p className="text-xs text-red-600 leading-relaxed">{errors.srnAmount}</p>
-                  </div>
+                <div className="relative">
+                  <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                  <input
+                    type="text"
+                    name="srnName"
+                    value={formData.srnName}
+                    onChange={handleInputChange}
+                    className={`w-full h-10 pl-10 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="Enter here"
+                    disabled={loading || initialLoading}
+                    title={formData.srnName}
+                  />
+                </div>
+                {errors.srnName && (
+                  <p className="mt-1 text-sm text-red-600">{errors.srnName}</p>
                 )}
               </div>
 
-              <div className="col-span-2"></div>
-            </div>
 
-            {/* Row 2: SRN Type, SRN Name, and Attachment */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Receipt size={14} className="inline mr-1" />
-                  SRN Type *
+              <div className="lg:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Milestone Name
                 </label>
+
+                <input
+                  type="text"
+                  value={milestoneList.find(ms => ms.msId === formData.msId)?.msName || ""}
+                  className="w-full h-10 px-4 border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="lg:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Type *</label>
                 <select
                   name="srnType"
                   value={formData.srnType}
                   onChange={handleInputChange}
-                  className={`w-full px-2 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.srnType ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnType ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   disabled={loading || initialLoading}
                 >
-                  <option value="">Select SRN Type</option>
+                  <option value="">Select from list</option>
                   <option value="partial">Partial</option>
                   <option value="full">Full</option>
                 </select>
                 {errors.srnType && (
-                  <p className="mt-1 text-xs text-red-600">{errors.srnType}</p>
+                  <p className="mt-1 text-sm text-red-600">{errors.srnType}</p>
                 )}
               </div>
+            </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <FileText size={14} className="inline mr-1" />
-                  SRN Name *
-                  <span className="float-right text-xs text-gray-500">
-                    {nameCharCount}/100 characters
+
+            <div className="grid grid-cols-5 gap-15">
+              <div className="lg:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                <input type="text" value={formData.srnCurrency} readOnly className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100" />
+              </div>
+
+
+              <div className="lg:col-span-1">
+                <div className="flex gap-2 items-center justify-between">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">SRN Amount *</label>
+                  <span className="text-[10px] text-red-500">
+                    {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
                   </span>
-                </label>
-                <input
-                  type="text"
-                  name="srnName"
-                  value={formData.srnName}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.srnName ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter SRN name"
-                  disabled={loading || initialLoading}
-                  title={formData.srnName}
-                />
-                {errors.srnName && (
-                  <p className="mt-1 text-xs text-red-600">{errors.srnName}</p>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
+                    {getCurrencySymbol(formData.srnCurrency)}
+                  </span>
+                  <input
+                    type="number"
+                    name="srnAmount"
+                    value={formData.srnAmount}
+                    onChange={handleInputChange}
+                    step="1"
+                    min="0"
+                    className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="Enter here"
+                    disabled={loading || initialLoading}
+                    title={formData.srnAmount}
+                  />
+                </div>
+
+                {errors.srnAmount && (
+                  <p className="mt-1 text-sm text-red-600">{errors.srnAmount}</p>
                 )}
               </div>
+              <div className="lg:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Date</label>
+                <div
+                  onClick={() => handleDateInputClick('srnDate')}
+                  className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
+                >
+                  <Calendar
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none"
+                    size={20}
+                  />
+                  <input
+                    type="date"
+                    name="srnDate"
+                    value={formData.srnDate}
+                    onChange={handleInputChange}
+                    className="w-full bg-transparent outline-none cursor-pointer appearance-none"
+                    disabled={loading || initialLoading}
+                  />
+                </div>
+              </div>
+            </div>
 
-              <div>
+
+
+
+
+
+            {/* Row 2: SRN Name and Attachment */}
+            <div className="grid grid-cols-6  gap-4">
+
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
-                  Attachment
+                  SRN Attachments (Max 4)
                 </label>
+
                 <input
                   type="file"
-                  name="attachment"
+                  name="srnAttachment"
                   onChange={handleFileChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                   disabled={loading || initialLoading}
+                  multiple
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
                   title="Upload document or image file (max 10MB)"
                 />
-                {/* Show existing attachment */}
-                {formData.existingAttachment && !formData.attachment && (
-                  <p className="mt-1 text-xs text-blue-600" title={`Current attachment: ${formData.existingAttachment}`}>
-                    Current: {formData.existingAttachment.length > 25 ? `${formData.existingAttachment.substring(0, 25)}...` : formData.existingAttachment}
-                  </p>
-                )}
-                {/* Show new attachment */}
-                {formData.attachment && (
-                  <p className="mt-1 text-xs text-green-600" title={`New file: ${formData.attachment.name} (${(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)`}>
-                    New: {formData.attachment.name.length > 25 ? `${formData.attachment.name.substring(0, 25)}...` : formData.attachment.name} 
-                    ({(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
-                )}
+
+                {/* Display existing and newly added attachments */}
+                <ul className="mt-2 text-xs text-gray-700 space-y-1">
+                  {srnAttachments.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                    >
+                      <span className="truncate max-w-[200px]" title={file.fileName || file.name}>{file.fileName || file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(index)}
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
                 {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.attachment}`}>
-                    {errors.attachment.length > 50 ? `${errors.attachment.substring(0, 50)}...` : errors.attachment}
-                  </p>
+                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
                 )}
               </div>
             </div>
 
             {/* Row 3: SRN Description */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <FileText size={14} className="inline mr-1" />
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 SRN Description
-                <span className="float-right text-xs text-gray-500">
+                <span className="float-right text-sm text-gray-500">
                   {descCharCount}/500 characters
                 </span>
               </label>
@@ -647,25 +762,23 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 name="srnDsc"
                 value={formData.srnDsc}
                 onChange={handleInputChange}
-                rows={4}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  errors.srnDsc ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter detailed SRN description including scope, deliverables, and requirements... (Max 500 characters)"
+                rows={3}
+                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${errors.srnDsc ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                placeholder="Enter here"
                 disabled={loading || initialLoading}
                 title={formData.srnDsc ? `SRN Description (${descCharCount}/500 chars): ${formData.srnDsc}` : "Enter detailed SRN description (optional)"}
               />
               {errors.srnDsc && (
-                <p className="mt-1 text-xs text-red-600">{errors.srnDsc}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.srnDsc}</p>
               )}
             </div>
 
             {/* Row 4: SRN Remarks */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <FileText size={14} className="inline mr-1" />
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 SRN Remarks
-                <span className="float-right text-xs text-gray-500">
+                <span className="float-right text-sm text-gray-500">
                   {remarksCharCount}/500 characters
                 </span>
               </label>
@@ -674,48 +787,46 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 value={formData.srnRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 characters)"
+                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                placeholder="Enter here"
                 disabled={loading || initialLoading}
                 title={formData.srnRemarks ? `Remarks (${remarksCharCount}/500 chars): ${formData.srnRemarks}` : "Enter additional remarks (optional)"}
               />
               {errors.srnRemarks && (
-                <p className="mt-1 text-xs text-red-600">{errors.srnRemarks}</p>
+                <p className="mt-1 text-sm text-red-600">{errors.srnRemarks}</p>
               )}
             </div>
-          </div>
+          </form>
+        </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-              disabled={loading || initialLoading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || initialLoading}
-              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              {loading ? (
-                <>
-                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <Receipt size={14} className="mr-2" />
-                  Update SRN
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+        <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+            disabled={loading || initialLoading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading || initialLoading}
+            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Updating...
+              </>
+            ) : (
+              <>
+                <Receipt size={16} className="mr-2" />
+                Update SRN
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

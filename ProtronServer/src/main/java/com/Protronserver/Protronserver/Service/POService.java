@@ -2,11 +2,9 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.PODetailsDTO;
 import com.Protronserver.Protronserver.Entities.*;
-import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
-import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
-import com.Protronserver.Protronserver.Repository.PORepository;
-import com.Protronserver.Protronserver.Repository.SRNRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +30,17 @@ public class POService {
     @Autowired
     private POConsumptionRepository poConsumptionRepository;
 
+    @Autowired
+    private POAttachmentRepository poAttachmentRepository;
+
     public PODetails addPO(PODetailsDTO dto) {
+
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        if (poRepository.existsByPoNumberAndTenantId(dto.getPoNumber(), tenantId)) {
+            throw new IllegalArgumentException("PO Number already exists");
+        }
+
         PODetails po = new PODetails();
 
         po.setPoNumber(dto.getPoNumber());
@@ -43,6 +51,13 @@ public class POService {
         po.setPoSpoc(dto.getPoSpoc());
         po.setSupplier(dto.getSupplier());
         po.setCustomer(dto.getCustomer());
+        po.setSponsorName(dto.getSponsorName());
+        po.setSponsorLob(dto.getSponsorLob());
+        po.setBudgetLineItem(dto.getBudgetLineItem());
+        po.setBudgetLineAmount(dto.getBudgetLineAmount());
+        po.setBudgetLineRemarks(dto.getBudgetLineRemarks());
+        po.setBusinessValueAmount(dto.getBusinessValueAmount());
+        po.setPoCountry(dto.getPoCountry());
         po.setProjectName(dto.getProjectName());
         po.setPoStartDate(dto.getPoStartDate());
         po.setPoEndDate(dto.getPoEndDate());
@@ -57,6 +72,7 @@ public class POService {
         return poRepository.save(po);
     }
 
+    @Transactional
     public PODetails updatePO(Long id, PODetailsDTO dto) {
 
         Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
@@ -64,9 +80,34 @@ public class POService {
         PODetails oldPo = poRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("PO not found with ID: " + id));
 
+        if ( !oldPo.getPoNumber().equals(dto.getPoNumber()) && poRepository.existsByPoNumberAndTenantId(dto.getPoNumber(), currentTenantId)) {
+            throw new IllegalArgumentException("PO Number already exists");
+        }
+
         // --- VALIDATION START ---
         if (dto.getPoCurrency() != null && !dto.getPoCurrency().equalsIgnoreCase(oldPo.getPoCurrency())) {
-            throw new IllegalArgumentException("PO currency cannot be changed.");
+            String newCurrency = dto.getPoCurrency();
+
+            // 1. Update currency in active milestones
+            List<POMilestone> activeMilestones = poMilestoneRepository.findByPoDetail_PoId(oldPo.getPoId(), currentTenantId);
+            for (POMilestone ms : activeMilestones) {
+                ms.setMsCurrency(newCurrency);
+                poMilestoneRepository.save(ms);
+            }
+
+            // 2. Update currency in active POConsumption
+            List<POConsumption> activeConsumptions = poConsumptionRepository.findByPoNumber(oldPo.getPoNumber(), currentTenantId);
+            for (POConsumption con : activeConsumptions) {
+                con.setCurrency(newCurrency);
+                poConsumptionRepository.save(con);
+            }
+
+            // 3. Update currency in active SRNs
+            List<SRNDetails> activeSrns = srnRepository.findByPoIdWithoutMs(oldPo.getPoId(), currentTenantId);
+            for (SRNDetails srn : activeSrns) {
+                srn.setSrnCurrency(newCurrency);
+                srnRepository.save(srn);
+            }
         }
 
         if (dto.getPoAmount() != null) {
@@ -106,6 +147,13 @@ public class POService {
         newPo.setPoSpoc(dto.getPoSpoc());
         newPo.setSupplier(dto.getSupplier());
         newPo.setCustomer(dto.getCustomer());
+        newPo.setSponsorName(dto.getSponsorName());
+        newPo.setSponsorLob(dto.getSponsorLob());
+        newPo.setBudgetLineItem(dto.getBudgetLineItem());
+        newPo.setBudgetLineAmount(dto.getBudgetLineAmount());
+        newPo.setBudgetLineRemarks(dto.getBudgetLineRemarks());
+        newPo.setBusinessValueAmount(dto.getBusinessValueAmount());
+        newPo.setPoCountry(dto.getPoCountry());
         newPo.setProjectName(dto.getProjectName());
         newPo.setPoStartDate(dto.getPoStartDate());
         newPo.setPoEndDate(dto.getPoEndDate());
@@ -138,6 +186,8 @@ public class POService {
             srn.setPoNumber(savedNewPo.getPoNumber());
             srnRepository.save(srn);
         }
+
+        poAttachmentRepository.updateReferenceId("PO", oldPo.getPoId(), savedNewPo.getPoId());
 
         return savedNewPo;
     }

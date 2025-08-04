@@ -7,6 +7,8 @@ import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import * as XLSX from "xlsx";
 import axios from 'axios'
+import UserEditForm from './UserEditForm'
+import { UserCog } from 'lucide-react'
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -18,6 +20,8 @@ const TeamManagement = () => {
     const [snackbar, setSnackbar] = useState("")
     const [selectedProfile, setSelectedProfile] = useState(null);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isEditFormOpen, setIsEditFormOpen] = useState(false); // State to manage edit form visibility
+    const [selectedEmployee, setSelectedEmployee] = useState(null); // State to store the selected employee for editing
     const [isMobileView, setIsMobileView] = useState(false);
     const [gridApi, setGridApi] = useState(null);
     const [gridColumnApi, setGridColumnApi] = useState(null);
@@ -177,6 +181,38 @@ const TeamManagement = () => {
         setSelectedProfile(null);
     };
 
+    const handleEditClick = (employee) => {
+        setSelectedEmployee(employee);
+        setIsEditFormOpen(true);
+    };
+
+    const handleEditSubmit = async (updatedData) => {
+        try {
+            const res = await axios.put(
+                `${import.meta.env.VITE_API_URL}/api/users/${selectedEmployee.userId}/editable-details`,
+                updatedData,
+                {
+                    headers: { Authorization: `${sessionStorage.getItem('token')}` },
+                }
+            );
+            setSnackbar({
+                open: true,
+                message: 'User updated successfully!',
+                severity: 'success',
+            });
+            // Update the employee list with the updated data
+            fetchEmployees();
+            setIsEditFormOpen(false);
+        } catch (error) {
+            console.error('Error updating user:', error);
+            setSnackbar({
+                open: true,
+                message: 'Failed to update user. Please try again.',
+                severity: 'error',
+            });
+        }
+    };
+
     // AG Grid column definitions
     const columnDefs = useMemo(() => [
         {
@@ -278,6 +314,19 @@ const TeamManagement = () => {
             width: 120,
             cellClass: 'ag-cell-truncate',
         },
+        {
+            headerName: 'Actions',
+            field: 'actions',
+            width: 150,
+            cellRenderer: (params) => (
+                <button
+                    className="cursor-pointer flex items-center justify-center p-2"
+                    onClick={() => handleEditClick(params.data)}
+                >
+                    <UserCog size={16} className="text-blue-600" />
+                </button>
+            ),
+        },
     ], []);
 
     // AG Grid default column definition
@@ -366,22 +415,24 @@ const TeamManagement = () => {
         setShowStatusFilterDropdown(false);
     };
 
+    const fetchEmployees = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
+            });
+            setEmployees(res.data);
+            setFilteredEmployees(res.data);
+            console.log(res);
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchEmployees = async () => {
-            try {
-                setLoading(true);
-                const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
-                    headers: { Authorization: `${sessionStorage.getItem('token')}` }
-                });
-                setEmployees(res.data);
-                setFilteredEmployees(res.data);
-                console.log(res);
-            } catch (error) {
-                console.log(error);
-            } finally {
-                setLoading(false);
-            }
-        };
+
 
         fetchEmployees();
     }, []);
@@ -884,6 +935,15 @@ const TeamManagement = () => {
                 <div className={`snackbar ${snackbar.severity}`}>
                     {snackbar.message}
                 </div>
+            )}
+            {isEditFormOpen && (
+
+                <UserEditForm
+                    userId={selectedEmployee.userId}
+                    onSubmit={handleEditSubmit}
+                    onCancel={() => setIsEditFormOpen(false)}
+                />
+
             )}
         </div>
     )

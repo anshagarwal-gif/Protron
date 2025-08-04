@@ -49,11 +49,13 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     taskType: '',
     hours: '',
     minutes: '',
+    remainingHours: '',
+    remainingMinutes: '',
     description: '',
     projectId: '',
+    taskTopic: '',
     attachments: [] // Changed to array for multiple attachments
   });
-
   const [projects, setProjects] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentDate, setCurrentDate] = useState(selectedDate || new Date());
@@ -87,7 +89,9 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
   // Update currentDate when selectedDate changes
   useEffect(() => {
     if (selectedDate) {
-      setCurrentDate(new Date(selectedDate));
+      const localDate = new Date(selectedDate);
+      localDate.setHours(0, 0, 0, 0); // Reset time to avoid timezone issues
+      setCurrentDate(localDate);
     }
   }, [selectedDate]);
   // Add this new function to load existing attachments
@@ -181,8 +185,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
         setFormData({
           taskType: editingTask.taskType || editingTask.task || '',
+          taskTopic: editingTask.taskTopic || '',
           hours: hours ? String(hours) : '',
           minutes: minutes ? String(minutes) : '',
+          remainingHours: editingTask.remainingHours || '',
+          remainingMinutes: editingTask.remainingMinutes || '',
           description: editingTask.description || '',
           projectId: editingTask.projectId?.toString() || editingTask.project?.projectId?.toString() || '',
           attachments: [] // Don't prefill file input for security reasons
@@ -192,8 +199,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
         // Reset form for new task
         setFormData({
           taskType: '',
+          taskTopic: '',
           hours: '',
           minutes: '',
+          remainingHours: '',
+          remainingMinutes: '',
           description: '',
           projectId: '',
           attachments: []
@@ -215,18 +225,18 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
   }, [selectedDate, timesheetData, projects]);
 
   const validateTime = (hours, minutes) => {
-    
+
     const currentMinutes = (parseInt(hours, 10) || 0) * 60 + (parseInt(minutes, 10) || 0);
-    
+
     let additionalTime = 0
-    
-    if(editingTask){
+
+    if (editingTask) {
       console.log("Editing task, adding existing time to current time");
       additionalTime = (parseInt(editingTask.hoursSpent, 10) || 0) * 60 + (parseInt(editingTask.minutesSpent, 10) || 0);
     }
     console.log("Current minutes:", currentMinutes, "Existing time:", existingTime, additionalTime);
 
-    if ((existingTime - additionalTime)  + currentMinutes > 1440) { // 1440 minutes = 24 hours
+    if ((existingTime - additionalTime) + currentMinutes > 1440) { // 1440 minutes = 24 hours
       setError('Total time for the day cannot exceed 24 hours.');
       return false;
     }
@@ -236,13 +246,22 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
   // Auto-select project if only one available
   useEffect(() => {
-    if (projects.length === 1 && !editingTask && formData.projectId === '') {
+    if (projects.length > 0 && !editingTask && formData.projectId === '') {
       setFormData(prev => ({
         ...prev,
         projectId: projects[0].projectId.toString()
       }));
     }
   }, [projects, editingTask, formData.projectId]);
+
+  useEffect(() => {
+    if (isOpen && !editingTask && formData.taskType === '') {
+      setFormData((prev) => ({
+        ...prev,
+        taskType: 'Documentation',
+      }));
+    }
+  }, [isOpen, editingTask, formData.taskType]);
 
   const fetchProjects = async () => {
     try {
@@ -291,6 +310,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     const hours = parseInt(formData.hours, 10) || 0;
     const minutes = parseInt(formData.minutes, 10) || 0;
 
+    if (hours === 0 && minutes === 0) {
+      showSnackbar("Please enter Time", 'error');
+      return false;
+    }
+
     // Hours validation (only if hours is entered)
     if (formData.hours !== '' && (hours < 0 || hours > 24)) {
       showSnackbar("Hours must be between 0 and 24", 'error');
@@ -306,6 +330,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     // Special case: if hours is 24, minutes must be 0
     if (hours === 24 && minutes > 0) {
       showSnackbar("When hours is 24, minutes must be 0", 'error');
+      return false;
+    }
+
+    if (formData.taskTopic.length > 50) {
+      showSnackbar("Task Topic cannot exceed 50 characters", 'error');
       return false;
     }
 
@@ -424,6 +453,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       taskType: '',
       hours: '',
       minutes: '',
+      remainingHours: '',
+      remainingMinutes: '',
       description: '',
       projectId: projects.length === 1 ? projects[0].projectId.toString() : '',
       attachments: []
@@ -473,9 +504,12 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
       const payload = {
         taskType: formData.taskType,
+        taskTopic: formData.taskTopic,
         date: currentDate,
         hoursSpent: parseInt(formData.hours, 10) || 0,
         minutesSpent: parseInt(formData.minutes, 10) || 0,
+        remainingHours: parseInt(formData.remainingHours, 10) || 0,
+        remainingMinutes: parseInt(formData.remainingMinutes, 10) || 0,
         description: formData.description,
         projectId: parseInt(formData.projectId),
         attachments: attachmentData,
@@ -598,6 +632,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
                   <Paper
                     elevation={0}
+                    onClick={handleCalendarIconClick}
                     sx={{
                       px: 2.5,
                       py: 0.8,
@@ -605,7 +640,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       borderRadius: 2,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1
+                      gap: 1,
+                      cursor: 'pointer',
                     }}
                   >
                     <Typography variant="subtitle1" fontWeight="500">
@@ -664,9 +700,14 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                   <StaticDatePicker
                     value={currentDate}
                     onChange={handleDateChange}
+                    displayStaticWrapperAs="desktop"
+                    slots={{
+                      actionBar: () => null // ❌ Remove OK/Cancel buttons
+                    }}
                   />
                 </Box>
               </Popover>
+
               {/* Row 1: Project and Task Type */}
               <Box sx={{ display: 'flex', gap: 3 }}>
                 <Box sx={{ flex: 1 }}>
@@ -729,6 +770,25 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       <MenuItem value="Documentation">Documentation</MenuItem>
                     </Select>
                   </FormControl>
+                </Box>
+                <Box>
+                  <TextField
+                    fullWidth
+                    label="Task Topic"
+                    placeholder="Enter task topic..."
+                    value={formData.taskTopic}
+                    onChange={handleInputChange('taskTopic')}
+                    inputProps={{ maxLength: 50 }}
+                    helperText={`${formData.taskTopic?.length} / 50`}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <TaskIcon sx={{ color: greenPrimary }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    FormHelperTextProps={{ sx: { margin: 0, paddingRight: 1 } }}
+                  />
                 </Box>
               </Box>
 
@@ -797,8 +857,89 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       }}
                     />
                   </Box>
+                  {/* Remaining Time Display */}
+                  {/* Remaining Time Display */}
+                  <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
+                    Remaining Time: {(() => {
+                      const remainingMinutes = Math.max(
+                        0,
+                        1440 - existingTime - ((parseInt(formData.hours, 10) || 0) * 60 + (parseInt(formData.minutes, 10) || 0))
+                      );
+                      const hours = Math.floor(remainingMinutes / 60);
+                      const minutes = remainingMinutes % 60;
+                      return `${hours}h ${minutes}m`;
+                    })()}
+
+                  </Typography>
+
                 </Box>
 
+                <Box sx={{ flex: 0.4 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <TextField
+                      type="number"
+                      label="Remaining Hours"
+                      value={formData.remainingHours}
+                      onChange={handleInputChange('remainingHours')}
+                      placeholder="HH"
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) && // Allow only numbers
+                          e.key !== 'Backspace' && // Allow backspace
+                          e.key !== 'Delete' && // Allow delete
+                          e.key !== 'ArrowLeft' && // Allow left arrow
+                          e.key !== 'ArrowRight' && // Allow right arrow
+                          e.key !== 'Tab' // Allow tab
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      inputProps={{ min: 0, max: 24 }}
+                      sx={{ flex: 1 }}
+                      error={formData.remainingHours !== '' && (parseInt(formData.remainingHours, 10) < 0 || parseInt(formData.remainingHours, 10) > 24)}
+                      helperText={formData.remainingHours !== '' && (parseInt(formData.remainingHours, 10) < 0 || parseInt(formData.remainingHours, 10) > 24) ? "0-24" : error ? error : ""}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <AccessTimeIcon sx={{ color: greenPrimary }} />
+                          </InputAdornment>
+                        ),
+                        sx: { height: fieldHeight }
+                      }}
+                    />
+                    <Typography variant="h6" sx={{ color: 'text.secondary', mx: 0.5 }}>
+                      :
+                    </Typography>
+                    <TextField
+                      type="number"
+                      label="Minutes"
+                      value={formData.remainingMinutes}
+                      onChange={handleInputChange('remainingMinutes')}
+                      placeholder="MM"
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) && // Allow only numbers
+                          e.key !== 'Backspace' && // Allow backspace
+                          e.key !== 'Delete' && // Allow delete
+                          e.key !== 'ArrowLeft' && // Allow left arrow
+                          e.key !== 'ArrowRight' && // Allow right arrow
+                          e.key !== 'Tab' // Allow tab
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      inputProps={{ min: 0, max: 59 }}
+                      sx={{ flex: 1 }}
+                      error={formData.remainingMinutes !== '' && (parseInt(formData.remainingMinutes, 10) < 0 || parseInt(formData.remainingMinutes, 10) >= 60)}
+                      helperText={formData.remainingMinutes !== '' && (parseInt(formData.remainingMinutes, 10) < 0 || parseInt(formData.remainingMinutes, 10) >= 60) ? "0-59" : error ? error : ""}
+                      InputProps={{
+                        sx: { height: fieldHeight }
+                      }}
+                    />
+                  </Box>
+
+                </Box>
+</Box>
                 {/* Compact Attachment Upload */}
                 <Box sx={{ flex: 0.6 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary', fontWeight: 600 }}>
@@ -868,7 +1009,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     </Box>
                   )}
                 </Box>
-              </Box>
+              
 
               {/* Row 3: Large Description */}
               <Box>

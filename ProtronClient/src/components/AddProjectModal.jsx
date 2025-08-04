@@ -24,6 +24,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ProjectIcon from '@mui/icons-material/Folder';
 import axios from 'axios';
+import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 
 // Currency data
 const currencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
@@ -40,6 +41,7 @@ const currencySymbols = {
 const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => {
     const [users, setUsers] = useState([]);
     const [initialFormData, setInitialFormData] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fetchUsers = async () => {
         try {
@@ -74,6 +76,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
     const handleSubmit = () => {
         // console.log('Form Data:', formData);
+        setIsSubmitting(true);
         onSubmit(formData);
     };
 
@@ -252,7 +255,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
                                 options={users}
-                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+                                getOptionLabel={(option) => option ? `${option.name}` : ''}
                                 isOptionEqualToValue={(option, value) => option.userId === value.userId}
                                 onChange={(e, value) => setFormData((prev) => ({
                                     ...prev,
@@ -284,7 +287,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         <Box sx={{ flex: 1 }}>
                             <Autocomplete
                                 options={users}
-                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+                                getOptionLabel={(option) => option ? `${option.name}` : ''}
                                 isOptionEqualToValue={(option, value) => option.userId === value.userId}
                                 onChange={(e, value) => setFormData((prev) => ({
                                     ...prev,
@@ -358,7 +361,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 multiple
                                 options={users}
                                 value={users.filter((user) => formData.teamMembers.includes(user.userId))}
-                                getOptionLabel={(option) => option ? `${option.firstName} ${option.lastName}` : ''}
+                                getOptionLabel={(option) => option ? `${option.name}` : ''}
                                 isOptionEqualToValue={(option, value) => option.userId === value.userId}
                                 onChange={(e, selectedUsers) => setFormData((prev) => ({
                                     ...prev,
@@ -396,9 +399,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                                     bgcolor: greenPrimary,
                                                 }}
                                             >
-                                                {option.firstName?.charAt(0)}
+                                                {option.name?.charAt(0)}
                                             </Avatar>
-                                            {option.firstName} {option.lastName}
+                                            {option.name}
                                         </Box>
                                     </li>
                                 )}
@@ -450,7 +453,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                                             bgcolor: greenPrimary,
                                                         }}
                                                     >
-                                                        {user.firstName?.charAt(0)}
+                                                        {user.name?.charAt(0)}
                                                     </Avatar>
                                                     <Typography
                                                         noWrap
@@ -460,7 +463,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                                             minWidth: 0
                                                         }}
                                                     >
-                                                        {user.firstName} {user.lastName}
+                                                        {user.name}
                                                     </Typography>
                                                     <IconButton
                                                         size="small"
@@ -594,6 +597,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         <Button
                             onClick={onClose}
                             variant="outlined"
+                            disabled={isSubmitting}
                             sx={{
                                 borderColor: greenPrimary,
                                 color: greenPrimary,
@@ -610,6 +614,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         <Button
                             onClick={handleReset}
                             variant="outlined"
+                            disabled={isSubmitting}
                             sx={{
                                 borderColor: greenPrimary,
                                 color: greenPrimary,
@@ -626,6 +631,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         <Button
                             onClick={handleSubmit}
                             variant="contained"
+                            disabled={isSubmitting}
                             sx={{
                                 bgcolor: greenPrimary,
                                 color: 'white',
@@ -637,7 +643,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 }
                             }}
                         >
-                            Create Project
+                            {isSubmitting ? (
+                        <CircularProgress size={24} sx={{ color: 'white' }} /> // Show spinner while submitting
+                    ) : (
+                        'Create Project'
+                    )}
                         </Button>
                     </Box>
                 </Box>

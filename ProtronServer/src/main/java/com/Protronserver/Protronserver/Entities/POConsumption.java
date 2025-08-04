@@ -34,8 +34,11 @@ public class POConsumption {
     @Column(name = "utilization_type", length = 10)
     private String utilizationType;
 
-    @Column(name = "resource_or_project")
-    private String resourceOrProject;
+    @Column(name = "resource")
+    private String resource;
+
+    @Column(name = "project")
+    private String project;
 
     @Column(name = "work_desc")
     private String workDesc;
@@ -68,6 +71,23 @@ public class POConsumption {
     private static final List<String> ALLOWED_TYPES = Arrays.asList("Fixed", "T&M", "Mixed");
 
     // ------------------ Getters and Setters ------------------
+
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
+
+    public String getProject() {
+        return project;
+    }
+
+    public void setProject(String project) {
+        this.project = project;
+    }
 
     public Long getTenantId() {
         return tenantId;
@@ -126,14 +146,6 @@ public class POConsumption {
             throw new IllegalArgumentException("Invalid utilization type. Allowed values: Fixed, T&M, Mixed");
         }
         this.utilizationType = utilizationType;
-    }
-
-    public String getResourceOrProject() {
-        return resourceOrProject;
-    }
-
-    public void setResourceOrProject(String resourceOrProject) {
-        this.resourceOrProject = resourceOrProject;
     }
 
     public String getWorkDesc() {

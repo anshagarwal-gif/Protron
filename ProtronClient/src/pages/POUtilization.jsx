@@ -32,6 +32,62 @@ import AddPOConsumptionModal from "../components/AddPOConsumptionModal";
 import EditPOConsumptionModal from "../components/EditPOConsumptionModal";
 // ViewDetailsModal Component - Fixed with correct milestone properties
 const ViewDetailsModal = ({ open, onClose, consumption }) => {
+
+  const [attachments, setAttachments] = useState([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const [attachmentError, setAttachmentError] = useState(null);
+
+  useEffect(() => {
+    if (open && consumption?.utilizationId) {
+      setLoadingAttachments(true);
+      const token = sessionStorage.getItem("token");
+
+      axios
+        .get(
+          `${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=CONSUMPTION&referenceId=${consumption.utilizationId}`,
+          {
+            headers: {
+              Authorization: `${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          setAttachments(res.data);
+          setAttachmentError(null);
+        })
+        .catch((err) => {
+          setAttachmentError("Failed to load attachments.");
+          console.error(err);
+        })
+        .finally(() => setLoadingAttachments(false));
+    }
+  }, [open, consumption?.utilizationId]);
+
+  const handleAttachmentClick = async (attachment) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/po-attachments/${attachment.id}/download`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", attachment.fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to download attachment:", error);
+    }
+  };
+
   if (!open || !consumption) return null;
 
   const formatCurrency = (amount, currencyCode) => {
@@ -62,12 +118,6 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
       return <Archive size={16} className="text-purple-600" />;
     } else {
       return <File size={16} className="text-blue-600" />;
-    }
-  };
-
-  const handleAttachmentClick = (attachment) => {
-    if (attachment.url) {
-      window.open(attachment.url, '_blank');
     }
   };
 
@@ -104,14 +154,14 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
                     <p className="text-gray-900 font-semibold break-words">{consumption.poNumber || 'N/A'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Utilization ID</label>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Consumption ID</label>
                     <p className="text-green-600 font-semibold break-words">{consumption.utilizationId || 'N/A'}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Utilization Type</label>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Consumption Type</label>
                     <span className="inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {consumption.utilizationType || 'N/A'}
                     </span>
@@ -126,7 +176,7 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
 
                 <div>
                   <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Resource/Project</label>
-                  <p className="text-gray-900 font-medium break-words">{consumption.resourceOrProject || 'N/A'}</p>
+                  <p className="text-gray-900 font-medium break-words">{consumption.project || 'N/A'}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -234,13 +284,20 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
               <Paperclip size={20} className="mr-2" />
-              ATTACHMENTS ({consumption.attachments?.length || 0})
+              ATTACHMENTS ({attachments.length})
             </h3>
-            
-            {consumption.attachments && consumption.attachments.length > 0 ? (
+
+            {loadingAttachments && (
+              <div className="text-gray-500 text-sm">Loading attachments...</div>
+            )}
+            {attachmentError && (
+              <div className="text-red-500 text-sm">{attachmentError}</div>
+            )}
+
+            {attachments.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
-                {consumption.attachments.map((attachment, index) => (
-                  <div 
+                {attachments.map((attachment, index) => (
+                  <div
                     key={index}
                     onClick={() => handleAttachmentClick(attachment)}
                     className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
@@ -249,11 +306,11 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
                       {getFileIcon(attachment.fileName || attachment.name || attachment.filename)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600" title={attachment.fileName || attachment.name || attachment.filename}>
+                      <p
+                        className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600"
+                        title={attachment.fileName || attachment.name || attachment.filename}
+                      >
                         {attachment.fileName || attachment.name || attachment.filename || `Attachment ${index + 1}`}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {attachment.fileSize || attachment.size || 'Unknown size'}
                       </p>
                     </div>
                     <Download size={14} className="text-gray-400 group-hover:text-blue-600" />
@@ -267,6 +324,8 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
               </div>
             )}
           </div>
+        
+      
         </div>
       </div>
     </div>
@@ -447,7 +506,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       consumption.utilizationId?.toString().includes(searchLower) ||
       consumption.milestone?.msName?.toLowerCase().includes(searchLower) ||
       consumption.utilizationType?.toLowerCase().includes(searchLower) ||
-      consumption.resourceOrProject?.toLowerCase().includes(searchLower) ||
+      consumption.project?.toLowerCase().includes(searchLower) ||
       consumption.workDesc?.toLowerCase().includes(searchLower) ||
       consumption.amount?.toString().includes(searchLower) ||
       consumption.currency?.toLowerCase().includes(searchLower) ||
@@ -463,10 +522,9 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       const excelData = filteredConsumptionData.map((consumption, index) => ({
         'S.No': index + 1,
         'PO Number': consumption.poNumber || 'N/A',
-        'Utilization ID': consumption.utilizationId || 'N/A',
         'Milestone Name': consumption.milestone?.msName || 'N/A',
-        'Utilization Type': consumption.utilizationType || 'N/A',
-        'Resource/Project': consumption.resourceOrProject || 'N/A',
+        'Consumption Type': consumption.utilizationType || 'N/A',
+        'Project': consumption.project || 'N/A',
         'Work Description': consumption.workDesc || 'N/A',
         'Currency': consumption.currency || 'N/A',
         'Amount': consumption.amount ? `${getCurrencySymbol(consumption.currency)}${consumption.amount.toLocaleString()}` : 'N/A',
@@ -564,22 +622,6 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
 
   const handleEditModalSubmit = async (data) => {
     try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        throw new Error("Missing authentication credentials");
-      }
-
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/po-consumption/update/${selectedConsumptionId}`,
-        data,
-        {
-          headers: { 
-            Authorization: `${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
       showSnackbar("PO Consumption updated successfully!", "success");
       fetchConsumptionData(); // Refresh the table
       setIsEditModalOpen(false);
@@ -656,31 +698,6 @@ const columnDefs = useMemo(() => [
     }
   },
   {
-    headerName: "Util ID",
-    field: "utilizationId",
-    valueGetter: params => params.data.utilizationId || 'N/A',
-    width: 80,
-    sortable: true,
-    filter: true,
-    cellStyle: { fontWeight: 'bold', color: '#059669' },
-    cellRenderer: params => {
-      const utilizationId = params.value;
-      const consumption = params.data;
-      if (utilizationId && utilizationId !== 'N/A') {
-        return (
-          <button
-            onClick={() => handleConsumptionIdClick(consumption)}
-            className="text-green-600 hover:text-green-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left truncate block w-full"
-            title={`View consumption details for ${utilizationId}`}
-          >
-            {truncateWithTooltip(utilizationId.toString(), 8)}
-          </button>
-        );
-      }
-      return <span className="text-gray-500" title={utilizationId}>{truncateWithTooltip(utilizationId?.toString() || 'N/A', 8)}</span>;
-    }
-  },
-  {
     headerName: "Milestone",
     field: "milestone.msName",
     valueGetter: params => params.data.milestone?.msName || 'N/A',
@@ -722,8 +739,8 @@ const columnDefs = useMemo(() => [
   },
   {
     headerName: "Project",
-    field: "resourceOrProject",
-    valueGetter: params => params.data.resourceOrProject || 'N/A',
+    field: "project",
+    valueGetter: params => params.data?.project || 'N/A',
     width: 120,
     minWidth: 120,
     sortable: true,

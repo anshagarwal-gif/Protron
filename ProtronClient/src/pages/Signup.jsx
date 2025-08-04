@@ -576,55 +576,49 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
 
             {/* Cost */}
             <div className="w-full mr-4">
-              <label htmlFor="cost" className="block text-slate-700 font-medium mb-2 text-sm">
-                Cost
-              </label>
-              <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
-                <select
-                  id="unit"
-                  name="unit"
-                  className="w-16 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                  value={formData.unit}
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="INR">INR</option>
-                  <option value="AUD">AUD</option>
-                </select>
-                <div className="relative flex">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                    <span className="text-green-100 font-medium text-sm">{getCurrentCurrencySymbol()}</span>
-                  </div>
-                  <input
-                    id="cost"
-                    name="cost"
-                    type="number"
-                    placeholder="0.00"
-                    className="w-full pl-8 pr-2 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
-                    value={formData.cost}
-                    onChange={handleChange}
-                    disabled={loading}
-                  />
-                  <select
-                id="cost_time"
-                name="cost_time"
-                className="w-full px-3 py-2.5 text-sm border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                value={formData.cost_time}
-                onChange={handleChange}
-                disabled={loading}
-              >
-                {timePeriods.map((period) => (
-                  <option key={period.value} value={period.value}>
-                    {period.label}
-                  </option>
-                ))}
-              </select>
-                </div>
-              </div>
-            </div>
+  <label htmlFor="cost" className="block text-slate-700 font-medium mb-2 text-sm">
+    Cost
+  </label>
+  <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
+    <select
+      id="unit"
+      name="unit"
+      className="w-16 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+      value={formData.unit}
+      onChange={handleChange}
+      disabled={loading}
+    >
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="GBP">GBP</option>
+      <option value="INR">INR</option>
+      <option value="AUD">AUD</option>
+    </select>
+    <div className="relative flex">
+      <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+        <span className="text-green-100 font-medium text-sm">{getCurrentCurrencySymbol()}</span>
+      </div>
+      <input
+        id="cost"
+        name="cost"
+        type="number"
+        placeholder="0.00"
+        className="w-full pl-8 pr-2 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
+        value={formData.cost}
+        onChange={handleChange}
+        disabled={loading}
+      />
+      <input
+        id="cost_time"
+        name="cost_time"
+        type="text"
+        className="w-full px-3 py-2.5 text-sm border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+        value="hourly"
+        disabled
+      />
+    </div>
+  </div>
+</div>
             <div className="w-full mr-4">
               <label htmlFor="mobileNumber" className="block text-slate-700 font-medium mb-2 text-sm">
                 Mobile Phone

@@ -13,6 +13,8 @@ import java.util.Optional;
 @Repository
 public interface PORepository extends JpaRepository<PODetails, Long> {
 
+    boolean existsByPoNumberAndTenantId(String poNumber, Long tenantId);
+
     // 1. Native query — also needs tenant check
     @Query(value = "SELECT po_amount FROM po_detail WHERE po_id = :poId AND tenant_id = :tenantId", nativeQuery = true)
     Optional<BigDecimal> findPoAmountById(@Param("poId") Long poId, @Param("tenantId") Long tenantId);

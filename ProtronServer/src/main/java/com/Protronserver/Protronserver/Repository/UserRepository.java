@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Repository;
 
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.ResultDTOs.UserBasicDetailDTO;
+import com.Protronserver.Protronserver.ResultDTOs.UserEditableProfileDTO;
 import com.Protronserver.Protronserver.Utils.UserProfileJson;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -79,5 +80,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
         u.email = :email
     """, nativeQuery = true)
     UserProfileJson findUserProfileById(@Param("email") String email);
+
+    @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.UserEditableProfileDTO(" +
+            "u.firstName, u.middleName, u.lastName, u.mobilePhone, " +
+            "u.addressLine1, u.addressLine2, u.addressLine3, u.city, " +
+            "u.state, u.zipCode, u.country, u.cost,u.cost_time, u.unit) " +
+            "FROM User u WHERE u.userId = :userId AND u.endTimestamp IS NULL")
+    Optional<UserEditableProfileDTO> findEditableProfileByUserId(@Param("userId") Long userId);
 
 }

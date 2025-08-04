@@ -12,12 +12,31 @@ public class TimesheetTaskRequestDTO {
     private Date date;
     private int hoursSpent;
     private int minutesSpent;
+    private int remainingHours;
+    private int remainingMinutes;
+    private String taskTopic;
     private String description;
     private Long projectId;
     private List<AttachmentDTO> attachments; // Changed from List<byte[]> to List<AttachmentDTO>
 
     // Default constructor
     public TimesheetTaskRequestDTO() {
+    }
+
+    public int getRemainingHours() {
+        return remainingHours;
+    }
+
+    public void setRemainingHours(int remainingHours) {
+        this.remainingHours = remainingHours;
+    }
+
+    public int getRemainingMinutes() {
+        return remainingMinutes;
+    }
+
+    public void setRemainingMinutes(int remainingMinutes) {
+        this.remainingMinutes = remainingMinutes;
     }
 
     public String getTaskType() {
@@ -74,5 +93,13 @@ public class TimesheetTaskRequestDTO {
 
     public void setAttachments(List<AttachmentDTO> attachments) {
         this.attachments = attachments;
+    }
+
+    public String getTaskTopic() {
+        return taskTopic;
+    }
+
+    public void setTaskTopic(String taskTopic) {
+        this.taskTopic = taskTopic;
     }
 }

@@ -1,6 +1,6 @@
 // AddMilestoneModal.js
 import { useState, useEffect } from "react";
-import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock } from "lucide-react";
+import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock, Upload } from "lucide-react";
 import axios from "axios";
 
 const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
@@ -12,7 +12,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     msDate: "",
     msDuration: "",
     msRemarks: "",
-    msAttachment: null,
     poId: poId,
     poNumber: ""
   });
@@ -21,6 +20,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   const [poDetails, setPODetails] = useState(null);
   const [descWordCount, setDescWordCount] = useState(0);
   const [remarksWordCount, setRemarksWordCount] = useState(0);
+  const [poBalance, setPOBalance] = useState(null);
+  const [milestoneFiles, setMilestoneFiles] = useState([]);
 
   // Fetch PO details to get PO number and currency
   useEffect(() => {
@@ -49,6 +50,27 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
     fetchPODetails();
   }, [open, poId]);
+  useEffect(() => {
+    const fetchPOBalance = async () => {
+      if (poId) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+            {
+              headers: { Authorization: `${token}` }
+            }
+          );
+          console.log(response.data);
+          setPOBalance(response.data);
+          console.log(poId, response.data);
+        } catch (error) {
+          console.error("Error fetching PO balance:", error);
+        }
+      }
+    };
+    fetchPOBalance();
+  }, [poId]);
 
   // Initialize word counts when form data is set
   useEffect(() => {
@@ -70,7 +92,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
-    
+
     if (type === 'file') {
       setFormData(prev => ({
         ...prev,
@@ -99,13 +121,13 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         }
         setRemarksWordCount(wordCount);
       }
-      
+
       setFormData(prev => ({
         ...prev,
         [name]: value
       }));
     }
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -113,6 +135,24 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         [name]: ""
       }));
     }
+  };
+
+  const handleMSFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+
+    // Check max limit of 4 files
+    if (milestoneFiles.length + files.length > 4) {
+      alert("You can upload a maximum of 4 attachments.");
+      return;
+    }
+
+    setMilestoneFiles(prev => [...prev, ...files]);
+    e.target.value = null;
+  };
+
+  const removeMilestoneAttachment = (index) => {
+    setMilestoneFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const validateForm = () => {
@@ -140,11 +180,13 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
+    console.log(onSubmit)
 
+    console.log("elseCall", milestoneFiles);
     setLoading(true);
     try {
       const token = sessionStorage.getItem('token');
@@ -170,22 +212,62 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
         submitData,
         {
-          headers: { 
+          headers: {
             Authorization: `${token}`,
             'Content-Type': 'application/json'
           }
         }
       );
+      console.log('Milestone added successfully:', response.data);
+      const milestoneId = response.data.id || response.data.msId;
+      const milestoneName = response.data.msName;
 
-      onSubmit(response.data);
-      handleClose();
+      if (milestoneFiles.length > 0) {
+        for (const file of milestoneFiles) {
+          const attachmentForm = new FormData();
+          attachmentForm.append("file", file);
+          attachmentForm.append("level", "MS");
+          attachmentForm.append("referenceId", milestoneId);
+          attachmentForm.append("referenceNumber", milestoneName || "");
+
+          try {
+            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+              method: "POST",
+              headers: {
+                Authorization: `${token}`
+              },
+              body: attachmentForm
+            });
+
+            if (!uploadRes.ok) {
+              console.error(`Attachment upload failed for ${file.name}`);
+            }
+          } catch (err) {
+            console.error("Attachment upload error:", err);
+          }
+        }
+      }
+
+      onSubmit({
+          msId: milestoneId,
+          milestoneName: formData.msName,
+          milestoneDescription: formData.msDesc,
+          amount: parseInt(formData.msAmount) || 0,
+          currency: formData.msCurrency,
+          date: formData.msDate ? new Date(formData.msDate).toISOString().split('T')[0] : null,
+          duration: parseInt(formData.msDuration) || 0,
+          remark: formData.msRemarks || "",
+          attachments: milestoneFiles
+        });
+
     } catch (error) {
       console.error("Error adding milestone:", error);
-      setErrors({ 
-        submit: error.response?.data?.message || error.message || "Failed to add milestone" 
+      setErrors({
+        submit: error.response?.data?.message || error.message || "Failed to add milestone"
       });
     } finally {
       setLoading(false);
+
     }
   };
 
@@ -198,7 +280,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       msDate: "",
       msDuration: "",
       msRemarks: "",
-      msAttachment: null,
       poId: poId,
       poNumber: poDetails?.poNumber || ""
     });
@@ -240,8 +321,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
           <div className="space-y-4">
             {/* Row 1: Milestone Name, Currency, and Amount (all at top) */}
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-6">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Target size={14} className="inline mr-1" />
                   Milestone Name *
@@ -251,9 +332,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   name="msName"
                   value={formData.msName}
                   onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.msName ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msName ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter milestone name"
                   disabled={loading}
                 />
@@ -262,7 +342,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 )}
               </div>
 
-              <div className="col-span-2">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Currency
                 </label>
@@ -281,9 +361,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 </select>
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <DollarSign size={14} className="inline mr-1" />
                   Amount *
                 </label>
                 <input
@@ -293,23 +372,20 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   onChange={handleInputChange}
                   step="1"
                   min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.msAmount ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msAmount ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="0"
                   disabled={loading}
                 />
                 {errors.msAmount && (
                   <p className="mt-1 text-xs text-red-600">{errors.msAmount}</p>
                 )}
+                <label className="text-xs text-red-500 mt-1">
+                  PO Balance: {poBalance !== null ? `${poBalance} ${formData.msCurrency}` : 'Loading...'}
+                </label>
               </div>
 
-              <div className="col-span-1"></div> {/* Small spacer */}
-            </div>
-
-            {/* Row 2: Duration, Date and Attachment */}
-            <div className="grid grid-cols-8 gap-4">
-              <div className="col-span-2">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Clock size={14} className="inline mr-1" />
                   Duration (Days)
@@ -320,9 +396,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   value={formData.msDuration}
                   onChange={handleInputChange}
                   min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${
-                    errors.msDuration ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msDuration ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="0"
                   disabled={loading}
                 />
@@ -330,8 +405,13 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   <p className="mt-1 text-xs text-red-600">{errors.msDuration}</p>
                 )}
               </div>
+            </div>
 
-              <div className="col-span-3">
+            {/* Row 2: Duration, Date and Attachment */}
+            <div className="grid grid-cols-4 gap-4">
+
+
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
                   Milestone Date
@@ -346,19 +426,50 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 />
               </div>
 
-              <div className="col-span-3">
+              <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
-                  Attachment
+                  Milestone Attachments (Max 4)
                 </label>
-                <input
-                  type="file"
-                  name="msAttachment"
-                  onChange={handleInputChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                  disabled={loading}
-                />
+
+                <div className="relative">
+                  <input
+                    type="file"
+                    multiple
+                    id="ms-attachment-input"
+                    onChange={handleMSFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
+                    className="hidden"
+                    disabled={loading}
+                  />
+                  <label
+                    htmlFor="ms-attachment-input"
+                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="text-gray-600">
+                      {milestoneFiles.length > 0 ? `${milestoneFiles.length} file(s) selected` : 'Click to select files'}
+                    </span>
+                    <Upload size={16} className="text-green-600" />
+                  </label>
+                </div>
+
+                <ul className="mt-2 text-xs text-gray-700 space-y-1">
+                  {milestoneFiles.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                    >
+                      <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeMilestoneAttachment(index)}
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
 
@@ -376,9 +487,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 value={formData.msDesc}
                 onChange={handleInputChange}
                 rows={4}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  errors.msDesc ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max 500 words)"
                 disabled={loading}
               />
@@ -401,9 +511,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 value={formData.msRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${
-                  remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 words)"
                 disabled={loading}
               />

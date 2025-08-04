@@ -1,9 +1,11 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.POConsumptionDTO;
+import com.Protronserver.Protronserver.Entities.POAttachments;
 import com.Protronserver.Protronserver.Entities.POConsumption;
 import com.Protronserver.Protronserver.Entities.POMilestone;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Repository.POAttachmentRepository;
 import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
@@ -30,6 +32,9 @@ public class POConsumptionService {
 
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
+
+    @Autowired
+    private POAttachmentRepository poAttachmentRepository;
 
     public POConsumption addPOConsumption(POConsumptionDTO dto) {
 
@@ -117,7 +122,8 @@ public class POConsumptionService {
         consumption.setAmount(dto.getAmount());
         consumption.setCurrency(dto.getCurrency());
         consumption.setUtilizationType(dto.getUtilizationType());
-        consumption.setResourceOrProject(dto.getResourceOrProject());
+        consumption.setResource(dto.getResource());
+        consumption.setProject(dto.getProject());
         consumption.setWorkDesc(dto.getWorkDesc());
         consumption.setWorkAssignDate(dto.getWorkAssignDate());
         consumption.setWorkCompletionDate(dto.getWorkCompletionDate());
@@ -222,7 +228,8 @@ public class POConsumptionService {
         newConsumption.setAmount(dto.getAmount());
         newConsumption.setCurrency(dto.getCurrency());
         newConsumption.setUtilizationType(dto.getUtilizationType());
-        newConsumption.setResourceOrProject(dto.getResourceOrProject());
+        newConsumption.setResource(dto.getResource());
+        newConsumption.setProject(dto.getProject());
         newConsumption.setWorkDesc(dto.getWorkDesc());
         newConsumption.setWorkAssignDate(dto.getWorkAssignDate());
         newConsumption.setWorkCompletionDate(dto.getWorkCompletionDate());
@@ -235,7 +242,15 @@ public class POConsumptionService {
         newConsumption.setLastUpdateTimestamp(null);
         newConsumption.setUpdatedBy(null);
 
-        return poConsumptionRepository.save(newConsumption);
+        POConsumption savedNewConsumption = poConsumptionRepository.save(newConsumption);
+
+        List<POAttachments> attachments = poAttachmentRepository.findByLevelAndReferenceId("CONSUMPTION", existingConsumption.getUtilizationId());
+        for (POAttachments attachment : attachments) {
+            attachment.setReferenceId(savedNewConsumption.getUtilizationId());
+            poAttachmentRepository.save(attachment);
+        }
+
+        return savedNewConsumption;
     }
 
 
@@ -298,5 +313,8 @@ public class POConsumptionService {
         consumption.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
 
         poConsumptionRepository.save(consumption);
+
+        poAttachmentRepository.deleteByLevelAndReferenceId("CONSUMPTION", utilizationId);
+
     }
 }
