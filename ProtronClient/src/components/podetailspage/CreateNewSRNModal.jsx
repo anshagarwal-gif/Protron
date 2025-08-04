@@ -21,6 +21,9 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
     })
     const [errors, setErrors] = useState({})
     const [loading, setLoading] = useState(false)
+    const [poBalance, setPOBalance] = useState(null)
+    const [milestoneBalance, setMilestoneBalance] = useState(null)
+    const [srnFiles, setSrnFiles] = useState([])
 
     const fetchPODetails = async () => {
         try {
@@ -56,8 +59,95 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
             fetchPOMilestones()
         }
     }, [poId])
+    useEffect(() => {
+        const fetchPOBalance = async (poId) => {
+            if (poId) {
+                try {
+                    const token = sessionStorage.getItem('token');
+                    const response = await axios.get(
+                        `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+                        {
+                            headers: { Authorization: `${token}` }
+                        }
+                    );
+                    setPOBalance(response.data);
+                    console.log(response.data)
+                } catch (error) {
+                    console.error("Error fetching PO balance:", error);
+                }
+            }
+        }
+        const fetchMilestoneBalance = async (poId, msId) => {
+            if (poId && msId) {
+                try {
+                    const token = sessionStorage.getItem('token');
+                    const response = await axios.get(
+                        `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance/${poId}/${msId}`,
+                        {
+                            headers: { Authorization: `${token}` }
+                        }
+                    );
+                    setMilestoneBalance(response.data);
+                } catch (error) {
+                    console.error("Error fetching milestone balance:", error);
+                }
+            }
+        };
 
-    // Form validation function
+        fetchPOBalance(formData.poId);
+        if (formData.poId && formData.msId) {
+            fetchMilestoneBalance(formData.poId, formData.msId);
+        } else {
+            setMilestoneBalance(null);
+        }
+    }, [formData.poId, formData.msId])
+
+    const removeSRNAttachment = (index) => {
+        setSrnFiles(prev => prev.filter((_, i) => i !== index));
+    };
+    const handleFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+
+        // Combine existing and new files
+        const totalFiles = srnFiles.length + files.length;
+        if (totalFiles > 4) {
+            setSrnErrors("You can upload a maximum of 4 attachments.");
+            e.target.value = null;
+            return;
+        }
+
+        // Validate each file
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'text/plain'
+        ];
+
+        for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) {
+                setSrnErrors("File size must be less than 10MB.");
+                e.target.value = null;
+                return;
+            }
+            if (!allowedTypes.includes(file.type)) {
+                setSrnErrors("Unsupported file type.");
+                e.target.value = null;
+                return;
+            }
+        }
+
+        setSrnFiles(prev => [...prev, ...files]);
+        setSrnErrors(""); // clear error
+        e.target.value = null; // reset input
+    };
+
     const validateForm = () => {
         const newErrors = {}
 
@@ -280,7 +370,21 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                             </div>
 
                             <div>
-                                <label className='block text-sm font-medium text-gray-700 mb-2'>SRN Amount*</label>
+                                <div className='flex justify-between items-center'>
+                                    <label className='block text-sm font-medium text-gray-700 mb-2'>SRN Amount*</label>
+                                    <label className='block text-[10px] font-medium text-gray-700 mb-2'>
+                                        {milestoneBalance ? (
+                                            <span className="text-red-600">
+                                                Milestone Balance: ₹{milestoneBalance}
+                                            </span>
+                                        ) : (
+                                            <span className="text-red-600">
+                                                PO Balance: ₹{poBalance}
+                                            </span>
+                                        )}
+                                    </label>
+
+                                </div>
                                 <input
                                     type="number"
                                     name="srnAmount"
@@ -319,7 +423,53 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                 </div>
                             </div>
                         </div>
+                        <div className="grid grid-cols-6 gap-4">
 
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachments (Max 4)</label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="srn-attachment-input"
+                                        onChange={handleFileChange}
+                                        name="srnAttachment"
+                                        className="hidden"
+                                        disabled={loading}
+                                        multiple
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                                    />
+                                    <label
+                                        htmlFor="srn-attachment-input"
+                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
+                                    >
+                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                                        <span className="text-gray-500 truncate">
+                                            {srnFiles.length > 0 ? `${srnFiles.length} file(s) selected` : 'Click to select files'}
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* List of selected files */}
+                                <ul className="mt-2 text-sm text-gray-700 space-y-1">
+                                    {srnFiles.map((file, index) => (
+                                        <li
+                                            key={index}
+                                            className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                        >
+                                            <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeSRNAttachment(index)}
+                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                            >
+                                                Delete
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
                         <div>
                             <label htmlFor="srnDsc" className="block text-sm font-medium text-gray-700 mb-2">
                                 SRN Description

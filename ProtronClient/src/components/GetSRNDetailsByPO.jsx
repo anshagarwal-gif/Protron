@@ -87,6 +87,13 @@ const GetSRNDetailsByPO = ({ poId }) => {
       showSnackbar('Failed to download Excel file. Please try again.', 'error');
     }
   }
+  useEffect(()=>{
+    if(isAddSRNOpen){
+      document.body.classList.add('overflow-hidden')
+    }else{
+      document.body.classList.remove('overflow-hidden')
+    }
+  })
   const filteredSRNDetails = srnDetails.filter(srnDetails => {
     if (searchQuery === "") return true;
 
