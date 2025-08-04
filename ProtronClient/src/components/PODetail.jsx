@@ -8,6 +8,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import GetSRNDetailsByPO from "./GetSRNDetailsByPO";
 import GetConsumptionByPO from "./GetConsumptionByPO";
+import ViewMilestoneModal from "../components/ViewMilestoneModal";
 
 import {
   ArrowLeft,
@@ -46,6 +47,15 @@ const PODetailsPage = () => {
   const [isAddMilestoneModalOpen, setIsAddMilestoneModalOpen] = useState(false);
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
+const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
+
+
+  useEffect(() => {
+  if (selectedMilestone) {
+    setIsViewMilestoneModalOpen(true);
+  }
+}, [selectedMilestone]);
 
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -395,12 +405,20 @@ const PODetailsPage = () => {
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             <button
+            onClick={() => setSelectedMilestone(milestone)}
+            className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+            title="View Milestone"
+          >
+            <Eye size={16} className="text-blue-600" />
+          </button>
+            <button
               onClick={() => handleEditMilestone(milestone)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
               title="Edit Milestone"
             >
               <Edit size={16} className="text-blue-600" />
             </button>
+            
           </div>
         );
       }
@@ -694,6 +712,15 @@ const PODetailsPage = () => {
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
       />
+
+      <ViewMilestoneModal
+  open={isViewMilestoneModalOpen}
+  onClose={() => {
+    setIsViewMilestoneModalOpen(false);
+    setSelectedMilestone(null);
+  }}
+  milestoneData={selectedMilestone}
+/>
     </div>
   );
 };
