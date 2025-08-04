@@ -378,9 +378,35 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     e.target.value = null; // Reset file input
   };
 
-  const removePOConsumptionFile = (index) => {
-    setPoConsumptionFiles(prev => prev.filter((_, i) => i !== index));
-  };
+  const removePOConsumptionFile = async (index) => {
+  const fileToRemove = poConsumptionFiles[index];
+
+  // Check if the file has an ID (existing file)
+  if (fileToRemove.id) {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${fileToRemove.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: token,
+        },
+      });
+
+      if (!response.ok) {
+        console.error(`Failed to delete file with ID: ${fileToRemove.id}`);
+        return;
+      }
+
+      console.log(`File with ID: ${fileToRemove.id} deleted successfully`);
+    } catch (error) {
+      console.error(`Error deleting file with ID: ${fileToRemove.id}`, error);
+      return;
+    }
+  }
+
+  // Update state to remove the file
+  setPoConsumptionFiles((prev) => prev.filter((_, i) => i !== index));
+};
 
   // Function to handle date input clicks
   const handleDateInputClick = (inputName) => {
@@ -569,7 +595,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           const fileData = new FormData();
           fileData.append("file", file);
           fileData.append("level", "CONSUMPTION");
-          fileData.append("referenceId", consumptionId);
+          fileData.append("referenceId", response.data.utilizationId);
 
           const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
             method: "POST",

@@ -2,11 +2,9 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.POMilestoneAddDTO;
 import com.Protronserver.Protronserver.Entities.*;
-import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
-import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
-import com.Protronserver.Protronserver.Repository.PORepository;
-import com.Protronserver.Protronserver.Repository.SRNRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +29,9 @@ public class POMilestoneService {
 
     @Autowired
     private POConsumptionRepository poConsumptionRepository;
+
+    @Autowired
+    private POAttachmentRepository poAttachmentRepository;
 
     public POMilestone addMilestone(POMilestoneAddDTO dto) {
         // 1. Fetch the parent PO
@@ -78,6 +79,7 @@ public class POMilestoneService {
         return poMilestoneRepository.save(milestone);
     }
 
+    @Transactional
     public POMilestone updateMilestone(Long id, POMilestoneAddDTO dto) {
 
         Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
@@ -138,6 +140,9 @@ public class POMilestoneService {
         newMilestone.setLastUpdateBy(null);
 
         POMilestone savedNewMilestone = poMilestoneRepository.save(newMilestone);
+
+        poAttachmentRepository.updateReferenceId("MS", existingMilestone.getMsId(), savedNewMilestone.getMsId());
+
 
         List<SRNDetails> srnsToUpdate = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), id, currentTenantId);
         for (SRNDetails srn : srnsToUpdate) {

@@ -1,9 +1,11 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.POConsumptionDTO;
+import com.Protronserver.Protronserver.Entities.POAttachments;
 import com.Protronserver.Protronserver.Entities.POConsumption;
 import com.Protronserver.Protronserver.Entities.POMilestone;
 import com.Protronserver.Protronserver.Entities.User;
+import com.Protronserver.Protronserver.Repository.POAttachmentRepository;
 import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
@@ -30,6 +32,9 @@ public class POConsumptionService {
 
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
+
+    @Autowired
+    private POAttachmentRepository poAttachmentRepository;
 
     public POConsumption addPOConsumption(POConsumptionDTO dto) {
 
@@ -237,7 +242,15 @@ public class POConsumptionService {
         newConsumption.setLastUpdateTimestamp(null);
         newConsumption.setUpdatedBy(null);
 
-        return poConsumptionRepository.save(newConsumption);
+        POConsumption savedNewConsumption = poConsumptionRepository.save(newConsumption);
+
+        List<POAttachments> attachments = poAttachmentRepository.findByLevelAndReferenceId("CONSUMPTION", existingConsumption.getUtilizationId());
+        for (POAttachments attachment : attachments) {
+            attachment.setReferenceId(savedNewConsumption.getUtilizationId());
+            poAttachmentRepository.save(attachment);
+        }
+
+        return savedNewConsumption;
     }
 
 
@@ -300,5 +313,8 @@ public class POConsumptionService {
         consumption.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
 
         poConsumptionRepository.save(consumption);
+
+        poAttachmentRepository.deleteByLevelAndReferenceId("CONSUMPTION", utilizationId);
+
     }
 }

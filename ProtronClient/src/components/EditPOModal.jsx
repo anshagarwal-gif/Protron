@@ -52,9 +52,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         poStartDate: '',
         poEndDate: '',
         poDesc: '',
-        poAttachments: [], // Changed to handle multiple attachments
         milestones: []
     });
+    const [poAttachments, setPoAttachments] = useState([]); // Separate state for attachments
 
     const handleNextStep = async () => {
         if (currentStep === 1) {
@@ -88,7 +88,37 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 });
 
                 if (response.ok) {
-                    setCurrentStep(2); // Move to the Milestones step
+                    const poData = await response.json();
+                    console.log('PO updated successfully:', poData);
+
+                    // Upload attachments
+                    for (let file of poAttachments) {
+                        if (file instanceof File) {
+
+                            const attachmentFormData = new FormData();
+                            attachmentFormData.append('file', file);
+                            attachmentFormData.append('level', 'PO');
+                            attachmentFormData.append('referenceId', poData.poId);
+                            attachmentFormData.append('referenceNumber', poPayload.poNumber);
+
+                            const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+                                method: 'POST',
+                                headers: { Authorization: token },
+                                body: attachmentFormData
+                            });
+
+                            if (!uploadResponse.ok) {
+                                const uploadError = await uploadResponse.text();
+                                console.warn(`Attachment upload failed: ${file.name} - ${uploadError}`);
+                            }
+                        }
+                    }
+                    // setCurrentStep(2);
+                    onSubmit?.();
+                    onClose();
+                    setCurrentStep(1);
+                    setEditingMilestone(null);
+                    setPoAttachments([]);
                 } else {
                     const errorData = await response.json();
                     console.error('PO Update Error:', errorData);
@@ -118,6 +148,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         label: user.name,
     }));
     const [countries, setCountries] = useState([]);
+    const [milestoneAttachments, setMilestoneAttachments] = useState([]); // Separate state for milestone attachments
 
     const fetchUsers = async () => {
         try {
@@ -183,7 +214,6 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 poStartDate: poData.poStartDate || '',
                 poEndDate: poData.poEndDate || '',
                 poDesc: poData.poDesc || '',
-                poAttachments: [], // Existing attachments are not fetched, user can only add new ones
                 milestones: milestonesData.map(milestone => {
                     let formattedDate = '';
                     if (milestone.msDate) {
@@ -214,12 +244,32 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         }
     };
 
+    const fetchPOAttachments = async (poId) => {
+        try {
+            const token = sessionStorage.getItem("token");
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=PO&referenceId=${poId}`, {
+                headers: { Authorization: token }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setPoAttachments(data); // Set this in your component state
+            } else {
+                console.error("Failed to fetch PO attachments");
+            }
+        } catch (err) {
+            console.error("Error fetching PO attachments:", err);
+        }
+    };
+
+
     useEffect(() => {
         if (open && poId) {
             fetchUsers();
             fetchProjects();
             fetchCountries();
             fetchPOData();
+            fetchPOAttachments(poId);
         }
     }, [open, poId]);
 
@@ -230,28 +280,98 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         }));
     };
 
-    const handleFileChange = (e, field) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (formData[field].length >= 4) {
-            alert("You can upload a maximum of 4 attachments.");
-            return;
-        }
+    const handleFileChange = (e) => {
+        const selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length === 0) return;
 
-        setFormData((prev) => ({
-            ...prev,
-            [field]: [...prev[field], file],
-        }));
+        setPoAttachments((prevFiles) => {
+            const totalFiles = prevFiles.length + selectedFiles.length;
 
-        // Reset input value to allow re-selecting the same file
-        e.target.value = null;
+            if (totalFiles > 4) {
+                alert(`Maximum 4 attachments allowed. You already selected ${prevFiles.length}.`);
+                return prevFiles;
+            }
+
+            return [...prevFiles, ...selectedFiles];
+        });
+
+        e.target.value = null; // Reset file input
     };
 
-    const removeAttachment = (indexToRemove) => {
-        setFormData((prev) => ({
-            ...prev,
-            poAttachments: prev.poAttachments.filter((_, i) => i !== indexToRemove),
-        }));
+    const removeAttachment = async (indexToRemove) => {
+        const attachmentToRemove = poAttachments[indexToRemove];
+
+        // Check if the attachment has an ID (existing attachment)
+        if (attachmentToRemove.id) {
+            try {
+                const token = sessionStorage.getItem("token");
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachmentToRemove.id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: token,
+                    },
+                });
+
+                if (!response.ok) {
+                    console.error(`Failed to delete attachment with ID: ${attachmentToRemove.id}`);
+                    return;
+                }
+
+                console.log(`Attachment with ID: ${attachmentToRemove.id} deleted successfully`);
+            } catch (error) {
+                console.error(`Error deleting attachment with ID: ${attachmentToRemove.id}`, error);
+                return;
+            }
+        }
+
+        // Update state to remove the attachment
+        setPoAttachments((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
+    };
+
+    const handleMilestoneFileChange = (milestoneIndex, e) => {
+        const selectedFiles = Array.from(e.target.files);
+        if (selectedFiles.length === 0) return;
+
+        setMilestoneAttachments((prevFiles) => {
+            const updatedFiles = [...prevFiles];
+            updatedFiles[milestoneIndex] = selectedFiles;
+            return updatedFiles;
+        });
+
+        e.target.value = null; // Reset file input
+    };
+
+    const removeMilestoneAttachment = async (milestoneIndex, fileIndex) => {
+        const attachmentToRemove = milestoneAttachments[milestoneIndex]?.[fileIndex];
+
+        // Check if the attachment has an ID (existing attachment)
+        if (attachmentToRemove.id) {
+            try {
+                const token = sessionStorage.getItem("token");
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachmentToRemove.id}`, {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: token,
+                    },
+                });
+
+                if (!response.ok) {
+                    console.error(`Failed to delete attachment with ID: ${attachmentToRemove.id}`);
+                    return;
+                }
+
+                console.log(`Attachment with ID: ${attachmentToRemove.id} deleted successfully`);
+            } catch (error) {
+                console.error(`Error deleting attachment with ID: ${attachmentToRemove.id}`, error);
+                return;
+            }
+        }
+
+        setMilestoneAttachments((prevFiles) => {
+            const updatedFiles = [...prevFiles];
+            updatedFiles[milestoneIndex] = updatedFiles[milestoneIndex].filter((_, index) => index !== fileIndex);
+            return updatedFiles;
+        });
     };
 
     const AttachmentRenderer = (params) => {
@@ -451,10 +571,35 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 if (!milestoneResponse.ok) {
                     console.error('Failed to save milestone:', await milestoneResponse.text());
                 }
+
+                const milestoneIndex = formData.milestones.indexOf(milestone);
+                if (milestoneAttachments[milestoneIndex]) {
+                    for (let file of milestoneAttachments[milestoneIndex]) {
+                        const attachmentFormData = new FormData();
+                        attachmentFormData.append('file', file);
+                        attachmentFormData.append('level', 'Milestone');
+                        attachmentFormData.append('referenceId', milestone.msId || milestoneResponse.msId);
+                        attachmentFormData.append('referenceNumber', formData.poNumber);
+
+                        const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+                            method: 'POST',
+                            headers: { Authorization: token },
+                            body: attachmentFormData
+                        });
+
+                        if (!uploadResponse.ok) {
+                            const uploadError = await uploadResponse.text();
+                            console.warn(`Attachment upload failed: ${file.name} - ${uploadError}`);
+                        }
+                    }
+                }
+
             }
 
             onSubmit?.();
             onClose();
+            setCurrentStep(1);
+            setEditingMilestone(null);
         } catch (error) {
             console.error('Error submitting milestones:', error);
             alert('Network error. Please try again.');
@@ -475,18 +620,18 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
     const fetchCountries = async () => {
         try {
-          const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
-          const countriesData = response.data.geonames.map(country => ({
-            code: country.countryCode,
-            name: country.countryName,
-            geonameId: country.geonameId
-          })).sort((a, b) => a.name.localeCompare(b.name));
+            const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
+            const countriesData = response.data.geonames.map(country => ({
+                code: country.countryCode,
+                name: country.countryName,
+                geonameId: country.geonameId
+            })).sort((a, b) => a.name.localeCompare(b.name));
 
-          setCountries(countriesData);
+            setCountries(countriesData);
         } catch (error) {
-          console.error("Failed to fetch countries:", error);
+            console.error("Failed to fetch countries:", error);
         }
-      };
+    };
 
     if (!open) return null;
 
@@ -498,7 +643,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                         {currentStep === 1 ? 'Edit PO Details' : 'Edit Milestones'}
                     </h2>
                     <button
-                        onClick={()=>{
+                        onClick={() => {
                             setCurrentStep(1);
                             setEditingMilestone(null);
                             setIsEditMilestoneModalOpen(false);
@@ -549,21 +694,21 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     </select>
                                 </div>
                                 <div className="lg:col-span-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO Country</label>
-                                        <select
-                                            value={formData.poCountry}
-                                            onChange={handleChange('poCountry')}
-                                            title={formData.poCountry || 'Select from list'} // Tooltip on hover
-                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
-                                        >
-                                            <option value="">Select from list</option>
-                                            {countries.map((country) => (
-                                                <option key={country.code} value={country.name}>
-                                                    {country.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Country</label>
+                                    <select
+                                        value={formData.poCountry}
+                                        onChange={handleChange('poCountry')}
+                                        title={formData.poCountry || 'Select from list'} // Tooltip on hover
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                    >
+                                        <option value="">Select from list</option>
+                                        {countries.map((country) => (
+                                            <option key={country.code} value={country.name}>
+                                                {country.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                                 <div className='lg:col-span-1'>
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Currency">
                                         Currency <span className="text-red-500">*</span>
@@ -937,45 +1082,41 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                                 {/* SPOC, Project, Customer, Supplier, Attachments */}
-                                
-                                
+
+
 
 
 
                             </div>
                             <div className="lg:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Add/Replace PO Attachments (Max 4)">
-                                    Add/Replace PO Attachments (Max 4)
-                                </label>
-                                <div className="relative w-[200px]">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
+                                <div className="relative">
                                     <input
                                         type="file"
-                                        id="po-attachment-input-edit"
-                                        onChange={(e) => handleFileChange(e, 'poAttachments')}
+                                        id="po-attachment-input"
+                                        multiple
+                                        onChange={handleFileChange}
                                         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                         className="hidden"
                                     />
                                     <label
-                                        htmlFor="po-attachment-input-edit"
-                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
-                                        title={formData.poAttachments.length > 0 ? `${formData.poAttachments.length} new file(s) selected` : 'Click to select files'}
+                                        htmlFor="po-attachment-input"
+                                        className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
                                     >
                                         <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
                                         <span className="text-gray-500 truncate">
-                                            {formData.poAttachments.length > 0
-                                                ? `${formData.poAttachments.length} new file(s) selected`
-                                                : 'Click to select files'}
+                                            {poAttachments.length > 0 ? `${poAttachments.length} file(s) selected` : 'Click to select files'}
                                         </span>
                                     </label>
                                 </div>
 
                                 <ul className="mt-2 text-sm text-gray-700 space-y-1">
-                                    {formData.poAttachments.map((file, index) => (
+                                    {poAttachments.map((file, index) => (
                                         <li
                                             key={index}
-                                            className="flex max-w-[200px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                            className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
                                         >
-                                            <span className="truncate max-w-[140px]" title={file.name}>{file.name}</span>
+                                            <span className="truncate max-w-[220px]" title={file.fileName}>{file.fileName}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => removeAttachment(index)}
@@ -986,37 +1127,36 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         </li>
                                     ))}
                                 </ul>
-
                             </div>
                             <div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
-                                    Project Description
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    value={formData.poDesc}
-                                    onChange={handleChange('poDesc')}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                    title={formData.poDesc || "Enter Project Description"}
-                                    placeholder="Enter Project Description"
-                                />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
+                                        Project Description
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={formData.poDesc}
+                                        onChange={handleChange('poDesc')}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
+                                        title={formData.poDesc || "Enter Project Description"}
+                                        placeholder="Enter Project Description"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
+                                        Budget Line Remarks
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={formData.budgetLineRemarks}
+                                        onChange={handleChange('budgetLineRemarks')}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
+                                        title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
+                                        placeholder="Enter Budget Line Remarks"
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
-                                    Budget Line Remarks
-                                </label>
-                                <textarea
-                                    rows={3}
-                                    value={formData.budgetLineRemarks}
-                                    onChange={handleChange('budgetLineRemarks')}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                    title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
-                                    placeholder="Enter Budget Line Remarks"
-                                />
-                            </div>
-                                    </div>
 
                         </div>
                     )}
@@ -1051,7 +1191,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                             onClick={handleNextStep}
                             className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
                         >
-                            Next
+                            Submit
                         </button>
                     ) : (
                         <button

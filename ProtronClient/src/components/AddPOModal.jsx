@@ -252,6 +252,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
             alert('PO created successfully.');
             setCurrentStep(2);
+            setPoFiles([]);
 
         } catch (error) {
             console.error('Error creating PO:', error);
@@ -263,6 +264,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     const handleSubmitMilestones = async () => {
         onSubmit?.();
         onClose();
+        setCurrentStep(1);
     };
 
 
