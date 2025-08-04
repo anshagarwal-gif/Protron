@@ -31,7 +31,16 @@ const currencySymbols = {
     AUD: 'A$'
 };
 
-const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
+const AddInvoiceModal = ({ 
+    open, 
+    onClose, 
+    onSubmit, 
+    timesheetData, 
+    viewMode, 
+    currentWeekStart, 
+    currentMonthRange, 
+    employee 
+}) => {
     const [formData, setFormData] = useState({
         invoiceName: '',
         customerName: '',
@@ -66,6 +75,168 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
     const toDateInputRef = useRef(null);
     const fileInputRef = useRef(null);
 
+    // Helper functions for timesheet data processing
+    const formatDate = (date) =>
+        date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
+    
+    const formatDateKey = (date) => date.toISOString().split("T")[0];
+    
+    const isWeekend = (date) => {
+        const day = date.getDay();
+        return day === 0 || day === 6;
+    };
+
+    const getWeekDates = (startDate) => {
+        const dates = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            dates.push(date);
+        }
+        return dates;
+    };
+
+    const getMonthDates = () => {
+        const dates = [];
+        const current = new Date(currentMonthRange.start);
+        while (current <= currentMonthRange.end) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+        }
+        return dates;
+    };
+
+    const getCurrentDates = () => (viewMode === "Weekly" ? getWeekDates(currentWeekStart) : getMonthDates());
+
+    const getTimeEntries = (date) => {
+        const dateKey = formatDateKey(date);
+        return timesheetData[dateKey] || [];
+    };
+
+    const getDayTotalTime = (date) => {
+        const entries = getTimeEntries(date);
+        let totalMinutes = entries.reduce((total, entry) => {
+            return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
+        }, 0);
+
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
+        return { hours, minutes };
+    };
+
+    const prepareTimesheetData = () => {
+        if (!attachTimesheet || !timesheetData) return null;
+
+        const dates = getCurrentDates();
+        const timesheetEntries = [];
+        let totalHours = 0;
+        let totalMinutes = 0;
+
+        dates.forEach((date) => {
+            const entries = getTimeEntries(date);
+            const dayTotal = getDayTotalTime(date);
+            
+            totalHours += dayTotal.hours;
+            totalMinutes += dayTotal.minutes;
+
+            entries.forEach((entry) => {
+                timesheetEntries.push({
+                    date: formatDate(date),
+                    dayOfWeek: date.toLocaleDateString("en-GB", { weekday: "short" }),
+                    isWeekend: isWeekend(date),
+                    taskType: entry.task || entry.fullTask?.taskType || '',
+                    taskTopic: entry.fullTask?.taskTopic || '',
+                    hours: entry.hours || 0,
+                    minutes: entry.minutes || 0,
+                    description: entry.description || '',
+                    project: entry.project?.projectName || '',
+                    submitted: entry.submitted || false
+                });
+            });
+
+            // Add empty row for days with no entries (useful for weekly view)
+            if (entries.length === 0 && viewMode === "Weekly") {
+                timesheetEntries.push({
+                    date: formatDate(date),
+                    dayOfWeek: date.toLocaleDateString("en-GB", { weekday: "short" }),
+                    isWeekend: isWeekend(date),
+                    taskType: '',
+                    taskTopic: '',
+                    hours: 0,
+                    minutes: 0,
+                    description: 'No tasks logged',
+                    project: '',
+                    submitted: false
+                });
+            }
+        });
+
+        // Handle overflow minutes
+        totalHours += Math.floor(totalMinutes / 60);
+        totalMinutes = totalMinutes % 60;
+
+        return {
+            viewMode,
+            period: viewMode === "Weekly" 
+                ? `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`
+                : `${formatDate(currentMonthRange.start)} - ${formatDate(currentMonthRange.end)}`,
+            employeeName: employee?.name || formData.employeeName,
+            employeeEmail: employee?.email || '',
+            entries: timesheetEntries,
+            totalHours,
+            totalMinutes,
+            targetHours: viewMode === "Weekly" ? 40 : 184
+        };
+    };
+
+    // Auto-populate employee fields if coming from timesheet
+    useEffect(() => {
+        if (employee && open) {
+            setFormData(prev => ({
+                ...prev,
+                employeeName: employee.name || '',
+                rate: employee.rawData?.cost || '',
+                currency: employee.rawData?.unit || employee.rawData?.currency || 'USD'
+            }));
+        }
+    }, [employee, open]);
+
+    // Auto-set date range based on timesheet view
+    useEffect(() => {
+        if (open && timesheetData && viewMode && (currentWeekStart || currentMonthRange)) {
+            const dates = getCurrentDates();
+            if (dates.length > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    fromDate: dates[0].toISOString().split('T')[0],
+                    toDate: dates[dates.length - 1].toISOString().split('T')[0]
+                }));
+            }
+        }
+    }, [open, viewMode, currentWeekStart, currentMonthRange]);
+
+    // Auto-calculate hours from timesheet data
+    useEffect(() => {
+        if (attachTimesheet && timesheetData && viewMode && (currentWeekStart || currentMonthRange)) {
+            const dates = getCurrentDates();
+            let totalMinutes = 0;
+
+            dates.forEach((date) => {
+                const { hours, minutes } = getDayTotalTime(date);
+                totalMinutes += hours * 60 + minutes;
+            });
+
+            const totalHours = Math.floor(totalMinutes / 60);
+            const remainingMinutes = totalMinutes % 60;
+
+            setFormData(prev => ({
+                ...prev,
+                hoursSpent: totalHours.toString()
+            }));
+        }
+    }, [attachTimesheet, timesheetData]);
+
     // Generate preview invoice ID for display
     const generatePreviewInvoiceId = () => {
         const today = new Date();
@@ -98,90 +269,90 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
         }
     }, [open]);
 
-    const fetchDropdownData = async () => {
-        try {
-            setLoadingEmployees(true);
-            
-            const tenantId = sessionStorage.getItem("tenantId");
-            const token = sessionStorage.getItem("token");
-            
-            if (!tenantId || !token) {
-                throw new Error('Missing tenantId or token');
-            }
-
-            const res = await axios.get(
-                `${API_BASE_URL}/api/tenants/${tenantId}/users`,
-                {
-                    headers: { Authorization: token }
-                }
-            );
-
-            if (!res.data || !Array.isArray(res.data)) {
-                throw new Error('Invalid API response structure');
-            }
-
-            // Transform employees data for dropdowns
-            const employeeOptions = res.data.map(emp => ({
-                label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-                value: emp.name,
-                empCode: emp.empCode,
-                cost: emp.cost,
-                email: emp.email,
-                userId: emp.userId,
-                status: emp.status,
-                currency: emp.currency || emp.preferredCurrency || 'USD',
-                city: emp.city,
-                state: emp.state,
-                country: emp.country,
-                mobilePhone: emp.mobilePhone
-            }));
-
-            // Enhanced customer options with address info
-            const customerOptionsWithAddress = res.data.map(emp => ({
-                label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-                value: emp.name,
-                empCode: emp.empCode,
-                cost: emp.cost,
-                email: emp.email,
-                userId: emp.userId,
-                status: emp.status,
-                address: (() => {
-                    const addressParts = [];
-                    if (emp.city) addressParts.push(emp.city);
-                    if (emp.state) addressParts.push(emp.state);
-                    if (emp.country) addressParts.push(emp.country);
-                    
-                    if (addressParts.length > 0) {
-                        return addressParts.join(', ');
-                    } else {
-                        return `Address for ${emp.name}`;
-                    }
-                })(),
-                city: emp.city,
-                state: emp.state,
-                country: emp.country,
-                mobilePhone: emp.mobilePhone,
-                currency: emp.currency || 'USD'
-            }));
-
-            setEmployees(employeeOptions);
-            setCustomers(customerOptionsWithAddress);
-            setSuppliers([]);
-            setCustomerAddresses([]);
-            setSupplierAddresses([]);
-
-        } catch (error) {
-            console.error('Error fetching dropdown data:', error);
-            setEmployees([]);
-            setCustomers([]);
-            setSuppliers([]);
-            setCustomerAddresses([]);
-            setSupplierAddresses([]);
-            alert(`Failed to fetch employee data: ${error.message}`);
-        } finally {
-            setLoadingEmployees(false);
+   const fetchDropdownData = async () => {
+    try {
+        setLoadingEmployees(true);
+        
+        const tenantId = sessionStorage.getItem("tenantId");
+        const token = sessionStorage.getItem("token");
+        
+        if (!tenantId || !token) {
+            throw new Error('Missing tenantId or token');
         }
-    };
+
+        const res = await axios.get(
+            `${API_BASE_URL}/api/tenants/${tenantId}/users`,
+            {
+                headers: { Authorization: token }
+            }
+        );
+
+        if (!res.data || !Array.isArray(res.data)) {
+            throw new Error('Invalid API response structure');
+        }
+
+        // Transform employees data for dropdowns
+        const employeeOptions = res.data.map(emp => ({
+            label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
+            value: emp.name,
+            empCode: emp.empCode,
+            cost: emp.cost,
+            email: emp.email,
+            userId: emp.userId,
+            status: emp.status,
+            currency: emp.unit || emp.currency || emp.preferredunit || 'USD',
+            city: emp.city,
+            state: emp.state,
+            country: emp.country,
+            mobilePhone: emp.mobilePhone
+        }));
+
+        // Enhanced customer options with address info
+        const customerOptionsWithAddress = res.data.map(emp => ({
+            label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
+            value: emp.name,
+            empCode: emp.empCode,
+            cost: emp.cost,
+            email: emp.email,
+            userId: emp.userId,
+            status: emp.status,
+            address: (() => {
+                const addressParts = [];
+                if (emp.city) addressParts.push(emp.city);
+                if (emp.state) addressParts.push(emp.state);
+                if (emp.country) addressParts.push(emp.country);
+                
+                if (addressParts.length > 0) {
+                    return addressParts.join(', ');
+                } else {
+                    return `Address for ${emp.name}`;
+                }
+            })(),
+            city: emp.city,
+            state: emp.state,
+            country: emp.country,
+            mobilePhone: emp.mobilePhone,
+            currency: emp.unit || emp.currency || 'USD'
+        }));
+
+        setEmployees(employeeOptions);
+        setCustomers(customerOptionsWithAddress);
+        setSuppliers([]);
+        setCustomerAddresses([]);
+        setSupplierAddresses([]);
+
+    } catch (error) {
+        console.error('Error fetching dropdown data:', error);
+        setEmployees([]);
+        setCustomers([]);
+        setSuppliers([]);
+        setCustomerAddresses([]);
+        setSupplierAddresses([]);
+        alert(`Failed to fetch employee data: ${error.message}`);
+    } finally {
+        setLoadingEmployees(false);
+    }
+};
 
     // Auto-calculate total amount when rate or hours change
     useEffect(() => {
@@ -258,33 +429,36 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
     };
 
     // Special handler for employee selection to auto-populate rate and currency
-    const handleEmployeeChange = (selectedOption) => {
-        if (selectedOption) {
-            const newCurrency = selectedOption.currency || 'USD';
-            const newRate = selectedOption.cost || '';
-            
-            setFormData(prev => ({
-                ...prev,
-                employeeName: selectedOption.value,
-                rate: newRate,
-                currency: newCurrency
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                employeeName: '',
-                rate: '',
-                currency: 'USD'
-            }));
-        }
+   const handleEmployeeChange = (selectedOption) => {
+    if (selectedOption) {
+        const newCurrency = selectedOption.currency || 'USD';
+        const newRate = selectedOption.cost || '';
         
-        if (errors.employeeName) {
-            setErrors(prev => ({ ...prev, employeeName: '' }));
-        }
-        if (errors.rate) {
-            setErrors(prev => ({ ...prev, rate: '' }));
-        }
-    };
+        console.log('Selected employee:', selectedOption);
+        console.log('Currency from employee:', newCurrency);
+        
+        setFormData(prev => ({
+            ...prev,
+            employeeName: selectedOption.value,
+            rate: newRate,
+            currency: newCurrency
+        }));
+    } else {
+        setFormData(prev => ({
+            ...prev,
+            employeeName: '',
+            rate: '',
+            currency: 'USD'
+        }));
+    }
+    
+    if (errors.employeeName) {
+        setErrors(prev => ({ ...prev, employeeName: '' }));
+    }
+    if (errors.rate) {
+        setErrors(prev => ({ ...prev, rate: '' }));
+    }
+};
 
     // Handle multiple file selection (up to 4 files)
     const handleFileChange = (event) => {
@@ -380,7 +554,9 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                 toDate: formData.toDate,
                 hoursSpent: parseInt(formData.hoursSpent),
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
-                remarks: formData.remarks || ""
+                remarks: formData.remarks || "",
+                // Include timesheet data if checkbox is checked
+                timesheetData: attachTimesheet ? prepareTimesheetData() : null
             };
 
             let response;
@@ -516,6 +692,34 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
         return `${currencySymbols[formData.currency] || '$'}0.00`;
     };
 
+    const getTimesheetSummary = () => {
+        if (!attachTimesheet || !timesheetData || !viewMode || (!currentWeekStart && !currentMonthRange)) return null;
+
+        const dates = getCurrentDates();
+        let totalHours = 0;
+        let totalMinutes = 0;
+        let taskCount = 0;
+
+        dates.forEach((date) => {
+            const { hours, minutes } = getDayTotalTime(date);
+            const entries = getTimeEntries(date);
+            totalHours += hours;
+            totalMinutes += minutes;
+            taskCount += entries.length;
+        });
+
+        totalHours += Math.floor(totalMinutes / 60);
+        totalMinutes = totalMinutes % 60;
+
+        return {
+            period: viewMode,
+            totalHours,
+            totalMinutes,
+            taskCount,
+            dateRange: `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`
+        };
+    };
+
     if (!open) return null;
 
     return (
@@ -528,6 +732,11 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                         {getAttachedFilesCount() > 0 && (
                             <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                                 {getAttachedFilesCount()} file{getAttachedFilesCount() > 1 ? 's' : ''} attached
+                            </span>
+                        )}
+                        {attachTimesheet && (
+                            <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                Timesheet Included
                             </span>
                         )}
                     </h2>
@@ -716,6 +925,7 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
                                         {currencySymbols[formData.currency] || '$'}
+                                    
                                     </span>
                                     <input
                                         type="number"
@@ -733,7 +943,10 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Hours Spent *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Hours Spent *
+                                    {attachTimesheet && <span className="text-xs text-blue-500 ml-1">(From timesheet)</span>}
+                                </label>
                                 <input
                                     type="number"
                                     placeholder="0"
@@ -741,8 +954,9 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                                     onChange={handleChange('hoursSpent')}
                                     className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                                         errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    } ${attachTimesheet ? 'bg-blue-50' : ''}`}
                                     min="1"
+                                    readOnly={attachTimesheet}
                                 />
                                 {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
                             </div>
@@ -751,12 +965,15 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                         {/* 4th Line: From Date and To Date */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">From Date *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    From Date *
+                                    {attachTimesheet && <span className="text-xs text-blue-500 ml-1">(From timesheet)</span>}
+                                </label>
                                 <div
-                                    onClick={() => fromDateInputRef.current?.showPicker?.()}
+                                    onClick={() => !attachTimesheet && fromDateInputRef.current?.showPicker?.()}
                                     className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
                                         errors.fromDate ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    } ${attachTimesheet ? 'bg-blue-50 cursor-not-allowed' : ''}`}
                                 >
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
                                     <input
@@ -765,18 +982,22 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                                         value={formData.fromDate}
                                         onChange={handleChange('fromDate')}
                                         className="w-full bg-transparent outline-none cursor-pointer"
+                                        readOnly={attachTimesheet}
                                     />
                                 </div>
                                 {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">To Date *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    To Date *
+                                    {attachTimesheet && <span className="text-xs text-blue-500 ml-1">(From timesheet)</span>}
+                                </label>
                                 <div
-                                    onClick={() => toDateInputRef.current?.showPicker?.()}
+                                    onClick={() => !attachTimesheet && toDateInputRef.current?.showPicker?.()}
                                     className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
                                         errors.toDate ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    } ${attachTimesheet ? 'bg-blue-50 cursor-not-allowed' : ''}`}
                                 >
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
                                     <input
@@ -786,6 +1007,7 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                                         onChange={handleChange('toDate')}
                                         className="w-full bg-transparent outline-none cursor-pointer"
                                         min={formData.fromDate}
+                                        readOnly={attachTimesheet}
                                     />
                                 </div>
                                 {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}
@@ -795,6 +1017,39 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                             <div></div>
                             <div></div>
                         </div>
+
+                        {/* Timesheet Summary (when timesheet is attached) */}
+                        {attachTimesheet && getTimesheetSummary() && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-sm font-semibold text-blue-900 flex items-center">
+                                        <Clock className="mr-2" size={16} />
+                                        Timesheet Summary ({getTimesheetSummary().period} View)
+                                    </h3>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Period:</span>
+                                        <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Total Hours:</span>
+                                        <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Tasks Logged:</span>
+                                        <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Employee:</span>
+                                        <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-blue-600 mt-2">
+                                    ✓ Detailed timesheet table will be included in the generated PDF
+                                </p>
+                            </div>
+                        )}
 
                         {/* Total Amount Display */}
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -939,17 +1194,32 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                         </div>
 
                         {/* Attach Timesheet Checkbox */}
-                        <div className="flex items-center space-x-3">
-                            <input
-                                type="checkbox"
-                                id="attachTimesheet"
-                                checked={attachTimesheet}
-                                onChange={(e) => setAttachTimesheet(e.target.checked)}
-                                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
-                            />
-                            <label htmlFor="attachTimesheet" className="text-sm font-medium text-gray-700 cursor-pointer">
-                                Include Timesheet Reference
-                            </label>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-start space-x-3">
+                                <input
+                                    type="checkbox"
+                                    id="attachTimesheet"
+                                    checked={attachTimesheet}
+                                    onChange={(e) => setAttachTimesheet(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-0.5"
+                                />
+                                <div className="flex-1">
+                                    <label htmlFor="attachTimesheet" className="text-sm font-medium text-blue-900 cursor-pointer">
+                                        Include Timesheet Reference in PDF
+                                    </label>
+                                    <p className="text-xs text-blue-600 mt-1">
+                                        {viewMode === "Weekly" 
+                                            ? "Include a detailed weekly timesheet table in the generated invoice PDF"
+                                            : "Include a detailed monthly timesheet table in the generated invoice PDF"
+                                        }
+                                    </p>
+                                    {timesheetData && (
+                                        <p className="text-xs text-blue-500 mt-1">
+                                            ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -961,9 +1231,11 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
                             <p className="text-lg font-medium text-gray-900">Generating Invoice...</p>
                             <p className="text-sm text-gray-600">
-                                {attachments.length > 0 
-                                    ? `Processing ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}...`
-                                    : 'Please wait while we create your invoice'
+                                {attachTimesheet 
+                                    ? `Including ${viewMode?.toLowerCase() || ''} timesheet data...`
+                                    : attachments.length > 0 
+                                        ? `Processing ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}...`
+                                        : 'Please wait while we create your invoice'
                                 }
                             </p>
                         </div>
@@ -994,15 +1266,15 @@ const AddInvoiceModal = ({ open, onClose, onSubmit }) => {
                         {loading ? (
                             <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                {attachments.length > 0 ? 'Uploading...' : 'Generating...'}
+                                {attachTimesheet ? 'Including Timesheet...' : attachments.length > 0 ? 'Uploading...' : 'Generating...'}
                             </>
                         ) : (
                             <>
                                 <FileText className="mr-2" size={16} />
                                 Generate Invoice
-                                {attachments.length > 0 && (
+                                {(attachments.length > 0 || attachTimesheet) && (
                                     <span className="ml-1 bg-green-600 text-green-200 text-xs px-1.5 py-0.5 rounded-full">
-                                        +{attachments.length}
+                                        {attachTimesheet ? '+📊' : `+${attachments.length}`}
                                     </span>
                                 )}
                             </>

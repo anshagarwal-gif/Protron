@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Calendar, DollarSign, User, Building, FileText, Hash, Clock } from 'lucide-react';
+import { X, Calendar, DollarSign, User, Building, FileText, Hash, Clock, MapPin, Target, CreditCard, Users } from 'lucide-react';
 
 const ViewPOModal = ({ open, onClose, poData }) => {
   console.log("ViewPOModal opened with PO ID:", poData);
@@ -8,6 +8,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
 
   // Format currency
   const formatCurrency = (amount, currency = 'USD') => {
+    if (!amount) return 'N/A';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
@@ -24,18 +25,6 @@ const ViewPOModal = ({ open, onClose, poData }) => {
     });
   };
 
-  // Format timestamp
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return 'N/A';
-    return new Date(timestamp).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   // Get PO type display name and tag styling
   const getPOTypeDisplay = (type) => {
     switch (type) {
@@ -46,125 +35,194 @@ const ViewPOModal = ({ open, onClose, poData }) => {
       case 'MIXED':
         return 'Mixed';
       default:
-        return type;
+        return type || 'N/A';
     }
   };
 
-  // Function to get tag styling for PO Type (matching SRN modal)
+  // Function to get tag styling for PO Type
   const getPoTypeTag = (type) => {
-    const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center";
+    const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center shadow-sm";
     switch (type) {
       case "FIXED":
-        return `${baseClasses} bg-blue-100 text-blue-700 border border-blue-200`;
+        return `${baseClasses} bg-emerald-100 text-emerald-800 border border-emerald-200`;
       case "T_AND_M":
-        return `${baseClasses} bg-purple-100 text-purple-700 border border-purple-200`;
+        return `${baseClasses} bg-violet-100 text-violet-800 border border-violet-200`;
       case "MIXED":
-        return `${baseClasses} bg-orange-100 text-orange-700 border border-orange-200`;
+        return `${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`;
       default:
-        return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
+        return `${baseClasses} bg-slate-100 text-slate-700 border border-slate-200`;
     }
   };
 
+  // Field component for consistent styling
+  const Field = ({ label, value, icon: Icon, className = "", colSpan = 1 }) => (
+    <div className={`${colSpan > 1 ? `col-span-${colSpan}` : ''} ${className}`}>
+      <div className="flex items-center mb-2">
+        {Icon && <Icon size={16} className="text-slate-500 mr-2" />}
+        <label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">{label}</label>
+      </div>
+      <div className="text-slate-900 font-medium break-words overflow-wrap-anywhere">
+        {value || "N/A"}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000c2] bg-opacity-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-7xl w-full border border-gray-100">
-        {/* Header - Matching SRN Modal */}
-        <div 
-          className="px-8 py-6 flex justify-between items-center rounded-t-2xl"
-          style={{ backgroundColor: 'var(--color-green-800)' }}
-        >
-          <div className="flex items-center space-x-3">
-            <div>
-              <h2 className="text-2xl font-bold text-white">Purchase Order Details</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0000006b] bg-opacity-60 p-4 scrollbar-hide">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full border border-slate-200 max-h-[90vh] overflow-y-auto scrollbar-hide">
+        {/* Header */}
+        <div className="px-8 py-6 bg-gradient-to-r from-teal-800 to-teal-900 rounded-t-3xl">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="bg-white bg-opacity-20 p-3 rounded-xl">
+                <FileText size={28} className="text-black" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-white">Purchase Order Details</h2>
+                <p className="text-slate-300 mt-1">PO #{poData.poNumber || 'N/A'}</p>
+              </div>
             </div>
+            <button
+              onClick={onClose}
+              className="p-3 hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200 group"
+            >
+              <X size={24} className="text-white group-hover:text-slate-200" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all duration-200"
-          >
-            <X size={24} className="text-white hover:text-black" />
-          </button>
         </div>
 
-        <div className="p-8">
-          {/* Top Row - Main Information */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Left Column - Basic PO Information */}
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6">PO INFORMATION</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">PO Number</label>
-                  <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poData.poNumber || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">PO Amount</label>
-                  <p className="text-gray-900 font-medium mt-1">
-                    {formatCurrency(poData.poAmount, poData.poCurrency)}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">PO Type</label>
-                  <div className="mt-2">
-                    <span className={getPoTypeTag(poData.poType)}>
-                      {getPOTypeDisplay(poData.poType)}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Project Name</label>
-                  <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poData.projectName || "N/A"}</p>
-                </div>
-              </div>
+        <div className="p-8 space-y-8">
+          {/* Overview Section */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+              <Hash className="mr-3 text-blue-600" size={24} />
+              PO Overview
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <Field 
+                label="PO Number" 
+                value={poData.poNumber} 
+                icon={Hash}
+              />
+              <Field 
+                label="PO Amount" 
+                value={formatCurrency(poData.poAmount, poData.poCurrency)} 
+                // icon={DollarSign}
+              />
+              <Field 
+                label="PO Type" 
+                value={<span className={getPoTypeTag(poData.poType)}>{getPOTypeDisplay(poData.poType)}</span>} 
+              />
+              <Field 
+                label="Currency" 
+                value={poData.poCurrency} 
+                icon={CreditCard}
+              />
+              <Field 
+                label="Project Name" 
+                value={poData.projectName} 
+                icon={Building}
+              />
+              <Field 
+                label="Country" 
+                value={poData.poCountry} 
+                icon={MapPin}
+              />
+              <Field 
+                label="SPOC" 
+                value={poData.poSpoc} 
+                icon={User}
+              />
+              <Field 
+                  label="Start Date" 
+                  value={formatDate(poData.poStartDate)} 
+                  icon={Calendar}
+                />
+                <Field 
+                  label="End Date" 
+                  value={formatDate(poData.poEndDate)} 
+                  icon={Calendar}
+                />
+                <Field 
+                  label="Customer" 
+                  value={poData.customer} 
+                  icon={Building}
+                />
             </div>
+          </div>
+          
 
-            {/* Right Column - Contact & Timeline Information */}
-            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-100 h-full">
-              <h3 className="text-lg font-semibold text-teal-800 mb-6">CONTACT & TIMELINE</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">Customer</label>
-                  <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poData.customer || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">Supplier</label>
-                  <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poData.supplier || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">SPOC</label>
-                  <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poData.poSpoc || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">Start Date</label>
-                  <div className="mt-2 items-center">
-                    <span className="text-gray-900 font-medium">
-                      {formatDate(poData.poStartDate)}
-                    </span>
-                  </div>
-                </div>
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">End Date</label>
-                  <div className="mt-2 items-center">
-                    <span className="text-gray-900 font-medium">
-                      {formatDate(poData.poEndDate)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+          {/* Sponsor & Budget Information */}
+          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
+            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+              <Target className="mr-3 text-orange-600" size={24} />
+              Sponsor & Budget Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Field 
+                  label="Supplier" 
+                  value={poData.supplier} 
+                  icon={Building}
+                />
+              <Field 
+                label="Sponsor Name" 
+                value={poData.sponsorName} 
+                icon={User}
+              />
+              <Field 
+                label="Sponsor LOB" 
+                value={poData.sponsorLob} 
+                icon={Building}
+              />
+              <Field 
+                label="Budget Line Item" 
+                value={poData.budgetLineItem} 
+                icon={FileText}
+              />
+              <Field 
+                label="Budget Line Amount" 
+                value={formatCurrency(poData.budgetLineAmount, poData.poCurrency)} 
+                icon={DollarSign}
+              />
+              <Field 
+                label="Business Value Amount" 
+                value={formatCurrency(poData.businessValueAmount, poData.poCurrency)} 
+                icon={DollarSign}
+              />
+              
+                <Field 
+                  label="Budget Line Remarks" 
+                  value={poData.budgetLineRemarks} 
+                  icon={FileText}
+                  colSpan={3}
+                />
+              
             </div>
           </div>
 
-          {/* Bottom Row - Description Section */}
-          <div className="">
-            {/* PO Description */}
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-blue-800 mb-4">PO DESCRIPTION</h3>
-              <div className="min-h-[120px]">
-                <p className="text-gray-900 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                  {poData.poDesc || "No description available"}
-                </p>
-              </div>
+          {/* Description Section */}
+          <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-slate-100">
+            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+              <FileText className="mr-3 text-slate-600" size={24} />
+              PO Description
+            </h3>
+            <div className="bg-white rounded-xl p-6 border border-slate-200 min-h-[120px]">
+              <p className="text-slate-900 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
+                {poData.poDesc || "No description available"}
+              </p>
             </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-8 py-4 bg-slate-50 rounded-b-3xl border-t border-slate-200">
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors duration-200 font-medium"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

@@ -25,6 +25,7 @@ import { useAccess } from '../Context/AccessContext';
 import { useSession } from '../Context/SessionContext';
 import LogTimeModal from './LogTimeModal';
 import TaskDetailsModal from './TaskDetailsModal';
+import AddInvoiceModal from "../components/AddInvoice";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -124,6 +125,7 @@ const IndividualTimesheet = () => {
   const [showLogTimeModal, setShowLogTimeModal] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const hiddenDateInputRef = useRef(null);
 
   const getTargetHours = () => {
@@ -137,7 +139,14 @@ const IndividualTimesheet = () => {
       type
     });
   };
-
+ const handleGenerateInvoice = () => {
+    setShowInvoiceModal(true);
+  };
+  const handleInvoiceSubmit = (invoiceData) => {
+    console.log('Invoice generated:', invoiceData);
+    showToast("Invoice generated successfully!", "success");
+    // You can add additional logic here if needed
+  };
   const hideToast = () => {
     setToast(prev => ({ ...prev, isVisible: false }));
   };
@@ -410,6 +419,8 @@ const IndividualTimesheet = () => {
             taskTopic: taskData.taskTopic,
             hoursSpent: taskData.hoursSpent,
             minutesSpent: taskData.minutesSpent || 0, // Handle optional minutes
+            remainingHours: taskData.remainingHours || 0, // Handle optional remaining hours
+            remainingMinutes: taskData.remainingMinutes || 0, // Handle optional remaining minutes
             description: taskData.description,
             projectId: taskData.projectId || null, // Ensure projectId is passed correctly
             attachments: taskData.attachments || null, // Handle optional attachment
@@ -433,6 +444,8 @@ const IndividualTimesheet = () => {
                 id: res.data.taskId,
                 hours: res.data.hoursSpent,
                 minutes: res.data.minutesSpent || 0, // Handle optional minutes
+                remainingHours: res.data.remainingHours || 0, // Handle optional remaining hours
+                remainingMinutes: res.data.remainingMinutes || 0, // Handle optional remaining minutes
                 description: res.data.description,
                 task: res.data.taskType,
                 project: res.data.project,
@@ -460,6 +473,8 @@ const IndividualTimesheet = () => {
             id: taskData.taskId,
             hours: taskData.hoursSpent,
             minutes: taskData.minutesSpent || 0, // Handle optional minutes
+            remainingHours: taskData.remainingHours || 0, // Handle optional remaining hours
+            remainingMinutes: taskData.remainingMinutes || 0, // Handle optional remaining minutes
             description: taskData.description,
             task: taskData.taskType,
             project: taskData.project,
@@ -942,7 +957,13 @@ const IndividualTimesheet = () => {
 
                 <span>Add Timesheet Task</span>
               </button>
-
+             <button
+                onClick={handleGenerateInvoice}
+                className="flex items-center space-x-2 px-3 py-2 bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Generate Invoice</span>
+              </button>
               <button
                 onClick={downloadExcel}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
@@ -1187,6 +1208,16 @@ const IndividualTimesheet = () => {
         onSave={handleLogTimeSave}
         editingTask={editingTask}
         timesheetData={timesheetData}
+      />
+       <AddInvoiceModal
+        open={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        onSubmit={handleInvoiceSubmit}
+        timesheetData={timesheetData}
+        viewMode={viewMode}
+        currentWeekStart={currentWeekStart}
+        currentMonthRange={currentMonthRange}
+        employee={employee}
       />
 
       {taskDetail && (

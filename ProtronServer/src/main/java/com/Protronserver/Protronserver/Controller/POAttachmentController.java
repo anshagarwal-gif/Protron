@@ -3,10 +3,15 @@ package com.Protronserver.Protronserver.Controller;
 import com.Protronserver.Protronserver.Entities.POAttachments;
 import com.Protronserver.Protronserver.Service.POAttachmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -17,50 +22,58 @@ public class POAttachmentController {
     private POAttachmentService poAttachmentService;
 
     @PostMapping("/upload")
-    public ResponseEntity<?> uploadAttachment(
-            @RequestParam("poNumber") String poNumber,
-            @RequestParam("entityType") String entityType,
-            @RequestParam(value = "entityId", required = false) Long entityId,
-            @RequestParam("attachmentSlot") String attachmentSlot,
+    public ResponseEntity<String> uploadAttachment(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("updatedBy") String updatedBy) {
-
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File cannot be empty.");
-        }
-
-        if (!entityType.equalsIgnoreCase("PO") && entityId == null) {
-            return ResponseEntity.badRequest().body("entityId is required for type " + entityType);
-        }
-
+            @RequestParam("level") String level,
+            @RequestParam("referenceId") Long referenceId,
+            @RequestParam(value = "referenceNumber", required = false) String referenceNumber
+    ) {
         try {
-            POAttachments updatedAttachments = poAttachmentService.addOrUpdateAttachment(poNumber, entityType, entityId, attachmentSlot, file, updatedBy);
-            return ResponseEntity.ok(updatedAttachments);
-        } catch (IOException e) {
-            return ResponseEntity.status(500).body("Error processing file: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            poAttachmentService.saveAttachment(file, level, referenceId, referenceNumber);
+            return ResponseEntity.ok("File uploaded successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Upload failed: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteAttachment(
-            @RequestParam("poNumber") String poNumber,
-            @RequestParam("attachmentSlot") String attachmentSlot,
-            @RequestParam("updatedBy") String updatedBy) {
-        try {
-            POAttachments updatedAttachments = poAttachmentService.deleteAttachment(poNumber, attachmentSlot, updatedBy);
-            return ResponseEntity.ok(updatedAttachments);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    // 📄 Get metadata (all attachments)
+    @GetMapping("/meta")
+    public ResponseEntity<List<Object>> getAllAttachmentMetadata() {
+        return ResponseEntity.ok(poAttachmentService.getAllAttachmentMeta());
     }
 
-    @GetMapping("/{poNumber}")
-    public ResponseEntity<POAttachments> getAttachmentsForPO(@PathVariable String poNumber) {
-        Optional<POAttachments> attachments = poAttachmentService.getAttachmentsForPO(poNumber);
-        return attachments.map(ResponseEntity::ok)
+    // 📄 Get metadata for specific level and referenceId
+    @GetMapping("/meta/filter")
+    public ResponseEntity<List<Object>> getAttachmentMetaByLevelAndReference(
+            @RequestParam("level") String level,
+            @RequestParam("referenceId") Long referenceId
+    ) {
+        return ResponseEntity.ok(poAttachmentService.getAttachmentMetaByLevelAndReferenceId(level, referenceId));
+    }
+
+    // 📤 Download file by ID
+    @GetMapping("/{id}/download")
+    public ResponseEntity<ByteArrayResource> downloadAttachment(@PathVariable Long id) {
+        return poAttachmentService.getAttachmentById(id)
+                .map(attachment -> {
+                    ByteArrayResource resource = new ByteArrayResource(attachment.getData());
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.parseMediaType(attachment.getContentType()))
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + attachment.getFileName() + "\"")
+                            .body(resource);
+                })
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // ❌ Delete an attachment by ID
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteAttachment(@PathVariable Long id) {
+        try {
+            poAttachmentService.deleteAttachment(id);
+            return ResponseEntity.ok("Attachment deleted successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete attachment.");
+        }
     }
 }
 
