@@ -9,7 +9,7 @@ const ProfileModal = ({ selectedProfile, onClose, title = "Profile Details", isO
                 onClick={onClose}
             />
 
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl bg-white rounded-lg shadow-xl z-50 p-4 sm:p-6 md:p-8 max-h-[90vh] overflow-y-auto m-4">
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-6xl bg-white rounded-lg shadow-xl z-50 p-4 sm:p-6 md:p-8 max-h-[90vh] overflow-y-auto m-4">
                 <button
                     className="absolute top-2 right-2 text-red-700 hover:text-red-900 cursor-pointer text-xl font-bold z-10"
                     onClick={onClose}

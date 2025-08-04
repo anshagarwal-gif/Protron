@@ -32,7 +32,7 @@ const currencySymbols = {
     NOK: 'kr'
 };
 
-const AddSRNModal = ({ open, onClose }) => {
+const AddSRNModal = ({ open, onClose, poNumber }) => {
     const [formData, setFormData] = useState({
         poId: '',
         msId: '',

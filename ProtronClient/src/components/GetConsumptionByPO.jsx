@@ -160,16 +160,6 @@ const GetConsumptionByPO = ({ poNumber }) => {
       cellClass: 'truncate-cell',
     },
     {
-      headerName: 'Currency',
-      field: 'currency',
-      flex: 1,
-      maxWidth: 100,
-      sortable: true,
-      filter: true,
-      tooltipField: 'currency',
-      cellClass: 'truncate-cell',
-    },
-    {
       headerName: 'Type',
       field: 'utilizationType',
       flex: 1,
@@ -285,7 +275,7 @@ const GetConsumptionByPO = ({ poNumber }) => {
       sortable: true,
       filter: true,
       valueFormatter: (params) => params.value?.msName || 'N/A',
-      tooltipField: 'milestone',
+      tooltipField: 'milestone.msName',
       cellClass: 'truncate-cell',
     },
     {
@@ -424,7 +414,7 @@ const GetConsumptionByPO = ({ poNumber }) => {
             Download Excel
           </button>
           <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handleOpenConsumptionModal}
           >
             <Plus size={18} className="mr-2" />
