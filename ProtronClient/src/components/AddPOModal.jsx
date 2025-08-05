@@ -141,7 +141,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         setMilestoneModalOpen(true);
     };
 
-    
+
     const handleMilestoneSubmit = (milestoneData) => {
         console.log("Milestone Data Submitted:", milestoneData);
         if (editingMilestone !== null) {
@@ -161,15 +161,32 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         setEditingMilestone(null);
     };
 
-    // Handle editing milestone
-    const handleEditMilestone = (index) => {
-        const milestone = formData.milestones[index];
-        setEditingMilestone(index);
-        setMilestoneModalOpen(true);
-    };
+    const handleRemoveMilestone = async (index) => {
+        const milestoneToRemove = formData.milestones[index];
+        try {
+            const token = sessionStorage.getItem('token');
+            console.log('Removing milestone:', milestoneToRemove);
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-milestone/delete/${milestoneToRemove.msId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `${token}` }
+            });
 
-    const handleRemoveMilestone = (index) => {
-        setPoFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.error('Error deleting milestone:', errorData);
+                alert(`Failed to delete milestone. ${errorData?.message || ''}`);
+                return;
+            }
+
+            setFormData((prev) => ({
+                ...prev,
+                milestones: prev.milestones.filter((_, i) => i !== index)
+            }));
+            alert('Milestone deleted successfully.');
+        } catch (error) {
+            console.error('Error deleting milestone:', error);
+            alert('Network error. Please try again.');
+        }
     };
 
     const handleCreatePO = async () => {
@@ -371,13 +388,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             cellRenderer: (params) => (
                 <div className="flex justify-center items-center h-full gap-1">
                     <button
-                        onClick={() => handleEditMilestone(params.node.rowIndex)}
-                        className="p-1 rounded-full hover:bg-blue-100 text-blue-600 transition-colors"
-                        title="Edit milestone"
-                    >
-                        <Edit2 size={16} />
-                    </button>
-                    <button
                         onClick={() => handleRemoveMilestone(params.node.rowIndex)}
                         className="p-1 rounded-full hover:bg-red-100 text-red-600 transition-colors"
                         title="Remove milestone"
@@ -385,7 +395,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                         <Trash2 size={16} />
                     </button>
                 </div>
-            )
+            ),
         }
     ];
 

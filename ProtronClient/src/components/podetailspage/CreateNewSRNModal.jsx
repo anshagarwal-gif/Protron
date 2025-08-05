@@ -4,7 +4,6 @@ import { X, Calendar, Folder, User, Building, DollarSign, FileText, Receipt, Has
 
 const CreateNewSRNModal = ({ open, onClose, poId }) => {
     if (!open) return null
-
     const [po, setPo] = useState({})
     const [milestones, setMilestones] = useState([])
     const [formData, setFormData] = useState({
@@ -102,9 +101,33 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
         }
     }, [formData.poId, formData.msId])
 
-    const removeSRNAttachment = (index) => {
-        setSrnFiles(prev => prev.filter((_, i) => i !== index));
-    };
+    const removeSRNAttachment = async (index) => {
+    const fileToDelete = srnFiles[index];
+    const token = sessionStorage.getItem('token');
+
+    try {
+        const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/po-attachments/delete`, // Replace with actual delete endpoint
+            {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fileName: fileToDelete.name }), // Adjust payload as per API requirements
+            }
+        );
+
+        if (response.ok) {
+            console.log(`Attachment ${fileToDelete.name} deleted successfully.`);
+            setSrnFiles((prev) => prev.filter((_, i) => i !== index));
+        } else {
+            console.error(`Failed to delete attachment: ${fileToDelete.name}`);
+        }
+    } catch (error) {
+        console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
+    }
+};
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
@@ -187,69 +210,98 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setErrors({}); // Clear previous errors
+    e.preventDefault();
+    setLoading(true);
+    setErrors({}); // Clear previous errors
 
-        try {
-            const isValid = validateForm();
-            if (!isValid) {
-                setLoading(false);
-                return;
-            }
-
-            const srnPayload = {
-                poId: parseInt(formData.poId),
-                msId: formData.msId ? parseInt(formData.msId) : null,
-                srnName: formData.srnName.trim(),
-                srnDsc: formData.srnDsc.trim() || '',
-                srnAmount: parseFloat(formData.srnAmount),
-                srnCurrency: formData.srnCurrency,
-                srnRemarks: formData.srnRemarks.trim() || '',
-                srnType: formData.srnType,
-                srnDate: formData.srnDate || null
-            };
-
-            console.log('SRN Payload:', srnPayload);
-
-            const token = sessionStorage.getItem('token');
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/srn/add`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(srnPayload)
-                }
-            );
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('SRN Created:', data);
-
-                if (formData.srnAttachment) {
-                    console.log('File attachment to be implemented:', formData.srnAttachment);
-                }
-
-                handleClose();
-            } else {
-                const errorData = await response.text();
-                console.error('SRN Creation Error:', errorData);
-                setErrors({
-                    submit: 'Failed to create SRN. Please check the console for details.'
-                });
-            }
-        } catch (error) {
-            console.error('Error creating SRN:', error);
-            setErrors({
-                submit: 'Network error. Please try again.'
-            });
-        } finally {
+    try {
+        const isValid = validateForm();
+        if (!isValid) {
             setLoading(false);
+            return;
         }
-    };
+
+        const srnPayload = {
+            poId: parseInt(formData.poId),
+            msId: formData.msId ? parseInt(formData.msId) : null,
+            srnName: formData.srnName.trim(),
+            srnDsc: formData.srnDsc.trim() || '',
+            srnAmount: parseFloat(formData.srnAmount),
+            srnCurrency: formData.srnCurrency,
+            srnRemarks: formData.srnRemarks.trim() || '',
+            srnType: formData.srnType,
+            srnDate: formData.srnDate || null,
+        };
+
+        console.log('SRN Payload:', srnPayload);
+
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/api/srn/add`,
+            {
+                method: 'POST',
+                headers: {
+                    Authorization: `${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(srnPayload),
+            }
+        );
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('SRN Created:', data);
+
+            const srnId = data.srnId; // Assuming the response contains the created SRN ID
+            const srnName = data.srnName || formData.srnName;
+
+            // Upload attachments if any
+            if (srnFiles.length > 0) {
+                for (const file of srnFiles) {
+                    const attachmentForm = new FormData();
+                    attachmentForm.append('file', file);
+                    attachmentForm.append('level', 'SRN');
+                    attachmentForm.append('referenceId', srnId); // Replace with actual SRN ID
+                    attachmentForm.append('referenceNumber', srnName); // Optional
+
+                    try {
+                        const uploadRes = await fetch(
+                            `${import.meta.env.VITE_API_URL}/api/po-attachments/upload`,
+                            {
+                                method: 'POST',
+                                headers: {
+                                    Authorization: `${token}`,
+                                },
+                                body: attachmentForm,
+                            }
+                        );
+
+                        if (!uploadRes.ok) {
+                            console.error(`Attachment upload failed for ${file.name}`);
+                        }
+                    } catch (err) {
+                        console.error('Attachment upload error:', err);
+                    }
+                }
+            }
+
+            handleClose();
+        } else {
+            const errorData = await response.text();
+            console.error('SRN Creation Error:', errorData);
+            setErrors({
+                submit: 'Failed to create SRN. Please check the console for details.',
+            });
+        }
+    } catch (error) {
+        console.error('Error creating SRN:', error);
+        setErrors({
+            submit: 'Network error. Please try again.',
+        });
+    } finally {
+        setLoading(false);
+    }
+};
 
     const handleDateInputClick = (inputName) => {
         const dateInput = document.getElementsByName(inputName)[0];
@@ -297,7 +349,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">PO Name*</label>
                                 <input
                                     type="text"
-                                    value={po.poNumber && po.projectName ? `${po.poNumber} - ${po.projectName}` : ''}
+                                    value={po.poNumber ? `${po.poNumber}` : ''}
                                     readOnly
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100"
                                 />

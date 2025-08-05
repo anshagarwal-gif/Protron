@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, User, Building, FileText, Hash, Clock, MapPin, Target, CreditCard, Users } from 'lucide-react';
+import { X, Calendar, DollarSign, FileText, Hash, Clock } from 'lucide-react';
 import axios from 'axios';
 import { useSession } from '../Context/SessionContext';
 
-const ViewPOModal = ({ open, onClose, poData }) => {
-
+const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
   const { sessionData } = useSession();
 
   useEffect(() => {
-    if (open && poData?.poId) {
+    if (open && milestoneData?.msId) {
       setLoadingAttachments(true);
       axios
-        .get(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=PO&referenceId=${poData.poId}`, {
+        .get(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=MS&referenceId=${milestoneData.msId}`, {
           headers: {
-            'Authorization': sessionData?.token
-          }
+            Authorization: sessionData?.token,
+          },
         })
         .then((res) => {
           setAttachments(res.data);
@@ -29,11 +28,9 @@ const ViewPOModal = ({ open, onClose, poData }) => {
         })
         .finally(() => setLoadingAttachments(false));
     }
-  }, [open, poData?.poId]);
+  }, [open, milestoneData?.msId]);
 
-  console.log("ViewPOModal opened with PO ID:", poData);
-
-  if (!open || !poData) return null;
+  if (!open || !milestoneData) return null;
 
   // Format currency
   const formatCurrency = (amount, currency = 'USD') => {
@@ -50,37 +47,8 @@ const ViewPOModal = ({ open, onClose, poData }) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
-  };
-
-  // Get PO type display name and tag styling
-  const getPOTypeDisplay = (type) => {
-    switch (type) {
-      case 'T_AND_M':
-        return 'Time & Material';
-      case 'FIXED':
-        return 'Fixed Price';
-      case 'MIXED':
-        return 'Mixed';
-      default:
-        return type || 'N/A';
-    }
-  };
-
-  // Function to get tag styling for PO Type
-  const getPoTypeTag = (type) => {
-    const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center shadow-sm";
-    switch (type) {
-      case "FIXED":
-        return `${baseClasses} bg-emerald-100 text-emerald-800 border border-emerald-200`;
-      case "T_AND_M":
-        return `${baseClasses} bg-violet-100 text-violet-800 border border-violet-200`;
-      case "MIXED":
-        return `${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`;
-      default:
-        return `${baseClasses} bg-slate-100 text-slate-700 border border-slate-200`;
-    }
   };
 
   // Field component for consistent styling
@@ -98,17 +66,17 @@ const ViewPOModal = ({ open, onClose, poData }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0000006b] bg-opacity-60 p-4 scrollbar-hide">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full border border-slate-200 max-h-[90vh] overflow-y-auto scrollbar-hide">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full border border-slate-200 max-h-[90vh] overflow-y-auto scrollbar-hide">
         {/* Header */}
-        <div className="px-8 py-6 bg-gradient-to-r from-teal-800 to-teal-900 rounded-t-3xl">
+        <div className="px-8 py-6 bg-gradient-to-r from-blue-800 to-blue-900 rounded-t-3xl">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div className="bg-white bg-opacity-20 p-3 rounded-xl">
                 <FileText size={28} className="text-black" />
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-white">Purchase Order Details</h2>
-                <p className="text-slate-300 mt-1">PO #{poData.poNumber || 'N/A'}</p>
+                <h2 className="text-3xl font-bold text-white">Milestone Details</h2>
+                <p className="text-slate-300 mt-1">Milestone #{milestoneData.msId || 'N/A'}</p>
               </div>
             </div>
             <button
@@ -125,107 +93,40 @@ const ViewPOModal = ({ open, onClose, poData }) => {
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
             <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
               <Hash className="mr-3 text-blue-600" size={24} />
-              PO Overview
+              Milestone Overview
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Field
-                label="PO Number"
-                value={poData.poNumber}
-                icon={Hash}
+                label="Milestone Name"
+                value={milestoneData.milestoneName}
+                icon={FileText}
               />
               <Field
-                label="PO Amount"
-                value={formatCurrency(poData.poAmount, poData.poCurrency)}
-              // icon={DollarSign}
-              />
-              <Field
-                label="PO Type"
-                value={<span className={getPoTypeTag(poData.poType)}>{getPOTypeDisplay(poData.poType)}</span>}
-              />
-              <Field
-                label="Currency"
-                value={poData.poCurrency}
-                icon={CreditCard}
-              />
-              <Field
-                label="Project Name"
-                value={poData.projectName}
-                icon={Building}
-              />
-              <Field
-                label="Country"
-                value={poData.poCountry}
-                icon={MapPin}
-              />
-              <Field
-                label="SPOC"
-                value={poData.poSpoc}
-                icon={User}
+                label="Milestone Amount"
+                value={formatCurrency(milestoneData.milestoneAmount, milestoneData.milestoneCurrency)}
+                icon={DollarSign}
               />
               <Field
                 label="Start Date"
-                value={formatDate(poData.poStartDate)}
+                value={formatDate(milestoneData.startDate)}
                 icon={Calendar}
               />
               <Field
                 label="End Date"
-                value={formatDate(poData.poEndDate)}
+                value={formatDate(milestoneData.endDate)}
                 icon={Calendar}
               />
               <Field
-                label="Customer"
-                value={poData.customer}
-                icon={Building}
-              />
-            </div>
-          </div>
-
-
-          {/* Sponsor & Budget Information */}
-          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
-            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
-              <Target className="mr-3 text-orange-600" size={24} />
-              Sponsor & Budget Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Field
-                label="Supplier"
-                value={poData.supplier}
-                icon={Building}
+                label="Duration (Days)"
+                value={milestoneData.duration}
+                icon={Clock}
               />
               <Field
-                label="Sponsor Name"
-                value={poData.sponsorName}
-                icon={User}
-              />
-              <Field
-                label="Sponsor LOB"
-                value={poData.sponsorLob}
-                icon={Building}
-              />
-              <Field
-                label="Budget Line Item"
-                value={poData.budgetLineItem}
+                label="Remark"
+                value={milestoneData.remark}
                 icon={FileText}
+                colSpan={2}
               />
-              <Field
-                label="Budget Line Amount"
-                value={formatCurrency(poData.budgetLineAmount, poData.poCurrency)}
-                icon={DollarSign}
-              />
-              <Field
-                label="Business Value Amount"
-                value={formatCurrency(poData.businessValueAmount, poData.poCurrency)}
-                icon={DollarSign}
-              />
-
-              <Field
-                label="Budget Line Remarks"
-                value={poData.budgetLineRemarks}
-                icon={FileText}
-                colSpan={3}
-              />
-
             </div>
           </div>
 
@@ -233,15 +134,16 @@ const ViewPOModal = ({ open, onClose, poData }) => {
           <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-slate-100">
             <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
               <FileText className="mr-3 text-slate-600" size={24} />
-              PO Description
+              Milestone Description
             </h3>
             <div className="bg-white rounded-xl p-6 border border-slate-200 min-h-[120px]">
               <p className="text-slate-900 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                {poData.poDesc || "No description available"}
+                {milestoneData.milestoneDescription || "No description available"}
               </p>
             </div>
           </div>
 
+          {/* Attachments Section */}
           {attachments.length > 0 && (
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
               <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
@@ -257,7 +159,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
                         const response = await axios.get(
                           `${import.meta.env.VITE_API_URL}/api/po-attachments/${att.id}/download`,
                           {
-                            responseType: "blob", // Ensure the response is treated as a binary file
+                            responseType: "blob",
                             headers: {
                               Authorization: sessionData?.token,
                             },
@@ -268,7 +170,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
                         const url = window.URL.createObjectURL(new Blob([response.data]));
                         const link = document.createElement("a");
                         link.href = url;
-                        link.setAttribute("download", att.fileName); // Set the file name
+                        link.setAttribute("download", att.fileName);
                         document.body.appendChild(link);
                         link.click();
                         link.remove();
@@ -290,11 +192,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
           {attachmentError && (
             <div className="text-red-500 text-sm mt-4">{attachmentError}</div>
           )}
-
         </div>
-
-
-
 
         {/* Footer */}
         <div className="px-8 py-4 bg-slate-50 rounded-b-3xl border-t border-slate-200">
@@ -312,4 +210,4 @@ const ViewPOModal = ({ open, onClose, poData }) => {
   );
 };
 
-export default ViewPOModal;
+export default ViewMilestoneModal;

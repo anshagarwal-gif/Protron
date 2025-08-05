@@ -1,7 +1,77 @@
-import React from "react";
-import { X } from "lucide-react";
+import React, {useState, useEffect} from "react";
+import axios from "axios";
+import { X, Paperclip, Image, Archive, File, Download } from "lucide-react";
 
 const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
+
+  const [attachments, setAttachments] = useState([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const [attachmentError, setAttachmentError] = useState(null);
+
+  useEffect(() => {
+    if (open && srnDetails?.srnId) {
+      setLoadingAttachments(true);
+      const token = sessionStorage.getItem("token");
+
+      axios
+        .get(
+          `${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=SRN&referenceId=${srnDetails.srnId}`,
+          {
+            headers: {
+              Authorization: `${token}`,
+            },
+          }
+        )
+        .then((res) => {
+          setAttachments(res.data);
+          setAttachmentError(null);
+        })
+        .catch((err) => {
+          setAttachmentError("Failed to load attachments.");
+          console.error(err);
+        })
+        .finally(() => setLoadingAttachments(false));
+    }
+  }, [open, srnDetails?.srnId]);
+
+  const handleAttachmentClick = async (attachment) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/po-attachments/${attachment.id}/download`,
+        {
+          responseType: "blob",
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", attachment.fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Failed to download attachment:", error);
+    }
+  };
+
+   const getFileIcon = (fileName) => {
+    if (!fileName) return <File size={16} />;
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension)) {
+      return <Image size={16} className="text-green-600" />;
+    } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+      return <Archive size={16} className="text-purple-600" />;
+    } else {
+      return <File size={16} className="text-blue-600" />;
+    }
+  };
+
   if (!open || !srnDetails) return null;
 
   const { milestone, poDetail } = srnDetails;
@@ -36,7 +106,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000c2] bg-opacity-50 p-2">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-7xl h-[90vh] overflow-y w-full border border-gray-100">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-7xl h-[90vh] overflow-auto w-full border border-gray-100">
         {/* Header */}
         <div 
           className="px-8 py-3 flex justify-between items-center rounded-t-2xl"
@@ -165,7 +235,52 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
                 </p>
               </div>
             </div>
+            <div className="bg-gray-50 rounded-lg p-4 mt-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <Paperclip size={20} className="mr-2" />
+              ATTACHMENTS ({attachments.length})
+            </h3>
+
+            {loadingAttachments && (
+              <div className="text-gray-500 text-sm">Loading attachments...</div>
+            )}
+            {attachmentError && (
+              <div className="text-red-500 text-sm">{attachmentError}</div>
+            )}
+
+            {attachments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
+                {attachments.map((attachment, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleAttachmentClick(attachment)}
+                    className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="flex-shrink-0 mr-3">
+                      {getFileIcon(attachment.fileName || attachment.name || attachment.filename)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600"
+                        title={attachment.fileName || attachment.name || attachment.filename}
+                      >
+                        {attachment.fileName || attachment.name || attachment.filename || `Attachment ${index + 1}`}
+                      </p>
+                    </div>
+                    <Download size={14} className="text-gray-400 group-hover:text-blue-600" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Paperclip size={48} className="mx-auto text-gray-300 mb-2" />
+                <p className="text-gray-500">No attachments available</p>
+              </div>
+            )}
           </div>
+          </div>
+
+          
         </div>
       </div>
     </div>
