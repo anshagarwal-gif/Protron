@@ -202,7 +202,40 @@ const AddInvoiceModal = ({
         }
     }, [employee, open]);
 
+    // Auto-set date range based on timesheet view
+    useEffect(() => {
+        if (open && timesheetData && viewMode && (currentWeekStart || currentMonthRange)) {
+            const dates = getCurrentDates();
+            if (dates.length > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    fromDate: dates[0].toISOString().split('T')[0],
+                    toDate: dates[dates.length - 1].toISOString().split('T')[0]
+                }));
+            }
+        }
+    }, [open, viewMode, currentWeekStart, currentMonthRange]);
 
+    // Auto-calculate hours from timesheet data
+    useEffect(() => {
+        if (attachTimesheet && timesheetData && viewMode && (currentWeekStart || currentMonthRange)) {
+            const dates = getCurrentDates();
+            let totalMinutes = 0;
+
+            dates.forEach((date) => {
+                const { hours, minutes } = getDayTotalTime(date);
+                totalMinutes += hours * 60 + minutes;
+            });
+
+            const totalHours = Math.floor(totalMinutes / 60);
+            const remainingMinutes = totalMinutes % 60;
+
+            setFormData(prev => ({
+                ...prev,
+                hoursSpent: totalHours.toString()
+            }));
+        }
+    }, [attachTimesheet, timesheetData]);
 
     // Generate preview invoice ID for display
     const generatePreviewInvoiceId = () => {
@@ -909,76 +942,114 @@ const AddInvoiceModal = ({
                                 {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
                             </div>
 
-                      <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-        Hours Spent *
-    </label>
-    <input
-        type="number"
-        placeholder="0"
-        value={formData.hoursSpent}
-        onChange={handleChange('hoursSpent')}
-        className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-            errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
-        }`}
-        min="1"
-    />
-    {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
-</div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Hours Spent *
+                                    {attachTimesheet && <span className="text-xs text-blue-500 ml-1">(From timesheet)</span>}
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="0"
+                                    value={formData.hoursSpent}
+                                    onChange={handleChange('hoursSpent')}
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                        errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
+                                    } ${attachTimesheet ? 'bg-blue-50' : ''}`}
+                                    min="1"
+                                    readOnly={attachTimesheet}
+                                />
+                                {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
+                            </div>
                         </div>
 
                         {/* 4th Line: From Date and To Date */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                           <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-        From Date *
-    </label>
-    <div
-        onClick={() => fromDateInputRef.current?.showPicker?.()}
-        className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
-            errors.fromDate ? 'border-red-500' : 'border-gray-300'
-        }`}
-    >
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
-        <input
-            ref={fromDateInputRef}
-            type="date"
-            value={formData.fromDate}
-            onChange={handleChange('fromDate')}
-            className="w-full bg-transparent outline-none cursor-pointer"
-        />
-    </div>
-    {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
-</div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    From Date *
+                                    {attachTimesheet && <span className="text-xs text-blue-500 ml-1">(From timesheet)</span>}
+                                </label>
+                                <div
+                                    onClick={() => !attachTimesheet && fromDateInputRef.current?.showPicker?.()}
+                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
+                                        errors.fromDate ? 'border-red-500' : 'border-gray-300'
+                                    } ${attachTimesheet ? 'bg-blue-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
+                                    <input
+                                        ref={fromDateInputRef}
+                                        type="date"
+                                        value={formData.fromDate}
+                                        onChange={handleChange('fromDate')}
+                                        className="w-full bg-transparent outline-none cursor-pointer"
+                                        readOnly={attachTimesheet}
+                                    />
+                                </div>
+                                {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
+                            </div>
 
                             <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-        To Date *
-    </label>
-    <div
-        onClick={() => toDateInputRef.current?.showPicker?.()}
-        className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
-            errors.toDate ? 'border-red-500' : 'border-gray-300'
-        }`}
-    >
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
-        <input
-            ref={toDateInputRef}
-            type="date"
-            value={formData.toDate}
-            onChange={handleChange('toDate')}
-            className="w-full bg-transparent outline-none cursor-pointer"
-            min={formData.fromDate}
-        />
-    </div>
-    {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}
-</div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    To Date *
+                                    {attachTimesheet && <span className="text-xs text-blue-500 ml-1">(From timesheet)</span>}
+                                </label>
+                                <div
+                                    onClick={() => !attachTimesheet && toDateInputRef.current?.showPicker?.()}
+                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
+                                        errors.toDate ? 'border-red-500' : 'border-gray-300'
+                                    } ${attachTimesheet ? 'bg-blue-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
+                                    <input
+                                        ref={toDateInputRef}
+                                        type="date"
+                                        value={formData.toDate}
+                                        onChange={handleChange('toDate')}
+                                        className="w-full bg-transparent outline-none cursor-pointer"
+                                        min={formData.fromDate}
+                                        readOnly={attachTimesheet}
+                                    />
+                                </div>
+                                {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}
+                            </div>
 
                             {/* Empty divs to maintain grid alignment */}
                             <div></div>
                             <div></div>
                         </div>
 
+                        {/* Timesheet Summary (when timesheet is attached) */}
+                        {attachTimesheet && getTimesheetSummary() && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h3 className="text-sm font-semibold text-blue-900 flex items-center">
+                                        <Clock className="mr-2" size={16} />
+                                        Timesheet Summary ({getTimesheetSummary().period} View)
+                                    </h3>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Period:</span>
+                                        <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Total Hours:</span>
+                                        <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Tasks Logged:</span>
+                                        <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-600 font-medium">Employee:</span>
+                                        <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-blue-600 mt-2">
+                                    ✓ Detailed timesheet table will be included in the generated PDF
+                                </p>
+                            </div>
+                        )}
 
                         {/* Total Amount Display */}
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -1123,66 +1194,32 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* Attach Timesheet Checkbox */}
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                             <div className="flex items-start space-x-3">
                                 <input
                                     type="checkbox"
                                     id="attachTimesheet"
                                     checked={attachTimesheet}
                                     onChange={(e) => setAttachTimesheet(e.target.checked)}
-                                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 mt-0.5"
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-0.5"
                                 />
                                 <div className="flex-1">
-                                    <label htmlFor="attachTimesheet" className="text-sm font-medium text-green-900 cursor-pointer">
+                                    <label htmlFor="attachTimesheet" className="text-sm font-medium text-blue-900 cursor-pointer">
                                         Include Timesheet Reference in PDF
                                     </label>
-                                    <p className="text-xs text-green-600 mt-1">
+                                    <p className="text-xs text-blue-600 mt-1">
                                         {viewMode === "Weekly" 
                                             ? "Include a detailed weekly timesheet table in the generated invoice PDF"
                                             : "Include a detailed monthly timesheet table in the generated invoice PDF"
                                         }
                                     </p>
                                     {timesheetData && (
-                                        <p className="text-xs text-green-500 mt-1">
+                                        <p className="text-xs text-blue-500 mt-1">
                                             ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
                                         </p>
                                     )}
                                 </div>
                             </div>
-                            <div></div>
-                              <div></div>
-                        {/* Timesheet Summary (when timesheet is attached) */}
-                        {attachTimesheet && getTimesheetSummary() && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-sm font-semibold text-blue-900 flex items-center">
-                                        <Clock className="mr-2" size={16} />
-                                        Timesheet Summary ({getTimesheetSummary().period} View)
-                                    </h3>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Period:</span>
-                                        <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Total Hours:</span>
-                                        <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Tasks Logged:</span>
-                                        <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Employee:</span>
-                                        <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-blue-600 mt-2">
-                                    ✓ Detailed timesheet table will be included in the generated PDF
-                                </p>
-                            </div>
-                        )}
                         </div>
                     </div>
                 </div>

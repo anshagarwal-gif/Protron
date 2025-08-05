@@ -68,4 +68,11 @@ public class POMilestoneController {
         return costDetailsService.getRemainingMilestonesForCon(id);
     }
 
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteMilestone(@PathVariable Long id) {
+        poMilestoneService.deleteMilestone(id);
+        return ResponseEntity.ok("Milestone deleted successfully.");
+    }
+
+
 }

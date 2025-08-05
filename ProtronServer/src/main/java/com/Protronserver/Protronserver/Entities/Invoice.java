@@ -73,8 +73,6 @@ public class Invoice {
     private byte[] pdfData;
 
     private String pdfFileName;
-    private boolean deleted = false;
-    private LocalDateTime deletedAt;
 
     // Attachments - storing up to 4 attachments
     @Lob
@@ -405,42 +403,5 @@ public class Invoice {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-    // Getter and Setter methods for soft delete fields
-
-    /**
-     * Check if the invoice is soft deleted
-     * 
-     * @return true if invoice is deleted, false otherwise
-     */
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    /**
-     * Set the deleted status of the invoice
-     * 
-     * @param deleted true to mark as deleted, false to mark as active
-     */
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }
-
-    /**
-     * Get the timestamp when the invoice was deleted
-     * 
-     * @return LocalDateTime of deletion, null if not deleted
-     */
-    public LocalDateTime getDeletedAt() {
-        return deletedAt;
-    }
-
-    /**
-     * Set the timestamp when the invoice was deleted
-     * 
-     * @param deletedAt LocalDateTime of deletion
-     */
-    public void setDeletedAt(LocalDateTime deletedAt) {
-        this.deletedAt = deletedAt;
     }
 }

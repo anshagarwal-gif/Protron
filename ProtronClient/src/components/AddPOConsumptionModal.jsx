@@ -16,7 +16,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     workDesc: "",
     workAssignDate: "",
     workCompletionDate: "",
-    attachment: null,
     remarks: "",
     systemName: ""
   });
@@ -32,6 +31,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [milestoneBalance, setMilestoneBalance] = useState(null);
   const [poId, setPoId] = useState("");
   const [users, setUsers] = useState([]);
+  const [poConsumptionFiles, setPoConsumptionFiles] = useState([]);
 
   // Fetch PO list and projects on modal open
   useEffect(() => {
@@ -65,17 +65,17 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       }
     };
     const fetchUsers = async () => {
-        try {
-            const token = sessionStorage.getItem('token');
-            const tenantId = sessionStorage.getItem('tenantId');
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, {
-                headers: { Authorization: `${token}` }
-            });
-            const data = await res.json();
-            setUsers(data);
-        } catch (error) {
-            console.error('Error fetching users:', error);
-        }
+      try {
+        const token = sessionStorage.getItem('token');
+        const tenantId = sessionStorage.getItem('tenantId');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, {
+          headers: { Authorization: `${token}` }
+        });
+        const data = await res.json();
+        setUsers(data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
     };
 
     fetchPOListAndProjects();
@@ -166,25 +166,25 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     }
 
     if (name === 'poNumber') {
-    setFormData(prev => ({
-      ...prev,
-      poNumber: value,
-      msId: "",
-    }));
-    fetchPOBalance(value);
-    setMilestoneBalance(null); // Clear milestone balance when PO changes
-  } else if (name === 'msId') {
-    setFormData(prev => ({
-      ...prev,
-      msId: value,
-    }));
-    fetchMilestoneBalance(formData.poNumber, value);
-  } else {
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  }
+      setFormData(prev => ({
+        ...prev,
+        poNumber: value,
+        msId: "",
+      }));
+      fetchPOBalance(value);
+      setMilestoneBalance(null); // Clear milestone balance when PO changes
+    } else if (name === 'msId') {
+      setFormData(prev => ({
+        ...prev,
+        msId: value,
+      }));
+      fetchMilestoneBalance(formData.poNumber, value);
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
 
     // Clear error when user starts typing
     if (errors[name]) {
@@ -196,52 +196,55 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-      if (file.size > maxSize) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: "File size must be less than 10MB"
-        }));
-        return;
-      }
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
 
-      // Validate file type (common document and image types)
-      const allowedTypes = [
-        'application/pdf',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'text/plain'
-      ];
-
-      if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: "File type not supported. Please upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT files."
-        }));
-        return;
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        attachment: file
-      }));
-
-      // Clear error if file is valid
-      if (errors.attachment) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: ""
-        }));
-      }
+    // Limit to 4 files total
+    if (poConsumptionFiles.length + files.length > 4) {
+      setErrors(prev => ({ ...prev, attachment: "Max 4 attachments allowed." }));
+      return;
     }
+
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        error = "File must be under 10MB.";
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setErrors(prev => ({ ...prev, attachment: error }));
+      return;
+    }
+
+    setPoConsumptionFiles(prev => [...prev, ...validFiles]);
+    setErrors(prev => ({ ...prev, attachment: "" }));
+    e.target.value = null;
+  };
+
+  const removePOConsumptionFile = (index) => {
+    setPoConsumptionFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   // Function to handle date input clicks
@@ -326,7 +329,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       newErrors.poNumber = "PO Number is required";
     }
 
-    if(milestoneList.length > 0 && !formData.msId) {
+    if (milestoneList.length > 0 && !formData.msId) {
       newErrors.msId = "Milestone is required when PO has milestones";
     }
 
@@ -428,6 +431,36 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
           }
         }
       );
+      console.log("PO Consumption added successfully:", response.data);
+      const consumptionId = response.data.utilizationId
+;
+
+      if (poConsumptionFiles.length > 0) {
+  for (const file of poConsumptionFiles) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("level", "CONSUMPTION");
+    formData.append("referenceId", consumptionId);
+    formData.append("referenceNumber", ""); // if applicable
+
+    try {
+      const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+        method: "POST",
+        headers: {
+          'Authorization': `${token}`
+        },
+        body: formData
+      });
+
+      if (!uploadRes.ok) {
+        console.error(`Attachment upload failed for ${file.name}`);
+      }
+    } catch (err) {
+      console.error("Attachment upload error:", err);
+    }
+  }
+}
+
 
       onSubmit(response.data);
       handleClose();
@@ -468,7 +501,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       workDesc: "",
       workAssignDate: "",
       workCompletionDate: "",
-      attachment: null,
       remarks: "",
       systemName: ""
     });
@@ -630,7 +662,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <DollarSign size={14} className="inline mr-1" />
                   Amount *
                 </label>
                 <input
@@ -647,8 +678,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   title={formData.amount ? `Amount: ${getCurrencySymbol(formData.currency)}${parseFloat(formData.amount).toLocaleString()}` : "Enter consumption amount"}
                 />
                 <span className="text-[10px] text-red-500">
-                                {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
-                            </span>
+                  {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
+                </span>
               </div>
 
               <div className="">
@@ -679,7 +710,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
             {/* Row 2: Utilization Type, Resource/Project, System Name */}
             <div className="grid grid-cols-5 gap-4">
-
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -784,27 +814,41 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
-                  Attachment
+                  PO Consumption Attachments (Max 4)
                 </label>
+
                 <input
                   type="file"
-                  name="attachment"
+                  name="poConsumptionAttachment"
                   onChange={handleFileChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
                   disabled={loading}
+                  multiple
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
                   title="Upload document or image file (max 10MB)"
                 />
-                {formData.attachment && (
-                  <p className="mt-1 text-xs text-gray-600" title={`Selected file: ${formData.attachment.name} (${(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)`}>
-                    {formData.attachment.name.length > 30 ? `${formData.attachment.name.substring(0, 30)}...` : formData.attachment.name}
-                    ({(formData.attachment.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
-                )}
+
+                {/* Selected Files List */}
+                <ul className="mt-2 text-xs text-gray-700 space-y-1">
+                  {poConsumptionFiles.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                    >
+                      <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removePOConsumptionFile(index)}
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
                 {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.attachment}`}>
-                    {errors.attachment.length > 50 ? `${errors.attachment.substring(0, 50)}...` : errors.attachment}
-                  </p>
+                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
                 )}
               </div>
 

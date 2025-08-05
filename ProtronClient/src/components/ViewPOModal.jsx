@@ -1,7 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Calendar, DollarSign, User, Building, FileText, Hash, Clock, MapPin, Target, CreditCard, Users } from 'lucide-react';
+import axios from 'axios';
+import { useSession } from '../Context/SessionContext';
 
 const ViewPOModal = ({ open, onClose, poData }) => {
+
+  const [attachments, setAttachments] = useState([]);
+  const [loadingAttachments, setLoadingAttachments] = useState(false);
+  const [attachmentError, setAttachmentError] = useState(null);
+  const { sessionData } = useSession();
+
+  useEffect(() => {
+    if (open && poData?.poId) {
+      setLoadingAttachments(true);
+      axios
+        .get(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=PO&referenceId=${poData.poId}`, {
+          headers: {
+            'Authorization': sessionData?.token
+          }
+        })
+        .then((res) => {
+          setAttachments(res.data);
+          setAttachmentError(null);
+        })
+        .catch((err) => {
+          setAttachmentError("Failed to load attachments.");
+          console.error(err);
+        })
+        .finally(() => setLoadingAttachments(false));
+    }
+  }, [open, poData?.poId]);
+
   console.log("ViewPOModal opened with PO ID:", poData);
 
   if (!open || !poData) return null;
@@ -99,58 +128,58 @@ const ViewPOModal = ({ open, onClose, poData }) => {
               PO Overview
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              <Field 
-                label="PO Number" 
-                value={poData.poNumber} 
+              <Field
+                label="PO Number"
+                value={poData.poNumber}
                 icon={Hash}
               />
-              <Field 
-                label="PO Amount" 
-                value={formatCurrency(poData.poAmount, poData.poCurrency)} 
-                // icon={DollarSign}
+              <Field
+                label="PO Amount"
+                value={formatCurrency(poData.poAmount, poData.poCurrency)}
+              // icon={DollarSign}
               />
-              <Field 
-                label="PO Type" 
-                value={<span className={getPoTypeTag(poData.poType)}>{getPOTypeDisplay(poData.poType)}</span>} 
+              <Field
+                label="PO Type"
+                value={<span className={getPoTypeTag(poData.poType)}>{getPOTypeDisplay(poData.poType)}</span>}
               />
-              <Field 
-                label="Currency" 
-                value={poData.poCurrency} 
+              <Field
+                label="Currency"
+                value={poData.poCurrency}
                 icon={CreditCard}
               />
-              <Field 
-                label="Project Name" 
-                value={poData.projectName} 
+              <Field
+                label="Project Name"
+                value={poData.projectName}
                 icon={Building}
               />
-              <Field 
-                label="Country" 
-                value={poData.poCountry} 
+              <Field
+                label="Country"
+                value={poData.poCountry}
                 icon={MapPin}
               />
-              <Field 
-                label="SPOC" 
-                value={poData.poSpoc} 
+              <Field
+                label="SPOC"
+                value={poData.poSpoc}
                 icon={User}
               />
-              <Field 
-                  label="Start Date" 
-                  value={formatDate(poData.poStartDate)} 
-                  icon={Calendar}
-                />
-                <Field 
-                  label="End Date" 
-                  value={formatDate(poData.poEndDate)} 
-                  icon={Calendar}
-                />
-                <Field 
-                  label="Customer" 
-                  value={poData.customer} 
-                  icon={Building}
-                />
+              <Field
+                label="Start Date"
+                value={formatDate(poData.poStartDate)}
+                icon={Calendar}
+              />
+              <Field
+                label="End Date"
+                value={formatDate(poData.poEndDate)}
+                icon={Calendar}
+              />
+              <Field
+                label="Customer"
+                value={poData.customer}
+                icon={Building}
+              />
             </div>
           </div>
-          
+
 
           {/* Sponsor & Budget Information */}
           <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
@@ -159,44 +188,44 @@ const ViewPOModal = ({ open, onClose, poData }) => {
               Sponsor & Budget Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Field 
-                  label="Supplier" 
-                  value={poData.supplier} 
-                  icon={Building}
-                />
-              <Field 
-                label="Sponsor Name" 
-                value={poData.sponsorName} 
-                icon={User}
-              />
-              <Field 
-                label="Sponsor LOB" 
-                value={poData.sponsorLob} 
+              <Field
+                label="Supplier"
+                value={poData.supplier}
                 icon={Building}
               />
-              <Field 
-                label="Budget Line Item" 
-                value={poData.budgetLineItem} 
+              <Field
+                label="Sponsor Name"
+                value={poData.sponsorName}
+                icon={User}
+              />
+              <Field
+                label="Sponsor LOB"
+                value={poData.sponsorLob}
+                icon={Building}
+              />
+              <Field
+                label="Budget Line Item"
+                value={poData.budgetLineItem}
                 icon={FileText}
               />
-              <Field 
-                label="Budget Line Amount" 
-                value={formatCurrency(poData.budgetLineAmount, poData.poCurrency)} 
+              <Field
+                label="Budget Line Amount"
+                value={formatCurrency(poData.budgetLineAmount, poData.poCurrency)}
                 icon={DollarSign}
               />
-              <Field 
-                label="Business Value Amount" 
-                value={formatCurrency(poData.businessValueAmount, poData.poCurrency)} 
+              <Field
+                label="Business Value Amount"
+                value={formatCurrency(poData.businessValueAmount, poData.poCurrency)}
                 icon={DollarSign}
               />
-              
-                <Field 
-                  label="Budget Line Remarks" 
-                  value={poData.budgetLineRemarks} 
-                  icon={FileText}
-                  colSpan={3}
-                />
-              
+
+              <Field
+                label="Budget Line Remarks"
+                value={poData.budgetLineRemarks}
+                icon={FileText}
+                colSpan={3}
+              />
+
             </div>
           </div>
 
@@ -212,7 +241,60 @@ const ViewPOModal = ({ open, onClose, poData }) => {
               </p>
             </div>
           </div>
+
+          {attachments.length > 0 && (
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+              <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
+                <FileText className="mr-3 text-emerald-600" size={24} />
+                Attachments
+              </h3>
+              <div className="space-y-3">
+                {attachments.map((att, idx) => (
+                  <button
+                    key={att.attachmentId || idx}
+                    onClick={async () => {
+                      try {
+                        const response = await axios.get(
+                          `${import.meta.env.VITE_API_URL}/api/po-attachments/${att.id}/download`,
+                          {
+                            responseType: "blob", // Ensure the response is treated as a binary file
+                            headers: {
+                              Authorization: sessionData?.token,
+                            },
+                          }
+                        );
+
+                        // Create a temporary link to download the file
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.setAttribute("download", att.fileName); // Set the file name
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                      } catch (error) {
+                        console.error("Failed to download attachment:", error);
+                      }
+                    }}
+                    className="block text-blue-700 hover:underline truncate"
+                  >
+                    📎 {att.fileName}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {loadingAttachments && (
+            <div className="text-slate-600 text-sm mt-4">Loading attachments...</div>
+          )}
+          {attachmentError && (
+            <div className="text-red-500 text-sm mt-4">{attachmentError}</div>
+          )}
+
         </div>
+
+
+
 
         {/* Footer */}
         <div className="px-8 py-4 bg-slate-50 rounded-b-3xl border-t border-slate-200">

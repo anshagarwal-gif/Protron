@@ -316,31 +316,13 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
   };
 
   const handleEditModalSubmit = async (data) => {
-    try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        throw new Error("Missing authentication credentials");
-      }
-
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/srn/edit/${selectedSRNId}`,
-        data,
-        {
-          headers: { 
-            Authorization: `${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+    
 
       showSnackbar("SRN updated successfully!", "success");
       fetchSRNData(); // Refresh the table
       setIsEditModalOpen(false);
       setSelectedSRNId(null);
-    } catch (error) {
-      console.error("Error updating SRN:", error);
-      showSnackbar("Failed to update SRN", "error");
-    }
+    
   };
 
   // Format currency with dynamic symbol

@@ -165,51 +165,6 @@ public class InvoiceController {
                 });
     }
 
-    @DeleteMapping("/{invoiceId}")
-    public ResponseEntity<?> softDeleteInvoice(@PathVariable String invoiceId) {
-        try {
-            log.info("Soft delete requested for invoice: {}", invoiceId);
-
-            // Check if invoice exists first
-            if (!invoiceService.invoiceExists(invoiceId)) {
-                log.warn("Invoice not found for deletion: {}", invoiceId);
-                return ResponseEntity.notFound().build();
-            }
-
-            // Check if invoice is already deleted
-            if (invoiceService.isInvoiceDeleted(invoiceId)) {
-                log.warn("Invoice already deleted: {}", invoiceId);
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Invoice is already deleted");
-            }
-
-            // Perform soft delete
-            boolean deleted = invoiceService.softDeleteInvoice(invoiceId);
-
-            if (deleted) {
-                log.info("Invoice soft deleted successfully: {}", invoiceId);
-                return ResponseEntity.ok().body("Invoice deleted successfully");
-            } else {
-                log.error("Failed to soft delete invoice: {}", invoiceId);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Failed to delete invoice");
-            }
-
-        } catch (IllegalStateException e) {
-            log.warn("Cannot delete invoice due to business constraints: {} - {}", invoiceId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Cannot delete invoice: " + e.getMessage());
-        } catch (SecurityException e) {
-            log.warn("Access denied for invoice deletion: {} - {}", invoiceId, e.getMessage());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Access denied: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("Error during soft delete of invoice {}: {}", invoiceId, e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting invoice: " + e.getMessage());
-        }
-    }
-
     @GetMapping("/download/{invoiceId}")
     public ResponseEntity<ByteArrayResource> downloadInvoicePDF(@PathVariable String invoiceId) {
         try {
@@ -263,5 +218,4 @@ public class InvoiceController {
         log.info("Search completed - Found {} invoices for customer: {}", invoices.size(), customerName);
         return ResponseEntity.ok(invoices);
     }
-
 }

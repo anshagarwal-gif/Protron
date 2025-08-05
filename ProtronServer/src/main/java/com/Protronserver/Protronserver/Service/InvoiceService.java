@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -295,6 +294,12 @@ public class InvoiceService {
             }
         }
         return "application/octet-stream";
+    }
+
+    public List<InvoiceResponseDTO> getAllInvoices() {
+        return invoiceRepository.findAll().stream()
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
     }
 
     public Optional<InvoiceResponseDTO> getInvoiceById(Long id) {
@@ -621,110 +626,5 @@ public class InvoiceService {
         dto.setAttachmentFileNames(invoice.getAttachmentFileNames());
 
         return dto;
-    }
-
-    public boolean invoiceExists(String invoiceId) {
-        try {
-            return invoiceRepository.existsByInvoiceId(invoiceId);
-        } catch (Exception e) {
-            log.error("Error checking if invoice exists: {}", invoiceId, e);
-            return false;
-        }
-    }
-
-    /**
-     * Check if an invoice is soft deleted
-     */
-    public boolean isInvoiceDeleted(String invoiceId) {
-        try {
-            Optional<Invoice> invoice = invoiceRepository.findByInvoiceId(invoiceId);
-            return invoice.map(Invoice::isDeleted).orElse(false);
-        } catch (Exception e) {
-            log.error("Error checking if invoice is deleted: {}", invoiceId, e);
-            return false;
-        }
-    }
-
-    /**
-     * Soft delete an invoice by setting deleted flag and timestamp
-     */
-    @Transactional
-    public boolean softDeleteInvoice(String invoiceId) {
-        try {
-            Optional<Invoice> invoiceOptional = invoiceRepository.findByInvoiceId(invoiceId);
-
-            if (invoiceOptional.isEmpty()) {
-                log.warn("Invoice not found for soft delete: {}", invoiceId);
-                return false;
-            }
-
-            Invoice invoice = invoiceOptional.get();
-
-            // Check if already deleted
-            if (invoice.isDeleted()) {
-                log.warn("Invoice already soft deleted: {}", invoiceId);
-                return false;
-            }
-
-            // Perform soft delete
-            invoice.setDeleted(true);
-            invoice.setDeletedAt(LocalDateTime.now());
-            // Optional: Set who deleted it if you have user context
-            // invoice.setDeletedBy(getCurrentUserId());
-
-            invoiceRepository.save(invoice);
-
-            log.info("Invoice soft deleted successfully: {}", invoiceId);
-            return true;
-
-        } catch (Exception e) {
-            log.error("Error during soft delete of invoice: {}", invoiceId, e);
-            throw new RuntimeException("Failed to soft delete invoice", e);
-        }
-    }
-
-    /**
-     * Update getAllInvoices to exclude soft-deleted invoices by default
-     */
-    public List<InvoiceResponseDTO> getAllInvoices() {
-        try {
-            List<Invoice> invoices = invoiceRepository.findByDeletedFalseOrderByCreatedAtDesc();
-            return invoices.stream()
-                    .map(this::convertToResponseDTO)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Error retrieving all invoices", e);
-            return new ArrayList<>();
-        }
-    }
-
-    /**
-     * Get all invoices including soft-deleted ones (for admin use)
-     */
-    public List<InvoiceResponseDTO> getAllInvoicesIncludingDeleted() {
-        try {
-            List<Invoice> invoices = invoiceRepository.findAllByOrderByCreatedAtDesc();
-            return invoices.stream()
-                    .map(this::convertToResponseDTO)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Error retrieving all invoices including deleted", e);
-            return new ArrayList<>();
-        }
-    }
-
-    /**
-     * Get only soft-deleted invoices (for admin reporting purposes)
-     */
-    public List<InvoiceResponseDTO> getDeletedInvoices() {
-        try {
-            List<Invoice> invoices = invoiceRepository.findByDeletedTrueOrderByDeletedAtDesc();
-            return invoices.stream()
-                    .map(this::convertToResponseDTO)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            log.error("Error retrieving deleted invoices", e);
-            return new ArrayList<>();
-        }
     }
 }

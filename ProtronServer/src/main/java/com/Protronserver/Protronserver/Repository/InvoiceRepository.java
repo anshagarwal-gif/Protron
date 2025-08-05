@@ -63,23 +63,4 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
      */
     @Query("SELECT COUNT(i) FROM Invoice i WHERE FUNCTION('DATE', i.createdAt) = FUNCTION('DATE', CURRENT_DATE)")
     long countTodaysInvoices();
-
-    // Find all non-deleted invoices
-    List<Invoice> findByDeletedFalseOrderByCreatedAtDesc();
-
-    // Find all invoices including deleted ones
-    List<Invoice> findAllByOrderByCreatedAtDesc();
-
-    // Find only deleted invoices
-    List<Invoice> findByDeletedTrueOrderByDeletedAtDesc();
-
-    // Find non-deleted invoice by invoiceId
-    Optional<Invoice> findByInvoiceIdAndDeletedFalse(String invoiceId);
-
-    // Find invoice by invoiceId regardless of deleted status
-
-    // Search non-deleted invoices by customer name
-    @Query("SELECT i FROM Invoice i WHERE LOWER(i.customerName) LIKE LOWER(CONCAT('%', :customerName, '%')) AND i.deleted = false ORDER BY i.createdAt DESC")
-    List<Invoice> findByCustomerNameContainingIgnoreCaseAndDeletedFalse(@Param("customerName") String customerName);
-
 }

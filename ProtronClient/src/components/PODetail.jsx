@@ -8,6 +8,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import GetSRNDetailsByPO from "./GetSRNDetailsByPO";
 import GetConsumptionByPO from "./GetConsumptionByPO";
+import ViewMilestoneModal from "../components/ViewMilestoneModal";
 
 import {
   ArrowLeft,
@@ -46,6 +47,15 @@ const PODetailsPage = () => {
   const [isAddMilestoneModalOpen, setIsAddMilestoneModalOpen] = useState(false);
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
+const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
+
+
+  useEffect(() => {
+  if (selectedMilestone) {
+    setIsViewMilestoneModalOpen(true);
+  }
+}, [selectedMilestone]);
 
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -229,35 +239,13 @@ const PODetailsPage = () => {
   };
 
   const handleMilestoneModalSubmit = async (data) => {
-    const payload = {
-      poId: Number(poId),                          // ensure poId is sent as a number (Long)
-      msName: data.milestoneName,
-      msDesc: data.milestoneDescription,
-      msAmount: data.amount,
-      msCurrency: data.currency,
-      msDate: data.date,
-      msDuration: data.duration,
-      msRemarks: data.remark
-    };
-
-    try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/po-milestone/add`, payload, {
-        headers: {
-          Authorization: sessionStorage.getItem('token'),
-          'Content-Type': 'application/json'
-        }
-      });
-      console.log(res.data);
-    } catch (error) {
-      console.error("Error adding milestone:", error);
-      showSnackbar("Failed to add milestone", "error");
-    }
-
+    setIsAddMilestoneModalOpen(false);
     showSnackbar("Milestone created successfully!", "success");
     fetchMilestones(); // Refresh the table
   };
 
   const handleEditMilestoneModalSubmit = async (data) => {
+    setIsEditMilestoneModalOpen(false);
     showSnackbar("Milestone updated successfully!", "success");
     fetchMilestones(); // Refresh the table
   };
@@ -319,47 +307,24 @@ const PODetailsPage = () => {
       tooltipField: "milestoneName"
     },
     {
-      headerName: "Description",
-      field: "milestoneDescription",
-      valueGetter: params => params.data.milestoneDescription || 'N/A',
-      flex: 2,
-      minWidth: 200,
-      sortable: true,
-      filter: true,
-      cellStyle: { color: '#4b5563' },
-      cellRenderer: TruncatedCellRenderer,
-      tooltipField: "milestoneDescription"
-    },
-    {
-      headerName: "Currency",
-      field: "milestoneCurrency",
-      valueGetter: params => params.data.milestoneCurrency || poDetails?.poCurrency || 'USD',
-      width: 100,
-      sortable: true,
-      filter: true,
-      cellStyle: { color: '#4b5563' },
-      cellRenderer: TruncatedCellRenderer,
-      tooltipField: "milestoneCurrency"
-    },
-    {
-      headerName: "Amount",
-      field: "milestoneAmount",
-      valueGetter: params => {
-        const amount = params.data.milestoneAmount;
-        if (!amount) return 'N/A';
-        return amount.toLocaleString();
-      },
-      width: 140,
-      sortable: true,
-      filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' },
-      cellRenderer: TruncatedCellRenderer,
-      tooltipValueGetter: params => {
-        const amount = params.data.milestoneAmount;
-        if (!amount) return 'N/A';
-        return amount.toLocaleString();
+    headerName: 'Amount',
+    field: 'milestoneAmount',
+    flex: 1,
+    maxWidth: 130,
+    sortable: true,
+    filter: 'agNumberColumnFilter',
+    valueFormatter: (params) => {
+      if (params.value) {
+        return new Intl.NumberFormat('en-IN', {
+          style: 'currency',
+          currency: 'INR'
+        }).format(params.value)
       }
+      return ''
     },
+    tooltipField: 'milestoneAmount',
+    cellClass: 'truncate-cell',
+  },
     {
       headerName: "Milestone Date",
       field: "startDate",
@@ -380,6 +345,18 @@ const PODetailsPage = () => {
       cellStyle: { textAlign: 'center' },
       cellRenderer: TruncatedCellRenderer,
       tooltipValueGetter: params => params.data.duration || 0
+    },
+    {
+      headerName: "Description",
+      field: "milestoneDescription",
+      valueGetter: params => params.data.milestoneDescription || 'N/A',
+      flex: 2,
+      minWidth: 200,
+      sortable: true,
+      filter: true,
+      cellStyle: { color: '#4b5563' },
+      cellRenderer: TruncatedCellRenderer,
+      tooltipField: "milestoneDescription"
     },
     {
       headerName: "Remark",
@@ -428,12 +405,20 @@ const PODetailsPage = () => {
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             <button
+            onClick={() => setSelectedMilestone(milestone)}
+            className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+            title="View Milestone"
+          >
+            <Eye size={16} className="text-blue-600" />
+          </button>
+            <button
               onClick={() => handleEditMilestone(milestone)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
               title="Edit Milestone"
             >
               <Edit size={16} className="text-blue-600" />
             </button>
+            
           </div>
         );
       }
@@ -637,6 +622,9 @@ const PODetailsPage = () => {
         {/* Milestones Table */}
         <div className="ag-theme-alpine" style={{ height: '60vh', width: '100%' }}>
           <style jsx>{`
+          .ag-theme-alpine {
+  font-family: 'Segoe UI', 'Noto Sans', 'Roboto', 'Arial', sans-serif;
+}
             .ag-theme-alpine .ag-header {
               background-color: #15803d!important;
               color: white;
@@ -695,7 +683,7 @@ const PODetailsPage = () => {
         <GetSRNDetailsByPO poId={poId} />
       </div>
       <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
-        <GetConsumptionByPO poNumber={poDetails.poNumber} />
+        <GetConsumptionByPO poNumber={poDetails.poNumber} poId={poId} />
       </div>
 
       {/* Add Milestone Modal */}
@@ -724,6 +712,15 @@ const PODetailsPage = () => {
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
       />
+
+      <ViewMilestoneModal
+  open={isViewMilestoneModalOpen}
+  onClose={() => {
+    setIsViewMilestoneModalOpen(false);
+    setSelectedMilestone(null);
+  }}
+  milestoneData={selectedMilestone}
+/>
     </div>
   );
 };

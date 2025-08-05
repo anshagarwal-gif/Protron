@@ -6,6 +6,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 import { Search, Download, Plus, TrendingUp, Edit, Loader2 } from 'lucide-react'
 import AddPOConsumptionModal from './AddPOConsumptionModal'
 import EditPOConsumptionModal from './EditPOConsumptionModal'
+import CreateNewPOConsumption from './podetailspage/CreateNewPOConsumption'
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
@@ -19,7 +20,7 @@ const LoadingOverlay = () => (
   </div>
 );
 
-const GetConsumptionByPO = ({ poNumber }) => {
+const GetConsumptionByPO = ({ poNumber,poId }) => {
   const [consumptions, setConsumptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -31,20 +32,21 @@ const GetConsumptionByPO = ({ poNumber }) => {
   const handleOpenConsumptionModal = () => {
     setIsAddConsumptionOpen(true)
   }
-  
+
   const handleCloseConsumptionModal = () => {
     setIsAddConsumptionOpen(false)
     fetchConsumptions()
   }
-  
+
   const handleEditConsumption = (consumption) => {
     console.log(consumption.utilizationId)
     setSelectedConsumption(consumption.utilizationId)
     setEditConsumptionModalOpen(true)
   }
-  
+
   const handleCloseConsumptionEdit = () => {
     setEditConsumptionModalOpen(false)
+    fetchConsumptions()
   }
 
   const downloadConsumptionExcel = () => {
@@ -64,7 +66,7 @@ const GetConsumptionByPO = ({ poNumber }) => {
         'Created Date': consumption.createdTimestamp ? new Date(consumption.createdTimestamp).toLocaleDateString() : 'N/A',
         'Milestone': consumption.milestone?.msName || 'N/A',
       }));
-      
+
       const headers = Object.keys(excelData[0] || {});
       const csvContent = [
         headers.join(','),
@@ -77,7 +79,7 @@ const GetConsumptionByPO = ({ poNumber }) => {
           }).join(',')
         )
       ].join('\n');
-      
+
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       if (link.download !== undefined) {
@@ -107,6 +109,13 @@ const GetConsumptionByPO = ({ poNumber }) => {
       consumption.utilizationType?.toLowerCase().includes(searchLower)
     );
   });
+  useEffect(()=>{
+    if(isAddConsumptionOpen){
+      document.body.classList.add('overflow-hidden')
+    }else{
+      document.body.classList.remove('overflow-hidden')
+    }
+  })
 
   // Column definitions for AG Grid
   const columnDefs = [
@@ -121,16 +130,6 @@ const GetConsumptionByPO = ({ poNumber }) => {
       cellClass: 'truncate-cell',
     },
     {
-      headerName: 'System Name',
-      field: 'systemName',
-      flex: 1,
-      maxWidth: 150,
-      sortable: true,
-      filter: true,
-      tooltipField: 'systemName',
-      cellClass: 'truncate-cell',
-    },
-    {
       headerName: 'PO Number',
       field: 'poNumber',
       flex: 1,
@@ -138,6 +137,17 @@ const GetConsumptionByPO = ({ poNumber }) => {
       sortable: true,
       filter: true,
       tooltipField: 'poNumber',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: 'Milestone',
+      field: 'milestone',
+      flex: 1,
+      maxWidth: 120,
+      sortable: true,
+      filter: true,
+      valueFormatter: (params) => params.value?.msName || 'N/A',
+      tooltipField: 'milestone.msName',
       cellClass: 'truncate-cell',
     },
     {
@@ -157,16 +167,6 @@ const GetConsumptionByPO = ({ poNumber }) => {
         return ''
       },
       tooltipField: 'amount',
-      cellClass: 'truncate-cell',
-    },
-    {
-      headerName: 'Currency',
-      field: 'currency',
-      flex: 1,
-      maxWidth: 100,
-      sortable: true,
-      filter: true,
-      tooltipField: 'currency',
       cellClass: 'truncate-cell',
     },
     {
@@ -258,6 +258,16 @@ const GetConsumptionByPO = ({ poNumber }) => {
       cellClass: 'truncate-cell',
     },
     {
+      headerName: 'System Name',
+      field: 'systemName',
+      flex: 1,
+      maxWidth: 150,
+      sortable: true,
+      filter: true,
+      tooltipField: 'systemName',
+      cellClass: 'truncate-cell',
+    },
+    {
       headerName: 'Created Date',
       field: 'createdTimestamp',
       flex: 1.5,
@@ -275,17 +285,6 @@ const GetConsumptionByPO = ({ poNumber }) => {
         return ''
       },
       tooltipField: 'createdTimestamp',
-      cellClass: 'truncate-cell',
-    },
-    {
-      headerName: 'Milestone',
-      field: 'milestone',
-      flex: 1,
-      maxWidth: 120,
-      sortable: true,
-      filter: true,
-      valueFormatter: (params) => params.value?.msName || 'N/A',
-      tooltipField: 'milestone',
       cellClass: 'truncate-cell',
     },
     {
@@ -354,21 +353,6 @@ const GetConsumptionByPO = ({ poNumber }) => {
 
   const handleEditModalSubmit = async (data) => {
     try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        throw new Error("Missing authentication credentials");
-      }
-
-      await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/po-consumption/edit/${selectedConsumption}`,
-        data,
-        {
-          headers: {
-            Authorization: `${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
 
       fetchConsumptions();
       setEditConsumptionModalOpen(false);
@@ -424,7 +408,7 @@ const GetConsumptionByPO = ({ poNumber }) => {
             Download Excel
           </button>
           <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handleOpenConsumptionModal}
           >
             <Plus size={18} className="mr-2" />
@@ -497,18 +481,26 @@ const GetConsumptionByPO = ({ poNumber }) => {
       </div>
 
       {/* Summary section */}
-      
-      <AddPOConsumptionModal
+
+      {/* <AddPOConsumptionModal
         open={isAddConsumptionOpen}
         onClose={handleCloseConsumptionModal} 
-      />
+      /> */}
+
+      <CreateNewPOConsumption
+        open={isAddConsumptionOpen}
+        onClose={handleCloseConsumptionModal}
+        poNumber={poNumber}
+        poId={poId}
+         />
+
       <EditPOConsumptionModal
         open={editConsumptionModalOpen}
         onClose={handleCloseConsumptionEdit}
         consumptionId={selectedConsumption}
         onSubmit={handleEditModalSubmit}
       />
-     
+
     </div>
   )
 }

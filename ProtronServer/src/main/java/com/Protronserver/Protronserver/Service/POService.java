@@ -2,11 +2,9 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.PODetailsDTO;
 import com.Protronserver.Protronserver.Entities.*;
-import com.Protronserver.Protronserver.Repository.POConsumptionRepository;
-import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
-import com.Protronserver.Protronserver.Repository.PORepository;
-import com.Protronserver.Protronserver.Repository.SRNRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +29,9 @@ public class POService {
 
     @Autowired
     private POConsumptionRepository poConsumptionRepository;
+
+    @Autowired
+    private POAttachmentRepository poAttachmentRepository;
 
     public PODetails addPO(PODetailsDTO dto) {
 
@@ -71,16 +72,17 @@ public class POService {
         return poRepository.save(po);
     }
 
+    @Transactional
     public PODetails updatePO(Long id, PODetailsDTO dto) {
 
         Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
 
-        if (poRepository.existsByPoNumberAndTenantId(dto.getPoNumber(), currentTenantId)) {
-            throw new IllegalArgumentException("PO Number already exists");
-        }
-
         PODetails oldPo = poRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("PO not found with ID: " + id));
+
+        if ( !oldPo.getPoNumber().equals(dto.getPoNumber()) && poRepository.existsByPoNumberAndTenantId(dto.getPoNumber(), currentTenantId)) {
+            throw new IllegalArgumentException("PO Number already exists");
+        }
 
         // --- VALIDATION START ---
         if (dto.getPoCurrency() != null && !dto.getPoCurrency().equalsIgnoreCase(oldPo.getPoCurrency())) {
@@ -184,6 +186,8 @@ public class POService {
             srn.setPoNumber(savedNewPo.getPoNumber());
             srnRepository.save(srn);
         }
+
+        poAttachmentRepository.updateReferenceId("PO", oldPo.getPoId(), savedNewPo.getPoId());
 
         return savedNewPo;
     }
