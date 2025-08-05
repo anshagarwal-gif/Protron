@@ -593,7 +593,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     }
   };
 
-  const fieldHeight = '56px';
+  const fieldHeight = '2.5rem';
   const greenPrimary = '#1b5e20';
   const greenHover = '#2e7d32';
 
@@ -709,389 +709,410 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
               </Popover>
 
               {/* Row 1: Project and Task Type */}
-              <Box sx={{ display: 'flex', gap: 3 }}>
-                <Box sx={{ flex: 1 }}>
-                  <FormControl fullWidth required error={!formData.projectId}>
-                    <InputLabel>Project *</InputLabel>
-                    <Select
-                      value={formData.projectId}
-                      onChange={handleInputChange('projectId')}
-                      label="Project *"
-                      sx={{ height: fieldHeight }}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <FolderIcon sx={{ color: greenPrimary }} />
-                        </InputAdornment>
-                      }
-                      renderValue={(selected) => {
-                        if (!selected) return <em>Select from list</em>;
-                        const selectedProject = projects.find((p) => p.projectId.toString() === selected.toString());
-                        return selectedProject ? (
-                          <Tooltip title={selectedProject.projectName} placement="top">
-                            <span>{truncateText(selectedProject.projectName, 25)}</span>
-                          </Tooltip>
-                        ) : <em>Select from list</em>;
-                      }}
+              <div className='grid grid-cols-3 gap-3'>
+                <div className="w-full flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Project <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4h12v2H4V4zm0 4h12v10H4V8zm2 2v6h8v-6H6z" />
+                      </svg>
+                    </div>
+                    <select
+                      value={formData.projectId || ''}
+                      onChange={handleInputChange("projectId")}
+                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
+                  
+                      required
                     >
-                      <MenuItem value="">
-                        <em>Select from list</em>
-                      </MenuItem>
+                      <option value="">
+                        Select from list
+                      </option>
                       {projects.map((project) => (
-                        <MenuItem key={project.projectId} value={project.projectId.toString()}>
-                          <Tooltip title={project.projectName} placement="right">
-                            <span>{truncateText(project.projectName, 35)}</span>
-                          </Tooltip>
-                        </MenuItem>
+                        <option key={project.projectId} value={project.projectId}>
+                          {truncateText(project.projectName, 35)}
+                        </option>
                       ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                <Box sx={{ flex: 1 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Task Type</InputLabel>
-                    <Select
-                      value={formData.taskType}
+                    </select>
+                  </div>
+                  {!formData.projectId && (
+                    <p className="mt-1 text-sm text-red-600">Project is required</p>
+                  )}
+                </div>
+                <div className="w-full flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Task Type
+                  </label>
+                  <div className="relative">
+                    {/* Start Adornment Icon */}
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5"
+                        fill={greenPrimary}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
+                      </svg>
+                    </div>
+                    <select
+                      value={formData.taskType || ''}
                       onChange={handleInputChange('taskType')}
-                      label="Task Type"
-                      sx={{ height: fieldHeight }}
-                      startAdornment={
-                        <InputAdornment position="start">
-                          <TaskIcon sx={{ color: greenPrimary }} />
-                        </InputAdornment>
-                      }
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      style={{ height: fieldHeight }}
                     >
-                      <MenuItem value="">
-                        <em>Select from list</em>
-                      </MenuItem>
-                      <MenuItem value="Design">Design</MenuItem>
-                      <MenuItem value="Development">Development</MenuItem>
-                      <MenuItem value="Testing">Testing</MenuItem>
-                      <MenuItem value="Documentation">Documentation</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
-                <Box>
-                  <TextField
-                    fullWidth
-                    label="Task Topic"
-                    placeholder="Enter task topic..."
-                    value={formData.taskTopic}
-                    onChange={handleInputChange('taskTopic')}
-                    inputProps={{ maxLength: 50 }}
-                    helperText={`${formData.taskTopic?.length} / 50`}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <TaskIcon sx={{ color: greenPrimary }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    FormHelperTextProps={{ sx: { margin: 0, paddingRight: 1 } }}
-                  />
-                </Box>
-              </Box>
+                      <option value="">Select from list</option>
+                      <option value="Design">Design</option>
+                      <option value="Development">Development</option>
+                      <option value="Testing">Testing</option>
+                      <option value="Documentation">Documentation</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Task Topic
+                  </label>
+                  <div className="relative">
+                    {/* Icon at start */}
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5"
+                        fill={greenPrimary}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
+                      </svg>
+                    </div>
 
-              {/* Row 2: Time Entry */}
-              <Box sx={{ display: 'flex', gap: 3 }}>
-                <Box sx={{ flex: 0.4 }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <TextField
-                      type="number"
-                      label="Hours"
-                      value={formData.hours}
-                      onChange={handleInputChange('hours')}
-                      placeholder="HH"
-                      onKeyDown={(e) => {
-                        if (
-                          !/[0-9]/.test(e.key) && // Allow only numbers
-                          e.key !== 'Backspace' && // Allow backspace
-                          e.key !== 'Delete' && // Allow delete
-                          e.key !== 'ArrowLeft' && // Allow left arrow
-                          e.key !== 'ArrowRight' && // Allow right arrow
-                          e.key !== 'Tab' // Allow tab
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                      inputProps={{ min: 0, max: 24 }}
-                      sx={{ flex: 1 }}
-                      error={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24)}
-                      helperText={formData.hours !== '' && (parseInt(formData.hours, 10) < 0 || parseInt(formData.hours, 10) > 24) ? "0-24" : error ? error : ""}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <AccessTimeIcon sx={{ color: greenPrimary }} />
-                          </InputAdornment>
-                        ),
-                        sx: { height: fieldHeight }
-                      }}
+                    <input
+                      type="text"
+                      value={formData.taskTopic || ''}
+                      onChange={handleInputChange('taskTopic')}
+                      placeholder="Enter task topic..."
+                      maxLength={50}
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      style={{ height: fieldHeight }}
                     />
-                    <Typography variant="h6" sx={{ color: 'text.secondary', mx: 0.5 }}>
-                      :
-                    </Typography>
-                    <TextField
-                      type="number"
-                      label="Minutes"
-                      value={formData.minutes}
-                      onChange={handleInputChange('minutes')}
-                      placeholder="MM"
-                      onKeyDown={(e) => {
-                        if (
-                          !/[0-9]/.test(e.key) && // Allow only numbers
-                          e.key !== 'Backspace' && // Allow backspace
-                          e.key !== 'Delete' && // Allow delete
-                          e.key !== 'ArrowLeft' && // Allow left arrow
-                          e.key !== 'ArrowRight' && // Allow right arrow
-                          e.key !== 'Tab' // Allow tab
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                      inputProps={{ min: 0, max: 59 }}
-                      sx={{ flex: 1 }}
-                      error={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60)}
-                      helperText={formData.minutes !== '' && (parseInt(formData.minutes, 10) < 0 || parseInt(formData.minutes, 10) >= 60) ? "0-59" : error ? error : ""}
-                      InputProps={{
-                        sx: { height: fieldHeight }
-                      }}
-                    />
-                  </Box>
-                  {/* Remaining Time Display */}
-                  {/* Remaining Time Display */}
-                  <Typography variant="caption" sx={{ mt: 1, color: 'text.secondary' }}>
-                    Remaining Time: {(() => {
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-1 text-right pr-1">
+                    {formData.taskTopic?.length || 0} / 50
+                  </p>
+                </div>
+
+
+                <div className="w-full">
+                  <div className="flex items-center gap-2">
+                    {/* Hours Input */}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Hours</label>
+                      <div className="relative">
+                        {/* Start adornment icon */}
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg
+                            className="h-5 w-5 text-green-600"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 
+              10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 
+              4s8 3.59 8 8-3.59 8-8 8Z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="number"
+                          placeholder="HH"
+                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.hours !== '' && (parseInt(formData.hours) < 0 || parseInt(formData.hours) > 24)
+                            ? 'border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:ring-green-500'
+                            }`}
+                          value={formData.hours}
+                          onChange={handleInputChange('hours')}
+                          onKeyDown={(e) => {
+                            if (
+                              !/[0-9]/.test(e.key) &&
+                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
+                          min="0"
+                          max="24"
+                        />
+                        {formData.hours !== '' &&
+                          (parseInt(formData.hours) < 0 || parseInt(formData.hours) > 24) && (
+                            <p className="text-xs text-red-600 mt-1">0–24</p>
+                          )}
+                      </div>
+                    </div>
+
+                    {/* Colon Separator */}
+                    <div className="text-gray-500 font-semibold text-xl">:</div>
+
+                    {/* Minutes Input */}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Minutes</label>
+                      <input
+                        type="number"
+                        placeholder="MM"
+                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.minutes !== '' &&
+                          (parseInt(formData.minutes) < 0 || parseInt(formData.minutes) >= 60)
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'border-gray-300 focus:ring-green-500'
+                          }`}
+                        value={formData.minutes}
+                        onChange={handleInputChange('minutes')}
+                        onKeyDown={(e) => {
+                          if (
+                            !/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        min="0"
+                        max="59"
+                      />
+                      {formData.minutes !== '' &&
+                        (parseInt(formData.minutes) < 0 || parseInt(formData.minutes) >= 60) && (
+                          <p className="text-xs text-red-600 mt-1">0–59</p>
+                        )}
+                    </div>
+                  </div>
+
+                  {/* Remaining Time */}
+                  <p className="text-xs text-gray-500 mt-2">
+                    Remaining Time:{' '}
+                    {(() => {
                       const remainingMinutes = Math.max(
                         0,
-                        1440 - existingTime - ((parseInt(formData.hours, 10) || 0) * 60 + (parseInt(formData.minutes, 10) || 0))
+                        1440 -
+                        existingTime -
+                        ((parseInt(formData.hours, 10) || 0) * 60 + (parseInt(formData.minutes, 10) || 0))
                       );
                       const hours = Math.floor(remainingMinutes / 60);
                       const minutes = remainingMinutes % 60;
                       return `${hours}h ${minutes}m`;
                     })()}
+                  </p>
+                </div>
 
-                  </Typography>
-
-                </Box>
-
-                <Box sx={{ flex: 0.4 }}>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <TextField
-                      type="number"
-                      label="Remaining Hours"
-                      value={formData.remainingHours}
-                      onChange={handleInputChange('remainingHours')}
-                      placeholder="HH"
-                      onKeyDown={(e) => {
-                        if (
-                          !/[0-9]/.test(e.key) && // Allow only numbers
-                          e.key !== 'Backspace' && // Allow backspace
-                          e.key !== 'Delete' && // Allow delete
-                          e.key !== 'ArrowLeft' && // Allow left arrow
-                          e.key !== 'ArrowRight' && // Allow right arrow
-                          e.key !== 'Tab' // Allow tab
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                      inputProps={{ min: 0, max: 24 }}
-                      sx={{ flex: 1 }}
-                      error={formData.remainingHours !== '' && (parseInt(formData.remainingHours, 10) < 0 || parseInt(formData.remainingHours, 10) > 24)}
-                      helperText={formData.remainingHours !== '' && (parseInt(formData.remainingHours, 10) < 0 || parseInt(formData.remainingHours, 10) > 24) ? "0-24" : error ? error : ""}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <AccessTimeIcon sx={{ color: greenPrimary }} />
-                          </InputAdornment>
-                        ),
-                        sx: { height: fieldHeight }
-                      }}
-                    />
-                    <Typography variant="h6" sx={{ color: 'text.secondary', mx: 0.5 }}>
-                      :
-                    </Typography>
-                    <TextField
-                      type="number"
-                      label="Minutes"
-                      value={formData.remainingMinutes}
-                      onChange={handleInputChange('remainingMinutes')}
-                      placeholder="MM"
-                      onKeyDown={(e) => {
-                        if (
-                          !/[0-9]/.test(e.key) && // Allow only numbers
-                          e.key !== 'Backspace' && // Allow backspace
-                          e.key !== 'Delete' && // Allow delete
-                          e.key !== 'ArrowLeft' && // Allow left arrow
-                          e.key !== 'ArrowRight' && // Allow right arrow
-                          e.key !== 'Tab' // Allow tab
-                        ) {
-                          e.preventDefault();
-                        }
-                      }}
-                      inputProps={{ min: 0, max: 59 }}
-                      sx={{ flex: 1 }}
-                      error={formData.remainingMinutes !== '' && (parseInt(formData.remainingMinutes, 10) < 0 || parseInt(formData.remainingMinutes, 10) >= 60)}
-                      helperText={formData.remainingMinutes !== '' && (parseInt(formData.remainingMinutes, 10) < 0 || parseInt(formData.remainingMinutes, 10) >= 60) ? "0-59" : error ? error : ""}
-                      InputProps={{
-                        sx: { height: fieldHeight }
-                      }}
-                    />
-                  </Box>
-
-                </Box>
-</Box>
-                {/* Compact Attachment Upload */}
-                <Box sx={{ flex: 0.6 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.primary', fontWeight: 600 }}>
-                    Attachments ({formData.attachments.length}/4)
-                  </Typography>
-                  <Box sx={{
-                    border: '1px dashed #ccc',
-                    borderRadius: 1,
-                    p: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: '#fafafa',
-                    minHeight: '50px',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      borderColor: greenPrimary,
-                      bgcolor: 'rgba(27, 94, 32, 0.02)'
-                    }
-                  }}>
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
-                      multiple
-                      style={{ display: 'none' }}
-                      id="file-upload"
-                      disabled={formData.attachments.length >= 4}
-                    />
-                    <label htmlFor="file-upload" style={{ cursor: 'pointer', textAlign: 'center', width: '100%' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                        <CloudUploadIcon sx={{ color: greenPrimary, fontSize: 20 }} />
-                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
-                          {formData.attachments.length >= 4 ? 'Max files reached' : 'Upload files'}
-                        </Typography>
-                      </Box>
-                    </label>
-                  </Box>
-
-                  {/* Display uploaded files */}
-                  {formData.attachments.length > 0 && (
-                    <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {formData.attachments.map((file, index) => (
-                        <Chip
-                          key={index}
-                          label={
-                            <span>
-                              {file.isExisting && "📎 "}{truncateText(file.name, 15)}
-                              {file.isExisting && " (existing)"}
-                            </span>
-                          }
-                          size="small"
-                          onDelete={() => handleRemoveAttachment(index)}
-                          deleteIcon={<DeleteIcon />}
-                          sx={{
-                            bgcolor: file.isExisting ? 'rgba(76, 175, 80, 0.1)' : 'rgba(27, 94, 32, 0.1)',
-                            color: file.isExisting ? '#4caf50' : greenPrimary,
-                            '& .MuiChip-deleteIcon': {
-                              color: file.isExisting ? '#4caf50' : greenPrimary,
-                              '&:hover': {
-                                color: greenHover
-                              }
+                <div className="w-full">
+                  <div className="flex items-center gap-2">
+                    {/* Remaining Hours Input */}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Remaining Hours</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg
+                            className="h-5 w-5 text-green-600"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 
+              10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 
+              4s8 3.59 8 8-3.59 8-8 8Z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="number"
+                          placeholder="HH"
+                          value={formData.remainingHours}
+                          onChange={handleInputChange('remainingHours')}
+                          onKeyDown={(e) => {
+                            if (
+                              !/[0-9]/.test(e.key) &&
+                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                            ) {
+                              e.preventDefault();
                             }
                           }}
+                          min="0"
+                          max="24"
+                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.remainingHours !== '' &&
+                            (parseInt(formData.remainingHours) < 0 || parseInt(formData.remainingHours) > 24)
+                            ? 'border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:ring-green-500'
+                            }`}
                         />
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-              
+                        {formData.remainingHours !== '' &&
+                          (parseInt(formData.remainingHours) < 0 || parseInt(formData.remainingHours) > 24) && (
+                            <p className="text-xs text-red-600 mt-1">0–24</p>
+                          )}
+                      </div>
+                    </div>
+
+                    {/* Colon */}
+                    <div className="text-gray-500 font-semibold text-xl">:</div>
+
+                    {/* Remaining Minutes Input */}
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Minutes</label>
+                      <input
+                        type="number"
+                        placeholder="MM"
+                        value={formData.remainingMinutes}
+                        onChange={handleInputChange('remainingMinutes')}
+                        onKeyDown={(e) => {
+                          if (
+                            !/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        min="0"
+                        max="59"
+                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.remainingMinutes !== '' &&
+                          (parseInt(formData.remainingMinutes) < 0 || parseInt(formData.remainingMinutes) >= 60)
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'border-gray-300 focus:ring-green-500'
+                          }`}
+                      />
+                      {formData.remainingMinutes !== '' &&
+                        (parseInt(formData.remainingMinutes) < 0 || parseInt(formData.remainingMinutes) >= 60) && (
+                          <p className="text-xs text-red-600 mt-1">0–59</p>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compact Attachment Upload */}
+              <div className="w-full md:w-[60%]">
+                <p className="text-sm font-semibold text-gray-800 mb-2">
+                  Attachments ({formData.attachments.length}/4)
+                </p>
+
+                {/* Upload Box */}
+                <label
+                  htmlFor="file-upload"
+                  className={`
+      border border-dashed rounded p-3 flex items-center justify-center min-h-[50px] bg-gray-50 w-full cursor-pointer transition
+      ${formData.attachments.length >= 4 ? 'cursor-not-allowed opacity-50' : 'hover:border-green-700 hover:bg-green-50'}
+    `}
+                >
+                  <input
+                    type="file"
+                    id="file-upload"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+                    onChange={handleFileChange}
+                    disabled={formData.attachments.length >= 4}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-2 text-sm text-gray-700">
+                    <svg
+                      className="w-5 h-5 text-green-600"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z" />
+                    </svg>
+                    <span>
+                      {formData.attachments.length >= 4
+                        ? 'Max files reached'
+                        : 'Upload files'}
+                    </span>
+                  </div>
+                </label>
+
+                {/* Uploaded Files */}
+                {formData.attachments.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {formData.attachments.map((file, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center px-2 py-1 rounded-full text-sm border ${file.isExisting
+                          ? 'bg-green-50 text-green-600 border-green-300'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                          }`}
+                      >
+                        <span className="mr-1">
+                          {file.isExisting ? '📎 ' : ''}
+                          {truncateText(file.name, 15)}
+                          {file.isExisting ? ' (existing)' : ''}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveAttachment(index)}
+                          type="button"
+                          className="ml-2 text-sm text-inherit hover:text-red-500"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+
 
               {/* Row 3: Large Description */}
-              <Box>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  placeholder="Enter detailed description here..."
-                  value={formData.description}
-                  onChange={handleInputChange('description')}
-                  multiline
-                  rows={4}
-                  inputProps={{ maxLength: 500 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
-                        <DescriptionIcon sx={{ color: greenPrimary }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  helperText={
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      {`${formData.description.length} / 500`}
-                    </Box>
-                  }
-                  FormHelperTextProps={{ sx: { margin: 0, paddingRight: 1 } }}
-                />
-              </Box>
+              <div className="w-full mb-4">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <div className="relative">
+                  <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Enter detailed description here..."
+                    value={formData.description}
+                    onChange={handleInputChange('description')}
+                    rows={4}
+                    maxLength={500}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                  ></textarea>
+                </div>
+                <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
+                  {formData.description.length} / 500
+                </div>
+              </div>
 
               {/* Row 4: Action Buttons */}
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                <Button
+              <div className="flex justify-between items-center mt-2">
+                <button
                   onClick={handleReset}
-                  variant="text"
                   disabled={isSubmitting}
-                  sx={{
-                    color: 'text.secondary',
-                    '&:hover': {
-                      color: 'text.primary',
-                      bgcolor: 'rgba(0, 0, 0, 0.04)'
-                    }
-                  }}
+                  className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${isSubmitting
+                      ? 'text-white cursor-not-allowed'
+                      : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'
+                    }`}
                 >
                   Reset
-                </Button>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Button
-                    onClick={() => { onClose(); handleReset(); }}
-                    variant="outlined"
-                    disabled={isSubmitting}
-                    sx={{
-                      borderColor: greenPrimary,
-                      color: greenPrimary,
-                      height: '42px',
-                      '&:hover': {
-                        borderColor: greenHover,
-                        color: greenHover
-                      }
+                </button>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      handleReset();
                     }}
+                    disabled={isSubmitting}
+                    className={`border rounded px-5 h-[42px] text-sm transition-colors ${isSubmitting
+                        ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                        : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`
+                      }`}
                   >
                     Cancel
-                  </Button>
-                  <Button
+                  </button>
+
+                  <button
                     onClick={handleSubmit}
-                    variant="contained"
                     disabled={isSubmitting}
-                    sx={{
-                      bgcolor: greenPrimary,
-                      color: 'white',
-                      height: '42px',
-                      fontWeight: 600,
-                      '&:disabled': {
-                        bgcolor: 'rgba(0, 0, 0, 0.26)'
-                      },
-                      '&:hover': {
-                        bgcolor: greenHover
-                      }
-                    }}
+                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${isSubmitting
+                        ? `bg-green-500 cursor-not-allowed`
+                        : `bg-green-500 hover:bg-green-600`
+                      }`}
                   >
-                    {isSubmitting ? "Saving..." : (editingTask ? "Update Task" : "Add Entry")}
-                  </Button>
-                </Box>
-              </Box>
+                    {isSubmitting ? "Saving..." : editingTask ? "Update Task" : "Add Entry"}
+                  </button>
+                </div>
+              </div>
+
             </Box>
           </DialogContent>
         </Dialog>
