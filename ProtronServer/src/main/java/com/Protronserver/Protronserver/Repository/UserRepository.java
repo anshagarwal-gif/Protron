@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Repository;
 
+import com.Protronserver.Protronserver.DashboardRecords.UserCostCurrencyDTO;
 import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.ResultDTOs.UserBasicDetailDTO;
 import com.Protronserver.Protronserver.ResultDTOs.UserEditableProfileDTO;
@@ -87,5 +88,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "u.state, u.zipCode, u.country, u.cost,u.cost_time, u.unit) " +
             "FROM User u WHERE u.userId = :userId AND u.endTimestamp IS NULL")
     Optional<UserEditableProfileDTO> findEditableProfileByUserId(@Param("userId") Long userId);
+
+    @Query(value = """
+    SELECT u.cost, u.unit 
+    FROM users u 
+    WHERE u.user_id = :userId AND u.end_timestamp IS NULL
+    """, nativeQuery = true)
+    Optional<UserCostCurrencyDTO> findCostAndCurrencyByUserIdNative(@Param("userId") Long userId);
+
 
 }

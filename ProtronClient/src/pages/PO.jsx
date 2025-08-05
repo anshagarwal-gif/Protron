@@ -414,8 +414,8 @@ const POManagement = () => {
     },
     {
       headerName: "Business Value",
-      field: "businessValue",
-      valueGetter: params => formatCurrency(params.data.businessValue, params.data.poCurrency),
+      field: "businessValueAmount",
+      valueGetter: params => formatCurrency(params.data.businessValueAmount, params.data.poCurrency),
       width: 140,
       sortable: true,
       filter: true,

@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Controller;
 
 import com.Protronserver.Protronserver.DTOs.LoginRequest;
 import com.Protronserver.Protronserver.DTOs.UserSignUpDTO;
+import com.Protronserver.Protronserver.DashboardRecords.UserCostCurrencyDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.ResultDTOs.*;
@@ -236,6 +237,12 @@ public class ManageUserController {
 
         userRepository.save(user);
         return ResponseEntity.ok("User details updated successfully");
+    }
+
+    @GetMapping("/{userId}/cost-currency")
+    public ResponseEntity<UserCostCurrencyDTO> getUserCostAndCurrency(@PathVariable Long userId) {
+        UserCostCurrencyDTO dto = userService.getUserCostCurrencyNative(userId);
+        return ResponseEntity.ok(dto);
     }
 
 

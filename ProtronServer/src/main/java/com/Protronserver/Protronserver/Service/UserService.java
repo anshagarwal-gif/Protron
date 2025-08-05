@@ -12,6 +12,7 @@ import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.Utils.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
+import com.Protronserver.Protronserver.DashboardRecords.UserCostCurrencyDTO;
 
 import org.hibernate.annotations.TenantId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -212,6 +214,11 @@ public class UserService {
             ProjectTeam updatedMember = manageTeamService.updateStatus(pt.getProjectTeamId(), "active");
             projectTeamRepository.save(updatedMember);
         }
+    }
+
+    public UserCostCurrencyDTO getUserCostCurrencyNative(Long userId) {
+        return userRepository.findCostAndCurrencyByUserIdNative(userId)
+                .orElseThrow(() -> new RuntimeException("User not found.!"));
     }
 
 }
