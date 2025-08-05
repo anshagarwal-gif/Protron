@@ -959,7 +959,7 @@ const IndividualTimesheet = () => {
               </button>
              <button
                 onClick={handleGenerateInvoice}
-                className="flex items-center space-x-2 px-3 py-2 bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
               >
                 <FileText className="h-4 w-4" />
                 <span>Generate Invoice</span>
