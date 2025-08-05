@@ -109,7 +109,14 @@ const TimesheetManager = () => {
   const getTargetHours = () => {
     return viewMode === "Weekly" ? 40 : 184;
   };
-
+const handleGenerateInvoice = () => {
+  setShowInvoiceModal(true);
+};
+const handleInvoiceSubmit = (invoiceData) => {
+  console.log('Invoice generated:', invoiceData);
+  showToast("Invoice generated successfully!", "success");
+  // You can add additional logic here if needed
+};
   // Toast helper function
   const showToast = (message, type = 'info') => {
     setToast({
@@ -564,56 +571,6 @@ const TimesheetManager = () => {
     }
   };
 
-const handleInvoiceSubmit = async (invoiceData) => {
-  try {
-    showToast("Generating invoice...", "info");
-    
-    const response = await axios.post(
-      `${API_BASE_URL}/api/invoices/generate`,
-      {
-        invoiceName: invoiceData.invoiceName,
-        customerName: invoiceData.customerName,
-        customerAddress: invoiceData.customerAddress || "",
-        supplierName: invoiceData.supplierName,
-        supplierAddress: invoiceData.supplierAddress || "",
-        employeeName: invoiceData.employeeName,
-        rate: invoiceData.rate,
-        currency: invoiceData.currency,
-        fromDate: invoiceData.fromDate,
-        toDate: invoiceData.toDate,
-        hoursSpent: invoiceData.hoursSpent,
-        totalAmount: invoiceData.totalAmount,
-        remarks: invoiceData.remarks || ""
-      },
-      {
-        headers: {
-          Authorization: sessionStorage.getItem("token"),
-          "Content-Type": "application/json"
-        }
-      }
-    );
-
-    console.log('Invoice generated successfully:', response.data);
-    showToast("Invoice generated successfully!", "success");
-    
-    // Optional: Offer to download the generated PDF
-    if (response.data.invoiceId) {
-      setTimeout(() => {
-        if (confirm("Would you like to download the generated invoice PDF?")) {
-          handleDownloadInvoice(response.data.invoiceId, response.data.invoiceName);
-        }
-      }, 1000);
-    }
-    
-  } catch (error) {
-    console.error("Failed to generate invoice:", error);
-    if (error.response?.data) {
-      showToast(`Failed to generate invoice: ${error.response.data}`, "error");
-    } else {
-      showToast("Failed to generate invoice. Please try again.", "error");
-    }
-  }
-};
 const handleDownloadInvoice = async (invoiceId, invoiceName) => {
   try {
     showToast("Downloading invoice...", "info");
@@ -990,13 +947,13 @@ const handleDownloadInvoice = async (invoiceId, invoiceName) => {
                 <Download className="h-4 w-4" />
                 <span>Download Excel</span>
               </button>
-               <button
-    onClick={() => setShowInvoiceModal(true)}
-    className="flex items-center space-x-2 px-3 py-2 bg-blue-700 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
-  >
-    <FileText className="h-4 w-4" />
-    <span>Generate Invoice</span>
-  </button>
+              <button
+  onClick={handleGenerateInvoice}
+  className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+>
+  <FileText className="h-4 w-4" />
+  <span>Generate Invoice</span>
+</button>
             </div>
           </div>
         </div>
@@ -1235,10 +1192,18 @@ const handleDownloadInvoice = async (invoiceId, invoiceName) => {
         editingTask={editingTask}
         timesheetData={timesheetData}
       />
-   <AddInvoiceModal
+<AddInvoiceModal
   open={showInvoiceModal}
   onClose={() => setShowInvoiceModal(false)}
   onSubmit={handleInvoiceSubmit}
+  timesheetData={timesheetData}
+  viewMode={viewMode}
+  currentWeekStart={currentWeekStart}
+  currentMonthRange={currentMonthRange}
+  employee={{
+    name: sessionStorage.getItem('name') || 'Current User',
+    email: sessionStorage.getItem('email') || ''
+  }}
 />
 
 

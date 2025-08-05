@@ -3,7 +3,6 @@ import React, { useState, useEffect, useMemo, forwardRef, useImperativeHandle } 
 import { AgGridReact } from 'ag-grid-react';
 import {
   Eye,
-  Edit,
   Download,
   Paperclip,
   FileText,
@@ -11,10 +10,340 @@ import {
   Building,
   DollarSign,
   Calendar,
-  Loader2
+  Loader2,
+  Trash2,
+  X,
+  File,
+  Image,
+  Archive,
+  Clock,
+  CreditCard,
+  Edit
 } from "lucide-react";
 import axios from "axios";
 import AddInvoiceModal from "../components/AddInvoice";
+
+// ViewInvoiceModal Component
+const ViewInvoiceModal = ({ open, onClose, invoice }) => {
+  if (!open || !invoice) return null;
+
+  const formatCurrency = (amount, currencyCode) => {
+    if (!amount) return 'N/A';
+    const getCurrencySymbol = (currencyCode) => {
+      const currencySymbols = {
+        'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
+        'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥'
+      };
+      return currencySymbols[currencyCode] || currencyCode || '$';
+    };
+    const symbol = getCurrencySymbol(currencyCode);
+    return `${symbol}${parseFloat(amount).toLocaleString()}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getFileIcon = (fileName) => {
+    if (!fileName) return <File size={16} />;
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension)) {
+      return <Image size={16} className="text-green-600" />;
+    } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+      return <Archive size={16} className="text-purple-600" />;
+    } else {
+      return <File size={16} className="text-blue-600" />;
+    }
+  };
+
+  const handleAttachmentClick = async (attachmentIndex, fileName) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/invoices/download-attachment/${invoice.invoiceId}/${attachmentIndex + 1}`,
+        {
+          headers: { Authorization: token },
+          responseType: 'blob'
+        }
+      );
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName || `attachment_${attachmentIndex + 1}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download attachment:", error);
+      alert("Failed to download attachment");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="bg-blue-700 text-white p-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10">
+          <div>
+            <h2 className="text-xl font-bold">Invoice Details</h2>
+            <p className="text-blue-100 text-sm">ID: {invoice.invoiceId}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-blue-600 rounded-full transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Invoice Information */}
+            <div className="bg-blue-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                <FileText size={20} className="mr-2" />
+                INVOICE INFORMATION
+              </h3>
+              
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Invoice ID</label>
+                    <p className="text-gray-900 font-semibold break-words">{invoice.invoiceId || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Invoice Name</label>
+                    <p className="text-blue-600 font-semibold break-words">{invoice.invoiceName || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Currency</label>
+                    <span className="inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      {invoice.currency || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Amount</label>
+                    <p className="text-green-600 font-bold text-lg break-words">
+                      {formatCurrency(invoice.totalAmount, invoice.currency)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Rate</label>
+                    <p className="text-gray-900 font-medium break-words">
+                      {formatCurrency(invoice.rate, invoice.currency)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Hours Spent</label>
+                    <p className="text-gray-700 font-medium">{invoice.hoursSpent || 'N/A'}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Created Date</label>
+                  <p className="text-gray-700">{formatDate(invoice.createdAt)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Client & Employee Details */}
+            <div className="bg-green-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                <User size={20} className="mr-2" />
+                CLIENT & EMPLOYEE DETAILS
+              </h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Customer Name</label>
+                  <div className="flex items-center mt-1">
+                    <Building size={16} className="text-green-600 mr-2" />
+                    <p className="text-gray-900 font-semibold break-words">
+                      {invoice.customerName || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Supplier Name</label>
+                  <div className="flex items-center mt-1">
+                    <Building size={16} className="text-green-600 mr-2" />
+                    <p className="text-gray-900 font-semibold break-words">
+                      {invoice.supplierName || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Employee Name</label>
+                  <div className="flex items-center mt-1">
+                    <User size={16} className="text-green-600 mr-2" />
+                    <p className="text-gray-900 font-semibold break-words">
+                      {invoice.employeeName || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Invoice Period */}
+          <div className="bg-purple-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
+              <Calendar size={20} className="mr-2" />
+              INVOICE PERIOD
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-purple-600 uppercase tracking-wide">From Date</label>
+                <div className="flex items-center mt-1">
+                  <Clock size={16} className="text-purple-600 mr-2" />
+                  <p className="text-gray-900 font-medium">{formatDate(invoice.fromDate)}</p>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-purple-600 uppercase tracking-wide">To Date</label>
+                <div className="flex items-center mt-1">
+                  <Clock size={16} className="text-purple-600 mr-2" />
+                  <p className="text-gray-900 font-medium">{formatDate(invoice.toDate)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Details */}
+          <div className="bg-yellow-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
+              <CreditCard size={20} className="mr-2" />
+              PAYMENT DETAILS
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium text-yellow-600 uppercase tracking-wide">Rate per Hour</label>
+                <p className="text-green-600 font-bold text-lg">
+                  {formatCurrency(invoice.rate, invoice.currency)}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-yellow-600 uppercase tracking-wide">Total Hours</label>
+                <p className="text-gray-900 font-bold text-lg">{invoice.hoursSpent || '0'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-yellow-600 uppercase tracking-wide">Total Amount</label>
+                <p className="text-green-600 font-bold text-xl">
+                  {formatCurrency(invoice.totalAmount, invoice.currency)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Remarks */}
+          {(invoice.remarks && invoice.remarks.trim() !== '') && (
+            <div className="bg-orange-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-orange-800 mb-3 flex items-center">
+                <Edit size={20} className="mr-2" />
+                REMARKS
+              </h3>
+              <div className="text-gray-700 leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-32 overflow-y-auto bg-white p-3 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
+                {invoice.remarks}
+              </div>
+            </div>
+          )}
+
+          {/* Attachments */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <Paperclip size={20} className="mr-2" />
+              ATTACHMENTS ({invoice.attachmentCount || 0})
+            </h3>
+            
+            {invoice.attachmentFileNames && invoice.attachmentFileNames.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
+                {invoice.attachmentFileNames.map((fileName, index) => (
+                  <div 
+                    key={index}
+                    onClick={() => handleAttachmentClick(index, fileName)}
+                    className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="flex-shrink-0 mr-3">
+                      {getFileIcon(fileName)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600" title={fileName}>
+                        {fileName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Click to download
+                      </p>
+                    </div>
+                    <Download size={14} className="text-gray-400 group-hover:text-blue-600" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Paperclip size={48} className="mx-auto text-gray-300 mb-2" />
+                <p className="text-gray-500">No attachments available</p>
+              </div>
+            )}
+          </div>
+
+          {/* Invoice Actions */}
+          <div className="bg-indigo-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
+              <Download size={20} className="mr-2" />
+              INVOICE ACTIONS
+            </h3>
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const token = sessionStorage.getItem("token");
+                    const response = await axios.get(
+                      `${import.meta.env.VITE_API_URL}/api/invoices/download/${invoice.invoiceId}`,
+                      {
+                        headers: { Authorization: token },
+                        responseType: 'blob'
+                      }
+                    );
+
+                    const blob = new Blob([response.data], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${invoice.invoiceName || invoice.invoiceId}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error("Failed to download invoice PDF:", error);
+                    alert("Failed to download invoice PDF");
+                  }
+                }}
+                className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <Download size={16} className="mr-2" />
+                Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   // State management
@@ -22,9 +351,11 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [downloadingInvoice, setDownloadingInvoice] = useState(null);
   const [downloadingAttachment, setDownloadingAttachment] = useState(null);
+  const [deletingInvoice, setDeletingInvoice] = useState(null);
 
   // Currency symbols mapping
   const currencySymbols = {
@@ -170,17 +501,58 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     }
   };
 
-  // Handle view invoice (you can implement a view modal here)
+  // Handle view invoice - Updated to open modal
   const handleViewInvoice = (invoice) => {
     setSelectedInvoice(invoice);
-    console.log("Viewing invoice:", invoice);
-    // Implement view modal here if needed
+    setIsViewModalOpen(true);
   };
 
-  // Handle edit invoice (you can implement an edit modal here)
-  const handleEditInvoice = (invoice) => {
-    console.log("Editing invoice:", invoice);
-    // Implement edit modal here if needed
+  // Handle soft delete invoice
+  const handleSoftDeleteInvoice = async (invoiceId, invoiceName) => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the invoice "${invoiceName || invoiceId}"? This action can be undone by an administrator.`
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      setDeletingInvoice(invoiceId);
+      const token = sessionStorage.getItem("token");
+      
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/invoices/${invoiceId}`,
+        {
+          headers: { Authorization: token }
+        }
+      );
+
+      if (response.status === 200 || response.status === 204) {
+        // Remove the invoice from the local state
+        setInvoiceList(prevList => 
+          prevList.filter(invoice => invoice.invoiceId !== invoiceId)
+        );
+        
+        // Show success message
+        alert("Invoice deleted successfully");
+      }
+      
+    } catch (error) {
+      console.error("Failed to delete invoice:", error);
+      
+      // Handle different error scenarios
+      if (error.response?.status === 404) {
+        alert("Invoice not found");
+      } else if (error.response?.status === 403) {
+        alert("You don't have permission to delete this invoice");
+      } else if (error.response?.status === 409) {
+        alert("Invoice cannot be deleted due to existing dependencies");
+      } else {
+        alert("Failed to delete invoice. Please try again.");
+      }
+    } finally {
+      setDeletingInvoice(null);
+    }
   };
 
   // Excel download function
@@ -317,7 +689,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       filter: true,
       cellRenderer: params => (
         <div className="flex items-center">
-          <User size={14} className="text-green-600 mr-2" />
+         
           <span className="truncate" title={params.value}>{params.value}</span>
         </div>
       )
@@ -331,7 +703,6 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       filter: true,
       cellRenderer: params => (
         <div className="flex items-center font-bold text-green-600">
-          <DollarSign size={14} className="mr-1" />
           {params.value}
         </div>
       )
@@ -364,30 +735,6 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellStyle: { textAlign: 'center', fontWeight: 'bold' }
     },
     {
-      headerName: "Attachments",
-      field: "attachments",
-      width: 120,
-      sortable: false,
-      filter: false,
-      cellRenderer: params => {
-        const invoice = params.data;
-        const attachmentCount = invoice.attachmentCount || 0;
-        
-        if (attachmentCount === 0) {
-          return <span className="text-gray-400 text-sm">No files</span>;
-        }
-
-        return (
-          <div className="flex items-center space-x-1">
-            <Paperclip size={14} className="text-green-600" />
-            <span className="text-sm font-medium text-green-600">
-              {attachmentCount} file{attachmentCount > 1 ? 's' : ''}
-            </span>
-          </div>
-        );
-      }
-    },
-    {
       headerName: "Created Date",
       field: "createdAt",
       valueGetter: params => formatDate(params.data.createdAt),
@@ -399,7 +746,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "Actions",
       field: "actions",
-      width: 200,
+      width: 180,
       sortable: false,
       filter: false,
       suppressMenu: true,
@@ -413,18 +760,9 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             <button
               onClick={() => handleViewInvoice(invoice)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-              title="View Invoice"
+              title="View Invoice Details"
             >
               <Eye size={14} className="text-blue-600" />
-            </button>
-
-            {/* Edit Button */}
-            <button
-              onClick={() => handleEditInvoice(invoice)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-              title="Edit Invoice"
-            >
-              <Edit size={14} className="text-blue-600" />
             </button>
 
             {/* Download PDF Button */}
@@ -441,51 +779,24 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               )}
             </button>
 
-            {/* Download Attachments Dropdown */}
-            {attachmentCount > 0 && (
-              <div className="relative group">
-                <button
-                  className="p-2 rounded-full hover:bg-orange-100 transition-colors"
-                  title={`Download Attachments (${attachmentCount})`}
-                >
-                  <Paperclip size={14} className="text-orange-600" />
-                </button>
-                
-                {/* Dropdown menu for attachments */}
-                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 min-w-40">
-                  {invoice.attachmentFileNames?.map((fileName, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleDownloadAttachment(
-                        invoice.invoiceId, 
-                        index + 1, 
-                        fileName
-                      )}
-                      disabled={downloadingAttachment === `${invoice.invoiceId}-${index + 1}`}
-                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors disabled:opacity-50 flex items-center"
-                    >
-                      {downloadingAttachment === `${invoice.invoiceId}-${index + 1}` ? (
-                        <Loader2 size={12} className="mr-2 animate-spin" />
-                      ) : (
-                        <Download size={12} className="mr-2" />
-                      )}
-                      <span className="truncate" title={fileName}>
-                        {fileName}
-                      </span>
-                    </button>
-                  )) || (
-                    <div className="px-3 py-2 text-sm text-gray-500">
-                      No attachments available
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* Delete Button */}
+            <button
+              onClick={() => handleSoftDeleteInvoice(invoice.invoiceId, invoice.invoiceName)}
+              disabled={deletingInvoice === invoice.invoiceId}
+              className="p-2 rounded-full hover:bg-red-100 transition-colors disabled:opacity-50"
+              title="Delete Invoice"
+            >
+              {deletingInvoice === invoice.invoiceId ? (
+                <Loader2 size={14} className="text-red-600 animate-spin" />
+              ) : (
+                <Trash2 size={14} className="text-red-600" />
+              )}
+            </button>
           </div>
         );
       }
     }
-  ], [downloadingInvoice, downloadingAttachment]);
+  ], [downloadingInvoice, downloadingAttachment, deletingInvoice]);
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -644,6 +955,16 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           />
         </div>
       </div>
+
+      {/* View Invoice Modal */}
+      <ViewInvoiceModal
+        open={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedInvoice(null);
+        }}
+        invoice={selectedInvoice}
+      />
 
       {/* Add Invoice Modal */}
       <AddInvoiceModal
