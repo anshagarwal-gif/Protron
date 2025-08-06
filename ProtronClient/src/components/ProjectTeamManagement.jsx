@@ -333,19 +333,19 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
           <div className="flex gap-10 items-center">
             {hasAccess('project_team', 'edit') && (
               <button
-                className="bg-green-900 text-white px-3 py-2 rounded flex items-center text-sm hover:bg-green-600"
+                className="bg-green-900 text-white px-3 py-2 rounded flex items-center hover:bg-green-600"
                 onClick={() => setIsModalOpen(true)}
               >
                 <FiPlus size={16} className="mr-1" />
                 Add Member
               </button>)}
             <button
-              className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
-              onClick={downloadExcel}
-            >
-              <AiOutlineDownload className="mr-1" />
-              <span className="sm:inline">Export</span>
-            </button>
+                              className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
+                              onClick={downloadExcel}
+                            >
+                              <AiOutlineDownload className="mr-1" />
+                              <span className="sm:inline">Download Excel</span>
+                            </button>
           </div>
         </div>
         {isLoading ? (
@@ -410,7 +410,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                       {hasAccess('project_team', 'edit') && (
                         <td className="py-2 px-4 border-t">
                           <select
-                            className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            className="w-32 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
                             onChange={(e) => {
                               const action = e.target.value;
                               if (action === "edit") {
