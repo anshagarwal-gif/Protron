@@ -76,11 +76,19 @@ const ProjectManagement = () => {
   const ProjectNameRenderer = (params) => {
     return (
       <span
-        className="font-medium cursor-pointer hover:text-green-600 truncate"
-        onClick={() => handleManageTeam(params.data.projectId, params.data)}
-        title={params.value}
+      className="font-medium cursor-pointer hover:text-green-600 truncate"
+      onClick={
+        hasAccess('project_team', 'view')
+        ? () => handleManageTeam(params.data.projectId, params.data)
+        : undefined
+      }
+      title={params.value}
+      style={{
+        cursor: hasAccess('project_team', 'view') ? 'pointer' : 'default',
+        color: hasAccess('project_team', 'view') ? undefined : 'inherit'
+      }}
       >
-        {params.value}
+      {params.value}
       </span>
     );
   };
@@ -121,13 +129,14 @@ const ProjectManagement = () => {
           </button>)}
 
         {/* Manage Team Button */}
-        <button
-          onClick={() => handleManageTeam(params.data.projectId, params.data)}
-          className="p-2 rounded-full hover:bg-green-100"
-          title="Manage Team"
-        >
-          <FiUsers size={20} className="text-green-700" />
-        </button>
+        {hasAccess('project_team', 'view') && (
+          <button
+            onClick={() => handleManageTeam(params.data.projectId, params.data)}
+            className="p-2 rounded-full hover:bg-green-100"
+            title="Manage Team"
+          >
+            <FiUsers size={20} className="text-green-700" />
+        </button>)}
       </div>
     );
   };
@@ -1060,13 +1069,13 @@ const ProjectManagement = () => {
                             </button>)}
 
                           {/* Manage Team Button */}
-                          <button
+                          {hasAccess('project_team', 'view') && (<button
                             onClick={() => handleManageTeam(project.projectId, project)}
                             className="p-2 rounded-full hover:bg-green-100"
                             title="Manage Team"
                           >
                             <FiUsers size={20} className="text-green-700" />
-                          </button>
+                          </button>)}
                         </div>
                       </div>
                     ))
