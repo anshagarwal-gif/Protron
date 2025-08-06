@@ -15,6 +15,8 @@ const ManageRoleModal = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const greenPrimary = "#1b5e20";
+
+  const generateInvoiceModule = import.meta.env.VITE_GENERATE_INVOICE_MODULE;
   
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -216,7 +218,8 @@ const ManageRoleModal = ({
                             }}
                           />
                         </Box>
-
+                        {moduleName !== generateInvoiceModule && (<>
+                        
                         <Box sx={{ display: "flex", justifyContent: "center" }}>
                           <Switch
                             size="small"
@@ -248,6 +251,7 @@ const ManageRoleModal = ({
                             }}
                           />
                         </Box>
+                        </>)}
                       </Box>
                     );
                   })}
