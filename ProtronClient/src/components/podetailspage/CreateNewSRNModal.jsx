@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { X, Calendar, Folder, User, Building, DollarSign, FileText, Receipt, Hash, MessageSquare, Upload, AlertCircle } from 'lucide-react'
+import GlobalSnackbar from '../components/GlobalSnackbar'
 
 const CreateNewSRNModal = ({ open, onClose, poId }) => {
     if (!open) return null
@@ -23,6 +24,11 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
     const [poBalance, setPOBalance] = useState(null)
     const [milestoneBalance, setMilestoneBalance] = useState(null)
     const [srnFiles, setSrnFiles] = useState([])
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: ''
+    })
 
     const fetchPODetails = async () => {
         try {
@@ -102,32 +108,32 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
     }, [formData.poId, formData.msId])
 
     const removeSRNAttachment = async (index) => {
-    const fileToDelete = srnFiles[index];
-    const token = sessionStorage.getItem('token');
+        const fileToDelete = srnFiles[index];
+        const token = sessionStorage.getItem('token');
 
-    try {
-        const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/po-attachments/delete`, // Replace with actual delete endpoint
-            {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ fileName: fileToDelete.name }), // Adjust payload as per API requirements
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/po-attachments/delete`, // Replace with actual delete endpoint
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ fileName: fileToDelete.name }), // Adjust payload as per API requirements
+                }
+            );
+
+            if (response.ok) {
+                console.log(`Attachment ${fileToDelete.name} deleted successfully.`);
+                setSrnFiles((prev) => prev.filter((_, i) => i !== index));
+            } else {
+                console.error(`Failed to delete attachment: ${fileToDelete.name}`);
             }
-        );
-
-        if (response.ok) {
-            console.log(`Attachment ${fileToDelete.name} deleted successfully.`);
-            setSrnFiles((prev) => prev.filter((_, i) => i !== index));
-        } else {
-            console.error(`Failed to delete attachment: ${fileToDelete.name}`);
+        } catch (error) {
+            console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
         }
-    } catch (error) {
-        console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
-    }
-};
+    };
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
@@ -210,98 +216,126 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrors({}); // Clear previous errors
+        e.preventDefault();
+        setLoading(true);
+        setErrors({}); // Clear previous errors
 
-    try {
-        const isValid = validateForm();
-        if (!isValid) {
-            setLoading(false);
-            return;
-        }
-
-        const srnPayload = {
-            poId: parseInt(formData.poId),
-            msId: formData.msId ? parseInt(formData.msId) : null,
-            srnName: formData.srnName.trim(),
-            srnDsc: formData.srnDsc.trim() || '',
-            srnAmount: parseFloat(formData.srnAmount),
-            srnCurrency: formData.srnCurrency,
-            srnRemarks: formData.srnRemarks.trim() || '',
-            srnType: formData.srnType,
-            srnDate: formData.srnDate || null,
-        };
-
-        console.log('SRN Payload:', srnPayload);
-
-        const token = sessionStorage.getItem('token');
-        const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/srn/add`,
-            {
-                method: 'POST',
-                headers: {
-                    Authorization: `${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(srnPayload),
+        try {
+            const isValid = validateForm();
+            if (!isValid) {
+                setLoading(false);
+                return;
             }
-        );
 
-        if (response.ok) {
-            const data = await response.json();
-            console.log('SRN Created:', data);
+            const srnPayload = {
+                poId: parseInt(formData.poId),
+                msId: formData.msId ? parseInt(formData.msId) : null,
+                srnName: formData.srnName.trim(),
+                srnDsc: formData.srnDsc.trim() || '',
+                srnAmount: parseFloat(formData.srnAmount),
+                srnCurrency: formData.srnCurrency,
+                srnRemarks: formData.srnRemarks.trim() || '',
+                srnType: formData.srnType,
+                srnDate: formData.srnDate || null,
+            };
 
-            const srnId = data.srnId; // Assuming the response contains the created SRN ID
-            const srnName = data.srnName || formData.srnName;
+            console.log('SRN Payload:', srnPayload);
 
-            // Upload attachments if any
-            if (srnFiles.length > 0) {
-                for (const file of srnFiles) {
-                    const attachmentForm = new FormData();
-                    attachmentForm.append('file', file);
-                    attachmentForm.append('level', 'SRN');
-                    attachmentForm.append('referenceId', srnId); // Replace with actual SRN ID
-                    attachmentForm.append('referenceNumber', srnName); // Optional
+            const token = sessionStorage.getItem('token');
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/srn/add`,
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(srnPayload),
+                }
+            );
 
-                    try {
-                        const uploadRes = await fetch(
-                            `${import.meta.env.VITE_API_URL}/api/po-attachments/upload`,
-                            {
-                                method: 'POST',
-                                headers: {
-                                    Authorization: `${token}`,
-                                },
-                                body: attachmentForm,
+            if (response.ok) {
+                const data = await response.json();
+                console.log('SRN Created:', data);
+                setSnackbar((prev) => ({
+                    ...prev,
+                    open: true,
+                    message: "SRN Created Successfully",
+                    severity: "success",
+                }))
+
+                const srnId = data.srnId; // Assuming the response contains the created SRN ID
+                const srnName = data.srnName || formData.srnName;
+
+                // Upload attachments if any
+                if (srnFiles.length > 0) {
+                    for (const file of srnFiles) {
+                        const attachmentForm = new FormData();
+                        attachmentForm.append('file', file);
+                        attachmentForm.append('level', 'SRN');
+                        attachmentForm.append('referenceId', srnId); // Replace with actual SRN ID
+                        attachmentForm.append('referenceNumber', srnName); // Optional
+
+                        try {
+                            const uploadRes = await fetch(
+                                `${import.meta.env.VITE_API_URL}/api/po-attachments/upload`,
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        Authorization: `${token}`,
+                                    },
+                                    body: attachmentForm,
+                                }
+                            );
+
+                            if (!uploadRes.ok) {
+                                console.error(`Attachment upload failed for ${file.name}`);
+                                setSnackbar({
+                                    open: true,
+                                    message: "Attachment upload failed",
+                                    severity: "error",
+                                })
                             }
-                        );
 
-                        if (!uploadRes.ok) {
-                            console.error(`Attachment upload failed for ${file.name}`);
+                        } catch (err) {
+                            console.error('Attachment upload error:', err);
+                            setSnackbar({
+                                open:true,
+                                message:"Attachment upload failed",
+                                severity:"error"
+                            })
                         }
-                    } catch (err) {
-                        console.error('Attachment upload error:', err);
                     }
                 }
-            }
 
-            handleClose();
-        } else {
-            const errorData = await response.text();
-            console.error('SRN Creation Error:', errorData);
+                handleClose();
+            } else {
+                const errorData = await response.text();
+                console.error('SRN Creation Error:', errorData);
+                setErrors({
+                    submit: 'Failed to create SRN. Please check the console for details.',
+                });
+                setSnackbar({
+                    open: true,
+                    message: "Failed to create SRN. Please check the console for details.",
+                    severity: "error",
+                })
+
+            }
+        } catch (error) {
+            console.error('Error creating SRN:', error);
             setErrors({
-                submit: 'Failed to create SRN. Please check the console for details.',
+                submit: 'Network error. Please try again.',
             });
+            setSnackbar({
+                open: true,
+                message: "Network error. Please try again.",
+                severity: "error",
+            })
+        } finally {
+            setLoading(false);
         }
-    } catch (error) {
-        console.error('Error creating SRN:', error);
-        setErrors({
-            submit: 'Network error. Please try again.',
-        });
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     const handleDateInputClick = (inputName) => {
         const dateInput = document.getElementsByName(inputName)[0];
@@ -574,6 +608,13 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                     </form>
                 </div>
             </div>
+            <GlobalSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+            />
+
         </div>
     )
 }

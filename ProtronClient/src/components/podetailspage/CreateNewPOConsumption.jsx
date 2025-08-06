@@ -3,6 +3,7 @@ import { X, Calendar, Folder, User, Building, DollarSign, FileText, Activity, Ha
 import axios from 'axios'
 import CreatableSelect from "react-select/creatable"
 import { useSession } from '../../Context/SessionContext'
+import GlobalSnackbar from '../components/GlobalSnackbar'
 
 const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
     if (!open) return null
@@ -30,33 +31,38 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
     const [poConsumptionFiles, setPoConsumptionFiles] = useState([])
     const [poBalance, setPOBalance] = useState(null)
     const [milestoneBalance, setMilestoneBalance] = useState(null)
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: ''
+    })
+
     const removePOConsumptionFile = async (index) => {
-    const fileToDelete = poConsumptionFiles[index];
-    const token = sessionStorage.getItem("token");
+        const fileToDelete = poConsumptionFiles[index];
+        const token = sessionStorage.getItem("token");
+        try {
+            const response = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/po-attachments/delete`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        Authorization: `${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ fileName: fileToDelete.name }),
+                }
+            );
 
-    try {
-        const response = await fetch(
-            `${import.meta.env.VITE_API_URL}/api/po-attachments/delete`,
-            {
-                method: "DELETE",
-                headers: {
-                    Authorization: `${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ fileName: fileToDelete.name }),
+            if (response.ok) {
+                console.log(`Attachment ${fileToDelete.name} deleted successfully.`);
+                setPoConsumptionFiles((prev) => prev.filter((_, i) => i !== index));
+            } else {
+                console.error(`Failed to delete attachment: ${fileToDelete.name}`);
             }
-        );
-
-        if (response.ok) {
-            console.log(`Attachment ${fileToDelete.name} deleted successfully.`);
-            setPoConsumptionFiles((prev) => prev.filter((_, i) => i !== index));
-        } else {
-            console.error(`Failed to delete attachment: ${fileToDelete.name}`);
+        } catch (error) {
+            console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
         }
-    } catch (error) {
-        console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
-    }
-};
+    };
     const resourceOptions = users.map((user) => ({
         value: user.name,
         label: user.name.length > 25 ? `${user.name.substring(0, 25)}...` : user.name,
@@ -76,9 +82,9 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             console.log("Currency: ", res.data.poCurrency)
             setPo(res.data)
             setFormData(prev => ({
-            ...prev,
-            currency: res.data.poCurrency || "USD"
-        }));
+                ...prev,
+                currency: res.data.poCurrency || "USD"
+            }));
         } catch (error) {
             console.log(error)
         }
@@ -187,22 +193,22 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         onClose()
     }
     const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+        e.preventDefault();
+        setLoading(true);
 
-    try {
-        const token = sessionStorage.getItem("token");
-        const response = await axios.post(
-            `${import.meta.env.VITE_API_URL}/api/po-consumption/add`,
-            formData,
-            {
-                headers: {
-                    Authorization: `${token}`,
-                },
-            }
-        );
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_URL}/api/po-consumption/add`,
+                formData,
+                {
+                    headers: {
+                        Authorization: `${token}`,
+                    },
+                }
+            );
 
-        
+
             const data = response.data;
             console.log("PO Consumption Created:", data);
 
@@ -227,27 +233,45 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 body: attachmentForm,
                             }
                         );
+                        setSnackbar((prev) => ({
+                            ...prev,
+                            open: true,
+                            message: "PO Consumption Created Successfully",
+                            severity: "success",
+                        }))
 
                         if (!uploadRes.ok) {
                             console.error(`Attachment upload failed for ${file.name}`);
                         }
                     } catch (err) {
                         console.error("Attachment upload error:", err);
+                        setSnackbar((prev) => ({
+                            ...prev,
+                            open: true,
+                            message: "Attachment upload failed",
+                            severity: "error",
+                        }))
                     }
                 }
             }
 
             handleClose();
-        
-    } catch (error) {
-        console.error("Error creating PO Consumption:", error);
-        setErrors({
-            submit: "Network error. Please try again.",
-        });
-    } finally {
-        setLoading(false);
-    }
-};
+
+
+        } catch (error) {
+            console.error("Error creating PO Consumption:", error);
+            setSnackbar((prev) => ({
+                open: true,
+                message: "Error creating PO Consumption",
+                severity: "error",
+            }))
+            setErrors({
+                submit: "Network error. Please try again.",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
     const handleDateInputClick = (inputName) => {
         const dateInput = document.getElementsByName(inputName)[0];
         if (dateInput) {
@@ -255,61 +279,61 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         }
     };
     const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
 
-    // Limit to 4 files total
-    if (poConsumptionFiles.length + files.length > 4) {
+        // Limit to 4 files total
+        if (poConsumptionFiles.length + files.length > 4) {
+            setErrors((prev) => ({
+                ...prev,
+                attachment: "Max 4 attachments allowed.",
+            }));
+            return;
+        }
+
+        const maxSize = 10 * 1024 * 1024;
+        const allowedTypes = [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "text/plain",
+        ];
+
+        let error = "";
+        const validFiles = [];
+
+        for (const file of files) {
+            if (file.size > maxSize) {
+                error = "File must be under 10MB.";
+                break;
+            }
+            if (!allowedTypes.includes(file.type)) {
+                error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+                break;
+            }
+            validFiles.push(file);
+        }
+
+        if (error) {
+            setErrors((prev) => ({
+                ...prev,
+                attachment: error,
+            }));
+            return;
+        }
+
+        setPoConsumptionFiles((prev) => [...prev, ...validFiles]);
         setErrors((prev) => ({
             ...prev,
-            attachment: "Max 4 attachments allowed.",
+            attachment: "",
         }));
-        return;
-    }
-
-    const maxSize = 10 * 1024 * 1024;
-    const allowedTypes = [
-        "application/pdf",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "image/jpeg",
-        "image/png",
-        "image/gif",
-        "text/plain",
-    ];
-
-    let error = "";
-    const validFiles = [];
-
-    for (const file of files) {
-        if (file.size > maxSize) {
-            error = "File must be under 10MB.";
-            break;
-        }
-        if (!allowedTypes.includes(file.type)) {
-            error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
-            break;
-        }
-        validFiles.push(file);
-    }
-
-    if (error) {
-        setErrors((prev) => ({
-            ...prev,
-            attachment: error,
-        }));
-        return;
-    }
-
-    setPoConsumptionFiles((prev) => [...prev, ...validFiles]);
-    setErrors((prev) => ({
-        ...prev,
-        attachment: "",
-    }));
-    e.target.value = null;
-};
+        e.target.value = null;
+    };
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
@@ -378,16 +402,16 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                             </div>
                             <div>
                                 <div className='flex justify-between items-center'>
-                                <label htmlFor="amount" className='block text-sm font-medium text-gray-700 mb-2'>
-                                    Amount*
-                                </label>
-                                <label className='text-right text-[10px]'>
-                                    {formData.msId && milestoneBalance ? (
-                                        <span className="text-red-600">Milestone Balance: ₹{milestoneBalance}</span>
-                                    ) : (
-                                        <span className="text-red-600">PO Balance: ₹{poBalance}</span>
-                                    )}
-                                </label>
+                                    <label htmlFor="amount" className='block text-sm font-medium text-gray-700 mb-2'>
+                                        Amount*
+                                    </label>
+                                    <label className='text-right text-[10px]'>
+                                        {formData.msId && milestoneBalance ? (
+                                            <span className="text-red-600">Milestone Balance: ₹{milestoneBalance}</span>
+                                        ) : (
+                                            <span className="text-red-600">PO Balance: ₹{poBalance}</span>
+                                        )}
+                                    </label>
                                 </div>
 
                                 <input
@@ -523,46 +547,46 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                             </div>
                         </div>
                         <div className="">
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-        PO Consumption Attachments (Max 4)
-    </label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                PO Consumption Attachments (Max 4)
+                            </label>
 
-    <input
-        type="file"
-        name="poConsumptionAttachment"
-        onChange={handleFileChange}
-        className="w-full px-4 h-10 text-sm border border-gray-300 rounded-md file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-        disabled={loading}
-        multiple
-        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-        title="Upload document or image file (max 10MB)"
-    />
+                            <input
+                                type="file"
+                                name="poConsumptionAttachment"
+                                onChange={handleFileChange}
+                                className="w-full px-4 h-10 text-sm border border-gray-300 rounded-md file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                                disabled={loading}
+                                multiple
+                                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                                title="Upload document or image file (max 10MB)"
+                            />
 
-    {/* Selected Files List */}
-    <ul className="mt-2 text-xs text-gray-700 space-y-1">
-        {poConsumptionFiles.map((file, index) => (
-            <li
-                key={index}
-                className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-            >
-                <span className="truncate max-w-[200px]" title={file.name}>
-                    {file.name}
-                </span>
-                <button
-                    type="button"
-                    onClick={() => removePOConsumptionFile(index)}
-                    className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                >
-                    Delete
-                </button>
-            </li>
-        ))}
-    </ul>
+                            {/* Selected Files List */}
+                            <ul className="mt-2 text-xs text-gray-700 space-y-1">
+                                {poConsumptionFiles.map((file, index) => (
+                                    <li
+                                        key={index}
+                                        className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                    >
+                                        <span className="truncate max-w-[200px]" title={file.name}>
+                                            {file.name}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removePOConsumptionFile(index)}
+                                            className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                        >
+                                            Delete
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
 
-    {errors.attachment && (
-        <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
-    )}
-</div>;
+                            {errors.attachment && (
+                                <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
+                            )}
+                        </div>;
                         <div>
                             <label htmlFor="description" className='block text-sm font-medium text-gray-700 mb-2'>
                                 Description
@@ -613,6 +637,12 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                     </form>
                 </div>
             </div>
+            <GlobalSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+            />
         </div>
     )
 }

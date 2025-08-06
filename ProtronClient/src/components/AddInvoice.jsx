@@ -16,6 +16,7 @@ import {
     Paperclip,
     Trash2
 } from 'lucide-react';
+import GlobalSnackbar from './GlobalSnackbar';
 
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -31,15 +32,15 @@ const currencySymbols = {
     AUD: 'A$'
 };
 
-const AddInvoiceModal = ({ 
-    open, 
-    onClose, 
-    onSubmit, 
-    timesheetData, 
-    viewMode, 
-    currentWeekStart, 
-    currentMonthRange, 
-    employee 
+const AddInvoiceModal = ({
+    open,
+    onClose,
+    onSubmit,
+    timesheetData,
+    viewMode,
+    currentWeekStart,
+    currentMonthRange,
+    employee
 }) => {
     const [formData, setFormData] = useState({
         invoiceName: '',
@@ -66,11 +67,16 @@ const AddInvoiceModal = ({
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [loadingEmployees, setLoadingEmployees] = useState(false);
-    
+
     // Single attachment field that handles multiple files (up to 4)
     const [attachments, setAttachments] = useState([]);
     const [attachTimesheet, setAttachTimesheet] = useState(false);
-    
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success'
+    })
+
     const fromDateInputRef = useRef(null);
     const toDateInputRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -78,9 +84,9 @@ const AddInvoiceModal = ({
     // Helper functions for timesheet data processing
     const formatDate = (date) =>
         date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
-    
+
     const formatDateKey = (date) => date.toISOString().split("T")[0];
-    
+
     const isWeekend = (date) => {
         const day = date.getDay();
         return day === 0 || day === 6;
@@ -136,7 +142,7 @@ const AddInvoiceModal = ({
         dates.forEach((date) => {
             const entries = getTimeEntries(date);
             const dayTotal = getDayTotalTime(date);
-            
+
             totalHours += dayTotal.hours;
             totalMinutes += dayTotal.minutes;
 
@@ -178,7 +184,7 @@ const AddInvoiceModal = ({
 
         return {
             viewMode,
-            period: viewMode === "Weekly" 
+            period: viewMode === "Weekly"
                 ? `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`
                 : `${formatDate(currentMonthRange.start)} - ${formatDate(currentMonthRange.end)}`,
             employeeName: employee?.name || formData.employeeName,
@@ -236,90 +242,90 @@ const AddInvoiceModal = ({
         }
     }, [open]);
 
-   const fetchDropdownData = async () => {
-    try {
-        setLoadingEmployees(true);
-        
-        const tenantId = sessionStorage.getItem("tenantId");
-        const token = sessionStorage.getItem("token");
-        
-        if (!tenantId || !token) {
-            throw new Error('Missing tenantId or token');
-        }
+    const fetchDropdownData = async () => {
+        try {
+            setLoadingEmployees(true);
 
-        const res = await axios.get(
-            `${API_BASE_URL}/api/tenants/${tenantId}/users`,
-            {
-                headers: { Authorization: token }
+            const tenantId = sessionStorage.getItem("tenantId");
+            const token = sessionStorage.getItem("token");
+
+            if (!tenantId || !token) {
+                throw new Error('Missing tenantId or token');
             }
-        );
 
-        if (!res.data || !Array.isArray(res.data)) {
-            throw new Error('Invalid API response structure');
-        }
-
-        // Transform employees data for dropdowns
-        const employeeOptions = res.data.map(emp => ({
-            label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-            value: emp.name,
-            empCode: emp.empCode,
-            cost: emp.cost,
-            email: emp.email,
-            userId: emp.userId,
-            status: emp.status,
-            currency: emp.unit || emp.currency || emp.preferredunit || 'USD',
-            city: emp.city,
-            state: emp.state,
-            country: emp.country,
-            mobilePhone: emp.mobilePhone
-        }));
-
-        // Enhanced customer options with address info
-        const customerOptionsWithAddress = res.data.map(emp => ({
-            label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-            value: emp.name,
-            empCode: emp.empCode,
-            cost: emp.cost,
-            email: emp.email,
-            userId: emp.userId,
-            status: emp.status,
-            address: (() => {
-                const addressParts = [];
-                if (emp.city) addressParts.push(emp.city);
-                if (emp.state) addressParts.push(emp.state);
-                if (emp.country) addressParts.push(emp.country);
-                
-                if (addressParts.length > 0) {
-                    return addressParts.join(', ');
-                } else {
-                    return `Address for ${emp.name}`;
+            const res = await axios.get(
+                `${API_BASE_URL}/api/tenants/${tenantId}/users`,
+                {
+                    headers: { Authorization: token }
                 }
-            })(),
-            city: emp.city,
-            state: emp.state,
-            country: emp.country,
-            mobilePhone: emp.mobilePhone,
-            currency: emp.unit || emp.currency || 'USD'
-        }));
+            );
 
-        setEmployees(employeeOptions);
-        setCustomers(customerOptionsWithAddress);
-        setSuppliers([]);
-        setCustomerAddresses([]);
-        setSupplierAddresses([]);
+            if (!res.data || !Array.isArray(res.data)) {
+                throw new Error('Invalid API response structure');
+            }
 
-    } catch (error) {
-        console.error('Error fetching dropdown data:', error);
-        setEmployees([]);
-        setCustomers([]);
-        setSuppliers([]);
-        setCustomerAddresses([]);
-        setSupplierAddresses([]);
-        alert(`Failed to fetch employee data: ${error.message}`);
-    } finally {
-        setLoadingEmployees(false);
-    }
-};
+            // Transform employees data for dropdowns
+            const employeeOptions = res.data.map(emp => ({
+                label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
+                value: emp.name,
+                empCode: emp.empCode,
+                cost: emp.cost,
+                email: emp.email,
+                userId: emp.userId,
+                status: emp.status,
+                currency: emp.unit || emp.currency || emp.preferredunit || 'USD',
+                city: emp.city,
+                state: emp.state,
+                country: emp.country,
+                mobilePhone: emp.mobilePhone
+            }));
+
+            // Enhanced customer options with address info
+            const customerOptionsWithAddress = res.data.map(emp => ({
+                label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
+                value: emp.name,
+                empCode: emp.empCode,
+                cost: emp.cost,
+                email: emp.email,
+                userId: emp.userId,
+                status: emp.status,
+                address: (() => {
+                    const addressParts = [];
+                    if (emp.city) addressParts.push(emp.city);
+                    if (emp.state) addressParts.push(emp.state);
+                    if (emp.country) addressParts.push(emp.country);
+
+                    if (addressParts.length > 0) {
+                        return addressParts.join(', ');
+                    } else {
+                        return `Address for ${emp.name}`;
+                    }
+                })(),
+                city: emp.city,
+                state: emp.state,
+                country: emp.country,
+                mobilePhone: emp.mobilePhone,
+                currency: emp.unit || emp.currency || 'USD'
+            }));
+
+            setEmployees(employeeOptions);
+            setCustomers(customerOptionsWithAddress);
+            setSuppliers([]);
+            setCustomerAddresses([]);
+            setSupplierAddresses([]);
+
+        } catch (error) {
+            console.error('Error fetching dropdown data:', error);
+            setEmployees([]);
+            setCustomers([]);
+            setSuppliers([]);
+            setCustomerAddresses([]);
+            setSupplierAddresses([]);
+            alert(`Failed to fetch employee data: ${error.message}`);
+        } finally {
+            setLoadingEmployees(false);
+        }
+    };
 
     // Auto-calculate total amount when rate or hours change
     useEffect(() => {
@@ -369,14 +375,14 @@ const AddInvoiceModal = ({
             if (selectedOption.city) addressParts.push(selectedOption.city);
             if (selectedOption.state) addressParts.push(selectedOption.state);
             if (selectedOption.country) addressParts.push(selectedOption.country);
-            
+
             let finalAddress = '';
             if (addressParts.length > 0) {
                 finalAddress = addressParts.join(', ');
             } else {
                 finalAddress = `${selectedOption.value}'s Address`;
             }
-            
+
             setFormData(prev => ({
                 ...prev,
                 customerName: selectedOption.value,
@@ -389,48 +395,48 @@ const AddInvoiceModal = ({
                 customerAddress: ''
             }));
         }
-        
+
         if (errors.customerName) {
             setErrors(prev => ({ ...prev, customerName: '' }));
         }
     };
 
     // Special handler for employee selection to auto-populate rate and currency
-   const handleEmployeeChange = (selectedOption) => {
-    if (selectedOption) {
-        const newCurrency = selectedOption.currency || 'USD';
-        const newRate = selectedOption.cost || '';
-        
-        console.log('Selected employee:', selectedOption);
-        console.log('Currency from employee:', newCurrency);
-        
-        setFormData(prev => ({
-            ...prev,
-            employeeName: selectedOption.value,
-            rate: newRate,
-            currency: newCurrency
-        }));
-    } else {
-        setFormData(prev => ({
-            ...prev,
-            employeeName: '',
-            rate: '',
-            currency: 'USD'
-        }));
-    }
-    
-    if (errors.employeeName) {
-        setErrors(prev => ({ ...prev, employeeName: '' }));
-    }
-    if (errors.rate) {
-        setErrors(prev => ({ ...prev, rate: '' }));
-    }
-};
+    const handleEmployeeChange = (selectedOption) => {
+        if (selectedOption) {
+            const newCurrency = selectedOption.currency || 'USD';
+            const newRate = selectedOption.cost || '';
+
+            console.log('Selected employee:', selectedOption);
+            console.log('Currency from employee:', newCurrency);
+
+            setFormData(prev => ({
+                ...prev,
+                employeeName: selectedOption.value,
+                rate: newRate,
+                currency: newCurrency
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                employeeName: '',
+                rate: '',
+                currency: 'USD'
+            }));
+        }
+
+        if (errors.employeeName) {
+            setErrors(prev => ({ ...prev, employeeName: '' }));
+        }
+        if (errors.rate) {
+            setErrors(prev => ({ ...prev, rate: '' }));
+        }
+    };
 
     // Handle multiple file selection (up to 4 files)
     const handleFileChange = (event) => {
         const files = Array.from(event.target.files);
-        
+
         if (files.length > 4) {
             alert('You can attach a maximum of 4 files at once.');
             return;
@@ -483,7 +489,7 @@ const AddInvoiceModal = ({
 
     const validateForm = () => {
         const newErrors = {};
-        
+
         if (!formData.invoiceName.trim()) newErrors.invoiceName = 'Invoice name is required';
         if (!formData.customerName.trim()) newErrors.customerName = 'Customer name is required';
         if (!formData.supplierName.trim()) newErrors.supplierName = 'Supplier name is required';
@@ -492,7 +498,7 @@ const AddInvoiceModal = ({
         if (!formData.fromDate) newErrors.fromDate = 'From date is required';
         if (!formData.toDate) newErrors.toDate = 'To date is required';
         if (!formData.hoursSpent || parseInt(formData.hoursSpent) <= 0) newErrors.hoursSpent = 'Valid hours are required';
-        
+
         if (formData.fromDate && formData.toDate && new Date(formData.toDate) < new Date(formData.fromDate)) {
             newErrors.toDate = 'To date must be after from date';
         }
@@ -531,7 +537,7 @@ const AddInvoiceModal = ({
                 // Create FormData for multipart request
                 const formDataToSend = new FormData();
                 formDataToSend.append('invoice', JSON.stringify(invoiceData));
-                
+
                 // Add attachments to FormData
                 attachments.forEach((file) => {
                     formDataToSend.append('attachments', file);
@@ -562,12 +568,19 @@ const AddInvoiceModal = ({
             }
 
             console.log('Invoice generated successfully:', response.data);
-            
+            setSnackbar((prev) => ({
+                ...prev,
+                open: true,
+                message: "PO Consumption Created Successfully",
+                severity: "success",
+            }))
+
+
             // Call parent's onSubmit if provided
             if (onSubmit) {
                 onSubmit(response.data);
             }
-            
+
             // Ask user if they want to download the PDF
             if (response.data.invoiceId) {
                 setTimeout(() => {
@@ -576,13 +589,13 @@ const AddInvoiceModal = ({
                     }
                 }, 500);
             }
-            
+
             handleReset();
             onClose();
-            
+
         } catch (error) {
             console.error('Error creating invoice:', error);
-            
+
             let errorMessage = 'Failed to create invoice. Please try again.';
             if (error.response?.data) {
                 if (typeof error.response.data === 'string') {
@@ -591,8 +604,14 @@ const AddInvoiceModal = ({
                     errorMessage = error.response.data.message;
                 }
             }
-            
-            alert(errorMessage);
+
+            setSnackbar((prev) => ({
+                ...prev,
+                open: true,
+                message: errorMessage,
+                severity: "error",
+            }))
+
         } finally {
             setLoading(false);
         }
@@ -618,11 +637,18 @@ const AddInvoiceModal = ({
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
             window.URL.revokeObjectURL(url);
-            
+
+
         } catch (error) {
             console.error("Failed to download invoice:", error);
-            alert("Failed to download invoice PDF");
+            setSnackbar((prev) => ({
+                ...prev,
+                open: true,
+                message: "Failed to download invoice. Please try again.",
+                severity: "error",
+            }))
         }
     };
 
@@ -743,9 +769,8 @@ const AddInvoiceModal = ({
                                     placeholder="Enter invoice name"
                                     value={formData.invoiceName}
                                     onChange={handleChange('invoiceName')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                                        errors.invoiceName ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.invoiceName ? 'border-red-500' : 'border-gray-300'
+                                        }`}
                                     maxLength={100}
                                 />
                                 {errors.invoiceName && <p className="text-red-500 text-xs mt-1">{errors.invoiceName}</p>}
@@ -807,9 +832,8 @@ const AddInvoiceModal = ({
                                     placeholder="Enter supplier name"
                                     value={formData.supplierName}
                                     onChange={handleChange('supplierName')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                                        errors.supplierName ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.supplierName ? 'border-red-500' : 'border-gray-300'
+                                        }`}
                                 />
                                 {errors.supplierName && <p className="text-red-500 text-xs mt-1">{errors.supplierName}</p>}
                             </div>
@@ -866,7 +890,7 @@ const AddInvoiceModal = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Currency * 
+                                    Currency *
                                     <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
                                 </label>
                                 <select
@@ -886,22 +910,21 @@ const AddInvoiceModal = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Rate * 
+                                    Rate *
                                     <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
                                 </label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
                                         {currencySymbols[formData.currency] || '$'}
-                                    
+
                                     </span>
                                     <input
                                         type="number"
                                         placeholder="0.00"
                                         value={formData.rate}
                                         onChange={handleChange('rate')}
-                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                                            errors.rate ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.rate ? 'border-red-500' : 'border-gray-300'
+                                            }`}
                                         step="0.01"
                                         min="0.01"
                                     />
@@ -909,70 +932,67 @@ const AddInvoiceModal = ({
                                 {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
                             </div>
 
-                      <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-        Hours Spent *
-    </label>
-    <input
-        type="number"
-        placeholder="0"
-        value={formData.hoursSpent}
-        onChange={handleChange('hoursSpent')}
-        className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-            errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
-        }`}
-        min="1"
-    />
-    {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
-</div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Hours Spent *
+                                </label>
+                                <input
+                                    type="number"
+                                    placeholder="0"
+                                    value={formData.hoursSpent}
+                                    onChange={handleChange('hoursSpent')}
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                    min="1"
+                                />
+                                {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
+                            </div>
                         </div>
 
                         {/* 4th Line: From Date and To Date */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                           <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-        From Date *
-    </label>
-    <div
-        onClick={() => fromDateInputRef.current?.showPicker?.()}
-        className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
-            errors.fromDate ? 'border-red-500' : 'border-gray-300'
-        }`}
-    >
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
-        <input
-            ref={fromDateInputRef}
-            type="date"
-            value={formData.fromDate}
-            onChange={handleChange('fromDate')}
-            className="w-full bg-transparent outline-none cursor-pointer"
-        />
-    </div>
-    {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
-</div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    From Date *
+                                </label>
+                                <div
+                                    onClick={() => fromDateInputRef.current?.showPicker?.()}
+                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${errors.fromDate ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                >
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
+                                    <input
+                                        ref={fromDateInputRef}
+                                        type="date"
+                                        value={formData.fromDate}
+                                        onChange={handleChange('fromDate')}
+                                        className="w-full bg-transparent outline-none cursor-pointer"
+                                    />
+                                </div>
+                                {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
+                            </div>
 
                             <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2">
-        To Date *
-    </label>
-    <div
-        onClick={() => toDateInputRef.current?.showPicker?.()}
-        className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
-            errors.toDate ? 'border-red-500' : 'border-gray-300'
-        }`}
-    >
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
-        <input
-            ref={toDateInputRef}
-            type="date"
-            value={formData.toDate}
-            onChange={handleChange('toDate')}
-            className="w-full bg-transparent outline-none cursor-pointer"
-            min={formData.fromDate}
-        />
-    </div>
-    {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}
-</div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    To Date *
+                                </label>
+                                <div
+                                    onClick={() => toDateInputRef.current?.showPicker?.()}
+                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${errors.toDate ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                >
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
+                                    <input
+                                        ref={toDateInputRef}
+                                        type="date"
+                                        value={formData.toDate}
+                                        onChange={handleChange('toDate')}
+                                        className="w-full bg-transparent outline-none cursor-pointer"
+                                        min={formData.fromDate}
+                                    />
+                                </div>
+                                {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}
+                            </div>
 
                             {/* Empty divs to maintain grid alignment */}
                             <div></div>
@@ -1023,7 +1043,7 @@ const AddInvoiceModal = ({
                                 <Paperclip className="mr-2 text-green-600" size={16} />
                                 Attachments (Optional - Max 4 files)
                             </label>
-                            
+
                             {/* File Input */}
                             <div className="mb-4">
                                 <input
@@ -1042,10 +1062,10 @@ const AddInvoiceModal = ({
                                 >
                                     <Paperclip size={20} />
                                     <span className="text-sm font-medium">
-                                        {attachments.length === 0 
-                                            ? 'Choose Files (Max 4)' 
-                                            : attachments.length >= 4 
-                                                ? 'Maximum 4 files reached' 
+                                        {attachments.length === 0
+                                            ? 'Choose Files (Max 4)'
+                                            : attachments.length >= 4
+                                                ? 'Maximum 4 files reached'
                                                 : `Add More Files (${4 - attachments.length} remaining)`
                                         }
                                     </span>
@@ -1071,7 +1091,7 @@ const AddInvoiceModal = ({
                                             Remove All
                                         </button>
                                     </div>
-                                    
+
                                     <div className="space-y-2">
                                         {attachments.map((file, index) => (
                                             <div key={index} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
@@ -1099,7 +1119,7 @@ const AddInvoiceModal = ({
                                             </div>
                                         ))}
                                     </div>
-                                    
+
                                     {/* Total File Size */}
                                     <div className="mt-3 pt-3 border-t border-gray-200">
                                         <p className="text-xs text-gray-600">
@@ -1137,7 +1157,7 @@ const AddInvoiceModal = ({
                                         Include Timesheet Reference in PDF
                                     </label>
                                     <p className="text-xs text-green-600 mt-1">
-                                        {viewMode === "Weekly" 
+                                        {viewMode === "Weekly"
                                             ? "Include a detailed weekly timesheet table in the generated invoice PDF"
                                             : "Include a detailed monthly timesheet table in the generated invoice PDF"
                                         }
@@ -1150,39 +1170,39 @@ const AddInvoiceModal = ({
                                 </div>
                             </div>
                             <div></div>
-                              <div></div>
-                        {/* Timesheet Summary (when timesheet is attached) */}
-                        {attachTimesheet && getTimesheetSummary() && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-sm font-semibold text-blue-900 flex items-center">
-                                        <Clock className="mr-2" size={16} />
-                                        Timesheet Summary ({getTimesheetSummary().period} View)
-                                    </h3>
+                            <div></div>
+                            {/* Timesheet Summary (when timesheet is attached) */}
+                            {attachTimesheet && getTimesheetSummary() && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-sm font-semibold text-blue-900 flex items-center">
+                                            <Clock className="mr-2" size={16} />
+                                            Timesheet Summary ({getTimesheetSummary().period} View)
+                                        </h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Period:</span>
+                                            <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Total Hours:</span>
+                                            <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Tasks Logged:</span>
+                                            <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Employee:</span>
+                                            <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-blue-600 mt-2">
+                                        ✓ Detailed timesheet table will be included in the generated PDF
+                                    </p>
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Period:</span>
-                                        <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Total Hours:</span>
-                                        <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Tasks Logged:</span>
-                                        <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-blue-600 font-medium">Employee:</span>
-                                        <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-blue-600 mt-2">
-                                    ✓ Detailed timesheet table will be included in the generated PDF
-                                </p>
-                            </div>
-                        )}
+                            )}
                         </div>
                     </div>
                 </div>
@@ -1194,9 +1214,9 @@ const AddInvoiceModal = ({
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
                             <p className="text-lg font-medium text-gray-900">Generating Invoice...</p>
                             <p className="text-sm text-gray-600">
-                                {attachTimesheet 
+                                {attachTimesheet
                                     ? `Including ${viewMode?.toLowerCase() || ''} timesheet data...`
-                                    : attachments.length > 0 
+                                    : attachments.length > 0
                                         ? `Processing ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}...`
                                         : 'Please wait while we create your invoice'
                                 }
@@ -1245,6 +1265,12 @@ const AddInvoiceModal = ({
                     </button>
                 </div>
             </div>
+            <GlobalSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+            />
         </div>
     );
 };

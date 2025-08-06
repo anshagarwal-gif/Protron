@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock, Upload } from "lucide-react";
 import axios from "axios";
+import GlobalSnackbar from "../components/GlobalSnackbar";
+
 
 const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   const [formData, setFormData] = useState({
@@ -22,6 +24,11 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   const [remarksWordCount, setRemarksWordCount] = useState(0);
   const [poBalance, setPOBalance] = useState(null);
   const [milestoneFiles, setMilestoneFiles] = useState([]);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: ""
+  });
 
   // Fetch PO details to get PO number and currency
   useEffect(() => {
@@ -219,6 +226,12 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         }
       );
       console.log('Milestone added successfully:', response.data);
+      setSnackbar({
+        open: true,
+        message: "Milestone added successfully",
+        severity: "success"
+      });
+
       const milestoneId = response.data.id || response.data.msId;
       const milestoneName = response.data.msName;
 
@@ -238,32 +251,48 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
               },
               body: attachmentForm
             });
+            console.log("Attachment upload response:", uploadRes);
 
             if (!uploadRes.ok) {
               console.error(`Attachment upload failed for ${file.name}`);
+              setSnackbar({
+                open: true,
+                message: "Attachment upload failed",
+                severity: "error"
+              });
             }
           } catch (err) {
             console.error("Attachment upload error:", err);
+            setSnackbar({
+              open: true,
+              message: "Attachment upload failed",
+              severity: "error"
+            })
           }
         }
       }
 
       onSubmit({
-          msId: milestoneId,
-          milestoneName: formData.msName,
-          milestoneDescription: formData.msDesc,
-          amount: parseInt(formData.msAmount) || 0,
-          currency: formData.msCurrency,
-          date: formData.msDate ? new Date(formData.msDate).toISOString().split('T')[0] : null,
-          duration: parseInt(formData.msDuration) || 0,
-          remark: formData.msRemarks || "",
-          attachments: milestoneFiles
-        });
+        msId: milestoneId,
+        milestoneName: formData.msName,
+        milestoneDescription: formData.msDesc,
+        amount: parseInt(formData.msAmount) || 0,
+        currency: formData.msCurrency,
+        date: formData.msDate ? new Date(formData.msDate).toISOString().split('T')[0] : null,
+        duration: parseInt(formData.msDuration) || 0,
+        remark: formData.msRemarks || "",
+        attachments: milestoneFiles
+      });
 
     } catch (error) {
       console.error("Error adding milestone:", error);
       setErrors({
         submit: error.response?.data?.message || error.message || "Failed to add milestone"
+      });
+      setSnackbar({
+        open: true,
+        message: "Failed to add milestone",
+        severity: "error"
       });
     } finally {
       setLoading(false);
@@ -552,6 +581,12 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
           </div>
         </form>
       </div>
+      <GlobalSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

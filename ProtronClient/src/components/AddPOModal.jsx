@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import AddMilestoneModal from './AddMilestoneModal'; // Import the AddMilestoneModal
 import axios from 'axios';
+import GlobalSnackbar from './GlobalSnackbar';
 
 // Currency symbols mapping
 const currencySymbols = {
@@ -65,6 +66,11 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     const [editingMilestone, setEditingMilestone] = useState(null);
     const [countries, setCountries] = useState([]);
     const [poFiles, setPoFiles] = useState([]);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success'
+    })
 
     const fetchUsers = async () => {
         try {
@@ -1175,6 +1181,12 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     </div>
                 </div>
             </div>
+            <GlobalSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+            />
 
             {/* Add Milestone Modal */}
             <AddMilestoneModal

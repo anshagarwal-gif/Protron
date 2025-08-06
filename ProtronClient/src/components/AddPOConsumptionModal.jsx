@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip } from "lucide-react";
 import axios from "axios";
 import { useSession } from "../Context/SessionContext";
+import GlobalSnackbar from "./GlobalSnackbar";
 
 const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -32,6 +33,11 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   const [poId, setPoId] = useState("");
   const [users, setUsers] = useState([]);
   const [poConsumptionFiles, setPoConsumptionFiles] = useState([]);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: ""
+  });
 
   // Fetch PO list and projects on modal open
   useEffect(() => {
@@ -432,40 +438,63 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         }
       );
       console.log("PO Consumption added successfully:", response.data);
+      setSnackbar({
+        open: true,
+        message: "PO Consumption added successfully",
+        severity: "success"
+      })
       const consumptionId = response.data.utilizationId
-;
+        ;
 
       if (poConsumptionFiles.length > 0) {
-  for (const file of poConsumptionFiles) {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("level", "CONSUMPTION");
-    formData.append("referenceId", consumptionId);
-    formData.append("referenceNumber", ""); // if applicable
+        for (const file of poConsumptionFiles) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("level", "CONSUMPTION");
+          formData.append("referenceId", consumptionId);
+          formData.append("referenceNumber", ""); // if applicable
 
-    try {
-      const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
-        method: "POST",
-        headers: {
-          'Authorization': `${token}`
-        },
-        body: formData
-      });
+          try {
+            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
+              method: "POST",
+              headers: {
+                'Authorization': `${token}`
+              },
+              body: formData
+            });
+            console.log("Attachment upload response:", uploadRes);
 
-      if (!uploadRes.ok) {
-        console.error(`Attachment upload failed for ${file.name}`);
+            if (!uploadRes.ok) {
+              console.error(`Attachment upload failed for ${file.name}`);
+              setSnackbar({
+                open: true,
+                message: `Attachment upload failed for
+                ${file.name}`,
+                severity: "error"
+              })
+            }
+          } catch (err) {
+            console.error("Attachment upload error:", err);
+            setSnackbar({
+              open: true,
+              message: `Attachment upload error for
+              ${file.name}`,
+              severity: "error"
+            })
+          }
+        }
       }
-    } catch (err) {
-      console.error("Attachment upload error:", err);
-    }
-  }
-}
 
 
       onSubmit(response.data);
       handleClose();
     } catch (error) {
       console.error("Error adding PO consumption:", error);
+      setSnackbar({
+        open: true,
+        message: "Error adding PO consumption",
+        severity: "error"
+      })
 
       // Enhanced error message handling
       let errorMessage = "Failed to add PO consumption";
@@ -940,6 +969,12 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
           </div>
         </form>
       </div>
+      <GlobalSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };
