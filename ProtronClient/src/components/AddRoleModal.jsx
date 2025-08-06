@@ -20,6 +20,8 @@ const AddRoleModal = ({
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState({});
 
+  const generateInvoiceModule = import.meta.env.VITE_GENERATE_INVOICE_MODULE;
+
   // Reset state when modal opens/closes
   React.useEffect(() => {
     if (open) {
@@ -243,7 +245,9 @@ const AddRoleModal = ({
                           }}
                         />
                       </Box>
-
+                      {moduleName !== generateInvoiceModule && (
+                        <>
+                        
                       <Box sx={{ display: "flex", justifyContent: "center" }}>
                         <Switch
                           size="small"
@@ -275,6 +279,7 @@ const AddRoleModal = ({
                           }}
                         />
                       </Box>
+                      </>)}
                     </Box>
                   );
                 })}

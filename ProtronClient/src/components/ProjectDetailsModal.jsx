@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { X, Calendar, User, Users, Settings, Building, FileText, Clock } from "lucide-react";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -34,129 +35,212 @@ const ProjectDetailsModal = ({ projectId, onClose }) => {
 
   if (!projectId) return null;
 
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Field component for consistent styling
+  const Field = ({ label, value, icon: Icon, className = "", colSpan = 1 }) => (
+    <div className={`${colSpan > 1 ? `col-span-${colSpan}` : ''} ${className}`}>
+      <div className="flex items-center mb-2">
+        {Icon && <Icon size={16} className="text-slate-500 mr-2" />}
+        <label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">{label}</label>
+      </div>
+      <div className="text-slate-900 font-medium break-words overflow-wrap-anywhere">
+        {value || "N/A"}
+      </div>
+    </div>
+  );
+
   return (
-    <>
-      <div
-        className="fixed inset-0 bg-[rgba(0,0,0,0.5)] z-40 transition-opacity"
-        onClick={onClose}
-      />
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl bg-white rounded-lg shadow-xl z-50 p-4 sm:p-6 md:p-8 overflow-y-auto m-4">
-        <button
-          className="absolute top-2 right-2 text-red-700 hover:text-red-900 cursor-pointer text-xl font-bold z-10"
-          onClick={onClose}
-        >
-          X
-        </button>
-        {isLoading ? (
-          <div className="text-center py-6">Loading...</div>
-        ) : projectDetails ? (
-          <>
-            <div className="flex flex-col sm:flex-row items-center sm:items-start bg-green-700 space-y-4 sm:space-y-0 sm:space-x-8 mb-6 md:mb-8 p-4 sm:p-6 border-b border-gray-200 rounded-t-lg">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-green-600 rounded-full flex items-center justify-center border-4 border-gray-100 flex-shrink-0">
-                <svg
-                  className="w-8 h-8 sm:w-12 sm:h-12 md:w-16 md:h-16 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H9m3 0V9"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-1 sm:mb-2">
-                  {projectDetails.projectName}
-                </h2>
-                <p className="text-sm sm:text-base md:text-lg text-white mb-2 sm:mb-4">
-                  {projectDetails.tenantName || "No tenant specified"}
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-x-8 sm:gap-y-2">
-                  <div className="text-sm sm:text-base">
-                    <span className="font-bold text-white">Start Date:</span>
-                    <span className="ml-2 text-white">{projectDetails.startDate}</span>
-                  </div>
-                  <div className="text-sm sm:text-base">
-                    <span className="font-bold text-white">End Date:</span>
-                    <span className="ml-2 text-white">{projectDetails.endDate}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-              <div className="space-y-4 sm:space-y-6">
-                <div className="bg-green-100 p-4 sm:p-6 rounded-lg">
-                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">
-                    Systems Impacted ({systemsImpacted.length})
-                  </h3>
-                  {systemsImpacted.length > 0 ? (
-                    <ul className="space-y-2">
-                      {systemsImpacted.map((system, index) => (
-                        <li key={index} className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                          <span className="text-gray-900 text-sm sm:text-base">
-                            {system.systemName}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 text-sm sm:text-base">No systems impacted</p>
-                  )}
-                </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0000006b] bg-opacity-60 p-4 scrollbar-hide">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full border border-slate-200 max-h-[90vh] overflow-y-auto scrollbar-hide">
+        {/* Header */}
+        <div className="px-8 py-6 bg-gradient-to-r from-emerald-800 to-green-900 rounded-t-3xl">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className=" bg-opacity-20 p-3 rounded-xl">
+                <Building size={28} className="text-white" />
               </div>
               <div>
-                <div className="bg-green-100 p-4 sm:p-6 rounded-lg h-full">
-                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">
-                    Leadership
+                <h2 className="text-3xl font-bold text-white">Project Details</h2>
+                <p className="text-slate-200 mt-1">
+                  {projectDetails?.projectName || 'Loading...'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-3 hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200 group"
+            >
+              <X size={24} className="text-white group-hover:text-slate-200" />
+            </button>
+          </div>
+        </div>
+
+        <div className="p-8 space-y-8">
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-white bg-emerald-600 hover:bg-emerald-500 transition ease-in-out duration-150">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading project details...
+              </div>
+            </div>
+          ) : projectDetails ? (
+            <>
+              {/* Project Overview Section */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
+                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                  <FileText className="mr-3 text-blue-600" size={24} />
+                  Project Overview
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <Field
+                    label="Project Name"
+                    value={projectDetails.projectName}
+                    icon={Building}
+                  />
+                  <Field
+                    label="Tenant"
+                    value={projectDetails.tenantName || "No tenant specified"}
+                    icon={Building}
+                  />
+                  <Field
+                    label="Start Date"
+                    value={formatDate(projectDetails.startDate)}
+                    icon={Calendar}
+                  />
+                  <Field
+                    label="End Date"
+                    value={formatDate(projectDetails.endDate)}
+                    icon={Calendar}
+                  />
+                  <Field
+                    label="Project Cost"
+                    value={projectDetails.unit + " " + projectDetails.projectCost}
+                  />
+                </div>
+              </div>
+
+              {/* Leadership Section */}
+              <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
+                <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                  <User className="mr-3 text-orange-600" size={24} />
+                  Project Leadership
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Field
+                    label="Project Manager"
+                    value={projectDetails.projectManagerName || "Not assigned"}
+                    icon={User}
+                  />
+                  <Field
+                    label="Sponsor"
+                    value={projectDetails.sponsorName || "Not assigned"}
+                    icon={User}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Team Members Section */}
+                <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-6 border border-purple-100">
+                  <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                    <Users className="mr-3 text-purple-600" size={24} />
+                    Team Members ({teamMembers.length})
                   </h3>
-                  <div className="text-sm sm:text-base space-y-4 text-gray-900">
-                    <div>
-                      <p className="font-medium text-gray-700 mb-1">Project Manager:</p>
-                      <p className="text-gray-900">
-                        {projectDetails.projectManagerName || "Not assigned"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-700 mb-1">Sponsor:</p>
-                      <p className="text-gray-900">
-                        {projectDetails.sponsorName || "Not assigned"}
-                      </p>
-                    </div>
+                  <div className="bg-white rounded-xl p-6 border border-purple-200 min-h-[200px]">
+                    {teamMembers.length > 0 ? (
+                      <div className="space-y-3">
+                        {teamMembers.map((member, index) => (
+                          <div key={index} className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                            <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center flex-shrink-0">
+                              <User size={16} className="text-purple-600" />
+                            </div>
+                            <span className="text-slate-900 font-medium">
+                              {member.fullName}
+                              {member.empCode && (
+                                <span className="text-slate-500 ml-1">
+                                  ({member.empCode})
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-slate-500">
+                        <div className="text-center">
+                          <Users size={48} className="mx-auto mb-4 text-slate-300" />
+                          <p>No team members assigned</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Systems Impacted Section */}
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+                  <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
+                    <Settings className="mr-3 text-emerald-600" size={24} />
+                    Systems Impacted ({systemsImpacted.length})
+                  </h3>
+                  <div className="bg-white rounded-xl p-6 border border-green-200 min-h-[200px]">
+                    {systemsImpacted.length > 0 ? (
+                      <div className="space-y-3">
+                        {systemsImpacted.map((system, index) => (
+                          <div key={index} className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-100">
+                            <div className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Settings size={16} className="text-green-600" />
+                            </div>
+                            <span className="text-slate-900 font-medium">
+                              {system.systemName}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-slate-500">
+                        <div className="text-center">
+                          <Settings size={48} className="mx-auto mb-4 text-slate-300" />
+                          <p>No systems impacted</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              <div className="space-y-4 sm:space-y-6">
-                <div className="bg-green-100 p-4 sm:p-6 rounded-lg">
-                  <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">
-                    Team Members ({teamMembers.length})
-                  </h3>
-                  {teamMembers.length > 0 ? (
-                    <ul className="space-y-2">
-                      {teamMembers.map((member, index) => (
-                        <li key={index} className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                          <span className="text-gray-900 text-sm sm:text-base">
-                            {member.fullName}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500 text-sm sm:text-base">No team members assigned</p>
-                  )}
-                </div>
-              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <Building size={64} className="mx-auto mb-4 text-slate-300" />
+              <p className="text-slate-600 text-lg">No project details available</p>
             </div>
-          </>
-        ) : (
-          <div className="text-center py-6">No project details available.</div>
-        )}
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-8 py-4 bg-slate-50 rounded-b-3xl border-t border-slate-200">
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors duration-200 font-medium"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -317,6 +317,12 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     setRemarksWordCount(0);
     onClose();
   };
+  const handleDateInputClick = (inputName) => {
+        const dateInput = document.getElementsByName(inputName)[0];
+        if (dateInput) {
+            dateInput.showPicker();
+        }
+    };
 
   if (!open) return null;
 
@@ -452,6 +458,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading}
+                  onClick={() => handleDateInputClick('msDate')}
                 />
               </div>
 

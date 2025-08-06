@@ -720,7 +720,7 @@ const filteredRoles = roles.filter(role => {
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             {hasAccess('users', 'edit') && (
-              user.status.toLowerCase() === 'active' ? (
+              user.status?.toLowerCase() === 'active' ? (
                 <button
                   onClick={() => handleHold(user)}
                   className="p-2 rounded-full hover:bg-orange-100 transition-colors"

@@ -248,23 +248,33 @@ const MultiSelectDropdown = ({
 
 // Date Picker Component (simplified)
 const DatePicker = ({ label, value, onChange, icon: Icon }) => {
+    const inputRef = useRef(null);
+
+    const handleInputClick = () => {
+        if (inputRef.current) {
+            inputRef.current.showPicker?.(); // Safe call in case browser doesn't support it
+        }
+    };
+
     return (
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            <div className="relative">
+            <div className="relative" onClick={handleInputClick}>
                 <input
+                    ref={inputRef}
                     type="date"
                     value={value ? value.toISOString().split('T')[0] : ''}
                     onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : null)}
-                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
+                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 cursor-pointer"
                     title={value || "N/A"}
                 />
-                {Icon && <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />}
+                {Icon && (
+                    <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800 pointer-events-none" />
+                )}
             </div>
         </div>
     );
 };
-
 // Main Modal Component
 const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => {
     const [users, setUsers] = useState([]);
@@ -304,7 +314,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             [field]: value
         }));
     };
-
+    
     const handleSubmit = () => {
         setIsSubmitting(true);
         onSubmit(formData);

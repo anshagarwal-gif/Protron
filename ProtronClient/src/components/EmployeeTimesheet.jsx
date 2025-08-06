@@ -109,14 +109,14 @@ const TimesheetManager = () => {
   const getTargetHours = () => {
     return viewMode === "Weekly" ? 40 : 184;
   };
-const handleGenerateInvoice = () => {
-  setShowInvoiceModal(true);
-};
-const handleInvoiceSubmit = (invoiceData) => {
-  console.log('Invoice generated:', invoiceData);
-  showToast("Invoice generated successfully!", "success");
-  // You can add additional logic here if needed
-};
+  const handleGenerateInvoice = () => {
+    setShowInvoiceModal(true);
+  };
+  const handleInvoiceSubmit = (invoiceData) => {
+    console.log('Invoice generated:', invoiceData);
+    showToast("Invoice generated successfully!", "success");
+    // You can add additional logic here if needed
+  };
   // Toast helper function
   const showToast = (message, type = 'info') => {
     setToast({
@@ -571,36 +571,36 @@ const handleInvoiceSubmit = (invoiceData) => {
     }
   };
 
-const handleDownloadInvoice = async (invoiceId, invoiceName) => {
-  try {
-    showToast("Downloading invoice...", "info");
-    
-    const response = await axios.get(
-      `${API_BASE_URL}/api/invoices/download/${invoiceId}`,
-      {
-        headers: {
-          Authorization: sessionStorage.getItem("token")
-        },
-        responseType: 'blob'
-      }
-    );
+  const handleDownloadInvoice = async (invoiceId, invoiceName) => {
+    try {
+      showToast("Downloading invoice...", "info");
 
-    const blob = new Blob([response.data], { type: 'application/pdf' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${invoiceName || invoiceId}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-    
-    showToast("Invoice downloaded successfully!", "success");
-  } catch (error) {
-    console.error("Failed to download invoice:", error);
-    showToast("Failed to download invoice", "error");
-  }
-};
+      const response = await axios.get(
+        `${API_BASE_URL}/api/invoices/download/${invoiceId}`,
+        {
+          headers: {
+            Authorization: sessionStorage.getItem("token")
+          },
+          responseType: 'blob'
+        }
+      );
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${invoiceName || invoiceId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showToast("Invoice downloaded successfully!", "success");
+    } catch (error) {
+      console.error("Failed to download invoice:", error);
+      showToast("Failed to download invoice", "error");
+    }
+  };
   // Download as CSV with attachment information
   const downloadExcel = () => {
     try {
@@ -947,13 +947,13 @@ const handleDownloadInvoice = async (invoiceId, invoiceName) => {
                 <Download className="h-4 w-4" />
                 <span>Download Excel</span>
               </button>
-              <button
-  onClick={handleGenerateInvoice}
-  className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
->
-  <FileText className="h-4 w-4" />
-  <span>Generate Invoice</span>
-</button>
+              {hasAccess(import.meta.env.VITE_GENERATE_INVOICE_MODULE, "view") &&(<button
+                onClick={handleGenerateInvoice}
+                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                <span>Generate Invoice</span>
+              </button>)}
             </div>
           </div>
         </div>
@@ -1081,29 +1081,29 @@ const handleDownloadInvoice = async (invoiceId, invoiceName) => {
                                     }`}
                                   onClick={() => setTaskDetail(entry.fullTask)}
                                 >
-                                      {entry.project && (
-                                        <div className="flex justify-center mt-1">
-                                          <span
-                                            className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium cursor-help max-w-[130px] truncate"
-                                            title={entry.project.projectName || "-"}
-                                          >
-                                            <Folder className="h-3 w-3 mr-1" />
-                                            {entry.project.projectName}
-                                          </span>
-                                        </div>
-                                      )}
-                                  {/* Time and Task Topic */}
-                                  
-
-                                    <div className="flex justify-center items-center gap-2">
-                                      <FileText className="h-4 w-4 text-blue-500" />
-                                      <span className="text-sm font-semibold text-gray-900 truncate max-w-[120px]" title={entry.fullTask.taskTopic}>
-                                        {entry.fullTask.taskTopic}
+                                  {entry.project && (
+                                    <div className="flex justify-center mt-1">
+                                      <span
+                                        className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium cursor-help max-w-[130px] truncate"
+                                        title={entry.project.projectName || "-"}
+                                      >
+                                        <Folder className="h-3 w-3 mr-1" />
+                                        {entry.project.projectName}
                                       </span>
                                     </div>
-                                    
-                                    <div className="flex justify-between items-center gap-2">
-                                      <div className="flex items-center gap-1">
+                                  )}
+                                  {/* Time and Task Topic */}
+
+
+                                  <div className="flex justify-center items-center gap-2">
+                                    <FileText className="h-4 w-4 text-blue-500" />
+                                    <span className="text-sm font-semibold text-gray-900 truncate max-w-[120px]" title={entry.fullTask.taskTopic}>
+                                      {entry.fullTask.taskTopic}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex justify-between items-center gap-2">
+                                    <div className="flex items-center gap-1">
                                       <TimerIcon className="h-4 w-4 text-blue-500" />
                                       <span className="text-xs font-semibold text-gray-900">
                                         {entry.hours}h {entry.minutes}m
@@ -1111,40 +1111,23 @@ const handleDownloadInvoice = async (invoiceId, invoiceName) => {
                                     </div>
                                     <div className="flex items-center justify-end gap-2">
 
-                                      <button 
+                                      <button
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           setTaskDetail(entry.fullTask);
                                         }}
-                                        >
+                                      >
                                         <Eye className="h-4 w-4 text-green-500 hover:text-gray-600" />
                                       </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setEditingTask(entry.fullTask);
-                                        setShowLogTimeModal(true);
-                                      }}
-                                    >
-                                      <Edit className="h-4 w-4 text-blue-500 hover:text-blue-600" />
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        deleteTimeEntry(date, entry.id);
-                                      }}
-                                      >
-                                      <Trash2 className="h-4 w-4 text-red-500 hover:text-red-600" />
-                                    </button>
-                                      </div>
                                     </div>
+                                  </div>
 
-                                    
+
                                   {/* Project badge */}
 
-                                  
+
                                   {/* Action buttons */}
-                                  
+
                                 </div>
 
                               ))}
@@ -1192,19 +1175,19 @@ const handleDownloadInvoice = async (invoiceId, invoiceName) => {
         editingTask={editingTask}
         timesheetData={timesheetData}
       />
-<AddInvoiceModal
-  open={showInvoiceModal}
-  onClose={() => setShowInvoiceModal(false)}
-  onSubmit={handleInvoiceSubmit}
-  timesheetData={timesheetData}
-  viewMode={viewMode}
-  currentWeekStart={currentWeekStart}
-  currentMonthRange={currentMonthRange}
-  employee={{
-    name: sessionStorage.getItem('name') || 'Current User',
-    email: sessionStorage.getItem('email') || ''
-  }}
-/>
+      <AddInvoiceModal
+        open={showInvoiceModal}
+        onClose={() => setShowInvoiceModal(false)}
+        onSubmit={handleInvoiceSubmit}
+        timesheetData={timesheetData}
+        viewMode={viewMode}
+        currentWeekStart={currentWeekStart}
+        currentMonthRange={currentMonthRange}
+        employee={{
+          name: sessionStorage.getItem('name') || 'Current User',
+          email: sessionStorage.getItem('email') || ''
+        }}
+      />
 
 
       {/* Task Details Modal */}

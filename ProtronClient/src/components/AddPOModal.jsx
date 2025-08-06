@@ -269,11 +269,20 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 if (!uploadResponse.ok) {
                     const uploadError = await uploadResponse.text();
                     console.warn(`Attachment upload failed: ${file.name} - ${uploadError}`);
+                    setSnackbar({
+                    open: true,
+                    message: "Attachment upload failed",
+                    severity: "error"
+                });
                     // Optionally: show error toast or retry
                 }
             }
 
-            alert('PO created successfully.');
+            setSnackbar({
+                open: true,
+                message: 'PO created successfully!',
+                severity: 'success'
+            });
             setCurrentStep(2);
             setPoFiles([]);
 

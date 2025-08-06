@@ -1,7 +1,8 @@
 // EditMilestoneModal.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Loader2, Clock } from "lucide-react";
 import axios from "axios";
+import GlobalSnackbar from "../components/GlobalSnackbar";
 
 const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   const [formData, setFormData] = useState({
@@ -22,29 +23,35 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   const [remarksWordCount, setRemarksWordCount] = useState(0);
   const [milestoneAttachments, setMilestoneAttachments] = useState([]);
   const [poBalance, setPOBalance] = useState(null); // Added state for PO balance
+  const dateInputRef = useRef(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: ""
+  });
 
 
   const fetchPOBalance = async () => {
-      console.log("Fetching PO balance for PO ID:", formData.poId);
-      if (formData.poId) {
-        try {
-          const token = sessionStorage.getItem('token');
-          const response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneBalanceForPO/${formData.poId}`,
-            {
-              headers: { Authorization: `${token}` }
-            }
-          );
-          setPOBalance(response.data + formData.msAmount);
-        } catch (error) {
-          console.error("Error fetching PO balance:", error);
-        }
+    console.log("Fetching PO balance for PO ID:", formData.poId);
+    if (formData.poId) {
+      try {
+        const token = sessionStorage.getItem('token');
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneBalanceForPO/${formData.poId}`,
+          {
+            headers: { Authorization: `${token}` }
+          }
+        );
+        setPOBalance(response.data + formData.msAmount);
+      } catch (error) {
+        console.error("Error fetching PO balance:", error);
       }
-    };
+    }
+  };
 
-    useEffect(()=>{
-      fetchPOBalance();
-    },[formData.poId, formData.msAmount]);
+  useEffect(() => {
+    fetchPOBalance();
+  }, [formData.poId, formData.msAmount]);
 
   // Helper function to count words
   const countWords = (text) => {
@@ -307,6 +314,13 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
           }
         }
       );
+      console.log('Milestone updated successfully:', response.data);
+      setSnackbar({
+        open: true,
+        message: "Milestone updated successfully",
+        severity: "success"
+      });
+
 
       // Upload new attachments
       if (milestoneAttachments.length > 0) {
@@ -326,14 +340,21 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
             if (!uploadResponse.ok) {
               console.error(`Failed to upload file: ${file.name}`);
             }
+
           }
         }
       }
 
       onSubmit(response.data);
+
       handleClose();
     } catch (error) {
       console.error("Error updating milestone:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to update milestone",
+        severity: "error"
+      })
       setErrors({
         submit: error.response?.data?.message || error.message || "Failed to update milestone"
       });
@@ -359,6 +380,9 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     setRemarksWordCount(0);
     onClose();
   };
+  const handleDateInputClick = () => {
+    dateInputRef.current.showPicker?.();
+  }
 
   if (!open) return null;
 
@@ -512,12 +536,13 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   )}
                 </div>
 
-                <div className="col-span-3">
+                <div className="col-span-3" onClick={handleDateInputClick}>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     <Calendar size={14} className="inline mr-1" />
                     Milestone Date
                   </label>
                   <input
+                    ref={dateInputRef}
                     type="date"
                     name="msDate"
                     value={formData.msDate}
@@ -640,6 +665,12 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
           </form>
         )}
       </div>
+      <GlobalSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </div>
   );
 };

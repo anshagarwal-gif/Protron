@@ -957,13 +957,13 @@ const IndividualTimesheet = () => {
 
                 <span>Add Timesheet Task</span>
               </button>)}
-             <button
+             {((sessionData.email !== employee.email) || hasAccess(import.meta.env.VITE_GENERATE_INVOICE_MODULE, "view")) && (<button
                 onClick={handleGenerateInvoice}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
               >
                 <FileText className="h-4 w-4" />
                 <span>Generate Invoice</span>
-              </button>
+              </button>)}
               <button
                 onClick={downloadExcel}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
@@ -1139,24 +1139,7 @@ const IndividualTimesheet = () => {
                                           <Eye className="h-4 w-4 text-green-500 hover:text-gray-600" />
                                         </button>
 
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingTask(entry.fullTask);
-                                            setShowLogTimeModal(true);
-                                          }}
-                                        >
-                                          <Edit className="h-4 w-4 text-blue-500 hover:text-blue-600" />
-                                        </button>
 
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            deleteTimeEntry(date, entry.id);
-                                          }}
-                                        >
-                                          <Trash2 className="h-4 w-4 text-red-500 hover:text-red-600" />
-                                        </button>
                                       </div>
                                     )}
                                   </div>

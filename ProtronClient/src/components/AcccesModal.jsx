@@ -7,10 +7,12 @@ import axios from "axios"
 const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   const [formData, setFormData] = useState({
     tenantName: "",
-    name:"",
+    name: "",
     emailId: "",
     role: ""
   })
+
+  const generateInvoiceModule = import.meta.env.VITE_GENERATE_INVOICE_MODULE;
 
   const [permissions, setPermissions] = useState({})
   const [roles, setRoles] = useState([])
@@ -108,7 +110,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       console.log(selectedUser)
       setFormData({
         tenantName: selectedUser.tenant?.tenantName || "",
-        name:selectedUser.name || "",
+        name: selectedUser.name || "",
         emailId: selectedUser.email || "",
         role: selectedUser.role?.roleName || "",
       })
@@ -116,7 +118,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       // Reset form for new user
       setFormData({
         tenantName: "",
-        name:"",
+        name: "",
         emailId: "",
         role: "",
       })
@@ -178,16 +180,14 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
       <button
         type="button"
         onClick={onChange}
-        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-          color === "green" ? "focus:ring-green-500" : 
-          color === "yellow" ? "focus:ring-yellow-400" : 
-          "focus:ring-red-400"
-        } ${colorClasses[color]}`}
+        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${color === "green" ? "focus:ring-green-500" :
+            color === "yellow" ? "focus:ring-yellow-400" :
+              "focus:ring-red-400"
+          } ${colorClasses[color]}`}
       >
         <span
-          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-            checked ? "translate-x-5" : "translate-x-1"
-          }`}
+          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${checked ? "translate-x-5" : "translate-x-1"
+            }`}
         />
       </button>
     )
@@ -230,7 +230,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
-            
+
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-2">User's Name</label>
               <input
@@ -282,9 +282,8 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                     return (
                       <div
                         key={index}
-                        className={`grid grid-cols-[1fr_80px_80px_80px] items-center px-4 py-3 hover:bg-gray-50 transition-colors ${
-                          index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
-                        }`}
+                        className={`grid grid-cols-[1fr_80px_80px_80px] items-center px-4 py-3 hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                          }`}
                       >
                         <span className="text-gray-800 text-sm font-medium">
                           {formattedModuleName}
@@ -298,21 +297,25 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                           />
                         </div>
 
-                        <div className="flex justify-center">
-                          <Toggle
-                            checked={permissions[`${moduleName}_canEdit`] || false}
-                            onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
-                            color="yellow"
-                          />
-                        </div>
+                        {moduleName !== generateInvoiceModule && (
+                        <>
+                          <div className="flex justify-center">
+                            <Toggle
+                              checked={permissions[`${moduleName}_canEdit`] || false}
+                              onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
+                              color="yellow"
+                            />
+                          </div>
 
-                        <div className="flex justify-center">
-                          <Toggle
-                            checked={permissions[`${moduleName}_canDelete`] || false}
-                            onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
-                            color="red"
-                          />
-                        </div>
+                          <div className="flex justify-center">
+                            <Toggle
+                              checked={permissions[`${moduleName}_canDelete`] || false}
+                              onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
+                              color="red"
+                            />
+                          </div>
+                        </>
+                      )}
                       </div>
                     );
                   })}

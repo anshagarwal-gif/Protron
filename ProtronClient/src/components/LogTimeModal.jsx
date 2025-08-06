@@ -889,8 +889,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       const remainingMinutes = Math.max(
                         0,
                         1440 -
-                        existingTime -
-                        ((parseInt(formData.hours, 10) || 0) * 60 + (parseInt(formData.minutes, 10) || 0))
+                        existingTime
                       );
                       const hours = Math.floor(remainingMinutes / 60);
                       const minutes = remainingMinutes % 60;
