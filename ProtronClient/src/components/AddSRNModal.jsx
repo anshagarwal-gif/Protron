@@ -16,6 +16,7 @@ import {
     AlertCircle,
     Activity
 } from 'lucide-react';
+import GlobalSnackbar from './GlobalSnackbar';
 
 // Currency symbols mapping
 const currencySymbols = {
@@ -54,7 +55,11 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
     const [remarksCharCount, setRemarksCharCount] = useState(0);
     const [poBalance, setPOBalance] = useState(null);
     const [milestoneBalance, setMilestoneBalance] = useState(null);
-
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success'
+    })
     // Helper function to get currency symbol
     const getCurrencySymbol = (currencyCode) => {
         return currencySymbols[currencyCode] || currencyCode || '$';
@@ -431,14 +436,16 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             });
 
                             if (!uploadRes.ok) {
+                                setSnackbar({ open: true, message: `Attachment upload failed for ${file.name}`, severity: 'error' });
                                 console.error(`Attachment upload failed for ${file.name}`);
                             }
                         } catch (err) {
+                            setSnackbar({ open: true, message: 'Attachment upload error', severity: 'error' });
                             console.error("Attachment upload error:", err);
                         }
                     }
                 }
-
+                setSnackbar({ open: true, message: 'SRN created successfully!', severity: 'success' });
                 handleClose();
             } else {
                 const errorData = await response.text();
@@ -826,6 +833,14 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                     </button>
                 </div>
             </div>
+
+            <GlobalSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+            />
+
         </div>
     );
 };
