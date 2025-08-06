@@ -22,7 +22,7 @@ import AdminTimesheet from './components/TimesheetAdmin';
 import IndividualTimesheet from './components/IndividualTimesheet';
 import POManagement from './pages/PO';
 import PODetailsPage from './components/PODetail';
-const Dashboard = () => <div>Dashboard Content</div>;
+import Dashboard from './pages/Dashboard';
 const ManageProjects = () => <div>Manage Projects Content</div>;
 const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
 
