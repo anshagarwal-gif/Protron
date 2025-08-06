@@ -38,4 +38,15 @@ public interface SRNRepository extends JpaRepository<SRNDetails, Long> {
 
     @Query(value = "SELECT COALESCE(SUM(s.srn_amount), 0) FROM srn_details s WHERE s.po_id = :poId AND s.tenant_id = :tenantId AND s.lastupdate_timestamp IS NULL", nativeQuery = true)
     BigDecimal sumSrnAmountsByPoId(@Param("poId") Long poId, @Param("tenantId") Long tenantId);
+
+    @Query(value = """
+    SELECT COALESCE(SUM(srn_amount), 0)
+    FROM srn_details
+    WHERE po_id = :poId
+      AND tenant_id = :tenantId
+      AND ms_id IS NULL
+      AND lastupdate_timestamp IS NULL
+""", nativeQuery = true)
+    BigDecimal sumSrnAmountsWithoutMilestoneByPoId(@Param("poId") Long poId, @Param("tenantId") Long tenantId);
+
 }

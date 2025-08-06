@@ -78,6 +78,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         // console.log('Form Data:', formData);
         setIsSubmitting(true);
         onSubmit(formData);
+        setIsSubmitting(false);
     };
 
     const handleReset = () => {

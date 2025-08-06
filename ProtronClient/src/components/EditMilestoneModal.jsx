@@ -21,6 +21,30 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   const [descWordCount, setDescWordCount] = useState(0);
   const [remarksWordCount, setRemarksWordCount] = useState(0);
   const [milestoneAttachments, setMilestoneAttachments] = useState([]);
+  const [poBalance, setPOBalance] = useState(null); // Added state for PO balance
+
+
+  const fetchPOBalance = async () => {
+      console.log("Fetching PO balance for PO ID:", formData.poId);
+      if (formData.poId) {
+        try {
+          const token = sessionStorage.getItem('token');
+          const response = await axios.get(
+            `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneBalanceForPO/${formData.poId}`,
+            {
+              headers: { Authorization: `${token}` }
+            }
+          );
+          setPOBalance(response.data + formData.msAmount);
+        } catch (error) {
+          console.error("Error fetching PO balance:", error);
+        }
+      }
+    };
+
+    useEffect(()=>{
+      fetchPOBalance();
+    },[formData.poId, formData.msAmount]);
 
   // Helper function to count words
   const countWords = (text) => {
@@ -88,7 +112,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
         msDate: milestone.msDate ? milestone.msDate.split('T')[0] : "",
         msDuration: milestone.msDuration || "",
         msRemarks: milestone.msRemarks || "",
-        poId: milestone.poId || "",
+        poId: milestone.poDetail?.poId || "",
         poNumber: milestone.poNumber || ""
       });
     } catch (error) {
@@ -457,6 +481,9 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   {errors.msAmount && (
                     <p className="mt-1 text-xs text-red-600">{errors.msAmount}</p>
                   )}
+                  <label className="text-xs text-red-500 mt-1">
+                    PO Balance: {poBalance !== null ? `${poBalance} ${formData.msCurrency}` : 'Loading...'}
+                  </label>
                 </div>
 
                 <div className="col-span-1"></div> {/* Small spacer */}

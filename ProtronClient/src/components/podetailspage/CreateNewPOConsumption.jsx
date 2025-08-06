@@ -135,7 +135,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                 try {
                     const token = sessionStorage.getItem('token');
                     const response = await axios.get(
-                        `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+                        `${import.meta.env.VITE_API_URL}/api/po/pobalance-con/${poId}`,
                         { headers: { Authorization: `${token}` } }
                     );
                     setPOBalance(response.data);
@@ -150,7 +150,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                 try {
                     const token = sessionStorage.getItem('token');
                     const response = await axios.get(
-                        `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance/${poId}/${formData.msId}`,
+                        `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance-consumption/${poId}/${formData.msId}`,
                         { headers: { Authorization: `${token}` } }
                     );
                     setMilestoneBalance(response.data);

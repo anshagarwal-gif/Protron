@@ -56,7 +56,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         try {
           const token = sessionStorage.getItem('token');
           const response = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+            `${import.meta.env.VITE_API_URL}/api/po-milestone/getMilestoneBalanceForPO/${poId}`,
             {
               headers: { Authorization: `${token}` }
             }
