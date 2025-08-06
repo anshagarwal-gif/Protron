@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Repository;
 
+import com.Protronserver.Protronserver.DashboardRecords.InvoiceTrendDTO;
 import com.Protronserver.Protronserver.Entities.Invoice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,66 +21,83 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     List<Invoice> findByEmployeeNameContainingIgnoreCase(String employeeName);
 
-    @Query("SELECT i FROM Invoice i WHERE i.fromDate >= :startDate AND i.toDate <= :endDate")
+    @Query(value = """
+        SELECT * FROM invoices 
+        WHERE from_date >= :startDate 
+          AND to_date <= :endDate
+    """, nativeQuery = true)
     List<Invoice> findByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    @Query("SELECT i FROM Invoice i WHERE i.createdAt >= :startDate ORDER BY i.createdAt DESC")
+    @Query(value = """
+        SELECT * FROM invoices 
+        WHERE created_at >= :startDate 
+        ORDER BY created_at DESC
+    """, nativeQuery = true)
     List<Invoice> findRecentInvoices(@Param("startDate") LocalDate startDate);
 
     boolean existsByInvoiceId(String invoiceId);
 
-    /**
-     * Count invoices created today for generating sequential invoice IDs
-     * Using LocalDateTime for proper type matching
-     * 
-     * @param startDateTime Start of the day (00:00:00)
-     * @param endDateTime   End of the day (23:59:59)
-     * @return Count of invoices created today
-     */
-    @Query("SELECT COUNT(i) FROM Invoice i WHERE i.createdAt >= :startDateTime AND i.createdAt < :endDateTime")
-    long countInvoicesCreatedToday(@Param("startDateTime") LocalDateTime startDateTime,
-            @Param("endDateTime") LocalDateTime endDateTime);
+    @Query(value = """
+        SELECT COUNT(*) FROM invoices 
+        WHERE created_at >= :startDateTime 
+          AND created_at < :endDateTime
+    """, nativeQuery = true)
+    long countInvoicesCreatedToday(
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime
+    );
 
-    /**
-     * Alternative method using LocalDateTime for more precise control
-     */
-    @Query("SELECT COUNT(i) FROM Invoice i WHERE DATE(i.createdAt) = :date")
+    @Query(value = """
+        SELECT COUNT(*) FROM invoices 
+        WHERE DATE(created_at) = :date
+    """, nativeQuery = true)
     long countInvoicesCreatedOnDate(@Param("date") LocalDate date);
 
-    /**
-     * Find invoices created today (for verification)
-     */
-    @Query("SELECT i FROM Invoice i WHERE DATE(i.createdAt) = CURRENT_DATE ORDER BY i.createdAt DESC")
+    @Query(value = """
+        SELECT * FROM invoices 
+        WHERE DATE(created_at) = CURRENT_DATE 
+        ORDER BY created_at DESC
+    """, nativeQuery = true)
     List<Invoice> findInvoicesCreatedToday();
 
-    /**
-     * Get the last invoice ID created today (for backup sequence generation)
-     */
-    @Query("SELECT i.invoiceId FROM Invoice i WHERE DATE(i.createdAt) = CURRENT_DATE AND i.invoiceId LIKE 'INV-%' ORDER BY i.createdAt DESC")
+    @Query(value = """
+        SELECT invoice_id FROM invoices 
+        WHERE DATE(created_at) = CURRENT_DATE 
+          AND invoice_id LIKE 'INV-%' 
+        ORDER BY created_at DESC
+    """, nativeQuery = true)
     List<String> findTodaysInvoiceIds();
 
-    /**
-     * Alternative count method using date functions (more database-agnostic)
-     */
-    @Query("SELECT COUNT(i) FROM Invoice i WHERE FUNCTION('DATE', i.createdAt) = FUNCTION('DATE', CURRENT_DATE)")
+    @Query(value = """
+        SELECT COUNT(*) FROM invoices 
+        WHERE DATE(created_at) = CURRENT_DATE
+    """, nativeQuery = true)
     long countTodaysInvoices();
 
-    // Find all non-deleted invoices
     List<Invoice> findByDeletedFalseOrderByCreatedAtDesc();
 
-    // Find all invoices including deleted ones
     List<Invoice> findAllByOrderByCreatedAtDesc();
 
-    // Find only deleted invoices
     List<Invoice> findByDeletedTrueOrderByDeletedAtDesc();
 
-    // Find non-deleted invoice by invoiceId
     Optional<Invoice> findByInvoiceIdAndDeletedFalse(String invoiceId);
 
-    // Find invoice by invoiceId regardless of deleted status
-
-    // Search non-deleted invoices by customer name
-    @Query("SELECT i FROM Invoice i WHERE LOWER(i.customerName) LIKE LOWER(CONCAT('%', :customerName, '%')) AND i.deleted = false ORDER BY i.createdAt DESC")
+    @Query(value = """
+        SELECT * FROM invoices 
+        WHERE LOWER(customer_name) LIKE LOWER(CONCAT('%', :customerName, '%')) 
+          AND deleted = false 
+        ORDER BY created_at DESC
+    """, nativeQuery = true)
     List<Invoice> findByCustomerNameContainingIgnoreCaseAndDeletedFalse(@Param("customerName") String customerName);
 
+    @Query(value = """
+    SELECT 
+        DATE_FORMAT(MAX(from_date), '%M %Y') AS month,
+        SUM(total_amount) AS totalAmount
+    FROM invoices
+    WHERE from_date IS NOT NULL
+    GROUP BY YEAR(from_date), MONTH(from_date)
+    ORDER BY MAX(from_date) DESC
+    """, nativeQuery = true)
+    List<Object[]> getMonthlyInvoiceTrendsRaw();
 }

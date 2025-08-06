@@ -115,4 +115,27 @@ public class CostDetailsService {
                 // Collect the results into a list
                 .toList(); // or .collect(Collectors.toList());
     }
+
+    /**
+     * Returns the PO balance after deducting:
+     * 1. Sum of all milestone amounts for that PO
+     * 2. Sum of SRNs paid for this PO that are not linked to any milestone (milestone_id is NULL)
+     */
+    public BigDecimal getPoBalanceAfterMilestoneAndSrnWithoutMilestone(Long poId) {
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        // 1. Get total PO amount
+        BigDecimal poAmount = poRepository.findPoAmountById(poId, tenantId)
+                .orElseThrow(() -> new EntityNotFoundException("PO not found with id: " + poId));
+
+        // 2. Get sum of all active milestone amounts for the PO
+        BigDecimal totalMilestoneAmount = poMilestoneRepository.sumMilestoneAmountsByPoId(poId, tenantId);
+
+        // 3. Get sum of all SRN amounts where milestone_id IS NULL (not linked to any milestone)
+        BigDecimal srnAmountWithoutMilestone = srnRepository.sumSrnAmountsWithoutMilestoneByPoId(poId, tenantId);
+
+        // 4. Calculate final balance
+        return poAmount.subtract(totalMilestoneAmount).subtract(srnAmountWithoutMilestone);
+    }
+
 }

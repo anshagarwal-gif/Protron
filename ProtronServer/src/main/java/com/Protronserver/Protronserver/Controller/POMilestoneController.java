@@ -74,5 +74,9 @@ public class POMilestoneController {
         return ResponseEntity.ok("Milestone deleted successfully.");
     }
 
+    @GetMapping("getMilestoneBalanceForPO/{poId}")
+    public BigDecimal getMilestoneBalance(@PathVariable Long poId){
+        return costDetailsService.getPoBalanceAfterMilestoneAndSrnWithoutMilestone(poId);
+    }
 
 }
