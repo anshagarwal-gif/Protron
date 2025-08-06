@@ -92,7 +92,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     const greenHover = '#2e7d32'; // green-600
 
     return (
-        <Dialog
+        <div
             open={open}
             onClose={onClose}
             fullWidth
@@ -652,7 +652,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                     </Box>
                 </Box>
             </DialogContent>
-        </Dialog>
+        </div>
     );
 };
 
