@@ -3,7 +3,7 @@ import { X, Calendar, Folder, User, Building, DollarSign, FileText, Activity, Ha
 import axios from 'axios'
 import CreatableSelect from "react-select/creatable"
 import { useSession } from '../../Context/SessionContext'
-import GlobalSnackbar from '../components/GlobalSnackbar'
+import GlobalSnackbar from '../GlobalSnackbar'
 
 const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
     if (!open) return null
