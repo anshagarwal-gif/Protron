@@ -74,8 +74,8 @@ const UserEditForm = ({ userId, onSubmit, onCancel }) => {
           firstName: data.firstName || "",
           middleName: data.middleName || "",
           lastName: data.lastName || "",
-          mobileCountryCode: data.mobileCountryCode || "+91",
-          mobileNumber: data.mobileNumber || "",
+          mobileCountryCode: data.mobileCountryCode || "",
+          mobileNumber: data.mobilePhone || "",
           cost: data.cost || "",
           cost_time: data.cost_time || "hour",
           unit: data.unit || "USD",
@@ -386,39 +386,29 @@ console.log(name, value);
           <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Mobile Phone">
             Mobile Phone
           </label>
-          <div className="flex w-[300px]">
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-              <select
-                id="mobileCountryCode"
-                name="mobileCountryCode"
-                value={formData.mobileCountryCode}
-                onChange={handleChange}
-                className="h-10 pl-10  w-[120px] border border-gray-300 rounded-l-md border-r-0"
-                title={formData.mobileCountryCode || "Select Country Code"}
-              >
-                {countriesno.map((country, index) => (
-                  <option key={index} className="w-[100px]" value={country.dialCode}>
-                    {country.dialCode}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="relative w-[300px]">
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
             <input
               id="mobileNumber"
               name="mobileNumber"
               type="tel"
               value={formData.mobileNumber}
-              onChange={handleChange}
-              className="flex-1 w-[200px] h-10 px-4 border border-gray-300 rounded-r-md truncate"
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^\d+]/g, "");
+                setFormData((prev) => ({
+                  ...prev,
+                  mobileNumber: value,
+                }));
+              }}
+              className="flex-1 w-[200px] h-10 px-4 pl-10 border border-gray-300 rounded-r-md truncate"
               title={formData.mobileNumber || "Enter Mobile Number"}
               placeholder="Enter Mobile Number"
-              maxLength={10}
+              maxLength={15}
+              inputMode="tel"
+              autoComplete="tel"
             />
           </div>
         </div>
-
-        {/* Address Section */}
         <div>
           <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Address Line 1">
             Address Line 1

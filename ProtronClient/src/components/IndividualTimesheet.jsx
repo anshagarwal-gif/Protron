@@ -947,7 +947,7 @@ const IndividualTimesheet = () => {
                 </button>
               )}
 
-              <button
+              {(sessionData.email === employee.email) &&(<button
                 onClick={() => {
                   setSelectedCell({ date: new Date() }); // Ensure the current date is passed
                   setShowLogTimeModal(true);
@@ -956,7 +956,7 @@ const IndividualTimesheet = () => {
               >
 
                 <span>Add Timesheet Task</span>
-              </button>
+              </button>)}
              <button
                 onClick={handleGenerateInvoice}
                 className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"

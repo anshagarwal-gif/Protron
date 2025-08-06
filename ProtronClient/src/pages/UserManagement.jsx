@@ -81,6 +81,9 @@ const UserManagement = () => {
         'S.No': index + 1,
         'Name': getFullName(user),
         'Email': user.email || 'N/A',
+        'Mobile Number': user.mobilePhone || 'N/A',
+        'City': user.city || 'N/A',
+        'Country': user.country || 'N/A',
         'Role': getRoleName(user.role),
         'Tenant': getTenantName(user),
         'Status': getUserStatus(user),
@@ -131,7 +134,6 @@ const UserManagement = () => {
         return {
           'S.No': index + 1,
           'Role Name': role.roleName || 'N/A',
-          'Role ID': role.roleId || 'N/A',
           'Access Rights': accessRights
         };
       });
@@ -574,7 +576,7 @@ const filteredRoles = roles.filter(role => {
       setIsAddRoleModalOpen(false);
     } catch (error) {
       console.error("Failed to create role:", error);
-      showSnackbar("Failed to create role. Please try again.", "error");
+      showSnackbar(error.status === 409 ? "Role already exists. Please choose a different name." : "Failed to create role. Please try again.", "error");
     }
   };
 
