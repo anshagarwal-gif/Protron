@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { X, Calendar, Folder, User, Building, DollarSign, FileText, Receipt, Hash, MessageSquare, Upload, AlertCircle } from 'lucide-react'
-import GlobalSnackbar from '../components/GlobalSnackbar'
+import GlobalSnackbar from '../GlobalSnackbar'
 
 const CreateNewSRNModal = ({ open, onClose, poId }) => {
     if (!open) return null

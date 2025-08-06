@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMember }) => {
   const [users, setUsers] = useState([]);
@@ -16,6 +16,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
     tasktype: '',
     systemImpacted: ''
   });
+  const dateInputRef = useRef(null);
 
   const fetchUsersNotInProject = async () => {
     try {
@@ -123,6 +124,9 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
     GBP: '£',
     JPY: '¥'
   };
+  const handleDateInputClick = () =>{
+    dateInputRef.current.showPicker?.(); // Safe call in case browser doesn't support it
+  }
 
   if (!isOpen) return null;
 
@@ -318,13 +322,14 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
               </div>
               <div className='flex-1'>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Release Date</label>
-                <div className="relative">
+                <div className="relative" onClick={handleDateInputClick}>
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg className="h-5 w-5 text-green-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                   </div>
                   <input
+                    ref={dateInputRef}
                     type="date"
                     name="releaseDate"
                     value={formData.releaseDate}

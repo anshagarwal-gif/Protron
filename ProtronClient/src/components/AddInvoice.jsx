@@ -684,7 +684,12 @@ const AddInvoiceModal = ({
         }
         return `${currencySymbols[formData.currency] || '$'}0.00`;
     };
-
+    const handleDateInputClick = (inputName) => {
+        const dateInput = document.getElementsByName(inputName)[0];
+        if (dateInput) {
+            dateInput.showPicker();
+        }
+    };
     const getTimesheetSummary = () => {
         if (!attachTimesheet || !timesheetData || !viewMode || (!currentWeekStart && !currentMonthRange)) return null;
 
@@ -967,6 +972,8 @@ const AddInvoiceModal = ({
                                         value={formData.fromDate}
                                         onChange={handleChange('fromDate')}
                                         className="w-full bg-transparent outline-none cursor-pointer"
+                                        onClick={handleDateInputClick('fromDate')}
+                                        max={formData.toDate}
                                     />
                                 </div>
                                 {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}

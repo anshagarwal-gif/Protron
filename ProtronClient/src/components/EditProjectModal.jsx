@@ -144,6 +144,8 @@ const Dropdown = ({
 
 // Date Picker Component
 const DatePicker = ({ label, value, onChange, icon: Icon, className = "" }) => {
+    const inputRef = useRef(null);
+
     const formatDateForInput = (date) => {
         if (!date) return '';
         const d = new Date(date);
@@ -159,6 +161,11 @@ const DatePicker = ({ label, value, onChange, icon: Icon, className = "" }) => {
             onChange(null);
         }
     };
+    const handleDateInputClick = (inputName) => {
+        if (inputRef.current) {
+            inputRef.current.showPicker?.(); // Safe call in case browser doesn't support it
+        }
+    };
 
     return (
         <div className={className}>
@@ -167,8 +174,10 @@ const DatePicker = ({ label, value, onChange, icon: Icon, className = "" }) => {
                     {label}
                 </label>
             )}
-            <div className="relative">
+            <div className="relative" onClick={handleDateInputClick}>
                 <input
+                    ref={inputRef}
+                    name="date-picker"
                     type="date"
                     value={formatDateForInput(value)}
                     onChange={handleDateChange}
