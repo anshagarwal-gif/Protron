@@ -58,7 +58,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
             headers: { Authorization: `${token}` }
           }
         );
-        setPOBalance(response.data + formData.msAmount);
+        const calculatedBalance = (response.data || 0) + (formData.msAmount || 0)
+        setPOBalance(calculatedBalance);
       } catch (error) {
         console.error("Error fetching PO balance:", error);
       }
@@ -67,7 +68,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
 
   useEffect(() => {
     fetchPOBalance();
-  }, [formData.poId, formData.msAmount]);
+  }, [formData.poId]);
 
   // Helper function to count words
   const countWords = (text) => {
