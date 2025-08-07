@@ -204,7 +204,7 @@ const ProjectManagement = () => {
       }
     },
     {
-      headerName: 'Cost Unit',
+      headerName: 'Cost Currency',
       field: 'unit',
       valueFormatter: (params) => params.value || '-',
       maxWidth: 110,
@@ -481,7 +481,7 @@ const ProjectManagement = () => {
         'Project Manager': project.projectManager ?
           `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'N/A',
         'Team Size': project.projectTeam ? project.projectTeam.length : 0,
-        'Unit': project.unit || 'N/A',
+        'Cost Currency': project.unit || 'N/A',
         'Project Cost': project.projectCost ? `${project.projectCost}` : 'N/A',
         'Sponsor': project.sponsor ? `${project.sponsor.firstName} ${project.sponsor.lastName}` : 'N/A',
       }));
@@ -1039,7 +1039,7 @@ const ProjectManagement = () => {
                             <span className="underline">{project.projectTeam?.length || 0}</span>
                           </div>
 
-                          <div className="text-gray-500">Cost Unit:</div>
+                          <div className="text-gray-500">Cost Currency:</div>
                           <div>{project.unit || '-'}</div>
 
                           <div className="text-gray-500">Project Cost:</div>

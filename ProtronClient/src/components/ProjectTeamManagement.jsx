@@ -259,9 +259,9 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         'Employee Name': employee.user.name,
         'Employee Code': employee.empCode,
         'Email': employee.user.email,
-        'Unit': employee.unit,
+        'Cost Currency': employee.unit,
         'Cost': employee.pricing,
-        'Status': employee.status,
+        // 'Status': employee.status,
         'System Impacted': employee.systemImpacted.systemName,
         'Estimated Release Date': employee.estimatedReleaseDate,
       }));
@@ -366,11 +366,11 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                     <th className="py-2 px-4  font-medium border-r">Name</th>
                     <th className="py-2 px-4  font-medium border-r">Emp-Code</th>
                     <th className="py-2 px-4  font-medium border-r">Email</th>
-                    <th className="py-2 px-4  font-medium border-r">Cost Unit</th>
+                    <th className="py-2 px-4  font-medium border-r">Cost Currency</th>
                     <th className="py-2 px-4  font-medium border-r">Cost</th>
                     <th className="py-2 px-4  font-medium border-r">System Impacted</th>
                     <th className="py-2 px-4  font-medium border-r">Est.Release</th>
-                    <th className="py-2 px-4  font-medium border-r">Status</th>
+                    {/* <th className="py-2 px-4  font-medium border-r">Status</th> */}
                     {hasAccess('project_team', 'edit') && (
                       <th className="py-2 px-4  font-medium">Actions</th>)}
                   </tr>
@@ -402,11 +402,11 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                       <td className="py-2 px-4 border-r border-t">{member.pricing}</td>
                       <td className="py-2 px-4 border-r border-t">{member.systemImpacted.systemName}</td>
                       <td className="py-2 px-4 border-r border-t">{member.estimatedReleaseDate}</td>
-                      <td className="py-2 px-4 border-r border-t">
+                      {/* <td className="py-2 px-4 border-r border-t">
                         <span className={`capitalize px-2 py-1 rounded-full font-medium ${getStatusColor(member.status)}`}>
                           {member.status}
                         </span>
-                      </td>
+                      </td> */}
                       {hasAccess('project_team', 'edit') && (
                         <td className="py-2 px-4 border-t">
                           <select
@@ -414,24 +414,24 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                             onChange={(e) => {
                               const action = e.target.value;
                               if (action === "edit") {
-                                handleEditMember(member);
-                              } else if (action === "toggleStatus") {
-                                handleStatusChange(
-                                  member.projectTeamId,
-                                  member.status === "hold" ? "Active" : "hold"
-                                );
-                              } else if (action === "remove") {
-                                handleRemoveMember(member.projectTeamId);
-                              }
+                                handleEditMember(member);}
+                              // } else if (action === "toggleStatus") {
+                              //   handleStatusChange(
+                              //     member.projectTeamId,
+                              //     member.status === "hold" ? "Active" : "hold"
+                              //   );
+                              // } else if (action === "remove") {
+                              //   handleRemoveMember(member.projectTeamId);
+                              // }
                               e.target.selectedIndex = 0; // Reset
                             }}
                           >
                             <option value="">Actions</option>
                             <option value="edit">Edit</option>
-                            <option value="toggleStatus">
+                            {/* <option value="toggleStatus">
                               {member.status === "hold" ? "Activate" : "Put on Hold"}
                             </option>
-                            <option value="remove">Remove</option>
+                            <option value="remove">Remove</option> */}
                           </select>
                         </td>
                       )}
@@ -471,9 +471,9 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                         <div className="text-xs text-gray-500">{member.empCode}</div>
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
+                    {/* <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(member.status)}`}>
                       {member.status}
-                    </span>
+                    </span> */}
                   </div>
 
                   {/* Member details */}
@@ -481,7 +481,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                     <div className="text-gray-500">Email:</div>
                     <div className="truncate">{member.user.email}</div>
 
-                    <div className="text-gray-500">Cost Unit:</div>
+                    <div className="text-gray-500">Cost Currency:</div>
                     <div>{member.unit}</div>
 
                     <div className="text-gray-500">Cost:</div>

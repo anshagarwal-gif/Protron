@@ -373,11 +373,9 @@ public class InvoiceService {
         workTable.addCell(new Phrase("Rate:", headerFont));
         workTable.addCell(new Phrase(invoice.getCurrency() + " " + invoice.getRate().toString(), normalFont));
         workTable.addCell(new Phrase("From Date:", headerFont));
-        workTable.addCell(
-                new Phrase(invoice.getFromDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")), normalFont));
+        workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getFromDate()), normalFont));
         workTable.addCell(new Phrase("To Date:", headerFont));
-        workTable
-                .addCell(new Phrase(invoice.getToDate().format(DateTimeFormatter.ofPattern("MM/dd/yyyy")), normalFont));
+        workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getToDate()), normalFont));
         workTable.addCell(new Phrase("Hours Spent:", headerFont));
         workTable.addCell(new Phrase(invoice.getHoursSpent().toString(), normalFont));
 
@@ -414,6 +412,25 @@ public class InvoiceService {
 
         document.close();
         return baos.toByteArray();
+    }
+
+    private String formatDateWithSuffix(LocalDate date) {
+        int day = date.getDayOfMonth();
+        String daySuffix;
+
+        if (day >= 11 && day <= 13) {
+            daySuffix = "th";
+        } else {
+            switch (day % 10) {
+                case 1: daySuffix = "st"; break;
+                case 2: daySuffix = "nd"; break;
+                case 3: daySuffix = "rd"; break;
+                default: daySuffix = "th";
+            }
+        }
+
+        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+        return day + daySuffix + " " + date.format(monthYearFormatter);
     }
 
     /**
