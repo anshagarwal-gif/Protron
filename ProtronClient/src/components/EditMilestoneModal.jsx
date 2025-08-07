@@ -3,7 +3,23 @@ import { useState, useEffect, useRef } from "react";
 import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Loader2, Clock } from "lucide-react";
 import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
-
+const getCurrencySymbol = (currency) => {
+    const currencySymbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'AUD': 'A$',
+        'CAD': 'C$',
+        'CHF': 'CHF',
+        'CNY': '¥',
+        'SEK': 'kr',
+        'NZD': 'NZ$'
+    };
+    
+    return currencySymbols[currency] || currency;
+};
 const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   const [formData, setFormData] = useState({
     msName: "",
@@ -154,53 +170,70 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     }
   };
 
-  const handleInputChange = (e) => {
+ const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
 
     if (type === 'file') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: files[0] || null
-      }));
+        setFormData(prev => ({
+            ...prev,
+            [name]: files[0] || null
+        }));
     } else {
-      // Check word limit for description and remarks
-      if (name === 'msDesc') {
-        const wordCount = countWords(value);
-        if (wordCount > 500) {
-          setErrors(prev => ({
-            ...prev,
-            [name]: "Description cannot exceed 500 words"
-          }));
-          return; // Don't update if exceeding limit
+        // Check word limit for description and remarks
+        if (name === 'msDesc') {
+            const wordCount = countWords(value);
+            if (wordCount > 500) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: "Description cannot exceed 500 words"
+                }));
+                return; // Don't update if exceeding limit
+            }
+            setDescWordCount(wordCount);
+        } else if (name === 'msRemarks') {
+            const wordCount = countWords(value);
+            if (wordCount > 500) {
+                setErrors(prev => ({
+                    ...prev,
+                    [name]: "Remarks cannot exceed 500 words"
+                }));
+                return; // Don't update if exceeding limit
+            }
+            setRemarksWordCount(wordCount);
         }
-        setDescWordCount(wordCount);
-      } else if (name === 'msRemarks') {
-        const wordCount = countWords(value);
-        if (wordCount > 500) {
-          setErrors(prev => ({
-            ...prev,
-            [name]: "Remarks cannot exceed 500 words"
-          }));
-          return; // Don't update if exceeding limit
-        }
-        setRemarksWordCount(wordCount);
-      }
 
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
+        // Real-time amount validation
+        if (name === 'msAmount' && value) {
+            const enteredAmount = parseFloat(value);
+            if (poBalance !== null && enteredAmount > poBalance) {
+                const currencySymbol = getCurrencySymbol(formData.msCurrency);
+                setErrors(prev => ({
+                    ...prev,
+                    msAmount: `Amount exceeds available PO balance of ${currencySymbol}${poBalance.toLocaleString()}`
+                }));
+            }
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     }
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ""
-      }));
+    // Clear error when user starts typing (except for real-time validation)
+    if (errors[name] && name !== 'msAmount') {
+        setErrors(prev => ({
+            ...prev,
+            [name]: ""
+        }));
+    } else if (name === 'msAmount' && value && parseFloat(value) <= poBalance) {
+        // Clear amount error only when value is within balance
+        setErrors(prev => ({
+            ...prev,
+            [name]: ""
+        }));
     }
-  };
-
+};
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const maxFiles = 4;
@@ -255,24 +288,32 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     const newErrors = {};
 
     if (!formData.msName?.trim()) {
-      newErrors.msName = "Milestone name is required";
+        newErrors.msName = "Milestone name is required";
     }
 
     if (!formData.msDesc?.trim()) {
-      newErrors.msDesc = "Description is required";
+        newErrors.msDesc = "Description is required";
     }
 
     if (!formData.msAmount || formData.msAmount <= 0) {
-      newErrors.msAmount = "Valid amount is required";
+        newErrors.msAmount = "Valid amount is required";
+    } else {
+        // Check balance validation
+        const enteredAmount = parseFloat(formData.msAmount);
+        
+        if (poBalance !== null && enteredAmount > poBalance) {
+            const currencySymbol = getCurrencySymbol(formData.msCurrency);
+            newErrors.msAmount = `Amount exceeds available PO balance of ${currencySymbol}${poBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+        }
     }
 
     if (formData.msDuration && formData.msDuration < 0) {
-      newErrors.msDuration = "Duration cannot be negative";
+        newErrors.msDuration = "Duration cannot be negative";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -505,9 +546,9 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   {errors.msAmount && (
                     <p className="mt-1 text-xs text-red-600">{errors.msAmount}</p>
                   )}
-                  <label className="text-xs text-red-500 mt-1">
-                    PO Balance: {poBalance !== null ? `${poBalance} ${formData.msCurrency}` : 'Loading...'}
-                  </label>
+               <label className="text-xs text-green-600 mt-1">
+    PO Balance: {poBalance !== null ? `${getCurrencySymbol(formData.msCurrency)}${poBalance.toLocaleString()}` : 'Loading...'}
+</label>
                 </div>
 
                 <div className="col-span-1"></div> {/* Small spacer */}

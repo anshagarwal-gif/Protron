@@ -13,6 +13,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     srnCurrency: "USD",
     srnType: "",
     srnRemarks: "",
+    srnDate:"",
   });
   const [srnAttachments, setSrnAttachments] = useState([]); // Holds both existing and new attachments
   const [loading, setLoading] = useState(false);
@@ -118,6 +119,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnCurrency: srn.srnCurrency || "USD",
             srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
+            srnDate:srn.srnDate || "",
           });
           setPoId(srn.poDetail.poId || "");
           console.log('Fetched SRN data:', srn);
@@ -451,7 +453,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         srnAmount: parseInt(formData.srnAmount) || 0,
         srnCurrency: formData.srnCurrency,
         srnType: formData.srnType,
-        srnRemarks: formData.srnRemarks || ''
+        srnRemarks: formData.srnRemarks || '',
+        srnDate: formData.srnDate || ''
       };
 
       // Submit SRN data
@@ -510,6 +513,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       srnCurrency: "USD",
       srnType: "",
       srnRemarks: "",
+      srnDate:"",
     });
     setSrnAttachments([]);
     setErrors({});

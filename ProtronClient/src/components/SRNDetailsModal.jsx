@@ -1,9 +1,18 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { X, Paperclip, Image, Archive, File, Download } from "lucide-react";
+import { 
+  X, 
+  Paperclip, 
+  Image, 
+  Archive, 
+  File, 
+  Download, 
+  FileText, 
+  Target, 
+  Calendar 
+} from "lucide-react";
 
 const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
-
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -59,7 +68,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
     }
   };
 
-   const getFileIcon = (fileName) => {
+  const getFileIcon = (fileName) => {
     if (!fileName) return <File size={16} />;
     const extension = fileName.split('.').pop()?.toLowerCase();
     
@@ -76,211 +85,260 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
 
   const { milestone, poDetail } = srnDetails;
 
+  // Format currency (matching other modals)
+  const formatCurrency = (amount, currency = 'USD') => {
+    if (!amount) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
+  };
+
+  // Format date (matching other modals)
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   // Function to get tag styling for SRN Type
   const getSrnTypeTag = (type) => {
-    const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center";
+    const baseClasses = "px-2 py-1 rounded text-xs font-medium";
     switch (type) {
       case "Full":
-        return `${baseClasses} bg-emerald-100 text-emerald-700 border border-emerald-200`;
+        return `${baseClasses} bg-emerald-100 text-emerald-800`;
       case "Partial":
-        return `${baseClasses} bg-amber-100 text-amber-700 border border-amber-200`;
+        return `${baseClasses} bg-amber-100 text-amber-800`;
       default:
-        return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
+        return `${baseClasses} bg-gray-100 text-gray-700`;
     }
   };
 
   // Function to get tag styling for PO Type
   const getPoTypeTag = (type) => {
-    const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center";
+    const baseClasses = "px-2 py-1 rounded text-xs font-medium";
     switch (type) {
       case "FIXED":
-        return `${baseClasses} bg-blue-100 text-blue-700 border border-blue-200`;
+        return `${baseClasses} bg-emerald-100 text-emerald-800`;
       case "T&M":
-        return `${baseClasses} bg-purple-100 text-purple-700 border border-purple-200`;
+        return `${baseClasses} bg-violet-100 text-violet-800`;
       case "MIXED":
-        return `${baseClasses} bg-orange-100 text-orange-700 border border-orange-200`;
+        return `${baseClasses} bg-amber-100 text-amber-800`;
       default:
-        return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
+        return `${baseClasses} bg-gray-100 text-gray-700`;
     }
   };
 
+  // Field component for consistent styling (matching other modals)
+  const Field = ({ label, value, className = "" }) => (
+    <div className={className}>
+      <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
+      <div className="text-sm text-gray-900 font-medium">
+        {value || "N/A"}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#000000c2] bg-opacity-50 p-2">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-7xl h-[90vh] overflow-auto w-full border border-gray-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div 
-          className="px-8 py-3 flex justify-between items-center rounded-t-2xl"
-          style={{ backgroundColor: 'var(--color-green-800)' }}
-        >
-          <div className="flex items-center space-x-3">
-            <div>
-              <h2 className="text-2xl font-bold text-white">SRN Details</h2>
-              <p className="text-green-100 text-sm">Comprehensive SRN overview and management</p>
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <FileText size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-bold truncate">SRN Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm truncate">SRN: {srnDetails.srnName || 'N/A'}</p>
+              </div>
             </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+            >
+              <X size={18} className="sm:w-5 sm:h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all duration-200"
-          >
-            <X size={24} className="text-white hover:text-black" />
-          </button>
         </div>
 
-        <div className="p-8">
-          {/* Top Row - Main Information */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Left Column - SRN Information */}
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800 mb-6">SRN INFORMATION</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">SRN Name</label>
-                  <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{srnDetails.srnName || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">SRN Amount</label>
-                  <p className="text-gray-900 font-medium mt-1">
-                    {srnDetails.srnAmount || "N/A"} {srnDetails.srnCurrency || ""}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">SRN Type</label>
-                  <div className="mt-2">
-                    <span className={getSrnTypeTag(srnDetails.srnType)}>
-                      {srnDetails.srnType || "N/A"}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">SRN Remarks</label>
-                  <p className="text-gray-900 mt-1 break-words overflow-wrap-anywhere">{srnDetails.srnRemarks || "N/A"}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Milestone or PO Details */}
-            <div>
-              {milestone ? (
-                <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-100 h-full">
-                  <h3 className="text-lg font-semibold text-teal-800 mb-6">MILESTONE DETAILS</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">Milestone Name</label>
-                      <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{milestone.msName || "N/A"}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">Milestone Amount</label>
-                      <p className="text-gray-900 font-medium mt-1">
-                        {milestone.msAmount || "N/A"} {milestone.msCurrency || ""}
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          {/* Basic SRN Information */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <FileText className="mr-2 text-green-600" size={20} />
+              Basic Information
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Field
+                label="SRN Name"
+                value={srnDetails.srnName}
+              />
+              <Field
+                label="SRN Amount"
+                value={formatCurrency(srnDetails.srnAmount, srnDetails.srnCurrency)}
+              />
+              <Field
+                label="SRN Type"
+                value={<span className={getSrnTypeTag(srnDetails.srnType)}>{srnDetails.srnType}</span>}
+              />
+              <Field
+                label="Currency"
+                value={srnDetails.srnCurrency}
+              />
+              <Field
+                label="SRN Remarks"
+                value={
+                  srnDetails.srnRemarks ? (
+                    <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
+                      <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                        {srnDetails.srnRemarks}
                       </p>
                     </div>
-                    <div className="">
-                      <label className="text-sm font-medium text-teal-700 uppercase tracking-wide">Milestone Date</label>
-                      <div className="mt-2  items-center ">
-                        <span className="text-gray-900 font-medium">
-                          {milestone.msDate ? new Date(milestone.msDate).toLocaleDateString() : "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-6 border border-emerald-100 h-full">
-                  <h3 className="text-lg font-semibold text-emerald-800 mb-6">PO DETAILS</h3>
-                  <div className="grid grid-cols-3  gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-emerald-700 uppercase tracking-wide">Project Name</label>
-                      <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poDetail.projectName || "N/A"}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-emerald-700 uppercase tracking-wide">PO Amount</label>
-                      <p className="text-gray-900 font-medium mt-1">
-                        {poDetail.poAmount || "N/A"} {poDetail.poCurrency || ""}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-emerald-700 uppercase tracking-wide">PO Start Date</label>
-                      <div className="mt-2 items-center ">
-                        <span className="text-gray-900 font-medium">
-                          {poDetail.poStartDate ? new Date(poDetail.poStartDate).toLocaleDateString() : "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-emerald-700 uppercase tracking-wide">PO Number</label>
-                      <p className="text-gray-900 font-medium mt-1 break-words overflow-wrap-anywhere">{poDetail.poNumber || "N/A"}</p>
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-emerald-700 uppercase tracking-wide">PO Type</label>
-                      <div className="mt-2">
-                        <span className={getPoTypeTag(poDetail.poType)}>
-                          {poDetail.poType || "N/A"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  ) : "N/A"
+                }
+                className="sm:col-span-2 lg:col-span-4"
+              />
             </div>
           </div>
 
-          {/* Bottom Row - Description Section */}
-          <div className="">
-            {/* SRN Description */}
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
-              <h3 className="text-lg font-semibold text-blue-800 mb-4">SRN DESCRIPTION</h3>
-              <div className="min-h-[120px]">
-                <p className="text-gray-900 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                  {srnDetails.srnDsc || "No description available"}
-                </p>
+          {/* Milestone Information */}
+          {milestone && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <Target className="mr-2 text-green-600" size={20} />
+                Milestone Information
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <Field
+                  label="Milestone Name"
+                  value={milestone.msName}
+                />
+                <Field
+                  label="Milestone Amount"
+                  value={formatCurrency(milestone.msAmount, milestone.msCurrency)}
+                />
+                <Field
+                  label="Milestone Date"
+                  value={formatDate(milestone.msDate)}
+                />
+                <Field
+                  label="Currency"
+                  value={milestone.msCurrency}
+                />
               </div>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 mt-6">
+          )}
+
+          {/* PO Information */}
+          {poDetail && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <Calendar className="mr-2 text-green-600" size={20} />
+                PO Information
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <Field
+                  label="Project Name"
+                  value={poDetail.projectName}
+                />
+                <Field
+                  label="PO Amount"
+                  value={formatCurrency(poDetail.poAmount, poDetail.poCurrency)}
+                />
+                <Field
+                  label="PO Start Date"
+                  value={formatDate(poDetail.poStartDate)}
+                />
+                <Field
+                  label="PO Number"
+                  value={poDetail.poNumber}
+                />
+                <Field
+                  label="PO Type"
+                  value={<span className={getPoTypeTag(poDetail.poType)}>{poDetail.poType}</span>}
+                />
+                <Field
+                  label="Currency"
+                  value={poDetail.poCurrency}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* SRN Description */}
+          <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-              <Paperclip size={20} className="mr-2" />
-              ATTACHMENTS ({attachments.length})
+              <FileText className="mr-2 text-green-600" size={20} />
+              SRN Description
             </h3>
+            <div className="bg-white rounded p-2 sm:p-3 border max-h-32 sm:max-h-40 overflow-y-auto">
+              <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                {srnDetails.srnDsc || "No description available"}
+              </p>
+            </div>
+          </div>
 
-            {loadingAttachments && (
-              <div className="text-gray-500 text-sm">Loading attachments...</div>
-            )}
-            {attachmentError && (
-              <div className="text-red-500 text-sm">{attachmentError}</div>
-            )}
-
-            {attachments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
+          {/* Attachments */}
+          {attachments.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <Paperclip className="mr-2 text-green-600" size={20} />
+                Attachments ({attachments.length})
+              </h3>
+              <div className="space-y-1 sm:space-y-2">
                 {attachments.map((attachment, index) => (
-                  <div
-                    key={index}
+                  <button
+                    key={attachment.id || index}
                     onClick={() => handleAttachmentClick(attachment)}
-                    className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-xs sm:text-sm p-2 sm:p-3 rounded border bg-white w-full text-left transition-colors"
                   >
-                    <div className="flex-shrink-0 mr-3">
+                    <div className="flex-shrink-0 mr-2 sm:mr-3">
                       {getFileIcon(attachment.fileName || attachment.name || attachment.filename)}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600"
-                        title={attachment.fileName || attachment.name || attachment.filename}
-                      >
+                    <div className="flex-1 truncate min-w-0">
+                      <span className="block truncate">
                         {attachment.fileName || attachment.name || attachment.filename || `Attachment ${index + 1}`}
-                      </p>
+                      </span>
                     </div>
-                    <Download size={14} className="text-gray-400 group-hover:text-blue-600" />
-                  </div>
+                    <Download size={12} className="sm:w-3.5 sm:h-3.5 ml-1 sm:ml-2 flex-shrink-0" />
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <Paperclip size={48} className="mx-auto text-gray-300 mb-2" />
-                <p className="text-gray-500">No attachments available</p>
-              </div>
-            )}
-          </div>
-          </div>
+            </div>
+          )}
 
-          
+          {loadingAttachments && (
+            <div className="text-center py-4">
+              <div className="text-gray-600 text-sm flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                Loading attachments...
+              </div>
+            </div>
+          )}
+
+          {attachmentError && (
+            <div className="bg-red-50 border border-red-200 rounded p-3">
+              <div className="text-red-700 text-sm flex items-center">
+                <X className="mr-2" size={16} />
+                {attachmentError}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t rounded-b-lg">
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

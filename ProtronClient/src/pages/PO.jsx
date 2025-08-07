@@ -154,7 +154,6 @@ const POManagement = () => {
         'Supplier': po.supplier || 'N/A',
         'Project Name': po.projectName || 'N/A',
         'SPOC Name': po.poSpoc || 'N/A',
-        'Created Date': po.createdDate ? new Date(po.createdDate).toLocaleDateString() : 'N/A'
       }));
 
       const headers = Object.keys(excelData[0] || {});

@@ -29,7 +29,23 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
         message: '',
         severity: ''
     })
-
+const getCurrencySymbol = (currency) => {
+    const currencySymbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'AUD': 'A$',
+        'CAD': 'C$',
+        'CHF': 'CHF',
+        'CNY': '¥',
+        'SEK': 'kr',
+        'NZD': 'NZ$'
+    };
+    
+    return currencySymbols[currency] || currency;
+};
     const fetchPODetails = async () => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/po/${poId}`, {
@@ -64,6 +80,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
             fetchPOMilestones()
         }
     }, [poId])
+    
     useEffect(() => {
         const fetchPOBalance = async (poId) => {
             if (poId) {
@@ -107,6 +124,32 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
         }
     }, [formData.poId, formData.msId])
 
+    // Auto-fill amount when type is "full"
+    useEffect(() => {
+        if (formData.srnType === 'full') {
+            const balanceToUse = milestoneBalance !== null ? milestoneBalance : poBalance;
+            if (balanceToUse !== null && balanceToUse > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    srnAmount: balanceToUse.toString()
+                }));
+            }
+        }
+    }, [formData.srnType, milestoneBalance, poBalance])
+
+    // Auto-fill amount when milestone changes and type is "full"
+    useEffect(() => {
+        if (formData.srnType === 'full') {
+            const balanceToUse = milestoneBalance !== null ? milestoneBalance : poBalance;
+            if (balanceToUse !== null && balanceToUse > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    srnAmount: balanceToUse.toString()
+                }));
+            }
+        }
+    }, [milestoneBalance])
+
     const removeSRNAttachment = async (index) => {
         const fileToDelete = srnFiles[index];
         const token = sessionStorage.getItem('token');
@@ -134,6 +177,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
             console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
         }
     };
+
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
@@ -141,7 +185,11 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
         // Combine existing and new files
         const totalFiles = srnFiles.length + files.length;
         if (totalFiles > 4) {
-            setSrnErrors("You can upload a maximum of 4 attachments.");
+            setSnackbar({
+                open: true,
+                message: "You can upload a maximum of 4 attachments.",
+                severity: "error"
+            });
             e.target.value = null;
             return;
         }
@@ -161,42 +209,60 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
 
         for (const file of files) {
             if (file.size > 10 * 1024 * 1024) {
-                setSrnErrors("File size must be less than 10MB.");
+                setSnackbar({
+                    open: true,
+                    message: "File size must be less than 10MB.",
+                    severity: "error"
+                });
                 e.target.value = null;
                 return;
             }
             if (!allowedTypes.includes(file.type)) {
-                setSrnErrors("Unsupported file type.");
+                setSnackbar({
+                    open: true,
+                    message: "Unsupported file type.",
+                    severity: "error"
+                });
                 e.target.value = null;
                 return;
             }
         }
 
         setSrnFiles(prev => [...prev, ...files]);
-        setSrnErrors(""); // clear error
         e.target.value = null; // reset input
     };
 
     const validateForm = () => {
-        const newErrors = {}
+    const newErrors = {}
 
-        if (!formData.srnName.trim()) {
-            newErrors.srnName = 'SRN Name is required'
-        }
-
-        if (!formData.srnAmount || formData.srnAmount <= 0) {
-            newErrors.srnAmount = 'SRN Amount must be greater than 0'
-        }
-
-        if (!formData.srnType) {
-            newErrors.srnType = 'SRN Type is required'
-        }
-
-        setErrors(newErrors)
-        return Object.keys(newErrors).length === 0
+    if (!formData.srnName.trim()) {
+        newErrors.srnName = 'SRN Name is required'
     }
 
-    const handleClose = () => {
+    if (!formData.srnAmount || formData.srnAmount <= 0) {
+        newErrors.srnAmount = 'SRN Amount must be greater than 0'
+    } else {
+        // Check balance validation
+        const enteredAmount = parseFloat(formData.srnAmount);
+        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+        
+        if (availableBalance !== null && enteredAmount > availableBalance) {
+            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+            const currencySymbol = getCurrencySymbol(formData.srnCurrency);
+            
+            newErrors.srnAmount = `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+        }
+    }
+
+    if (!formData.srnType) {
+        newErrors.srnType = 'SRN Type is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+}
+
+    const resetForm = () => {
         setFormData({
             poId: poId,
             msId: '',
@@ -212,7 +278,69 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
         setErrors({});
         setPo({});
         setMilestones([]);
-        onClose()
+        setSrnFiles([]);
+        setPOBalance(null);
+        setMilestoneBalance(null);
+        setSnackbar({
+            open: false,
+            message: '',
+            severity: ''
+        });
+    };
+
+    const handleClose = () => {
+        resetForm();
+        onClose();
+    };
+
+    const handleSrnTypeChange = (e) => {
+        const newType = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            srnType: newType,
+            // Clear amount when switching to partial, auto-fill when switching to full
+            srnAmount: newType === 'full' ? 
+                (milestoneBalance !== null ? milestoneBalance.toString() : 
+                 poBalance !== null ? poBalance.toString() : '') : ''
+        }));
+    };const handleAmountChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, srnAmount: value });
+    
+    // Clear previous amount error
+    if (errors.srnAmount) {
+        setErrors(prev => ({
+            ...prev,
+            srnAmount: ""
+        }));
+    }
+    
+    // Real-time validation
+    if (value && parseFloat(value) > 0) {
+        const enteredAmount = parseFloat(value);
+        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+        
+        if (availableBalance !== null && enteredAmount > availableBalance) {
+            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+            const currencySymbol = getCurrencySymbol(formData.srnCurrency);
+            
+            setErrors(prev => ({
+                ...prev,
+                srnAmount: `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}`
+            }));
+        }
+    }
+};
+
+    const handleMilestoneChange = (e) => {
+        const newMsId = e.target.value;
+        setFormData(prev => ({
+            ...prev,
+            msId: newMsId
+        }));
+        
+        // If type is "full", the useEffect will handle the amount auto-fill
+        // when milestoneBalance updates
     };
 
     const handleSubmit = async (e) => {
@@ -257,12 +385,11 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('SRN Created:', data);
-                setSnackbar((prev) => ({
-                    ...prev,
+                setSnackbar({
                     open: true,
                     message: "SRN Created Successfully",
                     severity: "success",
-                }))
+                });
 
                 const srnId = data.srnId; // Assuming the response contains the created SRN ID
                 const srnName = data.srnName || formData.srnName;
@@ -294,16 +421,16 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                     open: true,
                                     message: "Attachment upload failed",
                                     severity: "error",
-                                })
+                                });
                             }
 
                         } catch (err) {
                             console.error('Attachment upload error:', err);
                             setSnackbar({
-                                open:true,
-                                message:"Attachment upload failed",
-                                severity:"error"
-                            })
+                                open: true,
+                                message: "Attachment upload failed",
+                                severity: "error"
+                            });
                         }
                     }
                 }
@@ -319,7 +446,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                     open: true,
                     message: "Failed to create SRN. Please check the console for details.",
                     severity: "error",
-                })
+                });
 
             }
         } catch (error) {
@@ -331,7 +458,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                 open: true,
                 message: "Network error. Please try again.",
                 severity: "error",
-            })
+            });
         } finally {
             setLoading(false);
         }
@@ -343,12 +470,19 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
             dateInput.showPicker();
         }
     };
+    
     useEffect(() => {
         if (po.poCurrency) {
             setFormData(prev => ({ ...prev, srnCurrency: po.poCurrency }));
         }
     }, [po.poCurrency]);
 
+    // Reset form when modal opens
+    useEffect(() => {
+        if (open && poId) {
+            resetForm();
+        }
+    }, [open, poId]);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -414,7 +548,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                 <select
                                     name="msId"
                                     value={formData.msId}
-                                    onChange={(e) => setFormData({ ...formData, msId: e.target.value })}
+                                    onChange={handleMilestoneChange}
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md"
                                     disabled={loading}
                                 >
@@ -432,7 +566,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                 <select
                                     name="srnType"
                                     value={formData.srnType}
-                                    onChange={(e) => setFormData({ ...formData, srnType: e.target.value })}
+                                    onChange={handleSrnTypeChange}
                                     className={`w-full h-10 px-4 border rounded-md ${errors.srnType ? 'border-red-500' : 'border-gray-300'}`}
                                     disabled={loading}
                                 >
@@ -459,28 +593,28 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                 <div className='flex justify-between items-center'>
                                     <label className='block text-sm font-medium text-gray-700 mb-2'>SRN Amount*</label>
                                     <label className='block text-[10px] font-medium text-gray-700 mb-2'>
-                                        {milestoneBalance ? (
-                                            <span className="text-red-600">
-                                                Milestone Balance: ₹{milestoneBalance}
-                                            </span>
-                                        ) : (
-                                            <span className="text-red-600">
-                                                PO Balance: ₹{poBalance}
-                                            </span>
-                                        )}
-                                    </label>
-
+    {milestoneBalance !== null ? (
+        <span className="text-green-600">
+            Milestone Balance: {getCurrencySymbol(formData.srnCurrency)}{milestoneBalance.toLocaleString()}
+        </span>
+    ) : (
+        <span className="text-green-600">
+            PO Balance: {getCurrencySymbol(formData.srnCurrency)}{poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}
+        </span>
+    )}
+</label>
                                 </div>
                                 <input
                                     type="number"
                                     name="srnAmount"
                                     value={formData.srnAmount}
                                     onChange={(e) => setFormData({ ...formData, srnAmount: e.target.value })}
-                                    className={`w-full h-10 px-4 border rounded-md ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'}`}
+                                    className={`w-full h-10 px-4 border rounded-md ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'} ${formData.srnType === 'full' ? 'bg-gray-100' : ''}`}
                                     placeholder="Enter here"
                                     disabled={loading}
                                     min="0.01"
                                     step="0.01"
+                                    readOnly={formData.srnType === 'full'}
                                 />
                                 {errors.srnAmount && (
                                     <p className="mt-1 text-red-600 text-sm">{errors.srnAmount}</p>
@@ -510,8 +644,6 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                             </div>
                         </div>
                         <div className="grid grid-cols-6 gap-4">
-
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachments (Max 4)</label>
                                 <div className="relative">
@@ -559,6 +691,9 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                         <div>
                             <label htmlFor="srnDsc" className="block text-sm font-medium text-gray-700 mb-2">
                                 SRN Description
+                                <span className="float-right text-xs text-gray-500">
+                                    {formData.srnDsc.length}/500 characters
+                                </span>
                             </label>
                             <textarea
                                 name="srnDsc"
@@ -575,6 +710,9 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                         <div>
                             <label htmlFor="srnRemarks" className='block text-sm font-medium text-gray-700 mb-2'>
                                 SRN Remarks
+                                <span className="float-right text-xs text-gray-500">
+                                    {formData.srnRemarks.length}/500 characters
+                                </span>
                             </label>
                             <textarea
                                 name="srnRemarks"

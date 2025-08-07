@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useSession } from '../Context/SessionContext';
 
 const ViewPOModal = ({ open, onClose, poData }) => {
-
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -30,8 +29,6 @@ const ViewPOModal = ({ open, onClose, poData }) => {
         .finally(() => setLoadingAttachments(false));
     }
   }, [open, poData?.poId]);
-
-  console.log("ViewPOModal opened with PO ID:", poData);
 
   if (!open || !poData) return null;
 
@@ -70,73 +67,66 @@ const ViewPOModal = ({ open, onClose, poData }) => {
 
   // Function to get tag styling for PO Type
   const getPoTypeTag = (type) => {
-    const baseClasses = "px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center shadow-sm";
+    const baseClasses = "px-2 py-1 rounded text-xs font-medium";
     switch (type) {
       case "FIXED":
-        return `${baseClasses} bg-emerald-100 text-emerald-800 border border-emerald-200`;
+        return `${baseClasses} bg-emerald-100 text-emerald-800`;
       case "T_AND_M":
-        return `${baseClasses} bg-violet-100 text-violet-800 border border-violet-200`;
+        return `${baseClasses} bg-violet-100 text-violet-800`;
       case "MIXED":
-        return `${baseClasses} bg-amber-100 text-amber-800 border border-amber-200`;
+        return `${baseClasses} bg-amber-100 text-amber-800`;
       default:
-        return `${baseClasses} bg-slate-100 text-slate-700 border border-slate-200`;
+        return `${baseClasses} bg-gray-100 text-gray-700`;
     }
   };
 
-  // Field component for consistent styling
-  const Field = ({ label, value, icon: Icon, className = "", colSpan = 1 }) => (
-    <div className={`${colSpan > 1 ? `col-span-${colSpan}` : ''} ${className}`}>
-      <div className="flex items-center mb-2">
-        {Icon && <Icon size={16} className="text-slate-500 mr-2" />}
-        <label className="text-sm font-semibold text-slate-600 uppercase tracking-wide">{label}</label>
-      </div>
-      <div className="text-slate-900 font-medium break-words overflow-wrap-anywhere">
+  // Field component for consistent styling (matching SRN modal)
+  const Field = ({ label, value, className = "" }) => (
+    <div className={className}>
+      <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
+      <div className="text-sm text-gray-900 font-medium">
         {value || "N/A"}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0000006b] bg-opacity-60 p-4 scrollbar-hide">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full border border-slate-200 max-h-[90vh] overflow-y-auto scrollbar-hide">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-8 py-6 bg-gradient-to-r from-teal-800 to-teal-900 rounded-t-3xl">
+        <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-4">
-              <div className="bg-white bg-opacity-20 p-3 rounded-xl">
-                <FileText size={28} className="text-black" />
-              </div>
+            <div className="flex items-center space-x-3">
+              <FileText size={24} />
               <div>
-                <h2 className="text-3xl font-bold text-white">Purchase Order Details</h2>
-                <p className="text-slate-300 mt-1">PO #{poData.poNumber || 'N/A'}</p>
+                <h2 className="text-xl font-bold">Purchase Order Details</h2>
+                <p className="text-green-100 text-sm">PO #{poData.poNumber || 'N/A'}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-3 hover:bg-white hover:bg-opacity-20 rounded-xl transition-all duration-200 group"
+              className="p-2 hover:bg-green-700 rounded-lg transition-colors"
             >
-              <X size={24} className="text-white group-hover:text-slate-200" />
+              <X size={20} />
             </button>
           </div>
         </div>
 
-        <div className="p-8 space-y-8">
-          {/* Overview Section */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
-              <Hash className="mr-3 text-blue-600" size={24} />
-              PO Overview
+        <div className="p-6 space-y-6">
+          {/* Basic Information */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Hash className="mr-2 text-green-600" size={20} />
+              Basic Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Field
                 label="PO Number"
                 value={poData.poNumber}
-                icon={Hash}
               />
               <Field
                 label="PO Amount"
                 value={formatCurrency(poData.poAmount, poData.poCurrency)}
-              // icon={DollarSign}
               />
               <Field
                 label="PO Type"
@@ -145,110 +135,101 @@ const ViewPOModal = ({ open, onClose, poData }) => {
               <Field
                 label="Currency"
                 value={poData.poCurrency}
-                icon={CreditCard}
               />
               <Field
                 label="Project Name"
                 value={poData.projectName}
-                icon={Building}
               />
               <Field
                 label="Country"
                 value={poData.poCountry}
-                icon={MapPin}
               />
               <Field
                 label="SPOC"
                 value={poData.poSpoc}
-                icon={User}
-              />
-              <Field
-                label="Start Date"
-                value={formatDate(poData.poStartDate)}
-                icon={Calendar}
-              />
-              <Field
-                label="End Date"
-                value={formatDate(poData.poEndDate)}
-                icon={Calendar}
               />
               <Field
                 label="Customer"
                 value={poData.customer}
-                icon={Building}
+              />
+              <Field
+                label="Start Date"
+                value={formatDate(poData.poStartDate)}
+              />
+              <Field
+                label="End Date"
+                value={formatDate(poData.poEndDate)}
+              />
+              <Field
+                label="Created Date"
+                value={formatDate(poData.createdTimestamp)}
               />
             </div>
           </div>
 
-
           {/* Sponsor & Budget Information */}
-          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-100">
-            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
-              <Target className="mr-3 text-orange-600" size={24} />
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Target className="mr-2 text-green-600" size={20} />
               Sponsor & Budget Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Field
                 label="Supplier"
                 value={poData.supplier}
-                icon={Building}
               />
               <Field
                 label="Sponsor Name"
                 value={poData.sponsorName}
-                icon={User}
               />
               <Field
                 label="Sponsor LOB"
                 value={poData.sponsorLob}
-                icon={Building}
               />
               <Field
                 label="Budget Line Item"
                 value={poData.budgetLineItem}
-                icon={FileText}
               />
               <Field
                 label="Budget Line Amount"
                 value={formatCurrency(poData.budgetLineAmount, poData.poCurrency)}
-                icon={DollarSign}
               />
               <Field
                 label="Business Value Amount"
                 value={formatCurrency(poData.businessValueAmount, poData.poCurrency)}
-                icon={DollarSign}
               />
-
-              <Field
-                label="Budget Line Remarks"
-                value={poData.budgetLineRemarks}
-                icon={FileText}
-                colSpan={3}
-              />
-
             </div>
+            {poData.budgetLineRemarks && (
+              <div className="mt-4">
+                <Field
+                  label="Budget Line Remarks"
+                  value={poData.budgetLineRemarks}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Description Section */}
-          <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-2xl p-6 border border-slate-100">
-            <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center">
-              <FileText className="mr-3 text-slate-600" size={24} />
-              PO Description
+          {/* Description */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <FileText className="mr-2 text-green-600" size={20} />
+              Description
             </h3>
-            <div className="bg-white rounded-xl p-6 border border-slate-200 min-h-[120px]">
-              <p className="text-slate-900 leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
+            <div className="bg-white rounded p-3 border">
+              <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
                 {poData.poDesc || "No description available"}
               </p>
             </div>
           </div>
 
+          {/* Attachments */}
           {attachments.length > 0 && (
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
-              <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                <FileText className="mr-3 text-emerald-600" size={24} />
-                Attachments
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <FileText className="mr-2 text-green-600" size={20} />
+                Attachments ({attachments.length})
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {attachments.map((att, idx) => (
                   <button
                     key={att.attachmentId || idx}
@@ -257,18 +238,17 @@ const ViewPOModal = ({ open, onClose, poData }) => {
                         const response = await axios.get(
                           `${import.meta.env.VITE_API_URL}/api/po-attachments/${att.id}/download`,
                           {
-                            responseType: "blob", // Ensure the response is treated as a binary file
+                            responseType: "blob",
                             headers: {
                               Authorization: sessionData?.token,
                             },
                           }
                         );
 
-                        // Create a temporary link to download the file
                         const url = window.URL.createObjectURL(new Blob([response.data]));
                         const link = document.createElement("a");
                         link.href = url;
-                        link.setAttribute("download", att.fileName); // Set the file name
+                        link.setAttribute("download", att.fileName);
                         document.body.appendChild(link);
                         link.click();
                         link.remove();
@@ -276,7 +256,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
                         console.error("Failed to download attachment:", error);
                       }
                     }}
-                    className="block text-blue-700 hover:underline truncate"
+                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm p-2 rounded border bg-white w-full text-left transition-colors"
                   >
                     📎 {att.fileName}
                   </button>
@@ -284,24 +264,32 @@ const ViewPOModal = ({ open, onClose, poData }) => {
               </div>
             </div>
           )}
+
           {loadingAttachments && (
-            <div className="text-slate-600 text-sm mt-4">Loading attachments...</div>
-          )}
-          {attachmentError && (
-            <div className="text-red-500 text-sm mt-4">{attachmentError}</div>
+            <div className="text-center py-4">
+              <div className="text-gray-600 text-sm flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                Loading attachments...
+              </div>
+            </div>
           )}
 
+          {attachmentError && (
+            <div className="bg-red-50 border border-red-200 rounded p-3">
+              <div className="text-red-700 text-sm flex items-center">
+                <X className="mr-2" size={16} />
+                {attachmentError}
+              </div>
+            </div>
+          )}
         </div>
 
-
-
-
         {/* Footer */}
-        <div className="px-8 py-4 bg-slate-50 rounded-b-3xl border-t border-slate-200">
+        <div className="px-6 py-4 bg-gray-50 border-t rounded-b-lg">
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-colors duration-200 font-medium"
+              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
             >
               Close
             </button>

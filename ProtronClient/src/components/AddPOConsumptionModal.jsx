@@ -381,7 +381,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               ...prev,
               amount: ""
             }));
-          }, 1000);
+          }, 9000);
         }
 
       } catch (balanceError) {

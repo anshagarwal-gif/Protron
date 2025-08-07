@@ -1,5 +1,5 @@
 // POConsumptionManagement.js
-import { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle} from "react";
 import { useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -16,11 +16,13 @@ import {
   Building,
   User,
   FileText,
+  Hash,
   Trash2,
   Calendar,
   Eye,
   Paperclip,
   X,
+  Target,
   File,
   Image,
   Archive
@@ -30,9 +32,9 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddPOConsumptionModal from "../components/AddPOConsumptionModal";
 import EditPOConsumptionModal from "../components/EditPOConsumptionModal";
+
 // ViewDetailsModal Component - Fixed with correct milestone properties
 const ViewDetailsModal = ({ open, onClose, consumption }) => {
-
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -90,23 +92,49 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
 
   if (!open || !consumption) return null;
 
-  const formatCurrency = (amount, currencyCode) => {
+  // Format currency (matching PO modal)
+  const formatCurrency = (amount, currency = 'USD') => {
     if (!amount) return 'N/A';
-    const getCurrencySymbol = (currencyCode) => {
-      const currencySymbols = {
-        'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
-        'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥'
-      };
-      return currencySymbols[currencyCode] || currencyCode || '$';
-    };
-    const symbol = getCurrencySymbol(currencyCode);
-    return `${symbol}${amount.toLocaleString()}`;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
   };
 
+  // Format date (matching PO modal)
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
+
+  // Get consumption type tag styling
+  const getConsumptionTypeTag = (type) => {
+    const baseClasses = "px-2 py-1 rounded text-xs font-medium";
+    switch (type) {
+      case "MILESTONE":
+        return `${baseClasses} bg-emerald-100 text-emerald-800`;
+      case "RESOURCE":
+        return `${baseClasses} bg-violet-100 text-violet-800`;
+      case "EXPENSE":
+        return `${baseClasses} bg-amber-100 text-amber-800`;
+      default:
+        return `${baseClasses} bg-gray-100 text-gray-700`;
+    }
+  };
+
+  // Field component for consistent styling (matching PO modal)
+  const Field = ({ label, value, className = "" }) => (
+    <div className={className}>
+      <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
+      <div className="text-sm text-gray-900 font-medium">
+        {value || "N/A"}
+      </div>
+    </div>
+  );
 
   const getFileIcon = (fileName) => {
     if (!fileName) return <File size={16} />;
@@ -122,215 +150,220 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-green-700 text-white p-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10">
-          <div>
-            <h2 className="text-xl font-bold">PO Consumption Details</h2>
-      
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <FileText size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-bold truncate">PO Consumption Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm truncate">Consumption ID: {consumption.utilizationId || 'N/A'}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+            >
+              <X size={18} className="sm:w-5 sm:h-5" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-green-700 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* PO Consumption Information */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
-                <FileText size={20} className="mr-2" />
-                PO CONSUMPTION INFORMATION
-              </h3>
-              
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">PO Number</label>
-                    <p className="text-gray-900 font-semibold break-words">{consumption.poNumber || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Consumption ID</label>
-                    <p className="text-green-600 font-semibold break-words">{consumption.utilizationId || 'N/A'}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Consumption Type</label>
-                    <span className="inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {consumption.utilizationType || 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Amount</label>
-                    <p className="text-green-600 font-bold text-lg break-words">
-                      {formatCurrency(consumption.amount, consumption.currency)}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Resource/Project</label>
-                  <p className="text-gray-900 font-medium break-words">{consumption.project || 'N/A'}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Work Assign Date</label>
-                    <p className="text-gray-700">{formatDate(consumption.workAssignDate)}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Work Completion Date</label>
-                    <p className="text-gray-700">{formatDate(consumption.workCompletionDate)}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">System Name</label>
-                  <p className="text-gray-700 break-words">{consumption.systemName || 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Milestone Details - FIXED with correct property names */}
-            <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
-                <Calendar size={20} className="mr-2" />
-                MILESTONE DETAILS
-              </h3>
-              
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Name</label>
-                    <p className="text-gray-900 font-semibold break-words">
-                      {consumption.milestone?.msName || 'N/A'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Amount</label>
-                    <p className="text-green-600 font-bold break-words">
-                      {consumption.milestone?.msAmount ? 
-                        formatCurrency(consumption.milestone.msAmount, consumption.milestone.msCurrency) : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Date</label>
-                    <p className="text-gray-700">
-                      {formatDate(consumption.milestone?.msDate)}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Duration (Days)</label>
-                    <p className="text-gray-700">
-                      {consumption.milestone?.msDuration ? `${consumption.milestone.msDuration} days` : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Description</label>
-                  <div className="text-gray-700 text-sm leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-24 overflow-y-auto bg-white p-2 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
-                    {consumption.milestone?.msDesc || 'No description available'}
-                  </div>
-                </div>
-
-                {/* Milestone Remarks */}
-                {consumption.milestone?.msRemarks && (
-                  <div>
-                    <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Milestone Remarks</label>
-                    <div className="text-gray-700 text-sm leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-24 overflow-y-auto bg-white p-2 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
-                      {consumption.milestone.msRemarks}
-                    </div>
-                  </div>
-                )}
-              </div>
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          {/* Basic Consumption Information */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <FileText className="mr-2 text-green-600" size={20} />
+              Basic Information
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Field
+                label="PO Number"
+                value={consumption.poNumber}
+              />
+              <Field
+                label="Consumption ID"
+                value={consumption.utilizationId}
+              />
+              <Field
+                label="Consumption Type"
+                value={<span className={getConsumptionTypeTag(consumption.utilizationType)}>{consumption.utilizationType}</span>}
+              />
+              <Field
+                label="Amount"
+                value={formatCurrency(consumption.amount, consumption.currency)}
+              />
+              <Field
+                label="Resource/Project"
+                value={consumption.project}
+              />
+              <Field
+                label="System Name"
+                value={consumption.systemName}
+              />
+              <Field
+                label="Work Assign Date"
+                value={formatDate(consumption.workAssignDate)}
+              />
+              <Field
+                label="Work Completion Date"
+                value={formatDate(consumption.workCompletionDate)}
+              />
             </div>
           </div>
+
+          {/* Milestone Information */}
+          {consumption.milestone && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <Target className="mr-2 text-green-600" size={20} />
+                Milestone Information
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <Field
+                  label="Milestone Name"
+                  value={consumption.milestone.msName}
+                />
+                <Field
+                  label="Milestone Amount"
+                  value={formatCurrency(consumption.milestone.msAmount, consumption.milestone.msCurrency)}
+                />
+                <Field
+                  label="Milestone Date"
+                  value={formatDate(consumption.milestone.msDate)}
+                />
+                <Field
+                  label="Duration (Days)"
+                  value={consumption.milestone.msDuration ? `${consumption.milestone.msDuration} days` : 'N/A'}
+                />
+              </div>
+              {consumption.milestone.msDesc && (
+                  <div className="mt-3 sm:mt-4">
+                    <Field
+                      label="Milestone Description"
+                      value={
+                        <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
+                          <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                            {consumption.milestone.msDesc}
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
+              )}
+              {consumption.milestone.msRemarks && (
+                  <div className="mt-3 sm:mt-4">
+                    <Field
+                      label="Milestone Remarks"
+                      value={
+                        <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
+                          <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                            {consumption.milestone.msRemarks}
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
+              )}
+            </div>
+          )}
 
           {/* Work Description */}
-          <div className="bg-purple-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
-              <FileText size={20} className="mr-2" />
-              WORK DESCRIPTION
-            </h3>
-            <div className="text-gray-700 leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-32 overflow-y-auto bg-white p-3 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
-              {consumption.workDesc || 'No work description provided'}
+          {consumption.workDesc && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <FileText className="mr-2 text-green-600" size={20} />
+                Work Description
+              </h3>
+              <div className="bg-white rounded p-2 sm:p-3 border max-h-32 sm:max-h-40 overflow-y-auto">
+                <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                  {consumption.workDesc || "No work description provided"}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Remarks */}
-          {(consumption.remarks && consumption.remarks.trim() !== '') && (
-            <div className="bg-yellow-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
-                <Edit size={20} className="mr-2" />
-                REMARKS
+          {consumption.remarks && consumption.remarks.trim() !== '' && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <Edit className="mr-2 text-green-600" size={20} />
+                Remarks
               </h3>
-              <div className="text-gray-700 leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-32 overflow-y-auto bg-white p-3 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
-                {consumption.remarks}
+              <div className="bg-white rounded p-2 sm:p-3 border max-h-32 sm:max-h-40 overflow-y-auto">
+                <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                  {consumption.remarks}
+                </p>
               </div>
             </div>
           )}
 
           {/* Attachments */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-              <Paperclip size={20} className="mr-2" />
-              ATTACHMENTS ({attachments.length})
-            </h3>
-
-            {loadingAttachments && (
-              <div className="text-gray-500 text-sm">Loading attachments...</div>
-            )}
-            {attachmentError && (
-              <div className="text-red-500 text-sm">{attachmentError}</div>
-            )}
-
-            {attachments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
+          {attachments.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <Paperclip className="mr-2 text-green-600" size={20} />
+                Attachments ({attachments.length})
+              </h3>
+              <div className="space-y-1 sm:space-y-2">
                 {attachments.map((attachment, index) => (
-                  <div
-                    key={index}
+                  <button
+                    key={attachment.id || index}
                     onClick={() => handleAttachmentClick(attachment)}
-                    className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-xs sm:text-sm p-2 sm:p-3 rounded border bg-white w-full text-left transition-colors"
                   >
-                    <div className="flex-shrink-0 mr-3">
+                    <div className="flex-shrink-0 mr-2 sm:mr-3">
                       {getFileIcon(attachment.fileName || attachment.name || attachment.filename)}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600"
-                        title={attachment.fileName || attachment.name || attachment.filename}
-                      >
+                    <div className="flex-1 truncate min-w-0">
+                      <span className="block truncate">
                         {attachment.fileName || attachment.name || attachment.filename || `Attachment ${index + 1}`}
-                      </p>
+                      </span>
                     </div>
-                    <Download size={14} className="text-gray-400 group-hover:text-blue-600" />
-                  </div>
+                    <Download size={12} className="sm:w-3.5 sm:h-3.5 ml-1 sm:ml-2 flex-shrink-0" />
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <Paperclip size={48} className="mx-auto text-gray-300 mb-2" />
-                <p className="text-gray-500">No attachments available</p>
+            </div>
+          )}
+
+          {loadingAttachments && (
+            <div className="text-center py-4">
+              <div className="text-gray-600 text-sm flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                Loading attachments...
               </div>
-            )}
+            </div>
+          )}
+
+          {attachmentError && (
+            <div className="bg-red-50 border border-red-200 rounded p-3">
+              <div className="text-red-700 text-sm flex items-center">
+                <X className="mr-2" size={16} />
+                {attachmentError}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t rounded-b-lg">
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"
+            >
+              Close
+            </button>
           </div>
-        
-      
         </div>
       </div>
     </div>
   );
 };
+
 
 const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const navigate = useNavigate();
@@ -530,7 +563,6 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         'Amount': consumption.amount ? `${getCurrencySymbol(consumption.currency)}${consumption.amount.toLocaleString()}` : 'N/A',
         'Work Assign Date': consumption.workAssignDate ? new Date(consumption.workAssignDate).toLocaleDateString() : 'N/A',
         'Work Completion Date': consumption.workCompletionDate ? new Date(consumption.workCompletionDate).toLocaleDateString() : 'N/A',
-        'Attachments': consumption.attachments ? consumption.attachments.length : 0,
         'Remarks': consumption.remarks || 'N/A',
         'System Name': consumption.systemName || 'N/A',
       }));
@@ -795,30 +827,7 @@ const columnDefs = useMemo(() => [
       );
     }
   },
-  {
-    headerName: "Attachments",
-    field: "attachments",
-    valueGetter: params => params.data.attachments?.length || 0,
-    width: 100,
-    sortable: true,
-    filter: true,
-    cellStyle: { textAlign: 'center' },
-    cellRenderer: params => {
-      const attachmentCount = params.value;
-      return (
-        <div className="flex items-center justify-center h-full">
-          {attachmentCount > 0 ? (
-            <span className="flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-              <Paperclip size={12} className="mr-1" />
-              {attachmentCount}
-            </span>
-          ) : (
-            <span className="text-gray-400 text-xs">No files</span>
-          )}
-        </div>
-      );
-    }
-  },
+ 
   {
     headerName: "Assigned",
     field: "workAssignDate",

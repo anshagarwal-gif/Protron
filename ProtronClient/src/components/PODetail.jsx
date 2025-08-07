@@ -306,25 +306,35 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
       cellRenderer: TruncatedCellRenderer,
       tooltipField: "milestoneName"
     },
-    {
-    headerName: 'Amount',
-    field: 'milestoneAmount',
-    flex: 1,
-    maxWidth: 130,
-    sortable: true,
-    filter: 'agNumberColumnFilter',
-    valueFormatter: (params) => {
-      if (params.value) {
-        return new Intl.NumberFormat('en-IN', {
-          style: 'currency',
-          currency: 'INR'
-        }).format(params.value)
-      }
-      return ''
-    },
-    tooltipField: 'milestoneAmount',
-    cellClass: 'truncate-cell',
+   {
+  headerName: 'Amount',
+  field: 'milestoneAmount',
+  flex: 1,
+  maxWidth: 130,
+  sortable: true,
+  filter: 'agNumberColumnFilter',
+  valueFormatter: (params) => {
+    if (params.value) {
+      // Get the milestone currency from the data, fallback to PO currency
+      const currency = params.data.milestoneCurrency || poDetails?.poCurrency || 'USD';
+      const currencySymbol = getCurrencySymbol(currency);
+      
+      // Format the amount with proper currency symbol
+      return `${currencySymbol}${params.value.toLocaleString()}`;
+    }
+    return '';
   },
+  tooltipValueGetter: (params) => {
+    if (params.value) {
+      const currency = params.data.milestoneCurrency || poDetails?.poCurrency || 'USD';
+      const currencySymbol = getCurrencySymbol(currency);
+      return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+    }
+    return 'No amount specified';
+  },
+  cellClass: 'truncate-cell',
+  cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
+},
     {
       headerName: "Milestone Date",
       field: "startDate",
@@ -370,29 +380,7 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
       cellRenderer: TruncatedCellRenderer,
       tooltipField: "remark"
     },
-    {
-      headerName: "Attachment",
-      field: "attachment",
-      width: 120,
-      sortable: false,
-      filter: false,
-      suppressMenu: true,
-      cellRenderer: params => {
-        const milestone = params.data;
-        return (
-          <div className="flex justify-center items-center h-full">
-            {milestone.attachment ? (
-              <div className="flex items-center text-green-600">
-                <FileText size={16} className="mr-1" />
-                <span className="text-xs">✓</span>
-              </div>
-            ) : (
-              <span className="text-gray-400 text-xs">No file</span>
-            )}
-          </div>
-        );
-      }
-    },
+    
     {
       headerName: "Actions",
       field: "actions",

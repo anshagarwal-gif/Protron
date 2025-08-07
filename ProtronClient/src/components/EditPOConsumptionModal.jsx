@@ -3,6 +3,24 @@ import { useState, useEffect } from "react";
 import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip } from "lucide-react";
 import axios from "axios";
 
+const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'AUD': 'A$',
+        'CAD': 'C$',
+        'CHF': 'CHF',
+        'CNY': '¥',
+        'SEK': 'kr',
+        'NZD': 'NZ$'
+    };
+    
+    return currencySymbols[currencyCode] || currencyCode || '$';
+};
+
 const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const [formData, setFormData] = useState({
     poNumber: "",
@@ -19,7 +37,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     systemName: ""
   });
 
-  const [poConsumptionFiles, setPoConsumptionFiles] = useState([]); // State for attachments
+  const [poConsumptionFiles, setPoConsumptionFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [poList, setPOList] = useState([]);
@@ -31,8 +49,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const [poBalance, setPOBalance] = useState(null);
   const [milestoneBalance, setMilestoneBalance] = useState(null);
   const [users, setUsers] = useState([]);
+  const [originalAmount, setOriginalAmount] = useState(0);
 
-  // Fetch existing consumption data when modal opens
   // Truncate text utility function
   const truncateText = (text, maxLength = 50) => {
     if (!text) return '';
@@ -53,7 +71,6 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
         title={text}
       >
         {truncated}
-        {/* Tooltip */}
         <div className="invisible group-hover:visible absolute z-10 w-64 p-2 mt-1 text-xs text-white bg-gray-900 rounded-md shadow-lg -top-2 left-0 break-words">
           {text}
           <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
@@ -80,7 +97,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
       if (res.ok) {
         const data = await res.json();
-        setPoConsumptionFiles(data); // Update your file list state
+        setPoConsumptionFiles(data);
       } else {
         console.error("Failed to fetch PO Consumption attachments");
       }
@@ -105,6 +122,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           );
 
           const consumption = consumptionResponse.data;
+
+          // Store original amount for balance calculations
+          setOriginalAmount(parseFloat(consumption.amount) || 0);
 
           // Format dates for input fields
           const formatDate = (dateString) => {
@@ -195,16 +215,39 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       if (poId) {
         try {
           const token = sessionStorage.getItem('token');
+          console.log('Fetching PO balance for poId:', poId);
+          
           const response = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/po/pobalance-con/${poId}`,
             {
               headers: { Authorization: `${token}` }
             }
           );
-          console.log('PO Balance response:', response.data);
-          setPOBalance(response.data + (parseInt(formData.amount) || 0));
+          
+          console.log('PO Balance API response:', response.data);
+          console.log('Original amount to add back:', originalAmount);
+          
+          const calculatedBalance = (response.data || 0) + (originalAmount || 0);
+          console.log('Final calculated PO balance:', calculatedBalance);
+          
+          setPOBalance(calculatedBalance);
         } catch (error) {
           console.error("Error fetching PO balance:", error);
+          // Try alternative endpoint if the first one fails
+          try {
+            const response = await axios.get(
+              `${import.meta.env.VITE_API_URL}/api/po/pobalance/${poId}`,
+              {
+                headers: { Authorization: sessionStorage.getItem('token') }
+              }
+            );
+            console.log('Alternative PO Balance API response:', response.data);
+            const calculatedBalance = (response.data || 0) + (originalAmount || 0);
+            setPOBalance(calculatedBalance);
+          } catch (altError) {
+            console.error("Alternative PO balance fetch also failed:", altError);
+            setPOBalance(0);
+          }
         }
       }
     };
@@ -213,31 +256,59 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       if (poId && msId) {
         try {
           const token = sessionStorage.getItem('token');
+          console.log('Fetching milestone balance for poId:', poId, 'msId:', msId);
+          
           const response = await axios.get(
             `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance-consumption/${poId}/${msId}`,
             {
               headers: { Authorization: `${token}` }
             }
           );
-          setMilestoneBalance(response.data + (parseInt(formData.amount) || 0));
+          
+          console.log('Milestone Balance API response:', response.data);
+          console.log('Original amount to add back:', originalAmount);
+          
+          const calculatedBalance = (response.data || 0) + (originalAmount || 0);
+          console.log('Final calculated milestone balance:', calculatedBalance);
+          
+          setMilestoneBalance(calculatedBalance);
         } catch (error) {
           console.error("Error fetching milestone balance:", error);
+          // Try alternative endpoint if the first one fails
+          try {
+            const response = await axios.get(
+              `${import.meta.env.VITE_API_URL}/api/po-milestone/milestonebalance/${poId}/${msId}`,
+              {
+                headers: { Authorization: sessionStorage.getItem('token') }
+              }
+            );
+            console.log('Alternative Milestone Balance API response:', response.data);
+            const calculatedBalance = (response.data || 0) + (originalAmount || 0);
+            setMilestoneBalance(calculatedBalance);
+          } catch (altError) {
+            console.error("Alternative milestone balance fetch also failed:", altError);
+            setMilestoneBalance(0);
+          }
         }
       }
     };
 
-    const poId = poList.find(po => po.poNumber === formData.poNumber)?.poId;
-
-    fetchPOBalance(poId);
-    if (poId && formData.msId) {
-      fetchMilestone(poId, formData.msId);
-    } else {
-      setMilestoneBalance(null);
+    // Only fetch balances if we have the necessary data
+    if (poList.length > 0 && formData.poNumber) {
+      const selectedPO = poList.find(po => po.poNumber === formData.poNumber);
+      console.log('Selected PO for balance fetch:', selectedPO);
+      
+      if (selectedPO?.poId) {
+        fetchPOBalance(selectedPO.poId);
+        if (formData.msId) {
+          fetchMilestone(selectedPO.poId, formData.msId);
+        } else {
+          setMilestoneBalance(null);
+        }
+      }
     }
 
-
-
-  }, [formData.poNumber, formData.msId]);
+  }, [formData.poNumber, formData.msId, originalAmount, poList]);
 
   // Fetch milestones when PO is selected
   useEffect(() => {
@@ -298,8 +369,47 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     }
   }, [open]);
 
+  // Enhanced amount change handler with real-time validation
+  const handleAmountChange = (e) => {
+    const value = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      amount: value
+    }));
+
+    // Clear previous amount error
+    if (errors.amount) {
+      setErrors(prev => ({
+        ...prev,
+        amount: ""
+      }));
+    }
+
+    // Real-time validation
+    if (value && parseFloat(value) > 0) {
+      const enteredAmount = parseFloat(value);
+      const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+      
+      if (availableBalance !== null && enteredAmount > availableBalance) {
+        const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+        const currencySymbol = getCurrencySymbol(formData.currency);
+        
+        setErrors(prev => ({
+          ...prev,
+          amount: `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`
+        }));
+      }
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    // Handle amount field separately for validation
+    if (name === 'amount') {
+      handleAmountChange(e);
+      return;
+    }
 
     // Check character limit for description and remarks
     if (name === 'workDesc') {
@@ -379,84 +489,40 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   };
 
   const removePOConsumptionFile = async (index) => {
-  const fileToRemove = poConsumptionFiles[index];
+    const fileToRemove = poConsumptionFiles[index];
 
-  // Check if the file has an ID (existing file)
-  if (fileToRemove.id) {
-    try {
-      const token = sessionStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${fileToRemove.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: token,
-        },
-      });
+    // Check if the file has an ID (existing file)
+    if (fileToRemove.id) {
+      try {
+        const token = sessionStorage.getItem("token");
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${fileToRemove.id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        });
 
-      if (!response.ok) {
-        console.error(`Failed to delete file with ID: ${fileToRemove.id}`);
+        if (!response.ok) {
+          console.error(`Failed to delete file with ID: ${fileToRemove.id}`);
+          return;
+        }
+
+        console.log(`File with ID: ${fileToRemove.id} deleted successfully`);
+      } catch (error) {
+        console.error(`Error deleting file with ID: ${fileToRemove.id}`, error);
         return;
       }
-
-      console.log(`File with ID: ${fileToRemove.id} deleted successfully`);
-    } catch (error) {
-      console.error(`Error deleting file with ID: ${fileToRemove.id}`, error);
-      return;
     }
-  }
 
-  // Update state to remove the file
-  setPoConsumptionFiles((prev) => prev.filter((_, i) => i !== index));
-};
+    // Update state to remove the file
+    setPoConsumptionFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   // Function to handle date input clicks
   const handleDateInputClick = (inputName) => {
     const dateInput = document.getElementsByName(inputName)[0];
     if (dateInput) {
       dateInput.showPicker();
-    }
-  };
-
-  const checkBalance = async () => {
-    if (!formData.poNumber || !formData.amount || formData.amount <= 0) {
-      return true;
-    }
-
-    try {
-      const token = sessionStorage.getItem('token');
-      let balanceEndpoint = '';
-      let balanceType = '';
-      let availableBalance = 0;
-      if (formData.msId) {
-        availableBalance = milestoneBalance;
-      } else {
-        availableBalance = poBalance;
-      }
-
-      const balanceResponse = await axios.get(balanceEndpoint, {
-        headers: { Authorization: `${token}` }
-      });
-
-      const requestedAmount = parseFloat(formData.amount);
-
-      if (requestedAmount > availableBalance) {
-        const currencySymbol = getCurrencySymbol(formData.currency);
-        const errorMessage = `Amount exceeds available balance. ${balanceType} has ${currencySymbol}${availableBalance.toLocaleString()} remaining, but you're trying to consume ${currencySymbol}${requestedAmount.toLocaleString()}.`;
-
-        setErrors(prev => ({
-          ...prev,
-          amount: errorMessage
-        }));
-        return false;
-      }
-
-      return true;
-    } catch (balanceError) {
-      console.error("Error checking balance:", balanceError);
-      setErrors(prev => ({
-        ...prev,
-        amount: "Unable to verify balance. Please check the amount manually."
-      }));
-      return false;
     }
   };
 
@@ -470,6 +536,17 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
     if (!formData.amount || formData.amount <= 0) {
       newErrors.amount = "Valid amount is required";
+    } else {
+      // Check balance validation
+      const enteredAmount = parseFloat(formData.amount);
+      const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+      
+      if (availableBalance !== null && enteredAmount > availableBalance) {
+        const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+        const currencySymbol = getCurrencySymbol(formData.currency);
+        
+        newErrors.amount = `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+      }
     }
 
     if (!formData.utilizationType?.trim()) {
@@ -478,72 +555,6 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Helper function to get currency symbol
-  const getCurrencySymbol = (currencyCode) => {
-    const currencySymbols = {
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£',
-      'JPY': '¥',
-      'INR': '₹',
-      'CAD': 'C$',
-      'AUD': 'A$',
-      'CHF': 'CHF',
-      'CNY': '¥',
-      'SEK': 'kr',
-      'NOK': 'kr',
-      'MXN': '$',
-      'NZD': 'NZ$',
-      'SGD': 'S$',
-      'HKD': 'HK$',
-      'ZAR': 'R',
-      'BRL': 'R$',
-      'RUB': '₽',
-      'KRW': '₩',
-      'TRY': '₺',
-      'PLN': 'zł',
-      'THB': '฿',
-      'IDR': 'Rp',
-      'MYR': 'RM',
-      'PHP': '₱',
-      'CZK': 'Kč',
-      'HUF': 'Ft',
-      'ILS': '₪',
-      'CLP': '$',
-      'PEN': 'S/',
-      'COP': '$',
-      'ARS': '$',
-      'EGP': 'E£',
-      'SAR': 'SR',
-      'AED': 'د.إ',
-      'QAR': 'QR',
-      'KWD': 'KD',
-      'BHD': 'BD',
-      'OMR': 'OMR',
-      'JOD': 'JD',
-      'LBP': 'L£',
-      'PKR': 'Rs',
-      'BDT': '৳',
-      'LKR': 'Rs',
-      'NPR': 'Rs',
-      'MMK': 'K',
-      'VND': '₫',
-      'KHR': '៛',
-      'LAK': '₭',
-      'TWD': 'NT$',
-      'MOP': 'MOP$',
-      'BND': 'B$',
-      'FJD': 'FJ$',
-      'PGK': 'K',
-      'TOP': 'T$',
-      'SBD': 'SI$',
-      'VUV': 'VT',
-      'WST': 'WS$'
-    };
-
-    return currencySymbols[currencyCode] || currencyCode || '$';
   };
 
   const handleSubmit = async (e) => {
@@ -592,6 +603,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       // Upload attachments
       if (poConsumptionFiles.length > 0) {
         for (const file of poConsumptionFiles) {
+          // Skip files that already exist (have an id)
+          if (file.id) continue;
+          
           const fileData = new FormData();
           fileData.append("file", file);
           fileData.append("level", "CONSUMPTION");
@@ -643,6 +657,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     setPOList([]);
     setMilestoneList([]);
     setProjectList([]);
+    setOriginalAmount(0);
     onClose();
   };
 
@@ -683,7 +698,6 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
             <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
               <AlertCircle size={18} className="text-red-500 mr-2" />
               <span className="text-red-700 text-sm">{errors.submit}</span>
-              <TruncatedText text={errors.submit} maxLength={100} />
             </div>
           )}
 
@@ -728,10 +742,25 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
               </div>
 
               <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <DollarSign size={14} className="inline mr-1" />
-                  Amount *
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-medium text-gray-700">
+                    <DollarSign size={14} className="inline mr-1" />
+                    Amount *
+                  </label>
+                  <label className="block text-[10px] font-medium text-gray-700">
+                    {formData.msId && milestoneBalance !== null ? (
+                      <span className="text-green-600">
+                        Milestone Balance: {getCurrencySymbol(formData.currency)}{milestoneBalance.toLocaleString()}
+                      </span>
+                    ) : poBalance !== null ? (
+                      <span className="text-green-600">
+                        PO Balance: {getCurrencySymbol(formData.currency)}{poBalance.toLocaleString()}
+                      </span>
+                    ) : (
+                      <span className="text-gray-500">Loading balance...</span>
+                    )}
+                  </label>
+                </div>
                 <input
                   type="number"
                   name="amount"
@@ -745,15 +774,13 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   disabled={loading || initialLoading}
                   title={formData.amount}
                 />
-                <span className="text-[10px] text-red-500">
-                  {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.currency}
-                </span>
                 {errors.amount && (
                   <div className="mt-1">
                     <p className="text-xs text-red-600 leading-relaxed">{errors.amount}</p>
                   </div>
                 )}
               </div>
+
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Activity size={14} className="inline mr-1" />
@@ -775,7 +802,10 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   <p className="mt-1 text-xs text-red-600">{errors.utilizationType}</p>
                 )}
               </div>
+            </div>
 
+            {/* Row 2: Resource, Project, System Name, Dates */}
+            <div className="grid grid-cols-5 gap-4">
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
@@ -846,6 +876,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   title={formData.systemName}
                 />
               </div>
+
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
@@ -881,11 +912,8 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
               </div>
             </div>
 
-
-            {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
+            {/* Row 3: Attachments */}
             <div className="grid grid-cols-5 gap-4">
-
-
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
@@ -927,6 +955,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 )}
               </div>
 
+              <div className=""></div> {/* Spacer */}
+              <div className=""></div> {/* Spacer */}
+              <div className=""></div> {/* Spacer */}
               <div className=""></div> {/* Spacer */}
             </div>
 

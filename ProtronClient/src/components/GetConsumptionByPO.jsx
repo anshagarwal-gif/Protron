@@ -3,11 +3,11 @@ import axios from 'axios'
 import { AgGridReact } from 'ag-grid-react'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import { Search, Download, Plus, TrendingUp, Edit, Loader2 } from 'lucide-react'
+import { Search, Download, Plus, TrendingUp, Edit, Loader2, Eye } from 'lucide-react'
 import AddPOConsumptionModal from './AddPOConsumptionModal'
 import EditPOConsumptionModal from './EditPOConsumptionModal'
 import CreateNewPOConsumption from './podetailspage/CreateNewPOConsumption'
-
+import ViewPOConsumptionModal from './podetailspage/ViewPOConsumption'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -19,8 +19,17 @@ const LoadingOverlay = () => (
     </div>
   </div>
 );
-
-const GetConsumptionByPO = ({ poNumber,poId }) => {
+  // Currency symbol mapping
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
+      'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'SEK': 'kr',
+      'NOK': 'kr', 'MXN': '$', 'NZD': 'NZ$', 'SGD': 'S$', 'HKD': 'HK$',
+      'ZAR': 'R', 'BRL': 'R$', 'RUB': '₽', 'KRW': '₩', 'TRY': '₺'
+    };
+    return currencySymbols[currencyCode] || currencyCode || '$';
+  };
+const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
   const [consumptions, setConsumptions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -28,6 +37,10 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
   const [isAddConsumptionOpen, setIsAddConsumptionOpen] = useState(false)
   const [selectedConsumption, setSelectedConsumption] = useState(null)
   const [editConsumptionModalOpen, setEditConsumptionModalOpen] = useState(false)
+  
+  // State for View Modal
+  const [isViewConsumptionModalOpen, setIsViewConsumptionModalOpen] = useState(false)
+  const [viewConsumptionData, setViewConsumptionData] = useState(null)
 
   const handleOpenConsumptionModal = () => {
     setIsAddConsumptionOpen(true)
@@ -49,22 +62,35 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
     fetchConsumptions()
   }
 
+  // Handler for viewing consumption
+  const handleViewConsumption = (consumption) => {
+    setViewConsumptionData(consumption)
+    setIsViewConsumptionModalOpen(true)
+    
+    // Also call the parent onViewConsumption if provided
+    if (onViewConsumption) {
+      onViewConsumption(consumption)
+    }
+  }
+
   const downloadConsumptionExcel = () => {
     try {
       const excelData = consumptions.map((consumption, index) => ({
         'S.No': index + 1,
-        'System Name': consumption.systemName || 'N/A',
+        'Utilization ID': consumption.utilizationId || 'N/A',
         'PO Number': consumption.poNumber || 'N/A',
+        'Milestone': consumption.milestone?.msName || 'N/A',
         'Amount': consumption.amount ? consumption.amount.toLocaleString() : 'N/A',
         'Currency': consumption.currency || 'N/A',
         'Utilization Type': consumption.utilizationType || 'N/A',
-        'Resource/Project': consumption.resourceOrProject || 'N/A',
+        'Resource': consumption.resource || 'N/A',
+        'Project': consumption.project || 'N/A',
+        'System Name': consumption.systemName || 'N/A',
         'Work Description': consumption.workDesc || 'N/A',
         'Remarks': consumption.remarks || 'N/A',
         'Work Assign Date': consumption.workAssignDate ? new Date(consumption.workAssignDate).toLocaleDateString() : 'N/A',
         'Work Completion Date': consumption.workCompletionDate ? new Date(consumption.workCompletionDate).toLocaleDateString() : 'N/A',
         'Created Date': consumption.createdTimestamp ? new Date(consumption.createdTimestamp).toLocaleDateString() : 'N/A',
-        'Milestone': consumption.milestone?.msName || 'N/A',
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -105,14 +131,16 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
       consumption.systemName?.toLowerCase().includes(searchLower) ||
       consumption.poNumber?.toLowerCase().includes(searchLower) ||
       consumption.amount?.toString().includes(searchLower) ||
-      consumption.resourceOrProject?.toLowerCase().includes(searchLower) ||
+      consumption.resource?.toLowerCase().includes(searchLower) ||
+      consumption.project?.toLowerCase().includes(searchLower) ||
       consumption.utilizationType?.toLowerCase().includes(searchLower)
     );
   });
-  useEffect(()=>{
-    if(isAddConsumptionOpen){
+  
+  useEffect(() => {
+    if (isAddConsumptionOpen) {
       document.body.classList.add('overflow-hidden')
-    }else{
+    } else {
       document.body.classList.remove('overflow-hidden')
     }
   })
@@ -159,15 +187,25 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
       filter: 'agNumberColumnFilter',
       valueFormatter: (params) => {
         if (params.value) {
-          return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR'
-          }).format(params.value)
+          // Get the consumption currency from the data, fallback to PO currency
+          const currency = params.data.currency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+          
+          // Format the amount with proper currency symbol
+          return `${currencySymbol}${params.value.toLocaleString()}`;
         }
-        return ''
+        return '';
       },
-      tooltipField: 'amount',
+      tooltipValueGetter: (params) => {
+        if (params.value) {
+          const currency = params.data.currency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+          return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+        }
+        return 'No amount specified';
+      },
       cellClass: 'truncate-cell',
+      cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
     },
     {
       headerName: 'Type',
@@ -188,13 +226,23 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
       cellClass: 'truncate-cell',
     },
     {
-      headerName: 'Resource/Project',
-      field: 'resourceOrProject',
+      headerName: 'Resource',
+      field: 'resource',
       flex: 1,
-      minWidth: 150,
+      minWidth: 120,
       sortable: true,
       filter: true,
-      tooltipField: 'resourceOrProject',
+      tooltipField: 'resource',
+      cellClass: 'truncate-cell',
+    },
+    {
+      headerName: 'Project',
+      field: 'project',
+      flex: 1,
+      minWidth: 120,
+      sortable: true,
+      filter: true,
+      tooltipField: 'project',
       cellClass: 'truncate-cell',
     },
     {
@@ -290,8 +338,8 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
     {
       headerName: "Actions",
       field: "actions",
-      minWidth: 50,
-      maxWidth: 100,
+      minWidth: 100,
+      maxWidth: 120,
       flex: 0,
       sortable: false,
       filter: false,
@@ -301,9 +349,16 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             <button
+              onClick={() => handleViewConsumption(consumption)}
+              className="p-2 rounded-full hover:bg-green-100 transition-colors"
+              title="View Consumption"
+            >
+              <Eye size={16} className="text-green-600" />
+            </button>
+            <button
               onClick={() => handleEditConsumption(consumption)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-              title="Edit consumption"
+              title="Edit Consumption"
             >
               <Edit size={16} className="text-blue-600" />
             </button>
@@ -353,7 +408,6 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
 
   const handleEditModalSubmit = async (data) => {
     try {
-
       fetchConsumptions();
       setEditConsumptionModalOpen(false);
       setSelectedConsumption(null);
@@ -480,20 +534,15 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
         />
       </div>
 
-      {/* Summary section */}
-
-      {/* <AddPOConsumptionModal
-        open={isAddConsumptionOpen}
-        onClose={handleCloseConsumptionModal} 
-      /> */}
-
+      {/* Create New PO Consumption Modal */}
       <CreateNewPOConsumption
         open={isAddConsumptionOpen}
         onClose={handleCloseConsumptionModal}
         poNumber={poNumber}
         poId={poId}
-         />
+      />
 
+      {/* Edit PO Consumption Modal */}
       <EditPOConsumptionModal
         open={editConsumptionModalOpen}
         onClose={handleCloseConsumptionEdit}
@@ -501,6 +550,15 @@ const GetConsumptionByPO = ({ poNumber,poId }) => {
         onSubmit={handleEditModalSubmit}
       />
 
+      {/* View PO Consumption Modal */}
+      <ViewPOConsumptionModal 
+        open={isViewConsumptionModalOpen}
+        onClose={() => {
+          setIsViewConsumptionModalOpen(false)
+          setViewConsumptionData(null)
+        }}
+        consumptionData={viewConsumptionData}
+      />
     </div>
   )
 }

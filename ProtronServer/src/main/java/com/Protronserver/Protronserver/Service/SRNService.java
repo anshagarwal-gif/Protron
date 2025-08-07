@@ -62,11 +62,14 @@ public class SRNService {
 
         if (dto.getMsId() != null) {
             // Milestone-level SRN
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poDetail.getPoId(), dto.getMsId(), currentTenantId)
-                    .orElseThrow(() -> new RuntimeException("Milestone '" + dto.getMsId() + "' not found for this PO."));
+            Integer milestoneAmountInt = poMilestoneRepository
+                    .findAmountByPoIdAndMsId(poDetail.getPoId(), dto.getMsId(), currentTenantId)
+                    .orElseThrow(
+                            () -> new RuntimeException("Milestone '" + dto.getMsId() + "' not found for this PO."));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
-            BigDecimal paidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), dto.getMsId(), currentTenantId);
+            BigDecimal paidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), dto.getMsId(),
+                    currentTenantId);
 
             if (srnType.equals("full")) {
                 if (paidAmount.compareTo(BigDecimal.ZERO) > 0) {
@@ -104,7 +107,6 @@ public class SRNService {
             }
         }
 
-
         // --- VALIDATION END ---
 
         // 3. If validations pass, create and save the SRN
@@ -114,7 +116,7 @@ public class SRNService {
         if (dto.getMsId() != null) {
             srnDetails.setMilestone(poMilestoneRepository.findById(dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + dto.getMsId())));
-        }else{
+        } else {
             srnDetails.setMilestone(null);
         }
         srnDetails.setSrnName(dto.getSrnName());
@@ -123,6 +125,7 @@ public class SRNService {
         srnDetails.setSrnAmount(dto.getSrnAmount());
         srnDetails.setSrnCurrency(dto.getSrnCurrency());
         srnDetails.setSrnRemarks(dto.getSrnRemarks());
+        srnDetails.setSrnDate(dto.getSrnDate());
 
         User loggedInUser = loggedInUserUtils.getLoggedInUser();
         srnDetails.setTenantId(loggedInUser.getTenant().getTenantId());
@@ -163,16 +166,19 @@ public class SRNService {
 
         if (milestoneId != null) {
             // Milestone-level update
-            Integer milestoneAmountInt = poMilestoneRepository.findAmountByPoIdAndMsId(poDetail.getPoId(), milestoneId, currentTenantId)
+            Integer milestoneAmountInt = poMilestoneRepository
+                    .findAmountByPoIdAndMsId(poDetail.getPoId(), milestoneId, currentTenantId)
                     .orElseThrow(() -> new RuntimeException("Milestone '" + milestoneId + "' not found for this PO."));
 
             BigDecimal milestoneAmount = new BigDecimal(milestoneAmountInt);
-            BigDecimal currentPaidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), milestoneId, currentTenantId);
+            BigDecimal currentPaidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), milestoneId,
+                    currentTenantId);
             BigDecimal availableBalance = milestoneAmount.subtract(currentPaidAmount).add(originalSrnAmount);
 
             if (srnType.equals("full")) {
                 // Ensure this is the ONLY SRN for the milestone
-                List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), milestoneId, currentTenantId);
+                List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), milestoneId,
+                        currentTenantId);
                 if (srns.size() > 1 || (srns.size() == 1 && !srns.get(0).getSrnId().equals(existingSRN.getSrnId()))) {
                     throw new IllegalArgumentException("Full SRN not allowed: milestone already has other SRNs.");
                 }
@@ -181,7 +187,8 @@ public class SRNService {
                 }
             } else {
                 if (newSrnAmount.compareTo(availableBalance) > 0) {
-                    throw new IllegalArgumentException("Partial SRN exceeds remaining milestone balance: " + availableBalance);
+                    throw new IllegalArgumentException(
+                            "Partial SRN exceeds remaining milestone balance: " + availableBalance);
                 }
             }
 
@@ -210,7 +217,6 @@ public class SRNService {
             }
         }
 
-
         // --- VALIDATION END ---
 
         // Versioning: Mark old record as ended
@@ -226,7 +232,7 @@ public class SRNService {
         if (dto.getMsId() != null) {
             newSRN.setMilestone(poMilestoneRepository.findById(dto.getMsId())
                     .orElseThrow(() -> new RuntimeException("Milestone not found with ID: " + dto.getMsId())));
-        }else{
+        } else {
             newSRN.setMilestone(null);
         }
 
@@ -240,10 +246,12 @@ public class SRNService {
         newSRN.setCreatedTimestamp(LocalDateTime.now());
         newSRN.setLastUpdateTimestamp(null);
         newSRN.setUpdatedBy(null);
+        newSRN.setSrnDate(dto.getSrnDate());
 
         SRNDetails savedNewSRN = srnRepository.save(newSRN);
 
-        List<POAttachments> srnAttachments = poAttachmentRepository.findByLevelAndReferenceId("SRN", existingSRN.getSrnId());
+        List<POAttachments> srnAttachments = poAttachmentRepository.findByLevelAndReferenceId("SRN",
+                existingSRN.getSrnId());
         for (POAttachments attachment : srnAttachments) {
             attachment.setReferenceId(savedNewSRN.getSrnId());
             poAttachmentRepository.save(attachment);
@@ -251,7 +259,6 @@ public class SRNService {
 
         return savedNewSRN;
     }
-
 
     public SRNDetails getSRNById(Long srnId) {
         return srnRepository.findById(srnId)
@@ -271,7 +278,8 @@ public class SRNService {
     }
 
     public List<SRNDetails> getSRNsByMilestoneName(String msName) {
-        return srnRepository.findByMilestone_MsName(msName, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
+        return srnRepository.findByMilestone_MsName(msName,
+                loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
     }
 
     public void deleteSRN(Long srnId) {
@@ -287,9 +295,9 @@ public class SRNService {
 
     }
 
-
     public Integer getTotalSRNAmountByPoId(Long poId) {
-        List<SRNDetails> srnList = srnRepository.findByPoDetail_PoId(poId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
+        List<SRNDetails> srnList = srnRepository.findByPoDetail_PoId(poId,
+                loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
         return srnList.stream()
                 .mapToInt(srn -> srn.getSrnAmount() != null ? srn.getSrnAmount() : 0)
                 .sum();
@@ -298,11 +306,13 @@ public class SRNService {
     public boolean checkExistingSRNs(Long poId, Long msId) {
         if (msId != null) {
             // Check for milestone-level SRNs
-            List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(poId, msId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
+            List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(poId, msId,
+                    loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
             return !srns.isEmpty();
         } else {
             // Check for PO-level SRNs
-            List<SRNDetails> srns = srnRepository.findByPoIdWithoutMs(poId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
+            List<SRNDetails> srns = srnRepository.findByPoIdWithoutMs(poId,
+                    loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
             return !srns.isEmpty();
         }
     }
@@ -310,10 +320,12 @@ public class SRNService {
     public BigDecimal getTotalSRNAmount(Long poId, Long msId) {
         if (msId != null) {
             // Fetch total SRN amount for a milestone
-            return srnRepository.sumSrnAmountsByPoIdAndMsId(poId, msId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
+            return srnRepository.sumSrnAmountsByPoIdAndMsId(poId, msId,
+                    loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
         } else {
             // Fetch total SRN amount for a PO
-            return srnRepository.sumSrnAmountsByPoId(poId, loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
+            return srnRepository.sumSrnAmountsByPoId(poId,
+                    loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
         }
     }
 }

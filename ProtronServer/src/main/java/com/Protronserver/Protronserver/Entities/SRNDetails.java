@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -60,7 +61,6 @@ public class SRNDetails {
         }
     }
 
-
     @Column(name = "srn_type", nullable = false, length = 20)
     private String srnType;
 
@@ -84,9 +84,9 @@ public class SRNDetails {
 
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
+    private LocalDate srnDate;
 
     // ------------------ Getters and Setters ------------------
-
 
     public Long getTenantId() {
         return tenantId;
@@ -94,6 +94,14 @@ public class SRNDetails {
 
     public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public LocalDate getSrnDate() {
+        return srnDate;
+    }
+
+    public void setSrnDate(LocalDate srnDate) {
+        this.srnDate = srnDate;
     }
 
     public Long getSrnId() {

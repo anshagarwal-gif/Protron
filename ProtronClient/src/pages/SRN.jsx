@@ -223,8 +223,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
         'Currency': srn.srnCurrency || 'N/A',
         'SRN Amount': srn.srnAmount ? `${getCurrencySymbol(srn.srnCurrency)}${srn.srnAmount.toLocaleString()}` : 'N/A',
         'SRN Remarks': srn.srnRemarks || 'N/A',
-        'Attachments': srn.attachments && srn.attachments.length > 0 ? 'Yes' : 'No',
-        'Created Date': srn.createdTimestamp ? new Date(srn.createdTimestamp).toLocaleDateString() : 'N/A'
+        'SRN DATE':srn.srnDate || 'N/A',
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -515,37 +514,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
             );
         }
     },
-    {
-      headerName: "Attachments",
-      field: "attachments",
-      width: 120,
-      sortable: false,
-      filter: false,
-      suppressMenu: true,
-      cellRenderer: params => {
-        const srn = params.data;
-        const hasAttachments = srn.attachments && srn.attachments.length > 0;
-        
-        return (
-          <div className="flex justify-center items-center h-full">
-            {hasAttachments ? (
-              <button
-                onClick={() => handleViewAttachment(srn)}
-                className="flex items-center gap-1 p-2 rounded-full hover:bg-green-100 transition-colors"
-                title={`View ${srn.attachments.length} attachment(s)`}
-              >
-                <Paperclip size={16} className="text-green-600" />
-                <span className="text-xs font-medium text-green-600">
-                  {srn.attachments.length}
-                </span>
-              </button>
-            ) : (
-              <span className="text-gray-400 text-xs">No files</span>
-            )}
-          </div>
-        );
-      }
-    },
+  
     {
       headerName: "Actions",
       field: "actions",

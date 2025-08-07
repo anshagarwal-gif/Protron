@@ -23,26 +23,27 @@ import {
 import axios from "axios";
 import AddInvoiceModal from "../components/AddInvoice";
 
-// ViewInvoiceModal Component
+
 const ViewInvoiceModal = ({ open, onClose, invoice }) => {
   if (!open || !invoice) return null;
 
-  const formatCurrency = (amount, currencyCode) => {
+  // Format currency (matching other modals)
+  const formatCurrency = (amount, currency = 'USD') => {
     if (!amount) return 'N/A';
-    const getCurrencySymbol = (currencyCode) => {
-      const currencySymbols = {
-        'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
-        'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥'
-      };
-      return currencySymbols[currencyCode] || currencyCode || '$';
-    };
-    const symbol = getCurrencySymbol(currencyCode);
-    return `${symbol}${parseFloat(amount).toLocaleString()}`;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(parseFloat(amount));
   };
 
+  // Format date (matching other modals)
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const getFileIcon = (fileName) => {
@@ -84,260 +85,236 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/invoices/download/${invoice.invoiceId}`,
+        {
+          headers: { Authorization: token },
+          responseType: 'blob'
+        }
+      );
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${invoice.invoiceName || invoice.invoiceId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download invoice PDF:", error);
+      alert("Failed to download invoice PDF");
+    }
+  };
+
+  // Field component for consistent styling (matching other modals)
+  const Field = ({ label, value, className = "" }) => (
+    <div className={className}>
+      <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
+      <div className="text-sm text-gray-900 font-medium">
+        {value || "N/A"}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-blue-700 text-white p-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10">
-          <div>
-            <h2 className="text-xl font-bold">Invoice Details</h2>
-            <p className="text-blue-100 text-sm">ID: {invoice.invoiceId}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-blue-600 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Invoice Information */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
-                <FileText size={20} className="mr-2" />
-                INVOICE INFORMATION
-              </h3>
-              
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Invoice ID</label>
-                    <p className="text-gray-900 font-semibold break-words">{invoice.invoiceId || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Invoice Name</label>
-                    <p className="text-blue-600 font-semibold break-words">{invoice.invoiceName || 'N/A'}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Currency</label>
-                    <span className="inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {invoice.currency || 'N/A'}
-                    </span>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Amount</label>
-                    <p className="text-green-600 font-bold text-lg break-words">
-                      {formatCurrency(invoice.totalAmount, invoice.currency)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Rate</label>
-                    <p className="text-gray-900 font-medium break-words">
-                      {formatCurrency(invoice.rate, invoice.currency)}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Hours Spent</label>
-                    <p className="text-gray-700 font-medium">{invoice.hoursSpent || 'N/A'}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Created Date</label>
-                  <p className="text-gray-700">{formatDate(invoice.createdAt)}</p>
-                </div>
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <FileText size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg sm:text-xl font-bold truncate">Invoice Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm truncate">Invoice ID: {invoice.invoiceId || 'N/A'}</p>
               </div>
             </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+            >
+              <X size={18} className="sm:w-5 sm:h-5" />
+            </button>
+          </div>
+        </div>
 
-            {/* Client & Employee Details */}
-            <div className="bg-green-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
-                <User size={20} className="mr-2" />
-                CLIENT & EMPLOYEE DETAILS
-              </h3>
-              
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Customer Name</label>
-                  <div className="flex items-center mt-1">
-                    <Building size={16} className="text-green-600 mr-2" />
-                    <p className="text-gray-900 font-semibold break-words">
-                      {invoice.customerName || 'N/A'}
-                    </p>
-                  </div>
-                </div>
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+          {/* Basic Invoice Information */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <FileText className="mr-2 text-green-600" size={20} />
+              Basic Information
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <Field
+                label="Invoice ID"
+                value={invoice.invoiceId}
+              />
+              <Field
+                label="Invoice Name"
+                value={invoice.invoiceName}
+              />
+              <Field
+                label="Currency"
+                value={invoice.currency}
+              />
+              <Field
+                label="Total Amount"
+                value={formatCurrency(invoice.totalAmount, invoice.currency)}
+              />
+              <Field
+                label="Rate per Hour"
+                value={formatCurrency(invoice.rate, invoice.currency)}
+              />
+              <Field
+                label="Hours Spent"
+                value={invoice.hoursSpent}
+              />
+              <Field
+                label="Created Date"
+                value={formatDate(invoice.createdAt)}
+                className="sm:col-span-2"
+              />
+            </div>
+          </div>
 
-                <div>
-                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Supplier Name</label>
-                  <div className="flex items-center mt-1">
-                    <Building size={16} className="text-green-600 mr-2" />
-                    <p className="text-gray-900 font-semibold break-words">
-                      {invoice.supplierName || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-green-600 uppercase tracking-wide">Employee Name</label>
-                  <div className="flex items-center mt-1">
-                    <User size={16} className="text-green-600 mr-2" />
-                    <p className="text-gray-900 font-semibold break-words">
-                      {invoice.employeeName || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
+          {/* Client & Employee Information */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <User className="mr-2 text-green-600" size={20} />
+              Client & Employee Information
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <Field
+                label="Customer Name"
+                value={invoice.customerName}
+              />
+              <Field
+                label="Supplier Name"
+                value={invoice.supplierName}
+              />
+              <Field
+                label="Employee Name"
+                value={invoice.employeeName}
+              />
             </div>
           </div>
 
           {/* Invoice Period */}
-          <div className="bg-purple-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center">
-              <Calendar size={20} className="mr-2" />
-              INVOICE PERIOD
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Calendar className="mr-2 text-green-600" size={20} />
+              Invoice Period
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-purple-600 uppercase tracking-wide">From Date</label>
-                <div className="flex items-center mt-1">
-                  <Clock size={16} className="text-purple-600 mr-2" />
-                  <p className="text-gray-900 font-medium">{formatDate(invoice.fromDate)}</p>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-purple-600 uppercase tracking-wide">To Date</label>
-                <div className="flex items-center mt-1">
-                  <Clock size={16} className="text-purple-600 mr-2" />
-                  <p className="text-gray-900 font-medium">{formatDate(invoice.toDate)}</p>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <Field
+                label="From Date"
+                value={formatDate(invoice.fromDate)}
+              />
+              <Field
+                label="To Date"
+                value={formatDate(invoice.toDate)}
+              />
             </div>
           </div>
 
-          {/* Payment Details */}
-          <div className="bg-yellow-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
-              <CreditCard size={20} className="mr-2" />
-              PAYMENT DETAILS
+          {/* Payment Summary */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <CreditCard className="mr-2 text-green-600" size={20} />
+              Payment Summary
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-sm font-medium text-yellow-600 uppercase tracking-wide">Rate per Hour</label>
-                <p className="text-green-600 font-bold text-lg">
-                  {formatCurrency(invoice.rate, invoice.currency)}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-yellow-600 uppercase tracking-wide">Total Hours</label>
-                <p className="text-gray-900 font-bold text-lg">{invoice.hoursSpent || '0'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-yellow-600 uppercase tracking-wide">Total Amount</label>
-                <p className="text-green-600 font-bold text-xl">
-                  {formatCurrency(invoice.totalAmount, invoice.currency)}
-                </p>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <Field
+                label="Rate per Hour"
+                value={formatCurrency(invoice.rate, invoice.currency)}
+              />
+              <Field
+                label="Total Hours"
+                value={`${invoice.hoursSpent || '0'} hours`}
+              />
+              <Field
+                label="Total Amount"
+                value={formatCurrency(invoice.totalAmount, invoice.currency)}
+              />
             </div>
           </div>
 
           {/* Remarks */}
-          {(invoice.remarks && invoice.remarks.trim() !== '') && (
-            <div className="bg-orange-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-orange-800 mb-3 flex items-center">
-                <Edit size={20} className="mr-2" />
-                REMARKS
+          {invoice.remarks && invoice.remarks.trim() !== '' && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <Edit className="mr-2 text-green-600" size={20} />
+                Remarks
               </h3>
-              <div className="text-gray-700 leading-relaxed break-all word-wrap overflow-wrap-anywhere max-h-32 overflow-y-auto bg-white p-3 rounded border" style={{ wordBreak: 'break-all', overflowWrap: 'anywhere' }}>
-                {invoice.remarks}
+              <div className="bg-white rounded p-2 sm:p-3 border max-h-32 sm:max-h-40 overflow-y-auto">
+                <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                  {invoice.remarks}
+                </p>
               </div>
             </div>
           )}
 
           {/* Attachments */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-              <Paperclip size={20} className="mr-2" />
-              ATTACHMENTS ({invoice.attachmentCount || 0})
-            </h3>
-            
-            {invoice.attachmentFileNames && invoice.attachmentFileNames.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto">
+          {invoice.attachmentFileNames && invoice.attachmentFileNames.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <Paperclip className="mr-2 text-green-600" size={20} />
+                Attachments ({invoice.attachmentCount || invoice.attachmentFileNames.length})
+              </h3>
+              <div className="space-y-1 sm:space-y-2">
                 {invoice.attachmentFileNames.map((fileName, index) => (
-                  <div 
+                  <button
                     key={index}
                     onClick={() => handleAttachmentClick(index, fileName)}
-                    className="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer group"
+                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-xs sm:text-sm p-2 sm:p-3 rounded border bg-white w-full text-left transition-colors"
                   >
-                    <div className="flex-shrink-0 mr-3">
+                    <div className="flex-shrink-0 mr-2 sm:mr-3">
                       {getFileIcon(fileName)}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600" title={fileName}>
-                        {fileName}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Click to download
-                      </p>
+                    <div className="flex-1 truncate min-w-0">
+                      <p className="font-medium truncate">{fileName}</p>
+                      <p className="text-xs text-gray-500">Click to download</p>
                     </div>
-                    <Download size={14} className="text-gray-400 group-hover:text-blue-600" />
-                  </div>
+                    <Download size={12} className="sm:w-3.5 sm:h-3.5 ml-1 sm:ml-2 flex-shrink-0" />
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <Paperclip size={48} className="mx-auto text-gray-300 mb-2" />
-                <p className="text-gray-500">No attachments available</p>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Invoice Actions */}
-          <div className="bg-indigo-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
-              <Download size={20} className="mr-2" />
-              INVOICE ACTIONS
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <Download className="mr-2 text-green-600" size={20} />
+              Invoice Actions
             </h3>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
-                onClick={async () => {
-                  try {
-                    const token = sessionStorage.getItem("token");
-                    const response = await axios.get(
-                      `${import.meta.env.VITE_API_URL}/api/invoices/download/${invoice.invoiceId}`,
-                      {
-                        headers: { Authorization: token },
-                        responseType: 'blob'
-                      }
-                    );
-
-                    const blob = new Blob([response.data], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `${invoice.invoiceName || invoice.invoiceId}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                  } catch (error) {
-                    console.error("Failed to download invoice PDF:", error);
-                    alert("Failed to download invoice PDF");
-                  }
-                }}
-                className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                onClick={handleDownloadPDF}
+                className="flex items-center justify-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm sm:text-base"
               >
-                <Download size={16} className="mr-2" />
+                <Download size={14} className="sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Download PDF
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t rounded-b-lg">
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>

@@ -5,6 +5,23 @@ import CreatableSelect from "react-select/creatable"
 import { useSession } from '../../Context/SessionContext'
 import GlobalSnackbar from '../GlobalSnackbar'
 
+const getCurrencySymbol = (currency) => {
+    const currencySymbols = {
+        'INR': '₹',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'JPY': '¥',
+        'AUD': 'A$',
+        'CAD': 'C$',
+        'CHF': 'CHF',
+        'CNY': '¥',
+        'SEK': 'kr',
+        'NZD': 'NZ$'
+    };
+    
+    return currencySymbols[currency] || currency;
+};
 const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
     if (!open) return null
     console.log(poId)
@@ -36,7 +53,6 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         message: '',
         severity: ''
     })
-
     const removePOConsumptionFile = async (index) => {
         const fileToDelete = poConsumptionFiles[index];
         const token = sessionStorage.getItem("token");
@@ -63,14 +79,17 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
         }
     };
+
     const resourceOptions = users.map((user) => ({
         value: user.name,
         label: user.name.length > 25 ? `${user.name.substring(0, 25)}...` : user.name,
     }));
+    
     const projectOptions = projectList.map((project) => ({
         value: project.projectName,
         label: project.projectName
     }))
+
     const fetchPODetails = async () => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/po/${poId}`, {
@@ -89,6 +108,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             console.log(error)
         }
     }
+
     const fetchMilestones = async () => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/po-milestone/po/${poId}`,
@@ -105,6 +125,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             console.log(error)
         }
     }
+
     const fetchUsers = async () => {
         try {
             const token = sessionStorage.getItem('token');
@@ -118,6 +139,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             console.error('Error fetching users:', error);
         }
     };
+
     const fetchProjects = async () => {
         try {
             const tenantId = sessionStorage.getItem('tenantId');
@@ -135,6 +157,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             console.log(err)
         }
     }
+
     useEffect(() => {
         const fetchPOBalance = async () => {
             if (poId) {
@@ -189,14 +212,115 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         }
     }, [poId])
 
-    const handleClose = () => {
-        onClose()
+    // Enhanced validation function with balance check
+    const validateForm = () => {
+    const newErrors = {}
+
+    if (!formData.amount || formData.amount <= 0) {
+        newErrors.amount = 'Amount must be greater than 0'
+    } else {
+        // Check balance validation
+        const enteredAmount = parseFloat(formData.amount);
+        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+        
+        if (availableBalance !== null && enteredAmount > availableBalance) {
+            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+            const currencySymbol = getCurrencySymbol(formData.currency);
+            
+            newErrors.amount = `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+        }
     }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+}
+    // Real-time amount validation
+    // Updated handleAmountChange function
+const handleAmountChange = (e) => {
+    const value = e.target.value;
+    setFormData({ ...formData, amount: value });
+    
+    // Clear previous amount error
+    if (errors.amount) {
+        setErrors(prev => ({
+            ...prev,
+            amount: ""
+        }));
+    }
+    
+    // Real-time validation
+    if (value && parseFloat(value) > 0) {
+        const enteredAmount = parseFloat(value);
+        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+        
+        if (availableBalance !== null && enteredAmount > availableBalance) {
+            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+            const currencySymbol = getCurrencySymbol(formData.currency);
+            
+            setErrors(prev => ({
+                ...prev,
+                amount: `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}`
+            }));
+        }
+    }
+};
+
+    // Handle milestone change with error clearing
+    const handleMilestoneChange = (e) => {
+        setFormData({ ...formData, msId: e.target.value });
+        
+        // Clear amount error when changing milestone
+        if (errors.amount) {
+            setErrors(prev => ({
+                ...prev,
+                amount: ""
+            }));
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({
+            poNumber: poNumber,
+            msId: "",
+            amount: "",
+            currency: "USD",
+            utilizationType: "Fixed",
+            resource: "",
+            project: "",
+            workDesc: "",
+            workAssignDate: "",
+            workCompletionDate: "",
+            remarks: "",
+            systemName: ""
+        });
+        setErrors({});
+        setPoConsumptionFiles([]);
+        setPOBalance(null);
+        setMilestoneBalance(null);
+        setSnackbar({
+            open: false,
+            message: '',
+            severity: ''
+        });
+    };
+
+    const handleClose = () => {
+        resetForm();
+        onClose();
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setErrors({}); // Clear previous errors
 
         try {
+            const isValid = validateForm();
+            if (!isValid) {
+                setLoading(false);
+                return;
+            }
+
             const token = sessionStorage.getItem("token");
             const response = await axios.post(
                 `${import.meta.env.VITE_API_URL}/api/po-consumption/add`,
@@ -208,9 +332,13 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                 }
             );
 
-
             const data = response.data;
             console.log("PO Consumption Created:", data);
+            setSnackbar({
+                open: true,
+                message: "PO Consumption Created Successfully",
+                severity: "success",
+            });
 
             const consumptionId = data.utilizationId; // Assuming the response contains the created consumption ID
 
@@ -233,38 +361,35 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 body: attachmentForm,
                             }
                         );
-                        setSnackbar((prev) => ({
-                            ...prev,
-                            open: true,
-                            message: "PO Consumption Created Successfully",
-                            severity: "success",
-                        }))
 
                         if (!uploadRes.ok) {
                             console.error(`Attachment upload failed for ${file.name}`);
+                            setSnackbar({
+                                open: true,
+                                message: "Attachment upload failed",
+                                severity: "error",
+                            });
                         }
                     } catch (err) {
                         console.error("Attachment upload error:", err);
-                        setSnackbar((prev) => ({
-                            ...prev,
+                        setSnackbar({
                             open: true,
                             message: "Attachment upload failed",
                             severity: "error",
-                        }))
+                        });
                     }
                 }
             }
 
             handleClose();
 
-
         } catch (error) {
             console.error("Error creating PO Consumption:", error);
-            setSnackbar((prev) => ({
+            setSnackbar({
                 open: true,
                 message: "Error creating PO Consumption",
                 severity: "error",
-            }))
+            });
             setErrors({
                 submit: "Network error. Please try again.",
             });
@@ -272,22 +397,25 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             setLoading(false);
         }
     };
+
     const handleDateInputClick = (inputName) => {
         const dateInput = document.getElementsByName(inputName)[0];
         if (dateInput) {
             dateInput.showPicker();
         }
     };
+
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
 
         // Limit to 4 files total
         if (poConsumptionFiles.length + files.length > 4) {
-            setErrors((prev) => ({
-                ...prev,
-                attachment: "Max 4 attachments allowed.",
-            }));
+            setSnackbar({
+                open: true,
+                message: "You can upload a maximum of 4 attachments.",
+                severity: "error"
+            });
             return;
         }
 
@@ -320,20 +448,25 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         }
 
         if (error) {
-            setErrors((prev) => ({
-                ...prev,
-                attachment: error,
-            }));
+            setSnackbar({
+                open: true,
+                message: error,
+                severity: "error"
+            });
             return;
         }
 
         setPoConsumptionFiles((prev) => [...prev, ...validFiles]);
-        setErrors((prev) => ({
-            ...prev,
-            attachment: "",
-        }));
         e.target.value = null;
     };
+
+    // Reset form when modal opens
+    useEffect(() => {
+        if (open && poId) {
+            resetForm();
+        }
+    }, [open, poId]);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
@@ -352,8 +485,16 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                         <X size={20} />
                     </button>
                 </div>
+
                 <div className='p-6 overflow-y-auto flex-grow'>
                     <form onSubmit={handleSubmit} className='space-y-6'>
+                        {errors.submit && (
+                            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
+                                <AlertCircle size={18} className="text-red-500 mr-2" />
+                                <span className="text-red-700 text-sm">{errors.submit}</span>
+                            </div>
+                        )}
+
                         <div className='grid grid-cols-5 gap-4'>
                             <div>
                                 <label htmlFor="poNumber" className="block text-sm font-medium text-gray-700 mb-2">PO Number*</label>
@@ -362,10 +503,10 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     name="poNumber"
                                     value={formData.poNumber}
                                     onChange={(e) => setFormData({ ...formData, poNumber: e.target.value })}
-                                    className='w-full h-10 px-4 border border-gray-300 rounded-md'
+                                    className='w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100'
                                     disabled />
-
                             </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Milestone (optional)
@@ -374,9 +515,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     name="msId"
                                     id="msId"
                                     value={formData.msId}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, msId: e.target.value })
-                                    }
+                                    onChange={handleMilestoneChange}
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md"
                                 >
                                     <option value="" title="No specific milestone selected">
@@ -389,6 +528,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     ))}
                                 </select>
                             </div>
+
                             <div>
                                 <label htmlFor="currency" className='block text-sm font-medium text-gray-700 mb-2'>Currency</label>
                                 <input
@@ -397,32 +537,44 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     value={po.poCurrency}
                                     onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                                     disabled
-                                    className='w-full h-10 px-4 border border-gray-300 rounded-md'
+                                    className='w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100'
                                 />
                             </div>
+
                             <div>
                                 <div className='flex justify-between items-center'>
                                     <label htmlFor="amount" className='block text-sm font-medium text-gray-700 mb-2'>
                                         Amount*
                                     </label>
-                                    <label className='text-right text-[10px]'>
-                                        {formData.msId && milestoneBalance ? (
-                                            <span className="text-red-600">Milestone Balance: ₹{milestoneBalance}</span>
-                                        ) : (
-                                            <span className="text-red-600">PO Balance: ₹{poBalance}</span>
-                                        )}
-                                    </label>
+                                 
+<label className='text-right text-[10px]'>
+    {formData.msId && milestoneBalance !== null ? (
+        <span className="text-green-600">
+            Milestone Balance: {getCurrencySymbol(formData.currency)}{milestoneBalance.toLocaleString()}
+        </span>
+    ) : (
+        <span className="text-green-600">
+            PO Balance: {getCurrencySymbol(formData.currency)}{poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}
+        </span>
+    )}
+</label>
                                 </div>
 
                                 <input
                                     type="number"
                                     name="amount"
                                     value={formData.amount}
-                                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                                    className='w-full h-10 px-4 border border-gray-300 rounded-md'
+                                    onChange={handleAmountChange}
+                                    className={`w-full h-10 px-4 border rounded-md ${errors.amount ? 'border-red-500' : 'border-gray-300'}`}
                                     placeholder='Enter Amount'
+                                    min="0.01"
+                                    step="0.01"
                                 />
+                                {errors.amount && (
+                                    <p className="mt-1 text-red-600 text-xs leading-tight">{errors.amount}</p>
+                                )}
                             </div>
+
                             <div className="">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Type *
@@ -447,6 +599,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 )}
                             </div>
                         </div>
+
                         <div className='grid grid-cols-5 gap-4'>
                             <div className="">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -465,18 +618,19 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     styles={{
                                         control: (base, state) => ({
                                             ...base,
-                                            fontSize: 'medium', // text-sm
+                                            fontSize: 'medium',
                                             borderRadius: '0.375rem',
-                                            borderColor: errors.resource ? '#f87171' : '#d1d5db', // red-400 or gray-300
+                                            borderColor: errors.resource ? '#f87171' : '#d1d5db',
                                             padding: "0 1rem",
                                             height: "2.5rem"
                                         }),
                                     }}
                                 />
                                 {users.length === 0 && (
-                                    <p className="mt-1 text-xs text-gray-500" title="Loading projects from server...">Loading projects...</p>
+                                    <p className="mt-1 text-xs text-gray-500" title="Loading resources from server...">Loading resources...</p>
                                 )}
                             </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Project
@@ -489,24 +643,21 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     onChange={(selectedOption) =>
                                         setFormData({ ...formData, project: selectedOption ? selectedOption.value : '' })
                                     }
-                                    value={formData.project ? { value: formData.project, label: formData.project } : null
-                                    }
+                                    value={formData.project ? { value: formData.project, label: formData.project } : null}
                                     options={projectOptions}
                                     styles={{
                                         control: (base, state) => ({
                                             ...base,
-                                            fontSize: 'medium', // text-sm
+                                            fontSize: 'medium',
                                             borderRadius: '0.375rem',
-                                            borderColor: errors
-                                                .project
-                                                ? '#f87171'
-                                                : '#d1d5db', // red-400 or gray-300
+                                            borderColor: errors.project ? '#f87171' : '#d1d5db',
                                             padding: "0 1rem",
                                             height: "2.5rem"
                                         }),
                                     }}
                                 />
                             </div>
+
                             <div>
                                 <label htmlFor="systemName" className='block text-sm font-medium text-gray-700 mb-2'>System Name</label>
                                 <input
@@ -518,6 +669,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     placeholder='Enter System Name'
                                 />
                             </div>
+
                             <div>
                                 <label htmlFor="workAssignDate" className='block text-sm font-medium text-gray-700 mb-2'>
                                     Work Assign Date
@@ -532,6 +684,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     onClick={() => handleDateInputClick('workAssignDate')}
                                 />
                             </div>
+
                             <div>
                                 <label htmlFor="workCompletionDate" className='block text-sm font-medium text-gray-700 mb-2'>
                                     Work Completion Date
@@ -543,9 +696,11 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     onChange={(e) => setFormData({ ...formData, workCompletionDate: e.target.value })}
                                     onClick={() => handleDateInputClick('workCompletionDate')}
                                     className='w-full h-10 px-4 border border-gray-300 rounded-md'
-                                    placeholder='Enter Work Completion Date ' />
+                                    placeholder='Enter Work Completion Date'
+                                />
                             </div>
                         </div>
+
                         <div className="">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 PO Consumption Attachments (Max 4)
@@ -582,16 +737,13 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                     </li>
                                 ))}
                             </ul>
+                        </div>
 
-                            {errors.attachment && (
-                                <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
-                            )}
-                        </div>;
                         <div>
                             <label htmlFor="description" className='block text-sm font-medium text-gray-700 mb-2'>
                                 Description
-                                <span className='float-right'>
-                                    {formData.workDesc.length}/500
+                                <span className='float-right text-xs text-gray-500'>
+                                    {formData.workDesc.length}/500 characters
                                 </span>
                             </label>
                             <textarea
@@ -600,13 +752,15 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 onChange={(e) => setFormData({ ...formData, workDesc: e.target.value })}
                                 className='w-full h-20 px-4 py-2 border border-gray-300 rounded-md'
                                 placeholder="Enter detailed work description including tasks, deliverables, scope, and requirements... (Max 500 characters)"
-                                id="" />
+                                maxLength={500}
+                            />
                         </div>
+
                         <div>
                             <label htmlFor="remarks" className='block text-sm font-medium text-gray-700 mb-2'>
                                 Remarks
-                                <span className='float-right'>
-                                    {formData.remarks.length}/500
+                                <span className='float-right text-xs text-gray-500'>
+                                    {formData.remarks.length}/500 characters
                                 </span>
                             </label>
                             <textarea
@@ -615,8 +769,10 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
                                 className='w-full h-20 px-4 py-2 border border-gray-300 rounded-md'
                                 placeholder='Enter Remarks'
+                                maxLength={500}
                             />
                         </div>
+
                         <div className='flex justify-end space-x-4'>
                             <button
                                 type='button'
@@ -643,6 +799,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                 severity={snackbar.severity}
                 onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
             />
+            
         </div>
     )
 }

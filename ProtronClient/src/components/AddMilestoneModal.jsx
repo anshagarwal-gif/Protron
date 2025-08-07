@@ -20,8 +20,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [poDetails, setPODetails] = useState(null);
-  const [descWordCount, setDescWordCount] = useState(0);
-  const [remarksWordCount, setRemarksWordCount] = useState(0);
+  const [descCharCount, setDescCharCount] = useState(0);
+  const [remarksCharCount, setRemarksCharCount] = useState(0);
   const [poBalance, setPOBalance] = useState(null);
   const [milestoneFiles, setMilestoneFiles] = useState([]);
   const [snackbar, setSnackbar] = useState({
@@ -29,6 +29,10 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     message: "",
     severity: ""
   });
+
+  // Character limits
+  const DESC_CHAR_LIMIT = 500;
+  const REMARKS_CHAR_LIMIT = 500;
 
   // Fetch PO details to get PO number and currency
   useEffect(() => {
@@ -57,6 +61,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
     fetchPODetails();
   }, [open, poId]);
+
   useEffect(() => {
     const fetchPOBalance = async () => {
       if (poId) {
@@ -79,10 +84,10 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     fetchPOBalance();
   }, [poId]);
 
-  // Initialize word counts when form data is set
+  // Initialize character counts when form data is set
   useEffect(() => {
-    setDescWordCount(countWords(formData.msDesc));
-    setRemarksWordCount(countWords(formData.msRemarks));
+    setDescCharCount(formData.msDesc.length);
+    setRemarksCharCount(formData.msRemarks.length);
   }, [formData.msDesc, formData.msRemarks]);
 
   useEffect(() => {
@@ -90,12 +95,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       setErrors({});
     }
   }, [open, poId]);
-
-  // Helper function to count words
-  const countWords = (text) => {
-    if (!text || text.trim() === '') return 0;
-    return text.trim().split(/\s+/).length;
-  };
 
   const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -106,27 +105,25 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         [name]: files[0] || null
       }));
     } else {
-      // Check word limit for description and remarks
+      // Check character limit for description and remarks
       if (name === 'msDesc') {
-        const wordCount = countWords(value);
-        if (wordCount > 500) {
+        if (value.length > DESC_CHAR_LIMIT) {
           setErrors(prev => ({
             ...prev,
-            [name]: "Description cannot exceed 500 words"
+            [name]: `Description cannot exceed ${DESC_CHAR_LIMIT} characters`
           }));
           return; // Don't update if exceeding limit
         }
-        setDescWordCount(wordCount);
+        setDescCharCount(value.length);
       } else if (name === 'msRemarks') {
-        const wordCount = countWords(value);
-        if (wordCount > 500) {
+        if (value.length > REMARKS_CHAR_LIMIT) {
           setErrors(prev => ({
             ...prev,
-            [name]: "Remarks cannot exceed 500 words"
+            [name]: `Remarks cannot exceed ${REMARKS_CHAR_LIMIT} characters`
           }));
           return; // Don't update if exceeding limit
         }
-        setRemarksWordCount(wordCount);
+        setRemarksCharCount(value.length);
       }
 
       setFormData(prev => ({
@@ -284,6 +281,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         attachments: milestoneFiles
       });
 
+      resetForm();
+
     } catch (error) {
       console.error("Error adding milestone:", error);
       setErrors({
@@ -300,7 +299,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     }
   };
 
-  const handleClose = () => {
+  const resetForm = () => {
     setFormData({
       msName: "",
       msDesc: "",
@@ -313,10 +312,21 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       poNumber: poDetails?.poNumber || ""
     });
     setErrors({});
-    setDescWordCount(0);
-    setRemarksWordCount(0);
+    setDescCharCount(0);
+    setRemarksCharCount(0);
+    setMilestoneFiles([]);
+    setSnackbar({
+      open: false,
+      message: "",
+      severity: ""
+    });
+  };
+
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
+
   const handleDateInputClick = (inputName) => {
         const dateInput = document.getElementsByName(inputName)[0];
         if (dateInput) {
@@ -445,7 +455,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
             {/* Row 2: Duration, Date and Attachment */}
             <div className="grid grid-cols-4 gap-4">
 
-
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
@@ -515,7 +524,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 <FileText size={14} className="inline mr-1" />
                 Description *
                 <span className="float-right text-xs text-gray-500">
-                  {descWordCount}/500 words
+                  {descCharCount}/{DESC_CHAR_LIMIT} characters
                 </span>
               </label>
               <textarea
@@ -525,7 +534,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 rows={4}
                 className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'
                   }`}
-                placeholder="Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max 500 words)"
+                placeholder={`Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max ${DESC_CHAR_LIMIT} characters)`}
                 disabled={loading}
               />
               {errors.msDesc && (
@@ -539,7 +548,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 <FileText size={14} className="inline mr-1" />
                 Remarks
                 <span className="float-right text-xs text-gray-500">
-                  {remarksWordCount}/500 words
+                  {remarksCharCount}/{REMARKS_CHAR_LIMIT} characters
                 </span>
               </label>
               <textarea
@@ -547,9 +556,9 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 value={formData.msRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > REMARKS_CHAR_LIMIT ? 'border-red-500' : 'border-gray-300'
                   }`}
-                placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 words)"
+                placeholder={`Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max ${REMARKS_CHAR_LIMIT} characters)`}
                 disabled={loading}
               />
               {errors.msRemarks && (

@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, FileText, Hash, Clock } from 'lucide-react';
+import { X, Calendar, DollarSign, User, Building, FileText, Hash, Activity, Briefcase, Target, CreditCard } from 'lucide-react';
 import axios from 'axios';
-import { useSession } from '../Context/SessionContext';
+import { useSession } from '../../Context/SessionContext'
 
-const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
+const ViewPOConsumptionModal = ({ open, onClose, consumptionData }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
   const { sessionData } = useSession();
 
   useEffect(() => {
-    if (open && milestoneData?.msId) {
+    if (open && consumptionData?.utilizationId) {
       setLoadingAttachments(true);
       axios
-        .get(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=MS&referenceId=${milestoneData.msId}`, {
+        .get(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=CONSUMPTION&referenceId=${consumptionData.utilizationId}`, {
           headers: {
-            Authorization: sessionData?.token,
-          },
+            'Authorization': sessionData?.token
+          }
         })
         .then((res) => {
           setAttachments(res.data);
@@ -28,9 +28,9 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
         })
         .finally(() => setLoadingAttachments(false));
     }
-  }, [open, milestoneData?.msId]);
+  }, [open, consumptionData?.utilizationId]);
 
-  if (!open || !milestoneData) return null;
+  if (!open || !consumptionData) return null;
 
   // Format currency
   const formatCurrency = (amount, currency = 'USD') => {
@@ -47,11 +47,40 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric',
+      day: 'numeric'
     });
   };
 
-  // Field component for consistent styling (matching SRN modal)
+  // Get utilization type display name and tag styling
+  const getUtilizationTypeDisplay = (type) => {
+    switch (type) {
+      case 'T&M':
+        return 'Time & Material';
+      case 'Fixed':
+        return 'Fixed Price';
+      case 'Mixed':
+        return 'Mixed';
+      default:
+        return type || 'N/A';
+    }
+  };
+
+  // Function to get tag styling for Utilization Type
+  const getUtilizationTypeTag = (type) => {
+    const baseClasses = "px-2 py-1 rounded text-xs font-medium";
+    switch (type) {
+      case "Fixed":
+        return `${baseClasses} bg-green-100 text-green-800`;
+      case "T&M":
+        return `${baseClasses} bg-blue-100 text-blue-800`;
+      case "Mixed":
+        return `${baseClasses} bg-gray-100 text-gray-700`;
+      default:
+        return `${baseClasses} bg-gray-100 text-gray-700`;
+    }
+  };
+
+  // Field component for consistent styling
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
@@ -68,15 +97,15 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
         <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <FileText size={24} />
+              <Activity size={24} />
               <div>
-                <h2 className="text-xl font-bold">Milestone Details</h2>
-                <p className="text-blue-100 text-sm">{milestoneData.milestoneName || milestoneData.msName || 'N/A'}</p>
+                <h2 className="text-xl font-bold">PO Consumption Details</h2>
+                <p className="text-green-100 text-sm">PO #{consumptionData.poNumber || 'N/A'}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-green-700 rounded-lg transition-colors"
             >
               <X size={20} />
             </button>
@@ -87,61 +116,91 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
           {/* Basic Information */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <Hash className="mr-2 text-blue-600" size={20} />
+              <Hash className="mr-2 text-green-600" size={20} />
               Basic Information
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Field
-                label="Milestone ID"
-                value={milestoneData.msId}
-              />
-              <Field
-                label="Milestone Name"
-                value={milestoneData.milestoneName || milestoneData.msName}
+                label="PO Number"
+                value={consumptionData.poNumber}
               />
               <Field
                 label="Amount"
-                value={formatCurrency(milestoneData.milestoneAmount, milestoneData.milestoneCurrency)}
+                value={formatCurrency(consumptionData.amount, consumptionData.currency)}
               />
               <Field
                 label="Currency"
-                value={milestoneData.milestoneCurrency}
+                value={consumptionData.currency}
               />
               <Field
-                label="Milestone Date"
-                value={formatDate(milestoneData.startDate)}
+                label="Utilization Type"
+                value={<span className={getUtilizationTypeTag(consumptionData.utilizationType)}>{getUtilizationTypeDisplay(consumptionData.utilizationType)}</span>}
               />
               <Field
-                label="Duration (Days)"
-                value={milestoneData.duration}
+                label="Milestone"
+                value={
+                  consumptionData.milestone?.msName || 
+                  consumptionData.msName || 
+                  consumptionData.milestoneName ||
+                  (consumptionData.msId ? `Milestone ID: ${consumptionData.msId}` : "No specific milestone")
+                }
               />
-            
+              <Field
+                label="Resource"
+                value={consumptionData.resource}
+              />
+              <Field
+                label="Project"
+                value={consumptionData.project}
+              />
+              <Field
+                label="System Name"
+                value={consumptionData.systemName}
+              />
             </div>
           </div>
 
-          {/* Description */}
+          {/* Timeline */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <Calendar className="mr-2 text-blue-600" size={20} />
+              Timeline
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field
+                label="Work Assign Date"
+                value={formatDate(consumptionData.workAssignDate)}
+              />
+              <Field
+                label="Work Completion Date"
+                value={formatDate(consumptionData.workCompletionDate)}
+              />
+            </div>
+          </div>
+
+          {/* Work Description */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-              <FileText className="mr-2 text-blue-600" size={20} />
-              Description
+              <FileText className="mr-2 text-green-600" size={20} />
+              Work Description
             </h3>
             <div className="bg-white rounded p-3 border">
               <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                {milestoneData.milestoneDescription || "No description available"}
+                {consumptionData.workDesc || "No work description available"}
               </p>
             </div>
           </div>
 
           {/* Remarks */}
-          {milestoneData.remark && (
+          {consumptionData.remarks && (
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                <FileText className="mr-2 text-gray-600" size={20} />
+                <FileText className="mr-2 text-blue-600" size={20} />
                 Remarks
               </h3>
               <div className="bg-white rounded p-3 border">
                 <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                  {milestoneData.remark}
+                  {consumptionData.remarks}
                 </p>
               </div>
             </div>
@@ -151,7 +210,7 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
           {attachments.length > 0 && (
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                <FileText className="mr-2 text-blue-600" size={20} />
+                <FileText className="mr-2 text-green-600" size={20} />
                 Attachments ({attachments.length})
               </h3>
               <div className="space-y-2">
@@ -193,7 +252,7 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
           {loadingAttachments && (
             <div className="text-center py-4">
               <div className="text-gray-600 text-sm flex items-center justify-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
                 Loading attachments...
               </div>
             </div>
@@ -225,4 +284,4 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
   );
 };
 
-export default ViewMilestoneModal;
+export default ViewPOConsumptionModal;

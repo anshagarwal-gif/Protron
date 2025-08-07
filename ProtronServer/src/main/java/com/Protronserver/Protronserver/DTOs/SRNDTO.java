@@ -1,5 +1,7 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import java.time.LocalDate;
+
 public class SRNDTO {
 
     private Long poId;
@@ -11,6 +13,7 @@ public class SRNDTO {
     private Integer srnAmount;
     private String srnCurrency;
     private String srnRemarks;
+    private LocalDate srnDate;
 
     // Getters and Setters
     public Long getPoId() {
@@ -19,6 +22,14 @@ public class SRNDTO {
 
     public void setPoId(Long poId) {
         this.poId = poId;
+    }
+
+    public LocalDate getSrnDate() {
+        return srnDate;
+    }
+
+    public void setSrnDate(LocalDate srnDate) {
+        this.srnDate = srnDate;
     }
 
     public String getPoNumber() {

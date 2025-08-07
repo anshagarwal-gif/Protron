@@ -3,10 +3,11 @@ import axios from 'axios'
 import { AgGridReact } from 'ag-grid-react'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import { Search, Download, Plus, Banknote, Edit } from 'lucide-react'
+import { Search, Download, Plus, Banknote, Edit, Loader2, Eye } from 'lucide-react'
 import AddSRNModal from './AddSRNModal'
 import EditSRNModal from './EditSRNModal'
 import CreateNewSRNModal from './podetailspage/CreateNewSRNModal'
+import ViewSRNModal from '../components/podetailspage/ViewSRNModal'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -18,7 +19,16 @@ const LoadingOverlay = () => (
     </div>
   </div>
 );
-
+  // Currency symbol mapping
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
+      'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'SEK': 'kr',
+      'NOK': 'kr', 'MXN': '$', 'NZD': 'NZ$', 'SGD': 'S$', 'HKD': 'HK$',
+      'ZAR': 'R', 'BRL': 'R$', 'RUB': '₽', 'KRW': '₩', 'TRY': '₺'
+    };
+    return currencySymbols[currencyCode] || currencyCode || '$';
+  };
 const GetSRNDetailsByPO = ({ poId }) => {
   const [srnDetails, setSrnDetails] = useState([])
   const [loading, setLoading] = useState(true)
@@ -27,37 +37,53 @@ const GetSRNDetailsByPO = ({ poId }) => {
   const [isAddSRNOpen, setIsAddSRNOpen] = useState(false)
   const [selectedSRN, setSelectedSRN] = useState(null)
   const [editSRNModalOpen, setEditSRNModalOpen] = useState(false)
+  
+  // State for View Modal
+  const [isViewSRNModalOpen, setIsViewSRNModalOpen] = useState(false)
+  const [viewSRNData, setViewSRNData] = useState(null)
 
   const handleOpenSRNModal = () => {
     setIsAddSRNOpen(true)
   }
+  
   const handleCloseSRNModal = () => {
     setIsAddSRNOpen(false)
     fetchSRNDetails()
   }
+  
   const handleEditSRN = (srn) => {
     console.log(srn.srnId)
     setSelectedSRN(srn.srnId)
     setEditSRNModalOpen(true)
   }
+  
   const handleCloseSRNEdit = () => {
     setEditSRNModalOpen(false)
   }
+
+  // Handler for viewing SRN
+  const handleViewSRN = (srn) => {
+    setViewSRNData(srn)
+    setIsViewSRNModalOpen(true)
+  }
+  
   const downloadSRNExcel = () => {
     try {
-      const excelData = srnDetails.map
-        ((srn, index) => ({
-          'S.No': index + 1,
-          'SRN Name': srn.srnName || 'N/A',
-          'PO Number': srn.poNumber || 'N/A',
-          'Amount': srn.srnAmount ? srn.srnAmount.toLocaleString() : 'N/A',
-          'Currency': srn.srnCurrency || 'N/A',
-          'Type': srn.srnType || 'N/A',
-          'Description': srn.srnDsc || 'N/A',
-          'Remarks': srn.srnRemarks || 'N/A',
-          'Created Date': srn.createdTimestamp ? new Date(srn.createdTimestamp).toLocaleDateString() : 'N/A',
-          'Milestone': srn.milestone.msName || 'N/A',
-        }));
+      const excelData = srnDetails.map((srn, index) => ({
+        'S.No': index + 1,
+        'SRN ID': srn.srnId || 'N/A',
+        'SRN Name': srn.srnName || 'N/A',
+        'PO Number': srn.poNumber || 'N/A',
+        'Milestone': srn.milestone?.msName || 'N/A',
+        'Amount': srn.srnAmount ? srn.srnAmount.toLocaleString() : 'N/A',
+        'Currency': srn.srnCurrency || 'N/A',
+        'Type': srn.srnType || 'N/A',
+        'Description': srn.srnDsc || 'N/A',
+        'Remarks': srn.srnRemarks || 'N/A',
+        'SRN Date': srn.srnDate ? new Date(srn.srnDate).toLocaleDateString() : 'N/A',
+        'Created Date': srn.createdTimestamp ? new Date(srn.createdTimestamp).toLocaleDateString() : 'N/A',
+      }));
+      
       const headers = Object.keys(excelData[0] || {});
       const csvContent = [
         headers.join(','),
@@ -70,30 +96,32 @@ const GetSRNDetailsByPO = ({ poId }) => {
           }).join(',')
         )
       ].join('\n');
+      
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `srn_${poId}_milestones_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `srn_${poId}_details_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       }
-    }
-    catch (error) {
-      console.error('Error downloading milestones Excel:', error);
-      showSnackbar('Failed to download Excel file. Please try again.', 'error');
+    } catch (error) {
+      console.error('Error downloading SRN Excel:', error);
+      // showSnackbar('Failed to download Excel file. Please try again.', 'error');
     }
   }
-  useEffect(()=>{
-    if(isAddSRNOpen){
+  
+  useEffect(() => {
+    if (isAddSRNOpen) {
       document.body.classList.add('overflow-hidden')
-    }else{
+    } else {
       document.body.classList.remove('overflow-hidden')
     }
   })
+  
   const filteredSRNDetails = srnDetails.filter(srnDetails => {
     if (searchQuery === "") return true;
 
@@ -101,9 +129,12 @@ const GetSRNDetailsByPO = ({ poId }) => {
     return (
       srnDetails.srnName?.toLowerCase().includes(searchLower) ||
       srnDetails.poNumber?.toLowerCase().includes(searchLower) ||
-      srnDetails.srnAmount?.toString().includes(searchLower)
+      srnDetails.srnAmount?.toString().includes(searchLower) ||
+      srnDetails.srnDsc?.toLowerCase().includes(searchLower) ||
+      srnDetails.milestone?.msName?.toLowerCase().includes(searchLower)
     );
   });
+  
   // Column definitions for AG Grid
   const columnDefs = [
     {
@@ -137,6 +168,17 @@ const GetSRNDetailsByPO = ({ poId }) => {
       cellClass: 'truncate-cell',
     },
     {
+      headerName: 'Milestone',
+      field: 'milestone.msName',
+      flex: 1,
+      maxWidth: 120,
+      sortable: true,
+      filter: true,
+      valueFormatter: (params) => params.value || 'N/A',
+      tooltipField: 'milestone.msName',
+      cellClass: 'truncate-cell',
+    },
+       {
       headerName: 'Amount',
       field: 'srnAmount',
       flex: 1,
@@ -145,15 +187,25 @@ const GetSRNDetailsByPO = ({ poId }) => {
       filter: 'agNumberColumnFilter',
       valueFormatter: (params) => {
         if (params.value) {
-          return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR'
-          }).format(params.value)
+          // Get the SRN currency from the data, fallback to PO currency
+          const currency = params.data.srnCurrency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+          
+          // Format the amount with proper currency symbol
+          return `${currencySymbol}${params.value.toLocaleString()}`;
         }
-        return ''
+        return '';
       },
-      tooltipField: 'srnAmount',
+      tooltipValueGetter: (params) => {
+        if (params.value) {
+          const currency = params.data.srnCurrency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+          return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+        }
+        return 'No amount specified';
+      },
       cellClass: 'truncate-cell',
+      cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
     },
     {
       headerName: 'Type',
@@ -214,21 +266,10 @@ const GetSRNDetailsByPO = ({ poId }) => {
       cellClass: 'truncate-cell',
     },
     {
-      headerName: 'Milestone',
-      field: 'milestone.msName',
-      flex: 1,
-      maxWidth: 120,
-      sortable: true,
-      filter: true,
-      valueFormatter: (params) => params.value || 'N/A',
-      tooltipField: 'milestone.msName',
-      cellClass: 'truncate-cell',
-    },
-    {
       headerName: "Actions",
       field: "actions",
-      minWidth: 50,
-      maxWidth: 100,
+      minWidth: 100,
+      maxWidth: 120,
       flex: 0,
       sortable: false,
       filter: false,
@@ -238,9 +279,16 @@ const GetSRNDetailsByPO = ({ poId }) => {
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             <button
+              onClick={() => handleViewSRN(srn)}
+              className="p-2 rounded-full hover:bg-green-100 transition-colors"
+              title="View SRN"
+            >
+              <Eye size={16} className="text-green-600" />
+            </button>
+            <button
               onClick={() => handleEditSRN(srn)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-              title="Edit srn"
+              title="Edit SRN"
             >
               <Edit size={16} className="text-blue-600" />
             </button>
@@ -250,22 +298,6 @@ const GetSRNDetailsByPO = ({ poId }) => {
     }
   ];
 
-
-  // Grid options
-  const gridOptions = {
-    pagination: true,
-    paginationPageSize: 20,
-    animateRows: true,
-    enableRangeSelection: true,
-    suppressMenuHide: true,
-    defaultColDef: {
-      resizable: true,
-      sortable: true,
-      filter: true,
-      flex: 1,
-      minWidth: 100
-    }
-  }
   const defaultColDef = useMemo(() => ({
     sortable: true,
     filter: true,
@@ -278,7 +310,6 @@ const GetSRNDetailsByPO = ({ poId }) => {
     suppressMenu: false,
     menuTabs: ['filterMenuTab'],
   }), []);
-
 
   const fetchSRNDetails = async () => {
     console.log("Fetching SRN Details Again")
@@ -300,10 +331,10 @@ const GetSRNDetailsByPO = ({ poId }) => {
       setLoading(false)
     }
   }
+  
   useEffect(() => {
     fetchSRNDetails()
   }, [poId])
-
 
   const handleEditModalSubmit = async (data) => {
     try {
@@ -334,9 +365,6 @@ const GetSRNDetailsByPO = ({ poId }) => {
     )
   }
 
-  // No data state
-
-
   return (
     <div className="">
       <div className="flex p-6 justify-between">
@@ -348,7 +376,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
           <div className="relative w-64">
             <input
               type="text"
-              placeholder="Search milestones..."
+              placeholder="Search SRN..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -366,52 +394,50 @@ const GetSRNDetailsByPO = ({ poId }) => {
           <button
             className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
             onClick={handleOpenSRNModal}
-          // disabled={filteredMilestones.length === 0}
           >
             <Plus size={18} className="mr-2" />
             Add SRN
           </button>
         </div>
-
       </div>
 
       <div className="ag-theme-alpine" style={{ height: '60vh', width: '100%' }}>
         <style jsx>{`
-    .ag-theme-alpine .ag-header {
-      background-color: #15803d !important;
-      color: white;
-      font-weight: 600;
-      border-bottom: 2px solid #047857;
-    }
-    .ag-theme-alpine .ag-header-cell {
-      color: white;
-      border-right: 1px solid #047857;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .ag-theme-alpine .ag-row:hover {
-      background-color: #f0fdf4;
-    }
-    .ag-theme-alpine .ag-cell {
-      display: flex !important;
-      align-items: center !important;
-      border-right: 1px solid #e5e7eb;
-      padding: 8px 12px;
-      font-size: 14px;
-    }
-  `}</style>
+          .ag-theme-alpine .ag-header {
+            background-color: #15803d !important;
+            color: white;
+            font-weight: 600;
+            border-bottom: 2px solid #047857;
+          }
+          .ag-theme-alpine .ag-header-cell {
+            color: white;
+            border-right: 1px solid #047857;
+            font-weight: 600;
+            font-size: 14px;
+          }
+          .ag-theme-alpine .ag-row:hover {
+            background-color: #f0fdf4;
+          }
+          .ag-theme-alpine .ag-cell {
+            display: flex !important;
+            align-items: center !important;
+            border-right: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            font-size: 14px;
+          }
+        `}</style>
 
         <AgGridReact
           rowData={filteredSRNDetails}
           columnDefs={columnDefs}
-          defaultColDef={defaultColDef} // make sure this matches milestone defaultColDef
+          defaultColDef={defaultColDef}
           pagination={true}
           paginationPageSize={10}
           paginationPageSizeSelector={[5, 10, 15, 20, 25]}
           suppressMovableColumns={true}
           suppressRowClickSelection={true}
           enableBrowserTooltips={true}
-          loadingOverlayComponent={LoadingOverlay} // optional, if you’re using same as milestone
+          loadingOverlayComponent={LoadingOverlay}
           noRowsOverlayComponent={() => (
             <div className="flex items-center justify-center h-full">
               <div className="text-gray-500 text-center">
@@ -438,25 +464,31 @@ const GetSRNDetailsByPO = ({ poId }) => {
         />
       </div>
 
-      {/* Summary section */}
-      <CreateNewSRNModal poId={poId}
+      {/* Create New SRN Modal */}
+      <CreateNewSRNModal 
+        poId={poId}
         open={isAddSRNOpen}
         onClose={handleCloseSRNModal}
       />
 
-      {/* <AddSRNModal
-        open={isAddSRNOpen}
-        onClose={handleCloseSRNModal}
-        poNumber={srnDetails[0]?.poNumber}
-        poId={poId} /> */}
+      {/* Edit SRN Modal */}
       <EditSRNModal
         open={editSRNModalOpen}
         onClose={handleCloseSRNEdit}
         srnId={selectedSRN}
         onSubmit={handleEditModalSubmit}
       />
-    </div>
 
+      {/* View SRN Modal */}
+      <ViewSRNModal 
+        open={isViewSRNModalOpen}
+        onClose={() => {
+          setIsViewSRNModalOpen(false)
+          setViewSRNData(null)
+        }}
+        srnData={viewSRNData}
+      />
+    </div>
   )
 }
 
