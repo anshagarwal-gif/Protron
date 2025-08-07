@@ -540,13 +540,13 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
             >
               <Edit size={16} className="text-blue-600" />
             </button>
-            <button
+            {/* <button
               onClick={() => handleDeleteSRN(srn.srnId)}
               className="p-2 rounded-full hover:bg-red-100 transition-colors"
               title="Delete SRN"
             >
               <Trash2 size={16} className="text-red-600" />
-            </button>
+            </button> */}
           </div>
         );
       }

@@ -275,6 +275,7 @@ const DatePicker = ({ label, value, onChange, icon: Icon }) => {
         </div>
     );
 };
+
 // Main Modal Component
 const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => {
     const [users, setUsers] = useState([]);
@@ -315,10 +316,15 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         }));
     };
     
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setIsSubmitting(true);
-        onSubmit(formData);
-        setIsSubmitting(false);
+        try {
+            await onSubmit(formData);
+        } catch (error) {
+            console.error('Error creating project:', error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleReset = () => {
@@ -328,239 +334,277 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto shadow-xl">
-                {/* Header */}
-                <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
-                    <h1 className="text-xl font-semibold text-green-600">Add New Project</h1>
-                </div>
-
-                {/* Content */}
-                <div className="p-6 space-y-6">
-                    {/* Row 1: Project Name, Project Icon, and Start/End Dates */}
-                    <div className="grid grid-cols-4 gap-4">
-                        <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Enter a descriptive project name"
-                                    value={formData.projectName || ''}
-                                    onChange={(e) => handleChange('projectName', e.target.value)}
-                                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                    title={formData.projectName || 'Enter Project Name'}
-                                />
-                                <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
-                            </div>
-                        </div>
-
-                        <div className="flex-none w-full">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
-                            <div className="h-10 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
-                                {formData.projectIcon ? (
-                                    <div className="flex items-center gap-2">
-                                        <img
-                                            src={formData.projectIcon}
-                                            alt="Project Icon"
-                                            className="w-8 h-8 rounded-full object-cover"
-                                        />
-                                        <label className="px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                            Change
-                                            <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
-                                        </label>
-                                    </div>
-                                ) : (
-                                    <label className="flex items-center gap-2 px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                        <Upload className="w-4 h-4" />
-                                        Project Icon
-                                        <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
-                                    </label>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="flex-none w-full">
-                            <DatePicker
-                                label="Start Date"
-                                value={formData.startDate}
-                                onChange={(value) => handleChange('startDate', value)}
-                                icon={Calendar}
-                            />
-                        </div>
-
-                        <div className="flex-none w-full">
-                            <DatePicker
-                                label="End Date"
-                                value={formData.endDate}
-                                onChange={(value) => handleChange('endDate', value)}
-                                icon={Calendar}
-                            />
-                        </div>
+        <>
+            {/* Modal */}
+            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                <div className={`bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto shadow-xl ${isSubmitting ? 'pointer-events-none' : ''}`}>
+                    {/* Header */}
+                    <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
+                        <h1 className="text-xl font-semibold text-green-600">Add New Project</h1>
                     </div>
 
-                    {/* Row 2: Project Manager, Sponsor, Currency, and Cost */}
-                    <div className="grid grid-cols-4 gap-4">
-                        <div className="flex-1">
-                            <Dropdown
-                                options={users}
-                                value={formData.manager}
-                                onChange={(user) => handleChange('manager', user ? user.userId : null)}
-                                label="Project Manager"
-                                placeholder="Search for a manager..."
-                                icon={User}
-                                getOptionLabel={(option) => option.name || ''}
-                                isOptionEqualToValue={(option, value) => option.userId === value}
-                            />
-                        </div>
-
-                        <div className="flex-1">
-                            <Dropdown
-                                options={users}
-                                value={formData.sponsor}
-                                onChange={(user) => handleChange('sponsor', user ? user.userId : null)}
-                                label="Sponsor"
-                                placeholder="Search for a sponsor..."
-                                icon={User}
-                                getOptionLabel={(option) => option.name || ''}
-                                isOptionEqualToValue={(option, value) => option.userId === value}
-                            />
-                        </div>
-
-                        <div className="flex-none w-full">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-                            <select
-                                value={formData.currency || ''}
-                                onChange={(e) => handleChange('currency', e.target.value)}
-                                className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                title={formData.currency || 'Select Currency'}
-                            >
-                                <option value="">Select Currency</option>
-                                {currencies.map((currency) => (
-                                    <option key={currency} value={currency}>
-                                        {currency}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="flex-none w-full">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost</label>
-                            <div className="relative">
-                                <input
-                                    type="number"
-                                    placeholder="Enter amount"
-                                    value={formData.cost || ''}
-                                    onChange={(e) => handleChange('cost', e.target.value)}
-                                    className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                    title={formData.cost || 'Enter Project Cost'}
-                                />
-                                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                    {formData.currency ? currencySymbols[formData.currency] : ''}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Row 3: Team Members and Systems Impacted */}
-                    <div className="flex gap-4 items-start">
-                        <div className="flex-1">
-                            <MultiSelectDropdown
-                                options={users}
-                                value={formData.teamMembers || []}
-                                onChange={(value) => handleChange('teamMembers', value)}
-                                label="Team Members"
-                                placeholder="Search for team members..."
-                                icon={Users}
-                                getOptionLabel={(option) => option.name || ''}
-                                isOptionEqualToValue={(option, value) => option.userId === value}
-                            />
-                        </div>
-
-                        <div className="flex-1">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Add Systems Impacted</label>
-                                <input
-                                    type="text"
-                                    placeholder="Type a system and press Enter"
-                                    value={formData.newSystem || ''}
-                                    onChange={(e) => handleChange('newSystem', e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && formData.newSystem?.trim()) {
-                                            e.preventDefault();
-                                            const currentSystems = formData.systemImpacted || [];
-                                            handleChange('systemImpacted', [...currentSystems, formData.newSystem.trim()]);
-                                            handleChange('newSystem', '');
-                                        }
-                                    }}
-                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                />
-                                <div className="text-xs text-gray-600 mt-1">
-                                    Enter System Name and press Enter to add the system.
+                    {/* Content */}
+                    <div className={`p-6 space-y-6 ${isSubmitting ? 'opacity-50' : ''}`}>
+                        {/* Row 1: Project Name, Project Icon, and Start/End Dates */}
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter a descriptive project name"
+                                        value={formData.projectName || ''}
+                                        onChange={(e) => handleChange('projectName', e.target.value)}
+                                        disabled={isSubmitting}
+                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title={formData.projectName || 'Enter Project Name'}
+                                    />
+                                    <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
                                 </div>
+                            </div>
 
-                                {/* Display added systems */}
-                                {formData.systemImpacted?.length > 0 && (
-                                    <div className="mt-2 p-2 border border-green-800 rounded-md bg-white overflow-auto">
-                                        <div className="text-xs text-gray-600 mb-2">
-                                            Added Systems Impacted ({formData.systemImpacted.length})
+                            <div className="flex-none w-full">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
+                                <div className="h-10 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
+                                    {formData.projectIcon ? (
+                                        <div className="flex items-center gap-2">
+                                            <img
+                                                src={formData.projectIcon}
+                                                alt="Project Icon"
+                                                className="w-8 h-8 rounded-full object-cover"
+                                            />
+                                            <label className={`px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                                Change
+                                                <input 
+                                                    hidden 
+                                                    accept="image/*" 
+                                                    type="file" 
+                                                    onChange={handleImageUpload} 
+                                                    disabled={isSubmitting}
+                                                />
+                                            </label>
                                         </div>
-                                        <div className="flex flex-wrap gap-1">
-                                            {formData.systemImpacted.map((system, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center bg-green-700 text-white rounded px-2 py-1 text-sm"
-                                                >
-                                                    <span className="truncate flex-1 text-xs">{system}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const updatedSystems = formData.systemImpacted.filter(s => s !== system);
-                                                            handleChange('systemImpacted', updatedSystems);
-                                                        }}
-                                                        className="ml-1 text-white hover:bg-white hover:bg-opacity-20 rounded p-0.5"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <label className={`flex items-center gap-2 px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                            <Upload className="w-4 h-4" />
+                                            Project Icon
+                                            <input 
+                                                hidden 
+                                                accept="image/*" 
+                                                type="file" 
+                                                onChange={handleImageUpload} 
+                                                disabled={isSubmitting}
+                                            />
+                                        </label>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex-none w-full">
+                                <DatePicker
+                                    label="Start Date"
+                                    value={formData.startDate}
+                                    onChange={(value) => handleChange('startDate', value)}
+                                    icon={Calendar}
+                                />
+                            </div>
+
+                            <div className="flex-none w-full">
+                                <DatePicker
+                                    label="End Date"
+                                    value={formData.endDate}
+                                    onChange={(value) => handleChange('endDate', value)}
+                                    icon={Calendar}
+                                />
                             </div>
                         </div>
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
-                        <button
-                            onClick={onClose}
-                            disabled={isSubmitting}
-                            className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleReset}
-                            disabled={isSubmitting}
-                            className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Reset
-                        </button>
-                        <button
-                            onClick={handleSubmit}
-                            disabled={isSubmitting}
-                            className="px-8 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed     font-semibold flex items-center justify-center"
-                        >
-                            {isSubmitting ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                                'Create Project'
-                            )}
-                        </button>
+                        {/* Row 2: Project Manager, Sponsor, Currency, and Cost */}
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="flex-1">
+                                <Dropdown
+                                    options={users}
+                                    value={formData.manager}
+                                    onChange={(user) => handleChange('manager', user ? user.userId : null)}
+                                    label="Project Manager"
+                                    placeholder="Search for a manager..."
+                                    icon={User}
+                                    getOptionLabel={(option) => option.name || ''}
+                                    isOptionEqualToValue={(option, value) => option.userId === value}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+
+                            <div className="flex-1">
+                                <Dropdown
+                                    options={users}
+                                    value={formData.sponsor}
+                                    onChange={(user) => handleChange('sponsor', user ? user.userId : null)}
+                                    label="Sponsor"
+                                    placeholder="Search for a sponsor..."
+                                    icon={User}
+                                    getOptionLabel={(option) => option.name || ''}
+                                    isOptionEqualToValue={(option, value) => option.userId === value}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+
+                            <div className="flex-none w-full">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                <select
+                                    value={formData.currency || ''}
+                                    onChange={(e) => handleChange('currency', e.target.value)}
+                                    disabled={isSubmitting}
+                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title={formData.currency || 'Select Currency'}
+                                >
+                                    <option value="">Select Currency</option>
+                                    {currencies.map((currency) => (
+                                        <option key={currency} value={currency}>
+                                            {currency}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="flex-none w-full">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost</label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        placeholder="Enter amount"
+                                        value={formData.cost || ''}
+                                        onChange={(e) => handleChange('cost', e.target.value)}
+                                        disabled={isSubmitting}
+                                        className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title={formData.cost || 'Enter Project Cost'}
+                                    />
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                        {formData.currency ? currencySymbols[formData.currency] : ''}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Row 3: Team Members and Systems Impacted */}
+                        <div className="flex gap-4 items-start">
+                            <div className="flex-1">
+                                <MultiSelectDropdown
+                                    options={users}
+                                    value={formData.teamMembers || []}
+                                    onChange={(value) => handleChange('teamMembers', value)}
+                                    label="Team Members"
+                                    placeholder="Search for team members..."
+                                    icon={Users}
+                                    getOptionLabel={(option) => option.name || ''}
+                                    isOptionEqualToValue={(option, value) => option.userId === value}
+                                />
+                            </div>
+
+                            <div className="flex-1">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Add Systems Impacted</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Type a system and press Enter"
+                                        value={formData.newSystem || ''}
+                                        onChange={(e) => handleChange('newSystem', e.target.value)}
+                                        disabled={isSubmitting}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && formData.newSystem?.trim() && !isSubmitting) {
+                                                e.preventDefault();
+                                                const currentSystems = formData.systemImpacted || [];
+                                                handleChange('systemImpacted', [...currentSystems, formData.newSystem.trim()]);
+                                                handleChange('newSystem', '');
+                                            }
+                                        }}
+                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <div className="text-xs text-gray-600 mt-1">
+                                        Enter System Name and press Enter to add the system.
+                                    </div>
+
+                                    {/* Display added systems */}
+                                    {formData.systemImpacted?.length > 0 && (
+                                        <div className="mt-2 p-2 border border-green-800 rounded-md bg-white overflow-auto">
+                                            <div className="text-xs text-gray-600 mb-2">
+                                                Added Systems Impacted ({formData.systemImpacted.length})
+                                            </div>
+                                            <div className="flex flex-wrap gap-1">
+                                                {formData.systemImpacted.map((system, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center bg-green-700 text-white rounded px-2 py-1 text-sm"
+                                                    >
+                                                        <span className="truncate flex-1 text-xs">{system}</span>
+                                                        <button
+                                                            type="button"
+                                                            disabled={isSubmitting}
+                                                            onClick={() => {
+                                                                if (!isSubmitting) {
+                                                                    const updatedSystems = formData.systemImpacted.filter(s => s !== system);
+                                                                    handleChange('systemImpacted', updatedSystems);
+                                                                }
+                                                            }}
+                                                            className="ml-1 text-white hover:bg-white hover:bg-opacity-20 rounded p-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                            <button
+                                onClick={onClose}
+                                disabled={isSubmitting}
+                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleReset}
+                                disabled={isSubmitting}
+                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Reset
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
+                                className="px-8 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center min-w-[140px]"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Project'
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Full Screen Overlay Loader */}
+            {isSubmitting && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center">
+                    <div className="bg-white rounded-lg p-8 shadow-2xl flex flex-col items-center">
+                        <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Creating Project</h3>
+                        <p className="text-gray-600 text-center">Please wait while we create your project...</p>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 
