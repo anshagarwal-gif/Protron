@@ -102,7 +102,7 @@ const AddRoleModal = ({
           Add New Role
         </Typography>
       </Box>
-      <DialogContent sx={{ p: 3, overflow: "hidden" }}>
+      <DialogContent sx={{ p: 3, overflow: "auto" }}>
         <TextField
           label="Role Name"
           value={roleName}
@@ -138,7 +138,6 @@ const AddRoleModal = ({
           {modulesList.length > 0 ? (
             <Box sx={{ 
               bgcolor: "#ffffff", 
-              maxHeight: "50vh",
               overflowY: "auto",
             }}>
               {/* Header Row */}

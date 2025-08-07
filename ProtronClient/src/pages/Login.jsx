@@ -5,8 +5,9 @@ import axios from 'axios';
 import ForgotPassword from './ForgotPassword'; // Import the new component
 import { useAccess } from '../Context/AccessContext';
 import { useSession } from '../Context/SessionContext';
+import { useNavigate } from 'react-router-dom';
 
-const Login = ({ onLogin }) => {
+const Login = ({ setIsAuthenticated }) => {
     const { setAccessRights, setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -20,6 +21,8 @@ const Login = ({ onLogin }) => {
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // New state for loader
     const { updateSession } = useSession();
+    const navigate = useNavigate();
+
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -63,7 +66,10 @@ const Login = ({ onLogin }) => {
             setRoleAccessRights(response.data.roleAccessRights);
             setUserAccessRights(response.data.userAccessRights);
             setRole(response.data.role);
-            onLogin(true);
+            setIsAuthenticated(true);
+            sessionStorage.setItem('isAuthenticated', true);
+            navigate('/dashboard');
+            
         } catch (error) {
             setSnackbar({
                 open: true,

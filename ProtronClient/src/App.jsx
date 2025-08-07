@@ -23,9 +23,9 @@ import IndividualTimesheet from './components/IndividualTimesheet';
 import POManagement from './pages/PO';
 import PODetailsPage from './components/PODetail';
 import Dashboard from './pages/Dashboard';
-const ManageProjects = () => <div>Manage Projects Content</div>;
-const ManageTimesheet = () => <div>Manage Timesheet Content</div>;
-
+import PageNotFound from './utils/PageNotFound';
+import SessionExpired from './utils/SessionExpired';
+import Unauthorized from './utils/Unauthorized';
 
 const App = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,7 +34,6 @@ const App = () => {
         message: '',
         severity: 'info',
     });
-
     const { role, loading } = useAccess();
 
     useEffect(() => {
@@ -43,11 +42,6 @@ const App = () => {
             setIsAuthenticated(true);
         }
     }, []);
-
-    const handleLogin = () => {
-        setIsAuthenticated(true);
-        sessionStorage.setItem('isAuthenticated', 'true');
-    };
 
     const handleSignup = () => {
         setIsAuthenticated(true);
@@ -67,11 +61,13 @@ const App = () => {
                     <Routes>
                         {!isAuthenticated ? (
                             <>
-                                <Route path="/login" element={<Login onLogin={handleLogin} />} />
-                                <Route path="*" element={<Navigate to="/login" />} />
+                            <Route path="/" element={<Navigate to="/login" replace />} />
+                                <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+                                <Route path="*" element={<PageNotFound/>} />
                             </>
                         ) : (
                             <>
+                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
                                 <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/projects" element={<ProjectManagement />} />
@@ -83,8 +79,9 @@ const App = () => {
                                   <Route path="/po" element={<POManagement/>}/>
                                   <Route path="/po-details/:poId" element={<PODetailsPage />} />
                                 <Route path="individual-timesheet" element={<IndividualTimesheet />} />
-                                <Route path="*" element={<Navigate to="/dashboard" />} />
-                               
+                                <Route path="*" element={<PageNotFound/>} />
+                                <Route path="/session-expired" element={<SessionExpired />} />
+                                <Route path='/unauthorized' element={<Unauthorized />} />
                             </>
                         )}
                     </Routes>

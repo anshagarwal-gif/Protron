@@ -62,7 +62,7 @@ const ManageRoleModal = ({
           sx: {
             borderRadius: 2,
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            maxHeight: "90vh",
+            overflowY:"auto"
           },
         }}
       >
@@ -82,7 +82,7 @@ const ManageRoleModal = ({
           </Typography>
         </Box>
         
-        <DialogContent sx={{ p: 3, overflow: "hidden" }}>
+        <DialogContent sx={{ p: 3, overflow: "auto" }}>
           {/* Access Details Section */}
           <Paper
             variant="outlined"
@@ -110,7 +110,6 @@ const ManageRoleModal = ({
             {modules.length > 0 ? (
               <Box sx={{ 
                 bgcolor: "#ffffff", 
-                maxHeight: "50vh",
                 overflowY: "auto",
               }}>
                 {/* Header Row */}

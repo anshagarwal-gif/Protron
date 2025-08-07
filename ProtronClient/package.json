@@ -24,6 +24,7 @@
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.13",
     "exceljs": "^4.4.0",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.488.0",
     "mui": "^0.0.1",
     "react": "^19.0.0",
