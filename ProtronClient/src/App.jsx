@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -32,9 +32,17 @@ import Dashboard from './pages/Dashboard';
 import PageNotFound from './utils/PageNotFound';
 import SessionExpired from './utils/SessionExpired';
 import Unauthorized from './utils/Unauthorized';
+import { useSessionTimer } from './hooks/useSessionTimer'; // Adjust path as needed
+
+// Memoized route components to prevent unnecessary re-renders
+const MemoizedUserManagement = memo(UserManagement);
+const MemoizedPOManagement = memo(POManagement);
+const MemoizedProjectManagement = memo(ProjectManagement);
+const MemoizedTeamManagement = memo(TeamManagement);
+const MemoizedDashboard = memo(Dashboard);
 
 const AppContent = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null); // null until checked
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [sessionExpired, setSessionExpired] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -43,8 +51,28 @@ const AppContent = () => {
   });
 
   const { role, loading: roleLoading } = useAccess();
-  const [countdown, setCountdown] = useState(7200); // in seconds
   const location = useLocation();
+
+  // Session expiry handler
+  const handleSessionExpiry = useCallback(() => {
+    sessionStorage.clear();
+    setSessionExpired(true);
+    setIsAuthenticated(false);
+  }, []);
+
+  // Initialize session timer
+  const sessionTimer = useSessionTimer(isAuthenticated, sessionExpired, handleSessionExpiry);
+
+  const handleSignup = useCallback(() => {
+    setSessionExpired(false);
+    setIsAuthenticated(true);
+    sessionStorage.setItem('isAuthenticated', 'true');
+  }, []);
+
+  const handleLogin = useCallback((authStatus) => {
+    setSessionExpired(false);
+    setIsAuthenticated(authStatus);
+  }, []);
 
   useEffect(() => {
     const authStatus = sessionStorage.getItem('isAuthenticated');
@@ -58,39 +86,6 @@ const AppContent = () => {
     }
   }, [location.pathname]);
 
-  useEffect(() => {
-    let timer;
-    if (isAuthenticated && !sessionExpired) {
-      setCountdown(7200); // reset to 7200 seconds on login
-
-      timer = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            sessionStorage.clear();
-            setSessionExpired(true);
-            setIsAuthenticated(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-
-    return () => clearInterval(timer);
-  }, [isAuthenticated, sessionExpired]);
-
-  const handleSignup = () => {
-    setSessionExpired(false);
-    setIsAuthenticated(true);
-    sessionStorage.setItem('isAuthenticated', 'true');
-  };
-
-  const handleLogin = (authStatus) => {
-    setSessionExpired(false);
-    setIsAuthenticated(authStatus);
-  };
-
   // Show loading screen while checking auth or role
   if (isAuthenticated === null || roleLoading) {
     return (
@@ -102,10 +97,16 @@ const AppContent = () => {
 
   return (
     <>
-      {isAuthenticated && !sessionExpired && <Navbar setIsAuthenticated={setIsAuthenticated} countdown={countdown} />}
+      {isAuthenticated && !sessionExpired && (
+        <Navbar 
+          setIsAuthenticated={setIsAuthenticated} 
+          sessionTimer={sessionTimer} // Pass sessionTimer instead of countdown
+        />
+      )}
       <div className="flex-1 overflow-y-auto">
         <Routes>
           {!isAuthenticated || sessionExpired ? (
+            // Unauthenticated routes - removed fragment wrapper
             <>
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route
@@ -121,11 +122,12 @@ const AppContent = () => {
               <Route path="*" element={sessionExpired ? <Navigate to="/session-expired" replace /> : <Navigate to="/login" replace />} />
             </>
           ) : (
+            // Authenticated routes - removed fragment wrapper
             <>
               <Route path="/" element={<Navigate to="/dashboard" />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/projects" element={<ProjectManagement />} />
-              <Route path="/team" element={<TeamManagement />} />
+              <Route path="/dashboard" element={<MemoizedDashboard />} />
+              <Route path="/projects" element={<MemoizedProjectManagement />} />
+              <Route path="/team" element={<MemoizedTeamManagement />} />
               <Route
                 path="/timesheet"
                 element={
@@ -137,8 +139,8 @@ const AppContent = () => {
                 }
               />
               <Route path="/employee-timesheet" element={<TimesheetManager />} />
-              <Route path="/users" element={<UserManagement />} />
-              <Route path="/po" element={<POManagement />} />
+              <Route path="/users" element={<MemoizedUserManagement />} />
+              <Route path="/po" element={<MemoizedPOManagement />} />
               <Route path="/po-details/:poId" element={<PODetailsPage />} />
               <Route path="/individual-timesheet" element={<IndividualTimesheet />} />
               <Route path="/session-expired" element={<Navigate to="/dashboard" />} />

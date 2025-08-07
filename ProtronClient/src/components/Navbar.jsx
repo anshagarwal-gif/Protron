@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext"; // Import AccessContext
 
-const Navbar = ({ setIsAuthenticated, countdown }) => {
+const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
   const { hasAccess } = useAccess(); // Get access checking function
 
   const [isOpen, setIsOpen] = useState(false);
@@ -14,6 +14,8 @@ const Navbar = ({ setIsAuthenticated, countdown }) => {
   const email = sessionStorage.getItem("email");
   const userDropdownRef = useRef(null);
   const navigate = useNavigate();
+  const [displayCountdown, setDisplayCountdown] = useState(7200);
+  const unregisterRef = useRef(null);
 
   useEffect(() => {
     const handleWindowClose = async (e) => {
@@ -43,7 +45,23 @@ const Navbar = ({ setIsAuthenticated, countdown }) => {
       window.removeEventListener('beforeunload', handleWindowClose);
     };
   }, []);
+  useEffect(() => {
+    if (sessionTimer) {
+      // Get initial countdown value
+      setDisplayCountdown(sessionTimer.getCurrentCountdown());
+      
+      // Register for countdown updates
+      unregisterRef.current = sessionTimer.registerCountdownCallback((newCountdown) => {
+        setDisplayCountdown(newCountdown);
+      });
 
+      return () => {
+        if (unregisterRef.current) {
+          unregisterRef.current();
+        }
+      };
+    }
+  }, [sessionTimer]);
   const handleLogout = async () => {
     const userId = sessionStorage.getItem('userId');
     const token = sessionStorage.getItem('token');
@@ -74,7 +92,12 @@ const Navbar = ({ setIsAuthenticated, countdown }) => {
       }
     }
   };
-
+  const formatTime = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 1024);
@@ -291,13 +314,11 @@ const Navbar = ({ setIsAuthenticated, countdown }) => {
 
                     {/* Actions Section */}
                     <div className="border-t flex flex-col border-gray-100">
-                      <div className="px-6">
+                      {/* <div className="px-6">
                         <span className="text-xs text-red-500">
-                          Session Timeout : {String(Math.floor(countdown / 3600)).padStart(2, '0')}:
-                          {String(Math.floor((countdown % 3600) / 60)).padStart(2, '0')}:
-                          {String(countdown % 60).padStart(2, '0')}
+                          Session expires in: {formatTime(displayCountdown)}
                         </span>
-                      </div>
+                      </div> */}
 
                       <button
                         onClick={handleLogout}
