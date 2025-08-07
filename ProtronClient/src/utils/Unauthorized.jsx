@@ -52,8 +52,6 @@ const Unauthorized = () => {
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            
-            
             <button
               onClick={handleGoBack}
               className="bg-green-600 hover:bg-green-700  text-white font-semibold py-3 px-3 rounded-lg shadow-sm transform hover:scale-105 transition-all duration-200 flex justify-around items-center min-w-30"

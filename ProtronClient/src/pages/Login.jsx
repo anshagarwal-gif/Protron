@@ -27,49 +27,56 @@ const Login = ({ setIsAuthenticated }) => {
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Basic validation
         if (!email || !password) {
             setError('All fields are required');
             return;
         }
 
-        setIsLoading(true); // Start loader
+        setIsLoading(true);
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/login`, {
-                email,
-                password,
-                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-            });
-            console.log('Login successful:', response.data);
+            const response = await axios.post(
+                `${import.meta.env.VITE_API_URL}/api/users/login`,
+                {
+                    email,
+                    password,
+                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                }
+            );
+
+            const data = response.data;
 
             setSnackbar({
                 open: true,
                 message: 'Login successful!',
                 severity: 'success',
             });
-            sessionStorage.setItem('token', response.data.token);
-            sessionStorage.setItem('email', response.data.email);
-            sessionStorage.setItem('tenantId', response.data.tenantId);
-            sessionStorage.setItem('userId', response.data.userId);
-            sessionStorage.setItem('tenantName', response.data.tenantName);
+
+            sessionStorage.setItem('token', data.token);
+            sessionStorage.setItem('email', data.email);
+            sessionStorage.setItem('tenantId', data.tenantId);
+            sessionStorage.setItem('userId', data.userId);
+            sessionStorage.setItem('tenantName', data.tenantName);
+            sessionStorage.setItem('isAuthenticated', 'true');
+
             updateSession({
-                token: response.data.token,
-                email: response.data.email,
-                tenantId: response.data.tenantId,
-                userId: response.data.userId,
-                tenantName: response.data.tenantName
+                token: data.token,
+                email: data.email,
+                tenantId: data.tenantId,
+                userId: data.userId,
+                tenantName: data.tenantName,
             });
-            setRoleAccessRights(response.data.roleAccessRights);
-            setUserAccessRights(response.data.userAccessRights);
-            setRole(response.data.role);
+
+            setRoleAccessRights(data.roleAccessRights);
+            setUserAccessRights(data.userAccessRights);
+            setRole(data.role);
             setIsAuthenticated(true);
-            sessionStorage.setItem('isAuthenticated', true);
-            navigate('/dashboard');
-            
+
+            setTimeout(() => {
+                navigate('/dashboard');
+            }, 5000); 
         } catch (error) {
             setSnackbar({
                 open: true,
@@ -78,9 +85,10 @@ const Login = ({ setIsAuthenticated }) => {
             });
             console.error('Login failed:', error.response?.data);
         } finally {
-            setIsLoading(false); // Stop loader
+            setIsLoading(false);
         }
     };
+
 
     if (showForgotPassword) {
         return (
@@ -148,7 +156,7 @@ const Login = ({ setIsAuthenticated }) => {
                     </div>
 
                     <div className="text-right mb-6">
-                        <button 
+                        <button
                             type="button"
                             onClick={() => setShowForgotPassword(true)}
                             className="text-blue-600 text-sm hover:underline"
@@ -159,9 +167,8 @@ const Login = ({ setIsAuthenticated }) => {
 
                     <button
                         type="submit"
-                        className={`w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                            isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                        className={`w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                         disabled={isLoading} // Disable button when loading
                     >
                         {isLoading ? 'Signing in...' : 'Sign in'}

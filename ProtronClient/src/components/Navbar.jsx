@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext"; // Import AccessContext
 
-const Navbar = ({ setIsAuthenticated }) => {
+const Navbar = ({ setIsAuthenticated, countdown }) => {
   const { hasAccess } = useAccess(); // Get access checking function
 
   const [isOpen, setIsOpen] = useState(false);
@@ -211,8 +211,8 @@ const Navbar = ({ setIsAuthenticated }) => {
                       key={item.key}
                       onClick={() => navigate(item.path)}
                       className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${currentPath === item.path
-                          ? "bg-white text-green-900 shadow-sm"
-                          : "text-white/90 hover:text-white hover:bg-white/20"
+                        ? "bg-white text-green-900 shadow-sm"
+                        : "text-white/90 hover:text-white hover:bg-white/20"
                         }`}
                     >
                       <item.icon size={18} className="mr-2" />
@@ -290,7 +290,15 @@ const Navbar = ({ setIsAuthenticated }) => {
                     </div>
 
                     {/* Actions Section */}
-                    <div className="border-t border-gray-100">
+                    <div className="border-t flex flex-col border-gray-100">
+                      <div className="px-6">
+                        <span className="text-xs text-red-500">
+                          Session Timeout : {String(Math.floor(countdown / 3600)).padStart(2, '0')}:
+                          {String(Math.floor((countdown % 3600) / 60)).padStart(2, '0')}:
+                          {String(countdown % 60).padStart(2, '0')}
+                        </span>
+                      </div>
+
                       <button
                         onClick={handleLogout}
                         className="flex w-full items-center px-6 py-4 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200 group"
@@ -333,8 +341,8 @@ const Navbar = ({ setIsAuthenticated }) => {
                       <button
                         onClick={() => handleNavItemClick(item.key)}
                         className={`w-full text-left flex items-center px-4 py-3 rounded-lg transition-colors duration-200 ${currentPath === item.path
-                            ? "bg-green-100 text-green-900 border-l-4 border-green-500"
-                            : "text-gray-700 hover:bg-gray-100"
+                          ? "bg-green-100 text-green-900 border-l-4 border-green-500"
+                          : "text-gray-700 hover:bg-gray-100"
                           }`}
                       >
                         <item.icon size={20} className="mr-3" />
