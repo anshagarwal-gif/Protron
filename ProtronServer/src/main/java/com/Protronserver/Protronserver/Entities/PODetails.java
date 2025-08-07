@@ -17,51 +17,51 @@ public class PODetails {
     @Column(name = "po_id")
     private Long poId;
 
-    @Column(name = "po_number", length = 250, unique = true)
+    @Column(name = "po_number", unique = true)
     private String poNumber;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "po_type", length = 50)
     private POType poType;
 
-    @Column(name = "po_desc", length = 500)
+    @Column(name = "po_desc")
     private String poDesc;
 
-    @Column(name = "po_amount", precision = 10, scale = 2)
+    @Column(name = "po_amount")
     private BigDecimal poAmount;
 
-    @Column(name = "po_currency", length = 10)
+    @Column(name = "po_currency")
     private String poCurrency;
 
-    @Column(name = "po_spoc", length = 100)
+    @Column(name = "po_spoc")
     private String poSpoc;
 
-    @Column(name = "supplier", length = 250)
+    @Column(name = "supplier")
     private String supplier;
 
-    @Column(name = "customer", length = 250)
+    @Column(name = "customer")
     private String customer;
 
-    @Column(name="sponsor_name", length = 250)
+    @Column(name = "sponsor_name")
     private String sponsorName;
 
-    @Column(name="sponsor_lob", length = 250)
+    @Column(name = "sponsor_lob")
     private String sponsorLob;
 
-    @Column(name="budget_line_item", length = 250)
+    @Column(name = "budget_line_item")
     private String budgetLineItem;
-    @Column(name="budget_line_amount", precision = 10, scale = 2)
+    @Column(name = "budget_line_amount")
     private BigDecimal budgetLineAmount;
-    @Column(name="budget_line_remarks", length = 500)
+    @Column(name = "budget_line_remarks")
     private String budgetLineRemarks;
 
-    @Column(name="business_value_amount", precision = 10, scale = 2)
+    @Column(name = "business_value_amount")
     private BigDecimal businessValueAmount;
 
-    @Column(name="po_country", length = 100)
+    @Column(name = "po_country")
     private String poCountry;
 
-    @Column(name = "project_name", length = 250)
+    @Column(name = "project_name")
     private String projectName;
 
     @Column(name = "po_startdate")
@@ -100,7 +100,6 @@ public class PODetails {
     }
 
     // Getters and Setters
-
 
     public BigDecimal getBusinessValueAmount() {
         return businessValueAmount;

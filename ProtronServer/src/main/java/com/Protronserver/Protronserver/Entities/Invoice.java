@@ -47,10 +47,10 @@ public class Invoice {
     @Column(nullable = false)
     private String employeeName;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false)
     private BigDecimal rate;
 
-    @Column(nullable = false, length = 3)
+    @Column(nullable = false)
     private String currency;
 
     @Column(nullable = false)
@@ -62,7 +62,7 @@ public class Invoice {
     @Column(nullable = false)
     private Integer hoursSpent;
 
-    @Column(nullable = false, precision = 15, scale = 2)
+    @Column(nullable = false)
     private BigDecimal totalAmount;
 
     @Column(columnDefinition = "TEXT")

@@ -18,19 +18,19 @@ public class POMilestone {
     @JoinColumn(name = "po_id", referencedColumnName = "po_id", nullable = false)
     private PODetails poDetail;
 
-    @Column(name = "po_number", length = 250)
+    @Column(name = "po_number")
     private String poNumber;
 
-    @Column(name = "ms_name", length = 250)
+    @Column(name = "ms_name")
     private String msName;
 
-    @Column(name = "ms_desc", length = 500)
+    @Column(name = "ms_desc")
     private String msDesc;
 
     @Column(name = "ms_amount")
     private Integer msAmount;
 
-    @Column(name = "ms_currency", length = 10)
+    @Column(name = "ms_currency")
     private String msCurrency;
 
     @Column(name = "ms_date")
@@ -39,7 +39,7 @@ public class POMilestone {
     @Column(name = "ms_duration")
     private Integer msDuration;
 
-    @Column(name = "ms_remarks", length = 500)
+    @Column(name = "ms_remarks")
     private String msRemarks;
 
     @Column(name = "start_timestamp")

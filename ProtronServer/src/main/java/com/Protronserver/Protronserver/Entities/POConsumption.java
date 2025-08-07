@@ -17,7 +17,7 @@ public class POConsumption {
     @Column(name = "utilization_id")
     private Long utilizationId;
 
-    @Column(name = "po_number", nullable = false, length = 250)
+    @Column(name = "po_number", nullable = false)
     private String poNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,7 +31,7 @@ public class POConsumption {
     @Column(name = "currency")
     private String currency;
 
-    @Column(name = "utilization_type", length = 10)
+    @Column(name = "utilization_type")
     private String utilizationType;
 
     @Column(name = "resource")
@@ -71,7 +71,6 @@ public class POConsumption {
     private static final List<String> ALLOWED_TYPES = Arrays.asList("Fixed", "T&M", "Mixed");
 
     // ------------------ Getters and Setters ------------------
-
 
     public String getResource() {
         return resource;
