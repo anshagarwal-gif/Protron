@@ -270,10 +270,10 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     const uploadError = await uploadResponse.text();
                     console.warn(`Attachment upload failed: ${file.name} - ${uploadError}`);
                     setSnackbar({
-                    open: true,
-                    message: "Attachment upload failed",
-                    severity: "error"
-                });
+                        open: true,
+                        message: "Attachment upload failed",
+                        severity: "error"
+                    });
                     // Optionally: show error toast or retry
                 }
             }
@@ -424,113 +424,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         setPoFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
     };
 
-    // const handleSubmit = async () => {
-    //     try {
-    //         const poPayload = {
-    //             poNumber: formData.poNumber,
-    //             poType: formData.poType,
-    //             poDesc: formData.projectDescription || '',
-    //             poAmount: parseFloat(formData.poAmount) || 0,
-    //             poCurrency: formData.currency,
-    //             poSpoc: formData.spocName,
-    //             supplier: formData.supplierName,
-    //             customer: formData.customerName,
-    //             sponsorName: formData.sponsorName || '',
-    //             sponsorLob: formData.sponsorLob || '',
-    //             projectName: formData.projectName,
-    //             poStartDate: formData.startDate || null,
-    //             poEndDate: formData.endDate || null,
-    //         };
-
-    //         const token = sessionStorage.getItem('token');
-    //         const response = await fetch(
-    //             `${import.meta.env.VITE_API_URL}/api/po/add`,
-    //             {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'Authorization': `${token}`,
-    //                     'Content-Type': 'application/json'
-    //                 },
-    //                 body: JSON.stringify(poPayload)
-    //             }
-    //         );
-
-    //         if (response.ok) {
-    //             const poData = await response.json();
-    //             console.log('PO Created:', poData);
-    //             const currentUser = sessionStorage.getItem('username') || 'system';
-
-    //             // Upload PO Attachments (up to 4)
-    //             if (formData.poAttachments.length > 0) {
-    //                 for (const [index, file] of formData.poAttachments.entries()) {
-    //                     await uploadAttachment(poData.poNumber, 'PO', null, `po_attachment${index + 1}`, file, currentUser);
-    //                 }
-    //             }
-
-    //             // Upload Milestone Attachments with a 4-file limit
-    //             if (formData.milestones.length > 0) {
-    //                 let milestoneAttachmentCount = 0;
-    //                 for (const milestone of formData.milestones) {
-    //                     if (milestone.milestoneName && milestone.milestoneName.trim()) {
-    //                         const milestonePayload = {
-    //                             msName: milestone.milestoneName,
-    //                             msDesc: milestone.milestoneDescription || '',
-    //                             msAmount: parseInt(milestone.amount) || 0,
-    //                             msCurrency: milestone.currency || formData.currency,
-    //                             msDate: milestone.date || null,
-    //                             msDuration: parseInt(milestone.duration) || 0,
-    //                             msRemarks: milestone.remark || '',
-    //                             poId: poData.poId || poData.id,
-    //                             poNumber: formData.poNumber
-    //                         };
-
-    //                         const milestoneResponse = await fetch(
-    //                             `${import.meta.env.VITE_API_URL}/api/po-milestone/add`,
-    //                             {
-    //                                 method: 'POST',
-    //                                 headers: {
-    //                                     'Authorization': `${token}`,
-    //                                     'Content-Type': 'application/json'
-    //                                 },
-    //                                 body: JSON.stringify(milestonePayload)
-    //                             }
-    //                         );
-
-    //                         if (milestoneResponse.ok) {
-    //                             const milestoneData = await milestoneResponse.json();
-    //                             console.log('Milestone created:', milestoneData);
-
-    //                             // If this milestone has an attachment, upload it, respecting the limit
-    //                             if (milestone.attachment) {
-    //                                 milestoneAttachmentCount++;
-    //                                 if (milestoneAttachmentCount <= 4) {
-    //                                     await uploadAttachment(poData.poNumber, 'MS', milestoneData.msId, `ms_attachment${milestoneAttachmentCount}`, milestone.attachment, currentUser);
-    //                                 } else {
-    //                                     console.warn(`Skipping milestone attachment upload: Maximum of 4 milestone attachments reached.`);
-    //                                     alert('Warning: Maximum of 4 milestone attachments reached. Some files were not uploaded.');
-    //                                 }
-    //                             }
-    //                         } else {
-    //                             const milestoneError = await milestoneResponse.text();
-    //                             console.error('Milestone creation error:', milestoneError);
-    //                         }
-    //                     }
-    //                 }
-    //             }
-
-    //             onSubmit?.(poData);
-    //             handleReset();
-    //             onClose();
-    //         } else {
-    //             const errorData = await response.text();
-    //             console.error('PO Creation Error:', errorData);
-    //             alert('Failed to create PO. Please check the console for details.');
-    //         }
-    //     } catch (error) {
-    //         console.error('Error creating PO:', error);
-    //         alert('Network error. Please try again.');
-    //     }
-    // };
 
     const handleReset = () => {
         setFormData({
@@ -1059,48 +952,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
                                 </div>
 
-                                <div className="lg:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        PO Attachments (Max 4)
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="file"
-                                            id="po-attachment-input"
-                                            multiple
-                                            onChange={handleFileChange}
-                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                            className="hidden"
-                                        />
-                                        <label
-                                            htmlFor="po-attachment-input"
-                                            className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
-                                        >
-                                            <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                            <span className="text-gray-500 truncate">
-                                                {poFiles.length > 0 ? `${poFiles.length} file(s) selected` : 'Click to select files'}
-                                            </span>
-                                        </label>
-                                    </div>
-
-                                    <ul className="mt-2 text-sm text-gray-700 space-y-1">
-                                        {poFiles.map((file, index) => (
-                                            <li
-                                                key={index}
-                                                className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                                            >
-                                                <span className="truncate max-w-[220px]" title={file.name}>{file.name}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeAttachment(index)}
-                                                    className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                
 
                                 <div>
 
@@ -1128,9 +980,57 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             title={formData.budgetLineRemarks || 'Enter budget line remarks'}
                                         />
                                     </div>
+                                    <div className="lg:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        PO Attachments (Max 4)
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="file"
+                                            id="po-attachment-input"
+                                            multiple
+                                            onChange={handleFileChange}
+                                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                            className="hidden"
+                                        />
+                                        <label
+                                            htmlFor="po-attachment-input"
+                                            className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
+                                        >
+                                            <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                                            <span className="text-gray-500 truncate">
+                                                {poFiles.length > 0 ? `${poFiles.length} file(s) selected` : 'Click to select files'}
+                                            </span>
+                                        </label>
+                                    </div>
+
+                                    <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                                        {poFiles.map((file, index) => (
+                                            <li
+                                                key={index}
+                                                className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]"
+                                            >
+                                                <span className="truncate max-w-[100px]" title={file.name}>
+                                                    {file.name}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeAttachment(index)}
+                                                    className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+
                                 </div>
+                                </div>
+                                
                             </div>
+                            
                         )}
+                        
 
                         {currentStep === 2 && (
                             <div className="space-y-6">
@@ -1172,6 +1072,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                             </div>
                         )}
                     </div>
+                    
 
                     <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
                         {currentStep === 1 ? (

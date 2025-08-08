@@ -710,49 +710,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
 
 
             {/* Row 2: SRN Name and Attachment */}
-            <div className="grid grid-cols-6  gap-4">
-
-              <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Paperclip size={14} className="inline mr-1" />
-                  SRN Attachments (Max 4)
-                </label>
-
-                <input
-                  type="file"
-                  name="srnAttachment"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-                  disabled={loading || initialLoading}
-                  multiple
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  title="Upload document or image file (max 10MB)"
-                />
-
-                {/* Display existing and newly added attachments */}
-                <ul className="mt-2 text-xs text-gray-700 space-y-1">
-                  {srnAttachments.map((file, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                    >
-                      <span className="truncate max-w-[200px]" title={file.fileName || file.name}>{file.fileName || file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeAttachment(index)}
-                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
-                )}
-              </div>
-            </div>
+            
 
             {/* Row 3: SRN Description */}
             <div>
@@ -801,6 +759,49 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 <p className="mt-1 text-sm text-red-600">{errors.srnRemarks}</p>
               )}
             </div>
+            <div className="grid grid-cols-6  gap-4">
+
+              <div className="">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Paperclip size={14} className="inline mr-1" />
+                  SRN Attachments (Max 4)
+                </label>
+
+                <input
+                  type="file"
+                  name="srnAttachment"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  disabled={loading || initialLoading}
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  title="Upload document or image file (max 10MB)"
+                />
+
+                {/* Display existing and newly added attachments */}
+
+                {errors.attachment && (
+                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
+                )}
+              </div>
+            </div>
+                <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+                  {srnAttachments.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                    >
+                      <span className="truncate max-w-[100px]" title={file.fileName || file.name}>{file.fileName || file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(index)}
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
           </form>
         </div>
 

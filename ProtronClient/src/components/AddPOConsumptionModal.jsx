@@ -837,53 +837,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
             </div>
 
             {/* Row 3: Work Assign Date, Work Completion Date, and Attachment */}
-            <div className="grid grid-cols-5 gap-4">
-
-
-              <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Paperclip size={14} className="inline mr-1" />
-                  PO Consumption Attachments (Max 4)
-                </label>
-
-                <input
-                  type="file"
-                  name="poConsumptionAttachment"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-                  disabled={loading}
-                  multiple
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  title="Upload document or image file (max 10MB)"
-                />
-
-                {/* Selected Files List */}
-                <ul className="mt-2 text-xs text-gray-700 space-y-1">
-                  {poConsumptionFiles.map((file, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                    >
-                      <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removePOConsumptionFile(index)}
-                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
-                )}
-              </div>
-
-              <div className=""></div> {/* Spacer */}
-            </div>
-
+            
             {/* Row 4: Work Description */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -938,6 +892,51 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               )}
             </div>
           </div>
+          <div className="grid grid-cols-5 gap-4">
+
+
+              <div className="">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Paperclip size={14} className="inline mr-1" />
+                  PO Consumption Attachments (Max 4)
+                </label>
+
+                <input
+                  type="file"
+                  name="poConsumptionAttachment"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  disabled={loading}
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  title="Upload document or image file (max 10MB)"
+                />
+
+                {/* Selected Files List */}
+
+                {errors.attachment && (
+                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
+                )}
+              </div>
+            </div>
+                <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+                  {poConsumptionFiles.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                    >
+                      <span className="truncate max-w-[150px]" title={file.name}>{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removePOConsumptionFile(index)}
+                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
 
           {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">

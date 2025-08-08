@@ -1088,46 +1088,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
 
                             </div>
-                            <div className="lg:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="po-attachment-input"
-                                        multiple
-                                        onChange={handleFileChange}
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                        className="hidden"
-                                    />
-                                    <label
-                                        htmlFor="po-attachment-input"
-                                        className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
-                                    >
-                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                        <span className="text-gray-500 truncate">
-                                            {poAttachments.length > 0 ? `${poAttachments.length} file(s) selected` : 'Click to select files'}
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <ul className="mt-2 text-sm text-gray-700 space-y-1">
-                                    {poAttachments.map((file, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                                        >
-                                            <span className="truncate max-w-[220px]" title={file.fileName}>{file.fileName}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeAttachment(index)}
-                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                            >
-                                                Delete
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                            
                             <div>
 
                                 <div>
@@ -1156,6 +1117,46 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         placeholder="Enter Budget Line Remarks"
                                     />
                                 </div>
+                                <div className="lg:col-span-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="po-attachment-input"
+                                        multiple
+                                        onChange={handleFileChange}
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                        className="hidden"
+                                    />
+                                    <label
+                                        htmlFor="po-attachment-input"
+                                        className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
+                                    >
+                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                                        <span className="text-gray-500 truncate">
+                                            {poAttachments.length > 0 ? `${poAttachments.length} file(s) selected` : 'Click to select files'}
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                                    {poAttachments.map((file, index) => (
+                                        <li
+                                            key={index}
+                                            className="flex max-w-[150px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                        >
+                                            <span className="truncate max-w-[220px]" title={file.name}>{file.name}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeAttachment(index)}
+                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                            >
+                                                Delete
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                             </div>
 
                         </div>
