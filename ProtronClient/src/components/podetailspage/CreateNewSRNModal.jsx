@@ -643,51 +643,7 @@ const getCurrencySymbol = (currency) => {
                                 </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-6 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachments (Max 4)</label>
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="srn-attachment-input"
-                                        onChange={handleFileChange}
-                                        name="srnAttachment"
-                                        className="hidden"
-                                        disabled={loading}
-                                        multiple
-                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                                    />
-                                    <label
-                                        htmlFor="srn-attachment-input"
-                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
-                                    >
-                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                        <span className="text-gray-500 truncate">
-                                            {srnFiles.length > 0 ? `${srnFiles.length} file(s) selected` : 'Click to select files'}
-                                        </span>
-                                    </label>
-                                </div>
-
-                                {/* List of selected files */}
-                                <ul className="mt-2 text-sm text-gray-700 space-y-1">
-                                    {srnFiles.map((file, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                                        >
-                                            <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSRNAttachment(index)}
-                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                            >
-                                                Delete
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
+                        
                         <div>
                             <label htmlFor="srnDsc" className="block text-sm font-medium text-gray-700 mb-2">
                                 SRN Description
@@ -725,6 +681,52 @@ const getCurrencySymbol = (currency) => {
                                 title={formData.srnRemarks ? `SRN Remarks (${formData.srnRemarks.length}/500 chars): ${formData.srnRemarks}` : "Enter SRN remarks (optional)"}
                             />
                         </div>
+                        <div className="grid grid-cols-6 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachments (Max 4)</label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="srn-attachment-input"
+                                        onChange={handleFileChange}
+                                        name="srnAttachment"
+                                        className="hidden"
+                                        disabled={loading}
+                                        multiple
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                                    />
+                                    <label
+                                        htmlFor="srn-attachment-input"
+                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
+                                    >
+                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                                        <span className="text-gray-500 truncate">
+                                            {srnFiles.length > 0 ? `${srnFiles.length} file(s) selected` : 'Click to select files'}
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* List of selected files */}
+                                
+                            </div>
+                        </div>
+                        <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                                    {srnFiles.map((file, index) => (
+                                        <li
+                                            key={index}
+                                            className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                        >
+                                            <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeSRNAttachment(index)}
+                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                            >
+                                                Delete
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
 
                         <div className='flex justify-end space-x-4'>
                             <button

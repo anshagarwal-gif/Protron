@@ -594,37 +594,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   />
                 </div>
 
-                <div className="col-span-3">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    <FileText size={14} className="inline mr-1" />
-                    Attachments (Max 4)
-                  </label>
-                  <input
-                    type="file"
-                    name="msAttachment"
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                    disabled={loading}
-                    multiple
-                  />
-                  <ul className="mt-2 text-xs text-gray-700 space-y-1">
-                    {milestoneAttachments.map((file, index) => (
-                      <li key={index} className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded">
-                        <span className="truncate max-w-[200px]" title={file.fileName || file.name}>
-                          {file.fileName || file.name}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeAttachment(index)}
-                          className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                        >
-                          Delete
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                
               </div>
 
               {/* Row 3: Description (large box for extensive text) */}
@@ -674,6 +644,37 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   <p className="mt-1 text-xs text-red-600">{errors.msRemarks}</p>
                 )}
               </div>
+              <div className="col-span-3 max-w-[300px]">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <FileText size={14} className="inline mr-1" />
+                    Attachments (Max 4)
+                  </label>
+                  <input
+                    type="file"
+                    name="msAttachment"
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
+                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                    disabled={loading}
+                    multiple
+                  />
+                </div>
+                  <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+                    {milestoneAttachments.map((file, index) => (
+                      <li key={index} className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded">
+                        <span className="truncate max-w-[100px]" title={file.fileName || file.name}>
+                          {file.fileName || file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(index)}
+                          className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
             </div>
 
             {/* Form Actions */}

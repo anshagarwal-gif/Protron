@@ -701,43 +701,7 @@ const handleAmountChange = (e) => {
                             </div>
                         </div>
 
-                        <div className="">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                PO Consumption Attachments (Max 4)
-                            </label>
-
-                            <input
-                                type="file"
-                                name="poConsumptionAttachment"
-                                onChange={handleFileChange}
-                                className="w-full px-4 h-10 text-sm border border-gray-300 rounded-md file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-                                disabled={loading}
-                                multiple
-                                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                                title="Upload document or image file (max 10MB)"
-                            />
-
-                            {/* Selected Files List */}
-                            <ul className="mt-2 text-xs text-gray-700 space-y-1">
-                                {poConsumptionFiles.map((file, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                                    >
-                                        <span className="truncate max-w-[200px]" title={file.name}>
-                                            {file.name}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => removePOConsumptionFile(index)}
-                                            className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                        >
-                                            Delete
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
+                        
 
                         <div>
                             <label htmlFor="description" className='block text-sm font-medium text-gray-700 mb-2'>
@@ -772,6 +736,45 @@ const handleAmountChange = (e) => {
                                 maxLength={500}
                             />
                         </div>
+                        <div className="max-w-[400px]">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                PO Consumption Attachments (Max 4)
+                            </label>
+
+                            <input
+                                type="file"
+                                name="poConsumptionAttachment"
+                                onChange={handleFileChange}
+                                className="w-full px-4 h-10 text-sm border border-gray-300 rounded-md file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                                disabled={loading}
+                                multiple
+                                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                                title="Upload document or image file (max 10MB)"
+                            />
+
+                            {/* Selected Files List */}
+                            
+
+                        </div>
+                        <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+                                {poConsumptionFiles.map((file, index) => (
+                                    <li
+                                        key={index}
+                                        className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                    >
+                                        <span className="truncate max-w-[200px]" title={file.name}>
+                                            {file.name}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => removePOConsumptionFile(index)}
+                                            className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                        >
+                                            Delete
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
 
                         <div className='flex justify-end space-x-4'>
                             <button
