@@ -314,11 +314,11 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
 
                     {/* Actions Section */}
                     <div className="border-t flex flex-col border-gray-100">
-                      {/* <div className="px-6">
+                      <div className="px-6">
                         <span className="text-xs text-red-500">
                           Session expires in: {formatTime(displayCountdown)}
                         </span>
-                      </div> */}
+                      </div>
 
                       <button
                         onClick={handleLogout}

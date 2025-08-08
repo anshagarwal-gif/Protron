@@ -43,9 +43,7 @@ export const useSessionTimer = (isAuthenticated, sessionExpired, onSessionExpire
       countdownRef.current -= 1;
       
       // Notify callbacks every 10 seconds or when close to expiry to reduce updates
-      if (countdownRef.current % 10 === 0 || countdownRef.current <= 60) {
         notifyCallbacks(countdownRef.current);
-      }
 
       if (countdownRef.current <= 0) {
         clearInterval(timerRef.current);

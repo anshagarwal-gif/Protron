@@ -74,9 +74,9 @@ const Login = ({ setIsAuthenticated }) => {
             setRole(data.role);
             setIsAuthenticated(true);
 
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 5000); 
+            // setTimeout(() => {
+            //     navigate('/dashboard');
+            // }, 5000); 
         } catch (error) {
             setSnackbar({
                 open: true,

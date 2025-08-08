@@ -79,11 +79,14 @@ const TimesheetManager = () => {
 
   // Format date for display
   const formatDate = (date) => {
-    return date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short'
-    });
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
+
+
 
   const getWeekdays = () => {
     const days = [];
@@ -209,7 +212,12 @@ const TimesheetManager = () => {
     const weekdays = getWeekdays();
 
     const dayColumns = weekdays.map((day, index) => ({
-      headerName: day.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }),
+      headerName: day.toLocaleDateString('en-GB', {
+        timeZone: 'UTC',
+        day: '2-digit',
+        month: 'short',
+        year: '2-digit'
+      }),
       field: `day${index}`,
       cellRenderer: DayCellRenderer,
       valueGetter: (params) => params.data.dailyHours?.[index],
@@ -581,33 +589,33 @@ const TimesheetManager = () => {
                 </div>
 
                 {isOpen && (
-          <DatePicker
-            open
-            onClose={() => setIsOpen(false)}
-            value={dayjs(currentWeek)}
-            onChange={(newDate) => {
-              setCurrentWeek(newDate);
-              setIsOpen(false);
-            }}
-            slotProps={{
-              textField: {
-                style: { display: 'none' }
-              },
-              popper: {
-                placement: 'bottom-start',
-                modifiers: [
-                  {
-                    name: 'offset',
-                    options: {
-                      offset: [0, 4], // Optional spacing
-                    },
-                  },
-                ],
-                anchorEl: spanRef.current // 🎯 anchor to span
-              }
-            }}
-          />
-        )}
+                  <DatePicker
+                    open
+                    onClose={() => setIsOpen(false)}
+                    value={dayjs(currentWeek)}
+                    onChange={(newDate) => {
+                      setCurrentWeek(newDate);
+                      setIsOpen(false);
+                    }}
+                    slotProps={{
+                      textField: {
+                        style: { display: 'none' }
+                      },
+                      popper: {
+                        placement: 'bottom-start',
+                        modifiers: [
+                          {
+                            name: 'offset',
+                            options: {
+                              offset: [0, 4], // Optional spacing
+                            },
+                          },
+                        ],
+                        anchorEl: spanRef.current // 🎯 anchor to span
+                      }
+                    }}
+                  />
+                )}
 
                 {/* Search Bar */}
                 <div className="relative">
