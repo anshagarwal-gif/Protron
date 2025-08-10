@@ -31,7 +31,7 @@ public class InvoiceResponseDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate toDate;
 
-    private Integer hoursSpent;
+    private Double hoursSpent;
     private BigDecimal totalAmount;
     private String remarks;
     private String pdfFileName;
@@ -144,11 +144,11 @@ public class InvoiceResponseDTO {
         this.toDate = toDate;
     }
 
-    public Integer getHoursSpent() {
+    public Double getHoursSpent() {
         return hoursSpent;
     }
 
-    public void setHoursSpent(Integer hoursSpent) {
+    public void setHoursSpent(Double hoursSpent) {
         this.hoursSpent = hoursSpent;
     }
 

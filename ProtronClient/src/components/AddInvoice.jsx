@@ -55,7 +55,8 @@ const AddInvoiceModal = ({
         toDate: '',
         hoursSpent: '',
         totalAmount: '',
-        remarks: ''
+        remarks: '',
+        employeeId: ''
     });
 
     const [customers, setCustomers] = useState([]);
@@ -67,6 +68,8 @@ const AddInvoiceModal = ({
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [loadingEmployees, setLoadingEmployees] = useState(false);
+    const [fetchedTasks, setFetchedTasks] = useState([]);
+    const [fetchingTasks, setFetchingTasks] = useState(false);
 
     // Single attachment field that handles multiple files (up to 4)
     const [attachments, setAttachments] = useState([]);
@@ -80,6 +83,78 @@ const AddInvoiceModal = ({
     const fromDateInputRef = useRef(null);
     const toDateInputRef = useRef(null);
     const fileInputRef = useRef(null);
+
+    const getMonthDiff = (d1, d2) => {
+        const date1 = new Date(d1);
+        const date2 = new Date(d2);
+        let months;
+        months = (date2.getFullYear() - date1.getFullYear()) * 12;
+        months -= date1.getMonth();
+        months += date2.getMonth();
+        return months + (date2.getDate() >= date1.getDate() ? 0 : -1);
+    };
+
+    // ...existing code...
+    useEffect(() => {
+        const fetchTasksForRange = async () => {
+            if (
+                formData.fromDate &&
+                formData.toDate &&
+                formData.employeeName &&
+                employees.length > 0
+            ) {
+                const selectedEmployee = employees.find(emp => emp.userId === formData.employeeId);
+                if (!selectedEmployee || !selectedEmployee.userId) return;
+
+                setFetchingTasks(true);
+                try {
+                    const res = await axios.get(
+                        `${API_BASE_URL}/api/timesheet-tasks/admin-between`,
+                        {
+                            params: {
+                                start: (() => {
+                                    const d = new Date(formData.fromDate);
+                                    d.setDate(d.getDate() - 1);
+                                    return d.toISOString().split('T')[0];
+                                })(),
+                                end: formData.toDate,
+                                userId: selectedEmployee.userId
+                            },
+                            headers: { Authorization: sessionStorage.getItem("token") }
+                        }
+                    );
+                    setFetchedTasks(res.data || []);
+
+                    // Calculate total minutes
+                    let totalMinutes = 0;
+                    (res.data || []).forEach(task => {
+                        totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
+                    });
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    const decimalHours = (hours + minutes / 60).toFixed(2);
+
+                    // Only auto-populate if user hasn't manually changed hoursSpent
+                    setFormData(prev => ({
+                        ...prev,
+                        hoursSpent: decimalHours
+                    }));
+
+                } catch (err) {
+                    setFetchedTasks([]);
+                } finally {
+                    setFetchingTasks(false);
+                }
+            } else {
+                setFetchedTasks([]);
+            }
+        };
+
+        fetchTasksForRange();
+    }, [formData.fromDate, formData.toDate, formData.employeeName, employees]);
+
+
+    // ...existing code...
 
     // Helper functions for timesheet data processing
     const formatDate = (date) =>
@@ -131,76 +206,66 @@ const AddInvoiceModal = ({
         return { hours, minutes };
     };
 
+    // ...existing code...
     const prepareTimesheetData = () => {
-        if (!attachTimesheet || !timesheetData) return null;
+        if (!attachTimesheet || !fetchedTasks.length) return null;
 
-        const dates = getCurrentDates();
-        const timesheetEntries = [];
-        let totalHours = 0;
         let totalMinutes = 0;
-
-        dates.forEach((date) => {
-            const entries = getTimeEntries(date);
-            const dayTotal = getDayTotalTime(date);
-
-            totalHours += dayTotal.hours;
-            totalMinutes += dayTotal.minutes;
-
-            entries.forEach((entry) => {
-                timesheetEntries.push({
-                    date: formatDate(date),
-                    dayOfWeek: date.toLocaleDateString("en-GB", { weekday: "short" }),
-                    isWeekend: isWeekend(date),
-                    taskType: entry.task || entry.fullTask?.taskType || '',
-                    taskTopic: entry.fullTask?.taskTopic || '',
-                    hours: entry.hours || 0,
-                    minutes: entry.minutes || 0,
-                    description: entry.description || '',
-                    project: entry.project?.projectName || '',
-                    submitted: entry.submitted || false
-                });
-            });
-
-            // Add empty row for days with no entries (useful for weekly view)
-            if (entries.length === 0 && viewMode === "Weekly") {
-                timesheetEntries.push({
-                    date: formatDate(date),
-                    dayOfWeek: date.toLocaleDateString("en-GB", { weekday: "short" }),
-                    isWeekend: isWeekend(date),
-                    taskType: '',
-                    taskTopic: '',
-                    hours: 0,
-                    minutes: 0,
-                    description: 'No tasks logged',
-                    project: '',
-                    submitted: false
-                });
-            }
+        const timesheetEntries = fetchedTasks.map(task => {
+            totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
+            return {
+                date: task.date, // format as needed
+                dayOfWeek: new Date(task.date).toLocaleDateString("en-GB", { weekday: "short" }),
+                isWeekend: [0, 6].includes(new Date(task.date).getDay()),
+                taskType: task.taskType || '',
+                taskTopic: task.taskTopic || '',
+                hours: task.hoursSpent || 0,
+                minutes: task.minutesSpent || 0,
+                description: task.description || '',
+                project: task.projectName || '',
+                submitted: task.submitted || false
+            };
         });
 
-        // Handle overflow minutes
-        totalHours += Math.floor(totalMinutes / 60);
-        totalMinutes = totalMinutes % 60;
+        const hours = Math.floor(totalMinutes / 60);
+const minutes = totalMinutes % 60;
+const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
+
+        // Calculate target hours: count working days (Mon-Fri) in the selected range
+        let targetHours = 0;
+        if (formData.fromDate && formData.toDate) {
+            const start = new Date(formData.fromDate);
+            const end = new Date(formData.toDate);
+            let current = new Date(start);
+            while (current <= end) {
+                const day = current.getDay();
+                if (day !== 0 && day !== 6) { // Mon-Fri
+                    targetHours += 8; // or your standard workday hours
+                }
+                current.setDate(current.getDate() + 1);
+            }
+        }
 
         return {
-            viewMode,
-            period: viewMode === "Weekly"
-                ? `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`
-                : `${formatDate(currentMonthRange.start)} - ${formatDate(currentMonthRange.end)}`,
-            employeeName: employee?.name || formData.employeeName,
-            employeeEmail: employee?.email || '',
+            viewMode: "Custom",
+            period: `${formData.fromDate} - ${formData.toDate}`,
+            employeeName: formData.employeeName,
+            employeeEmail: '', // fill if available
             entries: timesheetEntries,
-            totalHours,
-            totalMinutes,
-            targetHours: viewMode === "Weekly" ? 40 : 184
+            totalHours: hours,
+            totalMinutes: minutes,
+            targetHours // now correctly calculated
         };
     };
+    // ...existing code...
 
     // Auto-populate employee fields if coming from timesheet
     useEffect(() => {
+        console.log(employee)
         if (employee && open) {
             setFormData(prev => ({
                 ...prev,
+                employeeId: employee.rawData?.userId || employee.id || "",
                 employeeName: employee.name || '',
                 rate: employee.rawData?.cost || '',
                 currency: employee.rawData?.unit || employee.rawData?.currency || 'USD'
@@ -348,11 +413,38 @@ const AddInvoiceModal = ({
     }, [formData.rate, formData.hoursSpent]);
 
     const handleChange = (field) => (event) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: event.target.value
-        }));
-        // Clear error when user starts typing
+        let value = event.target.value;
+        if (field === 'hoursSpent') {
+            // Allow only numbers and one decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            // Prevent multiple decimals
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+        }
+        setFormData(prev => {
+            let updated = { ...prev, [field]: value };
+
+            // ...existing fromDate/toDate validation logic...
+            if (field === 'fromDate' && prev.toDate) {
+                if (new Date(prev.toDate) < new Date(value) ||
+                    getMonthDiff(value, prev.toDate) > 1 ||
+                    (getMonthDiff(value, prev.toDate) === 1 && new Date(prev.toDate).getDate() > new Date(value).getDate())
+                ) {
+                    updated.toDate = '';
+                }
+            }
+            if (field === 'toDate' && prev.fromDate) {
+                if (new Date(value) < new Date(prev.fromDate) ||
+                    getMonthDiff(prev.fromDate, value) > 1 ||
+                    (getMonthDiff(prev.fromDate, value) === 1 && new Date(value).getDate() > new Date(prev.fromDate).getDate())
+                ) {
+                    return prev;
+                }
+            }
+            return updated;
+        });
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
@@ -412,6 +504,7 @@ const AddInvoiceModal = ({
 
             setFormData(prev => ({
                 ...prev,
+                employeeId: selectedOption.userId || '',
                 employeeName: selectedOption.value,
                 rate: newRate,
                 currency: newCurrency
@@ -419,6 +512,7 @@ const AddInvoiceModal = ({
         } else {
             setFormData(prev => ({
                 ...prev,
+                employeeId: '',
                 employeeName: '',
                 rate: '',
                 currency: 'USD'
@@ -497,7 +591,9 @@ const AddInvoiceModal = ({
         if (!formData.rate || parseFloat(formData.rate) <= 0) newErrors.rate = 'Valid rate is required';
         if (!formData.fromDate) newErrors.fromDate = 'From date is required';
         if (!formData.toDate) newErrors.toDate = 'To date is required';
-        if (!formData.hoursSpent || parseInt(formData.hoursSpent) <= 0) newErrors.hoursSpent = 'Valid hours are required';
+        if (!formData.hoursSpent || isNaN(parseFloat(formData.hoursSpent)) || parseFloat(formData.hoursSpent) <= 0) {
+            newErrors.hoursSpent = 'Valid hours are required';
+        }
 
         if (formData.fromDate && formData.toDate && new Date(formData.toDate) < new Date(formData.fromDate)) {
             newErrors.toDate = 'To date must be after from date';
@@ -525,7 +621,7 @@ const AddInvoiceModal = ({
                 currency: formData.currency,
                 fromDate: formData.fromDate,
                 toDate: formData.toDate,
-                hoursSpent: parseInt(formData.hoursSpent),
+                hoursSpent: parseFloat(formData.hoursSpent),
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
                 remarks: formData.remarks || "",
                 // Include timesheet data if checkbox is checked
@@ -691,30 +787,24 @@ const AddInvoiceModal = ({
         }
     };
     const getTimesheetSummary = () => {
-        if (!attachTimesheet || !timesheetData || !viewMode || (!currentWeekStart && !currentMonthRange)) return null;
+        if (!attachTimesheet || !fetchedTasks.length) return null;
 
-        const dates = getCurrentDates();
-        let totalHours = 0;
         let totalMinutes = 0;
-        let taskCount = 0;
+        let taskCount = fetchedTasks.length;
 
-        dates.forEach((date) => {
-            const { hours, minutes } = getDayTotalTime(date);
-            const entries = getTimeEntries(date);
-            totalHours += hours;
-            totalMinutes += minutes;
-            taskCount += entries.length;
+        fetchedTasks.forEach(task => {
+            totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
         });
 
-        totalHours += Math.floor(totalMinutes / 60);
-        totalMinutes = totalMinutes % 60;
+        const totalHours = Math.floor(totalMinutes / 60);
+        const totalMinutesRemainder = totalMinutes % 60;
 
         return {
-            period: viewMode,
+            period: "Custom",
             totalHours,
-            totalMinutes,
+            totalMinutes: totalMinutesRemainder,
             taskCount,
-            dateRange: `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`
+            dateRange: `${formData.fromDate} - ${formData.toDate}`
         };
     };
 
@@ -942,13 +1032,12 @@ const AddInvoiceModal = ({
                                     Hours Spent *
                                 </label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     placeholder="0"
                                     value={formData.hoursSpent}
                                     onChange={handleChange('hoursSpent')}
                                     className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                    min="1"
                                 />
                                 {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
                             </div>
@@ -973,7 +1062,10 @@ const AddInvoiceModal = ({
                                         onChange={handleChange('fromDate')}
                                         className="w-full bg-transparent outline-none cursor-pointer"
                                         onClick={handleDateInputClick('fromDate')}
-                                        max={formData.toDate}
+                                        max={formData.toDate ? formData.toDate : (() => {
+                                            // If toDate not selected, allow any date, or you can set a max if needed
+                                            return '';
+                                        })()}
                                     />
                                 </div>
                                 {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
@@ -996,6 +1088,12 @@ const AddInvoiceModal = ({
                                         onChange={handleChange('toDate')}
                                         className="w-full bg-transparent outline-none cursor-pointer"
                                         min={formData.fromDate}
+                                        max={formData.fromDate ? (() => {
+                                            const d = new Date(formData.fromDate);
+                                            d.setMonth(d.getMonth() + 2);
+                                            // If the day overflows, JS will auto-correct, so set to last day of next-next month if needed
+                                            return d.toISOString().split('T')[0];
+                                        })() : ''}
                                     />
                                 </div>
                                 {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}

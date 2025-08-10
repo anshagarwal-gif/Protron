@@ -8,6 +8,7 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.draw.LineSeparator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,6 +101,7 @@ public class InvoiceService {
             invoice.setHoursSpent(requestDTO.getHoursSpent());
             invoice.setTotalAmount(totalAmount);
             invoice.setRemarks(requestDTO.getRemarks());
+            invoice.setCreatedAt(LocalDateTime.now());
 
             // Generate PDF
             byte[] pdfBytes = generateInvoicePDF(invoice, requestDTO.getTimesheetData());
@@ -146,6 +150,7 @@ public class InvoiceService {
             invoice.setHoursSpent(requestDTO.getHoursSpent());
             invoice.setTotalAmount(totalAmount);
             invoice.setRemarks(requestDTO.getRemarks());
+            invoice.setCreatedAt(LocalDateTime.now());
 
             // Process attachments (up to 4)
             if (attachments != null && !attachments.isEmpty()) {
@@ -344,6 +349,8 @@ public class InvoiceService {
         // Invoice ID and Name
         document.add(new Paragraph("Invoice ID: " + invoice.getInvoiceId(), headerFont));
         document.add(new Paragraph("Invoice Name: " + invoice.getInvoiceName(), normalFont));
+        String createdAtFormatted = formatLocalDateTimeWithSuffix(invoice.getCreatedAt());
+        document.add(new Paragraph("Created At: " + createdAtFormatted, normalFont));
         document.add(new Paragraph(" "));
 
         // Customer and Supplier details table
@@ -381,19 +388,6 @@ public class InvoiceService {
 
         document.add(workTable);
 
-        // Total amount
-        Font totalFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
-        Paragraph total = new Paragraph(
-                "Total Amount: " + invoice.getCurrency() + " " + invoice.getTotalAmount().toString(), totalFont);
-        total.setAlignment(Element.ALIGN_RIGHT);
-        total.setSpacingAfter(20);
-        document.add(total);
-
-        // Add timesheet table if timesheet data is provided
-        if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
-            addTimesheetSection(document, timesheetData, headerFont, normalFont, smallFont);
-        }
-
         // Attachments info
         if (invoice.getAttachmentCount() > 0) {
             document.add(new Paragraph("Attachments:", headerFont));
@@ -404,14 +398,82 @@ public class InvoiceService {
             document.add(new Paragraph(" "));
         }
 
-        // Remarks
         if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
-            document.add(new Paragraph("Remarks:", headerFont));
-            document.add(new Paragraph(invoice.getRemarks(), normalFont));
+            PdfPTable remarksTable = new PdfPTable(3);
+            remarksTable.setWidthPercentage(100);
+            remarksTable.setSpacingBefore(10);
+            remarksTable.setSpacingAfter(10);
+
+            // Set column widths
+            remarksTable.setWidths(new float[]{2f, 8f, 3f});
+
+            // Header cells
+            PdfPCell header1 = new PdfPCell(new Phrase("SR.NO", headerFont));
+            header1.setHorizontalAlignment(Element.ALIGN_CENTER);
+            remarksTable.addCell(header1);
+
+            PdfPCell header2 = new PdfPCell(new Phrase("Remarks", headerFont));
+            header2.setHorizontalAlignment(Element.ALIGN_CENTER);
+            remarksTable.addCell(header2);
+
+            PdfPCell header3 = new PdfPCell(new Phrase("Amount", headerFont));
+            header3.setHorizontalAlignment(Element.ALIGN_CENTER);
+            remarksTable.addCell(header3);
+
+            // Row data
+            PdfPCell cell1 = new PdfPCell(new Phrase("1", normalFont));
+            cell1.setHorizontalAlignment(Element.ALIGN_CENTER);
+            remarksTable.addCell(cell1);
+
+            PdfPCell cell2 = new PdfPCell(new Phrase(invoice.getRemarks(), normalFont));
+            cell2.setHorizontalAlignment(Element.ALIGN_CENTER);
+            remarksTable.addCell(cell2);
+
+            PdfPCell cell3 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
+            cell3.setHorizontalAlignment(Element.ALIGN_CENTER);
+            remarksTable.addCell(cell3);
+
+            document.add(remarksTable);
+        }
+
+        LineSeparator ls = new LineSeparator();
+        ls.setLineWidth(1f); // thickness
+        ls.setPercentage(100); // full page width
+        document.add(new Chunk(ls));
+
+        // Total amount
+        Font totalFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
+        Paragraph total = new Paragraph(
+                "Total Amount: " + invoice.getCurrency() + " " + invoice.getTotalAmount().toString(), totalFont);
+        total.setAlignment(Element.ALIGN_RIGHT);
+        total.setSpacingAfter(20);
+        document.add(total);
+
+        // Add timesheet table if timesheet data is provided
+        if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
+            document.newPage();
+            addTimesheetSection(document, timesheetData, headerFont, normalFont, smallFont);
         }
 
         document.close();
         return baos.toByteArray();
+    }
+
+    private String formatLocalDateTimeWithSuffix(LocalDateTime dateTime) {
+        int day = dateTime.getDayOfMonth();
+        String daySuffix;
+        if (day >= 11 && day <= 13) {
+            daySuffix = "th";
+        } else {
+            switch (day % 10) {
+                case 1:  daySuffix = "st"; break;
+                case 2:  daySuffix = "nd"; break;
+                case 3:  daySuffix = "rd"; break;
+                default: daySuffix = "th"; break;
+            }
+        }
+        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+        return day + daySuffix + " " + dateTime.format(monthYearFormatter);
     }
 
     private String formatDateWithSuffix(LocalDate date) {
@@ -548,6 +610,33 @@ public class InvoiceService {
         table.addCell(descriptionHeader);
     }
 
+    private String formatIsoStringWithSuffix(String isoString) {
+        // Parse the ISO-8601 string
+        OffsetDateTime odt = OffsetDateTime.parse(isoString, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+        // Convert to LocalDate (in system default timezone if needed)
+        LocalDate date = odt.atZoneSameInstant(ZoneId.systemDefault()).toLocalDate();
+
+        // Get day and suffix
+        int day = date.getDayOfMonth();
+        String daySuffix;
+        if (day >= 11 && day <= 13) {
+            daySuffix = "th";
+        } else {
+            switch (day % 10) {
+                case 1:  daySuffix = "st"; break;
+                case 2:  daySuffix = "nd"; break;
+                case 3:  daySuffix = "rd"; break;
+                default: daySuffix = "th"; break;
+            }
+        }
+
+        // Format month and year
+        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+        return day + daySuffix + " " + date.format(monthYearFormatter);
+    }
+
+
     /**
      * Add a row to the timesheet table
      */
@@ -555,7 +644,7 @@ public class InvoiceService {
             String viewMode, Font normalFont, Font smallFont) {
 
         // Date cell
-        PdfPCell dateCell = new PdfPCell(new Phrase(entry.getDate(), normalFont));
+        PdfPCell dateCell = new PdfPCell(new Phrase(formatIsoStringWithSuffix(entry.getDate()), normalFont));
         if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
             dateCell.setBackgroundColor(new BaseColor(245, 245, 245)); // Light gray for weekends
         }

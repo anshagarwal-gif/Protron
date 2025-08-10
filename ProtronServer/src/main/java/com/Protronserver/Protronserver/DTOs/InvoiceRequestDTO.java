@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -48,7 +49,7 @@ public class InvoiceRequestDTO {
 
     @NotNull(message = "Hours spent is required")
     @Min(value = 1, message = "Hours spent must be at least 1")
-    private Integer hoursSpent;
+    private Double hoursSpent;
 
     private BigDecimal totalAmount; // Optional, will be calculated if not provided
 
@@ -321,12 +322,12 @@ public class InvoiceRequestDTO {
         this.toDate = toDate;
     }
 
-    public @NotNull(message = "Hours spent is required") @Min(value = 1, message = "Hours spent must be at least 1") Integer getHoursSpent() {
+    public @NotNull(message = "Hours spent is required") @Min(value = 1, message = "Hours spent must be at least 1") Double getHoursSpent() {
         return hoursSpent;
     }
 
     public void setHoursSpent(
-            @NotNull(message = "Hours spent is required") @Min(value = 1, message = "Hours spent must be at least 1") Integer hoursSpent) {
+            @NotNull(message = "Hours spent is required") @Min(value = 1, message = "Hours spent must be at least 1") Double hoursSpent) {
         this.hoursSpent = hoursSpent;
     }
 

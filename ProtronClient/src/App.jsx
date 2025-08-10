@@ -127,7 +127,7 @@ const AppContent = () => {
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<MemoizedDashboard />} />
               <Route path="/projects" element={<MemoizedProjectManagement />} />
-              <Route path="/team" element={<MemoizedTeamManagement />} />
+              {/* <Route path="/team" element={<MemoizedTeamManagement />} /> */}
               <Route
                 path="/timesheet"
                 element={

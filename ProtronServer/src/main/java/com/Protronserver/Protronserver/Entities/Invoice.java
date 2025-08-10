@@ -60,7 +60,7 @@ public class Invoice {
     private LocalDate toDate;
 
     @Column(nullable = false)
-    private Integer hoursSpent;
+    private Double hoursSpent;
 
     @Column(nullable = false)
     private BigDecimal totalAmount;
@@ -255,11 +255,11 @@ public class Invoice {
         this.toDate = toDate;
     }
 
-    public Integer getHoursSpent() {
+    public Double getHoursSpent() {
         return hoursSpent;
     }
 
-    public void setHoursSpent(Integer hoursSpent) {
+    public void setHoursSpent(Double hoursSpent) {
         this.hoursSpent = hoursSpent;
     }
 
