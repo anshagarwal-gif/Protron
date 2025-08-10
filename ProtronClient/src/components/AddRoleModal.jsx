@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, Typography, Box, Paper, Switch, Button, TextField,useMediaQuery, useTheme } from "@mui/material";
-
+import axios from 'axios';
 // Helper to format module names
 const formatModuleName = (moduleName) =>
   moduleName
@@ -19,6 +19,23 @@ const AddRoleModal = ({
   const greenPrimary = "#1b5e20";
   const [roleName, setRoleName] = useState("");
   const [permissions, setPermissions] = useState({});
+  const [modules, setModules] = useState([]);
+
+  console.log(modulesList)
+
+  const fetchModules = async () =>{
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/modules/`, {
+          headers: { Authorization: `${sessionStorage.getItem('token')}` },
+        });
+        let processedModules = response.data.map((module) => {
+return module.moduleName;
+        });
+        setModules(processedModules);
+      } catch (error) {
+        console.error('Error fetching modules:', error);
+      }
+    };
 
   const generateInvoiceModule = import.meta.env.VITE_GENERATE_INVOICE_MODULE;
 
@@ -27,6 +44,7 @@ const AddRoleModal = ({
     if (open) {
       setRoleName("");
       setPermissions({});
+      fetchModules();
     }
   }, [open]);
 
@@ -135,7 +153,7 @@ const AddRoleModal = ({
             Module Permissions
           </Typography>
 
-          {modulesList.length > 0 ? (
+          {modules.length > 0 ? (
             <Box sx={{ 
               bgcolor: "#ffffff", 
               overflowY: "auto",
@@ -198,7 +216,7 @@ const AddRoleModal = ({
 
               {/* Module Rows */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-                {modulesList.map((moduleName, index) => {
+                {modules.map((moduleName, index) => {
                   const formattedModuleName = formatModuleName(moduleName);
 
                   return (

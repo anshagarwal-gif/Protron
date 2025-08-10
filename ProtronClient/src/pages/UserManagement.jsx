@@ -14,7 +14,8 @@ import {
   FileText,
   ShieldCheck,
   Download,
-  Loader2
+  Loader2,
+  UserRoundPen
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
 import AddUserModal from "../components/AcccesModal";
@@ -22,10 +23,12 @@ import axios from "axios";
 import ManageRoleModal from "../components/ManageRoleModal";
 import AddRoleModal from "../components/AddRoleModal";
 import GlobalSnackbar from "../components/GlobalSnackbar";
+import UserEditForm from "../components/UserEditForm"; // Import your user edit form component
 
 const UserManagement = () => {
   const navigate = useNavigate();
 
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -42,6 +45,7 @@ const UserManagement = () => {
   const [error, setError] = useState(null);
   const [roles, setRoles] = useState([]);
   const [modules, setModules] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -61,6 +65,38 @@ const UserManagement = () => {
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
+
+  const handleEditClick = (employee) => {
+        setSelectedEmployee(employee);
+        setIsEditFormOpen(true);
+    };
+
+    const handleEditSubmit = async (updatedData) => {
+            try {
+                const res = await axios.put(
+                    `${import.meta.env.VITE_API_URL}/api/users/${selectedEmployee.userId}/editable-details`,
+                    updatedData,
+                    {
+                        headers: { Authorization: `${sessionStorage.getItem('token')}` },
+                    }
+                );
+                setSnackbar({
+                    open: true,
+                    message: 'User updated successfully!',
+                    severity: 'success',
+                });
+                // Update the employee list with the updated data
+                fetchEmployees();
+                setIsEditFormOpen(false);
+            } catch (error) {
+                console.error('Error updating user:', error);
+                setSnackbar({
+                    open: true,
+                    message: 'Failed to update user. Please try again.',
+                    severity: 'error',
+                });
+            }
+        };
 
 
 
@@ -749,6 +785,16 @@ const filteredRoles = roles.filter(role => {
               </button>
             )}
 
+            {hasAccess('users', 'edit') && (
+              <button
+                onClick={() => handleEditClick(user)}
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                title="Edit user"
+              >
+                <UserRoundPen size={16} className="text-blue-600" />
+              </button>
+            )}
+
             <button
               onClick={() => handleAuditTrail(user.email)}
               className="p-2 rounded-full hover:bg-purple-100 transition-colors"
@@ -1399,6 +1445,16 @@ const filteredRoles = roles.filter(role => {
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
       />
+
+      {isEditFormOpen && (
+      
+                      <UserEditForm
+                          userId={selectedEmployee.userId}
+                          onSubmit={handleEditSubmit}
+                          onCancel={() => setIsEditFormOpen(false)}
+                      />
+      
+                  )}
     </div>
   );
 };
