@@ -330,7 +330,7 @@ public class InvoiceService {
             throws DocumentException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Document document = new Document();
-        PdfWriter.getInstance(document, baos);
+        PdfWriter writer = PdfWriter.getInstance(document, baos);
 
         document.open();
 
@@ -398,53 +398,105 @@ public class InvoiceService {
             document.add(new Paragraph(" "));
         }
 
-        if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
-            PdfPTable remarksTable = new PdfPTable(3);
-            remarksTable.setWidthPercentage(100);
-            remarksTable.setSpacingBefore(10);
-            remarksTable.setSpacingAfter(10);
+        // Calculate available height for remarks table
+        float currentY = writer.getVerticalPosition(true);
+        float bottomMargin = document.bottomMargin();
 
-            // Set column widths
-            remarksTable.setWidths(new float[]{2f, 8f, 3f});
+        // Reserve space for line separator and total amount (approximately 60 points)
+        float reservedBottomSpace = 60f;
+        float availableHeight = currentY - bottomMargin - reservedBottomSpace;
 
-            // Header cells
-            PdfPCell header1 = new PdfPCell(new Phrase("SR.NO", headerFont));
-            header1.setHorizontalAlignment(Element.ALIGN_CENTER);
-            remarksTable.addCell(header1);
-
-            PdfPCell header2 = new PdfPCell(new Phrase("Remarks", headerFont));
-            header2.setHorizontalAlignment(Element.ALIGN_CENTER);
-            remarksTable.addCell(header2);
-
-            PdfPCell header3 = new PdfPCell(new Phrase("Amount", headerFont));
-            header3.setHorizontalAlignment(Element.ALIGN_CENTER);
-            remarksTable.addCell(header3);
-
-            // Row data
-            PdfPCell cell1 = new PdfPCell(new Phrase("1", normalFont));
-            cell1.setHorizontalAlignment(Element.ALIGN_CENTER);
-            remarksTable.addCell(cell1);
-
-            PdfPCell cell2 = new PdfPCell(new Phrase(invoice.getRemarks(), normalFont));
-            cell2.setHorizontalAlignment(Element.ALIGN_CENTER);
-            remarksTable.addCell(cell2);
-
-            PdfPCell cell3 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
-            cell3.setHorizontalAlignment(Element.ALIGN_CENTER);
-            remarksTable.addCell(cell3);
-
-            document.add(remarksTable);
+        // Ensure minimum height for the table
+        if (availableHeight < 100) {
+            availableHeight = 100;
         }
 
+        // Create remarks table that stretches to fill available space
+        PdfPTable remarksTable = new PdfPTable(3);
+        remarksTable.setWidthPercentage(100);
+        remarksTable.setWidths(new float[]{2f, 8f, 3f});
+
+        // Headers with borders
+        PdfPCell h1 = new PdfPCell(new Phrase("SR.NO", headerFont));
+        h1.setHorizontalAlignment(Element.ALIGN_CENTER);
+        h1.setPadding(8);
+        h1.setBorder(Rectangle.BOX);
+        remarksTable.addCell(h1);
+
+        PdfPCell h2 = new PdfPCell(new Phrase("Remarks", headerFont));
+        h2.setHorizontalAlignment(Element.ALIGN_CENTER);
+        h2.setPadding(8);
+        h2.setBorder(Rectangle.BOX);
+        remarksTable.addCell(h2);
+
+        PdfPCell h3 = new PdfPCell(new Phrase("Amount", headerFont));
+        h3.setHorizontalAlignment(Element.ALIGN_CENTER);
+        h3.setPadding(8);
+        h3.setBorder(Rectangle.BOX);
+        remarksTable.addCell(h3);
+
+        // Data row if remarks exist - without bottom border
+        if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
+            PdfPCell c1 = new PdfPCell(new Phrase("1", normalFont));
+            c1.setPadding(8);
+            c1.setVerticalAlignment(Element.ALIGN_TOP);
+            c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+            remarksTable.addCell(c1);
+
+            PdfPCell c2 = new PdfPCell(new Phrase(invoice.getRemarks(), normalFont));
+            c2.setPadding(8);
+            c2.setVerticalAlignment(Element.ALIGN_TOP);
+            c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+            remarksTable.addCell(c2);
+
+            PdfPCell c3 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
+            c3.setPadding(8);
+            c3.setVerticalAlignment(Element.ALIGN_TOP);
+            c3.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+            remarksTable.addCell(c3);
+        } else {
+            // Add empty data row if no remarks - without bottom border
+            PdfPCell c1 = new PdfPCell(new Phrase("1", normalFont));
+            c1.setPadding(8);
+            c1.setVerticalAlignment(Element.ALIGN_TOP);
+            c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+            remarksTable.addCell(c1);
+
+            PdfPCell c2 = new PdfPCell(new Phrase("", normalFont));
+            c2.setPadding(8);
+            c2.setVerticalAlignment(Element.ALIGN_TOP);
+            c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+            remarksTable.addCell(c2);
+
+            PdfPCell c3 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
+            c3.setPadding(8);
+            c3.setVerticalAlignment(Element.ALIGN_TOP);
+            c3.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+            remarksTable.addCell(c3);
+        }
+
+        // Add a large empty cell that stretches to fill the remaining space
+        PdfPCell spacerCell = new PdfPCell(new Phrase(""));
+        spacerCell.setBorder(Rectangle.BOX);
+        spacerCell.setColspan(3);
+        spacerCell.setFixedHeight(availableHeight - 80); // Leave space for header and data row
+        remarksTable.addCell(spacerCell);
+
+        // Set the table spacing
+        remarksTable.setSpacingAfter(10);
+        document.add(remarksTable);
+
+        // Add line separator
         LineSeparator ls = new LineSeparator();
-        ls.setLineWidth(1f); // thickness
-        ls.setPercentage(100); // full page width
+        ls.setLineWidth(1f);
+        ls.setPercentage(100);
         document.add(new Chunk(ls));
 
-        // Total amount
+        // Add total amount - this should now stay on the same page
         Font totalFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
         Paragraph total = new Paragraph(
-                "Total Amount: " + invoice.getCurrency() + " " + invoice.getTotalAmount().toString(), totalFont);
+                "Total Amount: " + invoice.getCurrency() + " " + invoice.getTotalAmount().toString(),
+                totalFont);
         total.setAlignment(Element.ALIGN_RIGHT);
         total.setSpacingAfter(20);
         document.add(total);
