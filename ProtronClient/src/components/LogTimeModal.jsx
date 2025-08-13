@@ -333,8 +333,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       return false;
     }
 
-    if (formData.taskTopic.length > 50) {
-      showSnackbar("Task Topic cannot exceed 50 characters", 'error');
+    if (formData.taskTopic.length > 100) {
+      showSnackbar("Task Topic cannot exceed 100 characters", 'error');
       return false;
     }
 
@@ -791,14 +791,14 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       value={formData.taskTopic || ''}
                       onChange={handleInputChange('taskTopic')}
                       placeholder="Enter task topic..."
-                      maxLength={50}
+                      maxLength={100}
                       className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                       style={{ height: fieldHeight }}
                     />
                   </div>
 
                   <p className="text-xs text-gray-500 mt-1 text-right pr-1">
-                    {formData.taskTopic?.length || 0} / 50
+                    {formData.taskTopic?.length || 0} / 100
                   </p>
                 </div>
 
@@ -807,7 +807,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                   <div className="flex items-center gap-2">
                     {/* Hours Input */}
                     <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Hours</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Spend Hours</label>
                       <div className="relative">
                         {/* Start adornment icon */}
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -886,13 +886,9 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                   <p className="text-xs text-gray-500 mt-2">
                     Remaining Time:{' '}
                     {(() => {
-                      const remainingMinutes = Math.max(
-                        0,
-                        1440 -
-                        existingTime
-                      );
-                      const hours = Math.floor(remainingMinutes / 60);
-                      const minutes = remainingMinutes % 60;
+
+                      const hours = Math.floor( existingTime / 60);
+                      const minutes =  existingTime % 60;
                       return `${hours}h ${minutes}m`;
                     })()}
                   </p>
@@ -930,16 +926,9 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                           }}
                           min="0"
                           max="24"
-                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.remainingHours !== '' &&
-                            (parseInt(formData.remainingHours) < 0 || parseInt(formData.remainingHours) > 24)
-                            ? 'border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:ring-green-500'
-                            }`}
+                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:ring-green-500 `}
                         />
-                        {formData.remainingHours !== '' &&
-                          (parseInt(formData.remainingHours) < 0 || parseInt(formData.remainingHours) > 24) && (
-                            <p className="text-xs text-red-600 mt-1">0–24</p>
-                          )}
+      
                       </div>
                     </div>
 
@@ -964,16 +953,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                         }}
                         min="0"
                         max="59"
-                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.remainingMinutes !== '' &&
-                          (parseInt(formData.remainingMinutes) < 0 || parseInt(formData.remainingMinutes) >= 60)
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-green-500'
-                          }`}
+                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-green-500`}
                       />
-                      {formData.remainingMinutes !== '' &&
-                        (parseInt(formData.remainingMinutes) < 0 || parseInt(formData.remainingMinutes) >= 60) && (
-                          <p className="text-xs text-red-600 mt-1">0–59</p>
-                        )}
                     </div>
                   </div>
                 </div>

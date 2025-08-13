@@ -27,7 +27,7 @@ public class TimesheetTask {
     private int minutesSpent;
     private int remainingHours;
     private int remainingMinutes;
-    @Column(length = 50)
+    @Column(length = 100)
     private String taskTopic;
     @Column(length = 500)
     private String description;

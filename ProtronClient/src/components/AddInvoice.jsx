@@ -228,8 +228,8 @@ const AddInvoiceModal = ({
         });
 
         const hours = Math.floor(totalMinutes / 60);
-const minutes = totalMinutes % 60;
-const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
+        const minutes = totalMinutes % 60;
+        const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
 
         // Calculate target hours: count working days (Mon-Fri) in the selected range
         let targetHours = 0;
@@ -259,17 +259,20 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
     };
     // ...existing code...
 
-    // Auto-populate employee fields if coming from timesheet
+    // Auto-populate employee fields if coming from timesheet (after reset)
     useEffect(() => {
         console.log(employee)
         if (employee && open) {
-            setFormData(prev => ({
-                ...prev,
-                employeeId: employee.rawData?.userId || employee.id || "",
-                employeeName: employee.name || '',
-                rate: employee.rawData?.cost || '',
-                currency: employee.rawData?.unit || employee.rawData?.currency || 'USD'
-            }));
+            // Use setTimeout to ensure this runs after the reset
+            setTimeout(() => {
+                setFormData(prev => ({
+                    ...prev,
+                    employeeId: employee.rawData?.userId || employee.id || "",
+                    employeeName: employee.name || '',
+                    rate: employee.rawData?.cost || '',
+                    currency: employee.rawData?.unit || employee.rawData?.currency || 'USD'
+                }));
+            }, 100);
         }
     }, [employee, open]);
 
@@ -300,10 +303,12 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    // Initialize dropdown data when modal opens
+    // Initialize dropdown data when modal opens and auto-reset form
     useEffect(() => {
         if (open) {
             fetchDropdownData();
+            // Auto-reset form when modal opens
+            handleReset();
         }
     }, [open]);
 
@@ -584,7 +589,7 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.invoiceName.trim()) newErrors.invoiceName = 'Invoice name is required';
+        // Invoice name is now optional - no validation needed
         if (!formData.customerName.trim()) newErrors.customerName = 'Customer name is required';
         if (!formData.supplierName.trim()) newErrors.supplierName = 'Supplier name is required';
         if (!formData.employeeName.trim()) newErrors.employeeName = 'Employee name is required';
@@ -762,11 +767,13 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
             toDate: '',
             hoursSpent: '',
             totalAmount: '',
-            remarks: ''
+            remarks: '',
+            employeeId: ''
         });
         setErrors({});
         setAttachments([]);
         setAttachTimesheet(false);
+        setFetchedTasks([]);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -857,11 +864,11 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Invoice Name *
+                                    Invoice Name
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="Enter invoice name"
+                                    placeholder="Enter invoice name (optional)"
                                     value={formData.invoiceName}
                                     onChange={handleChange('invoiceName')}
                                     className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.invoiceName ? 'border-red-500' : 'border-gray-300'
@@ -872,9 +879,9 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                             </div>
                         </div>
 
-                        {/* 2nd Line: Customer Name, Customer Address, Supplier Name, Supplier Address */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div>
+                        {/* 2nd Line: Customer Name and Customer Address */}
+                        <div className="grid grid-cols-12 gap-4">
+                            <div className="col-span-12 md:col-span-3">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Customer Name *
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
@@ -904,7 +911,7 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                                 {errors.customerName && <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>}
                             </div>
 
-                            <div>
+                            <div className="col-span-12 md:col-span-9">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Customer Address
                                     <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
@@ -917,8 +924,11 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 />
                             </div>
+                        </div>
 
-                            <div>
+                        {/* 3rd Line: Supplier Name and Supplier Address */}
+                        <div className="grid grid-cols-12 gap-4">
+                            <div className="col-span-12 md:col-span-3">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Supplier Name *
                                 </label>
@@ -933,7 +943,7 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                                 {errors.supplierName && <p className="text-red-500 text-xs mt-1">{errors.supplierName}</p>}
                             </div>
 
-                            <div>
+                            <div className="col-span-12 md:col-span-9">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Supplier Address
                                 </label>
@@ -947,7 +957,69 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                             </div>
                         </div>
 
-                        {/* 3rd Line: Employee Name, Currency, Rate, Hours Spent */}
+                        {/* 4th Line: Include Timesheet Reference Checkbox */}
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div className="flex items-start space-x-3">
+                                <input
+                                    type="checkbox"
+                                    id="attachTimesheet"
+                                    checked={attachTimesheet}
+                                    onChange={(e) => setAttachTimesheet(e.target.checked)}
+                                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 mt-0.5"
+                                />
+                                <div className="flex-1">
+                                    <label htmlFor="attachTimesheet" className="text-sm font-medium text-green-900 cursor-pointer">
+                                        Include Timesheet Reference in PDF
+                                    </label>
+                                    <p className="text-xs text-green-600 mt-1">
+                                        {viewMode === "Weekly"
+                                            ? "Include a detailed weekly timesheet table in the generated invoice PDF"
+                                            : "Include a detailed monthly timesheet table in the generated invoice PDF"
+                                        }
+                                    </p>
+                                    {timesheetData && (
+                                        <p className="text-xs text-green-500 mt-1">
+                                            ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Timesheet Summary (when timesheet is attached) */}
+                            {attachTimesheet && getTimesheetSummary() && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h3 className="text-sm font-semibold text-blue-900 flex items-center">
+                                            <Clock className="mr-2" size={16} />
+                                            Timesheet Summary ({getTimesheetSummary().period} View)
+                                        </h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Period:</span>
+                                            <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Total Hours:</span>
+                                            <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Tasks Logged:</span>
+                                            <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-blue-600 font-medium">Employee:</span>
+                                            <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-blue-600 mt-2">
+                                        ✓ Detailed timesheet table will be included in the generated PDF
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 5th Line: Employee Name, Currency, Rate, Hours Spent */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1006,11 +1078,11 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Rate *
-                                    <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
+                                    <span className="text-xs text-gray-500 ml-1">(per hour)</span>
                                 </label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
-                                        {currencySymbols[formData.currency] || '$'}
+                                        {currencySymbols[formData.currency] || '$' }
 
                                     </span>
                                     <input
@@ -1043,7 +1115,7 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                             </div>
                         </div>
 
-                        {/* 4th Line: From Date and To Date */}
+                        {/* 6th Line: From Date and To Date */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1246,69 +1318,6 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                                 </div>
                             )}
                         </div>
-
-                        {/* Attach Timesheet Checkbox */}
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div className="flex items-start space-x-3">
-                                <input
-                                    type="checkbox"
-                                    id="attachTimesheet"
-                                    checked={attachTimesheet}
-                                    onChange={(e) => setAttachTimesheet(e.target.checked)}
-                                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 mt-0.5"
-                                />
-                                <div className="flex-1">
-                                    <label htmlFor="attachTimesheet" className="text-sm font-medium text-green-900 cursor-pointer">
-                                        Include Timesheet Reference in PDF
-                                    </label>
-                                    <p className="text-xs text-green-600 mt-1">
-                                        {viewMode === "Weekly"
-                                            ? "Include a detailed weekly timesheet table in the generated invoice PDF"
-                                            : "Include a detailed monthly timesheet table in the generated invoice PDF"
-                                        }
-                                    </p>
-                                    {timesheetData && (
-                                        <p className="text-xs text-green-500 mt-1">
-                                            ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                            <div></div>
-                            <div></div>
-                            {/* Timesheet Summary (when timesheet is attached) */}
-                            {attachTimesheet && getTimesheetSummary() && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-sm font-semibold text-blue-900 flex items-center">
-                                            <Clock className="mr-2" size={16} />
-                                            Timesheet Summary ({getTimesheetSummary().period} View)
-                                        </h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Period:</span>
-                                            <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Total Hours:</span>
-                                            <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Tasks Logged:</span>
-                                            <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Employee:</span>
-                                            <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-blue-600 mt-2">
-                                        ✓ Detailed timesheet table will be included in the generated PDF
-                                    </p>
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
 
@@ -1339,13 +1348,7 @@ const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                     >
                         Cancel
                     </button>
-                    <button
-                        onClick={handleReset}
-                        disabled={loading}
-                        className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50"
-                    >
-                        Reset
-                    </button>
+
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
