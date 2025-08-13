@@ -390,14 +390,7 @@ public class InvoiceService {
         document.add(workTable);
 
         // Attachments info
-        if (invoice.getAttachmentCount() > 0) {
-            document.add(new Paragraph("Attachments:", headerFont));
-            List<String> attachmentNames = invoice.getAttachmentFileNames();
-            for (String fileName : attachmentNames) {
-                document.add(new Paragraph("• " + fileName, normalFont));
-            }
-            document.add(new Paragraph(" "));
-        }
+        
 
         // ==================== REMARKS TABLE ====================
         PdfPTable remarksTable = new PdfPTable(2);
@@ -407,16 +400,14 @@ remarksTable.setLockedWidth(false); // allow width to be % based
 remarksTable.setSplitLate(false);   // ensure footer stays on same page
 remarksTable.setKeepTogether(true); // try to keep table together on one page
 
-// Define green color for headers (similar to green-700)
-BaseColor headerGreen = new BaseColor(21, 128, 61); // RGB for green-700
 
 // --- HEADER ---
 PdfPCell h1 = new PdfPCell(new Phrase("Item Description", headerFont));
 h1.setHorizontalAlignment(Element.ALIGN_CENTER);
 h1.setVerticalAlignment(Element.ALIGN_MIDDLE);
 h1.setPadding(8);
+h1.setBackgroundColor(BaseColor.LIGHT_GRAY);
 h1.setBorder(Rectangle.BOX);
-h1.setBackgroundColor(headerGreen);
 h1.setFixedHeight(35f); // Fixed header height
 remarksTable.addCell(h1);
 
@@ -424,8 +415,8 @@ PdfPCell h2 = new PdfPCell(new Phrase("Amount", headerFont));
 h2.setHorizontalAlignment(Element.ALIGN_CENTER);
 h2.setVerticalAlignment(Element.ALIGN_MIDDLE);
 h2.setPadding(8);
+h2.setBackgroundColor(BaseColor.LIGHT_GRAY);
 h2.setBorder(Rectangle.BOX);
-h2.setBackgroundColor(headerGreen);
 h2.setFixedHeight(35f); // Fixed header height
 remarksTable.addCell(h2);
 
@@ -456,7 +447,7 @@ remarksTable.addCell(c2);
 PdfPCell filler1 = new PdfPCell(new Phrase(""));
 filler1.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
 // Reduced filler height to prevent page overflow
-float fillerHeight = invoice.getAttachmentCount() >= 2 ? 150f : 80f;
+float fillerHeight = invoice.getAttachmentCount() >= 2 ? 200f : 200f;
 filler1.setFixedHeight(fillerHeight);
 remarksTable.addCell(filler1);
 
