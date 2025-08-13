@@ -40,7 +40,7 @@ public class InvoiceService {
 
     /**
      * Generates a custom invoice ID in format: INV-MMDDYYYY-100001
-     * 
+     *
      * @return Generated invoice ID
      */
     private String generateInvoiceId() {
@@ -223,14 +223,15 @@ public class InvoiceService {
     }
 
     private boolean isAllowedFileType(String contentType) {
-        if (contentType == null)
+        if (contentType == null) {
             return false;
+        }
 
-        return contentType.equals("application/pdf") ||
-                contentType.equals("application/msword") ||
-                contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
-                contentType.equals("text/plain") ||
-                contentType.startsWith("image/");
+        return contentType.equals("application/pdf")
+                || contentType.equals("application/msword")
+                || contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                || contentType.equals("text/plain")
+                || contentType.startsWith("image/");
     }
 
     public ByteArrayResource downloadAttachment(String invoiceId, int attachmentNumber) {
@@ -398,110 +399,95 @@ public class InvoiceService {
             document.add(new Paragraph(" "));
         }
 
-        // Calculate available height for remarks table
-        float currentY = writer.getVerticalPosition(true);
-        float bottomMargin = document.bottomMargin();
+        // ==================== REMARKS TABLE ====================
+        PdfPTable remarksTable = new PdfPTable(2);
+remarksTable.setWidthPercentage(100);
+remarksTable.setWidths(new float[]{8f, 2f});
+remarksTable.setLockedWidth(false); // allow width to be % based
+remarksTable.setSplitLate(false);   // ensure footer stays on same page
+remarksTable.setKeepTogether(true); // try to keep table together on one page
 
-        // Reserve space for line separator and total amount (approximately 60 points)
-        float reservedBottomSpace = 60f;
-        float availableHeight = currentY - bottomMargin - reservedBottomSpace;
+// Define green color for headers (similar to green-700)
+BaseColor headerGreen = new BaseColor(21, 128, 61); // RGB for green-700
 
-        // Ensure minimum height for the table
-        if (availableHeight < 100) {
-            availableHeight = 100;
-        }
+// --- HEADER ---
+PdfPCell h1 = new PdfPCell(new Phrase("Item Description", headerFont));
+h1.setHorizontalAlignment(Element.ALIGN_CENTER);
+h1.setVerticalAlignment(Element.ALIGN_MIDDLE);
+h1.setPadding(8);
+h1.setBorder(Rectangle.BOX);
+h1.setBackgroundColor(headerGreen);
+h1.setFixedHeight(35f); // Fixed header height
+remarksTable.addCell(h1);
 
-        // Create remarks table that stretches to fill available space
-        PdfPTable remarksTable = new PdfPTable(3);
-        remarksTable.setWidthPercentage(100);
-        remarksTable.setWidths(new float[]{2f, 8f, 3f});
+PdfPCell h2 = new PdfPCell(new Phrase("Amount", headerFont));
+h2.setHorizontalAlignment(Element.ALIGN_CENTER);
+h2.setVerticalAlignment(Element.ALIGN_MIDDLE);
+h2.setPadding(8);
+h2.setBorder(Rectangle.BOX);
+h2.setBackgroundColor(headerGreen);
+h2.setFixedHeight(35f); // Fixed header height
+remarksTable.addCell(h2);
 
-        // Headers with borders
-        PdfPCell h1 = new PdfPCell(new Phrase("SR.NO", headerFont));
-        h1.setHorizontalAlignment(Element.ALIGN_CENTER);
-        h1.setPadding(8);
-        h1.setBorder(Rectangle.BOX);
-        remarksTable.addCell(h1);
+// --- DATA ROW ---
+String description = (invoice.getEmployeeName() != null ? invoice.getEmployeeName() : "");
+if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
+    description += "\nRemarks: " + invoice.getRemarks();
+}
 
-        PdfPCell h2 = new PdfPCell(new Phrase("Remarks", headerFont));
-        h2.setHorizontalAlignment(Element.ALIGN_CENTER);
-        h2.setPadding(8);
-        h2.setBorder(Rectangle.BOX);
-        remarksTable.addCell(h2);
+PdfPCell c1 = new PdfPCell(new Phrase(description, normalFont));
+c1.setPadding(8);
+c1.setVerticalAlignment(Element.ALIGN_TOP);
+c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+// Set a reasonable fixed height instead of letting it expand
+c1.setFixedHeight(80f); // Adjust this value based on your content
+c1.setNoWrap(false); // Allow text wrapping
+remarksTable.addCell(c1);
 
-        PdfPCell h3 = new PdfPCell(new Phrase("Amount", headerFont));
-        h3.setHorizontalAlignment(Element.ALIGN_CENTER);
-        h3.setPadding(8);
-        h3.setBorder(Rectangle.BOX);
-        remarksTable.addCell(h3);
+PdfPCell c2 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
+c2.setPadding(8);
+c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
+c2.setVerticalAlignment(Element.ALIGN_TOP);
+c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+c2.setFixedHeight(80f); // Match the height of description cell
+remarksTable.addCell(c2);
 
-        // Data row if remarks exist - without bottom border
-        if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
-            PdfPCell c1 = new PdfPCell(new Phrase("1", normalFont));
-            c1.setPadding(8);
-            c1.setVerticalAlignment(Element.ALIGN_TOP);
-            c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-            remarksTable.addCell(c1);
+// --- FILLER ROW to occupy remaining height (reduced size) ---
+PdfPCell filler1 = new PdfPCell(new Phrase(""));
+filler1.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
+// Reduced filler height to prevent page overflow
+float fillerHeight = invoice.getAttachmentCount() >= 2 ? 150f : 80f;
+filler1.setFixedHeight(fillerHeight);
+remarksTable.addCell(filler1);
 
-            PdfPCell c2 = new PdfPCell(new Phrase(invoice.getRemarks(), normalFont));
-            c2.setPadding(8);
-            c2.setVerticalAlignment(Element.ALIGN_TOP);
-            c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-            remarksTable.addCell(c2);
+PdfPCell filler2 = new PdfPCell(new Phrase(""));
+filler2.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
+filler2.setFixedHeight(fillerHeight); // Match filler1 height
+remarksTable.addCell(filler2);
 
-            PdfPCell c3 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
-            c3.setPadding(8);
-            c3.setVerticalAlignment(Element.ALIGN_TOP);
-            c3.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-            remarksTable.addCell(c3);
-        } else {
-            // Add empty data row if no remarks - without bottom border
-            PdfPCell c1 = new PdfPCell(new Phrase("1", normalFont));
-            c1.setPadding(8);
-            c1.setVerticalAlignment(Element.ALIGN_TOP);
-            c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-            remarksTable.addCell(c1);
+// --- FOOTER ROW ---
+PdfPCell footerLabel = new PdfPCell(new Phrase("Total", headerFont));
+footerLabel.setPadding(8);
+footerLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+footerLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+footerLabel.setBorder(Rectangle.TOP | Rectangle.LEFT | Rectangle.BOTTOM);
+footerLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+footerLabel.setFixedHeight(40f); // Fixed footer height
 
-            PdfPCell c2 = new PdfPCell(new Phrase("", normalFont));
-            c2.setPadding(8);
-            c2.setVerticalAlignment(Element.ALIGN_TOP);
-            c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-            remarksTable.addCell(c2);
+PdfPCell footerValue = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), headerFont));
+footerValue.setPadding(8);
+footerValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+footerValue.setVerticalAlignment(Element.ALIGN_MIDDLE);
+footerValue.setBorder(Rectangle.TOP | Rectangle.RIGHT | Rectangle.BOTTOM);
+footerValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
+footerValue.setFixedHeight(40f); // Fixed footer height
 
-            PdfPCell c3 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
-            c3.setPadding(8);
-            c3.setVerticalAlignment(Element.ALIGN_TOP);
-            c3.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-            remarksTable.addCell(c3);
-        }
+remarksTable.addCell(footerLabel);
+remarksTable.addCell(footerValue);
 
-        // Add a large empty cell that stretches to fill the remaining space
-        PdfPCell spacerCell = new PdfPCell(new Phrase(""));
-        spacerCell.setBorder(Rectangle.BOX);
-        spacerCell.setColspan(3);
-        spacerCell.setFixedHeight(availableHeight - 80); // Leave space for header and data row
-        remarksTable.addCell(spacerCell);
+// --- ADD TO DOCUMENT ---
+document.add(remarksTable);
 
-        // Set the table spacing
-        remarksTable.setSpacingAfter(10);
-        document.add(remarksTable);
-
-        // Add line separator
-        LineSeparator ls = new LineSeparator();
-        ls.setLineWidth(1f);
-        ls.setPercentage(100);
-        document.add(new Chunk(ls));
-
-        // Add total amount - this should now stay on the same page
-        Font totalFont = new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD);
-        Paragraph total = new Paragraph(
-                "Total Amount: " + invoice.getCurrency() + " " + invoice.getTotalAmount().toString(),
-                totalFont);
-        total.setAlignment(Element.ALIGN_RIGHT);
-        total.setSpacingAfter(20);
-        document.add(total);
-
-        // Add timesheet table if timesheet data is provided
         if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
             document.newPage();
             addTimesheetSection(document, timesheetData, headerFont, normalFont, smallFont);
@@ -518,10 +504,18 @@ public class InvoiceService {
             daySuffix = "th";
         } else {
             switch (day % 10) {
-                case 1:  daySuffix = "st"; break;
-                case 2:  daySuffix = "nd"; break;
-                case 3:  daySuffix = "rd"; break;
-                default: daySuffix = "th"; break;
+                case 1:
+                    daySuffix = "st";
+                    break;
+                case 2:
+                    daySuffix = "nd";
+                    break;
+                case 3:
+                    daySuffix = "rd";
+                    break;
+                default:
+                    daySuffix = "th";
+                    break;
             }
         }
         DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
@@ -536,10 +530,17 @@ public class InvoiceService {
             daySuffix = "th";
         } else {
             switch (day % 10) {
-                case 1: daySuffix = "st"; break;
-                case 2: daySuffix = "nd"; break;
-                case 3: daySuffix = "rd"; break;
-                default: daySuffix = "th";
+                case 1:
+                    daySuffix = "st";
+                    break;
+                case 2:
+                    daySuffix = "nd";
+                    break;
+                case 3:
+                    daySuffix = "rd";
+                    break;
+                default:
+                    daySuffix = "th";
             }
         }
 
@@ -599,10 +600,10 @@ public class InvoiceService {
         PdfPTable timesheetTable;
         if ("Weekly".equals(timesheetData.getViewMode())) {
             timesheetTable = new PdfPTable(7); // Date, Day, Task Type, Task Topic, Hours, Project, Description
-            timesheetTable.setWidths(new float[] { 1.5f, 1f, 2f, 2f, 1f, 2f, 3f });
+            timesheetTable.setWidths(new float[]{1.5f, 1f, 2f, 2f, 1f, 2f, 3f});
         } else {
             timesheetTable = new PdfPTable(6); // Date, Task Type, Task Topic, Hours, Project, Description
-            timesheetTable.setWidths(new float[] { 1.5f, 2f, 2f, 1f, 2f, 3f });
+            timesheetTable.setWidths(new float[]{1.5f, 2f, 2f, 1f, 2f, 3f});
         }
 
         timesheetTable.setWidthPercentage(100);
@@ -676,10 +677,18 @@ public class InvoiceService {
             daySuffix = "th";
         } else {
             switch (day % 10) {
-                case 1:  daySuffix = "st"; break;
-                case 2:  daySuffix = "nd"; break;
-                case 3:  daySuffix = "rd"; break;
-                default: daySuffix = "th"; break;
+                case 1:
+                    daySuffix = "st";
+                    break;
+                case 2:
+                    daySuffix = "nd";
+                    break;
+                case 3:
+                    daySuffix = "rd";
+                    break;
+                default:
+                    daySuffix = "th";
+                    break;
             }
         }
 
@@ -687,7 +696,6 @@ public class InvoiceService {
         DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
         return day + daySuffix + " " + date.format(monthYearFormatter);
     }
-
 
     /**
      * Add a row to the timesheet table
@@ -728,8 +736,8 @@ public class InvoiceService {
         table.addCell(taskTopicCell);
 
         // Hours cell
-        String hoursText = (entry.getHours() != null ? entry.getHours() : 0) + "h " +
-                (entry.getMinutes() != null ? entry.getMinutes() : 0) + "m";
+        String hoursText = (entry.getHours() != null ? entry.getHours() : 0) + "h "
+                + (entry.getMinutes() != null ? entry.getMinutes() : 0) + "m";
         PdfPCell hoursCell = new PdfPCell(new Phrase(hoursText, normalFont));
         hoursCell.setHorizontalAlignment(Element.ALIGN_CENTER);
         if (entry.getIsWeekend() != null && entry.getIsWeekend()) {
