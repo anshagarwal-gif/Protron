@@ -14,7 +14,8 @@ import {
     Clock,
     MessageSquare,
     Paperclip,
-    Trash2
+    Trash2,
+    EyeIcon
 } from 'lucide-react';
 import GlobalSnackbar from './GlobalSnackbar';
 
@@ -46,8 +47,10 @@ const AddInvoiceModal = ({
         invoiceName: '',
         customerName: '',
         customerAddress: '',
+        customerInfo: '',
         supplierName: sessionStorage.getItem('tenantName') || '',
         supplierAddress: '',
+        supplierInfo: '',
         employeeName: '',
         rate: '',
         currency: 'USD',
@@ -619,8 +622,10 @@ const AddInvoiceModal = ({
                 invoiceName: formData.invoiceName,
                 customerName: formData.customerName,
                 customerAddress: formData.customerAddress || "",
+                customerInfo: formData.customerInfo || "",
                 supplierName: formData.supplierName,
                 supplierAddress: formData.supplierAddress || "",
+                supplierInfo: formData.supplierInfo || "",
                 employeeName: formData.employeeName,
                 rate: parseFloat(formData.rate),
                 currency: formData.currency,
@@ -685,9 +690,7 @@ const AddInvoiceModal = ({
             // Ask user if they want to download the PDF
             if (response.data.invoiceId) {
                 setTimeout(() => {
-                    if (confirm("Invoice generated successfully! Would you like to download the PDF?")) {
-                        handleDownloadInvoice(response.data.invoiceId, response.data.invoiceName);
-                    }
+                    handleDownloadInvoice(response.data.invoiceId, response.data.invoiceName);
                 }, 500);
             }
 
@@ -732,6 +735,8 @@ const AddInvoiceModal = ({
 
             const blob = new Blob([response.data], { type: 'application/pdf' });
             const url = window.URL.createObjectURL(blob);
+
+            // --- Download ---
             const link = document.createElement('a');
             link.href = url;
             link.download = `${invoiceName || invoiceId}.pdf`;
@@ -739,8 +744,13 @@ const AddInvoiceModal = ({
             link.click();
             document.body.removeChild(link);
 
-            window.URL.revokeObjectURL(url);
+            // --- Open in new tab ---
+            window.open(url, '_blank');
 
+            // Cleanup after a short delay (so the object URL is still valid for the new tab)
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+            }, 5000);
 
         } catch (error) {
             console.error("Failed to download invoice:", error);
@@ -752,6 +762,40 @@ const AddInvoiceModal = ({
             }))
         }
     };
+    const handlePreviewInvoice = async (invoiceId) => {
+        try {
+            const response = await axios.get(
+                `${API_BASE_URL}/api/invoices/view/${invoiceId}`, // ✅ use /view instead of /download
+                {
+                    headers: {
+                        Authorization: sessionStorage.getItem("token")
+                    },
+                    responseType: 'blob'
+                }
+            );
+
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+
+            // --- Open in new tab ---
+            window.open(url, '_blank');
+
+            // Cleanup after a short delay
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+            }, 5000);
+
+        } catch (error) {
+            console.error("Failed to preview invoice:", error);
+            setSnackbar((prev) => ({
+                ...prev,
+                open: true,
+                message: "Failed to preview invoice. Please try again.",
+                severity: "error",
+            }))
+        }
+    };
+
 
     const handleReset = () => {
         setFormData({
@@ -880,8 +924,8 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* 2nd Line: Customer Name and Customer Address */}
-                        <div className="grid grid-cols-12 gap-4">
-                            <div className="col-span-12 md:col-span-3">
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Customer Name *
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
@@ -911,7 +955,7 @@ const AddInvoiceModal = ({
                                 {errors.customerName && <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>}
                             </div>
 
-                            <div className="col-span-12 md:col-span-9">
+                            <div className="">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Customer Address
                                     <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
@@ -924,11 +968,23 @@ const AddInvoiceModal = ({
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 />
                             </div>
+                            <div className="">
+                                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                                    Customer Info
+                                </label>
+                                <input
+                                    type='text'
+                                    placeholder='Enter customer info'
+                                    value={formData.customerInfo}
+                                    onChange={handleChange('customerInfo')}
+                                    className='w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                                />
+                            </div>
                         </div>
 
                         {/* 3rd Line: Supplier Name and Supplier Address */}
-                        <div className="grid grid-cols-12 gap-4">
-                            <div className="col-span-12 md:col-span-3">
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Supplier Name *
                                 </label>
@@ -943,7 +999,7 @@ const AddInvoiceModal = ({
                                 {errors.supplierName && <p className="text-red-500 text-xs mt-1">{errors.supplierName}</p>}
                             </div>
 
-                            <div className="col-span-12 md:col-span-9">
+                            <div className="">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Supplier Address
                                 </label>
@@ -955,6 +1011,99 @@ const AddInvoiceModal = ({
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 />
                             </div>
+                            <div className="">
+                                <label className='block text-sm font-medium text-gray-700 mb-2'>
+                                    Supplier Info
+                                </label>
+                                <input
+                                    type='text'
+                                    placeholder='Enter supplier info'
+                                    value={formData.supplierInfo}
+                                    onChange={handleChange('supplierInfo')}
+                                    className='w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Employee Name *
+                                    {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
+                                </label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-3 text-green-600 z-10" size={16} />
+                                    <CreatableSelect
+                                        options={employees}
+                                        value={formData.employeeName ? employees.find(emp => emp.value === formData.employeeName) : null}
+                                        onChange={handleEmployeeChange}
+                                        className="react-select-container"
+                                        classNamePrefix="react-select"
+                                        placeholder={loadingEmployees ? "Loading..." : "Select employee"}
+                                        isSearchable
+                                        isClearable
+                                        isLoading={loadingEmployees}
+                                        isDisabled={loadingEmployees}
+                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                        styles={{
+                                            control: (base, state) => ({
+                                                ...base,
+                                                height: '40px',
+                                                paddingLeft: '28px',
+                                                borderColor: errors.employeeName ? '#ef4444' : state.isFocused ? '#10b981' : '#d1d5db',
+                                                boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
+                                            }),
+                                            valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                        }}
+                                    />
+                                </div>
+                                {errors.employeeName && <p className="text-red-500 text-xs mt-1">{errors.employeeName}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Currency *
+                                    <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
+                                </label>
+                                <select
+                                    value={formData.currency}
+                                    onChange={handleChange('currency')}
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                >
+                                    <option value="USD">USD ($)</option>
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                    <option value="CAD">CAD (C$)</option>
+                                    <option value="AUD">AUD (A$)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Rate *
+                                    <span className="text-xs text-gray-500 ml-1">(per hour)</span>
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
+                                        {currencySymbols[formData.currency] || '$'}
+
+                                    </span>
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={formData.rate}
+                                        onChange={handleChange('rate')}
+                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.rate ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                        step="0.01"
+                                        min="0.01"
+                                    />
+                                </div>
+                                {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
+                            </div>
+
+
                         </div>
 
                         {/* 4th Line: Include Timesheet Reference Checkbox */}
@@ -1020,103 +1169,10 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* 5th Line: Employee Name, Currency, Rate, Hours Spent */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Employee Name *
-                                    {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
-                                </label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-3 text-green-600 z-10" size={16} />
-                                    <CreatableSelect
-                                        options={employees}
-                                        value={formData.employeeName ? employees.find(emp => emp.value === formData.employeeName) : null}
-                                        onChange={handleEmployeeChange}
-                                        className="react-select-container"
-                                        classNamePrefix="react-select"
-                                        placeholder={loadingEmployees ? "Loading..." : "Select employee"}
-                                        isSearchable
-                                        isClearable
-                                        isLoading={loadingEmployees}
-                                        isDisabled={loadingEmployees}
-                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                        styles={{
-                                            control: (base, state) => ({
-                                                ...base,
-                                                height: '40px',
-                                                paddingLeft: '28px',
-                                                borderColor: errors.employeeName ? '#ef4444' : state.isFocused ? '#10b981' : '#d1d5db',
-                                                boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
-                                            }),
-                                            valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                        }}
-                                    />
-                                </div>
-                                {errors.employeeName && <p className="text-red-500 text-xs mt-1">{errors.employeeName}</p>}
-                            </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Currency *
-                                    <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
-                                </label>
-                                <select
-                                    value={formData.currency}
-                                    onChange={handleChange('currency')}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                >
-                                    <option value="USD">USD ($)</option>
-                                    <option value="INR">INR (₹)</option>
-                                    <option value="EUR">EUR (€)</option>
-                                    <option value="GBP">GBP (£)</option>
-                                    <option value="JPY">JPY (¥)</option>
-                                    <option value="CAD">CAD (C$)</option>
-                                    <option value="AUD">AUD (A$)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Rate *
-                                    <span className="text-xs text-gray-500 ml-1">(per hour)</span>
-                                </label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
-                                        {currencySymbols[formData.currency] || '$' }
-
-                                    </span>
-                                    <input
-                                        type="number"
-                                        placeholder="0.00"
-                                        value={formData.rate}
-                                        onChange={handleChange('rate')}
-                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.rate ? 'border-red-500' : 'border-gray-300'
-                                            }`}
-                                        step="0.01"
-                                        min="0.01"
-                                    />
-                                </div>
-                                {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Hours Spent *
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="0"
-                                    value={formData.hoursSpent}
-                                    onChange={handleChange('hoursSpent')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                />
-                                {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
-                            </div>
-                        </div>
 
                         {/* 6th Line: From Date and To Date */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     From Date *
@@ -1170,10 +1226,20 @@ const AddInvoiceModal = ({
                                 </div>
                                 {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}
                             </div>
-
-                            {/* Empty divs to maintain grid alignment */}
-                            <div></div>
-                            <div></div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Hours Spent *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="0"
+                                    value={formData.hoursSpent}
+                                    onChange={handleChange('hoursSpent')}
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                />
+                                {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
+                            </div>
                         </div>
 
 
@@ -1347,6 +1413,13 @@ const AddInvoiceModal = ({
                         className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50"
                     >
                         Cancel
+                    </button>
+                    <button
+                        onClick={handlePreviewInvoice}
+                        disabled={loading}
+                        className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50"
+                    >
+                        Preview
                     </button>
 
                     <button

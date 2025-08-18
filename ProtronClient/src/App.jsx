@@ -127,6 +127,7 @@ const AppContent = () => {
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<MemoizedDashboard />} />
               <Route path="/projects" element={<MemoizedProjectManagement />} />
+              <Route path="/signup" element={<Signup/>}/>
               {/* <Route path="/team" element={<MemoizedTeamManagement />} /> */}
               <Route
                 path="/timesheet"
@@ -146,7 +147,7 @@ const AppContent = () => {
               <Route path="/session-expired" element={<Navigate to="/dashboard" />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/login" element={<Navigate to="/dashboard" />} />
-              <Route path="/signup" element={<Navigate to="/dashboard" />} />
+              <Route path="/signup" element={<Navigate to="/signup" />} />
               <Route path="*" element={<PageNotFound />} />
             </>
           )}

@@ -13,9 +13,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class InvoiceRequestDTO {
 
-    @NotBlank(message = "Invoice name is required")
     @Size(max = 100, message = "Invoice name must not exceed 100 characters")
     private String invoiceName;
+
+    @Size(max=100, message="Customer info cannot exceed 100 characters")
+    private String customerInfo;
+
+    @Size(max=100, message="Supplier info cannot exceed 100 characters")
+    private String supplierInfo;
 
     @NotBlank(message = "Customer name is required")
     @Size(max = 100, message = "Customer name must not exceed 100 characters")
@@ -134,7 +139,6 @@ public class InvoiceRequestDTO {
             this.entries = entries;
         }
 
-
     }
 
     // Nested DTO for individual timesheet entries
@@ -236,12 +240,24 @@ public class InvoiceRequestDTO {
 
     }
 
-    public @NotBlank(message = "Invoice name is required") @Size(max = 100, message = "Invoice name must not exceed 100 characters") String getInvoiceName() {
+    public @Size(max = 100, message = "Invoice name must not exceed 100 characters") String getInvoiceName() {
         return invoiceName;
+    }
+    public String getCustomerInfo() {
+        return customerInfo;
+    }
+    public void setCustomerInfo(String customerInfo) {
+        this.customerInfo = customerInfo;
+    }
+    public String getSupplierInfo() {
+        return supplierInfo;
+    }
+    public void setSupplierInfo(String supplierInfo) {
+        this.supplierInfo = supplierInfo;
     }
 
     public void setInvoiceName(
-            @NotBlank(message = "Invoice name is required") @Size(max = 100, message = "Invoice name must not exceed 100 characters") String invoiceName) {
+        @Size(max = 100, message = "Invoice name must not exceed 100 characters") String invoiceName) {
         this.invoiceName = invoiceName;
     }
 

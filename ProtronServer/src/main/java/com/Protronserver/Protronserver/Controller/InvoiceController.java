@@ -226,7 +226,21 @@ public class InvoiceController {
             return ResponseEntity.notFound().build();
         }
     }
+    @GetMapping("/view/{invoiceId}")
+public ResponseEntity<ByteArrayResource> viewInvoicePDF(@PathVariable String invoiceId) {
+    try {
+        log.info("PDF view requested for invoice: {}", invoiceId);
+        ByteArrayResource resource = invoiceService.downloadInvoicePDF(invoiceId);
 
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + invoiceId + ".pdf\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(resource);
+    } catch (Exception e) {
+        log.error("Error viewing PDF for invoice {}: {}", invoiceId, e.getMessage());
+        return ResponseEntity.notFound().build();
+    }
+}
     @GetMapping("/download-attachment/{invoiceId}/{attachmentNumber}")
     public ResponseEntity<ByteArrayResource> downloadAttachment(
             @PathVariable String invoiceId,

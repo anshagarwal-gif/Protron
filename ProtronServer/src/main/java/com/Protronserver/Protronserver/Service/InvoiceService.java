@@ -89,6 +89,8 @@ public class InvoiceService {
             invoice.setInvoiceId(customInvoiceId);
 
             invoice.setInvoiceName(requestDTO.getInvoiceName());
+            invoice.setCustomerInfo(requestDTO.getCustomerInfo());
+            invoice.setSupplierInfo(requestDTO.getSupplierInfo());
             invoice.setCustomerName(requestDTO.getCustomerName());
             invoice.setCustomerAddress(requestDTO.getCustomerAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
@@ -139,6 +141,8 @@ public class InvoiceService {
 
             invoice.setInvoiceName(requestDTO.getInvoiceName());
             invoice.setCustomerName(requestDTO.getCustomerName());
+            invoice.setCustomerInfo(requestDTO.getCustomerInfo());
+            invoice.setSupplierInfo(requestDTO.getSupplierInfo());
             invoice.setCustomerAddress(requestDTO.getCustomerAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
             invoice.setSupplierAddress(requestDTO.getSupplierAddress());
@@ -384,8 +388,6 @@ public class InvoiceService {
         workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getFromDate()), normalFont));
         workTable.addCell(new Phrase("To Date:", headerFont));
         workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getToDate()), normalFont));
-        workTable.addCell(new Phrase("Hours Spent:", headerFont));
-        workTable.addCell(new Phrase(invoice.getHoursSpent().toString(), normalFont));
 
         document.add(workTable);
 

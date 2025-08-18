@@ -29,8 +29,12 @@ public class Invoice {
     @Column(unique = true, nullable = false)
     private String invoiceId;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String invoiceName;
+    @Column(columnDefinition = "TEXT")
+    private String customerInfo;
+    @Column(columnDefinition = "TEXT")
+    private String supplierInfo;
 
     @Column(nullable = false)
     private String customerName;
@@ -178,6 +182,20 @@ public class Invoice {
     public String getInvoiceName() {
         return invoiceName;
     }
+    public String getCustomerInfo() {
+        return customerInfo;
+    }
+    public void setCustomerInfo(String customerInfo) {
+        this.customerInfo = customerInfo;
+    }
+
+    public String getSupplierInfo() {
+        return supplierInfo;
+    }
+    public void setSupplierInfo(String supplierInfo) {
+        this.supplierInfo = supplierInfo;
+    }
+
 
     public void setInvoiceName(String invoiceName) {
         this.invoiceName = invoiceName;
