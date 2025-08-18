@@ -21,6 +21,78 @@ public class ProjectUpdateDTO {
     private String unit;
     private List<SystemImpactedDTO> systemImpacted;
     private List<Long> removedSystems;
+    private String productOwner;
+    private String scrumMaster;
+    private String architect;
+    private String chiefScrumMaster;
+    private String deliveryLeader;
+    private String businessUnitFundedBy;
+    private String businessUnitDeliveredTo;
+    private Integer priority;
+
+    public String getProductOwner() {
+        return productOwner;
+    }
+
+    public void setProductOwner(String productOwner) {
+        this.productOwner = productOwner;
+    }
+
+    public String getScrumMaster() {
+        return scrumMaster;
+    }
+
+    public void setScrumMaster(String scrumMaster) {
+        this.scrumMaster = scrumMaster;
+    }
+
+    public String getArchitect() {
+        return architect;
+    }
+
+    public void setArchitect(String architect) {
+        this.architect = architect;
+    }
+
+    public String getChiefScrumMaster() {
+        return chiefScrumMaster;
+    }
+
+    public void setChiefScrumMaster(String chiefScrumMaster) {
+        this.chiefScrumMaster = chiefScrumMaster;
+    }
+
+    public String getDeliveryLeader() {
+        return deliveryLeader;
+    }
+
+    public void setDeliveryLeader(String deliveryLeader) {
+        this.deliveryLeader = deliveryLeader;
+    }
+
+    public String getBusinessUnitFundedBy() {
+        return businessUnitFundedBy;
+    }
+
+    public void setBusinessUnitFundedBy(String businessUnitFundedBy) {
+        this.businessUnitFundedBy = businessUnitFundedBy;
+    }
+
+    public String getBusinessUnitDeliveredTo() {
+        return businessUnitDeliveredTo;
+    }
+
+    public void setBusinessUnitDeliveredTo(String businessUnitDeliveredTo) {
+        this.businessUnitDeliveredTo = businessUnitDeliveredTo;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
 
     public List<Long> getRemovedSystems() {
         return removedSystems;

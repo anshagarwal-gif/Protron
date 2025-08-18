@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Calendar, Upload, Users, User, FolderOpen, X } from 'lucide-react';
-// axios import removed - replace with fetch API in actual implementation
+import CreatableSelect from 'react-select/creatable';// axios import removed - replace with fetch API in actual implementation
 
 // Currency data
 const currencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
@@ -15,12 +15,12 @@ const currencySymbols = {
 };
 
 // Custom Dropdown Component
-const Dropdown = ({ 
-    options = [], 
-    value, 
-    onChange, 
-    placeholder, 
-    label, 
+const Dropdown = ({
+    options = [],
+    value,
+    onChange,
+    placeholder,
+    label,
     icon: Icon,
     getOptionLabel = (option) => option,
     isOptionEqualToValue = (option, value) => option === value,
@@ -51,9 +51,8 @@ const Dropdown = ({
         <div className="relative" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
             <div
-                className={`relative w-full h-10 border border-gray-300 rounded-md px-3 py-2 bg-white cursor-pointer flex items-center ${
-                    disabled ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-green-500'
-                } ${isOpen ? 'border-green-600' : ''}`}
+                className={`relative w-full h-10 border border-gray-300 rounded-md px-3 py-2 bg-white cursor-pointer flex items-center ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'hover:border-green-500'
+                    } ${isOpen ? 'border-green-600' : ''}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
             >
                 {Icon && <Icon className="w-5 h-5 text-green-800 mr-2" />}
@@ -105,12 +104,12 @@ const Dropdown = ({
 };
 
 // Multi-select Dropdown Component
-const MultiSelectDropdown = ({ 
-    options = [], 
-    value = [], 
-    onChange, 
-    placeholder, 
-    label, 
+const MultiSelectDropdown = ({
+    options = [],
+    value = [],
+    onChange,
+    placeholder,
+    label,
     icon: Icon,
     getOptionLabel = (option) => option,
     isOptionEqualToValue = (option, value) => option === value
@@ -123,7 +122,7 @@ const MultiSelectDropdown = ({
         getOptionLabel(option).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const selectedOptions = options.filter(option => 
+    const selectedOptions = options.filter(option =>
         value.some(selectedValue => isOptionEqualToValue(option, selectedValue))
     );
 
@@ -141,7 +140,7 @@ const MultiSelectDropdown = ({
     const handleOptionToggle = (option) => {
         const optionValue = option.userId || option;
         const isSelected = value.includes(optionValue);
-        
+
         if (isSelected) {
             onChange(value.filter(v => v !== optionValue));
         } else {
@@ -153,9 +152,8 @@ const MultiSelectDropdown = ({
         <div className="relative z-10" ref={dropdownRef}>
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
             <div
-                className={`relative z-10 w-full h-10 border border-gray-300 rounded-md px-3 py-2 bg-white cursor-pointer flex items-center hover:border-green-500 ${
-                    isOpen ? 'border-green-600' : ''
-                }`}
+                className={`relative z-10 w-full h-10 border border-gray-300 rounded-md px-3 py-2 bg-white cursor-pointer flex items-center hover:border-green-500 ${isOpen ? 'border-green-600' : ''
+                    }`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 {Icon && <Icon className="w-5 h-5 text-green-800 mr-2" />}
@@ -180,19 +178,18 @@ const MultiSelectDropdown = ({
                         filteredOptions.map((option, index) => {
                             const optionValue = option.userId || option;
                             const isSelected = value.includes(optionValue);
-                            
+
                             return (
                                 <div
                                     key={index}
-                                    className={`px-3 py-2 hover:bg-green-50 cursor-pointer flex items-center ${
-                                        isSelected ? 'bg-green-100' : ''
-                                    }`}
+                                    className={`px-3 py-2 hover:bg-green-50 cursor-pointer flex items-center ${isSelected ? 'bg-green-100' : ''
+                                        }`}
                                     onClick={() => handleOptionToggle(option)}
                                 >
                                     <input
                                         type="checkbox"
                                         checked={isSelected}
-                                        onChange={() => {}}
+                                        onChange={() => { }}
                                         className="mr-2 text-green-600"
                                     />
                                     {option.name && (
@@ -281,6 +278,12 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     const [users, setUsers] = useState([]);
     const [initialFormData, setInitialFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [projectCode, setProjectCode] = useState('');
+
+    const userOptions = users.map((user) => ({
+        value: user.name,
+        label: user.name,
+    }));
 
     const fetchUsers = async () => {
         try {
@@ -299,6 +302,15 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         if (open) {
             fetchUsers();
             setInitialFormData({ ...formData });
+            fetch(`${import.meta.env.VITE_API_URL}/api/projects/generate-code`, {
+                headers: { Authorization: `${sessionStorage.getItem('token')}` }
+            })
+                .then(res => res.text())
+                .then(code => {
+                    setProjectCode(code);
+                    setFormData(prev => ({ ...prev, projectCode: code }));
+                })
+                .catch(() => setProjectCode(''));
         }
     }, [open]);
 
@@ -315,11 +327,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             [field]: value
         }));
     };
-    
+
     const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
-            await onSubmit(formData);
+            await onSubmit({ ...formData, projectCode }); // Ensure projectCode is sent
         } catch (error) {
             console.error('Error creating project:', error);
         } finally {
@@ -348,6 +360,16 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         {/* Row 1: Project Name, Project Icon, and Start/End Dates */}
                         <div className="grid grid-cols-4 gap-4">
                             <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Code</label>
+                                <input
+                                    type="text"
+                                    value={projectCode}
+                                    disabled
+                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
+                                    title={projectCode || 'Auto-generated Project Code'}
+                                />
+                            </div>
+                            <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
                                 <div className="relative">
                                     <input
@@ -375,11 +397,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             />
                                             <label className={`px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                                 Change
-                                                <input 
-                                                    hidden 
-                                                    accept="image/*" 
-                                                    type="file" 
-                                                    onChange={handleImageUpload} 
+                                                <input
+                                                    hidden
+                                                    accept="image/*"
+                                                    type="file"
+                                                    onChange={handleImageUpload}
                                                     disabled={isSubmitting}
                                                 />
                                             </label>
@@ -388,11 +410,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         <label className={`flex items-center gap-2 px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                             <Upload className="w-4 h-4" />
                                             Project Icon
-                                            <input 
-                                                hidden 
-                                                accept="image/*" 
-                                                type="file" 
-                                                onChange={handleImageUpload} 
+                                            <input
+                                                hidden
+                                                accept="image/*"
+                                                type="file"
+                                                onChange={handleImageUpload}
                                                 disabled={isSubmitting}
                                             />
                                         </label>
@@ -440,7 +462,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     options={users}
                                     value={formData.sponsor}
                                     onChange={(user) => handleChange('sponsor', user ? user.userId : null)}
-                                    label="Sponsor"
+                                    label="Project Sponsor"
                                     placeholder="Search for a sponsor..."
                                     icon={User}
                                     getOptionLabel={(option) => option.name || ''}
@@ -474,16 +496,154 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         type="number"
                                         placeholder="Enter amount"
                                         value={formData.cost || ''}
-                                        onChange={(e) => handleChange('cost', e.target.value)}
+                                        onChange={(e) => {
+                                            // Accept only up to two decimal places
+                                            let value = e.target.value;
+                                            // Remove non-numeric except dot
+                                            value = value.replace(/[^\d.]/g, "");
+                                            // Limit to two decimals
+                                            if (value.includes(".")) {
+                                                const [intPart, decPart] = value.split(".");
+                                                value = intPart + "." + (decPart.substring(0, 2));
+                                            }
+                                            setFormData({ ...formData, cost: value });
+                                        }}
                                         disabled={isSubmitting}
                                         className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                         title={formData.cost || 'Enter Project Cost'}
+                                        step="0.01"
                                     />
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                                         {formData.currency ? currencySymbols[formData.currency] : ''}
                                     </span>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={formData.productOwner ? { label: formData.productOwner, value: formData.productOwner } : null}
+                                    onChange={(selected) => handleChange('productOwner', selected?.value || '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Scrum Master</label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={formData.scrumMaster ? { label: formData.scrumMaster, value: formData.scrumMaster } : null}
+                                    onChange={(selected) => handleChange('scrumMaster', selected?.value || '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Architect</label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={formData.architect ? { label: formData.architect, value: formData.architect } : null}
+                                    onChange={(selected) => handleChange('architect', selected?.value || '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Chief Scrum Master</label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={formData.chiefScrumMaster ? { label: formData.chiefScrumMaster, value: formData.chiefScrumMaster } : null}
+                                    onChange={(selected) => handleChange('chiefScrumMaster', selected?.value || '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-4 mt-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Leader</label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={formData.deliveryLeader ? { label: formData.deliveryLeader, value: formData.deliveryLeader } : null}
+                                    onChange={(selected) => handleChange('deliveryLeader', selected?.value || '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={formData.businessUnitFundedBy ? { label: formData.businessUnitFundedBy, value: formData.businessUnitFundedBy } : null}
+                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected?.value || '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={formData.businessUnitDeliveredTo ? { label: formData.businessUnitDeliveredTo, value: formData.businessUnitDeliveredTo } : null}
+                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected?.value || '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Priority (1-10)</label>
+                                <select
+                                    value={formData.priority}
+                                    onChange={e => handleChange('priority', Number(e.target.value))}
+                                    disabled={isSubmitting}
+                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {Array.from({ length: 10 }, (_, i) => (
+                                        <option key={i + 1} value={i + 1}>
+                                            {i + 1}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                         </div>
 
                         {/* Row 3: Team Members and Systems Impacted */}

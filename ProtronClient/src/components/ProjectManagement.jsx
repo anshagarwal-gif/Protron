@@ -49,7 +49,15 @@ const ProjectManagement = () => {
     currency: 'USD',
     cost: '',
     sponsor: null,
-    systemImpacted: []
+    systemImpacted: [],
+    productOwner: '',
+    scrumMaster: '',
+    architect: '',
+    chiefScrumMaster: '',
+    deliveryLeader: '',
+    businessUnitFundedBy: '',
+    businessUnitDeliveredTo: '',
+    priority: 1
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -76,21 +84,29 @@ const ProjectManagement = () => {
   const ProjectNameRenderer = (params) => {
     return (
       <span
-      className="font-medium cursor-pointer hover:text-green-600 truncate"
-      onClick={
-        hasAccess('project_team', 'view')
-        ? () => handleManageTeam(params.data.projectId, params.data)
-        : undefined
-      }
-      title={params.value}
-      style={{
-        cursor: hasAccess('project_team', 'view') ? 'pointer' : 'default',
-        color: hasAccess('project_team', 'view') ? undefined : 'inherit'
-      }}
+        className="font-medium hover:text-green-600 truncate"
+        title={params.value}
+        style={{
+          color: hasAccess('project_team', 'view') ? undefined : 'inherit'
+        }}
       >
-      {params.value}
+        {params.value}
       </span>
     );
+  };
+
+  const ProjectCodeRenderer = (params) => {
+
+    return (
+      <span
+        className="cursor-pointer font-medium hover:text-green-600 truncate"
+        title={params.value}
+        onClick={() => handleView(params.data.projectId)}
+      >
+        {params.value}
+      </span>
+    )
+
   };
 
   const TeamSizeRenderer = (params) => {
@@ -118,16 +134,6 @@ const ProjectManagement = () => {
           <FiEye size={20} className="text-green-700" />
         </button>
 
-        {/* Edit Project Button */}
-        {hasAccess('projects', 'edit') && (
-          <button
-            onClick={() => setSelectedEditProjectId(params.data.projectId)}
-            className="p-2 rounded-full hover:bg-green-100"
-            title="Edit"
-          >
-            <FiEdit size={20} className="text-green-700" />
-          </button>)}
-
         {/* Manage Team Button */}
         {hasAccess('project_team', 'view') && (
           <button
@@ -136,7 +142,7 @@ const ProjectManagement = () => {
             title="Manage Team"
           >
             <FiUsers size={20} className="text-green-700" />
-        </button>)}
+          </button>)}
       </div>
     );
   };
@@ -153,6 +159,15 @@ const ProjectManagement = () => {
       filter: false,
     },
     {
+      headerName: 'Project Code',
+      field: 'projectCode',
+      cellRenderer: ProjectCodeRenderer,
+      minWidth: 200,
+      maxWidth: 300,
+      filter: 'agTextColumnFilter',
+      cellStyle: { fontWeight: '500' }
+    },
+    {
       headerName: 'Project Name',
       field: 'projectName',
       cellRenderer: ProjectNameRenderer,
@@ -164,7 +179,7 @@ const ProjectManagement = () => {
         filterOptions: ['contains', 'startsWith', 'endsWith'],
         defaultOption: 'contains'
       },
-      cellStyle: { fontWeight: '500' }
+      cellStyle: { fontWeight: '200' }
     },
     {
       headerName: 'Start Date',
@@ -189,19 +204,6 @@ const ProjectManagement = () => {
       cellClass: 'ag-cell-truncate',
       tooltipValueGetter: (params) => params.value || 'N/A'
 
-    },
-    {
-      headerName: 'Team',
-      field: 'projectTeam',
-      cellRenderer: TeamSizeRenderer,
-      valueGetter: (params) => params.data.projectTeam?.length || 0,
-      width: 100,
-      filter: 'agNumberColumnFilter',
-      cellStyle: { textAlign: 'center' },
-      cellClass: 'ag-cell-truncate',
-      tooltipValueGetter: (params) => {
-        return params.value ? formatDate(params.value) : 'N/A';
-      }
     },
     {
       headerName: 'Cost Currency',
@@ -278,32 +280,33 @@ const ProjectManagement = () => {
   );
 
   const fetchProjects = async () => {
-  setIsLoading(true);
-  try {
-    const res = await axios.get(`${API_BASE_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/projects`, {
-      headers: { Authorization: `${sessionStorage.getItem('token')}` }
-    });
+    setIsLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/projects`, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` }
+      });
 
-    // Map the response data to match the expected structure
-    const mappedProjects = res.data.map((dto) => ({
-      projectId: dto.projectId,
-      projectName: dto.projectName,
-      startDate: dto.startDate,
-      projectManager: dto.pmId ? { userId: dto.pmId, firstName: dto.pmName.split(' ')[0], lastName: dto.pmName.split(' ')[1] || '' } : null,
-      sponsor: dto.sponsorId ? { userId: dto.sponsorId, firstName: dto.sponsorName.split(' ')[0], lastName: dto.sponsorName.split(' ')[1] || '' } : null,
-      unit: dto.unit,
-      projectCost: dto.projectCost,
-      projectTeam: Array(dto.projectTeamCount).fill({}), // Placeholder for team members
-    }));
+      // Map the response data to match the expected structure
+      const mappedProjects = res.data.map((dto) => ({
+        projectCode: dto.projectCode,
+        projectId: dto.projectId,
+        projectName: dto.projectName,
+        startDate: dto.startDate,
+        projectManager: dto.pmId ? { userId: dto.pmId, firstName: dto.pmName.split(' ')[0], lastName: dto.pmName.split(' ')[1] || '' } : null,
+        sponsor: dto.sponsorId ? { userId: dto.sponsorId, firstName: dto.sponsorName.split(' ')[0], lastName: dto.sponsorName.split(' ')[1] || '' } : null,
+        unit: dto.unit,
+        projectCost: dto.projectCost,
+        projectTeam: Array(dto.projectTeamCount).fill({}), // Placeholder for team members
+      }));
 
-    setProjects(mappedProjects);
-    setFilteredProjects(mappedProjects);
-  } catch (error) {
-    console.error("Error fetching projects:", error);
-  } finally {
-    setIsLoading(false);
-  }
-};
+      setProjects(mappedProjects);
+      setFilteredProjects(mappedProjects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchProjects();
@@ -356,13 +359,13 @@ const ProjectManagement = () => {
   };
 
   const handleProjectUpdate = async () => {
-      fetchProjects();
+    fetchProjects();
 
-      setSelectedEditProjectId(null)
+    setSelectedEditProjectId(null)
 
-      if (typeof onProjectUpdated === 'function') {
-        onProjectUpdated();
-      }
+    if (typeof onProjectUpdated === 'function') {
+      onProjectUpdated();
+    }
   };
 
   const handleCloseTeamManagement = () => {
@@ -387,6 +390,7 @@ const ProjectManagement = () => {
 
     try {
       const payload = {
+        projectCode: data.projectCode,
         projectName: data.projectName,
         projectIcon: data.projectIcon,
         startDate: data.startDate,
@@ -401,7 +405,15 @@ const ProjectManagement = () => {
           status: "active",
 
         })),
-        systemImpacted: data.systemImpacted
+        systemImpacted: data.systemImpacted,
+        productOwner: data.productOwner,
+    scrumMaster: data.scrumMaster,
+    architect: data.architect,
+    chiefScrumMaster: data.chiefScrumMaster,
+    deliveryLeader: data.deliveryLeader,
+    businessUnitFundedBy: data.businessUnitFundedBy,
+    businessUnitDeliveredTo: data.businessUnitDeliveredTo,
+    priority: data.priority
       };
       console.log(payload);
       const response = await axios.post(`${API_BASE_URL}/api/projects/add`, payload, {
@@ -1205,7 +1217,7 @@ const ProjectManagement = () => {
       )}
 
       {selectedProjectId && isModalOpen && (
-        <ProjectDetailsModal projectId={selectedProjectId} onClose={handleClose} />
+        <ProjectDetailsModal projectId={selectedProjectId} onClose={handleClose} fetchProjects={fetchProjects} />
       )}
 
       {selectedEditProjectId && (

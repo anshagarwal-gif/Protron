@@ -1,17 +1,42 @@
 import React, { useEffect, useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
+import EditProjectModal from "./EditProjectModal";
 import { X, Calendar, User, Users, Settings, Building, FileText, Hash, Target } from "lucide-react";
 import axios from "axios";
+import { useAccess } from "../Context/AccessContext";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const ProjectDetailsModal = ({ projectId, onClose }) => {
+const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
+  const [showEditModal, setShowEditModal] = useState(false);
   const [projectDetails, setProjectDetails] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
   const [systemsImpacted, setSystemsImpacted] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const {hasAccess} = useAccess();
 
-  useEffect(() => {
-    const fetchProjectDetails = async () => {
+  const handleProjectEdit = (projectId) => {
+    setShowEditModal(false);
+    fetchProjectDetails(projectId);
+    fetchProjects();
+  }
+
+  // Delete project handler
+  const handleDeleteProject = async () => {
+    if (!projectId) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/api/projects/delete/${projectId}`, {
+        headers: { Authorization: `${sessionStorage.getItem("token")}` },
+      });
+      fetchProjects();
+      onClose();
+    } catch (error) {
+      alert("Failed to delete project.");
+      console.error("Error deleting project:", error);
+    }
+  };
+
+ const fetchProjectDetails = async (projectId) => {
       setIsLoading(true);
       try {
         const response = await axios.get(`${API_BASE_URL}/api/projects/${projectId}`, {
@@ -28,8 +53,10 @@ const ProjectDetailsModal = ({ projectId, onClose }) => {
       }
     };
 
+  useEffect(() => {
+
     if (projectId) {
-      fetchProjectDetails();
+      fetchProjectDetails(projectId);
     }
   }, [projectId]);
 
@@ -66,16 +93,40 @@ const ProjectDetailsModal = ({ projectId, onClose }) => {
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg sm:text-xl font-bold truncate">Project Details</h2>
                 <p className="text-green-100 text-xs sm:text-sm truncate">
-                  {projectDetails?.projectName || 'Loading...'}
+                  {projectDetails?.projectCode || 'Loading...'}
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
-            >
-              <X size={18} className="sm:w-5 sm:h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Edit button in header */}
+              {hasAccess("projects", "edit") && (
+                <button
+                  onClick={() => setShowEditModal(true)}
+                  className="p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+                  title="Edit Project"
+                  disabled={!projectDetails}
+                >
+                  <Pencil size={18} className="sm:w-5 sm:h-5" />
+                </button>
+              )}
+              {/* Delete button in header */}
+              {hasAccess("projects", "delete") && (
+                <button
+                onClick={handleDeleteProject}
+                className="p-2 hover:bg-red-700 rounded-lg transition-colors flex-shrink-0"
+                title="Delete Project"
+                disabled={!projectDetails}
+              >
+                <Trash2 size={18} className="sm:w-5 sm:h-5 text-red-600" />
+              </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+              >
+                <X size={18} className="sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -132,8 +183,40 @@ const ProjectDetailsModal = ({ projectId, onClose }) => {
                     value={projectDetails.managerName || "Not assigned"}
                   />
                   <Field
-                    label="Sponsor"
+                    label="Project Sponsor"
                     value={projectDetails.sponsorName || "Not assigned"}
+                  />
+                  <Field
+                    label="Product Owner"
+                    value={projectDetails.productOwner || "Not assigned"}
+                  />
+                  <Field
+                    label="Scrum Master"
+                    value={projectDetails.scrumMaster || "Not assigned"}
+                  />
+                  <Field
+                    label="Architect"
+                    value={projectDetails.architect || "Not assigned"}
+                  />
+                  <Field
+                    label="Chief Scrum Master"
+                    value={projectDetails.chiefScrumMaster || "Not assigned"}
+                  />
+                  <Field
+                    label="Delivery Leader"
+                    value={projectDetails.deliveryLeader || "Not assigned"}
+                  />
+                  <Field
+                    label="Business Unit Funded By"
+                    value={projectDetails.businessUnitFundedBy || "Not assigned"}
+                  />
+                  <Field
+                    label="Business Unit Delivered To"
+                    value={projectDetails.businessUnitDeliveredTo || "Not assigned"}
+                  />
+                  <Field
+                    label="Priority"
+                    value={projectDetails.priority ? projectDetails.priority : "N/A"}
                   />
                 </div>
               </div>
@@ -214,6 +297,16 @@ const ProjectDetailsModal = ({ projectId, onClose }) => {
           )}
         </div>
 
+        {/* Edit Project Modal */}
+        {showEditModal && (
+          <EditProjectModal
+            open={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            projectId={projectId}
+            onSubmit={handleProjectEdit}
+            // You may need to pass additional props for formData, setFormData, onSubmit, etc.
+          />
+        )}
         {/* Footer */}
         <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t rounded-b-lg">
           <div className="flex justify-end">
