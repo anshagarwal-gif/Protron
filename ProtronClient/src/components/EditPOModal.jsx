@@ -48,6 +48,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         budgetLineRemarks: '',
         poCountry: '',
         businessValueAmount: '',
+        businessValueType: '',
         poSpoc: '',
         poStartDate: '',
         poEndDate: '',
@@ -75,6 +76,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     budgetLineRemarks: formData.budgetLineRemarks,
                     poCountry: formData.poCountry || '',
                     businessValueAmount: parseFloat(formData.businessValueAmount) || 0,
+                    businessValueType: formData.businessValueType || '',
                     projectName: formData.projectName,
                     poStartDate: formData.poStartDate,
                     poEndDate: formData.poEndDate,
@@ -208,6 +210,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 budgetLineRemarks: poData.budgetLineRemarks || '',
                 poCountry: poData.poCountry || '',
                 businessValueAmount: poData.businessValueAmount || '',
+                businessValueType: poData.businessValueType || '',
                 supplier: poData.supplier || '',
                 projectName: poData.projectName || '',
                 poSpoc: poData.poSpoc || '',
@@ -665,14 +668,22 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Number">
                                         PO Number <span className="text-red-500">*</span>
+                                        <span className="float-right text-xs text-gray-500">
+                                            {formData.poNumber.length}/100 characters
+                                        </span>
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.poNumber}
-                                        onChange={handleChange('poNumber')}
+                                        onChange={e => {
+                                            let value = e.target.value;
+                                            if (value.length > 100) value = value.slice(0, 100);
+                                            setFormData(prev => ({ ...prev, poNumber: value }));
+                                        }}
                                         className="w-full h-10 px-4 border border-gray-300 rounded-md truncate"
                                         title={formData.poNumber || "Enter PO Number"}
                                         placeholder="Enter PO Number"
+                                        maxLength={100}
                                         required
                                     />
                                 </div>
@@ -736,12 +747,21 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             {currencySymbols[formData.poCurrency] || '$'}
                                         </span>
                                         <input
-                                            type="number"
+                                            type="text"
                                             value={formData.poAmount}
-                                            onChange={handleChange('poAmount')}
+                                            onChange={e => {
+                                                let value = e.target.value.replace(/[^0-9.]/g, '');
+                                                const parts = value.split('.');
+                                                if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                                if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                                setFormData(prev => ({ ...prev, poAmount: value }));
+                                            }}
                                             className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
                                             title={formData.poAmount || "Enter PO Amount"}
                                             placeholder="Enter Amount"
+                                            maxLength={16}
                                             required
                                         />
                                     </div>
@@ -803,9 +823,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     : null
                                             }
                                             onChange={(selectedOption) => {
-                                                handleChange('poSpoc')({
-                                                    target: { value: selectedOption?.value || '' },
-                                                });
+                                                let value = selectedOption?.value || '';
+                                                if (value.length > 255) value = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, poSpoc: value }));
                                             }}
                                             className="react-select-container z-10"
                                             classNamePrefix="react-select"
@@ -834,7 +854,11 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <CreatableSelect
                                             options={projectOptions}
                                             value={formData.projectName ? { label: formData.projectName, value: formData.projectName } : null}
-                                            onChange={(opt) => handleChange('projectName')({ target: { value: opt?.value || '' } })}
+                                            onChange={(opt) => {
+                                                let value = opt?.value || '';
+                                                if (value.length > 255) value = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, projectName: value }));
+                                            }}
                                             styles={{
                                                 control: (base) => ({
                                                     ...base,
@@ -864,7 +888,11 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <CreatableSelect
                                             options={userOptions}
                                             value={formData.customer ? { label: formData.customer, value: formData.customer } : null}
-                                            onChange={(opt) => handleChange('customer')({ target: { value: opt?.value || '' } })}
+                                            onChange={(opt) => {
+                                                let value = opt?.value || '';
+                                                if (value.length > 255) value = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, customer: value }));
+                                            }}
                                             styles={{
                                                 control: (base) => ({
                                                     ...base,
@@ -894,10 +922,15 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <input
                                             type="text"
                                             value={formData.supplier}
-                                            onChange={handleChange('supplier')}
+                                            onChange={e => {
+                                                let value = e.target.value;
+                                                if (value.length > 255) value = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, supplier: value }));
+                                            }}
                                             className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
                                             title={formData.supplier || "Enter Supplier Name"}
                                             placeholder="Enter Supplier Name"
+                                            maxLength={255}
                                             required
                                         />
                                     </div>
@@ -925,9 +958,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     : null
                                             }
                                             onChange={(selectedOption) => {
-                                                handleChange('sponsorName')({
-                                                    target: { value: selectedOption?.value || '' },
-                                                });
+                                                let value = selectedOption?.value || '';
+                                                if (value.length > 255) value = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, sponsorName: value }));
                                             }}
                                             className="react-select-container"
                                             classNamePrefix="react-select"
@@ -971,9 +1004,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     : null
                                             }
                                             onChange={(selectedOption) => {
-                                                handleChange('sponsorLob')({
-                                                    target: { value: selectedOption?.value || '' },
-                                                });
+                                                let value = selectedOption?.value || '';
+                                                if (value.length > 255) value = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, sponsorLob: value }));
                                             }}
                                             className="react-select-container"
                                             classNamePrefix="react-select"
@@ -1017,13 +1050,13 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     : null
                                             }
                                             onChange={(selectedOption) => {
-                                                handleChange('budgetLineItem')({
-                                                    target: { value: selectedOption?.value || '' },
-                                                });
+                                                let value = selectedOption?.value || '';
+                                                if (value.length > 255) value = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, budgetLineItem: value }));
                                             }}
                                             className="react-select-container"
                                             classNamePrefix="react-select"
-                                            placeholder="Select Sponsor LOB"
+                                            placeholder="Select Budget Line"
                                             isSearchable
                                             isClearable
                                             formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
@@ -1048,12 +1081,21 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             {currencySymbols[formData.poCurrency] || '$'}
                                         </span>
                                         <input
-                                            type="number"
+                                            type="text"
                                             value={formData.budgetLineAmount}
-                                            onChange={handleChange('budgetLineAmount')}
+                                            onChange={e => {
+                                                let value = e.target.value.replace(/[^0-9.]/g, '');
+                                                const parts = value.split('.');
+                                                if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                                if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                                setFormData(prev => ({ ...prev, budgetLineAmount: value }));
+                                            }}
                                             className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
                                             title={formData.budgetLineAmount || "Enter Budget Line Amount"}
                                             placeholder="Enter Amount"
+                                            maxLength={16}
                                             required
                                         />
                                     </div>
@@ -1068,16 +1110,38 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             {currencySymbols[formData.poCurrency] || '$'}
                                         </span>
                                         <input
-                                            type="number"
+                                            type="text"
                                             value={formData.businessValueAmount}
-                                            onChange={handleChange('businessValueAmount')}
+                                            onChange={e => {
+                                                let value = e.target.value.replace(/[^0-9.]/g, '');
+                                                const parts = value.split('.');
+                                                if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                                if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                                setFormData(prev => ({ ...prev, businessValueAmount: value }));
+                                            }}
                                             className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
                                             title={formData.businessValueAmount || "Enter Business Value Amount"}
                                             placeholder="Enter Amount"
+                                            maxLength={16}
                                             required
                                         />
                                     </div>
                                 </div>
+
+                                <div className="lg:col-span-1">
+    <label className="block text-sm font-medium text-gray-700 mb-2">Business Value Type</label>
+    <select
+        value={formData.businessValueType}
+        onChange={handleChange('businessValueType')}
+        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+    >
+        <option value="">Select Type</option>
+        <option value="One Time">One Time</option>
+        <option value="Yearly">Yearly</option>
+    </select>
+</div>
 
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -1094,27 +1158,43 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
                                         Project Description
+                                        <span className="float-right text-xs text-gray-500">
+                                            {formData.poDesc?.length || 0}/500 characters
+                                        </span>
                                     </label>
                                     <textarea
                                         rows={3}
                                         value={formData.poDesc}
-                                        onChange={handleChange('poDesc')}
+                                        onChange={e => {
+                                            let value = e.target.value;
+                                            if (value.length > 500) value = value.slice(0, 500);
+                                            setFormData(prev => ({ ...prev, poDesc: value }));
+                                        }}
                                         className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
                                         title={formData.poDesc || "Enter Project Description"}
                                         placeholder="Enter Project Description"
+                                        maxLength={500}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
                                         Budget Line Remarks
+                                        <span className="float-right text-xs text-gray-500">
+                                            {formData.budgetLineRemarks?.length || 0}/500 characters
+                                        </span>
                                     </label>
                                     <textarea
                                         rows={3}
                                         value={formData.budgetLineRemarks}
-                                        onChange={handleChange('budgetLineRemarks')}
+                                        onChange={e => {
+                                            let value = e.target.value;
+                                            if (value.length > 500) value = value.slice(0, 500);
+                                            setFormData(prev => ({ ...prev, budgetLineRemarks: value }));
+                                        }}
                                         className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
                                         title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
                                         placeholder="Enter Budget Line Remarks"
+                                        maxLength={500}
                                     />
                                 </div>
                                 <div className="lg:col-span-2">

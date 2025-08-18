@@ -564,9 +564,23 @@ const handleAmountChange = (e) => {
                                     type="number"
                                     name="amount"
                                     value={formData.amount}
-                                    onChange={handleAmountChange}
+                                    onChange={(e) => {
+                                        let value = e.target.value.replace(/[^0-9.]/g, '');
+                                        const parts = value.split('.');
+                                        if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                        if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                        if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                        value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                        e.target.value = value;
+                                        handleAmountChange(e);
+                                    }}
+                                    onInput={e => {
+                                        
+                                    }}
                                     className={`w-full h-10 px-4 border rounded-md ${errors.amount ? 'border-red-500' : 'border-gray-300'}`}
                                     placeholder='Enter Amount'
+                                    inputMode='decimal'
+                                    pattern="^\d{1,13}(\.\d{0,2})?$"
                                     min="0.01"
                                     step="0.01"
                                 />

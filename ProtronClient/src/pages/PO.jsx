@@ -1,4 +1,3 @@
-// POManagement.js
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
@@ -29,6 +28,7 @@ import EditPOModal from "../components/EditPOModal";
 import SRNManagement from "./SRN";
 import POConsumptionManagement from "./POUtilization";
 import InvoiceManagement from "./Invoice";
+import MilestoneManagement from "../components/MilestoneManagement";
 
 const POManagement = () => {
   const navigate = useNavigate();
@@ -48,7 +48,12 @@ const POManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPOId, setSelectedPOId] = useState(null);
-
+const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
+const [milestonePOId, setMilestonePOId] = useState(null);
+  const handleOpenMilestoneModal = (po) => {
+  setMilestonePOId(po.poId || po.id);
+  setIsMilestoneModalOpen(true);
+};
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -238,6 +243,7 @@ const POManagement = () => {
   };
 
   const handleModalSubmit = (data) => {
+    setIsAddModalOpen(false)
     showSnackbar("PO created successfully!", "success");
     fetchPOData();
   };
@@ -431,6 +437,13 @@ const POManagement = () => {
         const po = params.data;
         return (
           <div className="flex justify-center gap-2 h-full items-center">
+             {/* <button
+            onClick={() => handleOpenMilestoneModal(po)}
+            className="p-2 rounded-full hover:bg-green-100 transition-colors"
+            title="Add milestones"
+          >
+            <Plus size={16} className="text-green-600" />
+          </button> */}
             <button
               onClick={() => handleViewPO(po)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
@@ -739,6 +752,14 @@ const POManagement = () => {
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
       />
+
+      {isMilestoneModalOpen && (
+  <MilestoneManagement
+    poId={milestonePOId}
+    open={isMilestoneModalOpen}
+    onClose={() => setIsMilestoneModalOpen(false)}
+  />
+)}
     </div>
   );
 };

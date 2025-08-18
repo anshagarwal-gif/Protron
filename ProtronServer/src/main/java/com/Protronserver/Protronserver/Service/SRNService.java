@@ -71,18 +71,11 @@ public class SRNService {
             BigDecimal paidAmount = srnRepository.sumSrnAmountsByPoIdAndMsId(poDetail.getPoId(), dto.getMsId(),
                     currentTenantId);
 
-            if (srnType.equals("full")) {
-                if (paidAmount.compareTo(BigDecimal.ZERO) > 0) {
-                    throw new IllegalArgumentException("Full SRN not allowed: milestone already has SRNs.");
-                }
-                if (newSrnAmount.compareTo(milestoneAmount) != 0) {
-                    throw new IllegalArgumentException("SRN amount must match milestone amount for full SRN.");
-                }
-            } else {
+
                 BigDecimal remaining = milestoneAmount.subtract(paidAmount);
                 if (newSrnAmount.compareTo(remaining) > 0) {
                     throw new IllegalArgumentException("Partial SRN exceeds remaining milestone balance: " + remaining);
-                }
+
             }
         } else {
             // PO-level SRN

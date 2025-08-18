@@ -73,16 +73,14 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
               headers: { Authorization: `${token}` }
             }
           );
-          console.log(response.data);
           setPOBalance(response.data);
-          console.log(poId, response.data);
         } catch (error) {
           console.error("Error fetching PO balance:", error);
         }
       }
     };
     fetchPOBalance();
-  }, [poId]);
+  }, [open, poId]);
 
   // Initialize character counts when form data is set
   useEffect(() => {
@@ -371,15 +369,22 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Target size={14} className="inline mr-1" />
                   Milestone Name *
+                  <span className="float-right text-xs text-gray-500">
+                    {formData.msName.length}/50 characters
+                  </span>
                 </label>
                 <input
                   type="text"
                   name="msName"
                   value={formData.msName}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msName ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  onChange={e => {
+                    let value = e.target.value;
+                    if (value.length > 50) value = value.slice(0, 50);
+                    setFormData(prev => ({ ...prev, msName: value }));
+                  }}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msName ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Enter milestone name"
+                  maxLength={50}
                   disabled={loading}
                 />
                 {errors.msName && (
@@ -411,15 +416,21 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   Amount *
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="msAmount"
                   value={formData.msAmount}
-                  onChange={handleInputChange}
-                  step="1"
-                  min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msAmount ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  onChange={e => {
+                    let value = e.target.value.replace(/[^0-9.]/g, '');
+                    const parts = value.split('.');
+                    if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                    if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                    if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                    value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                    setFormData(prev => ({ ...prev, msAmount: value }));
+                  }}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msAmount ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="0"
+                  maxLength={16}
                   disabled={loading}
                 />
                 {errors.msAmount && (
@@ -441,8 +452,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   value={formData.msDuration}
                   onChange={handleInputChange}
                   min="0"
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msDuration ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msDuration ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="0"
                   disabled={loading}
                 />
@@ -488,8 +498,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 value={formData.msDesc}
                 onChange={handleInputChange}
                 rows={4}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder={`Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max ${DESC_CHAR_LIMIT} characters)`}
                 disabled={loading}
               />
@@ -512,8 +521,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 value={formData.msRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > REMARKS_CHAR_LIMIT ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > REMARKS_CHAR_LIMIT ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder={`Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max ${REMARKS_CHAR_LIMIT} characters)`}
                 disabled={loading}
               />

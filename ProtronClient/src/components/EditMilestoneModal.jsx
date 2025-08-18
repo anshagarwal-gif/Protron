@@ -492,12 +492,19 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     <Target size={14} className="inline mr-1" />
                     Milestone Name *
+                    <span className="float-right text-xs text-gray-500">
+                      {formData.msName.length}/50 characters
+                    </span>
                   </label>
                   <input
                     type="text"
                     name="msName"
                     value={formData.msName}
-                    onChange={handleInputChange}
+                    onChange={e => {
+                      let value = e.target.value;
+                      if (value.length > 50) value = value.slice(0, 50);
+                      setFormData(prev => ({ ...prev, msName: value }));
+                    }}
                     className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msName ? 'border-red-500' : 'border-gray-300'
                       }`}
                     placeholder="Enter milestone name"

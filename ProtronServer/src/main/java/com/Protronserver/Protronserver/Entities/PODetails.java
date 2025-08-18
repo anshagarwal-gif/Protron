@@ -58,6 +58,9 @@ public class PODetails {
     @Column(name = "business_value_amount")
     private BigDecimal businessValueAmount;
 
+    @Column(name = "business_value_type")
+    private String businessValueType;
+
     @Column(name = "po_country")
     private String poCountry;
 
@@ -283,6 +286,14 @@ public class PODetails {
 
     public void setEndTimestamp(LocalDateTime endTimestamp) {
         this.endTimestamp = endTimestamp;
+    }
+
+    public String getBusinessValueType() {
+        return businessValueType;
+    }
+
+    public void setBusinessValueType(String businessValueType) {
+        this.businessValueType = businessValueType;
     }
 
     @Override

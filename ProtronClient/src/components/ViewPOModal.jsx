@@ -198,6 +198,10 @@ const ViewPOModal = ({ open, onClose, poData }) => {
                 label="Business Value Amount"
                 value={formatCurrency(poData.businessValueAmount, poData.poCurrency)}
               />
+              <Field
+                label="Business Value Type"
+                value={poData.businessValueType}
+              />
             </div>
             {poData.budgetLineRemarks && (
               <div className="mt-4">
