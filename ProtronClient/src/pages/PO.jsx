@@ -437,13 +437,13 @@ const [milestonePOId, setMilestonePOId] = useState(null);
         const po = params.data;
         return (
           <div className="flex justify-center gap-2 h-full items-center">
-             {/* <button
+             <button
             onClick={() => handleOpenMilestoneModal(po)}
-            className="p-2 rounded-full hover:bg-green-100 transition-colors"
+            className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
             title="Add milestones"
           >
             <Plus size={16} className="text-green-600" />
-          </button> */}
+          </button>
             <button
               onClick={() => handleViewPO(po)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
