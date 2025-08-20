@@ -3,7 +3,7 @@ import axios from "axios"
 import { AiFillProject, AiOutlineSearch, AiOutlineDownload } from "react-icons/ai"
 import { FiChevronDown, FiUsers, FiEdit, FiEye } from "react-icons/fi"
 import { AgGridReact } from 'ag-grid-react'
-import { Calendar, DollarSign, Users, Settings } from 'lucide-react';
+import { Calendar, DollarSign, Users, FileCheck2, ListChecks } from 'lucide-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
@@ -14,6 +14,7 @@ import EditProjectModal from "./EditProjectModal"
 import * as XLSX from "xlsx";
 import { useAccess } from "../Context/AccessContext"
 import ProjectDetailsModal from "./ProjectDetailsModal";
+import RidaManagement from "./RidaManagement"
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -42,6 +43,8 @@ const [dodLoading, setDodLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [projectsPerPage, setProjectsPerPage] = useState(5);
   const [showEntriesDropdown, setShowEntriesDropdown] = useState(false);
+
+  const [showRidaManagement, setShowRidaManagement] = useState(false);
 
   const [projectFormData, setProjectFormData] = useState({ ...selectedProject });
   const [formData, setFormData] = useState({
@@ -159,6 +162,11 @@ const handleDodUpdate = async () => {
 
   };
 
+  const handleRidaManagement = (projectId) => {
+    setSelectedProjectId(projectId);
+    setShowRidaManagement(true);
+  };
+
   const TeamSizeRenderer = (params) => {
     const teamSize = params.data.projectTeam?.length || 0;
     return (
@@ -199,8 +207,15 @@ const handleDodUpdate = async () => {
         className="p-2 rounded-full hover:bg-green-100"
         title="Define of Done"
       >
-        <Settings size={20} className="text-green-700" />
+        <FileCheck2 size={20} className="text-green-700" />
       </button>
+      <button
+  onClick={() => handleRidaManagement(params.data.projectId)}
+  className="p-2 rounded-full hover:bg-green-100"
+  title="RIDA Management"
+>
+  <ListChecks size={20} className="text-green-700" />
+</button>
       </div>
     );
   };
@@ -1322,6 +1337,13 @@ const handleDodUpdate = async () => {
           onSubmit={(updatedData) => handleProjectUpdate(updatedData)}
           formData={projectFormData}
           setFormData={setProjectFormData}
+        />
+      )}
+      {showRidaManagement && (
+        <RidaManagement
+          projectId={selectedProjectId}
+          open={showRidaManagement}
+          onClose={() => setShowRidaManagement(null)}
         />
       )}
     </>
