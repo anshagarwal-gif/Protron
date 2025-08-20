@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Pencil, Trash2 } from "lucide-react";
 import EditProjectModal from "./EditProjectModal";
-import { X, Calendar, User, Users, Settings, Building, FileText, Hash, Target } from "lucide-react";
+import { X, Calendar, User, Users, Settings, Building, FileText, Hash, Target, CheckCircle } from "lucide-react";
 import axios from "axios";
 import { useAccess } from "../Context/AccessContext";
 
@@ -288,6 +288,17 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                   </div>
                 </div>
               </div>
+
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                  <CheckCircle className="mr-2 text-green-600" size={18} />
+                  Definition of Done
+                </h3>
+                <div className="bg-white rounded p-2 sm:p-3 border min-h-[60px] text-gray-900 text-sm">
+                  {projectDetails.defineDone ? projectDetails.defineDone : <span className="text-gray-500">No DoD defined for this project.</span>}
+                </div>
+              </div>
+
             </>
           ) : (
             <div className="text-center py-8 sm:py-12">

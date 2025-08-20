@@ -262,4 +262,64 @@ public class ManageProjectService {
         return "PRJ-A" + String.format("%03d", nextId);
     }
 
+    public void updateDefineDone(Long id, String dod) {
+        Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+
+        // Mark old project as inactive (soft delete)
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            existingProject.setLastUpdatedBy(user.getEmail());
+            existingProject.setEndTimestamp(LocalDateTime.now());
+            projectRepository.save(existingProject);
+        }
+
+        // Create a new version of the project with updated defineDone
+        Project updatedProject = new Project();
+        updatedProject.setProjectCode(existingProject.getProjectCode());
+        updatedProject.setTenant(existingProject.getTenant());
+        updatedProject.setProjectName(existingProject.getProjectName());
+        updatedProject.setProjectIcon(existingProject.getProjectIcon());
+        updatedProject.setStartDate(existingProject.getStartDate());
+        updatedProject.setEndDate(existingProject.getEndDate());
+        updatedProject.setProjectCost(existingProject.getProjectCost());
+        updatedProject.setUnit(existingProject.getUnit());
+        updatedProject.setCreatedOn(existingProject.getCreatedOn());
+
+        // Copy project-related fields
+        updatedProject.setProjectManager(existingProject.getProjectManager());
+        updatedProject.setSponsor(existingProject.getSponsor());
+        updatedProject.setProductOwner(existingProject.getProductOwner());
+        updatedProject.setScrumMaster(existingProject.getScrumMaster());
+        updatedProject.setArchitect(existingProject.getArchitect());
+        updatedProject.setChiefScrumMaster(existingProject.getChiefScrumMaster());
+        updatedProject.setDeliveryLeader(existingProject.getDeliveryLeader());
+        updatedProject.setBusinessUnitFundedBy(existingProject.getBusinessUnitFundedBy());
+        updatedProject.setBusinessUnitDeliveredTo(existingProject.getBusinessUnitDeliveredTo());
+        updatedProject.setPriority(existingProject.getPriority());
+
+        // New field update
+        updatedProject.setDefineDone(dod);
+
+        // Metadata
+        updatedProject.setStartTimestamp(LocalDateTime.now());
+        updatedProject.setEndTimestamp(null);
+
+        // Maintain relationships
+        List<ProjectTeam> projectTeams = existingProject.getProjectTeam();
+        for (ProjectTeam team : projectTeams) {
+            team.setProject(updatedProject);
+        }
+
+        // Save the new project version
+        projectRepository.save(updatedProject);
+    }
+
+    public String getDefineDone(Long id) {
+        Project project = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+
+        return project.getDefineDone();
+    }
+
 }

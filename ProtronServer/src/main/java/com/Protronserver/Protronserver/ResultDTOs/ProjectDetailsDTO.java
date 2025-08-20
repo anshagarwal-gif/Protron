@@ -38,13 +38,15 @@ public class ProjectDetailsDTO {
     private String businessUnitDeliveredTo;
     private Integer priority;
 
+    private String defineDone;
+
     public ProjectDetailsDTO(String projectCode, Long projectId, String projectName, String tenantName,
                              Date startDate, Date endDate, String unit, Double projectCost,
                              LocalDateTime createdDate, String projectIcon,
                              Long managerId, String managerName, String managerEmpCode,
                              Long sponsorId, String sponsorName, String sponsorEmpCode,
                              String productOwner, String scrumMaster, String architect, String chiefScrumMaster,
-                             String deliveryLeader, String businessUnitFundedBy, String businessUnitDeliveredTo, Integer priority) {
+                             String deliveryLeader, String businessUnitFundedBy, String businessUnitDeliveredTo, Integer priority, String defineDone) {
         this.projectCode = projectCode;
         this.projectId = projectId;
         this.projectName = projectName;
@@ -69,6 +71,15 @@ public class ProjectDetailsDTO {
         this.businessUnitFundedBy = businessUnitFundedBy;
         this.businessUnitDeliveredTo = businessUnitDeliveredTo;
         this.priority = priority;
+        this.defineDone = defineDone;
+    }
+
+    public String getDefineDone() {
+        return defineDone;
+    }
+
+    public void setDefineDone(String defineDone) {
+        this.defineDone = defineDone;
     }
 
     public String getProjectCode() {
