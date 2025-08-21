@@ -370,7 +370,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   <Target size={14} className="inline mr-1" />
                   Milestone Name *
                   <span className="float-right text-xs text-gray-500">
-                    {formData.msName.length}/50 characters
+                    {formData.msName.length}/50 char
                   </span>
                 </label>
                 <input

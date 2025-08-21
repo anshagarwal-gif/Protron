@@ -55,7 +55,7 @@ public class Project {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdOn;
 
-    @Column(length = 255)
+    @Column(length = 500)
     private String defineDone;
 
     @ManyToOne

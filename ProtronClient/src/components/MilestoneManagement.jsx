@@ -4,7 +4,7 @@ import AddMilestoneModal from './AddMilestoneModal';
 import GlobalSnackbar from './GlobalSnackbar';
 import { AgGridReact } from 'ag-grid-react';
 import axios from 'axios';
-
+import EditMilestoneModal from './EditMilestoneModal';
 // Currency symbols mapping
 const currencySymbols = {
     USD: '$',
@@ -23,6 +23,8 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         message: '',
         severity: 'success'
     });
+    const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
+    const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
 
     useEffect(() => {
         if (open && poId) {
@@ -33,10 +35,13 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
     const fetchMilestones = async () => {
         try {
             const token = sessionStorage.getItem('token');
-            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/po/${poId}/milestones`, {
-                headers: { Authorization: `${token}` }
-            });
-            setMilestones(res.data || []);
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_URL}/api/po-milestone/po/${poId}`,
+                {
+                    headers: { Authorization: `${token}` }
+                }
+            );
+            setMilestones(response.data || []);
         } catch (error) {
             console.error('Error fetching milestones:', error);
         }
@@ -48,21 +53,47 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
     };
 
     const handleEditMilestone = (index) => {
-        setEditingMilestone(index);
-        setMilestoneModalOpen(true);
+        setSelectedMilestoneId(milestones[index].msId);
+        setIsEditMilestoneModalOpen(true);
     };
 
     const handleMilestoneSubmit = (milestoneData) => {
+
+        const transformedMilestone = {
+            msId: milestoneData.msId || null,
+            msName: milestoneData.milestoneName || "",
+            msDesc: milestoneData.milestoneDescription || "",
+            msAmount: milestoneData.amount || 0,
+            msCurrency: milestoneData.currency || "USD",
+            msDate: milestoneData.date || null,
+            msDuration: milestoneData.duration || 0,
+            msRemarks: milestoneData.remark || ""
+        }
+
         if (editingMilestone !== null) {
             const updatedMilestones = [...milestones];
-            updatedMilestones[editingMilestone] = milestoneData;
+            updatedMilestones[editingMilestone] = transformedMilestone;
             setMilestones(updatedMilestones);
         } else {
-            setMilestones([...milestones, milestoneData]);
+            setMilestones([...milestones, transformedMilestone]);
         }
         setMilestoneModalOpen(false);
         setEditingMilestone(null);
         setSnackbar({ open: true, message: 'Milestone saved!', severity: 'success' });
+    };
+
+    const handleEditMilestoneModalSubmit = (updatedMilestone) => {
+
+        // Find the index of the milestone being edited
+        const index = milestones.findIndex(m => m.msId === selectedMilestoneId);
+        if (index !== -1) {
+            const updatedMilestones = [...milestones];
+            updatedMilestones[index] = updatedMilestone;
+            setMilestones(updatedMilestones);
+        }
+        setIsEditMilestoneModalOpen(false);
+        setSelectedMilestoneId(null);
+        setSnackbar({ open: true, message: 'Milestone updated!', severity: 'success' });
     };
 
     const handleRemoveMilestone = async (index) => {
@@ -97,13 +128,13 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         },
         {
             headerName: 'Milestone Name',
-            field: 'milestoneName',
+            field: 'msName',
             flex: 1,
             editable: false
         },
         {
             headerName: 'Milestone Description',
-            field: 'milestoneDescription',
+            field: 'msDesc',
             flex: 2,
             editable: false,
             cellRenderer: (params) => {
@@ -114,41 +145,41 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
             }
         },
         {
-            headerName: 'Amount',
-            field: 'amount',
-            width: 120,
-            editable: false,
-            valueFormatter: (params) => {
-                const amount = params.value;
-                const currency = params.data.currency || 'USD';
-                const symbol = currencySymbols[currency] || '$';
-                return amount ? `${symbol}${Number(amount).toLocaleString()}` : '';
-            }
-        },
-        {
             headerName: 'Currency',
-            field: 'currency',
+            field: 'msCurrency',
             width: 100,
             editable: false
         },
         {
+            headerName: 'Amount',
+            field: 'msAmount',
+            width: 120,
+            editable: false,
+            valueFormatter: (params) => {
+                const amount = params.value;
+
+                return amount ? `${Number(amount).toLocaleString()}` : '';
+            }
+        },
+
+        {
             headerName: 'Date',
-            field: 'date',
+            field: 'msDate',
             width: 150,
             editable: false,
             valueFormatter: (params) => {
-                return params.value ? new Date(params.value).toLocaleDateString() : '';
+                return params.value ? new Date(params.value).toLocaleDateString() : 'null';
             }
         },
         {
             headerName: 'Duration (Days)',
-            field: 'duration',
+            field: 'msDuration',
             width: 130,
             editable: false
         },
         {
             headerName: 'Remark',
-            field: 'remark',
+            field: 'msRemarks',
             flex: 1,
             editable: false,
             cellRenderer: (params) => {
@@ -158,7 +189,6 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                     remark;
             }
         },
-       
         {
             headerName: 'Actions',
             field: 'actions',
@@ -258,6 +288,15 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                         onSubmit={handleMilestoneSubmit}
                         poId={poId}
                         milestone={editingMilestone !== null ? milestones[editingMilestone] : null}
+                    />
+                    <EditMilestoneModal
+                        open={isEditMilestoneModalOpen}
+                        onClose={() => {
+                            setIsEditMilestoneModalOpen(false);
+                            setSelectedMilestoneId(null);
+                        }}
+                        onSubmit={handleEditMilestoneModalSubmit}
+                        milestoneId={selectedMilestoneId}
                     />
                 </div>
             </div>

@@ -3,7 +3,7 @@ import axios from "axios"
 import { AiFillProject, AiOutlineSearch, AiOutlineDownload } from "react-icons/ai"
 import { FiChevronDown, FiUsers, FiEdit, FiEye } from "react-icons/fi"
 import { AgGridReact } from 'ag-grid-react'
-import { Calendar, DollarSign, Users, Settings } from 'lucide-react';
+import { Calendar, DollarSign, Users, FileCheck2, ListChecks } from 'lucide-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
@@ -14,6 +14,7 @@ import EditProjectModal from "./EditProjectModal"
 import * as XLSX from "xlsx";
 import { useAccess } from "../Context/AccessContext"
 import ProjectDetailsModal from "./ProjectDetailsModal";
+import RidaManagement from "./RidaManagement"
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -33,10 +34,17 @@ const ProjectManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false)
 
+  const [dodModalOpen, setDodModalOpen] = useState(false);
+const [dodProject, setDodProject] = useState(null);
+const [dodValue, setDodValue] = useState('');
+const [dodLoading, setDodLoading] = useState(false);
+
   // Pagination state for mobile view
   const [currentPage, setCurrentPage] = useState(1);
   const [projectsPerPage, setProjectsPerPage] = useState(5);
   const [showEntriesDropdown, setShowEntriesDropdown] = useState(false);
+
+  const [showRidaManagement, setShowRidaManagement] = useState(false);
 
   const [projectFormData, setProjectFormData] = useState({ ...selectedProject });
   const [formData, setFormData] = useState({
@@ -80,6 +88,51 @@ const ProjectManagement = () => {
     return `${day}-${month}-${year}`;
   };
 
+  const handleOpenDodModal = async (project) => {
+  setDodProject(project);
+  setDodModalOpen(true);
+  setDodLoading(true);
+  try {
+    const res = await axios.get(`${API_BASE_URL}/api/projects/${project.projectId}/define-done`, {
+      headers: { Authorization: `${sessionStorage.getItem('token')}` }
+    });
+    setDodValue(res.data.defineDone || '');
+  } catch (err) {
+    setDodValue('');
+  }
+  setDodLoading(false);
+};
+
+const handleCloseDodModal = () => {
+  setDodModalOpen(false);
+  setDodProject(null);
+  setDodValue('');
+};
+
+const handleDodUpdate = async () => {
+  if (!dodProject) return;
+  setDodLoading(true);
+  try {
+    await axios.put(`${API_BASE_URL}/api/projects/${dodProject.projectId}/define-done`, { defineDone: dodValue }, {
+      headers: { Authorization: `${sessionStorage.getItem('token')}` }
+    });
+    setSnackbar({
+      open: true,
+      message: 'Define of Done updated!',
+      severity: 'success',
+    });
+    handleCloseDodModal();
+    fetchProjects();
+  } catch (err) {
+    setSnackbar({
+      open: true,
+      message: 'Failed to update DoD.',
+      severity: 'error',
+    });
+  }
+  setDodLoading(false);
+};
+
   // Custom cell renderers for AgGrid
   const ProjectNameRenderer = (params) => {
     return (
@@ -107,6 +160,11 @@ const ProjectManagement = () => {
       </span>
     )
 
+  };
+
+  const handleRidaManagement = (projectId) => {
+    setSelectedProjectId(projectId);
+    setShowRidaManagement(true);
   };
 
   const TeamSizeRenderer = (params) => {
@@ -143,6 +201,21 @@ const ProjectManagement = () => {
           >
             <FiUsers size={20} className="text-green-700" />
           </button>)}
+
+          <button
+        onClick={() => handleOpenDodModal(params.data)}
+        className="p-2 rounded-full hover:bg-green-100"
+        title="Define of Done"
+      >
+        <FileCheck2 size={20} className="text-green-700" />
+      </button>
+      <button
+  onClick={() => handleRidaManagement(params.data.projectId)}
+  className="p-2 rounded-full hover:bg-green-100"
+  title="RIDA Management"
+>
+  <ListChecks size={20} className="text-green-700" />
+</button>
       </div>
     );
   };
@@ -1199,6 +1272,42 @@ const ProjectManagement = () => {
               </>
             )}
           </div>
+{dodModalOpen && dodProject && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
+      <h2 className="text-xl font-bold mb-2 text-green-800">{dodProject.projectName}</h2>
+      <label className="block mb-2 font-medium text-gray-700">Define of Done</label>
+      <textarea
+        className="w-full border rounded p-2 mb-2"
+        rows={15}
+        maxLength={500}
+        value={dodValue}
+        onChange={e => setDodValue(e.target.value)}
+        disabled={dodLoading}
+        placeholder="Type Define of Done (max 500 chars)..."
+      />
+      <div className="text-right text-sm text-gray-500 mb-4">
+        {dodValue.length}/500
+      </div>
+      <div className="flex justify-end gap-2">
+        <button
+          className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+          onClick={handleCloseDodModal}
+          disabled={dodLoading}
+        >
+          Cancel
+        </button>
+        <button
+          className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800"
+          onClick={handleDodUpdate}
+          disabled={dodLoading || dodValue.length > 500}
+        >
+          {dodLoading ? 'Saving...' : 'Save'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
           <AddProjectModal
             open={showAddModal}
@@ -1228,6 +1337,13 @@ const ProjectManagement = () => {
           onSubmit={(updatedData) => handleProjectUpdate(updatedData)}
           formData={projectFormData}
           setFormData={setProjectFormData}
+        />
+      )}
+      {showRidaManagement && (
+        <RidaManagement
+          projectId={selectedProjectId}
+          open={showRidaManagement}
+          onClose={() => setShowRidaManagement(null)}
         />
       )}
     </>
