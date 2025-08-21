@@ -21,8 +21,6 @@ const AddRoleModal = ({
   const [permissions, setPermissions] = useState({});
   const [modules, setModules] = useState([]);
 
-  console.log(modulesList)
-
   const fetchModules = async () =>{
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/modules/`, {

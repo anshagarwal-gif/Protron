@@ -76,7 +76,9 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
           console.log(response.data);
           setPOBalance(response.data);
           console.log(poId, response.data);
+          setErrors({});
         } catch (error) {
+          setErrors({submit:"Error fetching PO balance. Please try again."})
           console.error("Error fetching PO balance:", error);
         }
       }
@@ -147,7 +149,11 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
     // Check max limit of 4 files
     if (milestoneFiles.length + files.length > 4) {
-      alert("You can upload a maximum of 4 attachments.");
+      setSnackbar({
+        open: true,
+        message: "Maximum 4 files allowed",
+        severity: "error"
+      });
       return;
     }
 
@@ -223,11 +229,14 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         }
       );
       console.log('Milestone added successfully:', response.data);
+
       setSnackbar({
         open: true,
         message: "Milestone added successfully",
         severity: "success"
       });
+
+      setErrors({})
 
       const milestoneId = response.data.id || response.data.msId;
       const milestoneName = response.data.msName;
@@ -252,6 +261,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
             if (!uploadRes.ok) {
               console.error(`Attachment upload failed for ${file.name}`);
+              setErrors({submit:"Error uploading attachment. Please try again."})
               setSnackbar({
                 open: true,
                 message: "Attachment upload failed",
@@ -260,11 +270,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
             }
           } catch (err) {
             console.error("Attachment upload error:", err);
-            setSnackbar({
-              open: true,
-              message: "Attachment upload failed",
-              severity: "error"
-            })
+            setErrors({submit:"Error uploading attachment. Please try again."})
+            
           }
         }
       }
@@ -287,11 +294,6 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       console.error("Error adding milestone:", error);
       setErrors({
         submit: error.response?.data?.message || error.message || "Failed to add milestone"
-      });
-      setSnackbar({
-        open: true,
-        message: "Failed to add milestone",
-        severity: "error"
       });
     } finally {
       setLoading(false);

@@ -14,12 +14,12 @@ const currencySymbols = {
 };
 
 // Enhanced Dropdown Component with better functionality
-const Dropdown = ({ 
-    options = [], 
-    value, 
-    onChange, 
-    placeholder = "Select an option", 
-    label, 
+const Dropdown = ({
+    options = [],
+    value,
+    onChange,
+    placeholder = "Select an option",
+    label,
     icon: Icon,
     getOptionLabel = (option) => option?.toString() || '',
     getOptionValue = (option) => option,
@@ -78,13 +78,12 @@ const Dropdown = ({
                 </label>
             )}
             <div
-                className={`relative w-full h-10 border rounded-md px-3 py-2 bg-white cursor-pointer flex items-center transition-colors ${
-                    disabled 
-                        ? 'bg-gray-100 cursor-not-allowed border-gray-300' 
-                        : isOpen 
-                            ? 'border-green-600 ring-2 ring-green-200' 
+                className={`relative w-full h-10 border rounded-md px-3 py-2 bg-white cursor-pointer flex items-center transition-colors ${disabled
+                        ? 'bg-gray-100 cursor-not-allowed border-gray-300'
+                        : isOpen
+                            ? 'border-green-600 ring-2 ring-green-200'
                             : 'border-gray-300 hover:border-green-500'
-                }`}
+                    }`}
                 onClick={handleInputClick}
             >
                 {Icon && <Icon className="w-5 h-5 text-green-800 mr-2 flex-shrink-0" />}
@@ -98,12 +97,11 @@ const Dropdown = ({
                     onFocus={() => setIsOpen(true)}
                     disabled={disabled}
                     readOnly={!isOpen}
-                    title={displayValue }
+                    title={displayValue}
                 />
-                <ChevronDown 
-                    className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${
-                        isOpen ? 'rotate-180' : ''
-                    }`} 
+                <ChevronDown
+                    className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''
+                        }`}
                 />
             </div>
 
@@ -113,15 +111,14 @@ const Dropdown = ({
                         filteredOptions.map((option, index) => {
                             const optionValue = getOptionValue(option);
                             const isSelected = JSON.stringify(optionValue) === JSON.stringify(value);
-                            
+
                             return (
                                 <div
                                     key={index}
-                                    className={`px-3 py-2 cursor-pointer flex items-center transition-colors ${
-                                        isSelected 
-                                            ? 'bg-green-100 text-green-800' 
+                                    className={`px-3 py-2 cursor-pointer flex items-center transition-colors ${isSelected
+                                            ? 'bg-green-100 text-green-800'
                                             : 'hover:bg-green-50'
-                                    }`}
+                                        }`}
                                     onClick={() => handleOptionSelect(option)}
                                 >
                                     {option.name && (
@@ -199,6 +196,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const [newSystems, setNewSystems] = useState([]);
     const [removedSystems, setRemovedSystems] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [errors, setErrors] = useState({});
+
 
     // Mock users data - replace with your actual fetch
 
@@ -320,7 +319,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
     const handleSubmit = async () => {
         setIsLoading(true);
-        
+
         const updatedSystemImpacted = formData.systemImpacted.map((system) => ({
             systemId: system.systemId || null,
             systemName: system.systemName,
@@ -349,12 +348,15 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                 },
                 body: JSON.stringify(payload)
             });
-            
+
             const result = await response.json();
             console.log('Project updated successfully:', result);
             onSubmit();
         } catch (error) {
             console.error('Error updating project:', error);
+            setErrors({
+                submit: `Failed to update project. ${error?.message || "Please try again."}`
+            });
         } finally {
             setIsLoading(false);
         }
@@ -499,14 +501,14 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                         </span>
                                     </div>
                                 </div>
-                                
+
                             </div>
 
                             {/* Row 4: Currency, Cost, and Add System */}
                             <div className="flex gap-6">
-                                
 
-                                
+
+
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Add System</label>
                                     <input
@@ -524,7 +526,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     />
                                 </div>
 
-                                
+
                             </div>
 
                             {/* Systems Impacted */}

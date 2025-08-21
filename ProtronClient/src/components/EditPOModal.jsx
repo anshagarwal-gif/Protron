@@ -55,6 +55,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         milestones: []
     });
     const [poAttachments, setPoAttachments] = useState([]); // Separate state for attachments
+    const [errors, setErrors] = useState({})
 
     const handleNextStep = async () => {
         if (currentStep === 1) {
@@ -115,18 +116,25 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     }
                     // setCurrentStep(2);
                     onSubmit?.();
+
                     onClose();
                     setCurrentStep(1);
                     setEditingMilestone(null);
                     setPoAttachments([]);
                 } else {
                     const errorData = await response.json();
+                    setErrors({
+                        submit:`Error updating PO : ${errorData.message}`
+                    })
                     console.error('PO Update Error:', errorData);
-                    alert(`Failed to update PO. ${errorData?.message} `);
+                    
                 }
             } catch (error) {
+                setErrors({
+                    submit:`Error updating PO : ${error.message}`
+                })
                 console.error('Error updating PO:', error);
-                alert('Network error. Please try again.');
+                
             }
         }
     };
@@ -161,6 +169,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             setUsers(data);
         } catch (error) {
             console.log({ message: error });
+            
         }
     };
 
@@ -175,6 +184,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             setProjects(data);
         } catch (error) {
             console.log({ message: error });
+           
         }
     };
 
@@ -239,6 +249,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
         } catch (error) {
             console.error('Error fetching PO data:', error);
+           
         } finally {
             setLoading(false);
         }
@@ -259,6 +270,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             }
         } catch (err) {
             console.error("Error fetching PO attachments:", err);
+           
         }
     };
 

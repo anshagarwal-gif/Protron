@@ -73,7 +73,6 @@ const AddInvoiceModal = ({
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [fetchedTasks, setFetchedTasks] = useState([]);
     const [fetchingTasks, setFetchingTasks] = useState(false);
-
     // Single attachment field that handles multiple files (up to 4)
     const [attachments, setAttachments] = useState([]);
     const [attachTimesheet, setAttachTimesheet] = useState(false);
@@ -394,7 +393,9 @@ const AddInvoiceModal = ({
             setSuppliers([]);
             setCustomerAddresses([]);
             setSupplierAddresses([]);
-            alert(`Failed to fetch employee data: ${error.message}`);
+            setErrors({
+                submit: "Failed to fetch Employees, please try again."
+            })
         } finally {
             setLoadingEmployees(false);
         }
@@ -701,6 +702,9 @@ const AddInvoiceModal = ({
             console.error('Error creating invoice:', error);
 
             let errorMessage = 'Failed to create invoice. Please try again.';
+            setErrors({
+                submit: errorMessage
+            })
             if (error.response?.data) {
                 if (typeof error.response.data === 'string') {
                     errorMessage = error.response.data;
@@ -796,7 +800,6 @@ const AddInvoiceModal = ({
         }
     };
 
-
     const handleReset = () => {
         setFormData({
             invoiceName: '',
@@ -890,6 +893,12 @@ const AddInvoiceModal = ({
                 <div className="p-6 overflow-y-auto flex-grow">
                     <div className="space-y-6">
                         {/* 1st Line: Invoice ID and Invoice Name */}
+                        {errors.submit && (
+                            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
+                                <AlertCircle size={18} className="text-red-500 mr-2" />
+                                <span className="text-red-700 text-sm">{errors.submit}</span>
+                            </div>
+                        )}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">

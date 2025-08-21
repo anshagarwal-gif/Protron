@@ -281,6 +281,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     const [users, setUsers] = useState([]);
     const [initialFormData, setInitialFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState({})
 
     const fetchUsers = async () => {
         try {
@@ -292,6 +293,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             setUsers(data);
         } catch (error) {
             console.log({ message: error });
+            setErrors({
+                submit: "Error fetching users"
+            })
         }
     };
 
@@ -320,8 +324,12 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         setIsSubmitting(true);
         try {
             await onSubmit(formData);
+            setErrors({})
         } catch (error) {
             console.error('Error creating project:', error);
+            setErrors({
+                submit: "Error creating project"
+            })
         } finally {
             setIsSubmitting(false);
         }
@@ -346,6 +354,12 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                     {/* Content */}
                     <div className={`p-6 space-y-6 ${isSubmitting ? 'opacity-50' : ''}`}>
                         {/* Row 1: Project Name, Project Icon, and Start/End Dates */}
+                        {errors.submit && (
+                            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
+                                <AlertCircle size={18} className="text-red-500 mr-2" />
+                                <span className="text-red-700 text-sm">{errors.submit}</span>
+                            </div>
+                        )}
                         <div className="grid grid-cols-4 gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>

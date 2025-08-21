@@ -71,6 +71,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         message: '',
         severity: 'success'
     })
+    const [error, setError] = useState({})
 
     const fetchUsers = async () => {
         try {
@@ -83,6 +84,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             setUsers(data);
         } catch (error) {
             console.error('Error fetching users:', error);
+            setError({
+                submit:"Error fetching users"
+            })
         }
     };
 
@@ -96,6 +100,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             setProjects(res.data);
         } catch (error) {
             console.error('Error fetching projects:', error);
+            setError({
+                submit:"Error fetching projects"
+            })
         }
     };
 
@@ -180,7 +187,11 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Error deleting milestone:', errorData);
-                alert(`Failed to delete milestone. ${errorData?.message || ''}`);
+                setSnackbar({
+                    open: true,
+                    message: "Error deleting milestone",
+                    severity: "error"
+                });
                 return;
             }
 
@@ -188,10 +199,16 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 ...prev,
                 milestones: prev.milestones.filter((_, i) => i !== index)
             }));
-            alert('Milestone deleted successfully.');
+            setSnackbar({
+                open: true,
+                message: 'Milestone deleted successfully!',
+                severity: 'success'
+            });
         } catch (error) {
             console.error('Error deleting milestone:', error);
-            alert('Network error. Please try again.');
+            setError({
+                submit:"Error deleting milestone"
+            })
         }
     };
 
@@ -231,7 +248,11 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('PO Creation Error:', errorData);
-                alert(`Failed to create PO. ${errorData?.message || ''}`);
+                setSnackbar({
+                    open: true,
+                    message: "Failed to create PO",
+                    severity: "error"
+                })
                 return;
             }
 
@@ -240,7 +261,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             setPoId(poId);
 
             if (poFiles.length > 4) {
-                alert('You can attach a maximum of 4 files at once.');
+                setError({
+                    submit:"You can attach a maximum of 4 files at once."
+                })
                 return;
             }
 
@@ -248,7 +271,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             for (let file of poFiles) {
 
                 if (file.size > 10 * 1024 * 1024) {
-                    alert(`File "${file.name}" exceeds 10MB limit and will be skipped.`);
+                    setError({
+                        submit:`File "${file.name}" exceeds 10MB limit and will be skipped.`
+                    })
                     continue;
                 }
 
@@ -285,10 +310,13 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             });
             setCurrentStep(2);
             setPoFiles([]);
+            setError({})
 
         } catch (error) {
             console.error('Error creating PO:', error);
-            alert('Network error. Please try again.');
+            setError({
+                submit:"Network error, please try again"
+            })
         }
     };
 
@@ -463,6 +491,9 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             setCountries(countriesData);
         } catch (error) {
             console.error("Failed to fetch countries:", error);
+            setError({
+                submit:"Failed to fetch countries"
+            })
         }
     };
 

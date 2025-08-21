@@ -55,7 +55,9 @@ const getCurrencySymbol = (currency) => {
             })
             console.log("PO: ", res.data)
             setPo(res.data)
+            setErrors({})
         } catch (error) {
+            setErrors({submit:"Error fetching PO details. Please try again."})
             console.log(error)
         }
     }
@@ -69,7 +71,9 @@ const getCurrencySymbol = (currency) => {
             })
             console.log("Milestones: ", res.data)
             setMilestones(res.data)
+            setErrors({})
         } catch (error) {
+            setErrors({submit:"Error fetching PO milestones. Please try again."})
             console.log(error)
         }
     }
@@ -93,8 +97,9 @@ const getCurrencySymbol = (currency) => {
                         }
                     );
                     setPOBalance(response.data);
-                    console.log(response.data)
+                    setErrors({})
                 } catch (error) {
+                    setErrors({submit:"Error fetching PO balance. Please try again."})
                     console.error("Error fetching PO balance:", error);
                 }
             }
@@ -110,7 +115,9 @@ const getCurrencySymbol = (currency) => {
                         }
                     );
                     setMilestoneBalance(response.data);
+                    setErrors({})
                 } catch (error) {
+                    setErrors({submit:"Error fetching milestone balance. Please try again."})
                     console.error("Error fetching milestone balance:", error);
                 }
             }
@@ -170,10 +177,13 @@ const getCurrencySymbol = (currency) => {
             if (response.ok) {
                 console.log(`Attachment ${fileToDelete.name} deleted successfully.`);
                 setSrnFiles((prev) => prev.filter((_, i) => i !== index));
+                setErrors({})
             } else {
+                setErrors({submit:"Error deleting attachment. Please try again."})  
                 console.error(`Failed to delete attachment: ${fileToDelete.name}`);
             }
         } catch (error) {
+            setErrors({submit:"Error deleting attachment. Please try again."})  
             console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
         }
     };
@@ -390,6 +400,7 @@ const getCurrencySymbol = (currency) => {
                     message: "SRN Created Successfully",
                     severity: "success",
                 });
+                setErrors({})
 
                 const srnId = data.srnId; // Assuming the response contains the created SRN ID
                 const srnName = data.srnName || formData.srnName;
@@ -417,6 +428,9 @@ const getCurrencySymbol = (currency) => {
 
                             if (!uploadRes.ok) {
                                 console.error(`Attachment upload failed for ${file.name}`);
+                                setErrors({
+                                    submit: 'Attachment upload failed',
+                                });
                                 setSnackbar({
                                     open: true,
                                     message: "Attachment upload failed",
@@ -425,12 +439,10 @@ const getCurrencySymbol = (currency) => {
                             }
 
                         } catch (err) {
-                            console.error('Attachment upload error:', err);
-                            setSnackbar({
-                                open: true,
-                                message: "Attachment upload failed",
-                                severity: "error"
+                            setErrors({
+                                submit: 'Attachment upload failed',
                             });
+                            console.error('Attachment upload error:', err);
                         }
                     }
                 }
@@ -453,11 +465,6 @@ const getCurrencySymbol = (currency) => {
             console.error('Error creating SRN:', error);
             setErrors({
                 submit: 'Network error. Please try again.',
-            });
-            setSnackbar({
-                open: true,
-                message: "Network error. Please try again.",
-                severity: "error",
             });
         } finally {
             setLoading(false);

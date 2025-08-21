@@ -104,7 +104,9 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                 ...prev,
                 currency: res.data.poCurrency || "USD"
             }));
+            setErrors({})
         } catch (error) {
+            setErrors({submit:"Error fetching PO details. Please try again."})
             console.log(error)
         }
     }
@@ -120,8 +122,10 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             )
             console.log("Milestones: ", res.data)
             setMilestones(res.data)
+            setErrors({})
         }
         catch (error) {
+            setErrors({submit:"Error fetching milestones. Please try again."})
             console.log(error)
         }
     }
@@ -135,7 +139,9 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             });
             const data = await res.json();
             setUsers(data);
+            setErrors({})
         } catch (error) {
+            setErrors({submit:"Error fetching users. Please try again."})
             console.error('Error fetching users:', error);
         }
     };
@@ -152,8 +158,10 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             );
             setProjectList(projectResponse.data);
             console.log('Projects fetched:', projectResponse.data);
+            setErrors({})
         }
         catch (err) {
+            setErrors({submit:"Error fetching projects. Please try again."})
             console.log(err)
         }
     }
@@ -168,7 +176,9 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                         { headers: { Authorization: `${token}` } }
                     );
                     setPOBalance(response.data);
+                    setErrors({})
                 } catch (error) {
+                    setErrors({submit:"Error fetching PO balance. Please try again."})
                     console.error("Error fetching PO balance:", error);
                 }
             }
@@ -183,7 +193,9 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                         { headers: { Authorization: `${token}` } }
                     );
                     setMilestoneBalance(response.data);
+                    setErrors({})
                 } catch (error) {
+                    setErrors({submit:"Error fetching milestone balance. Please try again."})
                     console.error("Error fetching milestone balance:", error);
                 }
             } else {
@@ -339,6 +351,7 @@ const handleAmountChange = (e) => {
                 message: "PO Consumption Created Successfully",
                 severity: "success",
             });
+            setErrors({});
 
             const consumptionId = data.utilizationId; // Assuming the response contains the created consumption ID
 
@@ -372,10 +385,8 @@ const handleAmountChange = (e) => {
                         }
                     } catch (err) {
                         console.error("Attachment upload error:", err);
-                        setSnackbar({
-                            open: true,
-                            message: "Attachment upload failed",
-                            severity: "error",
+                        setErrors({
+                            submit: "Attachment upload failed",
                         });
                     }
                 }
@@ -384,12 +395,6 @@ const handleAmountChange = (e) => {
             handleClose();
 
         } catch (error) {
-            console.error("Error creating PO Consumption:", error);
-            setSnackbar({
-                open: true,
-                message: "Error creating PO Consumption",
-                severity: "error",
-            });
             setErrors({
                 submit: "Network error. Please try again.",
             });
@@ -753,8 +758,7 @@ const handleAmountChange = (e) => {
                             />
 
                             {/* Selected Files List */}
-                            
-
+                        
                         </div>
                         <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
                                 {poConsumptionFiles.map((file, index) => (

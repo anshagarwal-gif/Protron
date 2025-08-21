@@ -446,12 +446,13 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                     }
                 }
                 setSnackbar({ open: true, message: 'SRN created successfully!', severity: 'success' });
+                setErrors({})
                 handleClose();
             } else {
                 const errorData = await response.text();
                 console.error('SRN Creation Error:', errorData);
                 setErrors({
-                    submit: 'Failed to create SRN. Please check the console for details.'
+                    submit: 'Failed to create SRN.'
                 });
             }
         } catch (error) {
@@ -496,11 +497,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             <Receipt size={20} className="mr-2 text-green-600" />
                             Create New SRN
                         </h2>
-                        {errors.srnAmount && (
-                            <p className="mt-1 text-red-600 text-sm">
-                                {errors.srnAmount}
-                            </p>
-                        )}
+                        
                     </div>
                     <button
                         onClick={handleClose}
