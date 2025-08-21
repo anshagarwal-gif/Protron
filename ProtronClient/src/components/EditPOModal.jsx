@@ -20,6 +20,8 @@ import {
     Edit2
 } from 'lucide-react';
 import axios from 'axios';
+import OrganizationSelect from './OrganizationSelect'; // Import OrganizationSelect
+import GlobalSnackbar from './GlobalSnackbar';
 
 // Currency symbols mapping
 const currencySymbols = {
@@ -883,57 +885,34 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Customer Name">
                                         Customer Name <span className="text-red-500">*</span>
                                     </label>
-                                    <div className="relative w-full">
-                                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11" size={20} />
-                                        <CreatableSelect
-                                            options={userOptions}
-                                            value={formData.customer ? { label: formData.customer, value: formData.customer } : null}
-                                            onChange={(opt) => {
-                                                let value = opt?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({ ...prev, customer: value }));
-                                            }}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px'
-                                                }),
-                                                singleValue: (base) => ({
-                                                    ...base,
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden'
-                                                })
-                                            }}
-                                            className="react-select-container z-10"
-                                            placeholder="Select or create project"
-                                            title={formData.customer || "Select or create customer"}
-                                            required
-                                        />
-                                    </div>
+                                    <OrganizationSelect
+                                        value={formData.customer || ''}
+                                        onChange={(value) => {
+                                            let finalValue = value;
+                                            if (value && value.length > 255) finalValue = value.slice(0, 255);
+                                            setFormData(prev => ({ ...prev, customer: finalValue }));
+                                        }}
+                                        onOrgSelect={handleCustomerOrgSelect}
+                                        placeholder="Search for customer or type new..."
+                                        orgType="CUSTOMER"
+                                        className="w-full"
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Supplier Name">
                                         Supplier Name <span className="text-red-500">*</span>
                                     </label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            value={formData.supplier}
-                                            onChange={e => {
-                                                let value = e.target.value;
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({ ...prev, supplier: value }));
-                                            }}
-                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
-                                            title={formData.supplier || "Enter Supplier Name"}
-                                            placeholder="Enter Supplier Name"
-                                            maxLength={255}
-                                            required
-                                        />
-                                    </div>
+                                    <OrganizationSelect
+                                        value={formData.supplier || ''}
+                                        onChange={(value) => {
+                                            let finalValue = value;
+                                            if (value && value.length > 255) finalValue = value.slice(0, 255);
+                                            setFormData(prev => ({ ...prev, supplier: finalValue }));
+                                        }}
+                                        placeholder="Search for supplier or type new..."
+                                        orgType="SUPPLIER"
+                                        className="w-full"
+                                    />
                                 </div>
                                 <div>
                                     <label

@@ -18,7 +18,8 @@ import {
   DollarSign,
   Building,
   User,
-  CreditCard
+  CreditCard,
+  CheckCircle
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
 import axios from "axios";
@@ -28,6 +29,7 @@ import EditPOModal from "../components/EditPOModal";
 import SRNManagement from "./SRN";
 import POConsumptionManagement from "./POUtilization";
 import InvoiceManagement from "./Invoice";
+import BudgetLineManagement from "./BudgetLineItem";
 import MilestoneManagement from "../components/MilestoneManagement";
 
 const POManagement = () => {
@@ -36,9 +38,10 @@ const POManagement = () => {
   const srnRef = useRef();
   const poRef = useRef();
   const invoiceRef = useRef();
+  const budgetLineRef = useRef();
 
   // State management
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState("approval");
   const [searchQuery, setSearchQuery] = useState("");
   const [poList, setPOList] = useState([]);
   const [selectedPO, setSelectedPO] = useState(null);
@@ -48,12 +51,14 @@ const POManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedPOId, setSelectedPOId] = useState(null);
-const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
-const [milestonePOId, setMilestonePOId] = useState(null);
+  const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
+  const [milestonePOId, setMilestonePOId] = useState(null);
+
   const handleOpenMilestoneModal = (po) => {
-  setMilestonePOId(po.poId || po.id);
-  setIsMilestoneModalOpen(true);
-};
+    setMilestonePOId(po.poId || po.id);
+    setIsMilestoneModalOpen(true);
+  };
+
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -147,6 +152,12 @@ const [milestonePOId, setMilestonePOId] = useState(null);
   });
 
   // Excel download functions
+  const downloadApprovalExcel = () => {
+    if (budgetLineRef.current && budgetLineRef.current.downloadBudgetLineExcel) {
+      budgetLineRef.current.downloadBudgetLineExcel();
+    }
+  };
+
   const downloadPOExcel = () => {
     try {
       const excelData = filteredPOData.map((po, index) => ({
@@ -216,6 +227,12 @@ const [milestonePOId, setMilestonePOId] = useState(null);
     setIsEditModalOpen(true);
   };
 
+  const handleAddApproval = () => {
+    if (budgetLineRef.current && budgetLineRef.current.handleAddBudgetLine) {
+      budgetLineRef.current.handleAddBudgetLine();
+    }
+  };
+
   const handleAddPO = () => {
     setIsAddModalOpen(true);
   };
@@ -243,7 +260,7 @@ const [milestonePOId, setMilestonePOId] = useState(null);
   };
 
   const handleModalSubmit = (data) => {
-    setIsAddModalOpen(false)
+    setIsAddModalOpen(false);
     showSnackbar("PO created successfully!", "success");
     fetchPOData();
   };
@@ -429,7 +446,7 @@ const [milestonePOId, setMilestonePOId] = useState(null);
     {
       headerName: "Actions",
       field: "actions",
-      width: 120,
+      width: 150,
       sortable: false,
       filter: false,
       suppressMenu: true,
@@ -437,13 +454,13 @@ const [milestonePOId, setMilestonePOId] = useState(null);
         const po = params.data;
         return (
           <div className="flex justify-center gap-2 h-full items-center">
-             {/* <button
-            onClick={() => handleOpenMilestoneModal(po)}
-            className="p-2 rounded-full hover:bg-green-100 transition-colors"
-            title="Add milestones"
-          >
-            <Plus size={16} className="text-green-600" />
-          </button> */}
+            <button
+              onClick={() => handleOpenMilestoneModal(po)}
+              className="p-2 rounded-full hover:bg-green-100 transition-colors"
+              title="Add milestones"
+            >
+              <Plus size={16} className="text-green-600" />
+            </button>
             <button
               onClick={() => handleViewPO(po)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
@@ -481,6 +498,8 @@ const [milestonePOId, setMilestonePOId] = useState(null);
   // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
+      case "approval":
+        return <BudgetLineManagement ref={budgetLineRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       case "details":
         return (
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
@@ -569,95 +588,117 @@ const [milestonePOId, setMilestonePOId] = useState(null);
     <div className="w-full p-6 bg-white">
       {/* Header with navigation, search and actions */}
       <div className="flex justify-between items-center mb-6">
-        {/* Left side - 4-Slider toggle buttons and title */}
+        {/* Left side - 5-Slider toggle buttons and title */}
         <div className="flex items-center gap-6">
-      <div className="relative bg-gray-200 p-1 rounded-full flex">
-        <div
-          className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-          style={{
-            width: activeTab === "utilization" ? 'calc(25% + 20px)' : activeTab === 'srn' ? 'calc(25% - 25px)' : activeTab === 'invoice' ? 'calc(25% - 10px)' : 'calc(25% - 2px)',
-            left: activeTab === "details" ? '4px' :
-              activeTab === "utilization" ? '25%' :
-                activeTab === "srn" ? '55%' :
-                  'calc(75% + 2px)'
-          }}
-        />
-        <button
-          className={`relative z-10 py-2 px-3 mr-2 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-            activeTab === "details" ? "text-green-600" : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab("details")}
-        >
-          <div className="flex items-center justify-center whitespace-nowrap">
-            <FileText size={16} className="mr-1" />
-            PO Details
+          <div className="relative bg-gray-200 p-1 rounded-full flex">
+            <div
+              className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+              style={{
+                width: activeTab === "approval" ? 'calc(20% - 2px)' :
+                       activeTab === "utilization" ? 'calc(20% + 15px)' : 
+                       activeTab === 'srn' ? 'calc(20% - 20px)' : 
+                       activeTab === 'invoice' ? 'calc(20% - 5px)' : 
+                       'calc(20% - 2px)',
+                left: activeTab === "approval" ? '4px' :
+                      activeTab === "details" ? 'calc(20% + 2px)' :
+                      activeTab === "utilization" ? 'calc(40% + 4px)' :
+                      activeTab === "srn" ? 'calc(60% + 6px)' :
+                      'calc(80% + 8px)'
+              }}
+            />
+            <button
+              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
+                activeTab === "approval" ? "text-green-600" : "text-gray-600"
+              }`}
+              onClick={() => setActiveTab("approval")}
+            >
+              <div className="flex items-center justify-center whitespace-nowrap">
+                <CheckCircle size={16} className="mr-1" />
+                Approval
+              </div>
+            </button>
+            <button
+              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
+                activeTab === "details" ? "text-green-600" : "text-gray-600"
+              }`}
+              onClick={() => setActiveTab("details")}
+            >
+              <div className="flex items-center justify-center whitespace-nowrap">
+                <FileText size={16} className="mr-1" />
+                PO Details
+              </div>
+            </button>
+            <button
+              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
+                activeTab === "utilization" ? "text-green-600" : "text-gray-600"
+              }`}
+              onClick={() => setActiveTab("utilization")}
+            >
+              <div className="flex items-center justify-center whitespace-nowrap">
+                <TrendingUp size={16} className="mr-1" />
+                PO Consumption
+              </div>
+            </button>
+            <button
+              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
+                activeTab === "srn" ? "text-green-600" : "text-gray-600"
+              }`}
+              onClick={() => setActiveTab("srn")}
+            >
+              <div className="flex items-center justify-center whitespace-nowrap">
+                <Receipt size={16} className="mr-1" />
+                SRN
+              </div>
+            </button>
+            <button
+              className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
+                activeTab === "invoice" ? "text-green-600" : "text-gray-600"
+              }`}
+              onClick={() => setActiveTab("invoice")}
+            >
+              <div className="flex items-center justify-center whitespace-nowrap">
+                <CreditCard size={16} className="mr-1" />
+                Invoice
+              </div>
+            </button>
           </div>
-        </button>
-        <button
-          className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-            activeTab === "utilization" ? "text-green-600" : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab("utilization")}
-        >
-          <div className="flex items-center justify-center whitespace-nowrap">
-            <TrendingUp size={16} className="mr-1" />
-            PO Consumption
-          </div>
-        </button>
-        <button
-          className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-            activeTab === "srn" ? "text-green-600" : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab("srn")}
-        >
-          <div className="flex items-center justify-center whitespace-nowrap">
-            <Receipt size={16} className="mr-1" />
-            SRN
-          </div>
-        </button>
-        <button
-          className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/4 text-sm font-medium ${
-            activeTab === "invoice" ? "text-green-600" : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab("invoice")}
-        >
-          <div className="flex items-center justify-center whitespace-nowrap">
-            <CreditCard size={16} className="mr-1" />
-            Invoice
-          </div>
-        </button>
-      </div>
 
-      {/* Dynamic title based on active tab */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-          {activeTab === "details" && (
-            <>
-              <FileText size={24} className="mr-2 text-green-600" />
-              PO List
-            </>
-          )}
-          {activeTab === "utilization" && (
-            <>
-              <TrendingUp size={24} className="mr-2 text-green-600" />
-              PO Consumption
-            </>
-          )}
-          {activeTab === "srn" && (
-            <>
-              <Receipt size={24} className="mr-2 text-green-600" />
-              SRN Management
-            </>
-          )}
-          {activeTab === "invoice" && (
-            <>
-              <CreditCard size={24} className="mr-2 text-green-600" />
-              Invoice Management
-            </>
-          )}
-        </h2>
-      </div>
-    </div>
+          {/* Dynamic title based on active tab */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              {activeTab === "approval" && (
+                <>
+                  <CheckCircle size={24} className="mr-2 text-green-600" />
+                  Budget Line Approval
+                </>
+              )}
+              {activeTab === "details" && (
+                <>
+                  <FileText size={24} className="mr-2 text-green-600" />
+                  PO List
+                </>
+              )}
+              {activeTab === "utilization" && (
+                <>
+                  <TrendingUp size={24} className="mr-2 text-green-600" />
+                  PO Consumption
+                </>
+              )}
+              {activeTab === "srn" && (
+                <>
+                  <Receipt size={24} className="mr-2 text-green-600" />
+                  SRN Management
+                </>
+              )}
+              {activeTab === "invoice" && (
+                <>
+                  <CreditCard size={24} className="mr-2 text-green-600" />
+                  Invoice Management
+                </>
+              )}
+            </h2>
+          </div>
+        </div>
 
         {/* Right side - Search and action buttons */}
         <div className="flex items-center gap-4">
@@ -666,10 +707,11 @@ const [milestonePOId, setMilestonePOId] = useState(null);
             <input
               type="text"
               placeholder={
-                activeTab === "details" ? "Search POs..." :
-                  activeTab === "utilization" ? "Search PO Consumptions..." :
-                    activeTab === "srn" ? "Search SRNs..." :
-                      "Search Invoices..."
+                activeTab === "approval" ? "Search Budget Lines..." :
+                  activeTab === "details" ? "Search POs..." :
+                    activeTab === "utilization" ? "Search PO Consumptions..." :
+                      activeTab === "srn" ? "Search SRNs..." :
+                        "Search Invoices..."
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -682,10 +724,11 @@ const [milestonePOId, setMilestonePOId] = useState(null);
           <button
             className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
             onClick={
-              activeTab === "details" ? downloadPOExcel :
-                activeTab === "utilization" ? downloadConsumptionExcel :
-                  activeTab === "srn" ? downloadSRNExcel :
-                    downloadInvoiceExcel
+              activeTab === "approval" ? downloadApprovalExcel :
+                activeTab === "details" ? downloadPOExcel :
+                  activeTab === "utilization" ? downloadConsumptionExcel :
+                    activeTab === "srn" ? downloadSRNExcel :
+                      downloadInvoiceExcel
             }
           >
             <Download size={18} className="mr-2" />
@@ -696,17 +739,19 @@ const [milestonePOId, setMilestonePOId] = useState(null);
           <button
             className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
             onClick={
-              activeTab === "details" ? handleAddPO :
-                activeTab === "utilization" ? handleAddConsumption :
-                  activeTab === "srn" ? handleAddSRN :
-                    handleAddInvoice
+              activeTab === "approval" ? handleAddApproval :
+                activeTab === "details" ? handleAddPO :
+                  activeTab === "utilization" ? handleAddConsumption :
+                    activeTab === "srn" ? handleAddSRN :
+                      handleAddInvoice
             }
           >
             <Plus size={18} className="mr-2" />
-            {activeTab === "details" ? "Add PO" :
-              activeTab === "utilization" ? "Add Consumption" :
-                activeTab === "srn" ? "Add SRN" :
-                  "Add Invoice"}
+            {activeTab === "approval" ? "Add Budget Line" :
+              activeTab === "details" ? "Add PO" :
+                activeTab === "utilization" ? "Add Consumption" :
+                  activeTab === "srn" ? "Add SRN" :
+                    "Add Invoice"}
           </button>
         </div>
       </div>
@@ -753,13 +798,14 @@ const [milestonePOId, setMilestonePOId] = useState(null);
         onClose={handleSnackbarClose}
       />
 
+      {/* Milestone Modal */}
       {isMilestoneModalOpen && (
-  <MilestoneManagement
-    poId={milestonePOId}
-    open={isMilestoneModalOpen}
-    onClose={() => setIsMilestoneModalOpen(false)}
-  />
-)}
+        <MilestoneManagement
+          poId={milestonePOId}
+          open={isMilestoneModalOpen}
+          onClose={() => setIsMilestoneModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

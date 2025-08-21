@@ -16,10 +16,10 @@ public class InvoiceRequestDTO {
     @Size(max = 100, message = "Invoice name must not exceed 100 characters")
     private String invoiceName;
 
-    @Size(max=100, message="Customer info cannot exceed 100 characters")
+    @Size(max = 200, message = "Customer info cannot exceed 200 characters")
     private String customerInfo;
 
-    @Size(max=100, message="Supplier info cannot exceed 100 characters")
+    @Size(max = 200, message = "Supplier info cannot exceed 200 characters")
     private String supplierInfo;
 
     @NotBlank(message = "Customer name is required")
@@ -237,27 +237,30 @@ public class InvoiceRequestDTO {
             this.submitted = submitted;
         }
 
-
     }
 
     public @Size(max = 100, message = "Invoice name must not exceed 100 characters") String getInvoiceName() {
         return invoiceName;
     }
+
     public String getCustomerInfo() {
         return customerInfo;
     }
+
     public void setCustomerInfo(String customerInfo) {
         this.customerInfo = customerInfo;
     }
+
     public String getSupplierInfo() {
         return supplierInfo;
     }
+
     public void setSupplierInfo(String supplierInfo) {
         this.supplierInfo = supplierInfo;
     }
 
     public void setInvoiceName(
-        @Size(max = 100, message = "Invoice name must not exceed 100 characters") String invoiceName) {
+            @Size(max = 100, message = "Invoice name must not exceed 100 characters") String invoiceName) {
         this.invoiceName = invoiceName;
     }
 
@@ -376,6 +379,5 @@ public class InvoiceRequestDTO {
     public boolean hasTimesheetData() {
         return timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty();
     }
-
 
 }

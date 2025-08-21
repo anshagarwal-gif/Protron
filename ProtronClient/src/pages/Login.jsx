@@ -6,7 +6,7 @@ import ForgotPassword from './ForgotPassword'; // Import the new component
 import { useAccess } from '../Context/AccessContext';
 import { useSession } from '../Context/SessionContext';
 import { useNavigate } from 'react-router-dom';
-
+ // Import your logo if needed
 const Login = ({ setIsAuthenticated }) => {
     const { setAccessRights, setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
     const [snackbar, setSnackbar] = useState({
@@ -23,10 +23,10 @@ const Login = ({ setIsAuthenticated }) => {
     const { updateSession } = useSession();
     const navigate = useNavigate();
 
-
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -89,7 +89,6 @@ const Login = ({ setIsAuthenticated }) => {
         }
     };
 
-
     if (showForgotPassword) {
         return (
             <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
@@ -99,9 +98,22 @@ const Login = ({ setIsAuthenticated }) => {
     }
 
     return (
-        <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-green-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-lg shadow-md w-full max-w-md p-8">
-                <h1 className="text-2xl font-bold text-center text-gray-800">Welcome back</h1>
+                {/* Logo Section */}
+                <div className="flex justify-center mb-8">
+                    <div className="flex items-center space-x-2">
+                        {/* Replace this with your actual logo image */}
+                        <img src='./logo.png' alt="Company Logo" className="h-12 w-auto" />
+                        
+                        {/* Placeholder logo - replace with your actual logo */}
+                        <div className="flex items-center space-x-2">
+                            <span className="text-2xl font-bold text-gray-800">Project Matrics</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h1 className="text-2xl font-bold text-center text-gray-800">Welcome </h1>
                 <p className="text-gray-600 text-center mb-8">Please sign in to your account</p>
 
                 {error && (
@@ -159,7 +171,7 @@ const Login = ({ setIsAuthenticated }) => {
                         <button
                             type="button"
                             onClick={() => setShowForgotPassword(true)}
-                            className="text-blue-600 text-sm hover:underline"
+                            className="text-green-600 text-sm hover:underline"
                         >
                             Forgot your password?
                         </button>
@@ -167,7 +179,7 @@ const Login = ({ setIsAuthenticated }) => {
 
                     <button
                         type="submit"
-                        className={`w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                        className={`w-full bg-green-700 text-white py-3 rounded-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                         disabled={isLoading} // Disable button when loading
                     >

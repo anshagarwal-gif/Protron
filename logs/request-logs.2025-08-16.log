@@ -1,0 +1,156 @@
+2025-08-16 04:51:37 INFO  - [2025-08-16 04:51:37] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 127.0.0.1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 127.0.0.1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:38] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 127.0.0.1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:39 INFO  - [2025-08-16 04:51:39] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:40 INFO  - [2025-08-16 04:51:40] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 127.0.0.1 | Status: 200
+2025-08-16 04:51:40 INFO  - [2025-08-16 04:51:40] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:40 INFO  - [2025-08-16 04:51:40] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 04:51:41 INFO  - [2025-08-16 04:51:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/projects | IP: 127.0.0.1 | Status: 200
+2025-08-16 04:51:42 INFO  - [2025-08-16 04:51:41] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 127.0.0.1 | Status: 200
+2025-08-16 04:51:42 INFO  - [2025-08-16 04:51:42] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:03:12 INFO  - [2025-08-16 05:03:12] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/users/logout/1 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:07 INFO  - [2025-08-16 05:04:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:07 INFO  - [2025-08-16 05:04:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:07 INFO  - [2025-08-16 05:04:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:07 INFO  - [2025-08-16 05:04:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:07 INFO  - [2025-08-16 05:04:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:07 INFO  - [2025-08-16 05:04:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:11 INFO  - [2025-08-16 05:04:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:11 INFO  - [2025-08-16 05:04:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:11 INFO  - [2025-08-16 05:04:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:11 INFO  - [2025-08-16 05:04:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:14 INFO  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:14 WARN  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-08-16 05:04:14 INFO  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:14 WARN  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-08-16 05:04:14 INFO  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:14 INFO  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:14 INFO  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:14 INFO  - [2025-08-16 05:04:14] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:15 WARN  - [2025-08-16 05:04:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-08-16 05:04:15 WARN  - [2025-08-16 05:04:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-08-16 05:04:15 INFO  - [2025-08-16 05:04:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:15 INFO  - [2025-08-16 05:04:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:16 INFO  - [2025-08-16 05:04:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:16 INFO  - [2025-08-16 05:04:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:17 WARN  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-08-16 05:04:17 INFO  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:17 INFO  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:17 INFO  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:17 WARN  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-08-16 05:04:17 INFO  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:17 INFO  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:17 INFO  - [2025-08-16 05:04:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:18 INFO  - [2025-08-16 05:04:18] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:18 INFO  - [2025-08-16 05:04:18] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:04:27 INFO  - [2025-08-16 05:04:27] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:06:17 WARN  - [2025-08-16 05:06:17] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines/with-attachment | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Request method 'POST' is not supported
+2025-08-16 05:06:34 WARN  - [2025-08-16 05:06:34] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: Identifier of entity 'com.Protronserver.Protronserver.Entities.BudgetLine' must be manually assigned before calling 'persist()'
+2025-08-16 05:06:43 WARN  - [2025-08-16 05:06:42] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: Identifier of entity 'com.Protronserver.Protronserver.Entities.BudgetLine' must be manually assigned before calling 'persist()'
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:47] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:48 INFO  - [2025-08-16 05:12:48] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:12:49 WARN  - [2025-08-16 05:12:49] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 127.0.0.1 | Status: 500 | Error: When allowCredentials is true
+2025-08-16 05:12:50 INFO  - [2025-08-16 05:12:49] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:50 WARN  - [2025-08-16 05:12:50] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: When allowCredentials is true
+2025-08-16 05:12:50 INFO  - [2025-08-16 05:12:50] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:12:56 WARN  - [2025-08-16 05:12:56] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: When allowCredentials is true
+2025-08-16 05:12:56 WARN  - [2025-08-16 05:12:56] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: When allowCredentials is true
+2025-08-16 05:13:10 INFO  - [2025-08-16 05:13:09] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/users/logout/1 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:13:15 INFO  - [2025-08-16 05:13:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:13:15 INFO  - [2025-08-16 05:13:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:13:16 WARN  - [2025-08-16 05:13:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: When allowCredentials is true
+2025-08-16 05:13:16 INFO  - [2025-08-16 05:13:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:13:16 INFO  - [2025-08-16 05:13:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:13:16 WARN  - [2025-08-16 05:13:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: When allowCredentials is true
+2025-08-16 05:13:16 INFO  - [2025-08-16 05:13:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:13:16 INFO  - [2025-08-16 05:13:16] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:06 INFO  - [2025-08-16 05:14:06] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:07 INFO  - [2025-08-16 05:14:07] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:09 INFO  - [2025-08-16 05:14:09] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:09 INFO  - [2025-08-16 05:14:09] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:09 INFO  - [2025-08-16 05:14:09] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:09 INFO  - [2025-08-16 05:14:09] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:12 INFO  - [2025-08-16 05:14:12] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:14:40 WARN  - [2025-08-16 05:14:40] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...
+2025-08-16 05:14:46 WARN  - [2025-08-16 05:14:46] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...
+2025-08-16 05:14:52 WARN  - [2025-08-16 05:14:52] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...
+2025-08-16 05:15:03 WARN  - [2025-08-16 05:15:03] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:10] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:11 INFO  - [2025-08-16 05:19:11] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:13 INFO  - [2025-08-16 05:19:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:13 INFO  - [2025-08-16 05:19:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:13 INFO  - [2025-08-16 05:19:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:13 INFO  - [2025-08-16 05:19:13] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:15 INFO  - [2025-08-16 05:19:15] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:19:40 WARN  - [2025-08-16 05:19:40] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...
+2025-08-16 05:19:54 WARN  - [2025-08-16 05:19:54] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/anshagarwal.rishikesh@gmail.com | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:25:17 INFO  - [2025-08-16 05:25:17] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:20 INFO  - [2025-08-16 05:25:20] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:20 INFO  - [2025-08-16 05:25:20] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 127.0.0.1 | Status: 200
+2025-08-16 05:25:20 INFO  - [2025-08-16 05:25:20] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:20 INFO  - [2025-08-16 05:25:20] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:22 INFO  - [2025-08-16 05:25:22] User: anshagarwal.rishikesh@gmail.com | Action: GET | Endpoint: /api/tenants/1/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-08-16 05:25:46 WARN  - [2025-08-16 05:25:46] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...
+2025-08-16 05:26:01 WARN  - [2025-08-16 05:26:01] User: anshagarwal.rishikesh@gmail.com | Action: POST | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Error creating budget line: could not execute statement [Field 'budget_id' doesn't have a default value] [insert into budget_line (amount_approved,amount_available,amount_utilized,attachment,budget_de...

@@ -19,6 +19,7 @@ import {
     UserCheck
 } from 'lucide-react';
 import AddMilestoneModal from './AddMilestoneModal'; // Import the AddMilestoneModal
+import OrganizationSelect from './OrganizationSelect'; // Import OrganizationSelect
 import axios from 'axios';
 import GlobalSnackbar from './GlobalSnackbar';
 
@@ -119,6 +120,24 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             ...prev,
             [field]: event.target.value
         }));
+    };
+
+    // Handler for customer organization selection with full details
+    const handleCustomerOrgSelect = (orgData) => {
+        if (orgData && orgData.length > 0) {
+            const org = orgData[0]; // Single selection
+            // You can add customer-specific fields here if needed in the future
+            console.log('Customer organization selected:', org);
+        }
+    };
+
+    // Handler for supplier organization selection with full details
+    const handleSupplierOrgSelect = (orgData) => {
+        if (orgData && orgData.length > 0) {
+            const org = orgData[0]; // Single selection
+            // You can add supplier-specific fields here if needed in the future
+            console.log('Supplier organization selected:', org);
+        }
     };
 
     const handleFileChange = (e) => {
@@ -310,7 +329,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                 <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                     <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h2 className="text-xl font-semibold text-green-900">
-                            Create New PO
+                            Create new Purchase Order
                         </h2>
                         <button
                             onClick={() => {
@@ -575,71 +594,39 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     <label
                                         htmlFor="customerName"
                                         className="block text-sm font-medium text-gray-700 mb-2"
-                                        title="Select an existing project or type a new one to create"
+                                        title="Select an existing customer or type a new one to create"
                                     >
                                         Customer Name
                                     </label>
-                                    <div className="relative w-full">
-                                        <Building
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-15"
-                                            size={20}
-                                            title="Customer name"
-                                        />
-                                        <CreatableSelect
-                                            inputId="customerName"
-                                            options={userOptions}
-                                            value={
-                                                formData.customerName
-                                                    ? { label: formData.customerName, value: formData.customerName }
-                                                    : null
-                                            }
-                                            onChange={(selectedOption) => {
-                                                let value = selectedOption?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                handleChange('customerName')({ target: { value } });
-                                            }}
-                                            className="react-select-container z-11"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select Customer"
-                                            isSearchable
-                                            isClearable
-                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px',
-                                                    borderColor: '#d1d5db',
-                                                }),
-                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                            }}
-                                        />
-                                    </div>
+                                    <OrganizationSelect
+                                        value={formData.customerName || ''}
+                                        onChange={(value) => {
+                                            let finalValue = value;
+                                            if (value && value.length > 255) finalValue = value.slice(0, 255);
+                                            setFormData(prev => ({ ...prev, customerName: finalValue }));
+                                        }}
+                                        onOrgSelect={handleCustomerOrgSelect}
+                                        placeholder="Select or type for customer"
+                                        orgType="CUSTOMER"
+                                        className="w-full"
+                                    />
                                 </div>
 
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name</label>
-                                    <div className="relative">
-                                        <Building className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600" size={20} />
-                                        <input
-                                            type="text"
-                                            placeholder="Enter supplier name"
-                                            value={formData.supplierName}
-                                            onChange={e => {
-                                                let value = e.target.value;
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    supplierName: value
-                                                }));
-                                            }}
-                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                            title={formData.supplierName || 'Enter supplier name'}
-                                            maxLength={255}
-                                        />
-                                    </div>
-
+                                    <OrganizationSelect
+                                        value={formData.supplierName || ''}
+                                        onChange={(value) => {
+                                            let finalValue = value;
+                                            if (value && value.length > 255) finalValue = value.slice(0, 255);
+                                            setFormData(prev => ({ ...prev, supplierName: finalValue }));
+                                        }}
+                                        onOrgSelect={handleSupplierOrgSelect}
+                                        placeholder="Select or type for supplier."
+                                        orgType="SUPPLIER"
+                                        className="w-full"
+                                    />
                                 </div>
 
                                 <div>
@@ -692,44 +679,23 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     <label
                                         htmlFor="sponsorLob"
                                         className="block text-sm font-medium text-gray-700 mb-2"
-                                        title="Select an existing project or type a new one to create"
                                     >
                                         Sponsor LOB
                                     </label>
                                     <div className="relative w-full">
                                         <UserCheck
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10"
                                             size={20}
-                                            title="Select or create project"
                                         />
-                                        <CreatableSelect
-                                            inputId="sponsorLob"
-                                            options={userOptions}
-                                            value={
-                                                formData.sponsorLob
-                                                    ? { label: formData.sponsorLob, value: formData.sponsorLob }
-                                                    : null
-                                            }
-                                            onChange={(selectedOption) => {
-                                                let value = selectedOption?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                handleChange('sponsorLob')({ target: { value } });
-                                            }}
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select Sponsor LOB"
-                                            isSearchable
-                                            isClearable
-                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px',
-                                                    borderColor: '#d1d5db',
-                                                }),
-                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                            }}
+                                        <input
+                                            type="text"
+                                            id="sponsorLob"
+                                            name="sponsorLob"
+                                            value={formData.sponsorLob}
+                                            onChange={handleChange('sponsorLob')}
+                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            placeholder="Enter Sponsor LOB"
+                                            maxLength={255}
                                         />
                                     </div>
                                 </div>
@@ -738,44 +704,23 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     <label
                                         htmlFor="budgetLineItem"
                                         className="block text-sm font-medium text-gray-700 mb-2"
-                                        title="Select an existing project or type a new one to create"
                                     >
                                         Budget Line Item
                                     </label>
                                     <div className="relative w-full">
                                         <UserCheck
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10"
                                             size={20}
-                                            title="Select Budget Line Item"
                                         />
-                                        <CreatableSelect
-                                            inputId="budgetLineItem"
-                                            options={userOptions}
-                                            value={
-                                                formData.budgetLineItem
-                                                    ? { label: formData.budgetLineItem, value: formData.budgetLineItem }
-                                                    : null
-                                            }
-                                            onChange={(selectedOption) => {
-                                                let value = selectedOption?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                handleChange('budgetLineItem')({ target: { value } });
-                                            }}
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select Budget Line"
-                                            isSearchable
-                                            isClearable
-                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px',
-                                                    borderColor: '#d1d5db',
-                                                }),
-                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                            }}
+                                        <input
+                                            type="text"
+                                            id="budgetLineItem"
+                                            name="budgetLineItem"
+                                            value={formData.budgetLineItem}
+                                            onChange={handleChange('budgetLineItem')}
+                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            placeholder="Enter Budget Line Item"
+                                            maxLength={255}
                                         />
                                     </div>
                                 </div>

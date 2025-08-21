@@ -158,26 +158,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                     remark;
             }
         },
-        {
-            headerName: 'Attachment',
-            field: 'attachment',
-            width: 120,
-            editable: false,
-            cellRenderer: (params) => {
-                return (
-                    <div className="flex justify-center items-center h-full">
-                        {params.data.attachments ? (
-                            <span className="text-xs text-green-600 flex items-center">
-                                <FileText size={14} className="mr-1" />
-                                File
-                            </span>
-                        ) : (
-                            <span className="text-xs text-gray-400">No file</span>
-                        )}
-                    </div>
-                );
-            }
-        },
+       
         {
             headerName: 'Actions',
             field: 'actions',
@@ -251,7 +232,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                                     headerHeight={48}
                                     noRowsOverlayComponent={() => (
                                         <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-3">
-                                            <div className="text-6xl text-gray-300">+</div>
+                                        
                                             <div className="text-center">
                                                 <p className="text-lg font-medium">No milestones added yet</p>
                                                 <p className="text-sm">Click "Add Milestone" above to get started</p>
