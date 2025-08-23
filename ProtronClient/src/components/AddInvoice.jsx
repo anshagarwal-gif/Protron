@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
+import OrganizationSelect from './OrganizationSelect'; // Import OrganizationSelect
 import axios from 'axios';
 import {
     X,
@@ -39,8 +40,8 @@ const AddInvoiceModal = ({
     onSubmit,
     timesheetData,
     viewMode,
-    currentWeekStart,
-    currentMonthRange,
+    // currentWeekStart,
+    // currentMonthRange,
     employee
 }) => {
     const [formData, setFormData] = useState({
@@ -62,16 +63,18 @@ const AddInvoiceModal = ({
         employeeId: ''
     });
 
-    const [customers, setCustomers] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
+    // const [customers, setCustomers] = useState([]);
+    // const [suppliers, setSuppliers] = useState([]);
     const [employees, setEmployees] = useState([]);
-    const [customerAddresses, setCustomerAddresses] = useState([]);
-    const [supplierAddresses, setSupplierAddresses] = useState([]);
+    // const [customerAddresses, setCustomerAddresses] = useState([]);
+    // const [supplierAddresses, setSupplierAddresses] = useState([]);
     const [isCalculating, setIsCalculating] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [fetchedTasks, setFetchedTasks] = useState([]);
+    // const [fetchingTasks, setFetchingTasks] = useState(false);
+
     const [fetchingTasks, setFetchingTasks] = useState(false);
     // Single attachment field that handles multiple files (up to 4)
     const [attachments, setAttachments] = useState([]);
@@ -108,7 +111,7 @@ const AddInvoiceModal = ({
                 const selectedEmployee = employees.find(emp => emp.userId === formData.employeeId);
                 if (!selectedEmployee || !selectedEmployee.userId) return;
 
-                setFetchingTasks(true);
+                // setFetchingTasks(true);
                 try {
                     const res = await axios.get(
                         `${API_BASE_URL}/api/timesheet-tasks/admin-between`,
@@ -142,10 +145,11 @@ const AddInvoiceModal = ({
                         hoursSpent: decimalHours
                     }));
 
-                } catch (err) {
+                } catch (error) {
+                    console.error('Error fetching tasks:', error);
                     setFetchedTasks([]);
                 } finally {
-                    setFetchingTasks(false);
+                    // setFetchingTasks(false);
                 }
             } else {
                 setFetchedTasks([]);
@@ -153,60 +157,60 @@ const AddInvoiceModal = ({
         };
 
         fetchTasksForRange();
-    }, [formData.fromDate, formData.toDate, formData.employeeName, employees]);
+    }, [formData.fromDate, formData.toDate, formData.employeeName, formData.employeeId, employees]);
 
 
     // ...existing code...
 
     // Helper functions for timesheet data processing
-    const formatDate = (date) =>
-        date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
+    // const formatDate = (date) =>
+    //     date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
 
-    const formatDateKey = (date) => date.toISOString().split("T")[0];
+    // const formatDateKey = (date) => date.toISOString().split("T")[0];
 
-    const isWeekend = (date) => {
-        const day = date.getDay();
-        return day === 0 || day === 6;
-    };
+    // const isWeekend = (date) => {
+    //     const day = date.getDay();
+    //     return day === 0 || day === 6;
+    // };
 
-    const getWeekDates = (startDate) => {
-        const dates = [];
-        for (let i = 0; i < 7; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
-            dates.push(date);
-        }
-        return dates;
-    };
+    // const getWeekDates = (startDate) => {
+    //     const dates = [];
+    //     for (let i = 0; i < 7; i++) {
+    //         const date = new Date(startDate);
+    //         date.setDate(startDate.getDate() + i);
+    //         dates.push(date);
+    //     }
+    //     return dates;
+    // };
 
-    const getMonthDates = () => {
-        const dates = [];
-        const current = new Date(currentMonthRange.start);
-        while (current <= currentMonthRange.end) {
-            dates.push(new Date(current));
-            current.setDate(current.getDate() + 1);
-        }
-        return dates;
-    };
+    // const getMonthDates = () => {
+    //     const dates = [];
+    //     const current = new Date(currentMonthRange.start);
+    //     while (current <= currentMonthRange.end) {
+    //         dates.push(new Date(current));
+    //         current.setDate(current.getDate() + 1);
+    //     }
+    //     return dates;
+    // };
 
-    const getCurrentDates = () => (viewMode === "Weekly" ? getWeekDates(currentWeekStart) : getMonthDates());
+    // const getCurrentDates = () => (viewMode === "Weekly" ? getWeekDates(currentWeekStart) : getMonthDates());
 
-    const getTimeEntries = (date) => {
-        const dateKey = formatDateKey(date);
-        return timesheetData[dateKey] || [];
-    };
+    // const getTimeEntries = (date) => {
+    //     const dateKey = formatDateKey(date);
+    //     return timesheetData[dateKey] || [];
+    // };
 
-    const getDayTotalTime = (date) => {
-        const entries = getTimeEntries(date);
-        let totalMinutes = entries.reduce((total, entry) => {
-            return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
-        }, 0);
+    // const getDayTotalTime = (date) => {
+    //     const entries = getTimeEntries(date);
+    //     let totalMinutes = entries.reduce((total, entry) => {
+    //         return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
+    //     }, 0);
 
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
+    //     const hours = Math.floor(totalMinutes / 60);
+    //     const minutes = totalMinutes % 60;
 
-        return { hours, minutes };
-    };
+    //     return { hours, minutes };
+    // };
 
     // ...existing code...
     const prepareTimesheetData = () => {
@@ -244,7 +248,7 @@ const AddInvoiceModal = ({
 
         const hours = Math.floor(totalMinutes / 60);
         const minutes = totalMinutes % 60;
-        const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
+        // const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
 
         // Calculate target hours: count working days (Mon-Fri) in the selected range
         let targetHours = 0;
@@ -366,42 +370,39 @@ const AddInvoiceModal = ({
             }));
 
             // Enhanced customer options with address info
-            const customerOptionsWithAddress = res.data.map(emp => ({
-                label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-                value: emp.name,
-                empCode: emp.empCode,
-                cost: emp.cost,
-                email: emp.email,
-                userId: emp.userId,
-                status: emp.status,
-                address: (() => {
-                    const addressParts = [];
-                    if (emp.city) addressParts.push(emp.city);
-                    if (emp.state) addressParts.push(emp.state);
-                    if (emp.country) addressParts.push(emp.country);
+            // const customerOptionsWithAddress = res.data.map(emp => ({
+            //     label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
+            //     value: emp.name,
+            //     empCode: emp.empCode,
+            //     cost: emp.cost,
+            //     email: emp.email,
+            //     userId: emp.userId,
+            //     status: emp.status,
+            //     address: (() => {
+            //         const addressParts = [];
+            //         if (emp.city) addressParts.push(emp.city);
+            //         if (emp.state) addressParts.push(emp.state);
+            //         if (emp.country) addressParts.push(emp.country);
 
-                    if (addressParts.length > 0) {
-                        return addressParts.join(', ');
-                    } else {
-                        return `Address for ${emp.name}`;
-                    }
-                })(),
-                city: emp.city,
-                state: emp.state,
-                country: emp.country,
-                mobilePhone: emp.mobilePhone,
-                currency: emp.unit || emp.currency || 'USD'
-            }));
+            //         if (addressParts.length > 0) {
+            //             return addressParts.join(', ');
+            //         } else {
+            //             return `Address for ${emp.name}`;
+            //         }
+            //     })(),
+            //     city: emp.city,
+            //     state: emp.state,
+            //     country: emp.country,
+            //     mobilePhone: emp.mobilePhone,
+            //     currency: emp.unit || emp.currency || 'USD'
+            // }));
 
             setEmployees(employeeOptions);
-            setCustomers(customerOptionsWithAddress);
-            setSuppliers([]);
-            setCustomerAddresses([]);
-            setSupplierAddresses([]);
 
         } catch (error) {
             console.error('Error fetching dropdown data:', error);
             setEmployees([]);
+            alert(`Failed to fetch employee data: ${error.message}`);
             setCustomers([]);
             setSuppliers([]);
             setCustomerAddresses([]);
@@ -472,46 +473,85 @@ const AddInvoiceModal = ({
         }
     };
 
-    const handleSelectChange = (field) => (selectedOption) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: selectedOption?.value || ''
-        }));
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
+    // const handleSelectChange = (field) => (selectedOption) => {
+    //     setFormData(prev => ({
+    //         ...prev,
+    //         [field]: selectedOption?.value || ''
+    //     }));
+    //     if (errors[field]) {
+    //         setErrors(prev => ({ ...prev, [field]: '' }));
+    //     }
+    // };
+
+    // Handler for customer organization selection with full details
+    const handleCustomerOrgSelect = (orgData) => {
+        if (orgData) {
+            // Build address from organization data
+            let addressParts = [];
+            if (orgData.orgAddress) addressParts.push(orgData.orgAddress);
+            if (orgData.orgCity) addressParts.push(orgData.orgCity);
+            if (orgData.orgState) addressParts.push(orgData.orgState);
+            if (orgData.orgCountry) addressParts.push(orgData.orgCountry);
+            if (orgData.orgZip) addressParts.push(orgData.orgZip);
+
+            const finalAddress = addressParts.length > 0 ? addressParts.join(', ') : '';
+            
+            // Build info string with GST/Tax details
+            let infoParts = [];
+            if (orgData.orgTaxName) infoParts.push(`GST/Tax Name: ${orgData.orgTaxName}`);
+            if (orgData.orgTaxId) infoParts.push(`Tax ID: ${orgData.orgTaxId}`);
+            if (orgData.orgDesc) infoParts.push(`Description: ${orgData.orgDesc}`);
+
+            const finalInfo = infoParts.length > 0 ? infoParts.join(' | ') : '';
+
+            setFormData(prev => ({
+                ...prev,
+                customerAddress: finalAddress,
+                customerInfo: finalInfo
+            }));
+        } else {
+            // Clear related fields when customer is cleared
+            setFormData(prev => ({
+                ...prev,
+                customerAddress: '',
+                customerInfo: ''
+            }));
         }
     };
 
-    // Special handler for customer selection to auto-populate address
-    const handleCustomerChange = (selectedOption) => {
-        if (selectedOption) {
+    // Handler for supplier organization selection with full details
+    const handleSupplierOrgSelect = (orgData) => {
+        if (orgData) {
+            // Build address from organization data
             let addressParts = [];
-            if (selectedOption.city) addressParts.push(selectedOption.city);
-            if (selectedOption.state) addressParts.push(selectedOption.state);
-            if (selectedOption.country) addressParts.push(selectedOption.country);
+            if (orgData.orgAddress) addressParts.push(orgData.orgAddress);
+            if (orgData.orgCity) addressParts.push(orgData.orgCity);
+            if (orgData.orgState) addressParts.push(orgData.orgState);
+            if (orgData.orgCountry) addressParts.push(orgData.orgCountry);
+            if (orgData.orgZip) addressParts.push(orgData.orgZip);
 
-            let finalAddress = '';
-            if (addressParts.length > 0) {
-                finalAddress = addressParts.join(', ');
-            } else {
-                finalAddress = `${selectedOption.value}'s Address`;
-            }
+            const finalAddress = addressParts.length > 0 ? addressParts.join(', ') : '';
+            
+            // Build info string with GST/Tax details
+            let infoParts = [];
+            if (orgData.orgTaxName) infoParts.push(`GST/Tax Name: ${orgData.orgTaxName}`);
+            if (orgData.orgTaxId) infoParts.push(`Tax ID: ${orgData.orgTaxId}`);
+            if (orgData.orgDesc) infoParts.push(`Description: ${orgData.orgDesc}`);
+
+            const finalInfo = infoParts.length > 0 ? infoParts.join(' | ') : '';
 
             setFormData(prev => ({
                 ...prev,
-                customerName: selectedOption.value,
-                customerAddress: finalAddress
+                supplierAddress: finalAddress,
+                supplierInfo: finalInfo
             }));
         } else {
+            // Clear related fields when supplier is cleared
             setFormData(prev => ({
                 ...prev,
-                customerName: '',
-                customerAddress: ''
+                supplierAddress: '',
+                supplierInfo: ''
             }));
-        }
-
-        if (errors.customerName) {
-            setErrors(prev => ({ ...prev, customerName: '' }));
         }
     };
 
@@ -619,6 +659,20 @@ const AddInvoiceModal = ({
 
         if (formData.fromDate && formData.toDate && new Date(formData.toDate) < new Date(formData.fromDate)) {
             newErrors.toDate = 'To date must be after from date';
+        }
+
+        // Validate character limits
+        if (formData.customerAddress && formData.customerAddress.length > 500) {
+            newErrors.customerAddress = 'Customer address cannot exceed 500 characters';
+        }
+        if (formData.customerInfo && formData.customerInfo.length > 100) {
+            newErrors.customerInfo = 'Customer info cannot exceed 100 characters';
+        }
+        if (formData.supplierAddress && formData.supplierAddress.length > 500) {
+            newErrors.supplierAddress = 'Supplier address cannot exceed 500 characters';
+        }
+        if (formData.supplierInfo && formData.supplierInfo.length > 100) {
+            newErrors.supplierInfo = 'Supplier info cannot exceed 100 characters';
         }
 
         setErrors(newErrors);
@@ -840,8 +894,10 @@ const AddInvoiceModal = ({
             invoiceName: '',
             customerName: '',
             customerAddress: '',
+            customerInfo: '',
             supplierName: sessionStorage.getItem('tenantName') || '',
             supplierAddress: '',
+            supplierInfo: '',
             employeeName: '',
             rate: '',
             currency: 'USD',
@@ -963,6 +1019,9 @@ const AddInvoiceModal = ({
                                         }`}
                                     maxLength={100}
                                 />
+                                <div className="text-right text-sm text-gray-500 mt-1">
+                                    {formData.invoiceName.length}/100 characters
+                                </div>
                                 {errors.invoiceName && <p className="text-red-500 text-xs mt-1">{errors.invoiceName}</p>}
                             </div>
                         </div>
@@ -974,27 +1033,14 @@ const AddInvoiceModal = ({
                                     Customer Name *
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
                                 </label>
-                                <CreatableSelect
-                                    options={customers}
-                                    value={formData.customerName ? customers.find(cust => cust.value === formData.customerName) : null}
-                                    onChange={handleCustomerChange}
-                                    className="react-select-container"
-                                    classNamePrefix="react-select"
-                                    placeholder={loadingEmployees ? "Loading..." : "Select customer"}
-                                    isSearchable
-                                    isClearable
-                                    isLoading={loadingEmployees}
+                                <OrganizationSelect
+                                    value={formData.customerName || ''}
+                                    onChange={(value) => setFormData(prev => ({ ...prev, customerName: value }))}
+                                    onOrgSelect={handleCustomerOrgSelect}
+                                    placeholder="Search for customer or type new..."
+                                    orgType="CUSTOMER"
                                     isDisabled={loadingEmployees}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                    styles={{
-                                        control: (base, state) => ({
-                                            ...base,
-                                            height: '40px',
-                                            borderColor: errors.customerName ? '#ef4444' : state.isFocused ? '#10b981' : '#d1d5db',
-                                            boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
-                                        }),
-                                        valueContainer: (base) => ({ ...base, padding: '0 8px' }),
-                                    }}
+                                    className="w-full"
                                 />
                                 {errors.customerName && <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>}
                             </div>
@@ -1009,8 +1055,13 @@ const AddInvoiceModal = ({
                                     placeholder="Customer address"
                                     value={formData.customerAddress}
                                     onChange={handleChange('customerAddress')}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.customerAddress ? 'border-red-500' : 'border-gray-300'}`}
+                                    maxLength={500}
                                 />
+                                <div className="text-right text-sm text-gray-500 mt-1">
+                                    {formData.customerAddress.length}/500 characters
+                                </div>
+                                {errors.customerAddress && <p className="text-red-500 text-xs mt-1">{errors.customerAddress}</p>}
                             </div>
                             <div className="">
                                 <label className='block text-sm font-medium text-gray-700 mb-2'>
@@ -1021,8 +1072,13 @@ const AddInvoiceModal = ({
                                     placeholder='Enter customer info'
                                     value={formData.customerInfo}
                                     onChange={handleChange('customerInfo')}
-                                    className='w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.customerInfo ? 'border-red-500' : 'border-gray-300'}`}
+                                    maxLength={200}
                                 />
+                                <div className="text-right text-sm text-gray-500 mt-1">
+                                    {formData.customerInfo.length}/200 characters
+                                </div>
+                                {errors.customerInfo && <p className="text-red-500 text-xs mt-1">{errors.customerInfo}</p>}
                             </div>
                         </div>
 
@@ -1032,13 +1088,14 @@ const AddInvoiceModal = ({
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Supplier Name *
                                 </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter supplier name"
-                                    value={formData.supplierName}
-                                    onChange={handleChange('supplierName')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.supplierName ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                <OrganizationSelect
+                                    value={formData.supplierName || ''}
+                                    onChange={(value) => setFormData(prev => ({ ...prev, supplierName: value }))}
+                                    onOrgSelect={handleSupplierOrgSelect}
+                                    placeholder="Search for supplier or type new..."
+                                    orgType="SUPPLIER"
+                                    isDisabled={loadingEmployees}
+                                    className="w-full"
                                 />
                                 {errors.supplierName && <p className="text-red-500 text-xs mt-1">{errors.supplierName}</p>}
                             </div>
@@ -1052,8 +1109,13 @@ const AddInvoiceModal = ({
                                     placeholder="Enter supplier address"
                                     value={formData.supplierAddress}
                                     onChange={handleChange('supplierAddress')}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.supplierAddress ? 'border-red-500' : 'border-gray-500'}`}
+                                    maxLength={500}
                                 />
+                                <div className="text-right text-xs text-gray-500 mt-1">
+                                    {formData.supplierAddress.length}/500 characters
+                                </div>
+                                {errors.supplierAddress && <p className="text-red-500 text-xs mt-1">{errors.supplierAddress}</p>}
                             </div>
                             <div className="">
                                 <label className='block text-sm font-medium text-gray-700 mb-2'>
@@ -1064,10 +1126,19 @@ const AddInvoiceModal = ({
                                     placeholder='Enter supplier info'
                                     value={formData.supplierInfo}
                                     onChange={handleChange('supplierInfo')}
-                                    className='w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.supplierInfo ? 'border-red-500' : 'border-gray-300'}`}
+                                    maxLength={200}
                                 />
+                                <div className="text-right text-sm text-gray-500 mt-1">
+                                    {formData.supplierInfo.length}/200 characters
+                                </div>
+                                {errors.supplierInfo && <p className="text-red-500 text-xs mt-1">{errors.supplierInfo}</p>}
                             </div>
                         </div>
+
+
+
+
                         <div className="grid grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1137,11 +1208,22 @@ const AddInvoiceModal = ({
                                         type="number"
                                         placeholder="0.00"
                                         value={formData.rate}
-                                        onChange={handleChange('rate')}
+                                        onChange={(e) => {
+                                            let value = e.target.value.replace(/[^0-9.]/g, '');
+                                            const parts = value.split('.');
+                                            if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                            if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                            if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                            value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                            e.target.value = value;
+                                            handleChange('rate')(e);
+                                        }}
                                         className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.rate ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         step="0.01"
                                         min="0.01"
+                                        pattern="^\d{1,13}(\.\d{0,2})?$"
+                                        inputMode="decimal"
                                     />
                                 </div>
                                 {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
@@ -1275,12 +1357,25 @@ const AddInvoiceModal = ({
                                     Hours Spent *
                                 </label>
                                 <input
-                                    type="text"
+                                    type="number"
                                     placeholder="0"
                                     value={formData.hoursSpent}
-                                    onChange={handleChange('hoursSpent')}
+                                    onChange={(e) => {
+                                        let value = e.target.value.replace(/[^0-9.]/g, '');
+                                        const parts = value.split('.');
+                                        if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                        if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                        if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                        value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                        e.target.value = value;
+                                        handleChange('hoursSpent')(e);
+                                    }}
                                     className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
                                         }`}
+                                    step="0.01"
+                                    min="0"
+                                    pattern="^\d{1,13}(\.\d{0,2})?$"
+                                    inputMode="decimal"
                                 />
                                 {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
                             </div>

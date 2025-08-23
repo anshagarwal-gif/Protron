@@ -765,9 +765,20 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   type="number"
                   name="amount"
                   value={formData.amount}
-                  onChange={handleInputChange}
-                  step="1"
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/[^0-9.]/g, '');
+                    const parts = value.split('.');
+                    if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                    if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                    if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                    value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                    e.target.value = value;
+                    handleInputChange(e);
+                  }}
+                  step="0.01"
                   min="0"
+                  pattern="^\d{1,13}(\.\d{0,2})?$"
+                  inputMode="decimal"
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.amount ? 'border-red-500' : 'border-gray-300'
                     }`}
                   placeholder="0"

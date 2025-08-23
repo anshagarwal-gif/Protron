@@ -262,7 +262,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                                     headerHeight={48}
                                     noRowsOverlayComponent={() => (
                                         <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-3">
-                                            <div className="text-6xl text-gray-300">+</div>
+                                        
                                             <div className="text-center">
                                                 <p className="text-lg font-medium">No milestones added yet</p>
                                                 <p className="text-sm">Click "Add Milestone" above to get started</p>

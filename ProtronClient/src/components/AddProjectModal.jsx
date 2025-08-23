@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Calendar, Upload, Users, User, FolderOpen, X } from 'lucide-react';
-import CreatableSelect from 'react-select/creatable';// axios import removed - replace with fetch API in actual implementation
+import { Calendar, Upload, Users, User, FolderOpen, X, Building2, Users as UsersIcon } from 'lucide-react';
+import CreatableSelect from 'react-select/creatable';
+import axios from 'axios';
+import OrganizationSelect from './OrganizationSelect';
+
+// API Base URL
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Currency data
 const currencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
@@ -279,12 +284,18 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     const [initialFormData, setInitialFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [projectCode, setProjectCode] = useState('');
+    const [systems, setSystems] = useState([]);
 
     const userOptions = users.map((user) => ({
         value: user.name,
         label: user.name,
     }));
     const [errors, setErrors] = useState({})
+
+    const systemOptions = systems.map((system) => ({
+        value: system.systemName,
+        label: system.systemName,
+    }));
 
     const fetchUsers = async () => {
         try {
@@ -302,9 +313,29 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         }
     };
 
+    const fetchSystems = async () => {
+        try {
+            console.log('Fetching systems from:', `${API_BASE_URL}/api/systems/tenant`);
+            const token = sessionStorage.getItem('token');
+            console.log('Token exists:', !!token);
+            
+            const response = await axios.get(`${API_BASE_URL}/api/systems/tenant`, {
+                headers: { Authorization: token }
+            });
+            console.log('Systems response:', response.data);
+            setSystems(response.data);
+        } catch (error) {
+            console.error('Error fetching systems:', error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
+            setSystems([]);
+        }
+    };
+
     useEffect(() => {
         if (open) {
             fetchUsers();
+            fetchSystems();
             setInitialFormData({ ...formData });
             fetch(`${import.meta.env.VITE_API_URL}/api/projects/generate-code`, {
                 headers: { Authorization: `${sessionStorage.getItem('token')}` }
@@ -679,24 +710,37 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             <div className="flex-1">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Add Systems Impacted</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Type a system and press Enter"
-                                        value={formData.newSystem || ''}
-                                        onChange={(e) => handleChange('newSystem', e.target.value)}
-                                        disabled={isSubmitting}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && formData.newSystem?.trim() && !isSubmitting) {
-                                                e.preventDefault();
-                                                const currentSystems = formData.systemImpacted || [];
-                                                handleChange('systemImpacted', [...currentSystems, formData.newSystem.trim()]);
-                                                handleChange('newSystem', '');
-                                            }
+                                    <CreatableSelect
+                                        options={systemOptions}
+                                        value={(formData.systemImpacted || []).map(system => ({ label: system, value: system }))}
+                                        onChange={(selected) => {
+                                            console.log('Selected systems:', selected);
+                                            handleChange('systemImpacted', selected?.map(s => s.value) || []);
                                         }}
-                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        placeholder="Search for systems..."
+                                        isClearable
+                                        isMulti
+                                        isSearchable
+                                        styles={{
+                                            menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                            menu: base => ({ ...base, zIndex: 9999 }),
+                                            control: (base) => ({
+                                                ...base,
+                                                minHeight: '40px',
+                                                fontSize: '14px'
+                                            })
+                                        }}
+                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                        noOptionsMessage={() => "No systems found. Type to create new one."}
+                                        loadingMessage={() => "Loading systems..."}
                                     />
                                     <div className="text-xs text-gray-600 mt-1">
                                         Enter System Name and press Enter to add the system.
+                                    </div>
+                                    {/* Debug info */}
+                                    <div className="text-xs text-gray-500 mt-1">
+                                        Available systems: {systemOptions.length} | 
+                                        Selected: {formData.systemImpacted?.length || 0}
                                     </div>
 
                                     {/* Display added systems */}
@@ -733,6 +777,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 </div>
                             </div>
                         </div>
+
+                       
 
                         {/* Action Buttons */}
                         <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
