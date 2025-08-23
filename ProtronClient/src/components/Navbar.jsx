@@ -236,7 +236,7 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
                       className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${currentPath === item.path
                         ? "bg-white text-green-900 shadow-sm"
                         : "text-white/90 hover:text-white hover:bg-white/20"
-                        }`}
+                        } cursor-pointer`}
                     >
                       <item.icon size={18} className="mr-2" />
                       <span>{item.label}</span>
@@ -251,7 +251,7 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
               <div className="relative" ref={userDropdownRef}>
                 <button
                   onClick={() => handleButtonClick(email)}
-                  className="flex items-center px-3 py-2 rounded-lg hover:bg-white/20 transition-colors duration-200 group"
+                  className="cursor-pointer flex items-center px-3 py-2 rounded-lg hover:bg-white/20 transition-colors duration-200 group"
                 >
                   <div className="flex items-center space-x-2">
                     <div className="bg-white/20 rounded-full p-2">

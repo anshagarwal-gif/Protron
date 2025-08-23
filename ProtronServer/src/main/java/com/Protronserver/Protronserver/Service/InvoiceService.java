@@ -26,6 +26,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -392,94 +394,91 @@ public class InvoiceService {
         document.add(workTable);
 
         // Attachments info
-        
-
         // ==================== REMARKS TABLE ====================
         PdfPTable remarksTable = new PdfPTable(2);
-remarksTable.setWidthPercentage(100);
-remarksTable.setWidths(new float[]{8f, 2f});
-remarksTable.setLockedWidth(false); // allow width to be % based
-remarksTable.setSplitLate(false);   // ensure footer stays on same page
-remarksTable.setKeepTogether(true); // try to keep table together on one page
-
+        remarksTable.setWidthPercentage(100);
+        remarksTable.setWidths(new float[]{8f, 2f});
+        remarksTable.setLockedWidth(false); // allow width to be % based
+        remarksTable.setSplitLate(false);   // ensure footer stays on same page
+        remarksTable.setKeepTogether(true); // try to keep table together on one page
 
 // --- HEADER ---
-PdfPCell h1 = new PdfPCell(new Phrase("Item Description", headerFont));
-h1.setHorizontalAlignment(Element.ALIGN_CENTER);
-h1.setVerticalAlignment(Element.ALIGN_MIDDLE);
-h1.setPadding(8);
-h1.setBackgroundColor(BaseColor.LIGHT_GRAY);
-h1.setBorder(Rectangle.BOX);
-h1.setFixedHeight(35f); // Fixed header height
-remarksTable.addCell(h1);
+        PdfPCell h1 = new PdfPCell(new Phrase("Item Description", headerFont));
+        h1.setHorizontalAlignment(Element.ALIGN_CENTER);
+        h1.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        h1.setPadding(8);
+        h1.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        h1.setBorder(Rectangle.BOX);
+        h1.setFixedHeight(35f); // Fixed header height
+        remarksTable.addCell(h1);
 
-PdfPCell h2 = new PdfPCell(new Phrase("Amount", headerFont));
-h2.setHorizontalAlignment(Element.ALIGN_CENTER);
-h2.setVerticalAlignment(Element.ALIGN_MIDDLE);
-h2.setPadding(8);
-h2.setBackgroundColor(BaseColor.LIGHT_GRAY);
-h2.setBorder(Rectangle.BOX);
-h2.setFixedHeight(35f); // Fixed header height
-remarksTable.addCell(h2);
+        PdfPCell h2 = new PdfPCell(new Phrase("Amount", headerFont));
+        h2.setHorizontalAlignment(Element.ALIGN_CENTER);
+        h2.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        h2.setPadding(8);
+        h2.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        h2.setBorder(Rectangle.BOX);
+        h2.setFixedHeight(35f); // Fixed header height
+        remarksTable.addCell(h2);
 
 // --- DATA ROW ---
-String description = (invoice.getEmployeeName() != null ? invoice.getEmployeeName() : "");
-if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
-    description += "\nRemarks: " + invoice.getRemarks();
-}
+        String description = (invoice.getEmployeeName() != null ? invoice.getEmployeeName() : "");
+        if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
+            description += "\nRemarks: " + invoice.getRemarks();
+        }
 
-PdfPCell c1 = new PdfPCell(new Phrase(description, normalFont));
-c1.setPadding(8);
-c1.setVerticalAlignment(Element.ALIGN_TOP);
-c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+        PdfPCell c1 = new PdfPCell(new Phrase(description, normalFont));
+        c1.setPadding(8);
+        c1.setVerticalAlignment(Element.ALIGN_TOP);
+        c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
 // Set a reasonable fixed height instead of letting it expand
-c1.setFixedHeight(80f); // Adjust this value based on your content
-c1.setNoWrap(false); // Allow text wrapping
-remarksTable.addCell(c1);
+        c1.setFixedHeight(80f); // Adjust this value based on your content
+        c1.setNoWrap(false); // Allow text wrapping
+        remarksTable.addCell(c1);
 
-PdfPCell c2 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
-c2.setPadding(8);
-c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
-c2.setVerticalAlignment(Element.ALIGN_TOP);
-c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-c2.setFixedHeight(80f); // Match the height of description cell
-remarksTable.addCell(c2);
+        PdfPCell c2 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
+        c2.setPadding(8);
+        c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        c2.setVerticalAlignment(Element.ALIGN_TOP);
+        c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+        c2.setFixedHeight(80f); // Match the height of description cell
+        remarksTable.addCell(c2);
 
 // --- FILLER ROW to occupy remaining height (reduced size) ---
-PdfPCell filler1 = new PdfPCell(new Phrase(""));
-filler1.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
+        PdfPCell filler1 = new PdfPCell(new Phrase(""));
+        filler1.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
 // Reduced filler height to prevent page overflow
-float fillerHeight = invoice.getAttachmentCount() >= 2 ? 200f : 200f;
-filler1.setFixedHeight(fillerHeight);
-remarksTable.addCell(filler1);
+        float fillerHeight = invoice.getAttachmentCount() >= 2 ? 200f : 200f;
+        filler1.setFixedHeight(fillerHeight);
+        remarksTable.addCell(filler1);
 
-PdfPCell filler2 = new PdfPCell(new Phrase(""));
-filler2.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
-filler2.setFixedHeight(fillerHeight); // Match filler1 height
-remarksTable.addCell(filler2);
+        PdfPCell filler2 = new PdfPCell(new Phrase(""));
+        filler2.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
+        filler2.setFixedHeight(fillerHeight); // Match filler1 height
+        remarksTable.addCell(filler2);
 
 // --- FOOTER ROW ---
-PdfPCell footerLabel = new PdfPCell(new Phrase("Total", headerFont));
-footerLabel.setPadding(8);
-footerLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
-footerLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
-footerLabel.setBorder(Rectangle.TOP | Rectangle.LEFT | Rectangle.BOTTOM);
-footerLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
-footerLabel.setFixedHeight(40f); // Fixed footer height
+        PdfPCell footerLabel = new PdfPCell(new Phrase("Total", headerFont));
+        footerLabel.setPadding(8);
+        footerLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        footerLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        footerLabel.setBorder(Rectangle.TOP | Rectangle.LEFT | Rectangle.BOTTOM);
+        footerLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        footerLabel.setFixedHeight(40f); // Fixed footer height
 
-PdfPCell footerValue = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), headerFont));
-footerValue.setPadding(8);
-footerValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
-footerValue.setVerticalAlignment(Element.ALIGN_MIDDLE);
-footerValue.setBorder(Rectangle.TOP | Rectangle.RIGHT | Rectangle.BOTTOM);
-footerValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
-footerValue.setFixedHeight(40f); // Fixed footer height
+        PdfPCell footerValue = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), headerFont));
+        footerValue.setPadding(8);
+        footerValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        footerValue.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        footerValue.setBorder(Rectangle.TOP | Rectangle.RIGHT | Rectangle.BOTTOM);
+        footerValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        footerValue.setFixedHeight(40f); // Fixed footer height
 
-remarksTable.addCell(footerLabel);
-remarksTable.addCell(footerValue);
+        remarksTable.addCell(footerLabel);
+        remarksTable.addCell(footerValue);
 
 // --- ADD TO DOCUMENT ---
-document.add(remarksTable);
+        document.add(remarksTable);
 
         if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
             document.newPage();
@@ -489,6 +488,217 @@ document.add(remarksTable);
         document.close();
         return baos.toByteArray();
     }
+
+    public byte[] generatePreviewPDF(Map<String, Object> invoiceData) throws DocumentException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Document document = new Document();
+    PdfWriter writer = PdfWriter.getInstance(document, baos);
+
+    document.open();
+
+    // Define fonts
+    Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
+    Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+    Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
+    Font smallFont = new Font(Font.FontFamily.HELVETICA, 8);
+
+    // Add title
+    Paragraph title = new Paragraph("INVOICE", titleFont);
+    title.setAlignment(Element.ALIGN_CENTER);
+    title.setSpacingAfter(20);
+    document.add(title);
+
+    // Invoice ID and Name - Handle null values
+    document.add(new Paragraph("Invoice ID: " + generateInvoiceId(), headerFont));
+    document.add(new Paragraph("Invoice Name: " + 
+        (invoiceData.get("invoiceName") != null ? invoiceData.get("invoiceName").toString() : ""), normalFont));
+    String createdAtFormatted = formatLocalDateTimeWithSuffix(LocalDateTime.now());
+    document.add(new Paragraph("Created At: " + createdAtFormatted, normalFont));
+    document.add(new Paragraph(" "));
+
+    // Customer and Supplier details table
+    PdfPTable detailsTable = new PdfPTable(2);
+    detailsTable.setWidthPercentage(100);
+    detailsTable.setSpacingAfter(20);
+
+    // Customer details - Handle null values
+    detailsTable.addCell(new Phrase("Customer Name: " + 
+        (invoiceData.get("customerName") != null ? invoiceData.get("customerName").toString() : ""), headerFont));
+    detailsTable.addCell(new Phrase("Supplier Name: " + 
+        (invoiceData.get("supplierName") != null ? invoiceData.get("supplierName").toString() : ""), headerFont));
+    detailsTable.addCell(new Phrase("Customer Address: " + 
+        (invoiceData.get("customerAddress") != null ? invoiceData.get("customerAddress").toString() : ""), normalFont));
+    detailsTable.addCell(new Phrase("Supplier Address: " + 
+        (invoiceData.get("supplierAddress") != null ? invoiceData.get("supplierAddress").toString() : ""), normalFont));
+
+    document.add(detailsTable);
+
+    // Work details table
+    PdfPTable workTable = new PdfPTable(2);
+    workTable.setWidthPercentage(100);
+    workTable.setSpacingAfter(20);
+
+    workTable.addCell(new Phrase("Employee Name:", headerFont));
+    workTable.addCell(new Phrase(
+        (invoiceData.get("employeeName") != null ? invoiceData.get("employeeName").toString() : ""), normalFont));
+
+    workTable.addCell(new Phrase("Rate:", headerFont));
+    String currency = invoiceData.get("currency") != null ? invoiceData.get("currency").toString() : "";
+    String rate = invoiceData.get("rate") != null ? invoiceData.get("rate").toString() : "";
+    workTable.addCell(new Phrase(currency + (currency.isEmpty() || rate.isEmpty() ? "" : " ") + rate, normalFont));
+
+    // Handle date parsing with null safety
+    LocalDate fromDate = null;
+    LocalDate toDate = null;
+    
+    try {
+        fromDate = invoiceData.get("fromDate") != null
+                ? LocalDate.parse(invoiceData.get("fromDate").toString())
+                : null;
+    } catch (Exception e) {
+        // If parsing fails, fromDate remains null
+    }
+
+    try {
+        toDate = invoiceData.get("toDate") != null
+                ? LocalDate.parse(invoiceData.get("toDate").toString())
+                : null;
+    } catch (Exception e) {
+        // If parsing fails, toDate remains null
+    }
+    
+    workTable.addCell(new Phrase("From Date:", headerFont));
+    workTable.addCell(new Phrase(formatDateWithSuffix(fromDate), normalFont));
+    workTable.addCell(new Phrase("To Date:", headerFont));
+    workTable.addCell(new Phrase(formatDateWithSuffix(toDate), normalFont));
+    document.add(workTable);
+
+    // ==================== REMARKS TABLE ====================
+    PdfPTable remarksTable = new PdfPTable(2);
+    remarksTable.setWidthPercentage(100);
+    remarksTable.setWidths(new float[]{8f, 2f});
+    remarksTable.setLockedWidth(false); // allow width to be % based
+    remarksTable.setSplitLate(false);   // ensure footer stays on same page
+    remarksTable.setKeepTogether(true); // try to keep table together on one page
+
+    // --- HEADER ---
+    PdfPCell h1 = new PdfPCell(new Phrase("Item Description", headerFont));
+    h1.setHorizontalAlignment(Element.ALIGN_CENTER);
+    h1.setVerticalAlignment(Element.ALIGN_MIDDLE);
+    h1.setPadding(8);
+    h1.setBackgroundColor(BaseColor.LIGHT_GRAY);
+    h1.setBorder(Rectangle.BOX);
+    h1.setFixedHeight(35f); // Fixed header height
+    remarksTable.addCell(h1);
+
+    PdfPCell h2 = new PdfPCell(new Phrase("Amount", headerFont));
+    h2.setHorizontalAlignment(Element.ALIGN_CENTER);
+    h2.setVerticalAlignment(Element.ALIGN_MIDDLE);
+    h2.setPadding(8);
+    h2.setBackgroundColor(BaseColor.LIGHT_GRAY);
+    h2.setBorder(Rectangle.BOX);
+    h2.setFixedHeight(35f); // Fixed header height
+    remarksTable.addCell(h2);
+
+    // --- DATA ROW ---
+    String description = "";
+
+    // Build description with null safety
+    if (invoiceData.get("employeeName") != null) {
+        description = invoiceData.get("employeeName").toString();
+    }
+
+    if (invoiceData.get("remarks") != null) {
+        String remarks = invoiceData.get("remarks").toString();
+        if (!remarks.trim().isEmpty()) {
+            if (!description.isEmpty()) {
+                description += "\n";
+            }
+            description += "Remarks: " + remarks;
+        }
+    }
+
+    PdfPCell c1 = new PdfPCell(new Phrase(description, normalFont));
+    c1.setPadding(8);
+    c1.setVerticalAlignment(Element.ALIGN_TOP);
+    c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+    c1.setFixedHeight(80f); // Adjust this value based on your content
+    c1.setNoWrap(false); // Allow text wrapping
+    remarksTable.addCell(c1);
+
+    // Handle amount with null safety
+    String currencyForAmount = invoiceData.get("currency") != null ? invoiceData.get("currency").toString() : "";
+    String totalAmount = invoiceData.get("totalAmount") != null ? invoiceData.get("totalAmount").toString() : "";
+    String amountDisplay = currencyForAmount + (currencyForAmount.isEmpty() || totalAmount.isEmpty() ? "" : " ") + totalAmount;
+    
+    PdfPCell c2 = new PdfPCell(new Phrase(amountDisplay, normalFont));
+    c2.setPadding(8);
+    c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
+    c2.setVerticalAlignment(Element.ALIGN_TOP);
+    c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
+    c2.setFixedHeight(80f); // Match the height of description cell
+    remarksTable.addCell(c2);
+
+    // --- FILLER ROW to occupy remaining height (reduced size) ---
+    PdfPCell filler1 = new PdfPCell(new Phrase(""));
+    filler1.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
+    float fillerHeight = 200f;
+    filler1.setFixedHeight(fillerHeight);
+    remarksTable.addCell(filler1);
+
+    PdfPCell filler2 = new PdfPCell(new Phrase(""));
+    filler2.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
+    filler2.setFixedHeight(fillerHeight); // Match filler1 height
+    remarksTable.addCell(filler2);
+
+    // --- FOOTER ROW ---
+    PdfPCell footerLabel = new PdfPCell(new Phrase("Total", headerFont));
+    footerLabel.setPadding(8);
+    footerLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+    footerLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
+    footerLabel.setBorder(Rectangle.TOP | Rectangle.LEFT | Rectangle.BOTTOM);
+    footerLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+    footerLabel.setFixedHeight(40f); // Fixed footer height
+
+    // Use the same amount display for footer
+    PdfPCell footerValue = new PdfPCell(new Phrase(amountDisplay, headerFont));
+    footerValue.setPadding(8);
+    footerValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+    footerValue.setVerticalAlignment(Element.ALIGN_MIDDLE);
+    footerValue.setBorder(Rectangle.TOP | Rectangle.RIGHT | Rectangle.BOTTOM);
+    footerValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
+    footerValue.setFixedHeight(40f); // Fixed footer height
+
+    remarksTable.addCell(footerLabel);
+    remarksTable.addCell(footerValue);
+
+    // --- ADD TO DOCUMENT ---
+    document.add(remarksTable);
+
+    // Handle timesheet data with null safety
+    if (invoiceData.get("timesheetData") != null) {
+        try {
+            Map<String, Object> timesheetData = (Map<String, Object>) invoiceData.get("timesheetData");
+
+            if (timesheetData != null && timesheetData.get("entries") != null) {
+                List<Map<String, Object>> entries = (List<Map<String, Object>>) timesheetData.get("entries");
+
+                if (entries != null && !entries.isEmpty()) {
+                    document.newPage();
+                    // addTimesheetSection(document, entries, headerFont, normalFont, smallFont);
+                }
+            }
+        } catch (ClassCastException e) {
+            // Handle case where timesheetData is not in expected format
+            // Log the error or handle as needed
+        }
+    }
+    
+    document.close();
+    return baos.toByteArray();
+}
+
+// Helper method to safely format dates (assuming this doesn't exist)
 
     private String formatLocalDateTimeWithSuffix(LocalDateTime dateTime) {
         int day = dateTime.getDayOfMonth();
@@ -516,30 +726,34 @@ document.add(remarksTable);
     }
 
     private String formatDateWithSuffix(LocalDate date) {
-        int day = date.getDayOfMonth();
-        String daySuffix;
-
-        if (day >= 11 && day <= 13) {
-            daySuffix = "th";
-        } else {
-            switch (day % 10) {
-                case 1:
-                    daySuffix = "st";
-                    break;
-                case 2:
-                    daySuffix = "nd";
-                    break;
-                case 3:
-                    daySuffix = "rd";
-                    break;
-                default:
-                    daySuffix = "th";
-            }
-        }
-
-        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
-        return day + daySuffix + " " + date.format(monthYearFormatter);
+    if (date == null) {
+        return ""; // Return empty string for null dates
     }
+    
+    int day = date.getDayOfMonth();
+    String daySuffix;
+
+    if (day >= 11 && day <= 13) {
+        daySuffix = "th";
+    } else {
+        switch (day % 10) {
+            case 1:
+                daySuffix = "st";
+                break;
+            case 2:
+                daySuffix = "nd";
+                break;
+            case 3:
+                daySuffix = "rd";
+                break;
+            default:
+                daySuffix = "th";
+        }
+    }
+
+    DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+    return day + daySuffix + " " + date.format(monthYearFormatter);
+}
 
     /**
      * Add timesheet section to the PDF

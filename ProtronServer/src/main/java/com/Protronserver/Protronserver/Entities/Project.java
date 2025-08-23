@@ -23,6 +23,8 @@ public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long projectId;
+    @Column(unique = true, nullable = false)
+    private String projectCode;
     private String projectName;
     private String projectIcon;
     private Date startDate;
@@ -38,10 +40,36 @@ public class Project {
     // Added last updated by field
     private String lastUpdatedBy;
 
+    // --- NEW FIELDS ---
+    private String productOwner;
+    private String scrumMaster;
+    private String architect;
+    private String chiefScrumMaster;
+    private String deliveryLeader;
+    private String businessUnitFundedBy;
+    private String businessUnitDeliveredTo;
+
+    @Column(name = "priority", columnDefinition = "INT CHECK (priority >= 1 AND priority <= 10)")
+    private Integer priority; // (1–10)
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdOn;
+
+    @Column(length = 500)
+    private String defineDone;
+
     @ManyToOne
     @JoinColumn(name = "sponsor")
     @JsonIgnoreProperties({ "projectsManaged", "projectTeams", "tenant" })
     private User sponsor;
+
+    public String getProjectCode() {
+        return projectCode;
+    }
+
+    public void setProjectCode(String projectCode) {
+        this.projectCode = projectCode;
+    }
 
     public User getSponsor() {
         return sponsor;
@@ -195,5 +223,85 @@ public class Project {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
+    }
+
+    public String getProductOwner() {
+        return productOwner;
+    }
+
+    public void setProductOwner(String productOwner) {
+        this.productOwner = productOwner;
+    }
+
+    public String getScrumMaster() {
+        return scrumMaster;
+    }
+
+    public void setScrumMaster(String scrumMaster) {
+        this.scrumMaster = scrumMaster;
+    }
+
+    public String getArchitect() {
+        return architect;
+    }
+
+    public void setArchitect(String architect) {
+        this.architect = architect;
+    }
+
+    public String getChiefScrumMaster() {
+        return chiefScrumMaster;
+    }
+
+    public void setChiefScrumMaster(String chiefScrumMaster) {
+        this.chiefScrumMaster = chiefScrumMaster;
+    }
+
+    public String getDeliveryLeader() {
+        return deliveryLeader;
+    }
+
+    public void setDeliveryLeader(String deliveryLeader) {
+        this.deliveryLeader = deliveryLeader;
+    }
+
+    public String getBusinessUnitFundedBy() {
+        return businessUnitFundedBy;
+    }
+
+    public void setBusinessUnitFundedBy(String businessUnitFundedBy) {
+        this.businessUnitFundedBy = businessUnitFundedBy;
+    }
+
+    public String getBusinessUnitDeliveredTo() {
+        return businessUnitDeliveredTo;
+    }
+
+    public void setBusinessUnitDeliveredTo(String businessUnitDeliveredTo) {
+        this.businessUnitDeliveredTo = businessUnitDeliveredTo;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
+    }
+
+    public Date getCreatedOn() {
+        return createdOn;
+    }
+
+    public void setCreatedOn(Date createdOn) {
+        this.createdOn = createdOn;
+    }
+
+    public String getDefineDone() {
+        return defineDone;
+    }
+
+    public void setDefineDone(String defineDone) {
+        this.defineDone = defineDone;
     }
 }

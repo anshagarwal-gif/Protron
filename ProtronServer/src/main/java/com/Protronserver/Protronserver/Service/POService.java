@@ -57,6 +57,7 @@ public class POService {
         po.setBudgetLineAmount(dto.getBudgetLineAmount());
         po.setBudgetLineRemarks(dto.getBudgetLineRemarks());
         po.setBusinessValueAmount(dto.getBusinessValueAmount());
+        po.setBusinessValueType(dto.getBusinessValueType());
         po.setPoCountry(dto.getPoCountry());
         po.setProjectName(dto.getProjectName());
         po.setPoStartDate(dto.getPoStartDate());
@@ -153,6 +154,7 @@ public class POService {
         newPo.setBudgetLineAmount(dto.getBudgetLineAmount());
         newPo.setBudgetLineRemarks(dto.getBudgetLineRemarks());
         newPo.setBusinessValueAmount(dto.getBusinessValueAmount());
+        newPo.setBusinessValueType(dto.getBusinessValueType());
         newPo.setPoCountry(dto.getPoCountry());
         newPo.setProjectName(dto.getProjectName());
         newPo.setPoStartDate(dto.getPoStartDate());

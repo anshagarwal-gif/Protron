@@ -17,6 +17,9 @@ import java.util.Optional;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
+    @Query("SELECT COALESCE(MAX(p.projectId), 0) + 1 FROM Project p")
+    Long getNextSeriesId();
+
     Optional<Project> findByProjectIdAndEndTimestampIsNull(Long id);
     List<Project> findByEndTimestampIsNull();
     List<Project> findByTenantTenantIdAndEndTimestampIsNull(Long id);
@@ -35,10 +38,13 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<ActiveProjectsDTO> findActiveProjectsByUserInSameTenant(@Param("userId") Long userId);
 
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO(" +
-            "p.projectId, p.projectName, t.tenantName, p.startDate, p.endDate, p.unit, p.projectCost, " +
+            "p.projectCode, p.projectId, p.projectName, t.tenantName, p.startDate, p.endDate, p.unit, p.projectCost, " +
             "p.startTimestamp, p.projectIcon, " +
             "pm.userId, CONCAT(pm.firstName, ' ', pm.lastName), pm.empCode, " +
-            "s.userId, CONCAT(s.firstName, ' ', s.lastName), s.empCode) " +
+            "s.userId, CONCAT(s.firstName, ' ', s.lastName), s.empCode, " +
+            "p.productOwner, p.scrumMaster, p.architect, p.chiefScrumMaster, " +
+            "p.deliveryLeader, p.businessUnitFundedBy, p.businessUnitDeliveredTo, p.priority, p.defineDone" +
+            ") " +
             "FROM Project p " +
             "LEFT JOIN p.tenant t " +
             "LEFT JOIN p.projectManager pm " +

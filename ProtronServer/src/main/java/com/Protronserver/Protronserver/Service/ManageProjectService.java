@@ -21,6 +21,7 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -48,6 +49,7 @@ public class ManageProjectService {
 
     public Project addProject(ProjectRequestDTO request) {
         Project project = new Project();
+        project.setProjectCode(request.getProjectCode());
         project.setProjectName(request.getProjectName());
         project.setProjectIcon(request.getProjectIcon());
         project.setStartDate(request.getStartDate());
@@ -69,9 +71,20 @@ public class ManageProjectService {
             project.setSponsor(sponsor);
         }
 
+        project.setProductOwner(request.getProductOwner());
+        project.setScrumMaster(request.getScrumMaster());
+        project.setArchitect(request.getArchitect());
+        project.setChiefScrumMaster(request.getChiefScrumMaster());
+        project.setDeliveryLeader(request.getDeliveryLeader());
+        project.setBusinessUnitFundedBy(request.getBusinessUnitFundedBy());
+        project.setBusinessUnitDeliveredTo(request.getBusinessUnitDeliveredTo());
+        project.setPriority(request.getPriority());
+
         project.setStartTimestamp(LocalDateTime.now());
         project.setEndTimestamp(null);
         project.setLastUpdatedBy(null);
+        project.setCreatedOn(new Date());
+
 
         Project savedProject = projectRepository.save(project);
 
@@ -86,12 +99,12 @@ public class ManageProjectService {
                 ProjectTeam teamMember = new ProjectTeam();
                 teamMember.setProject(savedProject);
                 teamMember.setUser(user);
-                teamMember.setPricing(memberDTO.getPricing());
+//                teamMember.setPricing(memberDTO.getPricing());
                 teamMember.setEmpCode(user.getEmpCode());
                 teamMember.setStatus(memberDTO.getStatus() != null ? memberDTO.getStatus() : "active");
-                teamMember.setTaskType(memberDTO.getTaskType());
-                teamMember.setUnit(memberDTO.getUnit());
-                teamMember.setEstimatedReleaseDate(memberDTO.getEstimatedReleaseDate());
+//                teamMember.setTaskType(memberDTO.getTaskType());
+//                teamMember.setUnit(memberDTO.getUnit());
+//                teamMember.setEstimatedReleaseDate(memberDTO.getEstimatedReleaseDate());
                 teamMember.setStartTimestamp(LocalDateTime.now());
                 teamMember.setEndTimestamp(null);
                 teamMember.setLastUpdatedBy(null);
@@ -156,6 +169,7 @@ public class ManageProjectService {
 
         // Create a new version of the project with updated fields
         Project updatedProject = new Project();
+        updatedProject.setProjectCode(existingProject.getProjectCode());
         updatedProject.setTenant(existingProject.getTenant());
         updatedProject.setProjectName(
                 request.getProjectName() != null ? request.getProjectName() : existingProject.getProjectName());
@@ -170,6 +184,16 @@ public class ManageProjectService {
         updatedProject.setEndTimestamp(null);
         updatedProject.setUnit(request.getUnit() != null ? request.getUnit() : existingProject.getUnit());
         // updatedProject.setProjectTeam(existingProject.getProjectTeam());
+
+        updatedProject.setProductOwner(request.getProductOwner());
+        updatedProject.setScrumMaster(request.getScrumMaster());
+        updatedProject.setArchitect(request.getArchitect());
+        updatedProject.setChiefScrumMaster(request.getChiefScrumMaster());
+        updatedProject.setDeliveryLeader(request.getDeliveryLeader());
+        updatedProject.setBusinessUnitFundedBy(request.getBusinessUnitFundedBy());
+        updatedProject.setBusinessUnitDeliveredTo(request.getBusinessUnitDeliveredTo());
+        updatedProject.setPriority(request.getPriority());
+        updatedProject.setCreatedOn(existingProject.getCreatedOn());
 
         // Set manager if ID is passed
         if (request.getProjectManagerId() != null) {
@@ -219,6 +243,83 @@ public class ManageProjectService {
         }
 
         return projectRepository.findActiveProjectsByUserInSameTenant(user.getUserId());
+    }
+
+    public void deleteProject(Long id){
+        Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            existingProject.setLastUpdatedBy(user.getEmail());
+            existingProject.setEndTimestamp(LocalDateTime.now());
+        }
+        projectRepository.save(existingProject);
+    }
+
+    public String generateNextProjectCode() {
+        Long nextId = projectRepository.getNextSeriesId();
+        return "PRJ-A" + String.format("%03d", nextId);
+    }
+
+    public void updateDefineDone(Long id, String dod) {
+        Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+
+        // Mark old project as inactive (soft delete)
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof User user) {
+            existingProject.setLastUpdatedBy(user.getEmail());
+            existingProject.setEndTimestamp(LocalDateTime.now());
+            projectRepository.save(existingProject);
+        }
+
+        // Create a new version of the project with updated defineDone
+        Project updatedProject = new Project();
+        updatedProject.setProjectCode(existingProject.getProjectCode());
+        updatedProject.setTenant(existingProject.getTenant());
+        updatedProject.setProjectName(existingProject.getProjectName());
+        updatedProject.setProjectIcon(existingProject.getProjectIcon());
+        updatedProject.setStartDate(existingProject.getStartDate());
+        updatedProject.setEndDate(existingProject.getEndDate());
+        updatedProject.setProjectCost(existingProject.getProjectCost());
+        updatedProject.setUnit(existingProject.getUnit());
+        updatedProject.setCreatedOn(existingProject.getCreatedOn());
+
+        // Copy project-related fields
+        updatedProject.setProjectManager(existingProject.getProjectManager());
+        updatedProject.setSponsor(existingProject.getSponsor());
+        updatedProject.setProductOwner(existingProject.getProductOwner());
+        updatedProject.setScrumMaster(existingProject.getScrumMaster());
+        updatedProject.setArchitect(existingProject.getArchitect());
+        updatedProject.setChiefScrumMaster(existingProject.getChiefScrumMaster());
+        updatedProject.setDeliveryLeader(existingProject.getDeliveryLeader());
+        updatedProject.setBusinessUnitFundedBy(existingProject.getBusinessUnitFundedBy());
+        updatedProject.setBusinessUnitDeliveredTo(existingProject.getBusinessUnitDeliveredTo());
+        updatedProject.setPriority(existingProject.getPriority());
+
+        // New field update
+        updatedProject.setDefineDone(dod);
+
+        // Metadata
+        updatedProject.setStartTimestamp(LocalDateTime.now());
+        updatedProject.setEndTimestamp(null);
+
+        // Maintain relationships
+        List<ProjectTeam> projectTeams = existingProject.getProjectTeam();
+        for (ProjectTeam team : projectTeams) {
+            team.setProject(updatedProject);
+        }
+
+        // Save the new project version
+        projectRepository.save(updatedProject);
+    }
+
+    public String getDefineDone(Long id) {
+        Project project = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
+                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
+
+        return project.getDefineDone();
     }
 
 }

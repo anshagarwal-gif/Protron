@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 public class ProjectTableDTO {
+    private String projectCode;
     private Long projectId;
     private String projectName;
     private Date startDate;
@@ -16,9 +17,10 @@ public class ProjectTableDTO {
     private Double projectCost;
     private int projectTeamCount;
 
-    public ProjectTableDTO(Long projectId, String projectName, Date startDate,
+    public ProjectTableDTO(String projectCode, Long projectId, String projectName, Date startDate,
                            Long pmId, String pmName, Long sponsorId, String sponsorName,
                            String unit, Double projectCost, int projectTeamCount) {
+        this.projectCode = projectCode;
         this.projectId = projectId;
         this.projectName = projectName;
         this.startDate = startDate;
@@ -29,6 +31,14 @@ public class ProjectTableDTO {
         this.unit = unit;
         this.projectCost = projectCost;
         this.projectTeamCount = projectTeamCount;
+    }
+
+    public String getProjectCode() {
+        return projectCode;
+    }
+
+    public void setProjectCode(String projectCode) {
+        this.projectCode = projectCode;
     }
 
     public Long getProjectId() {

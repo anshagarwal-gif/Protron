@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Calendar, Upload, User, FolderOpen, X, ChevronDown } from 'lucide-react';
+import CreatableSelect from 'react-select/creatable';
 
 // Currency data
 const currencies = ['USD', 'INR', 'EUR', 'GBP', 'JPY'];
@@ -79,10 +80,10 @@ const Dropdown = ({
             )}
             <div
                 className={`relative w-full h-10 border rounded-md px-3 py-2 bg-white cursor-pointer flex items-center transition-colors ${disabled
-                        ? 'bg-gray-100 cursor-not-allowed border-gray-300'
-                        : isOpen
-                            ? 'border-green-600 ring-2 ring-green-200'
-                            : 'border-gray-300 hover:border-green-500'
+                    ? 'bg-gray-100 cursor-not-allowed border-gray-300'
+                    : isOpen
+                        ? 'border-green-600 ring-2 ring-green-200'
+                        : 'border-gray-300 hover:border-green-500'
                     }`}
                 onClick={handleInputClick}
             >
@@ -104,7 +105,7 @@ const Dropdown = ({
                         }`}
                 />
             </div>
-
+            
             {isOpen && (
                 <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                     {filteredOptions.length > 0 ? (
@@ -116,10 +117,10 @@ const Dropdown = ({
                                 <div
                                     key={index}
                                     className={`px-3 py-2 cursor-pointer flex items-center transition-colors ${isSelected
-                                            ? 'bg-green-100 text-green-800'
-                                            : 'hover:bg-green-50'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'hover:bg-green-50'
                                         }`}
-                                    onClick={() => handleOptionSelect(option)}
+                                    onClick={() => handleOptionSelect(option)} 
                                 >
                                     {option.name && (
                                         <div className="w-6 h-6 rounded-full bg-green-800 text-white text-xs flex items-center justify-center mr-2 flex-shrink-0">
@@ -198,14 +199,46 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
 
+    // Ensure formData is always defined and has default values
+    const defaultFormData = {
+        projectName: '',
+        projectIcon: null,
+        startDate: null,
+        endDate: null,
+        unit: 'USD',
+        projectCost: 0,
+        projectManager: null,
+        sponsor: null,
+        systemImpacted: [],
+        productOwner: '',
+    scrumMaster: '',
+    architect: '',
+    chiefScrumMaster: '',
+    deliveryLeader: '',
+    businessUnitFundedBy: '',
+    businessUnitDeliveredTo: '',
+    priority: 1
+    };
+    // Local state for form data to ensure controlled inputs
+    const [localFormData, setLocalFormData] = useState(defaultFormData);
+
+    // Sync localFormData with fetched project data when modal opens or projectId changes
+    useEffect(() => {
+        if (open && formData && Object.keys(formData).length > 0) {
+            setLocalFormData(formData);
+        } else if (open) {
+            setLocalFormData(defaultFormData);
+        }
+    }, [open, formData, projectId]);
+
 
     // Mock users data - replace with your actual fetch
 
     const fetchUsers = async () => {
         try {
             // Replace with your actual fetch implementation
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users`, {
-                headers: { Authorization: `${sessionStorage.getItem('token')}` }
+            const response = await fetch(`${ import.meta.env.VITE_API_URL } / api / tenants / ${ sessionStorage.getItem("tenantId") } / users`, {
+                headers: { Authorization: `${ sessionStorage.getItem('token') }` }
             });
             const data = await response.json();
             setUsers(data);
@@ -223,8 +256,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         try {
             setIsLoading(true);
             // Replace with your actual fetch implementation
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/${projectId}`, {
-                headers: { Authorization: `${sessionStorage.getItem('token')}` }
+            const response = await fetch(`${ import.meta.env.VITE_API_URL } / api / projects / ${ projectId }`, {
+                headers: { Authorization: `${ sessionStorage.getItem('token') }` }
             });
             const data = await response.json();
 
@@ -245,9 +278,17 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                 systemImpacted: systemsImpacted?.map(system => ({
                     systemId: system.systemId || null,
                     systemName: system.systemName || ''
-                })) || []
+                })) || [],
+                productOwner: project.productOwner || '',
+    scrumMaster: project.scrumMaster || '',
+    architect: project.architect || '',
+    chiefScrumMaster: project.chiefScrumMaster || '',
+    deliveryLeader: project.deliveryLeader || '',
+    businessUnitFundedBy: project.businessUnitFundedBy || '',
+    businessUnitDeliveredTo: project.businessUnitDeliveredTo || '',
+    priority: project.priority || 1
             };
-            setFormData(projectData);
+            setLocalFormData(projectData);
             setInitialFormData(projectData);
         } catch (error) {
             console.error('Error fetching project data:', error);
@@ -263,18 +304,18 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setFormData((prev) => ({ ...prev, projectIcon: URL.createObjectURL(file) }));
+            setLocalFormData((prev) => ({ ...prev, projectIcon: URL.createObjectURL(file) }));
         }
     };
     const handleChange = (field, value) => {
-        setFormData((prev) => ({
+        setLocalFormData((prev) => ({
             ...prev,
             [field]: value
         }));
     };
 
     const handleSystemNameChange = (index, newName) => {
-        const updatedSystems = [...formData.systemImpacted];
+        const updatedSystems = [...localFormData.systemImpacted];
         const isNewSystem = !updatedSystems[index].systemId;
 
         if (isNewSystem) {
@@ -288,7 +329,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         }
 
         updatedSystems[index].systemName = newName;
-        setFormData((prev) => ({
+        setLocalFormData((prev) => ({
             ...prev,
             systemImpacted: updatedSystems
         }));
@@ -296,7 +337,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
     const handleSystemAdd = (systemName) => {
         if (systemName.trim()) {
-            setFormData((prev) => ({
+            setLocalFormData((prev) => ({
                 ...prev,
                 systemImpacted: [...(prev.systemImpacted || []), { systemId: null, systemName: systemName.trim() }]
             }));
@@ -304,14 +345,14 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     };
 
     const handleSystemRemove = (index) => {
-        const updatedSystems = [...formData.systemImpacted];
+        const updatedSystems = [...localFormData.systemImpacted];
         const removedSystem = updatedSystems.splice(index, 1)[0];
 
         if (removedSystem.systemId) {
             setRemovedSystems((prev) => [...prev, removedSystem.systemId]);
         }
 
-        setFormData((prev) => ({
+        setLocalFormData((prev) => ({
             ...prev,
             systemImpacted: updatedSystems
         }));
@@ -320,30 +361,39 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const handleSubmit = async () => {
         setIsLoading(true);
 
-        const updatedSystemImpacted = formData.systemImpacted.map((system) => ({
+        
+        const updatedSystemImpacted = localFormData.systemImpacted.map((system) => ({
             systemId: system.systemId || null,
             systemName: system.systemName,
         }));
 
         const payload = {
-            projectName: formData.projectName,
-            projectIcon: formData.projectIcon || null,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            projectCost: formData.projectCost || 0,
-            projectManagerId: formData.projectManager?.userId || null,
-            sponsorId: formData.sponsor?.userId || null,
-            unit: formData.unit || 'USD',
+            projectName: localFormData.projectName,
+            projectIcon: localFormData.projectIcon || null,
+            startDate: localFormData.startDate,
+            endDate: localFormData.endDate,
+            projectCost: localFormData.projectCost || 0,
+            projectManagerId: localFormData.projectManager?.userId || null,
+            sponsorId: localFormData.sponsor?.userId || null,
+            unit: localFormData.unit || 'USD',
             systemImpacted: updatedSystemImpacted,
             removedSystems: removedSystems,
+            productOwner: localFormData.productOwner,
+    scrumMaster: localFormData.scrumMaster,
+    architect: localFormData.architect,
+    chiefScrumMaster: localFormData.chiefScrumMaster,
+    deliveryLeader: localFormData.deliveryLeader,
+    businessUnitFundedBy: localFormData.businessUnitFundedBy,
+    businessUnitDeliveredTo: localFormData.businessUnitDeliveredTo,
+    priority: localFormData.priority
         };
 
         try {
             // Replace with your actual fetch implementation
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/projects/edit/${projectId}`, {
+            const response = await fetch(`${ import.meta.env.VITE_API_URL } / api / projects / edit / ${ projectId }`, {
                 method: 'PUT',
                 headers: {
-                    Authorization: `${sessionStorage.getItem('token')}`,
+                    Authorization: `${ sessionStorage.getItem('token') }`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(payload)
@@ -351,252 +401,401 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
             const result = await response.json();
             console.log('Project updated successfully:', result);
-            onSubmit();
+            onSubmit(result.projectId);
         } catch (error) {
             console.error('Error updating project:', error);
             setErrors({
-                submit: `Failed to update project. ${error?.message || "Please try again."}`
+                submit: `Failed to update project`
             });
         } finally {
-            setIsLoading(false);
+                        setIsLoading(false);
         }
     };
 
     const handleReset = () => {
-        setFormData({ ...initialFormData });
-        setNewSystems([]);
-        setRemovedSystems([]);
+                        setLocalFormData({ ...initialFormData });
+                    setNewSystems([]);
+                    setRemovedSystems([]);
     };
 
-    if (!open) return null;
+                    if (!open) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-auto shadow-xl">
-                {/* Header */}
-                <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
-                    <h1 className="text-xl font-semibold text-green-800">Edit Project</h1>
-                </div>
+    // Convert users data to select options
+    const userOptions = users.map((user) => ({
+                        value: user.name,
+                    label: user.name,
+    }));
 
-                {/* Content */}
-                <div className="p-6 space-y-6">
-                    {isLoading && (
-                        <div className="flex items-center justify-center py-8">
-                            <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="ml-3 text-gray-600">Loading project data...</span>
-                        </div>
-                    )}
-
-                    {!isLoading && (
-                        <>
-                            {/* Row 1: Project Name and Project Icon */}
-                            <div className="grid grid-cols-4 gap-6">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            placeholder="Enter a descriptive project name"
-                                            value={formData.projectName || ''}
-                                            onChange={(e) => handleChange('projectName', e.target.value)}
-                                            className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                            title={formData.projectName}
-                                        />
-                                        <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
-                                    </div>
-                                </div>
-
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
-                                    <div className="h-10 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
-                                        {formData.projectIcon ? (
-                                            <div className="flex items-center gap-2">
-                                                <img
-                                                    src={formData.projectIcon}
-                                                    alt="Project Icon"
-                                                    className="w-10 h-10 rounded-full object-cover"
-                                                />
-                                                <label className="px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                                    Change
-                                                    <input hidden accept="image/*" type="file" onChange={handleImageUpload} title={formData.projectIcon} />
-                                                </label>
-                                            </div>
-                                        ) : (
-                                            <label className="flex items-center gap-2 px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                                <Upload className="w-4 h-4" />
-                                                Project Icon
-                                                <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
-                                            </label>
-                                        )}
-                                    </div>
-                                </div>
-                                <DatePicker
-                                    label="Project Start Date"
-                                    value={formData.startDate}
-                                    onChange={(value) => handleChange('startDate', value)}
-                                    icon={Calendar}
-                                    className="flex-1"
-                                />
-                                <DatePicker
-                                    label="Project End Date"
-                                    value={formData.endDate}
-                                    onChange={(value) => handleChange('endDate', value)}
-                                    icon={Calendar}
-                                    className="flex-1"
-                                />
+                    return (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-auto shadow-xl">
+                            {/* Header */}
+                            <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
+                                <h1 className="text-xl font-semibold text-green-800">Edit Project</h1>
                             </div>
 
-                            {/* Row 3: Project Manager and Sponsor */}
-                            <div className="grid grid-cols-4 gap-6">
-                                <Dropdown
-                                    options={users}
-                                    value={formData.projectManager}
-                                    onChange={(user) => handleChange('projectManager', user)}
-                                    label="Select Project Manager"
-                                    placeholder="Search for a manager..."
-                                    icon={User}
-                                    getOptionLabel={(option) => option?.name || ''}
-                                    getOptionValue={(option) => option}
-                                    className="flex-1"
-                                />
-                                <Dropdown
-                                    options={users}
-                                    value={formData.sponsor}
-                                    onChange={(user) => handleChange('sponsor', user)}
-                                    label="Select Sponsor"
-                                    placeholder="Search for a sponsor..."
-                                    icon={User}
-                                    getOptionLabel={(option) => option?.name || ''}
-                                    getOptionValue={(option) => option}
-                                    className=""
-                                />
-                                <div className="w-full">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
-                                    <select
-                                        value={formData.unit || 'USD'}
-                                        onChange={(e) => handleChange('unit', e.target.value)}
-                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                        title={formData.unit}
-                                    >
-                                        {currencies.map((currency) => (
-                                            <option key={currency} value={currency}>
-                                                {currency}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="w-full">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost</label>
-                                    <div className="relative">
-                                        <input
-                                            type="number"
-                                            placeholder="Enter amount"
-                                            value={formData.projectCost || ''}
-                                            onChange={(e) => handleChange('projectCost', e.target.value)}
-                                            className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                            title={formData.projectCost}
-                                        />
-                                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                                            {currencySymbols[formData.unit] || ''}
-                                        </span>
+                            {/* Content */}
+                            <div className="p-6 space-y-6">
+                                {isLoading && (
+                                    <div className="flex items-center justify-center py-8">
+                                        <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                                        <span className="ml-3 text-gray-600">Loading project data...</span>
                                     </div>
-                                </div>
+                                )}
 
-                            </div>
-
-                            {/* Row 4: Currency, Cost, and Add System */}
-                            <div className="flex gap-6">
-
-
-
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Add System</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Add a new system and press Enter"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && e.target.value.trim()) {
-                                                e.preventDefault();
-                                                handleSystemAdd(e.target.value);
-                                                e.target.value = '';
-                                            }
-                                        }}
-                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                        title={formData.systemImpacted || "N/A"}
-                                    />
-                                </div>
-
-
-                            </div>
-
-                            {/* Systems Impacted */}
-                            <div>
-                                <h3 className="text-base font-semibold text-gray-700 mb-3">Systems Impacted</h3>
-                                <div className="min-h-16 max-h-32 overflow-y-auto p-2 border border-gray-200 rounded-md bg-gray-50">
-                                    <div className="flex flex-wrap gap-2">
-                                        {formData.systemImpacted?.length > 0 ? (
-                                            formData.systemImpacted.map((system, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center gap-1 bg-green-100 border border-green-300 rounded-full px-3 py-1"
-                                                >
+                                {!isLoading && (
+                                    <>
+                                        {/* Row 1: Project Name and Project Icon */}
+                                        <div className="grid grid-cols-4 gap-6">
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                                                <div className="relative">
                                                     <input
                                                         type="text"
-                                                        value={system.systemName}
-                                                        onChange={(e) => handleSystemNameChange(index, e.target.value)}
-                                                        className="bg-transparent border-none outline-none text-sm min-w-20"
-                                                        style={{ width: `${Math.max(80, system.systemName.length * 8)}px` }}
+                                                        placeholder="Enter a descriptive project name"
+                                                        value={localFormData.projectName || ''}
+                                                        onChange={(e) => handleChange('projectName', e.target.value)}
+                                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
+                                                        title={localFormData.projectName}
                                                     />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleSystemRemove(index)}
-                                                        className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
+                                                    <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <span className="text-gray-500 italic text-sm">No systems added yet</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
+                                            </div>
 
-                            {/* Action Buttons */}
-                            <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
-                                <button
-                                    onClick={onClose}
-                                    disabled={isLoading}
-                                    className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleReset}
-                                    disabled={isLoading}
-                                    className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Reset
-                                </button>
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={isLoading}
-                                    className="px-8 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed w-48 font-semibold flex items-center justify-center"
-                                >
-                                    {isLoading ? (
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    ) : (
-                                        'Update Project'
-                                    )}
-                                </button>
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
+                                                <div className="h-10 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
+                                                    {localFormData.projectIcon ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <img
+                                                                src={localFormData.projectIcon}
+                                                                alt="Project Icon"
+                                                                className="w-10 h-10 rounded-full object-cover"
+                                                            />
+                                                            <label className="px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
+                                                                Change
+                                                                <input hidden accept="image/*" type="file" onChange={handleImageUpload} title={localFormData.projectIcon} />
+                                                            </label>
+                                                        </div>
+                                                    ) : (
+                                                        <label className="flex items-center gap-2 px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
+                                                            <Upload className="w-4 h-4" />
+                                                            Project Icon
+                                                            <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
+                                                        </label>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <DatePicker
+                                                label="Project Start Date"
+                                                value={localFormData.startDate}
+                                                onChange={(value) => handleChange('startDate', value)}
+                                                icon={Calendar}
+                                                className="flex-1"
+                                            />
+                                            <DatePicker
+                                                label="Project End Date"
+                                                value={localFormData.endDate}
+                                                onChange={(value) => handleChange('endDate', value)}
+                                                icon={Calendar}
+                                                className="flex-1"
+                                            />
+                                        </div>
+
+                                        {/* Row 3: Project Manager and Sponsor */}
+                                        <div className="grid grid-cols-4 gap-6">
+                                            <Dropdown
+                                                options={users}
+                                                value={localFormData.projectManager}
+                                                onChange={(user) => handleChange('projectManager', user)}
+                                                label="Project Manager"
+                                                placeholder="Search for a manager..."
+                                                icon={User}
+                                                getOptionLabel={(option) => option?.name || ''}
+                                                getOptionValue={(option) => option}
+                                                className="flex-1"
+                                            />
+                                            <Dropdown
+                                                options={users}
+                                                value={localFormData.sponsor}
+                                                onChange={(user) => handleChange('sponsor', user)}
+                                                label="Project Sponsor"
+                                                placeholder="Search for a sponsor..."
+                                                icon={User}
+                                                getOptionLabel={(option) => option?.name || ''}
+                                                getOptionValue={(option) => option}
+                                                className=""
+                                            />
+                                            <div className="w-full">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                                <select
+                                                    value={localFormData.unit || 'USD'}
+                                                    onChange={(e) => handleChange('unit', e.target.value)}
+                                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
+                                                    title={localFormData.unit}
+                                                >
+                                                    {currencies.map((currency) => (
+                                                        <option key={currency} value={currency}>
+                                                            {currency}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="w-full">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="number"
+                                                        placeholder="Enter amount"
+                                                        value={localFormData.projectCost || ''}
+                                                        onChange={(e) => {
+                                                            // Accept only up to two decimal places
+                                                            let value = e.target.value;
+                                                            value = value.replace(/[^\d.]/g, "");
+                                                            if (value.includes(".")) {
+                                                                const [intPart, decPart] = value.split(".");
+                                                                value = intPart + "." + (decPart.substring(0, 2));
+                                                            }
+                                                            handleChange('projectCost', value);
+                                                        }}
+                                                        className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
+                                                        title={localFormData.projectCost}
+                                                        step="0.01"
+                                                    />
+                                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                                                        {currencySymbols[localFormData.unit] || ''}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-4 mt-4">
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
+                                                <CreatableSelect
+                                                    options={userOptions}
+                                                    value={localFormData.productOwner ? { label: localFormData.productOwner, value: localFormData.productOwner } : null}
+                                                    onChange={(selected) => handleChange('productOwner', selected?.value || '')}
+                                                    placeholder="Select or type name..."
+                                                    isClearable
+                                                    styles={{
+                                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                                        menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                                    }}
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    menuPortalTarget={document.body}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Scrum Master</label>
+                                                <CreatableSelect
+                                                    options={userOptions}
+                                                    value={localFormData.scrumMaster ? { label: localFormData.scrumMaster, value: localFormData.scrumMaster } : null}
+                                                    onChange={(selected) => handleChange('scrumMaster', selected?.value || '')}
+                                                    placeholder="Select or type name..."
+                                                    isClearable
+                                                    styles={{
+                                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                                        menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                                    }}
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    menuPortalTarget={document.body}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Architect</label>
+                                                <CreatableSelect
+                                                    options={userOptions}
+                                                    value={localFormData.architect ? { label: localFormData.architect, value: localFormData.architect } : null}
+                                                    onChange={(selected) => handleChange('architect', selected?.value || '')}
+                                                    placeholder="Select or type name..."
+                                                    isClearable
+                                                    styles={{
+                                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                                        menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                                    }}
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    menuPortalTarget={document.body}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Chief Scrum Master</label>
+                                                <CreatableSelect
+                                                    options={userOptions}
+                                                    value={localFormData.chiefScrumMaster ? { label: localFormData.chiefScrumMaster, value: localFormData.chiefScrumMaster } : null}
+                                                    onChange={(selected) => handleChange('chiefScrumMaster', selected?.value || '')}
+                                                    placeholder="Select or type name..."
+                                                    isClearable
+                                                    styles={{
+                                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                                        menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                                    }}
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    menuPortalTarget={document.body}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-4 mt-4">
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Leader</label>
+                                                <CreatableSelect
+                                                    options={userOptions}
+                                                    value={localFormData.deliveryLeader ? { label: localFormData.deliveryLeader, value: localFormData.deliveryLeader } : null}
+                                                    onChange={(selected) => handleChange('deliveryLeader', selected?.value || '')}
+                                                    placeholder="Select or type name..."
+                                                    isClearable
+                                                    styles={{
+                                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                                        menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                                    }}
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    menuPortalTarget={document.body}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
+                                                <CreatableSelect
+                                                    options={userOptions}
+                                                    value={localFormData.businessUnitFundedBy ? { label: localFormData.businessUnitFundedBy, value: localFormData.businessUnitFundedBy } : null}
+                                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected?.value || '')}
+                                                    placeholder="Select or type name..."
+                                                    isClearable
+                                                    styles={{
+                                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                                        menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                                    }}
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    menuPortalTarget={document.body}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
+                                                <CreatableSelect
+                                                    options={userOptions}
+                                                    value={localFormData.businessUnitDeliveredTo ? { label: localFormData.businessUnitDeliveredTo, value: localFormData.businessUnitDeliveredTo } : null}
+                                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected?.value || '')}
+                                                    placeholder="Select or type name..."
+                                                    isClearable
+                                                    styles={{
+                                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                                        menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                                    }}
+                                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                    menuPortalTarget={document.body}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Priority (1-10)
+                                                </label>
+                                                <select
+                                                    value={localFormData.priority}
+                                                    onChange={e => handleChange('priority', e.target.value)}
+                                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md"
+                                                >
+                                                    {[...Array(10)].map((_, i) => (
+                                                        <option key={i + 1} value={i + 1}>
+                                                            {i + 1}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 4: Currency, Cost, and Add System */}
+                                        <div className="flex gap-6">
+
+
+
+                                            <div className="flex-1">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Add System</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Add a new system and press Enter"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' && e.target.value.trim()) {
+                                                            e.preventDefault();
+                                                            handleSystemAdd(e.target.value);
+                                                            e.target.value = '';
+                                                        }
+                                                    }}
+                                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
+                                                    title={localFormData.systemImpacted || "N/A"}
+                                                />
+                                            </div>
+
+
+                                        </div>
+
+                                        {/* Systems Impacted */}
+                                        <div>
+                                            <h3 className="text-base font-semibold text-gray-700 mb-3">Systems Impacted</h3>
+                                            <div className="min-h-16 max-h-32 overflow-y-auto p-2 border border-gray-200 rounded-md bg-gray-50">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {localFormData.systemImpacted?.length > 0 ? (
+                                                        localFormData.systemImpacted.map((system, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className="flex items-center gap-1 bg-green-100 border border-green-300 rounded-full px-3 py-1"
+                                                            >
+                                                                <input
+                                                                    type="text"
+                                                                    value={system.systemName}
+                                                                    onChange={(e) => handleSystemNameChange(index, e.target.value)}
+                                                                    className="bg-transparent border-none outline-none text-sm min-w-20"
+                                                                    style={{ width: `${ Math.max(80, system.systemName.length * 8) }px` }}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleSystemRemove(index)}
+                                                                    className="w-5 h-5 flex items-center justify-center text-gray-600 hover:text-red-600 hover:bg-red-100 rounded-full transition-colors"
+                                                                >
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-gray-500 italic text-sm">No systems added yet</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        {/* Action Buttons */}
+                                        <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                                            <button
+                                                onClick={onClose}
+                                                disabled={isLoading}
+                                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleReset}
+                                                disabled={isLoading}
+                                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                Reset
+                                            </button>
+                                            <button
+                                                onClick={handleSubmit}
+                                                disabled={isLoading}
+                                                className="px-8 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed w-48 font-semibold flex items-center justify-center"
+                                            >
+                                                {isLoading ? (
+                                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                ) : (
+                                                    'Update Project'
+                                                )}
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                        </>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+                        </div>
+                    </div>
+                    );
 };
 
-export default EditProjectModal;
+                    export default EditProjectModal;

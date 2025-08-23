@@ -96,7 +96,7 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
     List<UserAccessRights> findAccessRightsByUserIds(@Param("userIds") List<Long> userIds);
 
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.ProjectTableDTO(" +
-            "p.projectId, p.projectName, p.startDate, " +
+            "p.projectCode, p.projectId, p.projectName, p.startDate, " +
             "pm.userId, CONCAT(pm.firstName, ' ', pm.lastName), " +
             "s.userId, CONCAT(s.firstName, ' ', s.lastName), " +
             "p.unit, p.projectCost, SIZE(p.projectTeam)) " +

@@ -182,6 +182,7 @@ const getCurrencySymbol = (currency) => {
                 setErrors({submit:"Error deleting attachment. Please try again."})  
                 console.error(`Failed to delete attachment: ${fileToDelete.name}`);
             }
+            setSrnFiles((prev) => prev.filter((_, i) => i !== index));
         } catch (error) {
             setErrors({submit:"Error deleting attachment. Please try again."})  
             console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
@@ -247,6 +248,10 @@ const getCurrencySymbol = (currency) => {
 
     if (!formData.srnName.trim()) {
         newErrors.srnName = 'SRN Name is required'
+    }
+
+    if(milestones.length > 0 && !formData.msId) {
+        newErrors.msId = 'Milestone is required'
     }
 
     if (!formData.srnAmount || formData.srnAmount <= 0) {
@@ -533,6 +538,9 @@ const getCurrencySymbol = (currency) => {
                             <div>
                                 <label htmlFor="srnName" className="block text-sm font-medium text-gray-700 mb-2">
                                     SRN Name*
+                                    <span className="float-right text-xs text-gray-500">
+                      {formData.srnName.length}/100 characters
+                    </span>
                                 </label>
                                 <input
                                     type="text"
@@ -566,6 +574,9 @@ const getCurrencySymbol = (currency) => {
                                         </option>
                                     ))}
                                 </select>
+                                {errors.msId && (
+                                    <p className="mt-1 text-red-600 text-sm">{errors.msId}</p>
+                                )}
                             </div>
 
                             <div>
@@ -615,12 +626,21 @@ const getCurrencySymbol = (currency) => {
                                     type="number"
                                     name="srnAmount"
                                     value={formData.srnAmount}
-                                    onChange={(e) => setFormData({ ...formData, srnAmount: e.target.value })}
+                                    onChange={(e) => {
+                                        let value = e.target.value.replace(/[^0-9.]/g, '');
+                const parts = value.split('.');
+                if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                        setFormData({ ...formData, srnAmount: value })}}
                                     className={`w-full h-10 px-4 border rounded-md ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'} ${formData.srnType === 'full' ? 'bg-gray-100' : ''}`}
                                     placeholder="Enter here"
                                     disabled={loading}
+                                    pattern="^\d{1,13}(\.\d{0,2})?$"
                                     min="0.01"
                                     step="0.01"
+                                    inputMode='decimal'
                                     readOnly={formData.srnType === 'full'}
                                 />
                                 {errors.srnAmount && (

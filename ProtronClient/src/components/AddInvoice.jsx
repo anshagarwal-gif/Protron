@@ -81,7 +81,7 @@ const AddInvoiceModal = ({
         message: '',
         severity: 'success'
     })
-
+    const [timesheetPreviewData, setTimesheetPreviewData] = useState(null)
     const fromDateInputRef = useRef(null);
     const toDateInputRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -215,6 +215,19 @@ const AddInvoiceModal = ({
         let totalMinutes = 0;
         const timesheetEntries = fetchedTasks.map(task => {
             totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
+            setTimesheetPreviewData([{
+                date: task.date, // format as needed
+                dayOfWeek: new Date(task.date).toLocaleDateString("en-GB", { weekday: "short" }),
+                isWeekend: [0, 6].includes(new Date(task.date).getDay()),
+                taskType: task.taskType || '',
+                taskTopic: task.taskTopic || '',
+                hours: task.hoursSpent || 0,
+                minutes: task.minutesSpent || 0,
+                description: task.description || '',
+                project: task.projectName || '',
+                submitted: task.submitted || false
+            }
+            ])
             return {
                 date: task.date, // format as needed
                 dayOfWeek: new Date(task.date).toLocaleDateString("en-GB", { weekday: "short" }),
@@ -636,7 +649,7 @@ const AddInvoiceModal = ({
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
                 remarks: formData.remarks || "",
                 // Include timesheet data if checkbox is checked
-                timesheetData: attachTimesheet ? prepareTimesheetData() : null
+                timesheetData: timesheetPreviewData ? prepareTimesheetData() : null
             };
 
             let response;
@@ -724,7 +737,61 @@ const AddInvoiceModal = ({
             setLoading(false);
         }
     };
+    const handleInvoicePreview = async () => {
+        try {
+            const invoiceData = {
+                invoiceName: formData.invoiceName || "",
+                customerName: formData.customerName || "",
+                customerAddress: formData.customerAddress || "",
+                customerInfo: formData.customerInfo || "",
+                supplierName: formData.supplierName || "",
+                supplierAddress: formData.supplierAddress || "",
+                supplierInfo: formData.supplierInfo || "",
+                employeeName: formData.employeeName || "",
+                rate: parseFloat(formData.rate) || 0,
+                currency: formData.currency || "",
+                fromDate: formData.fromDate || "",
+                toDate: formData.toDate || "",
+                hoursSpent: parseFloat(formData.hoursSpent) || 0,
+                totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
+                remarks: formData.remarks || "",
+                // Include timesheet data if checkbox is checked
+                timesheetData: timesheetData ? prepareTimesheetData() : null
+            };
+            const response = await axios.post(
+                `${API_BASE_URL}/api/invoices/preview`,
+                invoiceData,
+                {
+                    headers: {
+                        Authorization: sessionStorage.getItem("token")
+                    }
+                }
+            )
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
 
+            // --- Download ---
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `invoicepreview.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // --- Open in new tab ---
+            window.open(url, '_blank');
+
+            // Cleanup after a short delay (so the object URL is still valid for the new tab)
+            setTimeout(() => {
+                window.URL.revokeObjectURL(url);
+            }, 5000);
+
+            console.log(response.data)
+
+        } catch (error) {
+            console.error("Failed to preview invoice:", error);
+        }
+    }
     const handleDownloadInvoice = async (invoiceId, invoiceName) => {
         try {
             const response = await axios.get(
@@ -766,39 +833,7 @@ const AddInvoiceModal = ({
             }))
         }
     };
-    const handlePreviewInvoice = async (invoiceId) => {
-        try {
-            const response = await axios.get(
-                `${API_BASE_URL}/api/invoices/view/${invoiceId}`, // ✅ use /view instead of /download
-                {
-                    headers: {
-                        Authorization: sessionStorage.getItem("token")
-                    },
-                    responseType: 'blob'
-                }
-            );
 
-            const blob = new Blob([response.data], { type: 'application/pdf' });
-            const url = window.URL.createObjectURL(blob);
-
-            // --- Open in new tab ---
-            window.open(url, '_blank');
-
-            // Cleanup after a short delay
-            setTimeout(() => {
-                window.URL.revokeObjectURL(url);
-            }, 5000);
-
-        } catch (error) {
-            console.error("Failed to preview invoice:", error);
-            setSnackbar((prev) => ({
-                ...prev,
-                open: true,
-                message: "Failed to preview invoice. Please try again.",
-                severity: "error",
-            }))
-        }
-    };
 
     const handleReset = () => {
         setFormData({
@@ -1424,7 +1459,7 @@ const AddInvoiceModal = ({
                         Cancel
                     </button>
                     <button
-                        onClick={handlePreviewInvoice}
+                        onClick={handleInvoicePreview}
                         disabled={loading}
                         className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50"
                     >

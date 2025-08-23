@@ -67,10 +67,46 @@ public class ManageProjectController {
         return manageProjectService.updateProject(id, projectUpdateDTO);
     }
 
+    @DeleteMapping("/delete/{id}")
+    public void deleteProject(@PathVariable("id") Long id){
+        manageProjectService.deleteProject(id);
+    }
+
     @GetMapping("/user/active-projects")
     public ResponseEntity<List<ActiveProjectsDTO>> getUserActiveProjects(@RequestParam(value = "userId", required = false) Long userId) {
         List<ActiveProjectsDTO> projects = manageProjectService.getActiveProjectsInSameTenantByUser(userId);
         return ResponseEntity.ok(projects);
+    }
+
+    @GetMapping("/generate-code")
+    public ResponseEntity<String> generateProjectCode() {
+        String code = manageProjectService.generateNextProjectCode();
+        return ResponseEntity.ok(code);
+    }
+
+    @PutMapping("/{id}/define-done")
+    public ResponseEntity<String> updateDefineDone(
+            @PathVariable("id") Long id,
+            @RequestBody Map<String, String> requestBody) {
+
+        if (!requestBody.containsKey("defineDone")) {
+            return ResponseEntity.badRequest().body("defineDone field is required");
+        }
+
+        String defineDone = requestBody.get("defineDone");
+        manageProjectService.updateDefineDone(id, defineDone);
+
+        return ResponseEntity.ok("Define of Done updated successfully");
+    }
+
+    @GetMapping("/{id}/define-done")
+    public ResponseEntity<Map<String, String>> getDefineDone(@PathVariable("id") Long id) {
+        String defineDone = manageProjectService.getDefineDone(id);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("defineDone", defineDone);
+
+        return ResponseEntity.ok(response);
     }
 
 }

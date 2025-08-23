@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Controller;
 
 import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
+import com.Protronserver.Protronserver.Entities.Invoice;
 import com.Protronserver.Protronserver.Service.InvoiceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -17,10 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/invoices")
 public class InvoiceController {
+
     private static final Logger log = LoggerFactory.getLogger(InvoiceController.class);
     @Autowired
     private InvoiceService invoiceService;
@@ -226,21 +229,26 @@ public class InvoiceController {
             return ResponseEntity.notFound().build();
         }
     }
-    @GetMapping("/view/{invoiceId}")
-public ResponseEntity<ByteArrayResource> viewInvoicePDF(@PathVariable String invoiceId) {
-    try {
-        log.info("PDF view requested for invoice: {}", invoiceId);
-        ByteArrayResource resource = invoiceService.downloadInvoicePDF(invoiceId);
 
+    @PostMapping("/preview")
+public ResponseEntity<byte[]> generatePreviewPDF(@RequestBody Map<String, Object> invoiceData) {
+    try {
+        // Generate PDF bytes from service
+        byte[] pdfBytes = invoiceService.generatePreviewPDF(invoiceData);
+
+        // Return PDF directly
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + invoiceId + ".pdf\"")
+                .header("Content-Disposition", "inline; filename=invoice_preview.pdf")
                 .contentType(MediaType.APPLICATION_PDF)
-                .body(resource);
+                .contentLength(pdfBytes.length)
+                .body(pdfBytes);
+
     } catch (Exception e) {
-        log.error("Error viewing PDF for invoice {}: {}", invoiceId, e.getMessage());
-        return ResponseEntity.notFound().build();
+        e.printStackTrace();
+        return ResponseEntity.internalServerError().build();
     }
 }
+
     @GetMapping("/download-attachment/{invoiceId}/{attachmentNumber}")
     public ResponseEntity<ByteArrayResource> downloadAttachment(
             @PathVariable String invoiceId,
