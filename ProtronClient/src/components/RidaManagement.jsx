@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, X, Tag, Calendar, User, UserCheck, CheckCircle, Folder, MessageSquare } from 'lucide-react';
 import axios from 'axios';
 import GlobalSnackbar from './GlobalSnackbar';
 import CreatableSelect from 'react-select/creatable';
@@ -205,104 +205,202 @@ function RidaFormModal({ open, onClose, onSubmit, initialData }) {
 
   if (!open) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xl">
-        <h2 className="text-xl font-bold mb-4 text-green-800">{initialData ? 'Edit RIDA' : 'Add RIDA'}</h2>
-        <form
-          onSubmit={e => {
-            e.preventDefault();
-            onSubmit(formData);
-          }}
-          className="space-y-4"
+return (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <h2 className="text-xl font-bold text-gray-900 flex items-center">
+          <FileText size={20} className="mr-2 text-green-600" />
+          {initialData ? 'Edit RIDA' : 'Add RIDA'}
+        </h2>
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
         >
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
-            <CreatableSelect
-              options={typeOptions}
-              value={typeOptions.find(opt => opt.value === formData.type) || (formData.type ? { label: formData.type, value: formData.type } : null)}
-              onChange={opt => setFormData(f => ({ ...f, type: opt ? opt.value : '' }))}
-              isClearable
-              placeholder="Select or type"
-            />
+          <X size={20} className="text-gray-400" />
+        </button>
+      </div>
+
+      {/* Form */}
+      <form
+        onSubmit={e => {
+          e.preventDefault();
+          onSubmit(formData);
+        }}
+        className="p-6 space-y-4"
+      >
+        <div className="space-y-4">
+          {/* Row 1: Type and Meeting Reference */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-6">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <Tag size={14} className="inline mr-1" />
+                Type *
+              </label>
+              <CreatableSelect
+                options={typeOptions}
+                value={typeOptions.find(opt => opt.value === formData.type) || (formData.type ? { label: formData.type, value: formData.type } : null)}
+                onChange={opt => setFormData(f => ({ ...f, type: opt ? opt.value : '' }))}
+                isClearable
+                placeholder="Select or type"
+                className="text-sm"
+              />
+            </div>
+
+            <div className="col-span-6">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <Calendar size={14} className="inline mr-1" />
+                Meeting Reference
+                <span className="float-right text-xs text-gray-500">
+                  {formData.meetingReference.length}/100 characters
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.meetingReference}
+                onChange={e => setFormData(f => ({ ...f, meetingReference: e.target.value }))}
+                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                placeholder="Enter meeting reference"
+                maxLength={100}
+              />
+            </div>
           </div>
+
+          {/* Row 2: Item Description (large box) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Meeting Reference</label>
-            <input
-              type="text"
-              value={formData.meetingReference}
-              onChange={e => setFormData(f => ({ ...f, meetingReference: e.target.value }))}
-              className="w-full border rounded px-3 py-2"
-              maxLength={100}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Item Description <span className="text-red-500">*</span></label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              <FileText size={14} className="inline mr-1" />
+              Item Description *
+              <span className="float-right text-xs text-gray-500">
+                {formData.itemDescription.length}/500 characters
+              </span>
+            </label>
             <textarea
               value={formData.itemDescription}
               onChange={e => setFormData(f => ({ ...f, itemDescription: e.target.value }))}
-              className="w-full border rounded px-3 py-2"
-              rows={3}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+              rows={4}
+              placeholder="Enter detailed item description..."
               maxLength={500}
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Raised By</label>
-            <input
-              type="text"
-              value={formData.raisedBy}
-              onChange={e => setFormData(f => ({ ...f, raisedBy: e.target.value }))}
-              className="w-full border rounded px-3 py-2"
-              maxLength={100}
-            />
+
+          {/* Row 3: Raised By and Owner */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-6">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <User size={14} className="inline mr-1" />
+                Raised By
+                <span className="float-right text-xs text-gray-500">
+                  {formData.raisedBy.length}/100 characters
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.raisedBy}
+                onChange={e => setFormData(f => ({ ...f, raisedBy: e.target.value }))}
+                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                placeholder="Enter who raised this item"
+                maxLength={100}
+              />
+            </div>
+
+            <div className="col-span-6">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <UserCheck size={14} className="inline mr-1" />
+                Owner
+                <span className="float-right text-xs text-gray-500">
+                  {formData.owner.length}/100 characters
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.owner}
+                onChange={e => setFormData(f => ({ ...f, owner: e.target.value }))}
+                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                placeholder="Enter owner name"
+                maxLength={100}
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Owner</label>
-            <input
-              type="text"
-              value={formData.owner}
-              onChange={e => setFormData(f => ({ ...f, owner: e.target.value }))}
-              className="w-full border rounded px-3 py-2"
-              maxLength={100}
-            />
+
+          {/* Row 4: Status and Project Name */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-6">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <CheckCircle size={14} className="inline mr-1" />
+                Status *
+              </label>
+              <CreatableSelect
+                options={statusOptions}
+                value={statusOptions.find(opt => opt.value === formData.status) || (formData.status ? { label: formData.status, value: formData.status } : null)}
+                onChange={opt => setFormData(f => ({ ...f, status: opt ? opt.value : '' }))}
+                isClearable
+                placeholder="Select or type status"
+                className="text-sm"
+              />
+            </div>
+
+            <div className="col-span-6">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <Folder size={14} className="inline mr-1" />
+                Project Name
+                <span className="float-right text-xs text-gray-500">
+                  {formData.projectName.length}/100 characters
+                </span>
+              </label>
+              <input
+                type="text"
+                value={formData.projectName}
+                onChange={e => setFormData(f => ({ ...f, projectName: e.target.value }))}
+                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                placeholder="Enter project name"
+                maxLength={100}
+              />
+            </div>
           </div>
+
+          {/* Row 5: Remarks (large box) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Status <span className="text-red-500">*</span></label>
-            <CreatableSelect
-              options={statusOptions}
-              value={statusOptions.find(opt => opt.value === formData.status) || (formData.status ? { label: formData.status, value: formData.status } : null)}
-              onChange={opt => setFormData(f => ({ ...f, status: opt ? opt.value : '' }))}
-              isClearable
-              placeholder="Select or type"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              <MessageSquare size={14} className="inline mr-1" />
+              Remarks
+              <span className="float-right text-xs text-gray-500">
+                {formData.remarks.length}/1000 characters
+              </span>
+            </label>
             <textarea
               value={formData.remarks}
               onChange={e => setFormData(f => ({ ...f, remarks: e.target.value }))}
-              className="w-full border rounded px-3 py-2"
-              rows={2}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+              rows={3}
+              placeholder="Enter additional remarks or notes..."
               maxLength={1000}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-            <input
-              type="text"
-              value={formData.projectName}
-              onChange={e => setFormData(f => ({ ...f, projectName: e.target.value }))}
-              className="w-full border rounded px-3 py-2"
-              maxLength={100}
-            />
-          </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <button type="button" className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300" onClick={onClose}>Cancel</button>
-            <button type="submit" className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800">{initialData ? 'Save' : 'Add'}</button>
-          </div>
-        </form>
-      </div>
+        </div>
+
+        {/* Form Actions */}
+        <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center"
+          >
+            <FileText size={14} className="mr-2" />
+            {initialData ? 'Update RIDA' : 'Add RIDA'}
+          </button>
+        </div>
+      </form>
     </div>
-  );
+  </div>
+);
 }
