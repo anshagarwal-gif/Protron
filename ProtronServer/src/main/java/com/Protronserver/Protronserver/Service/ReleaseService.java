@@ -62,8 +62,8 @@ public class ReleaseService {
         Release newRelease = new Release();
         newRelease.setReleaseName(updatedRelease.getReleaseName());
         newRelease.setTenantId(updatedRelease.getTenantId());
-        newRelease.setProjectId(updatedRelease.getProjectId());
-        newRelease.setProjectName(updatedRelease.getProjectName());
+        newRelease.setProjectId(oldRelease.getProjectId());
+        newRelease.setProjectName(oldRelease.getProjectName());
         newRelease.setStartDate(updatedRelease.getStartDate());
         newRelease.setEndDate(updatedRelease.getEndDate());
         newRelease.setDescription(updatedRelease.getDescription());
@@ -113,6 +113,6 @@ public class ReleaseService {
     }
 
     public List<Release> getAllReleasesByProject(Long projectId) {
-        return releaseRepository.findAllByProjectId(projectId);
+        return releaseRepository.findAllByProjectIdAndEndTimestampIsNull(projectId);
     }
 }

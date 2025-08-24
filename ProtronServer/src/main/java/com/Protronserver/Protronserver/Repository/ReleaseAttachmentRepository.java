@@ -9,8 +9,8 @@ import java.util.List;
 
 public interface ReleaseAttachmentRepository extends JpaRepository<ReleaseAttachment, Long> {
 
-    @Query("SELECT new com.Protronserver.Protronserver.dto.AttachmentDTO(" +
+    @Query("SELECT new com.Protronserver.Protronserver.DTOs.ReleaseAttachementDTO(" +
             "ra.id, ra.fileName, ra.fileType, ra.uploadedAt) " +
-            "FROM ReleaseAttachment ra WHERE ra.release.releaseId = :releaseId")
+            "FROM ReleaseAttachment ra WHERE ra.releaseId = :releaseId")
     List<ReleaseAttachementDTO> findAllByReleaseId(Long releaseId);
 }

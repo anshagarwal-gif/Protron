@@ -17,7 +17,12 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
 
   const fetchReleases = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/releases/project/${projectId}`);
+      const res = await fetch(`${API_BASE_URL}/api/releases/project/${projectId}`, {
+        method: 'GET',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+      });
       const data = await res.json();
       setReleases(data);
     } catch (e) {
@@ -37,7 +42,9 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
   const handleDeleteRelease = async (rowIndex) => {
     const releaseId = releases[rowIndex].releaseId;
     try {
-      await fetch(`${API_BASE_URL}/releases/${releaseId}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/releases/${releaseId}`, { method: 'DELETE', headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        }, });
       setSnackbar({ open: true, message: 'Release deleted', severity: 'success' });
       fetchReleases();
     } catch (e) {
@@ -47,9 +54,12 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
 
   const handleAddSubmit = async (formData) => {
     try {
-      await fetch(`${API_BASE_URL}/releases`, {
+      await fetch(`${API_BASE_URL}/api/releases`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
         body: JSON.stringify({ ...formData, projectId }),
       });
       setSnackbar({ open: true, message: 'Release added', severity: 'success' });
@@ -62,9 +72,12 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
 
   const handleEditSubmit = async (formData) => {
     try {
-      await fetch(`${API_BASE_URL}/releases/${editingRelease.releaseId}`, {
+      await fetch(`${API_BASE_URL}/api/releases/${editingRelease.releaseId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
         body: JSON.stringify(formData),
       });
       setSnackbar({ open: true, message: 'Release updated', severity: 'success' });
@@ -156,6 +169,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData }) {
     startDate: '',
     endDate: '',
     description: '',
+    projectName: '',
   });
 
   useEffect(() => {
@@ -165,9 +179,10 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData }) {
         startDate: initialData.startDate ? initialData.startDate.substring(0, 10) : '',
         endDate: initialData.endDate ? initialData.endDate.substring(0, 10) : '',
         description: initialData.description || '',
+        projectName: initialData.projectName || initialData.project?.projectName || '',
       });
     } else {
-      setFormData({ releaseName: '', startDate: '', endDate: '', description: '' });
+      setFormData({ releaseName: '', startDate: '', endDate: '', description: '', projectName: '' });
     }
   }, [initialData, open]);
 
@@ -195,32 +210,103 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-auto p-6">
-        <h3 className="text-lg font-semibold mb-4">{initialData ? 'Edit Release' : 'Add Release'}</h3>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-sm font-medium">Release Name</label>
-            <input name="releaseName" value={formData.releaseName} onChange={handleChange} className="border rounded w-full p-2" />
-            {errors.releaseName && <span className="text-red-500 text-xs">{errors.releaseName}</span>}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center">
+            {initialData ? 'Edit Release' : 'Add Release'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <span className="text-gray-400">&#10005;</span>
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Release Name *</label>
+                <input
+                  name="releaseName"
+                  value={formData.releaseName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Enter release name"
+                  maxLength={100}
+                  required
+                />
+                {errors.releaseName && <span className="text-red-500 text-xs">{errors.releaseName}</span>}
+              </div>
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Project Name</label>
+                <input
+                  name="projectName"
+                  value={formData.projectName}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
+                  disabled
+                  placeholder="Project Name"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Date *</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  required
+                />
+                {errors.startDate && <span className="text-red-500 text-xs">{errors.startDate}</span>}
+              </div>
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Date *</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  required
+                />
+                {errors.endDate && <span className="text-red-500 text-xs">{errors.endDate}</span>}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+                rows={3}
+                placeholder="Enter release description..."
+                maxLength={500}
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium">Start Date</label>
-            <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} className="border rounded w-full p-2" />
-            {errors.startDate && <span className="text-red-500 text-xs">{errors.startDate}</span>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium">End Date</label>
-            <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} className="border rounded w-full p-2" />
-            {errors.endDate && <span className="text-red-500 text-xs">{errors.endDate}</span>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} className="border rounded w-full p-2" />
-          </div>
-          <div className="flex gap-2 justify-end mt-2">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-green-700 text-white rounded">{initialData ? 'Update' : 'Add'}</button>
+          {/* Form Actions */}
+          <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center"
+            >
+              {initialData ? 'Update Release' : 'Add Release'}
+            </button>
           </div>
         </form>
       </div>

@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface ReleaseRepository extends JpaRepository<Release, Long> {
-    List<Release> findAllByProjectId(Long projectId);
+    List<Release> findAllByProjectIdAndEndTimestampIsNull(Long projectId);
 }
 
