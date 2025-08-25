@@ -75,5 +75,16 @@ public class ReleaseController {
     public List<Release> getReleasesByProjectId(@PathVariable Long projectId) {
         return releaseService.getAllReleasesByProject(projectId);
     }
+
+    // ✅ Bulk update project for Release attachments
+    @PutMapping("/attachments/update-project/{projectId}")
+    public ResponseEntity<Void> updateProjectForAttachments(
+            @PathVariable Long projectId,
+            @RequestBody List<Long> attachmentIds
+    ) {
+        releaseService.updateProjectForAttachments(attachmentIds, projectId);
+        return ResponseEntity.ok().build();
+    }
+
 }
 

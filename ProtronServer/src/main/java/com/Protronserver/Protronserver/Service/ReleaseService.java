@@ -39,6 +39,10 @@ public class ReleaseService {
     }
 
     public Release createRelease(Release release) {
+
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        release.setTenantId(tenantId);
         release.setCreatedOn(LocalDateTime.now());
         release.setStartTimestamp(LocalDateTime.now());
         release.setEndTimestamp(null);
@@ -61,7 +65,7 @@ public class ReleaseService {
         // Create new release entry
         Release newRelease = new Release();
         newRelease.setReleaseName(updatedRelease.getReleaseName());
-        newRelease.setTenantId(updatedRelease.getTenantId());
+        newRelease.setTenantId(oldRelease.getTenantId());
         newRelease.setProjectId(oldRelease.getProjectId());
         newRelease.setProjectName(oldRelease.getProjectName());
         newRelease.setStartDate(updatedRelease.getStartDate());
@@ -114,5 +118,20 @@ public class ReleaseService {
 
     public List<Release> getAllReleasesByProject(Long projectId) {
         return releaseRepository.findAllByProjectIdAndEndTimestampIsNull(projectId);
+    }
+
+    @Transactional
+    public void updateProjectForAttachments(List<Long> attachmentIds, Long projectId) {
+        List<ReleaseAttachment> attachments = releaseAttachmentRepository.findAllById(attachmentIds);
+
+        if (attachments.isEmpty()) {
+            throw new RuntimeException("No attachments found for given IDs");
+        }
+
+        for (ReleaseAttachment attachment : attachments) {
+            attachment.setReleaseId(projectId); // assuming releaseId here is project mapping
+        }
+
+        releaseAttachmentRepository.saveAll(attachments);
     }
 }

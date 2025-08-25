@@ -104,6 +104,24 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         }
     };
 
+    const fetchCountries = async () => {
+        try {
+            const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
+            const countriesData = response.data.geonames.map(country => ({
+                code: country.countryCode,
+                name: country.countryName,
+                geonameId: country.geonameId
+            })).sort((a, b) => a.name.localeCompare(b.name))
+
+            setCountries(countriesData);
+        } catch (error) {
+            console.error("Failed to fetch countries:", error);
+            setError({
+                submit:"Failed to fetch countries"
+            })
+        }
+    };
+
     useEffect(() => {
         if (open) {
             fetchUsers();

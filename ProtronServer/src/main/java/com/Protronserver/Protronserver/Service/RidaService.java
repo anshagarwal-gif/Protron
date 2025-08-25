@@ -131,4 +131,20 @@ public class RidaService {
     public List<RidaAttachmentResultDTO> getAllAttachments(Long ridaId) {
         return attachmentRepository.findAllByRidaId(ridaId);
     }
+
+    @Transactional
+    public void updateProjectForAttachments(List<Long> attachmentIds, Long projectId) {
+        List<RidaAttachment> attachments = attachmentRepository.findAllById(attachmentIds);
+
+        if (attachments.isEmpty()) {
+            throw new RuntimeException("No attachments found for given IDs");
+        }
+
+        for (RidaAttachment attachment : attachments) {
+            attachment.setRidaId(projectId); // here if you maintain direct projectId in RidaAttachment, update that instead
+        }
+
+        attachmentRepository.saveAll(attachments);
+    }
+
 }
