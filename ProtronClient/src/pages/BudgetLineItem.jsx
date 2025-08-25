@@ -444,7 +444,6 @@ const ViewBudgetLineModal = ({ open, onClose, budgetLine }) => {
               <FileText size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg sm:text-xl font-bold truncate">Budget Line Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm truncate">Budget ID: {budgetLine.budgetId || 'N/A'}</p>
               </div>
             </div>
             <button

@@ -53,6 +53,8 @@ const POManagement = () => {
   const [selectedPOId, setSelectedPOId] = useState(null);
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [milestonePOId, setMilestonePOId] = useState(null);
+  const [capsuleStyle, setCapsuleStyle] = useState({});
+  const tabRefs = useRef({});
 
   const handleOpenMilestoneModal = (po) => {
     setMilestonePOId(po.poId || po.id);
@@ -84,6 +86,22 @@ const POManagement = () => {
     console.log("Viewing PO:", po);
     setIsViewModalOpen(true);
   };
+  const tabs = [
+  { id: "approval", label: "Approved Budget Tracker", short: "ABT" },
+  { id: "details", label: "Purchase Order Details", short: "POD" },
+  { id: "utilization", label: "Purchase Order – Consumption Details", short: "PO-CD" },
+  { id: "srn", label: "Service Release Tracker", short: "SRT" },
+  { id: "invoice", label: "Invoice Tracker", short: "IT" },
+];
+  useEffect(() => {
+    const el = tabRefs.current[activeTab];
+    if (el) {
+      setCapsuleStyle({
+        width: `${el.offsetWidth}px`,
+        left: `${el.offsetLeft}px`,
+      });
+    }
+  }, [activeTab]);
 
   // Custom loading overlay component
   const LoadingOverlay = () => (
@@ -234,6 +252,7 @@ const POManagement = () => {
   };
 
   const handleAddPO = () => {
+    console.log("Adding PO...")
     setIsAddModalOpen(true);
   };
 
@@ -295,7 +314,7 @@ const POManagement = () => {
       field: "poNumber",
       valueGetter: params => params.data.poNumber || 'N/A',
       flex: 1,
-      maxWidth: 140,
+      minWidth: 140,
       sortable: true,
       filter: true,
       cellStyle: { fontWeight: 'bold', color: '#1f2937' },
@@ -454,13 +473,13 @@ const POManagement = () => {
         const po = params.data;
         return (
           <div className="flex justify-center gap-2 h-full items-center">
-             <button
-            onClick={() => handleOpenMilestoneModal(po)}
-            className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
-            title="Add milestones"
-          >
-            <Plus size={16} className="text-green-600" />
-          </button>
+            <button
+              onClick={() => handleOpenMilestoneModal(po)}
+              className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
+              title="Add milestones"
+            >
+              <Plus size={16} className="text-green-600" />
+            </button>
             <button
               onClick={() => handleViewPO(po)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
@@ -590,115 +609,30 @@ const POManagement = () => {
       <div className="flex justify-between items-center mb-6">
         {/* Left side - 5-Slider toggle buttons and title */}
         <div className="flex items-center gap-6">
-          <div className="relative bg-gray-200 p-1 rounded-full flex">
-            <div
-              className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-              style={{
-                width: activeTab === "approval" ? 'calc(20% - 2px)' :
-                       activeTab === "utilization" ? 'calc(20% + 15px)' : 
-                       activeTab === 'srn' ? 'calc(20% - 20px)' : 
-                       activeTab === 'invoice' ? 'calc(20% - 5px)' : 
-                       'calc(20% - 2px)',
-                left: activeTab === "approval" ? '4px' :
-                      activeTab === "details" ? 'calc(20% + 2px)' :
-                      activeTab === "utilization" ? 'calc(40% + 4px)' :
-                      activeTab === "srn" ? 'calc(60% + 6px)' :
-                      'calc(80% + 8px)'
-              }}
-            />
-            <button
-              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
-                activeTab === "approval" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("approval")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <CheckCircle size={16} className="mr-1" />
-                Approval
-              </div>
-            </button>
-            <button
-              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
-                activeTab === "details" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("details")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <FileText size={16} className="mr-1" />
-                PO Details
-              </div>
-            </button>
-            <button
-              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
-                activeTab === "utilization" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("utilization")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <TrendingUp size={16} className="mr-1" />
-                PO Consumption
-              </div>
-            </button>
-            <button
-              className={`relative z-10 py-2 px-3 mr-1 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
-                activeTab === "srn" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("srn")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <Receipt size={16} className="mr-1" />
-                SRN
-              </div>
-            </button>
-            <button
-              className={`relative z-10 py-2 px-3 rounded-full transition-colors duration-300 w-1/5 text-sm font-medium ${
-                activeTab === "invoice" ? "text-green-600" : "text-gray-600"
-              }`}
-              onClick={() => setActiveTab("invoice")}
-            >
-              <div className="flex items-center justify-center whitespace-nowrap">
-                <CreditCard size={16} className="mr-1" />
-                Invoice
-              </div>
-            </button>
-          </div>
+  <div className="relative bg-gray-200 p-1 rounded-full flex w-full">
+    {/* Capsule */}
+    <div
+      className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+      style={capsuleStyle}
+    />
 
-          {/* Dynamic title based on active tab */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              {activeTab === "approval" && (
-                <>
-                  <CheckCircle size={24} className="mr-2 text-green-600" />
-                  Budget Line Approval
-                </>
-              )}
-              {activeTab === "details" && (
-                <>
-                  <FileText size={24} className="mr-2 text-green-600" />
-                  PO List
-                </>
-              )}
-              {activeTab === "utilization" && (
-                <>
-                  <TrendingUp size={24} className="mr-2 text-green-600" />
-                  PO Consumption
-                </>
-              )}
-              {activeTab === "srn" && (
-                <>
-                  <Receipt size={24} className="mr-2 text-green-600" />
-                  SRN Management
-                </>
-              )}
-              {activeTab === "invoice" && (
-                <>
-                  <CreditCard size={24} className="mr-2 text-green-600" />
-                  Invoice Management
-                </>
-              )}
-            </h2>
-          </div>
-        </div>
+    {tabs.map((tab) => {
+      return (
+        <button
+          key={tab.id}
+          ref={(el) => (tabRefs.current[tab.id] = el)}
+          className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap ${
+            activeTab === tab.id ? "text-green-600" : "text-gray-600"
+          }`}
+          onClick={() => setActiveTab(tab.id)}
+        >
+          {activeTab === tab.id ? tab.label : tab.short}
+        </button>
+      );
+    })}
+  </div>
+</div>
+
 
         {/* Right side - Search and action buttons */}
         <div className="flex items-center gap-4">
@@ -772,13 +706,11 @@ const POManagement = () => {
         onClose={() => setIsViewModalOpen(false)}
         poData={selectedPO}
       />
-
       <AddPOModal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleModalSubmit}
       />
-
       <EditPOModal
         open={isEditModalOpen}
         onClose={() => {

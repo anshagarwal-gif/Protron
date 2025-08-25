@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Plus, Trash2, FileText } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, Eye } from 'lucide-react';
 import AddMilestoneModal from './AddMilestoneModal';
 import GlobalSnackbar from './GlobalSnackbar';
 import { AgGridReact } from 'ag-grid-react';
 import axios from 'axios';
 import EditMilestoneModal from './EditMilestoneModal';
+import ViewMilestoneModal from './ViewMilestoneModal';
+
 // Currency symbols mapping
 const currencySymbols = {
     USD: '$',
@@ -25,6 +27,8 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
     });
     const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
     const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
+    const [viewMilestoneModalOpen, setViewMilestoneModalOpen] = useState(false)
+    const [selectedMilestone, setSelectedMilestone] = useState(null);
 
     useEffect(() => {
         if (open && poId) {
@@ -56,6 +60,11 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         setSelectedMilestoneId(milestones[index].msId);
         setIsEditMilestoneModalOpen(true);
     };
+    const handleViewMilestone = (index) =>{
+        setViewMilestoneModalOpen(true);
+        console.log(milestones[index].msId);
+        setSelectedMilestone(milestones[index]);
+    }
 
     const handleMilestoneSubmit = (milestoneData) => {
 
@@ -198,15 +207,22 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
             cellRenderer: (params) => (
                 <div className="flex justify-center items-center h-full gap-1">
                     <button
+                        onClick={() => handleViewMilestone(params.node.rowIndex)}
+                        className="p-1 rounded-full hover:bg-blue-100 text-blue-600 cursor-pointer transition-colors"
+                        title="View milestone"
+                    >
+                        <Eye size={16} />
+                    </button>
+                    <button
                         onClick={() => handleEditMilestone(params.node.rowIndex)}
-                        className="p-1 rounded-full hover:bg-blue-100 text-blue-600 transition-colors"
+                        className="p-1 rounded-full hover:bg-blue-100 text-blue-600 cursor-pointer transition-colors"
                         title="Edit milestone"
                     >
-                        Edit
+                        <Edit size={16} />
                     </button>
                     <button
                         onClick={() => handleRemoveMilestone(params.node.rowIndex)}
-                        className="p-1 rounded-full hover:bg-red-100 text-red-600 transition-colors"
+                        className="p-1 rounded-full hover:bg-red-100 text-red-600 cursor-pointer transition-colors"
                         title="Remove milestone"
                     >
                         <Trash2 size={16} />
@@ -297,6 +313,11 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                         }}
                         onSubmit={handleEditMilestoneModalSubmit}
                         milestoneId={selectedMilestoneId}
+                    />
+                    <ViewMilestoneModal
+                        open={viewMilestoneModalOpen}
+                        onClose={() => setViewMilestoneModalOpen(false)}
+                        milestoneData={selectedMilestone}
                     />
                 </div>
             </div>

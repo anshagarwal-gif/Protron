@@ -77,7 +77,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
           console.log(poId, response.data);
           setErrors({});
         } catch (error) {
-          setErrors({submit:"Error fetching PO balance. Please try again."})
+          setErrors({ submit: "Error fetching PO balance. Please try again." })
           console.error("Error fetching PO balance:", error);
         }
       }
@@ -260,7 +260,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
             if (!uploadRes.ok) {
               console.error(`Attachment upload failed for ${file.name}`);
-              setErrors({submit:"Error uploading attachment. Please try again."})
+              setErrors({ submit: "Error uploading attachment. Please try again." })
               setSnackbar({
                 open: true,
                 message: "Attachment upload failed",
@@ -269,8 +269,8 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
             }
           } catch (err) {
             console.error("Attachment upload error:", err);
-            setErrors({submit:"Error uploading attachment. Please try again."})
-            
+            setErrors({ submit: "Error uploading attachment. Please try again." })
+
           }
         }
       }
@@ -329,11 +329,11 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   };
 
   const handleDateInputClick = (inputName) => {
-        const dateInput = document.getElementsByName(inputName)[0];
-        if (dateInput) {
-            dateInput.showPicker();
-        }
-    };
+    const dateInput = document.getElementsByName(inputName)[0];
+    if (dateInput) {
+      dateInput.showPicker();
+    }
+  };
 
   if (!open) return null;
 
@@ -481,10 +481,13 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading}
                   onClick={() => handleDateInputClick('msDate')}
+                  min="1900-01-01"
+                  max="2099-12-31"
                 />
+
               </div>
 
-              
+
             </div>
 
             {/* Row 3: Description (large box for extensive text) */}
@@ -533,50 +536,50 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
               )}
             </div>
             <div className="max-w-[300px]">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <FileText size={14} className="inline mr-1" />
-                  Milestone Attachments (Max 4)
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <FileText size={14} className="inline mr-1" />
+                Milestone Attachments (Max 4)
+              </label>
+
+              <div className="relative">
+                <input
+                  type="file"
+                  multiple
+                  id="ms-attachment-input"
+                  onChange={handleMSFileChange}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
+                  className="hidden"
+                  disabled={loading}
+                />
+                <label
+                  htmlFor="ms-attachment-input"
+                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 flex items-center justify-between cursor-pointer"
+                >
+                  <span className="text-gray-600">
+                    {milestoneFiles.length > 0 ? `${milestoneFiles.length} file(s) selected` : 'Click to select files'}
+                  </span>
+                  <Upload size={16} className="text-green-600" />
                 </label>
-
-                <div className="relative">
-                  <input
-                    type="file"
-                    multiple
-                    id="ms-attachment-input"
-                    onChange={handleMSFileChange}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
-                    className="hidden"
-                    disabled={loading}
-                  />
-                  <label
-                    htmlFor="ms-attachment-input"
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 flex items-center justify-between cursor-pointer"
-                  >
-                    <span className="text-gray-600">
-                      {milestoneFiles.length > 0 ? `${milestoneFiles.length} file(s) selected` : 'Click to select files'}
-                    </span>
-                    <Upload size={16} className="text-green-600" />
-                  </label>
-                </div>
-
               </div>
-                <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-                  {milestoneFiles.map((file, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                    >
-                      <span className="truncate max-w-[100px]" title={file.name}>{file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeMilestoneAttachment(index)}
-                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+
+            </div>
+            <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+              {milestoneFiles.map((file, index) => (
+                <li
+                  key={index}
+                  className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                >
+                  <span className="truncate max-w-[100px]" title={file.name}>{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeMilestoneAttachment(index)}
+                    className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
 
           {/* Form Actions */}

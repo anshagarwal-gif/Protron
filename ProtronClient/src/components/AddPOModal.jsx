@@ -33,6 +33,7 @@ const currencySymbols = {
 };
 
 const AddPOModal = ({ open, onClose, onSubmit }) => {
+    if (!open) return null;
     const [poId, setPoId] = useState(null); // Store the created PO ID
     const [formData, setFormData] = useState({
         poNumber: '',
@@ -103,7 +104,23 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             })
         }
     };
+    const fetchCountries = async () => {
+        try {
+            const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
+            const countriesData = response.data.geonames.map(country => ({
+                code: country.countryCode,
+                name: country.countryName,
+                geonameId: country.geonameId
+            })).sort((a, b) => a.name.localeCompare(b.name))
 
+            setCountries(countriesData);
+        } catch (error) {
+            console.error("Failed to fetch countries:", error);
+            setError({
+                submit:"Failed to fetch countries"
+            })
+        }
+    };
     useEffect(() => {
         if (open) {
             fetchUsers();
@@ -167,20 +184,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     };
 
 
-    const handleCreatePO = async () => {
-
-        if (!formData.poNumber || !formData.poType || !formData.poAmount || !formData.currency) {
-            setSnackbar({
-                open: true,
-                message: "Please fill in all required fields.",
-                severity: "error"
-            });
-            return;
-        }
-    const handleAddMilestone = () => {
-        setEditingMilestone(null);
-        setMilestoneModalOpen(true);
-    };
+    
 
 
     const handleMilestoneSubmit = (milestoneData) => {
@@ -388,25 +392,6 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         });
     };
 
-    const fetchCountries = async () => {
-        try {
-            const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
-            const countriesData = response.data.geonames.map(country => ({
-                code: country.countryCode,
-                name: country.countryName,
-                geonameId: country.geonameId
-            })).sort((a, b) => a.name.localeCompare(b.name))
-
-            setCountries(countriesData);
-        } catch (error) {
-            console.error("Failed to fetch countries:", error);
-            setError({
-                submit:"Failed to fetch countries"
-            })
-        }
-    };
-
-    if (!open) return null;
 
     return (
         <>
@@ -451,7 +436,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     <div className="p-6 overflow-y-auto flex-grow">
 
                         <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         PO Number <span className='text-red-500'>*</span>
@@ -1046,5 +1031,5 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         </>
     );
 };
-}
+
 export default AddPOModal;

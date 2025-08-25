@@ -677,7 +677,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     {currentStep === 1 && (
                         <div className="space-y-6">
                             {/* PO Details Form Fields */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
                                 {/* PO Number, Type, Currency, Amount, Dates */}
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Number">
@@ -904,8 +904,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             if (value && value.length > 255) finalValue = value.slice(0, 255);
                                             setFormData(prev => ({ ...prev, customer: finalValue }));
                                         }}
-                                        onOrgSelect={handleCustomerOrgSelect}
-                                        placeholder="Search for customer or type new..."
+                                        
+                                        placeholder="Type customer name"
                                         orgType="CUSTOMER"
                                         className="w-full"
                                     />

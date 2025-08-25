@@ -7,6 +7,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import "./App.css";
+
 import toast, { Toaster } from 'react-hot-toast';
 
 import Sidebar from './components/sidebar';

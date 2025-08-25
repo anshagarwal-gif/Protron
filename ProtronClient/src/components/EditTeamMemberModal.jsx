@@ -207,24 +207,6 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
 
             <Box sx={{ display: 'flex', gap: 3 }}>
                 <Box sx={{ width: '50%' }}>
-                    <TextField
-                        fullWidth
-                        label="Cost"
-                        name="pricing"
-                        type="number"
-                        value={formData.pricing}
-                        onChange={handleChange}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                 
-                                </InputAdornment>
-                            ),
-                            sx: { height: fieldHeight }
-                        }}
-                    />
-                </Box>
-                <Box sx={{ width: '50%' }}>
                     <FormControl fullWidth>
                         <InputLabel>Unit</InputLabel>
                         <Select
@@ -242,6 +224,25 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                         </Select>
                     </FormControl>
                 </Box>
+                <Box sx={{ width: '50%' }}>
+                    <TextField
+                        fullWidth
+                        label="Cost"
+                        name="pricing"
+                        type="number"
+                        value={formData.pricing}
+                        onChange={handleChange}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                 
+                                </InputAdornment>
+                            ),
+                            sx: { height: fieldHeight }
+                        }}
+                    />
+                </Box>
+                
             </Box>
 
             <DatePicker
