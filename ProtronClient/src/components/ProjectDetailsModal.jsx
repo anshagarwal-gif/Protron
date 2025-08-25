@@ -14,6 +14,9 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
   const [systemsImpacted, setSystemsImpacted] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const {hasAccess} = useAccess();
+    const [ridaList, setRidaList] = useState([]);
+    const [releaseList, setReleaseList] = useState([]);
+    const [sprintList, setSprintList] = useState([]);
 
   const handleProjectEdit = (projectId) => {
     setShowEditModal(false);
@@ -56,9 +59,43 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
   useEffect(() => {
 
     if (projectId) {
+        fetchRidaList(projectId);
+        fetchReleaseList(projectId);
+        fetchSprintList(projectId);
       fetchProjectDetails(projectId);
     }
   }, [projectId]);
+    // Fetch RIDA, Release, Sprint lists
+    const fetchRidaList = async (projectId) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/rida/project/${projectId}`, {
+          method: 'GET',
+          headers: { 'authorization': `${sessionStorage.getItem('token')}` },
+        });
+        const data = await res.json();
+        setRidaList(data);
+      } catch (e) { setRidaList([]); }
+    };
+    const fetchReleaseList = async (projectId) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/releases/project/${projectId}`, {
+          method: 'GET',
+          headers: { 'authorization': `${sessionStorage.getItem('token')}` },
+        });
+        const data = await res.json();
+        setReleaseList(data);
+      } catch (e) { setReleaseList([]); }
+    };
+    const fetchSprintList = async (projectId) => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/sprints/project/${projectId}`, {
+          method: 'GET',
+          headers: { 'authorization': `${sessionStorage.getItem('token')}` },
+        });
+        const data = await res.json();
+        setSprintList(data);
+      } catch (e) { setSprintList([]); }
+    };
 
   if (!projectId) return null;
 
@@ -296,6 +333,103 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                 </h3>
                 <div className="bg-white rounded p-2 sm:p-3 border min-h-[60px] text-gray-900 text-sm">
                   {projectDetails.defineDone ? projectDetails.defineDone : <span className="text-gray-500">No DoD defined for this project.</span>}
+                </div>
+              </div>
+
+              {/* RIDA Table */}
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">RIDA List</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm border">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-2 py-1 border">#</th>
+                        <th className="px-2 py-1 border">Type</th>
+                        <th className="px-2 py-1 border">Meeting Ref</th>
+                        <th className="px-2 py-1 border">Description</th>
+                        <th className="px-2 py-1 border">Raised By</th>
+                        <th className="px-2 py-1 border">Owner</th>
+                        <th className="px-2 py-1 border">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ridaList.length === 0 ? (
+                        <tr><td colSpan={7} className="text-center py-2">No RIDA found</td></tr>
+                      ) : ridaList.map((rida, idx) => (
+                        <tr key={rida.id || idx}>
+                          <td className="border px-2 py-1">{idx + 1}</td>
+                          <td className="border px-2 py-1">{rida.type}</td>
+                          <td className="border px-2 py-1">{rida.meetingReference}</td>
+                          <td className="border px-2 py-1">{rida.itemDescription}</td>
+                          <td className="border px-2 py-1">{rida.raisedBy}</td>
+                          <td className="border px-2 py-1">{rida.owner}</td>
+                          <td className="border px-2 py-1">{rida.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Release Table */}
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">Release List</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm border">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-2 py-1 border">#</th>
+                        <th className="px-2 py-1 border">Release Name</th>
+                        <th className="px-2 py-1 border">Start Date</th>
+                        <th className="px-2 py-1 border">End Date</th>
+                        <th className="px-2 py-1 border">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {releaseList.length === 0 ? (
+                        <tr><td colSpan={5} className="text-center py-2">No Release found</td></tr>
+                      ) : releaseList.map((rel, idx) => (
+                        <tr key={rel.releaseId || idx}>
+                          <td className="border px-2 py-1">{idx + 1}</td>
+                          <td className="border px-2 py-1">{rel.releaseName}</td>
+                          <td className="border px-2 py-1">{rel.startDate ? new Date(rel.startDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1">{rel.endDate ? new Date(rel.endDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1">{rel.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Sprint Table */}
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">Sprint List</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm border">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-2 py-1 border">#</th>
+                        <th className="px-2 py-1 border">Sprint Name</th>
+                        <th className="px-2 py-1 border">Start Date</th>
+                        <th className="px-2 py-1 border">End Date</th>
+                        <th className="px-2 py-1 border">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sprintList.length === 0 ? (
+                        <tr><td colSpan={5} className="text-center py-2">No Sprint found</td></tr>
+                      ) : sprintList.map((sprint, idx) => (
+                        <tr key={sprint.sprintId || idx}>
+                          <td className="border px-2 py-1">{idx + 1}</td>
+                          <td className="border px-2 py-1">{sprint.sprintName}</td>
+                          <td className="border px-2 py-1">{sprint.startDate ? new Date(sprint.startDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1">{sprint.endDate ? new Date(sprint.endDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1">{sprint.description}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
