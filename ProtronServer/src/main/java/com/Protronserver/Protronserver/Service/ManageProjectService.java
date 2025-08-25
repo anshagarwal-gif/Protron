@@ -322,4 +322,12 @@ public class ManageProjectService {
         return project.getDefineDone();
     }
 
+    public String getProjectNameById(Long id) {
+        String projectName = projectRepository.findProjectNameById(id);
+        if (projectName == null) {
+            throw new RuntimeException("Project not found with ID: " + id);
+        }
+        return projectName;
+    }
+
 }

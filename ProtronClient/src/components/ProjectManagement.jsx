@@ -15,6 +15,7 @@ import * as XLSX from "xlsx";
 import { useAccess } from "../Context/AccessContext"
 import ProjectDetailsModal from "./ProjectDetailsModal";
 import RidaManagement from "./RidaManagement"
+import ReleaseManagement from "./ReleaseManagement";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -45,7 +46,8 @@ const [dodLoading, setDodLoading] = useState(false);
   const [showEntriesDropdown, setShowEntriesDropdown] = useState(false);
 
   const [showRidaManagement, setShowRidaManagement] = useState(false);
-
+  const [showReleaseManagement, setShowReleaseManagement] = useState(false);
+  const [releaseProjectId, setReleaseProjectId] = useState(null);
   const [projectFormData, setProjectFormData] = useState({ ...selectedProject });
   const [formData, setFormData] = useState({
     projectName: '',
@@ -202,20 +204,30 @@ const handleDodUpdate = async () => {
             <FiUsers size={20} className="text-green-700" />
           </button>)}
 
-          <button
-        onClick={() => handleOpenDodModal(params.data)}
-        className="p-2 rounded-full hover:bg-green-100"
-        title="Define of Done"
-      >
-        <FileCheck2 size={20} className="text-green-700" />
-      </button>
-      <button
-  onClick={() => handleRidaManagement(params.data.projectId)}
-  className="p-2 rounded-full hover:bg-green-100"
-  title="RIDA Management"
->
-  <ListChecks size={20} className="text-green-700" />
-</button>
+        <button
+          onClick={() => handleOpenDodModal(params.data)}
+          className="p-2 rounded-full hover:bg-green-100"
+          title="Define of Done"
+        >
+          <FileCheck2 size={20} className="text-green-700" />
+        </button>
+        <button
+          onClick={() => handleRidaManagement(params.data.projectId)}
+          className="p-2 rounded-full hover:bg-green-100"
+          title="RIDA Management"
+        >
+          <ListChecks size={20} className="text-green-700" />
+        </button>
+        <button
+          onClick={() => {
+            setReleaseProjectId(params.data.projectId);
+            setShowReleaseManagement(true);
+          }}
+          className="p-2 rounded-full hover:bg-green-100"
+          title="Release Management"
+        >
+          <AiFillProject size={20} className="text-green-700" />
+        </button>
       </div>
     );
   };
@@ -1343,7 +1355,14 @@ const handleDodUpdate = async () => {
         <RidaManagement
           projectId={selectedProjectId}
           open={showRidaManagement}
-          onClose={() => setShowRidaManagement(null)}
+          onClose={() => setShowRidaManagement(false)}
+        />
+      )}
+      {showReleaseManagement && (
+        <ReleaseManagement
+          projectId={releaseProjectId}
+          open={showReleaseManagement}
+          onClose={() => setShowReleaseManagement(false)}
         />
       )}
     </>

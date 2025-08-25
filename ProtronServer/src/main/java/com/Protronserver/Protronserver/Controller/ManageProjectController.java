@@ -109,4 +109,9 @@ public class ManageProjectController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}/name")
+    public ResponseEntity<String> getProjectName(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(manageProjectService.getProjectNameById(id));
+    }
+
 }

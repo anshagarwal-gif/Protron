@@ -87,4 +87,14 @@ public class RidaController {
         List<RidaAttachmentResultDTO> attachments = ridaService.getAllAttachments(ridaId);
         return ResponseEntity.ok(attachments);
     }
+
+    // ✅ Bulk update project for Rida attachments
+    @PutMapping("/attachments/update-project/{projectId}")
+    public ResponseEntity<Void> updateProjectForAttachments(
+            @PathVariable Long projectId,
+            @RequestBody List<Long> attachmentIds
+    ) {
+        ridaService.updateProjectForAttachments(attachmentIds, projectId);
+        return ResponseEntity.ok().build();
+    }
 }
