@@ -1,0 +1,561 @@
+import React, { useState, useEffect } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import GlobalSnackbar from './GlobalSnackbar';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+export default function SprintManagement({ projectId, open, onClose }) {
+  const [sprints, setSprints] = useState([]);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingSprint, setEditingSprint] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [projectName, setProjectName] = useState('');
+
+  useEffect(() => {
+    if (open && projectId) {
+      fetchSprints();
+      fetchProjectName();
+    }
+  }, [open, projectId]);
+
+  const fetchProjectName = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/name`, {
+        method: 'GET',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+      });
+      const name = await res.text();
+      setProjectName(name);
+    } catch (e) {
+      setProjectName('');
+    }
+  };
+
+  const fetchSprints = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sprints/project/${projectId}`, {
+        method: 'GET',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+      });
+      const data = await res.json();
+      setSprints(data);
+    } catch (e) {
+      setSnackbar({ open: true, message: 'Failed to fetch sprints', severity: 'error' });
+    }
+  };
+
+  const handleAddSprint = () => {
+    setAddModalOpen(true);
+  };
+
+  const handleEditSprint = (rowIndex) => {
+    setEditingSprint(sprints[rowIndex]);
+    setEditModalOpen(true);
+  };
+
+  const handleDeleteSprint = async (rowIndex) => {
+    const sprintId = sprints[rowIndex].sprintId;
+    try {
+      await fetch(`${API_BASE_URL}/api/sprints/${sprintId}`, { method: 'DELETE', headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        }, });
+      setSnackbar({ open: true, message: 'Sprint deleted', severity: 'success' });
+      fetchSprints();
+    } catch (e) {
+      setSnackbar({ open: true, message: 'Delete failed', severity: 'error' });
+    }
+  };
+
+  const handleAddSubmit = async (formData) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/sprints`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ ...formData, projectId }),
+      });
+      setSnackbar({ open: true, message: 'Sprint added', severity: 'success' });
+      setAddModalOpen(false);
+      fetchSprints();
+    } catch (e) {
+      setSnackbar({ open: true, message: 'Add failed', severity: 'error' });
+    }
+  };
+
+  const handleEditSubmit = async (formData) => {
+    setSnackbar({ open: true, message: 'Sprint updated', severity: 'success' });
+      setEditModalOpen(false);
+      fetchSprints();
+  };
+
+  const columnDefs = [
+    { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50 },
+    { headerName: 'Sprint Name', field: 'sprintName', flex: 1 },
+    { 
+      headerName: 'Start Date', 
+      field: 'startDate', 
+      width: 140,
+      cellRenderer: (params) => {
+        if (!params.value) return '';
+        const d = new Date(params.value);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+      }
+    },
+    { 
+      headerName: 'End Date', 
+      field: 'endDate', 
+      width: 140,
+      cellRenderer: (params) => {
+        if (!params.value) return '';
+        const d = new Date(params.value);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+      }
+    },
+    { headerName: 'Description', field: 'description', flex: 2 },
+    { 
+      headerName: 'Created On', 
+      field: 'createdOn', 
+      width: 140, 
+      cellRenderer: (params) => {
+        if (!params.value) return '';
+        const d = new Date(params.value);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+      }
+    },
+    {
+      headerName: 'Actions',
+      field: 'actions',
+      width: 120,
+      cellRenderer: (params) => (
+        <div className="flex gap-1">
+          <button onClick={() => handleEditSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600">Edit</button>
+          <button onClick={() => handleDeleteSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600">Delete</button>
+        </div>
+      ),
+    }
+  ];
+
+  if (!open) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
+          <div className="bg-gray-50 border-b px-6 py-4 flex justify-between items-center">
+            <h2 className="text-xl font-semibold text-green-900">Sprint Management</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full">Close</button>
+          </div>
+          <div className="p-6 overflow-y-auto flex-grow">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-green-900">Sprint List</h3>
+              <button onClick={handleAddSprint} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">
+                Add Sprint
+              </button>
+            </div>
+            <div className="h-96 w-full border rounded-md">
+              <div className="ag-theme-alpine h-full w-full">
+                <AgGridReact
+                  columnDefs={columnDefs}
+                  rowData={sprints}
+                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  suppressRowClickSelection={true}
+                  animateRows={true}
+                  rowHeight={48}
+                  headerHeight={48}
+                />
+              </div>
+            </div>
+          </div>
+          <GlobalSnackbar
+            open={snackbar.open}
+            message={snackbar.message}
+            severity={snackbar.severity}
+            onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          />
+          <SprintFormModal
+            open={addModalOpen}
+            onClose={() => setAddModalOpen(false)}
+            onSubmit={handleAddSubmit}
+            initialData={null}
+            projectName={projectName}
+            projectId={projectId}
+          />
+          <SprintFormModal
+            open={editModalOpen}
+            onClose={() => setEditModalOpen(false)}
+            onSubmit={handleEditSubmit}
+            initialData={editingSprint}
+            projectName={projectName}
+            projectId={projectId}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, projectId }) {
+  const [formData, setFormData] = useState({
+    sprintName: '',
+    startDate: '',
+    endDate: '',
+    description: '',
+    projectName: '',
+  });
+  const [sprintFiles, setSprintFiles] = useState([]);
+  const [existingAttachments, setExistingAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        sprintName: initialData.sprintName || '',
+        startDate: initialData.startDate ? initialData.startDate.substring(0, 10) : '',
+        endDate: initialData.endDate ? initialData.endDate.substring(0, 10) : '',
+        description: initialData.description || '',
+        projectName: projectName || '',
+      });
+      // Fetch existing attachments for edit
+      if (initialData.sprintId) {
+        fetchAttachments(initialData.sprintId);
+      } else {
+        setExistingAttachments([]);
+      }
+    } else {
+      setFormData({ sprintName: '', startDate: '', endDate: '', description: '', projectName: projectName || '' });
+      setSprintFiles([]);
+      setExistingAttachments([]);
+    }
+  }, [initialData, open, projectName]);
+
+  const fetchAttachments = async (sprintId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sprints/${sprintId}/attachments`, {
+        method: 'GET',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+      });
+      const data = await res.json();
+      setExistingAttachments(data);
+    } catch (e) {
+      setExistingAttachments([]);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length === 0) return;
+    const totalExisting = existingAttachments.length;
+    const totalFiles = sprintFiles.length + selectedFiles.length + totalExisting;
+    if (totalFiles > 4) {
+      alert(`Maximum 4 attachments allowed in total (existing + new). You already have ${totalExisting} existing attachments.`);
+      return;
+    }
+    setSprintFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+    e.target.value = null;
+  };
+
+  const removeAttachment = (indexToRemove) => {
+    setSprintFiles((prevFiles) => prevFiles.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleDeleteExistingAttachment = async (attachmentId) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/sprints/attachments/${attachmentId}`, {
+        method: 'DELETE',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+      });
+      setExistingAttachments((prev) => prev.filter(att => att.id !== attachmentId));
+    } catch (e) {
+      alert('Failed to delete attachment');
+    }
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!formData.sprintName) errs.sprintName = 'Sprint name required';
+    if (!formData.startDate) errs.startDate = 'Start date required';
+    if (!formData.endDate) errs.endDate = 'End date required';
+    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Upload files after sprint is created/edited
+  const uploadFiles = async (sprintId) => {
+    setUploading(true);
+    for (const file of sprintFiles) {
+      const formData = new FormData();
+      formData.append('file', file);
+      await fetch(`${API_BASE_URL}/api/sprints/${sprintId}/attachments`, {
+        method: 'POST',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+    }
+    setUploading(false);
+    setSprintFiles([]);
+    fetchAttachments(sprintId);  
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setSubmitting(true);
+    let sprintId = initialData?.sprintId;
+    let isEdit = !!initialData;
+    const token = sessionStorage.getItem('token');
+    try {
+      if (isEdit) {
+        // Call edit API and get updated sprintId from response
+        const res = await fetch(`${API_BASE_URL}/api/sprints/${initialData.sprintId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'authorization': token,
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        sprintId = data.sprintId || data.id;
+        // Update project for all existing attachments
+        if (existingAttachments.length > 0) {
+          const attachmentIds = existingAttachments.map(att => att.id);
+          await fetch(`${API_BASE_URL}/api/sprints/attachments/update-project/${sprintId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'authorization': token,
+            },
+            body: JSON.stringify(attachmentIds),
+          });
+        }
+        if (typeof onSubmit === 'function') onSubmit(data);
+      } else {
+        const res = await fetch(`${API_BASE_URL}/api/sprints`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'authorization': token,
+          },
+          body: JSON.stringify({ ...formData, projectId }),
+        });
+        const data = await res.json();
+        sprintId = data.sprintId || data.id;
+        if (typeof onSubmit === 'function') onSubmit(data);
+      }
+      // Upload files if any
+      if (sprintFiles.length > 0 && sprintId) {
+        await uploadFiles(sprintId);
+      }
+      // Close modal and update table
+      if (typeof onClose === 'function') onClose();
+      if (typeof window.fetchSprints === 'function') window.fetchSprints();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900 flex items-center">
+            {initialData ? 'Edit Sprint' : 'Add Sprint'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <span className="text-gray-400">&#10005;</span>
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Sprint Name *</label>
+                <input
+                  name="sprintName"
+                  value={formData.sprintName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Enter sprint name"
+                  maxLength={100}
+                  required
+                />
+                {errors.sprintName && <span className="text-red-500 text-xs">{errors.sprintName}</span>}
+              </div>
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Project Name</label>
+                <input
+                  name="projectName"
+                  value={formData.projectName}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
+                  disabled
+                  placeholder="Project Name"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-12 gap-4">
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Date *</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  required
+                />
+                {errors.startDate && <span className="text-red-500 text-xs">{errors.startDate}</span>}
+              </div>
+              <div className="col-span-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Date *</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  required
+                />
+                {errors.endDate && <span className="text-red-500 text-xs">{errors.endDate}</span>}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+                rows={3}
+                placeholder="Enter sprint description..."
+                maxLength={500}
+              />
+            </div>
+            {/* Attachments */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Sprint Attachments (Max 4)</label>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="sprint-attachment-input"
+                  multiple
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  className="hidden"
+                  disabled={existingAttachments.length + sprintFiles.length >= 4}
+                />
+                <label
+                  htmlFor="sprint-attachment-input"
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  style={existingAttachments.length + sprintFiles.length >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
+                >
+                  <span className="text-gray-500 truncate">
+                    {sprintFiles.length > 0 ? `${sprintFiles.length} file(s) selected` : 'Click to select files'}
+                  </span>
+                </label>
+              </div>
+              <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                {sprintFiles.map((file, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]"
+                  >
+                    <span className="truncate max-w-[100px]" title={file.name}>
+                      {file.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(index)}
+                      className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {/* Existing Attachments (Edit) */}
+              {existingAttachments.length > 0 && (
+                <div className="mt-2">
+                  <div className="font-semibold text-xs mb-1">Existing Attachments:</div>
+                  <ul className="text-sm text-gray-700 flex flex-wrap gap-2">
+                    {existingAttachments.map(att => (
+                      <li key={att.id} className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]">
+                        <span className="truncate max-w-[100px]" title={att.fileName}>{att.fileName}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExistingAttachment(att.id)}
+                          className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Form Actions */}
+          <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center"
+              disabled={uploading || submitting}
+            >
+              {submitting ? (
+                <svg className="animate-spin mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+              ) : null}
+              {initialData ? 'Update Sprint' : 'Add Sprint'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
