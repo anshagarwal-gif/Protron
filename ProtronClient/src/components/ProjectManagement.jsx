@@ -16,6 +16,7 @@ import { useAccess } from "../Context/AccessContext"
 import ProjectDetailsModal from "./ProjectDetailsModal";
 import RidaManagement from "./RidaManagement"
 import ReleaseManagement from "./ReleaseManagement";
+import SprintManagement from "./SprintManagement"
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -47,6 +48,7 @@ const [dodLoading, setDodLoading] = useState(false);
 
   const [showRidaManagement, setShowRidaManagement] = useState(false);
   const [showReleaseManagement, setShowReleaseManagement] = useState(false);
+  const [showSprintManagement, setShowSprintManagement] = useState(false);
   const [releaseProjectId, setReleaseProjectId] = useState(null);
   const [projectFormData, setProjectFormData] = useState({ ...selectedProject });
   const [formData, setFormData] = useState({
@@ -227,6 +229,16 @@ const handleDodUpdate = async () => {
           title="Release Management"
         >
           <AiFillProject size={20} className="text-green-700" />
+        </button>
+        <button
+          onClick={() => {
+            setSelectedProjectId(params.data.projectId);
+            setShowSprintManagement(true);
+          }}
+          className="p-2 rounded-full hover:bg-blue-100"
+          title="Sprint Management"
+        >
+          <span role="img" aria-label="Sprint" className="text-blue-700 font-bold">S</span>
         </button>
       </div>
     );
@@ -1363,6 +1375,14 @@ const handleDodUpdate = async () => {
           projectId={releaseProjectId}
           open={showReleaseManagement}
           onClose={() => setShowReleaseManagement(false)}
+        />
+      )}
+
+      {showSprintManagement && (
+        <SprintManagement
+          projectId={selectedProjectId}
+          open={showSprintManagement}
+          onClose={() => setShowSprintManagement(false)}
         />
       )}
     </>
