@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit, FileText, X, Tag, Calendar, User, UserCheck, CheckCircle, Folder, MessageSquare } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, X, Tag, Calendar, User, UserCheck, CheckCircle, Folder, MessageSquare, Pencil, Trash } from 'lucide-react';
 import axios from 'axios';
 import GlobalSnackbar from './GlobalSnackbar';
 import CreatableSelect from 'react-select/creatable';
@@ -115,8 +115,12 @@ export default function RidaManagement({ projectId, open, onClose }) {
       width: 120,
       cellRenderer: (params) => (
         <div className="flex gap-1">
-          <button onClick={() => handleEditRida(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600">Edit</button>
-          <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600"><Trash2 size={16} /></button>
+          <button onClick={() => handleEditRida(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600" title="Edit">
+            <Pencil size={16} />
+          </button>
+          <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600" title="Delete">
+            <Trash2 size={16} />
+          </button>
         </div>
       ),
     }
@@ -388,7 +392,6 @@ return (
       {/* Form */}
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         <div className="space-y-4">
-          {/* ...existing form fields... */}
           {/* Row 1: Type and Meeting Reference */}
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-6">
@@ -403,7 +406,9 @@ return (
                 isClearable
                 placeholder="Select type"
                 className="text-sm"
+                styles={{ control: (base) => ({ ...base, borderColor: errors.type ? 'red' : base.borderColor }) }}
               />
+              {errors.type && <span className="text-red-500 text-xs mt-1 block">{errors.type}</span>}
             </div>
 
             <div className="col-span-6">
@@ -418,10 +423,11 @@ return (
                 type="text"
                 value={formData.meetingReference}
                 onChange={e => setFormData(f => ({ ...f, meetingReference: e.target.value }))}
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.meetingReference ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder="Enter meeting reference"
                 maxLength={100}
               />
+              {errors.meetingReference && <span className="text-red-500 text-xs mt-1 block">{errors.meetingReference}</span>}
             </div>
           </div>
 
@@ -437,12 +443,13 @@ return (
             <textarea
               value={formData.itemDescription}
               onChange={e => setFormData(f => ({ ...f, itemDescription: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.itemDescription ? 'border-red-500' : 'border-gray-300'}`}
               rows={4}
               placeholder="Enter detailed item description..."
               maxLength={500}
               required
             />
+            {errors.itemDescription && <span className="text-red-500 text-xs mt-1 block">{errors.itemDescription}</span>}
           </div>
 
           {/* Row 3: Raised By and Owner */}
@@ -467,12 +474,13 @@ return (
                 isSearchable
                 isClearable
                 placeholder="Select or type name"
-                formatCreateLabel={inputValue => `Add "${inputValue}"`}
+                formatCreateLabel={inputValue => `Add \"${inputValue}\"`}
                 styles={{
-                  control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem' }),
+                  control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.raisedBy ? 'red' : base.borderColor }),
                   menu: (base) => ({ ...base, zIndex: 9999 })
                 }}
               />
+              {errors.raisedBy && <span className="text-red-500 text-xs mt-1 block">{errors.raisedBy}</span>}
             </div>
 
             <div className="col-span-6">
@@ -495,12 +503,13 @@ return (
                 isSearchable
                 isClearable
                 placeholder="Select or type name"
-                formatCreateLabel={inputValue => `Add "${inputValue}"`}
+                formatCreateLabel={inputValue => `Add \"${inputValue}\"`}
                 styles={{
-                  control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem' }),
+                  control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.owner ? 'red' : base.borderColor }),
                   menu: (base) => ({ ...base, zIndex: 9999 })
                 }}
               />
+              {errors.owner && <span className="text-red-500 text-xs mt-1 block">{errors.owner}</span>}
             </div>
           </div>
 
@@ -518,7 +527,9 @@ return (
                 isClearable
                 placeholder="Select status"
                 className="text-sm"
+                styles={{ control: (base) => ({ ...base, borderColor: errors.status ? 'red' : base.borderColor }) }}
               />
+              {errors.status && <span className="text-red-500 text-xs mt-1 block">{errors.status}</span>}
             </div>
 
             <div className="col-span-6">

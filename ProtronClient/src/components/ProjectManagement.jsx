@@ -332,7 +332,7 @@ const handleDodUpdate = async () => {
     {
       headerName: 'Actions',
       cellRenderer: ActionsRenderer,
-      minWidth: 150,
+      minWidth: 300,
       suppressMenu: true,
       sortable: false,
       filter: false,

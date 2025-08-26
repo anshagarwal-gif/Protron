@@ -367,7 +367,6 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         setIsSubmitting(true);
         try {
             await onSubmit({ ...formData, projectCode }); // Ensure projectCode is sent
-            await onSubmit(formData);
             setErrors({})
         } catch (error) {
             console.error('Error creating project:', error);

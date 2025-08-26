@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import GlobalSnackbar from './GlobalSnackbar';
+import { Pencil, Trash2 } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -144,8 +145,12 @@ export default function SprintManagement({ projectId, open, onClose }) {
       width: 120,
       cellRenderer: (params) => (
         <div className="flex gap-1">
-          <button onClick={() => handleEditSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600">Edit</button>
-          <button onClick={() => handleDeleteSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600">Delete</button>
+          <button onClick={() => handleEditSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600" title="Edit">
+            <Pencil size={16} />
+          </button>
+          <button onClick={() => handleDeleteSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600" title="Delete">
+            <Trash2 size={16} />
+          </button>
         </div>
       ),
     }
@@ -411,12 +416,12 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                   name="sprintName"
                   value={formData.sprintName}
                   onChange={handleChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.sprintName ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Enter sprint name"
                   maxLength={100}
                   required
                 />
-                {errors.sprintName && <span className="text-red-500 text-xs">{errors.sprintName}</span>}
+                {errors.sprintName && <span className="text-red-500 text-xs mt-1 block">{errors.sprintName}</span>}
               </div>
               <div className="col-span-6">
                 <label className="block text-xs font-medium text-gray-700 mb-1">Project Name</label>
@@ -437,10 +442,10 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.startDate ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
-                {errors.startDate && <span className="text-red-500 text-xs">{errors.startDate}</span>}
+                {errors.startDate && <span className="text-red-500 text-xs mt-1 block">{errors.startDate}</span>}
               </div>
               <div className="col-span-6">
                 <label className="block text-xs font-medium text-gray-700 mb-1">End Date *</label>
@@ -449,10 +454,10 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.endDate ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
-                {errors.endDate && <span className="text-red-500 text-xs">{errors.endDate}</span>}
+                {errors.endDate && <span className="text-red-500 text-xs mt-1 block">{errors.endDate}</span>}
               </div>
             </div>
             <div>
@@ -461,11 +466,12 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
                 rows={3}
                 placeholder="Enter sprint description..."
                 maxLength={500}
               />
+              {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description}</span>}
             </div>
             {/* Attachments */}
             <div>
