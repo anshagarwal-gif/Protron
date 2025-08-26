@@ -577,7 +577,7 @@ const TimesheetManager = () => {
                     className="text-sm font-medium whitespace-nowrap cursor-pointer hover:underline"
                     title="Click to select week"
                   >
-                    {formatDate(weekStart)} - {formatDate(weekEnd)}
+                    {formatDate(weekStart)} to {formatDate(weekEnd)}
                   </span>
 
                   <button
