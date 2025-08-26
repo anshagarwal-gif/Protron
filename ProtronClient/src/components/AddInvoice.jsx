@@ -495,7 +495,7 @@ const AddInvoiceModal = ({
             if (orgData.orgZip) addressParts.push(orgData.orgZip);
 
             const finalAddress = addressParts.length > 0 ? addressParts.join(', ') : '';
-            
+
             // Build info string with GST/Tax details
             let infoParts = [];
             if (orgData.orgTaxName) infoParts.push(`GST/Tax Name: ${orgData.orgTaxName}`);
@@ -531,7 +531,7 @@ const AddInvoiceModal = ({
             if (orgData.orgZip) addressParts.push(orgData.orgZip);
 
             const finalAddress = addressParts.length > 0 ? addressParts.join(', ') : '';
-            
+
             // Build info string with GST/Tax details
             let infoParts = [];
             if (orgData.orgTaxName) infoParts.push(`GST/Tax Name: ${orgData.orgTaxName}`);
@@ -1304,22 +1304,33 @@ const AddInvoiceModal = ({
                                     From Date *
                                 </label>
                                 <div
-                                    onClick={() => fromDateInputRef.current?.showPicker?.()}
-                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${errors.fromDate ? 'border-red-500' : 'border-gray-300'
+                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 flex items-center ${errors.fromDate ? "border-red-500" : "border-gray-300"
                                         }`}
                                 >
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
+                                    <Calendar
+                                        onClick={() => fromDateInputRef.current?.showPicker?.()}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 cursor-pointer"
+                                        size={16}
+                                    />
                                     <input
                                         ref={fromDateInputRef}
                                         type="date"
                                         value={formData.fromDate}
-                                        onChange={handleChange('fromDate')}
-                                        className="w-full bg-transparent outline-none cursor-pointer"
-                                        onClick={handleDateInputClick('fromDate')}
-                                        max={formData.toDate ? formData.toDate : (() => {
-                                            // If toDate not selected, allow any date, or you can set a max if needed
-                                            return '';
-                                        })()}
+                                        onChange={(e) => {
+                                            let value = e.target.value;
+
+                                            // ✅ Ensure year part is at most 4 digits
+                                            if (value) {
+                                                const [year, month, day] = value.split("-");
+                                                if (year && year.length > 4) {
+                                                    value = `${year.slice(0, 4)}-${month || "01"}-${day || "01"}`;
+                                                }
+                                            }
+
+                                            handleChange("fromDate")({ target: { value } });
+                                        }}
+                                        className="w-full bg-transparent outline-none"
+                                        max={formData.toDate || ""}
                                     />
                                 </div>
                                 {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
@@ -1330,27 +1341,64 @@ const AddInvoiceModal = ({
                                     To Date *
                                 </label>
                                 <div
-                                    onClick={() => toDateInputRef.current?.showPicker?.()}
-                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${errors.toDate ? 'border-red-500' : 'border-gray-300'
+                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 flex items-center ${errors.toDate ? "border-red-500" : "border-gray-300"
                                         }`}
                                 >
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
+                                    <Calendar
+                                        onClick={() => toDateInputRef.current?.showPicker?.()}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 cursor-pointer"
+                                        size={16}
+                                    />
                                     <input
                                         ref={toDateInputRef}
                                         type="date"
                                         value={formData.toDate}
-                                        onChange={handleChange('toDate')}
-                                        className="w-full bg-transparent outline-none cursor-pointer"
+                                        onChange={(e) => {
+                                            let value = e.target.value;
+
+                                            // ✅ Ensure year part is at most 4 digits
+                                            if (value) {
+                                                const [year, month, day] = value.split("-");
+                                                if (year && year.length > 4) {
+                                                    value = `${year.slice(0, 4)}-${month || "01"}-${day || "01"}`;
+                                                }
+                                            }
+
+                                            handleChange("toDate")({ target: { value } });
+                                        }}
+                                        className="w-full bg-transparent outline-none"
                                         min={formData.fromDate}
-                                        max={formData.fromDate ? (() => {
-                                            const d = new Date(formData.fromDate);
-                                            d.setMonth(d.getMonth() + 2);
-                                            // If the day overflows, JS will auto-correct, so set to last day of next-next month if needed
-                                            return d.toISOString().split('T')[0];
-                                        })() : ''}
+                                        max={
+                                            formData.fromDate
+                                                ? (() => {
+                                                    const d = new Date(formData.fromDate);
+                                                    d.setMonth(d.getMonth() + 2);
+                                                    return d.toISOString().split("T")[0];
+                                                })()
+                                                : ""
+                                        }
                                     />
                                 </div>
-                                {errors.toDate && <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>}
+
+                                {/* Existing required error */}
+                                {errors.toDate && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>
+                                )}
+
+                                {/* ✅ New Date Range Validation Error */}
+                                {formData.fromDate &&
+                                    formData.toDate &&
+                                    (new Date(formData.toDate) < new Date(formData.fromDate) ||
+                                        new Date(formData.toDate) >
+                                        (() => {
+                                            const d = new Date(formData.fromDate);
+                                            d.setMonth(d.getMonth() + 2);
+                                            return d;
+                                        })()) && (
+                                        <p className="text-red-500 text-xs mt-1">
+                                            To Date must be between From Date and 2 months after it.
+                                        </p>
+                                    )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">

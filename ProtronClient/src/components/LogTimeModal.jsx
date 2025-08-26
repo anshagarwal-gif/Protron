@@ -724,7 +724,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       value={formData.projectId || ''}
                       onChange={handleInputChange("projectId")}
                       className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
-                  
+
                       required
                     >
                       <option value="">
@@ -857,17 +857,32 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       <input
                         type="number"
                         placeholder="MM"
-                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.minutes !== '' &&
-                          (parseInt(formData.minutes) < 0 || parseInt(formData.minutes) >= 60)
-                          ? 'border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 focus:ring-green-500'
+                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.minutes !== "" &&
+                            (parseInt(formData.minutes) < 0 || parseInt(formData.minutes) > 59)
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-300 focus:ring-green-500"
                           }`}
                         value={formData.minutes}
-                        onChange={handleInputChange('minutes')}
+                        onChange={(e) => {
+                          let value = e.target.value;
+
+                          // Allow empty (user clears input)
+                          if (value === "") {
+                            handleInputChange("minutes")({ target: { value: "" } });
+                            return;
+                          }
+
+                          const num = parseInt(value, 10);
+
+                          // Accept only numbers between 0–59
+                          if (num >= 0 && num <= 59) {
+                            handleInputChange("minutes")(e);
+                          }
+                        }}
                         onKeyDown={(e) => {
                           if (
                             !/[0-9]/.test(e.key) &&
-                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                            !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
                           ) {
                             e.preventDefault();
                           }
@@ -887,8 +902,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     Remaining Time:{' '}
                     {(() => {
 
-                      const hours = Math.floor( existingTime / 60);
-                      const minutes =  existingTime % 60;
+                      const hours = Math.floor(existingTime / 60);
+                      const minutes = existingTime % 60;
                       return `${hours}h ${minutes}m`;
                     })()}
                   </p>
@@ -928,7 +943,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                           max="24"
                           className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:ring-green-500 `}
                         />
-      
+
                       </div>
                     </div>
 
@@ -942,7 +957,21 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                         type="number"
                         placeholder="MM"
                         value={formData.remainingMinutes}
-                        onChange={handleInputChange('remainingMinutes')}
+                        onChange={(e) => {
+                          let value = e.target.value;
+
+                          // Prevent invalid input
+                          if (value === "") {
+                            handleInputChange("remainingMinutes")({ target: { value: "" } });
+                            return;
+                          }
+
+                          const num = parseInt(value, 10);
+
+                          if (num >= 0 && num <= 59) {
+                            handleInputChange("remainingMinutes")(e);
+                          }
+                        }}
                         onKeyDown={(e) => {
                           if (
                             !/[0-9]/.test(e.key) &&
@@ -953,8 +982,18 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                         }}
                         min="0"
                         max="59"
-                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-green-500`}
+                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.remainingMinutes !== "" &&
+                          (parseInt(formData.remainingMinutes) < 0 ||
+                            parseInt(formData.remainingMinutes) > 59)
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-green-500"
+                          }`}
                       />
+
+                      {formData.remainingMinutes !== '' &&
+                        (parseInt(formData.remainingMinutes) < 0 || parseInt(formData.remainingMinutes) >= 60) && (
+                          <p className="text-xs text-red-600 mt-1">0–59</p>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -1058,8 +1097,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                   onClick={handleReset}
                   disabled={isSubmitting}
                   className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${isSubmitting
-                      ? 'text-white cursor-not-allowed'
-                      : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'
+                    ? 'text-white cursor-not-allowed'
+                    : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'
                     }`}
                 >
                   Reset
@@ -1073,8 +1112,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     }}
                     disabled={isSubmitting}
                     className={`border rounded px-5 h-[42px] text-sm transition-colors ${isSubmitting
-                        ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                        : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`
+                      ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                      : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`
                       }`}
                   >
                     Cancel
@@ -1084,8 +1123,8 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                     className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${isSubmitting
-                        ? `bg-green-500 cursor-not-allowed`
-                        : `bg-green-500 hover:bg-green-600`
+                      ? `bg-green-500 cursor-not-allowed`
+                      : `bg-green-500 hover:bg-green-600`
                       }`}
                   >
                     {isSubmitting ? "Saving..." : editingTask ? "Update Task" : "Add Entry"}
