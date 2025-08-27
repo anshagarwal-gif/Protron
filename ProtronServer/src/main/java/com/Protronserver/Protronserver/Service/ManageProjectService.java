@@ -12,6 +12,7 @@ import com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import jakarta.persistence.EntityNotFoundException;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,15 @@ public class ManageProjectService {
 
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
+
+    @Autowired
+    private RidaRepository ridaRepository;
+
+    @Autowired
+    private ReleaseRepository releaseRepository;
+
+    @Autowired
+    private SprintRepository sprintRepository;
 
     public Project addProject(ProjectRequestDTO request) {
         Project project = new Project();
@@ -154,7 +164,7 @@ public class ManageProjectService {
     }
 
 
-
+    @Transactional
     public Project updateProject(Long id, ProjectUpdateDTO request) {
         Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
@@ -228,6 +238,10 @@ public class ManageProjectService {
         } else {
             manageSystemImpactedService.associateExistingSystemsWithNewProject(existingProject.getSystemImpacted(), updatedProject);
         }
+
+        ridaRepository.updateProjectForRidas(existingProject, updatedProject);
+        releaseRepository.updateProjectForReleases(existingProject.getProjectId(), updatedProject.getProjectId(), updatedProject.getProjectName());
+        sprintRepository.updateProjectForSprints(existingProject.getProjectId(), updatedProject.getProjectId());
 
 
         // Save new project
@@ -313,6 +327,10 @@ public class ManageProjectService {
 
         // Save the new project version
         projectRepository.save(updatedProject);
+
+        ridaRepository.updateProjectForRidas(existingProject, updatedProject);
+        releaseRepository.updateProjectForReleases(existingProject.getProjectId(), updatedProject.getProjectId(), updatedProject.getProjectName());
+        sprintRepository.updateProjectForSprints(existingProject.getProjectId(), updatedProject.getProjectId());
     }
 
     public String getDefineDone(Long id) {

@@ -237,7 +237,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     const fetchUsers = async () => {
         try {
             // Replace with your actual fetch implementation
-            const response = await fetch(`${ import.meta.env.VITE_API_URL } / api / tenants / ${ sessionStorage.getItem("tenantId") } / users`, {
+            const response = await fetch(`${ import.meta.env.VITE_API_URL }/api/tenants/${ sessionStorage.getItem("tenantId") }/users`, {
                 headers: { Authorization: `${ sessionStorage.getItem('token') }` }
             });
             const data = await response.json();
@@ -256,7 +256,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         try {
             setIsLoading(true);
             // Replace with your actual fetch implementation
-            const response = await fetch(`${ import.meta.env.VITE_API_URL } / api / projects / ${ projectId }`, {
+            const response = await fetch(`${ import.meta.env.VITE_API_URL }/api/projects/${ projectId }`, {
                 headers: { Authorization: `${ sessionStorage.getItem('token') }` }
             });
             const data = await response.json();
@@ -390,7 +390,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
         try {
             // Replace with your actual fetch implementation
-            const response = await fetch(`${ import.meta.env.VITE_API_URL } / api / projects / edit / ${ projectId }`, {
+            const response = await fetch(`${ import.meta.env.VITE_API_URL }/api/projects/edit/${ projectId }`, {
                 method: 'PUT',
                 headers: {
                     Authorization: `${ sessionStorage.getItem('token') }`,

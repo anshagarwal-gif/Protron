@@ -323,9 +323,9 @@ const TimesheetManager = () => {
     if (viewMode === "Weekly") {
       const endDate = new Date(currentWeekStart);
       endDate.setDate(currentWeekStart.getDate() + 6);
-      return `${formatDate(currentWeekStart)} - ${formatDate(endDate)}`;
+      return `${formatDate(currentWeekStart)} to ${formatDate(endDate)}`;
     } else {
-      return `${formatDate(currentMonthRange.start)} - ${formatDate(currentMonthRange.end)}`;
+      return `${formatDate(currentMonthRange.start)} to ${formatDate(currentMonthRange.end)}`;
     }
   };
 

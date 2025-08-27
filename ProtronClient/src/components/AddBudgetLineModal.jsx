@@ -849,7 +849,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                         </div>
 
                         {/* 2nd Line: Budget Line Item and Budget End Date */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget Line Item *
@@ -889,11 +889,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 </div>
                                 {errors.budgetEndDate && <p className="text-red-500 text-xs mt-1">{errors.budgetEndDate}</p>}
                             </div>
-                        </div>
-
-                        {/* 3rd Line: Budget Owner, Sponsor, LOB */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
+                            <div className="col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget Owner * (max 150 chars)
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
@@ -930,6 +926,11 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 {errors.budgetOwner && <p className="text-red-500 text-xs mt-1">{errors.budgetOwner}</p>}
                             </div>
 
+                        </div>
+
+                        {/* 3rd Line: Budget Owner, Sponsor, LOB */}
+                        <div className="grid grid-cols-2 gap-4">
+                            
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Sponsor (max 150 chars)
