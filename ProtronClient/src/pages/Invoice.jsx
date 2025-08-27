@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import AddInvoiceModal from "../components/AddInvoice";
+import { useAccess } from "../Context/AccessContext";
 
 
 const ViewInvoiceModal = ({ open, onClose, invoice }) => {
@@ -333,6 +334,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [downloadingInvoice, setDownloadingInvoice] = useState(null);
   const [downloadingAttachment, setDownloadingAttachment] = useState(null);
   const [deletingInvoice, setDeletingInvoice] = useState(null);
+  const { hasAccess } = useAccess();
 
   // Currency symbols mapping
   const currencySymbols = {
@@ -727,53 +729,32 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       sortable: false,
       filter: false,
       suppressMenu: true,
-      cellRenderer: params => {
-        const invoice = params.data;
-        const attachmentCount = invoice.attachmentCount || 0;
-
-        return (
-          <div className="flex justify-center gap-1 h-full items-center">
-            {/* View Button */}
+      cellRenderer: params => (
+        <div className="flex gap-2">
+          {/* Edit Button */}
+          {hasAccess('budget', 'edit') && (
             <button
-              onClick={() => handleViewInvoice(invoice)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-              title="View Invoice Details"
+              onClick={() => handleViewInvoice(params.data)}
+              className="p-1 rounded hover:bg-blue-100 text-blue-600"
+              title="Edit Invoice"
             >
-              <Eye size={14} className="text-blue-600" />
+              <Edit size={16} />
             </button>
-
-            {/* Download PDF Button */}
+          )}
+          {/* Delete Button */}
+          {hasAccess('budget', 'delete') && (
             <button
-              onClick={() => handleDownloadInvoicePDF(invoice.invoiceId, invoice.invoiceName)}
-              disabled={downloadingInvoice === invoice.invoiceId}
-              className="p-2 rounded-full hover:bg-green-100 transition-colors disabled:opacity-50"
-              title="Download PDF"
-            >
-              {downloadingInvoice === invoice.invoiceId ? (
-                <Loader2 size={14} className="text-green-600 animate-spin" />
-              ) : (
-                <Download size={14} className="text-green-600" />
-              )}
-            </button>
-
-            {/* Delete Button */}
-            <button
-              onClick={() => handleSoftDeleteInvoice(invoice.invoiceId, invoice.invoiceName)}
-              disabled={deletingInvoice === invoice.invoiceId}
-              className="p-2 rounded-full hover:bg-red-100 transition-colors disabled:opacity-50"
+              onClick={() => handleSoftDeleteInvoice(params.data.invoiceId, params.data.invoiceName)}
+              className="p-1 rounded hover:bg-red-100 text-red-600"
               title="Delete Invoice"
             >
-              {deletingInvoice === invoice.invoiceId ? (
-                <Loader2 size={14} className="text-red-600 animate-spin" />
-              ) : (
-                <Trash2 size={14} className="text-red-600" />
-              )}
+              <Trash2 size={16} />
             </button>
-          </div>
-        );
-      }
+          )}
+        </div>
+      )
     }
-  ], [downloadingInvoice, downloadingAttachment, deletingInvoice]);
+  ], [downloadingInvoice, downloadingAttachment, deletingInvoice, hasAccess]);
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({

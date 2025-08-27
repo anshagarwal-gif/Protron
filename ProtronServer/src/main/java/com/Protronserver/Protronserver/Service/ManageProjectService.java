@@ -276,6 +276,7 @@ public class ManageProjectService {
         return "PRJ-A" + String.format("%03d", nextId);
     }
 
+    @Transactional
     public void updateDefineDone(Long id, String dod) {
         Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));

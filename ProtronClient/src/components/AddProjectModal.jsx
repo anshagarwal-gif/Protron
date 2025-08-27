@@ -415,19 +415,21 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Enter a descriptive project name"
-                                        value={formData.projectName || ''}
-                                        onChange={(e) => handleChange('projectName', e.target.value)}
-                                        disabled={isSubmitting}
-                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title={formData.projectName || 'Enter Project Name'}
-                                    />
-                                    <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Project Name
+                                    <span className="float-right text-xs text-gray-500">{formData.projectName?.length || 0}/100 characters</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter a descriptive project name"
+                                    value={formData.projectName || ''}
+                                    onChange={(e) => handleChange('projectName', e.target.value)}
+                                    disabled={isSubmitting}
+                                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title={formData.projectName || 'Enter Project Name'}
+                                    maxLength={100}
+                                />
+                                <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
                             </div>
 
                             <div className="flex-none w-full">

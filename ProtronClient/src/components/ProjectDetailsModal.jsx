@@ -113,7 +113,11 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">
+      <div
+        className="text-sm text-gray-900 font-medium truncate"
+        title={value || "N/A"}
+        style={{ maxWidth: '100%' }}
+      >
         {value || "N/A"}
       </div>
     </div>
@@ -358,12 +362,12 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                       ) : ridaList.map((rida, idx) => (
                         <tr key={rida.id || idx}>
                           <td className="border px-2 py-1">{idx + 1}</td>
-                          <td className="border px-2 py-1">{rida.type}</td>
-                          <td className="border px-2 py-1">{rida.meetingReference}</td>
-                          <td className="border px-2 py-1">{rida.itemDescription}</td>
-                          <td className="border px-2 py-1">{rida.raisedBy}</td>
-                          <td className="border px-2 py-1">{rida.owner}</td>
-                          <td className="border px-2 py-1">{rida.status}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.type}>{rida.type}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.meetingReference}>{rida.meetingReference}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.itemDescription}>{rida.itemDescription}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.raisedBy}>{rida.raisedBy}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.owner}>{rida.owner}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.status}>{rida.status}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -391,10 +395,10 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                       ) : releaseList.map((rel, idx) => (
                         <tr key={rel.releaseId || idx}>
                           <td className="border px-2 py-1">{idx + 1}</td>
-                          <td className="border px-2 py-1">{rel.releaseName}</td>
-                          <td className="border px-2 py-1">{rel.startDate ? new Date(rel.startDate).toLocaleDateString() : ''}</td>
-                          <td className="border px-2 py-1">{rel.endDate ? new Date(rel.endDate).toLocaleDateString() : ''}</td>
-                          <td className="border px-2 py-1">{rel.description}</td>
+                          <td className="border px-2 py-1 truncate" title={rel.releaseName}>{rel.releaseName}</td>
+                          <td className="border px-2 py-1 truncate" title={rel.startDate ? new Date(rel.startDate).toLocaleDateString() : ''}>{rel.startDate ? new Date(rel.startDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={rel.endDate ? new Date(rel.endDate).toLocaleDateString() : ''}>{rel.endDate ? new Date(rel.endDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={rel.description}>{rel.description}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -422,10 +426,10 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                       ) : sprintList.map((sprint, idx) => (
                         <tr key={sprint.sprintId || idx}>
                           <td className="border px-2 py-1">{idx + 1}</td>
-                          <td className="border px-2 py-1">{sprint.sprintName}</td>
-                          <td className="border px-2 py-1">{sprint.startDate ? new Date(sprint.startDate).toLocaleDateString() : ''}</td>
-                          <td className="border px-2 py-1">{sprint.endDate ? new Date(sprint.endDate).toLocaleDateString() : ''}</td>
-                          <td className="border px-2 py-1">{sprint.description}</td>
+                          <td className="border px-2 py-1 truncate" title={sprint.sprintName}>{sprint.sprintName}</td>
+                          <td className="border px-2 py-1 truncate" title={sprint.startDate ? new Date(sprint.startDate).toLocaleDateString() : ''}>{sprint.startDate ? new Date(sprint.startDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={sprint.endDate ? new Date(sprint.endDate).toLocaleDateString() : ''}>{sprint.endDate ? new Date(sprint.endDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={sprint.description}>{sprint.description}</td>
                         </tr>
                       ))}
                     </tbody>
