@@ -810,15 +810,17 @@ const AddInvoiceModal = ({
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
                 remarks: formData.remarks || "",
                 // Include timesheet data if checkbox is checked
-                timesheetData: timesheetData ? prepareTimesheetData() : null
+                timesheetData: attachTimesheet ? prepareTimesheetData() : null
             };
             const response = await axios.post(
                 `${API_BASE_URL}/api/invoices/preview`,
                 invoiceData,
                 {
                     headers: {
-                        Authorization: sessionStorage.getItem("token")
-                    }
+                        Authorization: sessionStorage.getItem("token"),
+                        "Content-Type": "application/json"
+                    },
+                    responseType: 'blob'
                 }
             )
             const blob = new Blob([response.data], { type: 'application/pdf' });
