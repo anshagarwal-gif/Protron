@@ -448,18 +448,19 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                         {/* Row 1: Project Name and Project Icon */}
                                         <div className="grid grid-cols-4 gap-6">
                                             <div className="flex-1">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        placeholder="Enter a descriptive project name"
-                                                        value={localFormData.projectName || ''}
-                                                        onChange={(e) => handleChange('projectName', e.target.value)}
-                                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
-                                                        title={localFormData.projectName}
-                                                    />
-                                                    <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
-                                                </div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Project Name
+                                                    <span className="float-right text-xs text-gray-500">{localFormData.projectName?.length || 0}/100 characters</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={localFormData.projectName}
+                                                    onChange={e => handleChange('projectName', e.target.value.slice(0, 100))}
+                                                    maxLength={100}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                                    placeholder="Enter project name"
+                                                    required
+                                                />
                                             </div>
 
                                             <div className="flex-1">

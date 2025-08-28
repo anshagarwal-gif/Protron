@@ -431,7 +431,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -439,12 +439,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         value={formData.projectName || ''}
                                         onChange={(e) => handleChange('projectName', e.target.value)}
                                         disabled={isSubmitting}
-                                        className={`w-full h-10 px-3 py-2 pl-10 border rounded-md focus:ring-2 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.projectName ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-green-500 focus:border-green-500'}`}
+                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                         title={formData.projectName || 'Enter Project Name'}
                                     />
                                     <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
                                 </div>
-                                {errors.projectName && <div className="text-xs text-red-600 mt-1">{errors.projectName}</div>}
                             </div>
 
                             <div className="flex-none w-full">

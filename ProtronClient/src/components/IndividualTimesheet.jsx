@@ -295,9 +295,13 @@ const IndividualTimesheet = () => {
   const fetchTasks = async () => {
     const dates = getVisibleDates();
     if (!dates.length || !employee?.rawData?.userId) return;
-
-    const start = dates[0].toISOString().split("T")[0];
-    const end = dates[dates.length - 1].toISOString().split("T")[0];
+    const formatLocalDate = (date) => {
+      return date.getFullYear() + '-' +
+        String(date.getMonth() + 1).padStart(2, '0') + '-' +
+        String(date.getDate()).padStart(2, '0');
+    };
+    const start = formatLocalDate(dates[0]);
+    const end = formatLocalDate(dates[dates.length - 1]);
     const userId = employee.rawData.userId;
 
     try {

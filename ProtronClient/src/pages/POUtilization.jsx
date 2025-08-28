@@ -687,6 +687,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     return colors[type] || 'bg-gray-100 text-gray-800';
   };
 
+  // AG Grid column definitions
 const columnDefs = useMemo(() => [
   {
     headerName: "#",
@@ -735,7 +736,6 @@ const columnDefs = useMemo(() => [
     valueGetter: params => params.data.milestone?.msName || 'N/A',
     width: 120,
     minWidth: 120,
-    sortable: true,
     filter: true,
     cellRenderer: params => {
       const msName = params.value;
@@ -906,33 +906,40 @@ const columnDefs = useMemo(() => [
     cellRenderer: params => {
       const consumption = params.data;
       return (
-        <div className="flex justify-center gap-1 h-full items-center">
+        <div className="flex gap-2">
+          {/* View Button */}
           <button
             onClick={() => handleViewConsumption(consumption)}
-            className="p-1.5 rounded-full hover:bg-green-100 transition-colors"
+            className="p-1 rounded hover:bg-green-100 text-green-600"
             title="View Details"
           >
-            <Eye size={14} className="text-green-600" />
+            <Eye size={16} />
           </button>
-          <button
-            onClick={() => handleEditConsumption(consumption)}
-            className="p-1.5 rounded-full hover:bg-blue-100 transition-colors"
-            title="Edit PO Consumption"
-          >
-            <Edit size={14} className="text-blue-600" />
-          </button>
-          {/* <button
-            onClick={() => handleDeleteConsumption(consumption.utilizationId)}
-            className="p-1.5 rounded-full hover:bg-red-100 transition-colors"
-            title="Delete PO Consumption"
-          >
-            <Trash2 size={14} className="text-red-600" />
-          </button> */}
+          {/* Edit Button */}
+          {hasAccess('budget', 'edit') && (
+            <button
+              onClick={() => handleEditConsumption(consumption)}
+              className="p-1 rounded hover:bg-blue-100 text-blue-600"
+              title="Edit Consumption"
+            >
+              <Edit size={16} />
+            </button>
+          )}
+          {/* Delete Button */}
+          {hasAccess('budget', 'delete') && (
+            <button
+              onClick={() => handleDeleteConsumption(consumption.utilizationId)}
+              className="p-1 rounded hover:bg-red-100 text-red-600"
+              title="Delete Consumption"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
         </div>
       );
     }
   }
-], []);
+], [hasAccess]);
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -1302,28 +1309,25 @@ const columnDefs = useMemo(() => [
       />
 
       {/* Add PO Consumption Modal */}
-      <AddPOConsumptionModal 
-        open={isAddModalOpen}
-        onClose={() => {
-          fetchConsumptionData();
-          setIsAddModalOpen(false);
-        }}
-        onSubmit={(data) => {
-          showSnackbar("PO Consumption added successfully!", "success");
-          fetchConsumptionData();
-        }}
-      />
+      {hasAccess('budget', 'edit') && (
+        <AddPOConsumptionModal 
+          open={isAddModalOpen}
+          onClose={() =>{ fetchConsumptionData() ;setIsAddModalOpen(false)}}
+        />
+      )}
 
       {/* Edit PO Consumption Modal */}
-      <EditPOConsumptionModal 
-        open={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedConsumptionId(null);
-        }}
-        onSubmit={handleEditModalSubmit}
-        consumptionId={selectedConsumptionId}
-      />
+      {hasAccess('budget', 'edit') && (
+        <EditPOConsumptionModal 
+          open={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedConsumptionId(null);
+          }}
+          onSubmit={handleEditModalSubmit}
+          utilizationId={selectedConsumptionId}
+        />
+      )}
 
       {/* Global Snackbar */}
       <GlobalSnackbar

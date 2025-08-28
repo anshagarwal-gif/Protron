@@ -195,7 +195,7 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
     // { key: "team", label: "Team", path: "/team", moduleName: "teams", icon: FiUserCheck },
     { key: "timesheet", label: "Timesheet", path: "/timesheet", moduleName: "timesheet", icon: FiClock },
     { key: "users", label: "Users", path: "/users", moduleName: "users", icon: FiUser },
-    { key: "po", label: "Budget", path: "/po", moduleName: "users", icon: FiFileText },
+    { key: "po", label: "Budget", path: "/po", moduleName: "budget", icon: FiFileText },
   ];
 
   const currentPath = window.location.pathname;
