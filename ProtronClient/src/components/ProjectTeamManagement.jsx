@@ -408,7 +408,15 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       {projectDetails && (
         <div className="grid grid-cols-3 gap-6 mb-8 bg-[#aee4be] p-4 rounded-lg">
           <div>
-            <p className="text-gray-500 text-sm">Project Name: <span className="font-medium text-gray-700">{projectDetails.project.projectName}</span></p>
+            <p className="text-gray-500 text-sm" title={projectDetails.project.projectName}>
+              Project Name:{" "}
+              <span className="font-medium text-gray-700">
+                {projectDetails.project.projectName.length > 45
+                  ? projectDetails.project.projectName.slice(0, 45) + "..."
+                  : projectDetails.project.projectName}
+              </span>
+            </p>
+
             <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{formatDate(projectDetails.project.startDate)}</span></p>
           </div>
           <div>

@@ -892,16 +892,7 @@ const { hasAccess } = useAccess(); // Access context
                 <Pencil size={14} className="text-yellow-600" />
               </button>
             )}
-            {/* Delete Button (delete access) */}
-            {hasAccess && hasAccess('budget', 'delete') && (
-              <button
-                onClick={() => {/* implement delete logic here */}}
-                className="p-2 rounded-full hover:bg-red-100 transition-colors"
-                title="Delete Budget Line"
-              >
-                <X size={14} className="text-red-600" />
-              </button>
-            )}
+            
             {/* Budget Allocation Button (edit access) */}
             {hasAccess && hasAccess('budget', 'edit') && (
               <button

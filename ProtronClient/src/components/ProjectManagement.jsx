@@ -37,9 +37,9 @@ const ProjectManagement = () => {
   const [isLoading, setIsLoading] = useState(false)
 
   const [dodModalOpen, setDodModalOpen] = useState(false);
-const [dodProject, setDodProject] = useState(null);
-const [dodValue, setDodValue] = useState('');
-const [dodLoading, setDodLoading] = useState(false);
+  const [dodProject, setDodProject] = useState(null);
+  const [dodValue, setDodValue] = useState('');
+  const [dodLoading, setDodLoading] = useState(false);
 
   // Pagination state for mobile view
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,11 +108,11 @@ const [dodLoading, setDodLoading] = useState(false);
   setDodLoading(false);
 };
 
-const handleCloseDodModal = () => {
-  setDodModalOpen(false);
-  setDodProject(null);
-  setDodValue('');
-};
+  const handleCloseDodModal = () => {
+    setDodModalOpen(false);
+    setDodProject(null);
+    setDodValue('');
+  };
 
 const handleDodUpdate = async () => {
   if (!dodProject) return;
@@ -504,13 +504,13 @@ const handleDodUpdate = async () => {
         })),
         systemImpacted: data.systemImpacted,
         productOwner: data.productOwner,
-    scrumMaster: data.scrumMaster,
-    architect: data.architect,
-    chiefScrumMaster: data.chiefScrumMaster,
-    deliveryLeader: data.deliveryLeader,
-    businessUnitFundedBy: data.businessUnitFundedBy,
-    businessUnitDeliveredTo: data.businessUnitDeliveredTo,
-    priority: data.priority
+        scrumMaster: data.scrumMaster,
+        architect: data.architect,
+        chiefScrumMaster: data.chiefScrumMaster,
+        deliveryLeader: data.deliveryLeader,
+        businessUnitFundedBy: data.businessUnitFundedBy,
+        businessUnitDeliveredTo: data.businessUnitDeliveredTo,
+        priority: data.priority
       };
       console.log(payload);
       const response = await axios.post(`${API_BASE_URL}/api/projects/add`, payload, {
@@ -1294,42 +1294,46 @@ const handleDodUpdate = async () => {
               </>
             )}
           </div>
-{dodModalOpen && dodProject && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-    <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
-      <h2 className="text-xl font-bold mb-2 text-green-800">{dodProject.projectName}</h2>
-      <label className="block mb-2 font-medium text-gray-700">Define of Done</label>
-      <textarea
-        className="w-full border rounded p-2 mb-2"
-        rows={15}
-        maxLength={500}
-        value={dodValue}
-        onChange={e => setDodValue(e.target.value)}
-        disabled={dodLoading}
-        placeholder="Type Define of Done (max 500 chars)..."
-      />
-      <div className="text-right text-sm text-gray-500 mb-4">
-        {dodValue.length}/500
-      </div>
-      <div className="flex justify-end gap-2">
-        <button
-          className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-          onClick={handleCloseDodModal}
-          disabled={dodLoading}
-        >
-          Cancel
-        </button>
-        <button
-          className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800"
-          onClick={handleDodUpdate}
-          disabled={dodLoading || dodValue.length > 500}
-        >
-          {dodLoading ? 'Saving...' : 'Save'}
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          {dodModalOpen && dodProject && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
+                <h2 className="text-xl font-bold mb-2 text-green-800 truncate w-full" title={dodProject.projectName}>
+                  {dodProject.projectName}
+                </h2>
+
+
+                <label className="block mb-2 font-medium text-gray-700">Define of Done</label>
+                <textarea
+                  className="w-full border rounded p-2 mb-2"
+                  rows={15}
+                  maxLength={500}
+                  value={dodValue}
+                  onChange={e => setDodValue(e.target.value)}
+                  disabled={dodLoading}
+                  placeholder="Type Define of Done (max 500 chars)..."
+                />
+                <div className="text-right text-sm text-gray-500 mb-4">
+                  {dodValue.length}/500
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                    onClick={handleCloseDodModal}
+                    disabled={dodLoading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800"
+                    onClick={handleDodUpdate}
+                    disabled={dodLoading || dodValue.length > 500}
+                  >
+                    {dodLoading ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <AddProjectModal
             open={showAddModal}
