@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Plus, Trash2, Edit, FileText, Eye } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Plus, Trash2, Edit, FileText, Eye, Download } from 'lucide-react';
 import AddMilestoneModal from './AddMilestoneModal';
 import GlobalSnackbar from './GlobalSnackbar';
 import { AgGridReact } from 'ag-grid-react';
@@ -7,14 +7,7 @@ import axios from 'axios';
 import EditMilestoneModal from './EditMilestoneModal';
 import ViewMilestoneModal from './ViewMilestoneModal';
 
-// Currency symbols mapping
-const currencySymbols = {
-    USD: '$',
-    INR: '₹',
-    EUR: '€',
-    GBP: '£',
-    JPY: '¥'
-};
+//
 
 const MilestoneManagement = ({ poId, open, onClose }) => {
     const [milestones, setMilestones] = useState([]);
@@ -34,6 +27,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         if (open && poId) {
             fetchMilestones();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, poId]);
 
     const fetchMilestones = async () => {
@@ -48,6 +42,37 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
             setMilestones(response.data || []);
         } catch (error) {
             console.error('Error fetching milestones:', error);
+        }
+    };
+
+    const downloadMilestoneExcel = () => {
+        try {
+            const headers = ['#','Milestone Name','Milestone Description','Currency','Amount','Date','Duration (Days)','Remark'];
+            const rows = (milestones || []).map((m, idx) => ([
+                idx + 1,
+                m.msName || m.milestoneName || '',
+                m.msDesc || m.milestoneDescription || '',
+                m.msCurrency || m.milestoneCurrency || '',
+                m.msAmount || m.milestoneAmount || '',
+                m.msDate || m.startDate ? new Date(m.msDate || m.startDate).toLocaleDateString() : '',
+                m.msDuration || m.duration || '',
+                m.msRemarks || m.remark || ''
+            ]));
+            const csv = [headers.join(','), ...rows.map(r => r.map(v => {
+                const s = String(v ?? '');
+                return s.includes(',') || s.includes('\n') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s;
+            }).join(','))].join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', `milestone_list_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            setSnackbar({ open: true, message: 'Failed to download Excel', severity: 'error' });
         }
     };
 
@@ -120,7 +145,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
             }
             setMilestones(milestones.filter((_, i) => i !== index));
             setSnackbar({ open: true, message: 'Milestone deleted!', severity: 'success' });
-        } catch (error) {
+        } catch (err) {
             alert('Network error. Please try again.');
         }
     };
@@ -256,13 +281,22 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                     <div className="p-6 overflow-y-auto flex-grow">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-semibold text-green-900">Milestones Details</h3>
-                            <button
-                                onClick={handleAddMilestone}
-                                className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors"
-                            >
-                                <Plus size={16} className="mr-2" />
-                                Add Milestone
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={downloadMilestoneExcel}
+                                    className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 transition-colors"
+                                >
+                                    <Download size={16} className="mr-2" />
+                                    Download Excel
+                                </button>
+                                <button
+                                    onClick={handleAddMilestone}
+                                    className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors"
+                                >
+                                    <Plus size={16} className="mr-2" />
+                                    Add Milestone
+                                </button>
+                            </div>
                         </div>
                         <div className="h-96 w-full border border-gray-200 rounded-md">
                             <div className="ag-theme-alpine h-full w-full">
