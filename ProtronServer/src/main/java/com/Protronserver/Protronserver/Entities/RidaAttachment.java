@@ -16,7 +16,6 @@ public class RidaAttachment {
     private String contentType;
 
     @Lob
-    @Column(columnDefinition = "BLOB")
     private byte[] data;
 
     @Column(name = "uploaded_at", nullable = false)

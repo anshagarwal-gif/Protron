@@ -267,6 +267,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
             open={viewModalOpen}
             onClose={() => setViewModalOpen(false)}
             sprintData={viewingSprint}
+            projectName={projectName}
           />
         </div>
       </div>

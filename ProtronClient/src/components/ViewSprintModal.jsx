@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { X, FileText } from 'lucide-react';
 
-const ViewSprintModal = ({ open, onClose, sprintData }) => {
+const ViewSprintModal = ({ open, onClose, sprintData, projectName }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -69,7 +69,7 @@ const ViewSprintModal = ({ open, onClose, sprintData }) => {
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Sprint Name" value={sprintData.sprintName} />
-              <Field label="Project Name" value={sprintData.projectName} />
+              <Field label="Project Name" value={projectName} />
               <Field label="Start Date" value={formatDate(sprintData.startDate)} />
               <Field label="End Date" value={formatDate(sprintData.endDate)} />
               <Field label="Created On" value={formatDate(sprintData.createdOn)} />
