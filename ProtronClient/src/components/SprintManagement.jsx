@@ -501,6 +501,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleChange}
+                  onFocus={e => e.target.showPicker && e.target.showPicker()}
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.startDate ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />
@@ -513,6 +514,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleChange}
+                  onFocus={e => e.target.showPicker && e.target.showPicker()}
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.endDate ? 'border-red-500' : 'border-gray-300'}`}
                   required
                 />

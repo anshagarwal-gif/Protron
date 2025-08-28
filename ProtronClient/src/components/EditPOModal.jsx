@@ -794,6 +794,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             className="w-full h-full bg-transparent outline-none cursor-pointer pl-10 truncate"
                                             title={formData.poStartDate || "Select Start Date"}
                                             required
+                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
                                         />
                                     </div>
                                 </div>
@@ -811,6 +812,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             className="w-full h-full bg-transparent outline-none cursor-pointer pl-10 truncate"
                                             title={formData.poEndDate || "Select End Date"}
                                             required
+                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
                                         />
                                     </div>
                                 </div>

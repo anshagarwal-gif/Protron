@@ -707,6 +707,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   <input
                     type="date"
                     name="srnDate"
+                    onFocus={e => e.target.showPicker && e.target.showPicker()}
                     value={formData.srnDate}
                     onChange={handleInputChange}
                     className="w-full bg-transparent outline-none cursor-pointer appearance-none"
