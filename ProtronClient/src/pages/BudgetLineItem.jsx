@@ -21,7 +21,7 @@ import {
 import axios from "axios";
 import AddBudgetLineModal from "../components/AddBudgetLineModal";
 import BudgetAllocationModal from "../components/BudgetAllocationModal";
-
+import { useAccess } from "../Context/AccessContext";
 
 // Component to display budget documents
 const DocumentsDisplay = ({ budgetLine }) => {
@@ -599,7 +599,7 @@ const BudgetLineManagement = forwardRef(({ searchQuery }, ref) => {
   const [selectedBudgetLine, setSelectedBudgetLine] = useState(null);
 
   const gridRef = useRef();
-
+const { hasAccess } = useAccess(); // Access context
 
 
 
@@ -876,10 +876,9 @@ const BudgetLineManagement = forwardRef(({ searchQuery }, ref) => {
       suppressMenu: true,
       cellRenderer: params => {
         const budgetLine = params.data;
-        
         return (
           <div className="flex justify-center gap-1 h-full items-center">
-            {/* View Button */}
+            {/* View Button (always visible) */}
             <button
               onClick={() => handleViewBudgetLine(budgetLine)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
@@ -887,28 +886,36 @@ const BudgetLineManagement = forwardRef(({ searchQuery }, ref) => {
             >
               <Eye size={14} className="text-green-600" />
             </button>
-            
-                         {/* Edit Button */}
-             <button
-               onClick={() => handleEditBudgetLine(budgetLine)}
-               className="p-2 rounded-full hover:bg-yellow-100 transition-colors"
-               title="Edit Budget Line"
-             >
-               <Pencil size={14} className="text-yellow-600" />
-             </button>
-             
-             {/* Budget Allocation Button */}
-             <button
-               onClick={() => handleOpenBudgetAllocation(budgetLine)}
-               className="p-2 rounded-full hover:bg-green-100 transition-colors"
-               title="Manage Budget Allocations"
-             >
-               <Plus size={14} className="text-green-600" />
-             </button>
-
-
-
-
+            {/* Edit Button (edit access) */}
+            {hasAccess && hasAccess('budget', 'edit') && (
+              <button
+                onClick={() => handleEditBudgetLine(budgetLine)}
+                className="p-2 rounded-full hover:bg-yellow-100 transition-colors"
+                title="Edit Budget Line"
+              >
+                <Pencil size={14} className="text-yellow-600" />
+              </button>
+            )}
+            {/* Delete Button (delete access) */}
+            {hasAccess && hasAccess('budget', 'delete') && (
+              <button
+                onClick={() => {/* implement delete logic here */}}
+                className="p-2 rounded-full hover:bg-red-100 transition-colors"
+                title="Delete Budget Line"
+              >
+                <X size={14} className="text-red-600" />
+              </button>
+            )}
+            {/* Budget Allocation Button (edit access) */}
+            {hasAccess && hasAccess('budget', 'edit') && (
+              <button
+                onClick={() => handleOpenBudgetAllocation(budgetLine)}
+                className="p-2 rounded-full hover:bg-green-100 transition-colors"
+                title="Manage Budget Allocations"
+              >
+                <Plus size={14} className="text-green-600" />
+              </button>
+            )}
           </div>
         );
       }
@@ -1085,23 +1092,28 @@ const BudgetLineManagement = forwardRef(({ searchQuery }, ref) => {
       />
 
              {/* Add Budget Line Modal */}
-       <AddBudgetLineModal
-         open={isAddModalOpen}
-         onClose={() => setIsAddModalOpen(false)}
-         onSubmit={handleModalSubmit}
-       />
+      {/* Add Budget Line Modal (edit access) */}
+      {hasAccess && hasAccess('budget', 'edit') && (
+        <AddBudgetLineModal
+          open={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleModalSubmit}
+        />
+      )}
 
-       {/* Edit Budget Line Modal */}
-       <AddBudgetLineModal
-         open={isEditModalOpen}
-         onClose={() => {
-           setIsEditModalOpen(false);
-           setSelectedBudgetLine(null);
-         }}
-         onSubmit={handleModalSubmit}
-         budgetLine={selectedBudgetLine}
-         isEdit={true}
-       />
+      {/* Edit Budget Line Modal (edit access) */}
+      {hasAccess && hasAccess('budget', 'edit') && (
+        <AddBudgetLineModal
+          open={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedBudgetLine(null);
+          }}
+          onSubmit={handleModalSubmit}
+          budgetLine={selectedBudgetLine}
+          isEdit={true}
+        />
+      )}
 
       {/* Budget Allocation Modal */}
       <BudgetAllocationModal

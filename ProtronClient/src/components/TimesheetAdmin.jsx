@@ -72,6 +72,8 @@ const TimesheetManager = () => {
     end.setDate(start.getDate() + 6);
     end.setHours(23, 59, 59, 999);
 
+    console.log(start,end)
+
     return { start, end };
   };
 
@@ -79,23 +81,21 @@ const TimesheetManager = () => {
 
   // Format date for display
   const formatDate = (date) => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = `${d.getMonth() + 1}`.padStart(2, '0');
-    const day = `${d.getDate()}`.padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const month = monthNames[d.getMonth()];
+  const day = `${d.getDate()}`.padStart(2, '0');
+  return `${day}-${month}-${year}`;
   };
 
 
 
   const getWeekdays = () => {
     const days = [];
-    const current = new Date(weekStart);
-    const totalDays = 7
-
+    const totalDays = 7;
     for (let i = 0; i < totalDays; i++) {
-      days.push(new Date(current));
-      current.setDate(current.getDate() + 1);
+      days.push(new Date(weekStart.getTime() + i * 24 * 60 * 60 * 1000));
     }
     return days;
   };
@@ -213,14 +213,13 @@ const TimesheetManager = () => {
 
     const dayColumns = weekdays.map((day, index) => ({
       headerName: day.toLocaleDateString('en-GB', {
-        timeZone: 'UTC',
         day: '2-digit',
         month: 'short',
         year: '2-digit'
       }),
       field: `day${index}`,
       cellRenderer: DayCellRenderer,
-      valueGetter: (params) => params.data.dailyHours?.[index],
+      valueGetter: (params) => {console.log(params.data.dailyHours, index); return params.data.dailyHours?.[index]; },
       sortable: false,
       filter: false,
       resizable: true,
@@ -345,8 +344,14 @@ const TimesheetManager = () => {
     setLoading(true);
     try {
       const loggedInUserEmail = sessionData.email;
-      const startParam = weekStart.toISOString().split('T')[0];
-      const endParam = weekEnd.toISOString().split('T')[0];
+      const formatLocalDate = (date) => {
+        return date.getFullYear() + '-' +
+          String(date.getMonth() + 1).padStart(2, '0') + '-' +
+          String(date.getDate()).padStart(2, '0');
+      };
+      const startParam = formatLocalDate(weekStart);
+      const endParam = formatLocalDate(weekEnd);
+      console.log(startParam, endParam)
 
       const response = await fetch(`${API_BASE_URL}/api/timesheet-tasks/admin/summary?start=${startParam}&end=${endParam}`, {
         headers: {
@@ -366,7 +371,11 @@ const TimesheetManager = () => {
         const currentWeekdays = getWeekdays();
 
         const dailyHours = currentWeekdays.map((day) => {
-          const dayKey = day.toISOString().split('T')[0];
+          // Use local date formatting for dayKey to match backend keys
+          const year = day.getFullYear();
+          const month = String(day.getMonth() + 1).padStart(2, '0');
+          const date = String(day.getDate()).padStart(2, '0');
+          const dayKey = `${year}-${month}-${date}`;
           const hoursWorked = user.dailyHours?.[dayKey]?.hours || 0;
           const minutesWorked = user.dailyHours?.[dayKey]?.minutes || 0;
 

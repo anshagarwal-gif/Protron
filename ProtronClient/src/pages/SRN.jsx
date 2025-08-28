@@ -527,26 +527,30 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             <button
-          onClick={() => handleViewSRNDetails(srn)}
-          className="p-2 rounded-full hover:bg-green-100 transition-colors"
-          title="View SRN Details"
-        >
-          <Eye size={16} className="text-green-600" />
-        </button>
-            <button
-              onClick={() => handleEditSRN(srn)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-              title="Edit SRN"
+              onClick={() => handleViewSRNDetails(srn)}
+              className="p-2 rounded-full hover:bg-green-100 transition-colors"
+              title="View SRN Details"
             >
-              <Edit size={16} className="text-blue-600" />
+              <Eye size={16} className="text-green-600" />
             </button>
-            {/* <button
-              onClick={() => handleDeleteSRN(srn.srnId)}
-              className="p-2 rounded-full hover:bg-red-100 transition-colors"
-              title="Delete SRN"
-            >
-              <Trash2 size={16} className="text-red-600" />
-            </button> */}
+            {hasAccess('budget', 'edit') && (
+              <button
+                onClick={() => handleEditSRN(srn)}
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                title="Edit SRN"
+              >
+                <Edit size={16} className="text-blue-600" />
+              </button>
+            )}
+            {hasAccess('budget', 'delete') && (
+              <button
+                onClick={() => handleDeleteSRN(srn.srnId)}
+                className="p-2 rounded-full hover:bg-red-100 transition-colors"
+                title="Delete SRN"
+              >
+                <Trash2 size={16} className="text-red-600" />
+              </button>
+            )}
           </div>
         );
       }
@@ -898,22 +902,25 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
       </div>
 
       {/* Add SRN Modal */}
-      <AddSRNModal 
-        open={isAddModalOpen}
-        onClose={() =>{ fetchSRNData() ;setIsAddModalOpen(false)}}
-      />
+      {hasAccess('budget', 'edit') && (
+        <AddSRNModal 
+          open={isAddModalOpen}
+          onClose={() =>{ fetchSRNData() ;setIsAddModalOpen(false)}}
+        />
+      )}
 
       {/* Edit SRN Modal - Uncomment when modal components are available */}
-      
-      <EditSRNModal 
-        open={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedSRNId(null);
-        }}
-        onSubmit={handleEditModalSubmit}
-        srnId={selectedSRNId}
-      />
+      {hasAccess('budget', 'edit') && (
+        <EditSRNModal 
+          open={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedSRNId(null);
+          }}
+          onSubmit={handleEditModalSubmit}
+          srnId={selectedSRNId}
+        />
+      )}
      
 
       {/* Global Snackbar */}

@@ -473,13 +473,17 @@ const POManagement = () => {
         const po = params.data;
         return (
           <div className="flex justify-center gap-2 h-full items-center">
-            <button
-              onClick={() => handleOpenMilestoneModal(po)}
-              className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
-              title="Add milestones"
-            >
-              <Plus size={16} className="text-green-600" />
-            </button>
+            {/* Add Milestone Button (edit access) */}
+            {hasAccess && hasAccess('budget', 'edit') && (
+              <button
+                onClick={() => handleOpenMilestoneModal(po)}
+                className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
+                title="Add milestones"
+              >
+                <Plus size={16} className="text-green-600" />
+              </button>
+            )}
+            {/* View Button (always visible) */}
             <button
               onClick={() => handleViewPO(po)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors"
@@ -487,13 +491,26 @@ const POManagement = () => {
             >
               <Eye size={16} className="text-blue-600" />
             </button>
-            <button
-              onClick={() => handleEditPO(po)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
-              title="Edit PO"
-            >
-              <Edit size={16} className="text-blue-600" />
-            </button>
+            {/* Edit Button (edit access) */}
+            {hasAccess && hasAccess('budget', 'edit') && (
+              <button
+                onClick={() => handleEditPO(po)}
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                title="Edit PO"
+              >
+                <Edit size={16} className="text-blue-600" />
+              </button>
+            )}
+            {/* Delete Button (delete access) */}
+            {hasAccess && hasAccess('budget', 'delete') && (
+              <button
+                onClick={() => {/* implement delete logic here */}}
+                className="p-2 rounded-full hover:bg-red-100 transition-colors"
+                title="Delete PO"
+              >
+                <FileText size={16} className="text-red-600" />
+              </button>
+            )}
           </div>
         );
       }
@@ -670,23 +687,26 @@ const POManagement = () => {
           </button>
 
           {/* Add Button */}
-          <button
-            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
-            onClick={
-              activeTab === "approval" ? handleAddApproval :
-                activeTab === "details" ? handleAddPO :
-                  activeTab === "utilization" ? handleAddConsumption :
-                    activeTab === "srn" ? handleAddSRN :
-                      handleAddInvoice
-            }
-          >
-            <Plus size={18} className="mr-2" />
-            {activeTab === "approval" ? "Add Budget Line" :
-              activeTab === "details" ? "Add PO" :
-                activeTab === "utilization" ? "Add Consumption" :
-                  activeTab === "srn" ? "Add SRN" :
-                    "Add Invoice"}
-          </button>
+          {/* Add Button (edit access) */}
+          {hasAccess && hasAccess('budget', 'edit') && (
+            <button
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              onClick={
+                activeTab === "approval" ? handleAddApproval :
+                  activeTab === "details" ? handleAddPO :
+                    activeTab === "utilization" ? handleAddConsumption :
+                      activeTab === "srn" ? handleAddSRN :
+                        handleAddInvoice
+              }
+            >
+              <Plus size={18} className="mr-2" />
+              {activeTab === "approval" ? "Add Budget Line" :
+                activeTab === "details" ? "Add PO" :
+                  activeTab === "utilization" ? "Add Consumption" :
+                    activeTab === "srn" ? "Add SRN" :
+                      "Add Invoice"}
+            </button>
+          )}
         </div>
       </div>
 
