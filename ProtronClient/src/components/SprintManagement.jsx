@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import GlobalSnackbar from './GlobalSnackbar';
-import { Pencil, Trash2 } from 'lucide-react';
+import ViewSprintModal from './ViewSprintModal';
+import { Pencil, Trash2, Eye, Download } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -10,6 +11,8 @@ export default function SprintManagement({ projectId, open, onClose }) {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingSprint, setEditingSprint] = useState(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewingSprint, setViewingSprint] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [projectName, setProjectName] = useState('');
 
@@ -50,6 +53,44 @@ export default function SprintManagement({ projectId, open, onClose }) {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const downloadSprintExcel = () => {
+    try {
+      const headers = ['#','Sprint Name','Start Date','End Date','Description','Created On'];
+      const rows = (sprints || []).map((s, idx) => ([
+        idx + 1,
+        s.sprintName || '',
+        formatDate(s.startDate),
+        formatDate(s.endDate),
+        s.description || '',
+        formatDate(s.createdOn)
+      ]));
+      const csv = [headers.join(','), ...rows.map(r => r.map(v => {
+        const s = String(v ?? '');
+        return s.includes(',') || s.includes('\n') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }).join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.setAttribute('download', `sprint_list_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setSnackbar({ open: true, message: 'Failed to download Excel', severity: 'error' });
+    }
+  };
+
   const handleAddSprint = () => {
     setAddModalOpen(true);
   };
@@ -57,6 +98,11 @@ export default function SprintManagement({ projectId, open, onClose }) {
   const handleEditSprint = (rowIndex) => {
     setEditingSprint(sprints[rowIndex]);
     setEditModalOpen(true);
+  };
+
+  const handleViewSprint = (rowIndex) => {
+    setViewingSprint(sprints[rowIndex]);
+    setViewModalOpen(true);
   };
 
   const handleDeleteSprint = async (rowIndex) => {
@@ -145,6 +191,9 @@ export default function SprintManagement({ projectId, open, onClose }) {
       width: 120,
       cellRenderer: (params) => (
         <div className="flex gap-1">
+          <button onClick={() => handleViewSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700" title="View">
+            <Eye size={16} />
+          </button>
           <button onClick={() => handleEditSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600" title="Edit">
             <Pencil size={16} />
           </button>
@@ -169,9 +218,14 @@ export default function SprintManagement({ projectId, open, onClose }) {
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-green-900">Sprint List</h3>
-              <button onClick={handleAddSprint} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">
-                Add Sprint
-              </button>
+              <div className="flex items-center gap-2">
+                <button onClick={downloadSprintExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800">
+                  <Download size={16} className="mr-2" /> Download Excel
+                </button>
+                <button onClick={handleAddSprint} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">
+                  Add Sprint
+                </button>
+              </div>
             </div>
             <div className="h-96 w-full border rounded-md">
               <div className="ag-theme-alpine h-full w-full">
@@ -208,6 +262,11 @@ export default function SprintManagement({ projectId, open, onClose }) {
             initialData={editingSprint}
             projectName={projectName}
             projectId={projectId}
+          />
+          <ViewSprintModal
+            open={viewModalOpen}
+            onClose={() => setViewModalOpen(false)}
+            sprintData={viewingSprint}
           />
         </div>
       </div>
@@ -299,9 +358,9 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
 
   const validate = () => {
     const errs = {};
-    if (!formData.sprintName) errs.sprintName = 'Sprint name required';
-    if (!formData.startDate) errs.startDate = 'Start date required';
-    if (!formData.endDate) errs.endDate = 'End date required';
+    if (!formData.sprintName) errs.sprintName = 'Required';
+    if (!formData.startDate) errs.startDate = 'Required';
+    if (!formData.endDate) errs.endDate = 'Required';
     if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
     setErrors(errs);
     return Object.keys(errs).length === 0;

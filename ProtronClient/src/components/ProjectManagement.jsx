@@ -93,19 +93,20 @@ const ProjectManagement = () => {
   };
 
   const handleOpenDodModal = async (project) => {
-    setDodProject(project);
-    setDodModalOpen(true);
-    setDodLoading(true);
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/projects/${project.projectId}/define-done`, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      });
-      setDodValue(res.data.defineDone || '');
-    } catch (err) {
-      setDodValue('');
-    }
-    setDodLoading(false);
-  };
+  setDodProject(project);
+  setDodModalOpen(true);
+  setDodLoading(true);
+  try {
+    const res = await axios.get(`${API_BASE_URL}/api/projects/${project.projectId}/define-done`, {
+      headers: { Authorization: `${sessionStorage.getItem('token')}` }
+    });
+    setDodValue(res.data.defineDone || '');
+  } catch (e) {
+    setDodValue('');
+    console.error(e);
+  }
+  setDodLoading(false);
+};
 
   const handleCloseDodModal = () => {
     setDodModalOpen(false);
@@ -113,29 +114,30 @@ const ProjectManagement = () => {
     setDodValue('');
   };
 
-  const handleDodUpdate = async () => {
-    if (!dodProject) return;
-    setDodLoading(true);
-    try {
-      await axios.put(`${API_BASE_URL}/api/projects/${dodProject.projectId}/define-done`, { defineDone: dodValue }, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      });
-      setSnackbar({
-        open: true,
-        message: 'Define of Done updated!',
-        severity: 'success',
-      });
-      handleCloseDodModal();
-      fetchProjects();
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: 'Failed to update DoD.',
-        severity: 'error',
-      });
-    }
-    setDodLoading(false);
-  };
+const handleDodUpdate = async () => {
+  if (!dodProject) return;
+  setDodLoading(true);
+  try {
+    await axios.put(`${API_BASE_URL}/api/projects/${dodProject.projectId}/define-done`, { defineDone: dodValue }, {
+      headers: { Authorization: `${sessionStorage.getItem('token')}` }
+    });
+    setSnackbar({
+      open: true,
+      message: 'Define of Done updated!',
+      severity: 'success',
+    });
+    handleCloseDodModal();
+    fetchProjects();
+  } catch (e) {
+    setSnackbar({
+      open: true,
+      message: 'Failed to update DoD.',
+      severity: 'error',
+    });
+    console.error(e);
+  }
+  setDodLoading(false);
+};
 
   // Custom cell renderers for AgGrid
   const ProjectNameRenderer = (params) => {
@@ -339,7 +341,7 @@ const ProjectManagement = () => {
       pinned: 'right',
       cellStyle: { textAlign: 'center' }
     }
-  ], [hasAccess]);
+  ], [hasAccess, ActionsRenderer, ProjectCodeRenderer, ProjectNameRenderer]);
 
   // Default column properties
   const defaultColDef = useMemo(() => ({
@@ -460,9 +462,7 @@ const ProjectManagement = () => {
 
     setSelectedEditProjectId(null)
 
-    if (typeof onProjectUpdated === 'function') {
-      onProjectUpdated();
-    }
+    // no-op hook for parent update
   };
 
   const handleCloseTeamManagement = () => {
@@ -578,20 +578,18 @@ const ProjectManagement = () => {
     setShowEntriesDropdown(false);
   };
 
-  // Function to download project data as Excel file
+  // Function to download project data as Excel file (aligned with main table columns)
   const downloadExcel = () => {
     try {
-      // Prepare data for Excel export with all project details
-      const excelData = projects.map((project, index) => ({
-        'No.': index + 1,
-        'Project Name': project.projectName,
+      // Match current main table columns and order
+      const excelData = filteredProjects.map((project, index) => ({
+        '#': index + 1,
+        'Project Code': project.projectCode || 'N/A',
+        'Project Name': project.projectName || 'N/A',
         'Start Date': project.startDate ? formatDate(project.startDate) : 'N/A',
-        'End Date': project.endDate ? formatDate(project.endDate) : 'N/A',
-        'Project Manager': project.projectManager ?
-          `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'N/A',
-        'Team Size': project.projectTeam ? project.projectTeam.length : 0,
+        'PM Name': project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'N/A',
         'Cost Currency': project.unit || 'N/A',
-        'Project Cost': project.projectCost ? `${project.projectCost}` : 'N/A',
+        'Project Cost': project.projectCost != null ? `${project.projectCost}` : 'N/A',
         'Sponsor': project.sponsor ? `${project.sponsor.firstName} ${project.sponsor.lastName}` : 'N/A',
       }));
 
@@ -603,7 +601,7 @@ const ProjectManagement = () => {
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Projects');
 
       // Generate Excel file and trigger download
-      XLSX.writeFile(workbook, 'Project_Details.xlsx');
+      XLSX.writeFile(workbook, `Projects_${new Date().toISOString().split('T')[0]}.xlsx`);
 
       setSnackbar({
         open: true,

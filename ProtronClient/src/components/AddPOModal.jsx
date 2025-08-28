@@ -62,6 +62,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     const StartDateInputRef = useRef(null);
     const EndDateInputRef = useRef(null);
     const [projects, setProjects] = useState([]);
+    const [budgetLineOptions, setBudgetLineOptions] = useState([]);
     const poNumberCharCount = formData.poNumber.length;
     const [countries, setCountries] = useState([]);
     const [poFiles, setPoFiles] = useState([]);
@@ -71,6 +72,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         severity: 'success'
     })
     const [error, setError] = useState({})
+    const [fieldErrors, setFieldErrors] = useState({})
 
     const fetchUsers = async () => {
         try {
@@ -104,6 +106,25 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             })
         }
     };
+    const fetchBudgetLines = async () => {
+        try {
+            const token = sessionStorage.getItem('token');
+            const tenantId = sessionStorage.getItem('tenantId');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/budget-lines/tenant/${tenantId}`, {
+                headers: { Authorization: `${token}` }
+            });
+            const data = Array.isArray(res.data) ? res.data : [];
+            const opts = data.map(bl => ({
+                label: `${bl.budgetName} (${bl.currency || ''} ${bl.amountApproved})`,
+                value: bl.budgetName,
+                amountApproved: bl.amountApproved,
+                currency: bl.currency || 'USD'
+            }));
+            setBudgetLineOptions(opts);
+        } catch (error) {
+            console.error('Error fetching budget lines:', error);
+        }
+    };
     const fetchCountries = async () => {
         try {
             const response = await axios.get(`https://secure.geonames.org/countryInfoJSON?&username=bhagirathauti`);
@@ -125,6 +146,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         if (open) {
             fetchUsers();
             fetchProjects();
+            fetchBudgetLines();
             fetchCountries();
         }
     }, [open]);
@@ -244,7 +266,26 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         }
     };
 
+    const validateRequired = () => {
+        const errs = {};
+        if (!formData.poNumber || !formData.poNumber.trim()) {
+            errs.poNumber = 'PO Number is required';
+        }
+        if (!formData.poType || !formData.poType.trim()) {
+            errs.poType = 'PO Type is required';
+        }
+        if (!formData.poAmount || isNaN(Number(formData.poAmount)) || Number(formData.poAmount) <= 0) {
+            errs.poAmount = 'PO Amount must be greater than 0';
+        }
+        setFieldErrors(errs);
+        return Object.keys(errs).length === 0;
+    };
+
     const handleCreatePO = async () => {
+        if (!validateRequired()) {
+            setSnackbar({ open: true, message: 'Please fill all required fields.', severity: 'error' });
+            return;
+        }
         try {
             const poPayload = {
                 poNumber: formData.poNumber,
@@ -443,15 +484,19 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         <span className="float-right text-xs text-gray-500">
                                             {poNumberCharCount}/50 characters
                                         </span>
-                                    </label>                                        <input
+                                    </label>
+                                    <input
                                         type="text"
                                         placeholder="Enter here"
                                         value={formData.poNumber}
                                         onChange={handleChange('poNumber')}
                                         title={formData.poNumber}
                                         maxLength={50} // Tooltip on hover
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 truncate ${fieldErrors.poNumber ? 'border-red-500' : 'border-gray-300'}`}
                                     />
+                                    {fieldErrors.poNumber && (
+                                        <p className="text-xs text-red-600 mt-1">{fieldErrors.poNumber}</p>
+                                    )}
                                 </div>
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO Type <span className='text-red-500'>*</span></label>
@@ -459,13 +504,16 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         value={formData.poType}
                                         onChange={handleChange('poType')}
                                         title={formData.poType || 'Select from list'} // Tooltip on hover
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 truncate ${fieldErrors.poType ? 'border-red-500' : 'border-gray-300'}`}
                                     >
                                         <option value="">Select from list</option>
                                         <option value="FIXED">Fixed</option>
                                         <option value="T_AND_M">T & M</option>
                                         <option value="MIXED">Mixed</option>
                                     </select>
+                                    {fieldErrors.poType && (
+                                        <p className="text-xs text-red-600 mt-1">{fieldErrors.poType}</p>
+                                    )}
                                 </div>
 
                                 <div className="lg:col-span-1">
@@ -526,13 +574,16 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 }));
                                             }}
                                             title={formData.poAmount?.toString() || 'Enter Amount'}
-                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                            className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 truncate ${fieldErrors.poAmount ? 'border-red-500' : 'border-gray-300'}`}
                                             inputMode="decimal"
                                             pattern="^\d{1,13}(\.\d{0,2})?$"
                                             maxLength={16}
                                             autoComplete="off"
                                         />
                                     </div>
+                                    {fieldErrors.poAmount && (
+                                        <p className="text-xs text-red-600 mt-1">{fieldErrors.poAmount}</p>
+                                    )}
                                 </div>
 
                                 <div className="lg:col-span-1">
@@ -771,26 +822,31 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 </div>
 
                                 <div>
-                                    <label
-                                        htmlFor="budgetLineItem"
-                                        className="block text-sm font-medium text-gray-700 mb-2"
-                                    >
-                                        Budget Line Item
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Budget Line Item</label>
                                     <div className="relative w-full">
-                                        <UserCheck
-                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10"
-                                            size={20}
-                                        />
-                                        <input
-                                            type="text"
-                                            id="budgetLineItem"
-                                            name="budgetLineItem"
-                                            value={formData.budgetLineItem}
-                                            onChange={handleChange('budgetLineItem')}
-                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                            placeholder="Enter Budget Line Item"
-                                            maxLength={255}
+                                        <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-10" size={20} />
+                                        <CreatableSelect
+                                            inputId="budgetLineItem"
+                                            options={budgetLineOptions}
+                                            value={formData.budgetLineItem ? { label: formData.budgetLineItem, value: formData.budgetLineItem } : null}
+                                            onChange={(selected) => {
+                                                const value = selected?.value || '';
+                                                const match = budgetLineOptions.find(o => o.value === value);
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    budgetLineItem: value,
+                                                    budgetLineAmount: match ? String(match.amountApproved ?? '') : prev.budgetLineAmount,
+                                                    currency: match?.currency || prev.currency
+                                                }));
+                                            }}
+                                            classNamePrefix="react-select"
+                                            placeholder="Select or type Budget Line"
+                                            isClearable
+                                            isSearchable
+                                            styles={{
+                                                control: (base) => ({ ...base, height: '40px', paddingLeft: '28px', borderColor: '#d1d5db' }),
+                                                valueContainer: (base) => ({ ...base, padding: '0 6px' })
+                                            }}
                                         />
                                     </div>
                                 </div>

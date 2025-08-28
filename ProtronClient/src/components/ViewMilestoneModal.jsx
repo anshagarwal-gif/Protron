@@ -92,28 +92,27 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Field
-                label="Milestone ID"
-                value={milestoneData.msId}
-              />
-              <Field
                 label="Milestone Name"
                 value={milestoneData.milestoneName || milestoneData.msName}
               />
               <Field
                 label="Amount"
-                value={formatCurrency(milestoneData.milestoneAmount, milestoneData.milestoneCurrency)}
+                value={formatCurrency(
+                  milestoneData.milestoneAmount ?? milestoneData.msAmount,
+                  milestoneData.milestoneCurrency ?? milestoneData.msCurrency
+                )}
               />
               <Field
                 label="Currency"
-                value={milestoneData.milestoneCurrency}
+                value={milestoneData.milestoneCurrency || milestoneData.msCurrency}
               />
               <Field
                 label="Milestone Date"
-                value={formatDate(milestoneData.startDate)}
+                value={formatDate(milestoneData.startDate || milestoneData.msDate)}
               />
               <Field
                 label="Duration (Days)"
-                value={milestoneData.duration}
+                value={milestoneData.duration ?? milestoneData.msDuration}
               />
             
             </div>
@@ -127,13 +126,13 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
             </h3>
             <div className="bg-white rounded p-3 border">
               <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                {milestoneData.milestoneDescription || "No description available"}
+                {milestoneData.milestoneDescription || milestoneData.msDesc || "No description available"}
               </p>
             </div>
           </div>
 
           {/* Remarks */}
-          {milestoneData.remark && (
+          {(milestoneData.remark || milestoneData.msRemarks) && (
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                 <FileText className="mr-2 text-gray-600" size={20} />
@@ -141,7 +140,7 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
               </h3>
               <div className="bg-white rounded p-3 border">
                 <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                  {milestoneData.remark}
+                  {milestoneData.remark || milestoneData.msRemarks}
                 </p>
               </div>
             </div>

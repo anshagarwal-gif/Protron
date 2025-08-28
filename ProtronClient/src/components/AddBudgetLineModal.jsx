@@ -809,8 +809,8 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
 
                 <div className="p-6 overflow-y-auto flex-grow">
                     <div className="space-y-6">
-                        {/* 1st Line: Budget Name and Budget Description */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 1st Line: Budget Name */}
+                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget Name *
@@ -828,23 +828,6 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 />
                                 {getCharacterCount(formData.budgetName, 200)}
                                 {errors.budgetName && <p className="text-red-500 text-xs mt-1">{errors.budgetName}</p>}
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Budget Description
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter budget description (optional)"
-                                    value={formData.budgetDescription}
-                                    onChange={handleChange('budgetDescription')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
-                                        errors.budgetDescription ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                    maxLength={500}
-                                />
-                                {getCharacterCount(formData.budgetDescription, 500)}
-                                {errors.budgetDescription && <p className="text-red-500 text-xs mt-1">{errors.budgetDescription}</p>}
                             </div>
                         </div>
 
@@ -891,7 +874,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                             </div>
                             <div className="col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Budget Owner * (max 150 chars)
+                                    Budget Owner * 
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
                                 </label>
                                 <div className="relative">
@@ -933,7 +916,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Sponsor (max 150 chars)
+                                    Sponsor 
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
                                 </label>
                                 <div className="relative">
@@ -1013,7 +996,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Amount Approved * (max 13 digits)
+                                    Amount Approved * 
                                 </label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
@@ -1037,7 +1020,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Amount Utilized (max 13 digits)
+                                    Amount Utilized 
                                 </label>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
@@ -1076,6 +1059,26 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     {currencySymbols[formData.currency]}{formData.amountApproved} - {currencySymbols[formData.currency]}{formData.amountUtilized || '0'} = {getDisplayAvailable()}
                                 </p>
                             )}
+                        </div>
+
+                        {/* Budget Description */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                <MessageSquare className="mr-2 text-green-600" size={16} />
+                                Budget Description
+                            </label>
+                            <textarea
+                                placeholder="Enter budget description (optional)"
+                                rows={3}
+                                value={formData.budgetDescription}
+                                onChange={handleChange('budgetDescription')}
+                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${
+                                    errors.budgetDescription ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                maxLength={500}
+                            />
+                            {getCharacterCount(formData.budgetDescription, 500)}
+                            {errors.budgetDescription && <p className="text-red-500 text-xs mt-1">{errors.budgetDescription}</p>}
                         </div>
 
                         {/* Remarks */}

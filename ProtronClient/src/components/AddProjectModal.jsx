@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Calendar, Upload, Users, User, FolderOpen, X, Building2, Users as UsersIcon } from 'lucide-react';
+import { Calendar, Upload, Users, User, FolderOpen, X, Building2, Users as UsersIcon, AlertCircle } from 'lucide-react';
 import CreatableSelect from 'react-select/creatable';
 import axios from 'axios';
 import OrganizationSelect from './OrganizationSelect';
@@ -249,7 +249,7 @@ const MultiSelectDropdown = ({
 };
 
 // Date Picker Component (simplified)
-const DatePicker = ({ label, value, onChange, icon: Icon }) => {
+const DatePicker = ({ label, value, onChange, icon: Icon, error }) => {
     const inputRef = useRef(null);
 
     const handleInputClick = () => {
@@ -267,9 +267,12 @@ const DatePicker = ({ label, value, onChange, icon: Icon }) => {
                     type="date"
                     value={value ? value.toISOString().split('T')[0] : ''}
                     onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : null)}
-                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 cursor-pointer"
+                    className={`w-full h-10 px-3 py-2 pl-10 border rounded-md focus:ring-2 focus:ring-green-500 hover:border-green-500 cursor-pointer ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-green-500'}`}
                     title={value || "N/A"}
                 />
+                {error && (
+                    <div className="text-xs text-red-600 mt-1">{error}</div>
+                )}
                 {Icon && (
                     <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800 pointer-events-none" />
                 )}
@@ -364,6 +367,19 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     };
 
     const handleSubmit = async () => {
+        // Validate required fields
+        const newErrors = {};
+        if (!formData.projectName || String(formData.projectName).trim() === '') newErrors.projectName = 'Project name is required';
+        if (!formData.startDate) newErrors.startDate = 'Start date is required';
+        if (!formData.endDate) newErrors.endDate = 'End date is required';
+        if (!formData.currency) newErrors.currency = 'Currency is required';
+        if (formData.cost === '' || formData.cost === undefined || formData.cost === null) newErrors.cost = 'Project cost is required';
+
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            return; // Don't submit if validation fails
+        }
+
         setIsSubmitting(true);
         try {
             await onSubmit({ ...formData, projectCode }); // Ensure projectCode is sent
@@ -415,21 +431,19 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Project Name
-                                    <span className="float-right text-xs text-gray-500">{formData.projectName?.length || 0}/100 characters</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter a descriptive project name"
-                                    value={formData.projectName || ''}
-                                    onChange={(e) => handleChange('projectName', e.target.value)}
-                                    disabled={isSubmitting}
-                                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    title={formData.projectName || 'Enter Project Name'}
-                                    maxLength={100}
-                                />
-                                <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter a descriptive project name"
+                                        value={formData.projectName || ''}
+                                        onChange={(e) => handleChange('projectName', e.target.value)}
+                                        disabled={isSubmitting}
+                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title={formData.projectName || 'Enter Project Name'}
+                                    />
+                                    <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
+                                </div>
                             </div>
 
                             <div className="flex-none w-full">
@@ -471,19 +485,21 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
                             <div className="flex-none w-full">
                                 <DatePicker
-                                    label="Start Date"
+                                    label="Start Date *"
                                     value={formData.startDate}
                                     onChange={(value) => handleChange('startDate', value)}
                                     icon={Calendar}
+                                    error={errors.startDate}
                                 />
                             </div>
 
                             <div className="flex-none w-full">
                                 <DatePicker
-                                    label="End Date"
+                                    label="End Date *"
                                     value={formData.endDate}
                                     onChange={(value) => handleChange('endDate', value)}
                                     icon={Calendar}
+                                    error={errors.endDate}
                                 />
                             </div>
                         </div>
@@ -519,12 +535,12 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             </div>
 
                             <div className="flex-none w-full">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Currency *</label>
                                 <select
                                     value={formData.currency || ''}
                                     onChange={(e) => handleChange('currency', e.target.value)}
                                     disabled={isSubmitting}
-                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className={`w-full h-10 px-3 py-2 border rounded-md focus:ring-2 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.currency ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-green-500 focus:border-green-500'}`}
                                     title={formData.currency || 'Select Currency'}
                                 >
                                     <option value="">Select Currency</option>
@@ -534,10 +550,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         </option>
                                     ))}
                                 </select>
+                                {errors.currency && <div className="text-xs text-red-600 mt-1">{errors.currency}</div>}
                             </div>
 
                             <div className="flex-none w-full">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost *</label>
                                 <div className="relative">
                                     <input
                                         type="number"
@@ -556,7 +573,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             setFormData({ ...formData, cost: value });
                                         }}
                                         disabled={isSubmitting}
-                                        className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className={`w-full h-10 px-3 py-2 pl-8 border rounded-md focus:ring-2 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.cost ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-green-500 focus:border-green-500'}`}
                                         title={formData.cost || 'Enter Project Cost'}
                                         step="0.01"
                                     />
@@ -564,6 +581,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         {formData.currency ? currencySymbols[formData.currency] : ''}
                                     </span>
                                 </div>
+                                {errors.cost && <div className="text-xs text-red-600 mt-1">{errors.cost}</div>}
                             </div>
                         </div>
 
