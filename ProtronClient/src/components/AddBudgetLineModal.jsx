@@ -140,34 +140,44 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
         console.log('useEffect: Modal state changed:', { open, isEdit, budgetId: budgetLine?.budgetId });
         
         if (open) {
-            console.log('useEffect: Modal opened, fetching dropdown data');
-            fetchDropdownData();
-            
-            if (isEdit && budgetLine) {
-                console.log('useEffect: In edit mode, populating form and fetching documents');
-                // Populate form with existing data for editing
-                setFormData({
-                    budgetName: budgetLine.budgetName || '',
-                    budgetDescription: budgetLine.budgetDescription || '',
-                    budgetLineItem: budgetLine.budgetLineItem || '',
-                    budgetEndDate: budgetLine.budgetEndDate || '',
-                    budgetOwner: budgetLine.budgetOwner || '',
-                    sponsor: budgetLine.sponsor || '',
-                    lob: budgetLine.lob || '',
-                    currency: budgetLine.currency || 'USD',
-                    amountApproved: budgetLine.amountApproved || '',
-                    amountUtilized: budgetLine.amountUtilized || '0',
-                    amountAvailable: budgetLine.amountAvailable || '',
-                    remarks: budgetLine.remarks || '',
-                    lastUpdatedBy: sessionStorage.getItem('userName') || ''
-                });
-                // Fetch existing documents for editing
-                console.log('useEffect: Calling fetchExistingDocuments');
-                fetchExistingDocuments();
-            } else {
-                console.log('useEffect: Not in edit mode, resetting form');
-            handleReset();
-        }
+            console.log('useEffect: Modal opened, fetching dropdown data first');
+            // Always fetch dropdown data first, then handle form population
+            fetchDropdownData().then(() => {
+                if (isEdit && budgetLine) {
+                    console.log('useEffect: In edit mode, populating form and fetching documents');
+                    console.log('useEffect: Available employees:', employees.length);
+                    console.log('useEffect: Available sponsors:', sponsors.length);
+                    console.log('useEffect: Budget line data:', budgetLine);
+                    
+                    // Populate form with existing data for editing
+                    setFormData({
+                        budgetName: budgetLine.budgetName || '',
+                        budgetDescription: budgetLine.budgetDescription || '',
+                        budgetLineItem: budgetLine.budgetLineItem || '',
+                        budgetEndDate: budgetLine.budgetEndDate || '',
+                        budgetOwner: budgetLine.budgetOwner || '',
+                        sponsor: budgetLine.sponsor || '',
+                        lob: budgetLine.lob || '',
+                        currency: budgetLine.currency || 'USD',
+                        amountApproved: budgetLine.amountApproved || '',
+                        amountUtilized: budgetLine.amountUtilized || '0',
+                        amountAvailable: budgetLine.amountAvailable || '',
+                        remarks: budgetLine.remarks || '',
+                        lastUpdatedBy: sessionStorage.getItem('userName') || ''
+                    });
+                    
+                    console.log('useEffect: Form data set, budgetOwner:', budgetLine.budgetOwner, 'sponsor:', budgetLine.sponsor);
+                    console.log('useEffect: Found budgetOwner in employees:', employees.find(emp => emp.value === budgetLine.budgetOwner));
+                    console.log('useEffect: Found sponsor in sponsors:', sponsors.find(sponsor => sponsor.value === budgetLine.sponsor));
+                    
+                    // Fetch existing documents for editing
+                    console.log('useEffect: Calling fetchExistingDocuments');
+                    fetchExistingDocuments();
+                } else {
+                    console.log('useEffect: Not in edit mode, resetting form');
+                    handleReset();
+                }
+            });
         } else {
             console.log('useEffect: Modal closed, resetting form');
             // Reset form when modal closes
@@ -219,6 +229,9 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
 
             setEmployees(employeeOptions);
             setSponsors(sponsorOptions);
+            
+            // Return a resolved promise to ensure proper async handling
+            return Promise.resolve();
 
         } catch (error) {
             console.error('Error fetching dropdown data:', error);
@@ -229,6 +242,8 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                 message: `Failed to fetch employee data: ${error.message}`,
                 severity: 'error'
             });
+            // Return a rejected promise to handle errors properly
+            return Promise.reject(error);
         } finally {
             setLoadingEmployees(false);
         }
@@ -334,6 +349,24 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
+    };
+
+    // Helper function to get the proper value for CreatableSelect components
+    const getCreatableSelectValue = (fieldValue, optionsArray) => {
+        if (!fieldValue) return null;
+        
+        console.log(`getCreatableSelectValue: fieldValue="${fieldValue}", optionsArray length=${optionsArray.length}`);
+        
+        // First try to find an exact match in the options
+        const exactMatch = optionsArray.find(option => option.value === fieldValue);
+        if (exactMatch) {
+            console.log(`getCreatableSelectValue: Found exact match:`, exactMatch);
+            return exactMatch;
+        }
+        
+        // If no exact match found, create a fallback object for manually entered values
+        console.log(`getCreatableSelectValue: No exact match found, creating fallback for: "${fieldValue}"`);
+        return { label: fieldValue, value: fieldValue };
     };
 
     // Handle file selection (both from input and drag & drop)
@@ -881,7 +914,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     <User className="absolute left-3 top-3 text-green-600 z-10" size={16} />
                                     <CreatableSelect
                                         options={employees}
-                                        value={formData.budgetOwner ? employees.find(emp => emp.value === formData.budgetOwner) : null}
+                                        value={getCreatableSelectValue(formData.budgetOwner, employees)}
                                         onChange={handleSelectChange('budgetOwner')}
                                         className="react-select-container"
                                         classNamePrefix="react-select"
@@ -923,7 +956,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     <Building className="absolute left-3 top-3 text-green-600 z-10" size={16} />
                                     <CreatableSelect
                                         options={sponsors}
-                                        value={formData.sponsor ? sponsors.find(sponsor => sponsor.value === formData.sponsor) : null}
+                                        value={getCreatableSelectValue(formData.sponsor, sponsors)}
                                         onChange={handleSelectChange('sponsor')}
                                         className="react-select-container"
                                         classNamePrefix="react-select"

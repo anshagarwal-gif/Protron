@@ -501,16 +501,7 @@ const POManagement = () => {
                 <Edit size={16} className="text-blue-600" />
               </button>
             )}
-            {/* Delete Button (delete access) */}
-            {hasAccess && hasAccess('budget', 'delete') && (
-              <button
-                onClick={() => {/* implement delete logic here */}}
-                className="p-2 rounded-full hover:bg-red-100 transition-colors"
-                title="Delete PO"
-              >
-                <FileText size={16} className="text-red-600" />
-              </button>
-            )}
+            
           </div>
         );
       }

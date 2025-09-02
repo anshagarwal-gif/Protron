@@ -604,6 +604,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             className="w-full bg-transparent outline-none cursor-pointer appearance-none"
                                             min="1900-01-01"
                                             max="2100-12-31"
+                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
                                         />
                                     </div>
                                 </div>
@@ -615,6 +616,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             ref={EndDateInputRef}
                                             type="date"
                                             value={formData.endDate}
+                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
                                             onChange={handleChange('endDate')}
                                             className="w-full bg-transparent outline-none cursor-pointer"
                                         />

@@ -482,14 +482,14 @@ return (
                   {formData.meetingReference.length}/100 characters
                 </span>
               </label>
-              <input
-                type="text"
-                value={formData.meetingReference}
-                onChange={e => setFormData(f => ({ ...f, meetingReference: e.target.value }))}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.meetingReference ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder="Enter meeting reference"
-                maxLength={100}
-              />
+                <input
+                  onFocus={e => e.target.showPicker && e.target.showPicker()}
+                  type="date"
+                  value={formData.meetingReference}
+                  onChange={e => setFormData(f => ({ ...f, meetingReference: e.target.value }))}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.meetingReference ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Enter meeting reference"
+                />
               {errors.meetingReference && <span className="text-red-500 text-xs mt-1 block">{errors.meetingReference}</span>}
             </div>
           </div>
