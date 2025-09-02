@@ -18,16 +18,9 @@ import {
   Popover,
   Chip
 } from '@mui/material';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import FolderIcon from '@mui/icons-material/Folder';
-import TaskIcon from '@mui/icons-material/Task';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import DescriptionIcon from '@mui/icons-material/Description';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarTodayIcon from '@mui/icons-material/CalendarMonth';
-import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import GlobalSnackbar from './GlobalSnackbar';
 import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
@@ -84,6 +77,11 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
   // Handle snackbar close
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
+  };
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   // Update currentDate when selectedDate changes
@@ -858,9 +856,9 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                         type="number"
                         placeholder="MM"
                         className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.minutes !== "" &&
-                            (parseInt(formData.minutes) < 0 || parseInt(formData.minutes) > 59)
-                            ? "border-red-500 focus:ring-red-500"
-                            : "border-gray-300 focus:ring-green-500"
+                          (parseInt(formData.minutes) < 0 || parseInt(formData.minutes) > 59)
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-green-500"
                           }`}
                         value={formData.minutes}
                         onChange={(e) => {
@@ -1039,6 +1037,9 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                 </label>
 
                 {/* Uploaded Files */}
+                <p className="text-xs text-gray-500 mt-1">
+                  Max file size: 10 MB per file
+                </p>
                 {formData.attachments.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {formData.attachments.map((file, index) => (
@@ -1049,9 +1050,12 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                           : 'bg-emerald-50 text-emerald-700 border-emerald-300'
                           }`}
                       >
-                        <span className="mr-1">
+                        <span className="mr-1 flex items-center gap-1">
                           {file.isExisting ? '📎 ' : ''}
                           {truncateText(file.name, 15)}
+                          <span className="text-gray-500 text-xs">
+                            ({formatFileSize(file.size)})
+                          </span>
                           {file.isExisting ? ' (existing)' : ''}
                         </span>
                         <button
@@ -1063,6 +1067,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                         </button>
                       </div>
                     ))}
+
                   </div>
                 )}
               </div>

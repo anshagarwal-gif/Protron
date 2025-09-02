@@ -3,6 +3,7 @@ package com.Protronserver.Protronserver.Repository;
 import com.Protronserver.Protronserver.Entities.POAttachments;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -22,13 +23,12 @@ public interface POAttachmentRepository extends JpaRepository<POAttachments, Lon
     List<POAttachments> findByLevelAndReferenceId(@Param("level") String level, @Param("referenceId") Long referenceId);
 
     @Modifying
+    @Transactional
     @Query("DELETE FROM POAttachments a WHERE a.level = :level AND a.referenceId = :referenceId")
-    void deleteByLevelAndReferenceId(@Param("level") String level, @Param("referenceId") Long referenceId);
+    int deleteByLevelAndReferenceId(@Param("level") String level,
+            @Param("referenceId") Long referenceId);
 
     @Modifying
     @Query("UPDATE POAttachments a SET a.referenceId = :newId WHERE a.level = :level AND a.referenceId = :oldId")
     void updateReferenceId(@Param("level") String level, @Param("oldId") Long oldId, @Param("newId") Long newId);
-
-
-
 }
