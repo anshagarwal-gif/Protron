@@ -497,7 +497,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             <Receipt size={20} className="mr-2 text-green-600" />
                             Create New SRN
                         </h2>
-                        
+
                     </div>
                     <button
                         onClick={handleClose}
@@ -528,8 +528,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     name="poId"
                                     value={formData.poId}
                                     onChange={handleInputChange}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.poId ? 'border-red-500' : 'border-gray-300'
-                                        }`}
+                                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm transition-all duration-200 hover:border-slate-300 disabled:opacity-50"
                                     disabled={loading}
                                     title={formData.poId ? `Selected PO` : "Select a PO"}
                                 >
@@ -540,7 +539,13 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                             value={po.poId}
                                             title={`PO: ${po.poNumber} | Project: ${po.projectName || 'No Project'} | Currency: ${po.poCurrency || 'USD'} | Amount: ${po.poAmount ? getCurrencySymbol(po.poCurrency) + (po.poAmount).toLocaleString() : 'N/A'}`}
                                         >
-                                            {po.poNumber.length > 20 ? `${po.poNumber.substring(0, 20)}...` : po.poNumber} - {po.projectName && po.projectName.length > 15 ? `${po.projectName.substring(0, 15)}...` : po.projectName || 'No Project'}
+                                            {po.poNumber.length > 20
+                                                ? `${po.poNumber.substring(0, 20)}...`
+                                                : po.poNumber}
+                                            {" - "}
+                                            {po.projectName && po.projectName.length > 15
+                                                ? `${po.projectName.substring(0, 15)}...`
+                                                : po.projectName || "No Project"}
                                         </option>
                                     ))}
                                 </select>
@@ -706,7 +711,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             </div>
                         </div>
                         {/* Row 2: SRN Name and Attachment */}
-                        
+
 
                         {/* Row 3: SRN Description */}
                         <div>
@@ -793,25 +798,25 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 )}
                             </div>
                         </div>
-                                <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
-                                    {srnFiles.map((file, index) => (
-                                        <li
-                                            key={index}
-                                            className="inline-flex items-center bg-gray-100 px-3 py-1 rounded"
-                                        >
-                                            <span className="truncate max-w-[100px]" title={file.name}>
-                                                {file.name}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSRNAttachment(index)}
-                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                            >
-                                                Delete
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
+                        <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                            {srnFiles.map((file, index) => (
+                                <li
+                                    key={index}
+                                    className="inline-flex items-center bg-gray-100 px-3 py-1 rounded"
+                                >
+                                    <span className="truncate max-w-[100px]" title={file.name}>
+                                        {file.name}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeSRNAttachment(index)}
+                                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                    >
+                                        Delete
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
                     </form>
                 </div>
 

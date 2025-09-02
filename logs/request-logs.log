@@ -1,0 +1,717 @@
+2025-09-02 15:44:13 INFO  - [2025-09-02 15:44:13] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:14 INFO  - [2025-09-02 15:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:17 INFO  - [2025-09-02 15:44:16] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:17 INFO  - [2025-09-02 15:44:17] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:27 INFO  - [2025-09-02 15:44:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:27 INFO  - [2025-09-02 15:44:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:30 INFO  - [2025-09-02 15:44:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:30 INFO  - [2025-09-02 15:44:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:30 INFO  - [2025-09-02 15:44:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:30 INFO  - [2025-09-02 15:44:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:30 INFO  - [2025-09-02 15:44:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:30 INFO  - [2025-09-02 15:44:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:34 INFO  - [2025-09-02 15:44:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:34 INFO  - [2025-09-02 15:44:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:34 INFO  - [2025-09-02 15:44:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:34 INFO  - [2025-09-02 15:44:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 WARN  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 WARN  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:46 INFO  - [2025-09-02 15:44:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:49 WARN  - [2025-09-02 15:44:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:44:49 WARN  - [2025-09-02 15:44:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:44:49 INFO  - [2025-09-02 15:44:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:49 INFO  - [2025-09-02 15:44:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:56 INFO  - [2025-09-02 15:44:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:44:56 INFO  - [2025-09-02 15:44:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:45:12 WARN  - [2025-09-02 15:45:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:45:12 INFO  - [2025-09-02 15:45:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:45:12 WARN  - [2025-09-02 15:45:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:45:12 INFO  - [2025-09-02 15:45:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:45:36 INFO  - [2025-09-02 15:45:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:45:36 INFO  - [2025-09-02 15:45:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:45:40 INFO  - [2025-09-02 15:45:40] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin-between | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:45:40 INFO  - [2025-09-02 15:45:40] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin-between | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:45:42 INFO  - [2025-09-02 15:45:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/projects/user/active-projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:51:29 INFO  - [2025-09-02 15:51:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:51:29 INFO  - [2025-09-02 15:51:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:51:32 INFO  - [2025-09-02 15:51:32] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:51:32 INFO  - [2025-09-02 15:51:32] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:51:32 INFO  - [2025-09-02 15:51:32] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:51:32 INFO  - [2025-09-02 15:51:32] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:51:35 INFO  - [2025-09-02 15:51:35] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:54:34 WARN  - [2025-09-02 15:54:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:54:34 INFO  - [2025-09-02 15:54:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:54:34 WARN  - [2025-09-02 15:54:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:54:34 INFO  - [2025-09-02 15:54:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:54:36 INFO  - [2025-09-02 15:54:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:54:39 WARN  - [2025-09-02 15:54:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 15:54:46 WARN  - [2025-09-02 15:54:46] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 15:54:49 WARN  - [2025-09-02 15:54:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 15:55:36 INFO  - [2025-09-02 15:55:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/by-po/00000011111 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:42 INFO  - [2025-09-02 15:55:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/by-po/00000011111 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:43 INFO  - [2025-09-02 15:55:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:43 WARN  - [2025-09-02 15:55:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:55:43 INFO  - [2025-09-02 15:55:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:43 WARN  - [2025-09-02 15:55:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:55:43 WARN  - [2025-09-02 15:55:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:55:43 WARN  - [2025-09-02 15:55:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:55:43 INFO  - [2025-09-02 15:55:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:45 INFO  - [2025-09-02 15:55:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:45 INFO  - [2025-09-02 15:55:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:45 INFO  - [2025-09-02 15:55:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:53 INFO  - [2025-09-02 15:55:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:53 WARN  - [2025-09-02 15:55:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:55:53 WARN  - [2025-09-02 15:55:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:55:57 INFO  - [2025-09-02 15:55:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:57 INFO  - [2025-09-02 15:55:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:57 INFO  - [2025-09-02 15:55:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:55:57 INFO  - [2025-09-02 15:55:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/by-po/0000000011 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/by-po/0000000011 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 WARN  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:01 WARN  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:01 WARN  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:01 WARN  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:01 INFO  - [2025-09-02 15:56:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:04 INFO  - [2025-09-02 15:56:04] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:04 INFO  - [2025-09-02 15:56:04] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:04 INFO  - [2025-09-02 15:56:04] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:14 INFO  - [2025-09-02 15:56:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:14 WARN  - [2025-09-02 15:56:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:14 WARN  - [2025-09-02 15:56:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:19 INFO  - [2025-09-02 15:56:19] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:19 INFO  - [2025-09-02 15:56:19] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:19 INFO  - [2025-09-02 15:56:19] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:19 INFO  - [2025-09-02 15:56:19] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:23 WARN  - [2025-09-02 15:56:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:23 INFO  - [2025-09-02 15:56:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:23 WARN  - [2025-09-02 15:56:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 15:56:23 INFO  - [2025-09-02 15:56:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:54 INFO  - [2025-09-02 15:56:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 15:56:57 WARN  - [2025-09-02 15:56:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 15:57:02 WARN  - [2025-09-02 15:57:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 15:57:10 WARN  - [2025-09-02 15:57:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 16:38:26 WARN  - [2025-09-02 16:38:26] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 16:38:29 INFO  - [2025-09-02 16:38:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:38:31 INFO  - [2025-09-02 16:38:31] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:38:33 WARN  - [2025-09-02 16:38:33] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Required request parameter 'poId' for method parameter type Long is present but converted to null
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:56 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:57 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:57 INFO  - [2025-09-02 16:46:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:57 INFO  - [2025-09-02 16:46:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:57 INFO  - [2025-09-02 16:46:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:46:57 INFO  - [2025-09-02 16:46:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:20 INFO  - [2025-09-02 16:47:20] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:20 INFO  - [2025-09-02 16:47:20] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:20 INFO  - [2025-09-02 16:47:20] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:20 INFO  - [2025-09-02 16:47:20] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:20 INFO  - [2025-09-02 16:47:20] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:20 INFO  - [2025-09-02 16:47:20] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:21 INFO  - [2025-09-02 16:47:21] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:21 INFO  - [2025-09-02 16:47:21] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:23 INFO  - [2025-09-02 16:47:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:23 INFO  - [2025-09-02 16:47:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:47:23 INFO  - [2025-09-02 16:47:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/projects/generate-code | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:55:14 INFO  - [2025-09-02 16:55:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:55:14 INFO  - [2025-09-02 16:55:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:55:14 INFO  - [2025-09-02 16:55:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:55:14 INFO  - [2025-09-02 16:55:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:55:15 WARN  - [2025-09-02 16:55:15] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 16:55:15 WARN  - [2025-09-02 16:55:15] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 16:55:15 INFO  - [2025-09-02 16:55:15] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:55:15 INFO  - [2025-09-02 16:55:15] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 16:55:30 WARN  - [2025-09-02 16:55:30] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/srn/delete/39 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Failed to delete SRN
+2025-09-02 17:02:24 INFO  - [2025-09-02 17:02:24] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:25 INFO  - [2025-09-02 17:02:25] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:31 INFO  - [2025-09-02 17:02:31] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:31 INFO  - [2025-09-02 17:02:31] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:31 INFO  - [2025-09-02 17:02:31] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:31 INFO  - [2025-09-02 17:02:31] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:33 WARN  - [2025-09-02 17:02:33] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:02:33 INFO  - [2025-09-02 17:02:33] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:33 WARN  - [2025-09-02 17:02:33] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:02:33 INFO  - [2025-09-02 17:02:33] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:02:38 WARN  - [2025-09-02 17:02:38] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/srn/delete/34 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Failed to delete SRN
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:09 INFO  - [2025-09-02 17:06:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:10 INFO  - [2025-09-02 17:06:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:10 INFO  - [2025-09-02 17:06:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:10 INFO  - [2025-09-02 17:06:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:10 INFO  - [2025-09-02 17:06:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:12 WARN  - [2025-09-02 17:06:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:06:12 WARN  - [2025-09-02 17:06:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:06:12 INFO  - [2025-09-02 17:06:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:12 INFO  - [2025-09-02 17:06:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:15 INFO  - [2025-09-02 17:06:15] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:18 INFO  - [2025-09-02 17:06:18] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:06:21 WARN  - [2025-09-02 17:06:21] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/srn/delete/35 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Failed to delete SRN
+2025-09-02 17:08:35 WARN  - [2025-09-02 17:08:35] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/srn/delete/35 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Failed to delete SRN
+2025-09-02 17:08:37 INFO  - [2025-09-02 17:08:37] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/users/logout/5 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:43 INFO  - [2025-09-02 17:08:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:45 WARN  - [2025-09-02 17:08:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:08:45 INFO  - [2025-09-02 17:08:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:08:45 WARN  - [2025-09-02 17:08:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:08:45 INFO  - [2025-09-02 17:08:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:37 INFO  - [2025-09-02 17:10:37] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:41 INFO  - [2025-09-02 17:10:41] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:41 INFO  - [2025-09-02 17:10:41] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:44 INFO  - [2025-09-02 17:10:44] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/13 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:44 INFO  - [2025-09-02 17:10:44] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/13 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:48 INFO  - [2025-09-02 17:10:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/10 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:48 INFO  - [2025-09-02 17:10:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/10 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:10:53 INFO  - [2025-09-02 17:10:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:11:12 INFO  - [2025-09-02 17:11:12] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/srn/add | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:11:12 INFO  - [2025-09-02 17:11:12] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/po-attachments/upload | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:11:12 INFO  - [2025-09-02 17:11:12] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/po-attachments/upload | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:11:12 INFO  - [2025-09-02 17:11:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:48 INFO  - [2025-09-02 17:18:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:54 INFO  - [2025-09-02 17:18:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:54 INFO  - [2025-09-02 17:18:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:54 INFO  - [2025-09-02 17:18:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:54 INFO  - [2025-09-02 17:18:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:55 WARN  - [2025-09-02 17:18:55] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:18:55 WARN  - [2025-09-02 17:18:55] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:18:55 INFO  - [2025-09-02 17:18:55] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:18:55 INFO  - [2025-09-02 17:18:55] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:19:21 WARN  - [2025-09-02 17:19:21] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/srn/delete/42 | IP: 0:0:0:0:0:0:0:1 | Status: 400 | Error: Failed to delete SRN
+2025-09-02 17:19:29 INFO  - [2025-09-02 17:19:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/42 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:19:29 INFO  - [2025-09-02 17:19:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:39 INFO  - [2025-09-02 17:22:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:43 INFO  - [2025-09-02 17:22:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:43 INFO  - [2025-09-02 17:22:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:43 INFO  - [2025-09-02 17:22:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:43 INFO  - [2025-09-02 17:22:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:45 WARN  - [2025-09-02 17:22:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:22:45 WARN  - [2025-09-02 17:22:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:22:45 INFO  - [2025-09-02 17:22:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:45 INFO  - [2025-09-02 17:22:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:48 INFO  - [2025-09-02 17:22:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:52 INFO  - [2025-09-02 17:22:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:52 INFO  - [2025-09-02 17:22:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:22:54 INFO  - [2025-09-02 17:22:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/check | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:23:13 INFO  - [2025-09-02 17:23:13] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:23:13 INFO  - [2025-09-02 17:23:13] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/milestonebalance/9/21 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:23:21 INFO  - [2025-09-02 17:23:21] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/srn/add | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:23:21 INFO  - [2025-09-02 17:23:21] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/po-attachments/upload | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:23:22 INFO  - [2025-09-02 17:23:22] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/po-attachments/upload | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:23:22 INFO  - [2025-09-02 17:23:22] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 WARN  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 WARN  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:30 INFO  - [2025-09-02 17:24:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:35 WARN  - [2025-09-02 17:24:35] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/po-consumption/delete/2 | IP: 0:0:0:0:0:0:0:1 | Status: 404 | Error: No response body
+2025-09-02 17:24:50 INFO  - [2025-09-02 17:24:50] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/users/logout/5 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:51 INFO  - [2025-09-02 17:24:51] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 WARN  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 WARN  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:53 INFO  - [2025-09-02 17:24:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:58 INFO  - [2025-09-02 17:24:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:24:58 INFO  - [2025-09-02 17:24:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:03 INFO  - [2025-09-02 17:25:03] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/invoices/INV-08202025-100001 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 WARN  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 WARN  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:25:14 INFO  - [2025-09-02 17:25:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:54 INFO  - [2025-09-02 17:27:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:56 INFO  - [2025-09-02 17:27:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:56 INFO  - [2025-09-02 17:27:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:56 INFO  - [2025-09-02 17:27:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:56 INFO  - [2025-09-02 17:27:56] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 WARN  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 WARN  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:27:58 INFO  - [2025-09-02 17:27:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:02 WARN  - [2025-09-02 17:28:02] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/po-consumption/delete/5 | IP: 0:0:0:0:0:0:0:1 | Status: 404 | Error: No response body
+2025-09-02 17:28:07 INFO  - [2025-09-02 17:28:07] User: ghodkeayush22@gmail.com | Action: POST | Endpoint: /api/users/logout/5 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:28:08 INFO  - [2025-09-02 17:28:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: Anonymous | Action: POST | Endpoint: /api/users/login | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 127.0.0.1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 127.0.0.1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:54 INFO  - [2025-09-02 17:33:54] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:57 INFO  - [2025-09-02 17:33:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:57 INFO  - [2025-09-02 17:33:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:57 INFO  - [2025-09-02 17:33:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:57 INFO  - [2025-09-02 17:33:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:57 INFO  - [2025-09-02 17:33:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:57 INFO  - [2025-09-02 17:33:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:58 INFO  - [2025-09-02 17:33:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:58 INFO  - [2025-09-02 17:33:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:58 INFO  - [2025-09-02 17:33:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:33:58 INFO  - [2025-09-02 17:33:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:01 WARN  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 127.0.0.1 | Status: 200
+2025-09-02 17:34:01 WARN  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:01 INFO  - [2025-09-02 17:34:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:04 INFO  - [2025-09-02 17:34:04] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/po-consumption/delete/7 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:04 INFO  - [2025-09-02 17:34:04] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:36 WARN  - [2025-09-02 17:34:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:34:36 WARN  - [2025-09-02 17:34:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:34:36 INFO  - [2025-09-02 17:34:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:34:36 INFO  - [2025-09-02 17:34:36] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 127.0.0.1 | Status: 200
+2025-09-02 17:34:40 INFO  - [2025-09-02 17:34:40] User: ghodkeayush22@gmail.com | Action: DELETE | Endpoint: /api/srn/delete/43 | IP: 127.0.0.1 | Status: 200
+2025-09-02 17:34:40 INFO  - [2025-09-02 17:34:40] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 127.0.0.1 | Status: 200
+2025-09-02 17:44:12 INFO  - [2025-09-02 17:44:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:12 INFO  - [2025-09-02 17:44:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 WARN  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 WARN  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:14 INFO  - [2025-09-02 17:44:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:16 WARN  - [2025-09-02 17:44:16] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:44:16 INFO  - [2025-09-02 17:44:16] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:16 WARN  - [2025-09-02 17:44:16] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:44:16 INFO  - [2025-09-02 17:44:16] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:18 INFO  - [2025-09-02 17:44:18] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:44:18 INFO  - [2025-09-02 17:44:18] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 WARN  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 WARN  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:01 INFO  - [2025-09-02 17:45:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:03 WARN  - [2025-09-02 17:45:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:03 INFO  - [2025-09-02 17:45:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:03 WARN  - [2025-09-02 17:45:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:03 INFO  - [2025-09-02 17:45:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:04 INFO  - [2025-09-02 17:45:04] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:04 INFO  - [2025-09-02 17:45:04] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:05 WARN  - [2025-09-02 17:45:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:05 INFO  - [2025-09-02 17:45:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:05 WARN  - [2025-09-02 17:45:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:05 INFO  - [2025-09-02 17:45:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 WARN  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 WARN  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:06 INFO  - [2025-09-02 17:45:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:07 INFO  - [2025-09-02 17:45:07] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:07 INFO  - [2025-09-02 17:45:07] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 WARN  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 WARN  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:09 INFO  - [2025-09-02 17:45:09] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:10 WARN  - [2025-09-02 17:45:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:10 INFO  - [2025-09-02 17:45:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:10 WARN  - [2025-09-02 17:45:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:10 INFO  - [2025-09-02 17:45:10] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:11 INFO  - [2025-09-02 17:45:11] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:11 INFO  - [2025-09-02 17:45:11] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/invoices | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:13 WARN  - [2025-09-02 17:45:13] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:13 INFO  - [2025-09-02 17:45:13] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:13 WARN  - [2025-09-02 17:45:13] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:13 INFO  - [2025-09-02 17:45:13] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 WARN  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 WARN  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:14 INFO  - [2025-09-02 17:45:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:16 INFO  - [2025-09-02 17:45:16] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:16 INFO  - [2025-09-02 17:45:16] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 WARN  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 WARN  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:24 INFO  - [2025-09-02 17:45:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:26 WARN  - [2025-09-02 17:45:26] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:26 INFO  - [2025-09-02 17:45:26] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:26 WARN  - [2025-09-02 17:45:26] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:26 INFO  - [2025-09-02 17:45:26] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 WARN  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 WARN  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:27 INFO  - [2025-09-02 17:45:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:30 INFO  - [2025-09-02 17:45:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:30 INFO  - [2025-09-02 17:45:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/organizations/type/CUSTOMER | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:30 INFO  - [2025-09-02 17:45:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/organizations/type/SUPPLIER | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:30 INFO  - [2025-09-02 17:45:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines/tenant/3 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:30 INFO  - [2025-09-02 17:45:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:30 INFO  - [2025-09-02 17:45:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/organizations/type/CUSTOMER | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:30 INFO  - [2025-09-02 17:45:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/organizations/type/SUPPLIER | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:45 WARN  - [2025-09-02 17:45:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:45 INFO  - [2025-09-02 17:45:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:45 WARN  - [2025-09-02 17:45:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:45:45 INFO  - [2025-09-02 17:45:45] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:45:48 INFO  - [2025-09-02 17:45:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:06 INFO  - [2025-09-02 17:46:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:08 INFO  - [2025-09-02 17:46:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:08 INFO  - [2025-09-02 17:46:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:08 INFO  - [2025-09-02 17:46:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/36 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:08 INFO  - [2025-09-02 17:46:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:08 INFO  - [2025-09-02 17:46:08] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:12 WARN  - [2025-09-02 17:46:12] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:14 WARN  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:14 WARN  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:14 INFO  - [2025-09-02 17:46:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:17 INFO  - [2025-09-02 17:46:17] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:17 INFO  - [2025-09-02 17:46:17] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:17 INFO  - [2025-09-02 17:46:17] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:17 INFO  - [2025-09-02 17:46:17] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:39 INFO  - [2025-09-02 17:46:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:39 INFO  - [2025-09-02 17:46:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:46:39 INFO  - [2025-09-02 17:46:39] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:48:49 WARN  - [2025-09-02 17:48:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:48:49 INFO  - [2025-09-02 17:48:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:48:49 WARN  - [2025-09-02 17:48:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 17:48:49 INFO  - [2025-09-02 17:48:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:48:50 INFO  - [2025-09-02 17:48:50] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:57:34 INFO  - [2025-09-02 17:57:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 17:57:34 INFO  - [2025-09-02 17:57:34] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:24 INFO  - [2025-09-02 18:00:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:24 INFO  - [2025-09-02 18:00:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:30 INFO  - [2025-09-02 18:00:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/14 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:30 INFO  - [2025-09-02 18:00:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/14 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:30 INFO  - [2025-09-02 18:00:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:30 INFO  - [2025-09-02 18:00:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/15 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:30 INFO  - [2025-09-02 18:00:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:30 INFO  - [2025-09-02 18:00:30] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:42 INFO  - [2025-09-02 18:00:42] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:43 INFO  - [2025-09-02 18:00:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:43 INFO  - [2025-09-02 18:00:43] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/projects | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:44 INFO  - [2025-09-02 18:00:44] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:44 INFO  - [2025-09-02 18:00:44] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:44 INFO  - [2025-09-02 18:00:44] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/projects/generate-code | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:53 INFO  - [2025-09-02 18:00:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:53 INFO  - [2025-09-02 18:00:53] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin/summary | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:57 INFO  - [2025-09-02 18:00:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin-between | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:00:57 INFO  - [2025-09-02 18:00:57] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/timesheet-tasks/admin-between | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/monthly-invoice-trend | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-team-count | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/summary-stats | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-values | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/project-status-pie | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:00 INFO  - [2025-09-02 18:01:00] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/dashboard/po-vs-invoice | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:01 INFO  - [2025-09-02 18:01:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:01 INFO  - [2025-09-02 18:01:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:01 INFO  - [2025-09-02 18:01:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:01 INFO  - [2025-09-02 18:01:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:01 INFO  - [2025-09-02 18:01:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:01 INFO  - [2025-09-02 18:01:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:03 INFO  - [2025-09-02 18:01:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:01:03 INFO  - [2025-09-02 18:01:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:24 INFO  - [2025-09-02 18:02:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:24 INFO  - [2025-09-02 18:02:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:24 INFO  - [2025-09-02 18:02:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:24 INFO  - [2025-09-02 18:02:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 WARN  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 WARN  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:27 INFO  - [2025-09-02 18:02:27] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:29 WARN  - [2025-09-02 18:02:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:02:29 INFO  - [2025-09-02 18:02:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:02:29 WARN  - [2025-09-02 18:02:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:02:29 INFO  - [2025-09-02 18:02:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:01 INFO  - [2025-09-02 18:03:01] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:05 WARN  - [2025-09-02 18:03:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:03:05 INFO  - [2025-09-02 18:03:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:05 WARN  - [2025-09-02 18:03:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:03:05 INFO  - [2025-09-02 18:03:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:21 INFO  - [2025-09-02 18:03:21] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:21 INFO  - [2025-09-02 18:03:21] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:21 INFO  - [2025-09-02 18:03:21] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:22 INFO  - [2025-09-02 18:03:21] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:22 INFO  - [2025-09-02 18:03:22] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:22 INFO  - [2025-09-02 18:03:22] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:22 INFO  - [2025-09-02 18:03:22] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:22 INFO  - [2025-09-02 18:03:22] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:24 WARN  - [2025-09-02 18:03:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:03:24 INFO  - [2025-09-02 18:03:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:24 WARN  - [2025-09-02 18:03:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:03:24 INFO  - [2025-09-02 18:03:24] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:48 INFO  - [2025-09-02 18:03:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:48 INFO  - [2025-09-02 18:03:48] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/loggedInUser | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:49 INFO  - [2025-09-02 18:03:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:49 INFO  - [2025-09-02 18:03:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:49 INFO  - [2025-09-02 18:03:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/users/basicdetails/ghodkeayush22@gmail.com | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:49 INFO  - [2025-09-02 18:03:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:49 INFO  - [2025-09-02 18:03:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:03:49 INFO  - [2025-09-02 18:03:49] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 WARN  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 WARN  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \undefined\
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/systems/tenant | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:03 INFO  - [2025-09-02 18:05:03] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:05 WARN  - [2025-09-02 18:05:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:05:05 INFO  - [2025-09-02 18:05:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:05 WARN  - [2025-09-02 18:05:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:05:05 INFO  - [2025-09-02 18:05:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:06 INFO  - [2025-09-02 18:05:06] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:14 INFO  - [2025-09-02 18:05:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:14 INFO  - [2025-09-02 18:05:14] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:23 INFO  - [2025-09-02 18:05:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneForPo/14 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:23 INFO  - [2025-09-02 18:05:23] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/14 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:29 INFO  - [2025-09-02 18:05:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/pobalance/14 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:29 INFO  - [2025-09-02 18:05:29] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/milestonebalance/14/17 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:31 INFO  - [2025-09-02 18:05:31] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:52 INFO  - [2025-09-02 18:05:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:52 INFO  - [2025-09-02 18:05:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:52 INFO  - [2025-09-02 18:05:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:52 INFO  - [2025-09-02 18:05:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/modules/ | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:52 INFO  - [2025-09-02 18:05:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/access/getRoles | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:52 INFO  - [2025-09-02 18:05:52] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/getAllUsers | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:58 INFO  - [2025-09-02 18:05:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:58 INFO  - [2025-09-02 18:05:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:58 INFO  - [2025-09-02 18:05:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/all | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:05:58 INFO  - [2025-09-02 18:05:58] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/budget-lines | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/by-po/00000011111 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/srn/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-consumption/by-po/00000011111 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 WARN  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:02 WARN  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:06:02 WARN  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:06:02 WARN  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-attachments/meta/filter | IP: 0:0:0:0:0:0:0:1 | Status: 500 | Error: Method parameter 'referenceId': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Long'; For input string: \null\
+2025-09-02 18:06:02 INFO  - [2025-09-02 18:06:02] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/tenants/3/users | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:05 INFO  - [2025-09-02 18:06:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:05 INFO  - [2025-09-02 18:06:05] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200
+2025-09-02 18:06:11 INFO  - [2025-09-02 18:06:11] User: ghodkeayush22@gmail.com | Action: GET | Endpoint: /api/po-milestone/getMilestoneBalanceForPO/9 | IP: 0:0:0:0:0:0:0:1 | Status: 200

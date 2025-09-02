@@ -321,7 +321,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             console.log('Fetching systems from:', `${API_BASE_URL}/api/systems/tenant`);
             const token = sessionStorage.getItem('token');
             console.log('Token exists:', !!token);
-            
+
             const response = await axios.get(`${API_BASE_URL}/api/systems/tenant`, {
                 headers: { Authorization: token }
             });
@@ -507,30 +507,58 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         {/* Row 2: Project Manager, Sponsor, Currency, and Cost */}
                         <div className="grid grid-cols-4 gap-4">
                             <div className="flex-1">
-                                <Dropdown
-                                    options={users}
-                                    value={formData.manager}
-                                    onChange={(user) => handleChange('manager', user ? user.userId : null)}
-                                    label="Project Manager"
-                                    placeholder="Search for a manager..."
-                                    icon={User}
-                                    getOptionLabel={(option) => option.name || ''}
-                                    isOptionEqualToValue={(option, value) => option.userId === value}
-                                    disabled={isSubmitting}
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Project Manager
+                                </label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={
+                                        formData.manager
+                                            ? {
+                                                label: formData.manager,
+                                                value: formData.manager,
+                                            }
+                                            : null
+                                    }
+                                    onChange={(selected) =>
+                                        handleChange("manager", selected ? selected.value : "")
+                                    }
+                                    placeholder="Search or add a manager..."
+                                    isClearable
+                                    isDisabled={isSubmitting}
+                                    styles={{
+                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                 />
                             </div>
 
                             <div className="flex-1">
-                                <Dropdown
-                                    options={users}
-                                    value={formData.sponsor}
-                                    onChange={(user) => handleChange('sponsor', user ? user.userId : null)}
-                                    label="Project Sponsor"
-                                    placeholder="Search for a sponsor..."
-                                    icon={User}
-                                    getOptionLabel={(option) => option.name || ''}
-                                    isOptionEqualToValue={(option, value) => option.userId === value}
-                                    disabled={isSubmitting}
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Project Sponsor
+                                </label>
+                                <CreatableSelect
+                                    options={userOptions}
+                                    value={
+                                        formData.sponsor
+                                            ? {
+                                                label: formData.sponsor,
+                                                value: formData.sponsor,
+                                            }
+                                            : null
+                                    }
+                                    onChange={(selected) =>
+                                        handleChange("sponsor", selected ? selected.value : "")
+                                    }
+                                    placeholder="Search or add a sponsor..."
+                                    isClearable
+                                    isDisabled={isSubmitting}
+                                    styles={{
+                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                 />
                             </div>
 
@@ -758,7 +786,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     </div>
                                     {/* Debug info */}
                                     <div className="text-xs text-gray-500 mt-1">
-                                        Available systems: {systemOptions.length} | 
+                                        Available systems: {systemOptions.length} |
                                         Selected: {formData.systemImpacted?.length || 0}
                                     </div>
 
@@ -797,7 +825,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             </div>
                         </div>
 
-                       
+
 
                         {/* Action Buttons */}
                         <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
