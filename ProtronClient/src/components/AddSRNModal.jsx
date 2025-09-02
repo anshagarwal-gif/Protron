@@ -626,7 +626,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     <option value="full" title="Full SRN - For complete amount of PO/Milestone">Full</option>
                                 </select>
                                 {errors.srnType && (
-                                    <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.srnType}`}>
+                                    <p className="absolute mt-1 text-xs text-red-600" title={`Error: ${errors.srnType}`}>
                                         {errors.srnType}
                                     </p>
                                 )}
