@@ -18,7 +18,8 @@ import {
   Archive,
   Clock,
   CreditCard,
-  Edit
+  Edit,
+  Folder
 } from "lucide-react";
 import axios from "axios";
 import AddInvoiceModal from "../components/AddInvoice";
@@ -159,6 +160,10 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
               <Field
                 label="Invoice Name"
                 value={invoice.invoiceName}
+              />
+              <Field
+                label="Project Name"
+                value={invoice.projectName}
               />
               <Field
                 label="Currency"
@@ -395,6 +400,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     return (
       invoice.invoiceId?.toLowerCase().includes(searchLower) ||
       invoice.invoiceName?.toLowerCase().includes(searchLower) ||
+      invoice.projectName?.toLowerCase().includes(searchLower) ||
       invoice.customerName?.toLowerCase().includes(searchLower) ||
       invoice.supplierName?.toLowerCase().includes(searchLower) ||
       invoice.employeeName?.toLowerCase().includes(searchLower) ||
@@ -541,6 +547,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         'S.No': index + 1,
         'Invoice ID': invoice.invoiceId || 'N/A',
         'Invoice Name': invoice.invoiceName || 'N/A',
+        'Project Name': invoice.projectName || 'N/A',
         'Customer Name': invoice.customerName || 'N/A',
         'Supplier Name': invoice.supplierName || 'N/A',
         'Employee Name': invoice.employeeName || 'N/A',
@@ -644,6 +651,26 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       )
     },
     {
+      headerName: "Project Name",
+      field: "projectName",
+      valueGetter: params => params.data.projectName || 'N/A',
+      flex: 1,
+      minWidth: 180,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => (
+        <div className="flex items-center">
+          <Folder size={14} className="text-green-600 mr-2" />
+          <span 
+            className="truncate max-w-full overflow-hidden whitespace-nowrap" 
+            title={params.value}
+          >
+            {params.value}
+          </span>
+        </div>
+      )
+    },
+    {
       headerName: "Customer",
       field: "customerName",
       valueGetter: params => params.data.customerName || 'N/A',
@@ -738,7 +765,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               className="p-1 rounded hover:bg-blue-100 text-blue-600"
               title="Edit Invoice"
             >
-              <Edit size={16} />
+              <Eye size={16} />
             </button>
           )}
           {/* Delete Button */}
@@ -1123,6 +1150,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleModalSubmit}
+        isFromInvoiceManagement={true}
       />
     </div>
   );

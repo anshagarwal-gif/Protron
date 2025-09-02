@@ -128,13 +128,13 @@ public class Project {
     private List<ProjectTeam> projectTeam;
 
     @OneToMany(mappedBy = "project")
-    @JsonIgnoreProperties({"project", "tenant", "projectTeams"})
+    @JsonIgnoreProperties({ "project", "tenant", "projectTeams" })
     @Where(clause = "end_timestamp IS NULL")
     private List<Systemimpacted> systemImpacted;
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({ "users", "projects", "roles", "roleAccesses" }) 
+    @JsonIgnoreProperties({ "users", "projects", "roles", "roleAccesses" })
     private Tenant tenant;
 
     public List<Systemimpacted> getSystemImpacted() {

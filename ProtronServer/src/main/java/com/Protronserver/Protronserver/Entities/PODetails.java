@@ -24,7 +24,7 @@ public class PODetails {
     @Column(name = "po_type", length = 50)
     private POType poType;
 
-    @Column(name = "po_desc")
+    @Column(name = "po_desc", length = 500)
     private String poDesc;
 
     @Column(name = "po_amount")
@@ -52,7 +52,7 @@ public class PODetails {
     private String budgetLineItem;
     @Column(name = "budget_line_amount")
     private BigDecimal budgetLineAmount;
-    @Column(name = "budget_line_remarks")
+    @Column(name = "budget_line_remarks", length = 500)
     private String budgetLineRemarks;
 
     @Column(name = "business_value_amount")

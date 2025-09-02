@@ -2,7 +2,6 @@ package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "rida")
@@ -37,7 +36,7 @@ public class Rida {
     private LocalDateTime raisedOn = LocalDateTime.now();
 
     @Column(name = "raised_by")
-    private String raisedBy;  // Could be linked to User in future
+    private String raisedBy; // Could be linked to User in future
 
     @Column(name = "owner")
     private String owner; // Could be linked to User in future

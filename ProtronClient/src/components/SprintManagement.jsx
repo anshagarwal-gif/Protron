@@ -523,7 +523,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Sprint Goal</label>
               <textarea
                 name="description"
                 value={formData.description}

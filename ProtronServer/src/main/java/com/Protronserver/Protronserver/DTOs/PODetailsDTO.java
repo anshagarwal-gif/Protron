@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -17,6 +18,7 @@ public class PODetailsDTO {
     private String sponsorLob;
     private String budgetLineItem;
     private BigDecimal budgetLineAmount;
+    @Size(max = 500, message = "Budget line remarks must not exceed 500 characters")
     private String budgetLineRemarks;
     private BigDecimal businessValueAmount;
     private String businessValueType;

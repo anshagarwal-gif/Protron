@@ -106,7 +106,6 @@ public class ProjectUpdateDTO {
         return projectName;
     }
 
-
     public void setProjectName(String projectName) {
         this.projectName = projectName;
     }

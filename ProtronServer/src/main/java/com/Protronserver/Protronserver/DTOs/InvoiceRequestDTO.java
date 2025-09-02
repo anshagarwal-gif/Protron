@@ -34,7 +34,6 @@ public class InvoiceRequestDTO {
 
     private String supplierAddress;
 
-    @NotBlank(message = "Employee name is required")
     @Size(max = 100, message = "Employee name must not exceed 100 characters")
     private String employeeName;
 
@@ -60,6 +59,10 @@ public class InvoiceRequestDTO {
 
     @Size(max = 1000, message = "Remarks must not exceed 1000 characters")
     private String remarks;
+
+    @Size(max = 200, message = "Project name must not exceed 200 characters")
+    private String projectName;
+
     private TimesheetDataDTO timesheetData;
 
     @Data
@@ -298,12 +301,11 @@ public class InvoiceRequestDTO {
         this.supplierAddress = supplierAddress;
     }
 
-    public @NotBlank(message = "Employee name is required") @Size(max = 100, message = "Employee name must not exceed 100 characters") String getEmployeeName() {
+    public String getEmployeeName() {
         return employeeName;
     }
 
-    public void setEmployeeName(
-            @NotBlank(message = "Employee name is required") @Size(max = 100, message = "Employee name must not exceed 100 characters") String employeeName) {
+    public void setEmployeeName(String employeeName) {
         this.employeeName = employeeName;
     }
 
@@ -364,6 +366,14 @@ public class InvoiceRequestDTO {
 
     public void setRemarks(@Size(max = 1000, message = "Remarks must not exceed 1000 characters") String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     // New getter and setter for timesheet data

@@ -72,6 +72,9 @@ public class Invoice {
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
+    @Column(columnDefinition = "TEXT")
+    private String projectName;
+
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] pdfData;
@@ -182,9 +185,11 @@ public class Invoice {
     public String getInvoiceName() {
         return invoiceName;
     }
+
     public String getCustomerInfo() {
         return customerInfo;
     }
+
     public void setCustomerInfo(String customerInfo) {
         this.customerInfo = customerInfo;
     }
@@ -192,10 +197,10 @@ public class Invoice {
     public String getSupplierInfo() {
         return supplierInfo;
     }
+
     public void setSupplierInfo(String supplierInfo) {
         this.supplierInfo = supplierInfo;
     }
-
 
     public void setInvoiceName(String invoiceName) {
         this.invoiceName = invoiceName;
@@ -295,6 +300,14 @@ public class Invoice {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public byte[] getPdfData() {
