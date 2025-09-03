@@ -148,7 +148,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     { 
       headerName: 'Start Date', 
       field: 'startDate', 
-      width: 140,
+      width: 110,
       cellRenderer: (params) => {
         if (!params.value) return '';
         const d = new Date(params.value);
@@ -158,10 +158,16 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
         return `${day}-${month}-${year}`;
       }
     },
+    {
+      headerName: 'Start Time',
+      field: 'startTime',
+      width: 90,
+      cellRenderer: (params) => params.value ? params.value : '',
+    },
     { 
       headerName: 'End Date', 
       field: 'endDate', 
-      width: 140,
+      width: 110,
       cellRenderer: (params) => {
         if (!params.value) return '';
         const d = new Date(params.value);
@@ -170,12 +176,18 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
         const year = d.getFullYear();
         return `${day}-${month}-${year}`;
       }
+    },
+    {
+      headerName: 'End Time',
+      field: 'endTime',
+      width: 90,
+      cellRenderer: (params) => params.value ? params.value : '',
     },
     { headerName: 'Description', field: 'description', flex: 2 },
     { 
       headerName: 'Created On', 
       field: 'createdOn', 
-      width: 140, 
+      width: 110, 
       cellRenderer: (params) => {
         if (!params.value) return '';
         const d = new Date(params.value);
@@ -278,7 +290,9 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
   const [formData, setFormData] = useState({
     releaseName: '',
     startDate: '',
+    startTime: '',
     endDate: '',
+    endTime: '',
     description: '',
     projectName: '',
   });
@@ -293,7 +307,9 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
       setFormData({
         releaseName: initialData.releaseName || '',
         startDate: initialData.startDate ? initialData.startDate.substring(0, 10) : '',
+        startTime: initialData.startTime || '',
         endDate: initialData.endDate ? initialData.endDate.substring(0, 10) : '',
+        endTime: initialData.endTime || '',
         description: initialData.description || '',
         projectName: projectName || '',
       });
@@ -304,7 +320,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
         setExistingAttachments([]);
       }
     } else {
-      setFormData({ releaseName: '', startDate: '', endDate: '', description: '', projectName: projectName || '' });
+  setFormData({ releaseName: '', startDate: '', startTime: '', endDate: '', endTime: '', description: '', projectName: projectName || '' });
       setReleaseFiles([]);
       setExistingAttachments([]);
     }
@@ -357,13 +373,15 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
   };
 
   const validate = () => {
-    const errs = {};
-    if (!formData.releaseName) errs.releaseName = 'Required';
-    if (!formData.startDate) errs.startDate = 'Required';
-    if (!formData.endDate) errs.endDate = 'Required';
-    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+  const errs = {};
+  if (!formData.releaseName) errs.releaseName = 'Required';
+  if (!formData.startDate) errs.startDate = 'Required';
+  if (!formData.startTime) errs.startTime = 'Required';
+  if (!formData.endDate) errs.endDate = 'Required';
+  if (!formData.endTime) errs.endTime = 'Required';
+  if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
+  setErrors(errs);
+  return Object.keys(errs).length === 0;
   };
 
   const handleChange = (e) => {
@@ -494,7 +512,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
               </div>
             </div>
             <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-6">
+              <div className="col-span-3">
                 <label className="block text-xs font-medium text-gray-700 mb-1">Start Date *</label>
                 <input
                   type="date"
@@ -507,7 +525,21 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 />
                 {errors.startDate && <span className="text-red-500 text-xs mt-1 block">{errors.startDate}</span>}
               </div>
-              <div className="col-span-6">
+              <div className="col-span-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time *</label>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  onClick={e => e.target.showPicker && e.target.showPicker()}
+                  step="1"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.startTime ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.startTime && <span className="text-red-500 text-xs mt-1 block">{errors.startTime}</span>}
+              </div>
+              <div className="col-span-3">
                 <label className="block text-xs font-medium text-gray-700 mb-1">End Date *</label>
                 <input
                   type="date"
@@ -519,6 +551,20 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                   required
                 />
                 {errors.endDate && <span className="text-red-500 text-xs mt-1 block">{errors.endDate}</span>}
+              </div>
+              <div className="col-span-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Time *</label>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  onClick={e => e.target.showPicker && e.target.showPicker()}
+                  step="1"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.endTime ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.endTime && <span className="text-red-500 text-xs mt-1 block">{errors.endTime}</span>}
               </div>
             </div>
             <div>

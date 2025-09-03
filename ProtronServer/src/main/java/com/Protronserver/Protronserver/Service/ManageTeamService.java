@@ -42,6 +42,7 @@ public class ManageTeamService {
         team.setUnit(dto.getUnit());
         team.setTaskType(dto.getTaskType());
         team.setEstimatedReleaseDate(dto.getEstimatedReleaseDate());
+        team.setOnBoardingDate(dto.getOnBoardingDate());
         team.setStartTimestamp(dto.getStartTimestamp() != null ? dto.getStartTimestamp() : LocalDateTime.now());
         team.setEndTimestamp(dto.getEndTimestamp());
         team.setLastUpdatedBy(dto.getLastUpdatedBy());
@@ -82,6 +83,7 @@ public class ManageTeamService {
         newVersionMember.setPricing(dto.getPricing());
         newVersionMember.setUnit(dto.getUnit());
         newVersionMember.setEstimatedReleaseDate(dto.getEstimatedReleaseDate());
+        newVersionMember.setOnBoardingDate(dto.getOnBoardingDate());
         newVersionMember.setEmpCode(team.getEmpCode());
         newVersionMember.setStatus(team.getStatus());
         newVersionMember.setTaskType(dto.getTaskType());
@@ -116,6 +118,7 @@ public class ManageTeamService {
         newVersionMember.setPricing(team.getPricing());
         newVersionMember.setUnit(team.getUnit());
         newVersionMember.setEstimatedReleaseDate(team.getEstimatedReleaseDate());
+        newVersionMember.setOnBoardingDate(team.getOnBoardingDate());
         newVersionMember.setEmpCode(team.getEmpCode());
         newVersionMember.setStatus(status);
         newVersionMember.setTaskType(team.getTaskType());

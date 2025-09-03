@@ -211,13 +211,9 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         sponsor: null,
         systemImpacted: [],
         productOwner: '',
-    scrumMaster: '',
-    architect: '',
-    chiefScrumMaster: '',
-    deliveryLeader: '',
-    businessUnitFundedBy: '',
-    businessUnitDeliveredTo: '',
-    priority: 1
+        businessValueAmount: '',
+        businessValueType: 'One Time',
+        priority: 1,
     };
     // Local state for form data to ensure controlled inputs
     const [localFormData, setLocalFormData] = useState(defaultFormData);
@@ -286,7 +282,9 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     deliveryLeader: project.deliveryLeader || '',
     businessUnitFundedBy: project.businessUnitFundedBy || '',
     businessUnitDeliveredTo: project.businessUnitDeliveredTo || '',
-    priority: project.priority || 1
+    priority: project.priority || 1,
+    businessValueAmount: project.businessValueAmount || 0,
+    businessValueType: project.businessValueType || 'One Time'
             };
             setLocalFormData(projectData);
             setInitialFormData(projectData);
@@ -385,8 +383,10 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     deliveryLeader: localFormData.deliveryLeader,
     businessUnitFundedBy: localFormData.businessUnitFundedBy,
     businessUnitDeliveredTo: localFormData.businessUnitDeliveredTo,
-    priority: localFormData.priority
-        };
+    priority: localFormData.priority,
+    businessValueAmount: localFormData.businessValueAmount || 0,
+    businessValueType: localFormData.businessValueType || 'One Time'
+};
 
         try {
             // Replace with your actual fetch implementation
@@ -501,6 +501,36 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                                 icon={Calendar}
                                                 className="flex-1"
                                             />
+                                            <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Value Amount</label>
+                    <input
+                        type="number"
+                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md"
+                        value={localFormData.businessValueAmount || ''}
+                        onChange={e => {
+                            let value = e.target.value.replace(/[^0-9.]/g, '');
+                            const parts = value.split('.');
+                            if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                            if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                            if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                            value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                            setLocalFormData(prev => ({ ...prev, businessValueAmount: value }));
+                        }}
+                        placeholder="Enter business value amount"
+                        min="0"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Business Value Type</label>
+                    <select
+                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md"
+                        value={localFormData.businessValueType || 'One Time'}
+                        onChange={e => setLocalFormData({ ...localFormData, businessValueType: e.target.value })}
+                    >
+                        <option value="One Time">One Time</option>
+                        <option value="Yearly">Yearly</option>
+                    </select>
+                </div>
                                         </div>
 
                                         {/* Row 3: Project Manager and Sponsor */}
@@ -549,14 +579,13 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                                         type="number"
                                                         placeholder="Enter amount"
                                                         value={localFormData.projectCost || ''}
-                                                        onChange={(e) => {
-                                                            // Accept only up to two decimal places
-                                                            let value = e.target.value;
-                                                            value = value.replace(/[^\d.]/g, "");
-                                                            if (value.includes(".")) {
-                                                                const [intPart, decPart] = value.split(".");
-                                                                value = intPart + "." + (decPart.substring(0, 2));
-                                                            }
+                                                        onChange={e => {
+                                                            let value = e.target.value.replace(/[^0-9.]/g, '');
+                                                            const parts = value.split('.');
+                                                            if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                                            if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                                            if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                                            value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
                                                             handleChange('projectCost', value);
                                                         }}
                                                         className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"

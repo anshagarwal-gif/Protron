@@ -51,6 +51,8 @@ public class RidaService {
         rida.setType(dto.getType());
         rida.setRaisedBy(dto.getRaisedBy());
         rida.setOwner(dto.getOwner());
+        rida.setDateRaised(dto.getDateRaised());
+        rida.setTargetCloser(dto.getTargetCloser());
         rida.setStatus(dto.getStatus());
         rida.setRemarks(dto.getRemarks());
         rida.setStartTimestamp(LocalDateTime.now());
@@ -82,6 +84,8 @@ public class RidaService {
         newRida.setType(dto.getType());
         newRida.setRaisedBy(dto.getRaisedBy());
         newRida.setOwner(dto.getOwner());
+        newRida.setDateRaised(dto.getDateRaised());
+        newRida.setTargetCloser(dto.getTargetCloser());
         newRida.setStatus(dto.getStatus());
         newRida.setRemarks(dto.getRemarks());
         newRida.setTenantId(rida.getTenantId());

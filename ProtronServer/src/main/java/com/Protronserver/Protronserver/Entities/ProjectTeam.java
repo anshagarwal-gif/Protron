@@ -76,6 +76,8 @@ public class ProjectTeam {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate estimatedReleaseDate;
 
+    private LocalDate onBoardingDate;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id", nullable = false)
     @JsonIgnoreProperties({ "team", "projectManager", "tenant", "sponsor" })
@@ -164,5 +166,13 @@ public class ProjectTeam {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
+    }
+
+    public LocalDate getOnBoardingDate() {
+        return onBoardingDate;
+    }
+
+    public void setOnBoardingDate(LocalDate onBoardingDate) {
+        this.onBoardingDate = onBoardingDate;
     }
 }

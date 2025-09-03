@@ -60,6 +60,16 @@ public class TeamMemberRequestDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate estimatedReleaseDate;
 
+    private LocalDate onBoardingDate;
+
+    public LocalDate getOnBoardingDate() {
+        return onBoardingDate;
+    }
+
+    public void setOnBoardingDate(LocalDate onBoardingDate) {
+        this.onBoardingDate = onBoardingDate;
+    }
+
     public LocalDate getEstimatedReleaseDate() {
         return estimatedReleaseDate;
     }

@@ -18,6 +18,16 @@ public class TeamMemberEditDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate estimatedReleaseDate;
 
+    private LocalDate onBoardingDate;
+
+    public LocalDate getOnBoardingDate() {
+        return onBoardingDate;
+    }
+
+    public void setOnBoardingDate(LocalDate onBoardingDate) {
+        this.onBoardingDate = onBoardingDate;
+    }
+
     public Long getSystemImpacted() {
         return systemImpacted;
     }

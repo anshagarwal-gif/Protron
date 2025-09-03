@@ -13,11 +13,12 @@ public class ProjectTeamMemberDTO {
     private Long systemId;
     private String systemName;
     private LocalDate estimatedReleaseDate;
+    private LocalDate onBoardingDate;
     private String status;
 
     public ProjectTeamMemberDTO(Long projectTeamId, Long userId, String name, String empCode, String email,
                                 String unit, Double pricing,Long systemId, String systemName,
-                                LocalDate estimatedReleaseDate, String status) {
+                                LocalDate estimatedReleaseDate, LocalDate onBoardingDate, String status) {
         this.projectTeamId = projectTeamId;
         this.userId = userId;
         this.name = name;
@@ -28,6 +29,7 @@ public class ProjectTeamMemberDTO {
         this.systemId = systemId;
         this.systemName = systemName;
         this.estimatedReleaseDate = estimatedReleaseDate;
+        this.onBoardingDate = onBoardingDate;
         this.status = status;
     }
 
@@ -109,6 +111,14 @@ public class ProjectTeamMemberDTO {
 
     public void setEstimatedReleaseDate(LocalDate estimatedReleaseDate) {
         this.estimatedReleaseDate = estimatedReleaseDate;
+    }
+
+    public LocalDate getOnBoardingDate() {
+        return onBoardingDate;
+    }
+
+    public void setOnBoardingDate(LocalDate onBoardingDate) {
+        this.onBoardingDate = onBoardingDate;
     }
 
     public String getStatus() {

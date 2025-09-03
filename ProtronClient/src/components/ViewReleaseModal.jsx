@@ -3,6 +3,8 @@ import axios from 'axios';
 import { X, FileText, Hash, Calendar } from 'lucide-react';
 
 const ViewReleaseModal = ({ open, onClose, releaseData }) => {
+  // Truncate project name after 25 characters
+  const truncate = (str, n = 25) => str && str.length > n ? str.slice(0, n) + '...' : str;
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -40,6 +42,12 @@ const ViewReleaseModal = ({ open, onClose, releaseData }) => {
     });
   };
 
+  const formatTime = (timeString) => {
+    if (!timeString) return 'N/A';
+    // If time is in hh:mm:ss, show as is, else fallback
+    return /^\d{2}:\d{2}:\d{2}$/.test(timeString) ? timeString : timeString;
+  };
+
   const Field = ({ label, value, className = '' }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
@@ -67,11 +75,13 @@ const ViewReleaseModal = ({ open, onClose, releaseData }) => {
 
         <div className="p-6 space-y-6">
           <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Field label="Release Name" value={releaseData.releaseName} />
-              <Field label="Project Name" value={releaseData.projectName} />
+              <Field label="Project Name" value={truncate(releaseData.projectName)} />
               <Field label="Start Date" value={formatDate(releaseData.startDate)} />
+              <Field label="Start Time" value={formatTime(releaseData.startTime)} />
               <Field label="End Date" value={formatDate(releaseData.endDate)} />
+              <Field label="End Time" value={formatTime(releaseData.endTime)} />
               <Field label="Created On" value={formatDate(releaseData.createdOn)} />
             </div>
           </div>

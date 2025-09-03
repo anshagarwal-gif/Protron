@@ -58,12 +58,14 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
 
         <div className="p-6 space-y-6">
           <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Field label="Type" value={ridaData.type} />
               <Field label="Meeting Reference" value={ridaData.meetingReference} />
               <Field label="Raised By" value={ridaData.raisedBy} />
               <Field label="Owner" value={ridaData.owner} />
               <Field label="Status" value={ridaData.status} />
+              <Field label="Date Raised" value={ridaData.dateRaised} />
+              <Field label="Target Closer" value={ridaData.targetCloser} />
             </div>
           </div>
 

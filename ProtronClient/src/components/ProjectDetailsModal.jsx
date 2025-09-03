@@ -259,6 +259,14 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                     label="Priority"
                     value={projectDetails.priority ? projectDetails.priority : "N/A"}
                   />
+                  <Field
+                    label="Business Value Amount"
+                    value={projectDetails.businessValueAmount ? projectDetails.businessValueAmount : "N/A"}
+                  />
+                  <Field
+                    label="Business Value Type"
+                    value={projectDetails.businessValueType ? projectDetails.businessValueType : "N/A"}
+                  />
                 </div>
               </div>
 

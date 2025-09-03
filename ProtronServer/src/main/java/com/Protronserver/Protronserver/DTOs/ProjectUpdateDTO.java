@@ -1,9 +1,11 @@
 package com.Protronserver.Protronserver.DTOs;
 
 import com.Protronserver.Protronserver.Entities.Systemimpacted;
+import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -29,6 +31,24 @@ public class ProjectUpdateDTO {
     private String businessUnitFundedBy;
     private String businessUnitDeliveredTo;
     private Integer priority;
+    private BigDecimal businessValueAmount;
+    private String businessValueType;
+
+    public BigDecimal getBusinessValueAmount() {
+        return businessValueAmount;
+    }
+
+    public void setBusinessValueAmount(BigDecimal businessValueAmount) {
+        this.businessValueAmount = businessValueAmount;
+    }
+
+    public String getBusinessValueType() {
+        return businessValueType;
+    }
+
+    public void setBusinessValueType(String businessValueType) {
+        this.businessValueType = businessValueType;
+    }
 
     public String getProductOwner() {
         return productOwner;

@@ -18,7 +18,7 @@ public interface RidaRepository extends JpaRepository<Rida, Long> {
         SELECT new com.Protronserver.Protronserver.ResultDTOs.RidaResultDTO(
             r.id, r.project.projectName, r.project.id, t.tenantName,
             r.meetingReference, r.itemDescription, r.type,
-            r.raisedOn, r.raisedBy, r.owner, r.status, r.remarks
+            r.raisedOn, r.raisedBy, r.owner, r.dateRaised, r.targetCloser, r.status, r.remarks
         )
         FROM Rida r
         JOIN r.project p

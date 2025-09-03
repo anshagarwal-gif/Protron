@@ -70,6 +70,8 @@ public class ReleaseService {
         newRelease.setProjectName(oldRelease.getProjectName());
         newRelease.setStartDate(updatedRelease.getStartDate());
         newRelease.setEndDate(updatedRelease.getEndDate());
+        newRelease.setStartTime(updatedRelease.getStartTime());
+        newRelease.setEndTime(updatedRelease.getEndTime());
         newRelease.setDescription(updatedRelease.getDescription());
         newRelease.setCreatedOn(LocalDateTime.now());
         newRelease.setStartTimestamp(LocalDateTime.now());

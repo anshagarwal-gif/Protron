@@ -1,6 +1,8 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,6 +42,9 @@ public class Rida {
 
     @Column(name = "owner")
     private String owner; // Could be linked to User in future
+
+    private LocalDate dateRaised;
+    private LocalDate targetCloser;
 
     @Column(name = "status")
     private String status; // Open, WIP, Closed, Hold, YTS, De-prioritised, Cancelled
@@ -169,5 +174,21 @@ public class Rida {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public LocalDate getDateRaised() {
+        return dateRaised;
+    }
+
+    public void setDateRaised(LocalDate dateRaised) {
+        this.dateRaised = dateRaised;
+    }
+
+    public LocalDate getTargetCloser() {
+        return targetCloser;
+    }
+
+    public void setTargetCloser(LocalDate targetCloser) {
+        this.targetCloser = targetCloser;
     }
 }
