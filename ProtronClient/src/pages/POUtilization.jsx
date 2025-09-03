@@ -103,12 +103,13 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
 
   // Format date (matching PO modal)
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${monthStr}-${year}`;
   };
 
   // Get consumption type tag styling
@@ -831,7 +832,16 @@ const columnDefs = useMemo(() => [
   {
     headerName: "Assigned",
     field: "workAssignDate",
-    valueGetter: params => formatDate(params.data.workAssignDate),
+    valueGetter: params => {
+      const dateString = params.data.workAssignDate;
+      if (!dateString) return 'N/A';
+      const d = new Date(dateString);
+      const day = String(d.getDate()).padStart(2, '0');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthStr = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day}-${monthStr}-${year}`;
+    },
     width: 100,
     sortable: true,
     filter: true,
@@ -848,7 +858,16 @@ const columnDefs = useMemo(() => [
   {
     headerName: "Completed",
     field: "workCompletionDate",
-    valueGetter: params => formatDate(params.data.workCompletionDate),
+    valueGetter: params => {
+      const dateString = params.data.workCompletionDate;
+      if (!dateString) return 'N/A';
+      const d = new Date(dateString);
+      const day = String(d.getDate()).padStart(2, '0');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthStr = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day}-${monthStr}-${year}`;
+    },
     width: 100,
     sortable: true,
     filter: true,

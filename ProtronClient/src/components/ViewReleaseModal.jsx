@@ -35,11 +35,12 @@ const ViewReleaseModal = ({ open, onClose, releaseData }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const d = new Date(dateString);
+    if (isNaN(d)) return 'N/A';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   const formatTime = (timeString) => {

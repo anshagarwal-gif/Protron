@@ -40,12 +40,13 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
 
   // Format date (matching other modals)
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${monthStr}-${year}`;
   };
 
   const getFileIcon = (fileName) => {
@@ -418,8 +419,13 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
   // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${monthStr}-${year}`;
   };
 
   // Handle invoice PDF download

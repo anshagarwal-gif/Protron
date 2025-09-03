@@ -99,14 +99,15 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
 
   if (!projectId) return null;
 
-  // Format date
+  // Format date as DD-Mon-YYYY
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const d = new Date(dateString);
+    if (isNaN(d)) return 'N/A';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   // Field component for consistent styling (matching PO modal)
@@ -358,6 +359,8 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                         <th className="px-2 py-1 border">#</th>
                         <th className="px-2 py-1 border">Type</th>
                         <th className="px-2 py-1 border">Meeting Ref</th>
+                        <th className="px-2 py-1 border">Date Raised</th>
+                        <th className="px-2 py-1 border">Target Closer</th>
                         <th className="px-2 py-1 border">Description</th>
                         <th className="px-2 py-1 border">Raised By</th>
                         <th className="px-2 py-1 border">Owner</th>
@@ -372,6 +375,8 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                           <td className="border px-2 py-1">{idx + 1}</td>
                           <td className="border px-2 py-1 truncate" title={rida.type}>{rida.type}</td>
                           <td className="border px-2 py-1 truncate" title={rida.meetingReference}>{rida.meetingReference}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.dateRaised}>{formatDate(rida.dateRaised)}</td>
+                          <td className="border px-2 py-1 truncate" title={rida.targetCloser}>{formatDate(rida.targetCloser)}</td>
                           <td className="border px-2 py-1 truncate" title={rida.itemDescription}>{rida.itemDescription}</td>
                           <td className="border px-2 py-1 truncate" title={rida.raisedBy}>{rida.raisedBy}</td>
                           <td className="border px-2 py-1 truncate" title={rida.owner}>{rida.owner}</td>
@@ -404,8 +409,8 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                         <tr key={rel.releaseId || idx}>
                           <td className="border px-2 py-1">{idx + 1}</td>
                           <td className="border px-2 py-1 truncate" title={rel.releaseName}>{rel.releaseName}</td>
-                          <td className="border px-2 py-1 truncate" title={rel.startDate ? new Date(rel.startDate).toLocaleDateString() : ''}>{rel.startDate ? new Date(rel.startDate).toLocaleDateString() : ''}</td>
-                          <td className="border px-2 py-1 truncate" title={rel.endDate ? new Date(rel.endDate).toLocaleDateString() : ''}>{rel.endDate ? new Date(rel.endDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={rel.startDate ? formatDate(rel.startDate) : ''}>{rel.startDate ? formatDate(rel.startDate) : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={rel.endDate ? formatDate(rel.endDate) : ''}>{rel.endDate ? formatDate(rel.endDate) : ''}</td>
                           <td className="border px-2 py-1 truncate" title={rel.description}>{rel.description}</td>
                         </tr>
                       ))}
@@ -435,8 +440,8 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                         <tr key={sprint.sprintId || idx}>
                           <td className="border px-2 py-1">{idx + 1}</td>
                           <td className="border px-2 py-1 truncate" title={sprint.sprintName}>{sprint.sprintName}</td>
-                          <td className="border px-2 py-1 truncate" title={sprint.startDate ? new Date(sprint.startDate).toLocaleDateString() : ''}>{sprint.startDate ? new Date(sprint.startDate).toLocaleDateString() : ''}</td>
-                          <td className="border px-2 py-1 truncate" title={sprint.endDate ? new Date(sprint.endDate).toLocaleDateString() : ''}>{sprint.endDate ? new Date(sprint.endDate).toLocaleDateString() : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={sprint.startDate ? formatDate(sprint.startDate) : ''}>{sprint.startDate ? formatDate(sprint.startDate) : ''}</td>
+                          <td className="border px-2 py-1 truncate" title={sprint.endDate ? formatDate(sprint.endDate) : ''}>{sprint.endDate ? formatDate(sprint.endDate) : ''}</td>
                           <td className="border px-2 py-1 truncate" title={sprint.description}>{sprint.description}</td>
                         </tr>
                       ))}

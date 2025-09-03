@@ -43,12 +43,13 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
 
   // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${monthStr}-${year}`;
   };
 
   // Field component for consistent styling (matching SRN modal)

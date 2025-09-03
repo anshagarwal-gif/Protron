@@ -133,14 +133,16 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         headerName: 'Est.Release',
         field: 'estimatedReleaseDate',
         minWidth: 150,
-        cellStyle: { borderRight: '1px solid #e5e7eb' }
+        cellStyle: { borderRight: '1px solid #e5e7eb' },
+        valueFormatter: params => formatDate(params.value)
       },
       {
-      headerName: 'Onboarding Date',
-      field: 'onBoardingDate',
-      minWidth: 150,
-      cellStyle: { textAlign: 'center' }
-    }
+        headerName: 'Onboarding Date',
+        field: 'onBoardingDate',
+        minWidth: 150,
+        cellStyle: { textAlign: 'center' },
+        valueFormatter: params => formatDate(params.value)
+      }
 
     ];
     if (hasAccess('project_team', 'edit')) {

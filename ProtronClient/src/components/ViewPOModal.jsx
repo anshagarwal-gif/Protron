@@ -44,11 +44,12 @@ const ViewPOModal = ({ open, onClose, poData }) => {
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   // Get PO type display name and tag styling

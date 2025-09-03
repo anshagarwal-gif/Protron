@@ -58,8 +58,10 @@ export default function SprintManagement({ projectId, open, onClose }) {
     const d = new Date(dateString);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
+  const year = d.getFullYear();
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  return `${day}-${monthStr}-${year}`;
   };
 
   const downloadSprintExcel = () => {
@@ -150,12 +152,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
       field: 'startDate', 
       width: 140,
       cellRenderer: (params) => {
-        if (!params.value) return '';
-        const d = new Date(params.value);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}-${month}-${year}`;
+        return params.value ? formatDate(params.value) : '';
       }
     },
     { 
@@ -163,12 +160,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
       field: 'endDate', 
       width: 140,
       cellRenderer: (params) => {
-        if (!params.value) return '';
-        const d = new Date(params.value);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}-${month}-${year}`;
+        return params.value ? formatDate(params.value) : '';
       }
     },
     { headerName: 'Description', field: 'description', flex: 2 },

@@ -183,6 +183,16 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
     );
   });
 
+  const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${monthStr}-${year}`;
+  };
+
   // Download milestones Excel
   const downloadMilestonesExcel = () => {
     try {
@@ -333,17 +343,17 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
     return 'No amount specified';
   },
   cellClass: 'truncate-cell',
-  cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
-},
+   // Green color for amounts
+  },
     {
       headerName: "Milestone Date",
       field: "startDate",
-      valueGetter: params => params.data.startDate ? new Date(params.data.startDate).toLocaleDateString() : 'N/A',
+      valueGetter: params => params.data.startDate ? formatDate(params.data.startDate) : 'N/A',
       width: 120,
       sortable: true,
       filter: true,
       cellRenderer: TruncatedCellRenderer,
-      tooltipValueGetter: params => params.data.startDate ? new Date(params.data.startDate).toLocaleDateString() : 'N/A'
+      tooltipValueGetter: params => params.data.startDate ? formatDate(params.data.startDate) : 'N/A'
     },
     {
       headerName: "Duration (Days)",

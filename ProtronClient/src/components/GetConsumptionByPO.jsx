@@ -272,16 +272,17 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       maxWidth: 150,
       sortable: true,
       filter: 'agDateColumnFilter',
-      valueFormatter: (params) => {
-        if (params.value) {
-          return new Date(params.value).toLocaleString('en-IN', {
-            year: 'numeric',
-            month: 'short',
-            day: '2-digit',
-          })
-        }
-        return ''
-      },
+        valueFormatter: (params) => {
+          if (params.value) {
+            const d = new Date(params.value);
+            const day = String(d.getDate()).padStart(2, '0');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthStr = monthNames[d.getMonth()];
+            const year = d.getFullYear();
+            return `${day}-${monthStr}-${year}`;
+          }
+          return '';
+        },
       tooltipField: 'workAssignDate',
       cellClass: 'truncate-cell',
     },
@@ -292,16 +293,17 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       maxWidth: 170,
       sortable: true,
       filter: 'agDateColumnFilter',
-      valueFormatter: (params) => {
-        if (params.value) {
-          return new Date(params.value).toLocaleString('en-IN', {
-            year: 'numeric',
-            month: 'short',
-            day: '2-digit',
-          })
-        }
-        return ''
-      },
+        valueFormatter: (params) => {
+          if (params.value) {
+            const d = new Date(params.value);
+            const day = String(d.getDate()).padStart(2, '0');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthStr = monthNames[d.getMonth()];
+            const year = d.getFullYear();
+            return `${day}-${monthStr}-${year}`;
+          }
+          return '';
+        },
       tooltipField: 'workCompletionDate',
       cellClass: 'truncate-cell',
     },
@@ -312,16 +314,17 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       maxWidth: 150,
       sortable: true,
       filter: true,
-      tooltipField: 'systemName',
-      cellClass: 'truncate-cell',
-    },
-    {
-      headerName: 'Created Date',
-      field: 'createdTimestamp',
-      flex: 1.5,
-      maxWidth: 150,
-      sortable: true,
-      filter: 'agDateColumnFilter',
+        valueFormatter: (params) => {
+          if (params.value) {
+            const d = new Date(params.value);
+            const day = String(d.getDate()).padStart(2, '0');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthStr = monthNames[d.getMonth()];
+            const year = d.getFullYear();
+            return `${day}-${monthStr}-${year}`;
+          }
+          return '';
+        },
       valueFormatter: (params) => {
         if (params.value) {
           return new Date(params.value).toLocaleString('en-IN', {
