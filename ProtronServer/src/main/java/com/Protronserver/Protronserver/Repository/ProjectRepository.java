@@ -43,7 +43,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             "pm.userId, CONCAT(pm.firstName, ' ', pm.lastName), pm.empCode, " +
             "s.userId, CONCAT(s.firstName, ' ', s.lastName), s.empCode, " +
             "p.productOwner, p.scrumMaster, p.architect, p.chiefScrumMaster, " +
-            "p.deliveryLeader, p.businessUnitFundedBy, p.businessUnitDeliveredTo, p.priority, p.defineDone" +
+            "p.deliveryLeader, p.businessUnitFundedBy, p.businessUnitDeliveredTo, p.priority, p.defineDone, p.businessValueAmount, p.businessValueType" +
             ") " +
             "FROM Project p " +
             "LEFT JOIN p.tenant t " +

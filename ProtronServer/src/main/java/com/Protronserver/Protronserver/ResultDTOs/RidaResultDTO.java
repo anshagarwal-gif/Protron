@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.ResultDTOs;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class RidaResultDTO {
@@ -14,13 +15,15 @@ public class RidaResultDTO {
     private LocalDateTime raisedOn;
     private String raisedBy;
     private String owner;
+    private LocalDate dateRaised;
+    private LocalDate targetCloser;
     private String status;
     private String remarks;
 
     // constructor
     public RidaResultDTO(Long id, String projectName, Long projectId, String tenantName,
                          String meetingReference, String itemDescription, String type,
-                         LocalDateTime raisedOn, String raisedBy, String owner,
+                         LocalDateTime raisedOn, String raisedBy, String owner, LocalDate dateRaised, LocalDate targetCloser,
                          String status, String remarks) {
         this.id = id;
         this.projectName = projectName;
@@ -32,8 +35,26 @@ public class RidaResultDTO {
         this.raisedOn = raisedOn;
         this.raisedBy = raisedBy;
         this.owner = owner;
+        this.dateRaised = dateRaised;
+        this.targetCloser = targetCloser;
         this.status = status;
         this.remarks = remarks;
+    }
+
+    public LocalDate getDateRaised() {
+        return dateRaised;
+    }
+
+    public void setDateRaised(LocalDate dateRaised) {
+        this.dateRaised = dateRaised;
+    }
+
+    public LocalDate getTargetCloser() {
+        return targetCloser;
+    }
+
+    public void setTargetCloser(LocalDate targetCloser) {
+        this.targetCloser = targetCloser;
     }
 
     public Long getId() {

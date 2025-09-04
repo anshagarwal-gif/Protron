@@ -22,7 +22,7 @@ public interface ProjectTeamRepository extends JpaRepository<ProjectTeam, Long> 
 
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.ProjectTeamMemberDTO(" +
             "pt.projectTeamId, u.userId, CONCAT(u.firstName, ' ', u.lastName), pt.empCode, u.email, " +
-            "pt.unit, pt.pricing,si.systemId, si.systemName, pt.estimatedReleaseDate, pt.status) " +
+            "pt.unit, pt.pricing,si.systemId, si.systemName, pt.estimatedReleaseDate, pt.onBoardingDate, pt.status) " +
             "FROM ProjectTeam pt " +
             "JOIN pt.user u " +
             "LEFT JOIN pt.systemimpacted si " +

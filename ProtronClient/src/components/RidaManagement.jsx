@@ -70,10 +70,11 @@ export default function RidaManagement({ projectId, open, onClose }) {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const d = new Date(dateString);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${monthStr}-${year}`;
   };
 
   const downloadRidaExcel = () => {
@@ -154,6 +155,8 @@ export default function RidaManagement({ projectId, open, onClose }) {
     { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50 },
     { headerName: 'Type', field: 'type', width: 100 },
     { headerName: 'Meeting Ref', field: 'meetingReference', flex: 1 },
+    { headerName: 'Date Raised', field: 'dateRaised', width: 120, valueFormatter: params => formatDate(params.value) },
+    { headerName: 'Target Closer', field: 'targetCloser', width: 120, valueFormatter: params => formatDate(params.value) },
     { headerName: 'Description', field: 'itemDescription', flex: 2 },
     { headerName: 'Raised By', field: 'raisedBy', width: 120 },
     { headerName: 'Owner', field: 'owner', width: 120 },
@@ -259,6 +262,8 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
     status: '',
     remarks: '',
     projectName: '',
+    dateRaised: '',
+    targetCloser: '',
   });
   const [teamMembers, setTeamMembers] = useState([]);
   const [ridaFiles, setRidaFiles] = useState([]);
@@ -286,7 +291,12 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
 
   useEffect(() => {
     if (initialData) {
-      setFormData({ ...initialData, projectName: projectName || '' });
+      setFormData({
+        ...initialData,
+        projectName: projectName || '',
+        dateRaised: initialData.dateRaised || '',
+        targetCloser: initialData.targetCloser || '',
+      });
       if (initialData.id) {
         fetchAttachments(initialData.id);
       } else {
@@ -301,7 +311,9 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
         owner: '',
         status: '',
         remarks: '',
-        projectName: projectName || ''
+        projectName: projectName || '',
+        dateRaised: '',
+        targetCloser: '',
       });
       setExistingAttachments([]);
     }
@@ -455,9 +467,9 @@ return (
       {/* Form */}
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         <div className="space-y-4">
-          {/* Row 1: Type and Meeting Reference */}
+          {/* Row 1: Type, Meeting Reference, Date Raised, Target Closer */}
           <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-6">
+            <div className="col-span-3">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <Tag size={14} className="inline mr-1" />
                 Type *
@@ -474,23 +486,55 @@ return (
               {errors.type && <span className="text-red-500 text-xs mt-1 block">{errors.type}</span>}
             </div>
 
-            <div className="col-span-6">
+            <div className="col-span-3">
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <Calendar size={14} className="inline mr-1" />
                 Meeting Reference
                 <span className="float-right text-xs text-gray-500">
-                  {formData.meetingReference.length}/100 characters
+                  {formData.meetingReference.length}/100
                 </span>
               </label>
                 <input
-                  onFocus={e => e.target.showPicker && e.target.showPicker()}
-                  type="date"
+                  type="text"
                   value={formData.meetingReference}
-                  onChange={e => setFormData(f => ({ ...f, meetingReference: e.target.value }))}
+                  onChange={e => {
+                    let value = e.target.value;
+                    if (value.length > 100) value = value.slice(0, 100);
+                    setFormData(f => ({ ...f, meetingReference: value }));
+                  }}
+                  maxLength={100}
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.meetingReference ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Enter meeting reference"
                 />
               {errors.meetingReference && <span className="text-red-500 text-xs mt-1 block">{errors.meetingReference}</span>}
+            </div>
+
+            <div className="col-span-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Date Raised
+              </label>
+              <input
+                type="date"
+                value={formData.dateRaised}
+                onChange={e => setFormData(f => ({ ...f, dateRaised: e.target.value }))}
+                className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 border-gray-300"
+                placeholder="Select date raised"
+                onClick={e => e.target.showPicker && e.target.showPicker()}
+              />
+            </div>
+
+            <div className="col-span-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Target Closer
+              </label>
+              <input
+                type="date"
+                value={formData.targetCloser}
+                onChange={e => setFormData(f => ({ ...f, targetCloser: e.target.value }))}
+                className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 border-gray-300"
+                placeholder="Select target closer date"
+                onClick={e => e.target.showPicker && e.target.showPicker()}
+              />
             </div>
           </div>
 

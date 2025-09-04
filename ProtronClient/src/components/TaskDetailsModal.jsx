@@ -35,7 +35,13 @@ const TaskDetailsModal = ({
   handleDownloadAttachment = () => { },
   formatDateDisplay = (date) => {
     try {
-      return new Date(date).toLocaleDateString();
+      if (!date) return '';
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthStr = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day}-${monthStr}-${year}`;
     } catch (error) {
       return 'Invalid Date';
     }

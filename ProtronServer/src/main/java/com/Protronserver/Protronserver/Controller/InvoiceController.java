@@ -168,6 +168,19 @@ public class InvoiceController {
                 });
     }
 
+    @GetMapping("/projects")
+    public ResponseEntity<?> getProjectsForInvoice() {
+        try {
+            List<Map<String, Object>> projects = invoiceService.getProjectsForInvoice();
+            log.info("Retrieved {} projects for invoice dropdown", projects.size());
+            return ResponseEntity.ok(projects);
+        } catch (Exception e) {
+            log.error("Error retrieving projects for invoice: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving projects: " + e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{invoiceId}")
     public ResponseEntity<?> softDeleteInvoice(@PathVariable String invoiceId) {
         try {
@@ -231,23 +244,23 @@ public class InvoiceController {
     }
 
     @PostMapping("/preview")
-public ResponseEntity<byte[]> generatePreviewPDF(@RequestBody Map<String, Object> invoiceData) {
-    try {
-        // Generate PDF bytes from service
-        byte[] pdfBytes = invoiceService.generatePreviewPDF(invoiceData);
+    public ResponseEntity<byte[]> generatePreviewPDF(@RequestBody Map<String, Object> invoiceData) {
+        try {
+            // Generate PDF bytes from service
+            byte[] pdfBytes = invoiceService.generatePreviewPDF(invoiceData);
 
-        // Return PDF directly
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "inline; filename=invoice_preview.pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .contentLength(pdfBytes.length)
-                .body(pdfBytes);
+            // Return PDF directly
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "inline; filename=invoice_preview.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(pdfBytes);
 
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.internalServerError().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
-}
 
     @GetMapping("/download-attachment/{invoiceId}/{attachmentNumber}")
     public ResponseEntity<ByteArrayResource> downloadAttachment(

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Where;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -57,6 +58,12 @@ public class Project {
 
     @Column(length = 500)
     private String defineDone;
+
+    @Column(name = "business_value_amount")
+    private BigDecimal businessValueAmount;
+
+    @Column(name = "business_value_type")
+    private String businessValueType;
 
     @ManyToOne
     @JoinColumn(name = "sponsor")
@@ -128,13 +135,13 @@ public class Project {
     private List<ProjectTeam> projectTeam;
 
     @OneToMany(mappedBy = "project")
-    @JsonIgnoreProperties({"project", "tenant", "projectTeams"})
+    @JsonIgnoreProperties({ "project", "tenant", "projectTeams" })
     @Where(clause = "end_timestamp IS NULL")
     private List<Systemimpacted> systemImpacted;
 
     @ManyToOne
     @JoinColumn(name = "tenant_id")
-    @JsonIgnoreProperties({ "users", "projects", "roles", "roleAccesses" }) 
+    @JsonIgnoreProperties({ "users", "projects", "roles", "roleAccesses" })
     private Tenant tenant;
 
     public List<Systemimpacted> getSystemImpacted() {
@@ -303,5 +310,21 @@ public class Project {
 
     public void setDefineDone(String defineDone) {
         this.defineDone = defineDone;
+    }
+
+    public BigDecimal getBusinessValueAmount() {
+        return businessValueAmount;
+    }
+
+    public void setBusinessValueAmount(BigDecimal businessValueAmount) {
+        this.businessValueAmount = businessValueAmount;
+    }
+
+    public String getBusinessValueType() {
+        return businessValueType;
+    }
+
+    public void setBusinessValueType(String businessValueType) {
+        this.businessValueType = businessValueType;
     }
 }

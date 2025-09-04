@@ -1,15 +1,37 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import org.springframework.cglib.core.Local;
+
+import java.time.LocalDate;
+
 public class RidaEditRequestDTO {
 
     private String meetingReference;
     private String itemDescription;
     private String type;
     private String raisedBy;
+    private LocalDate dateRaised;
+    private LocalDate targetCloser;
     private String owner;
     private String status;
     private String remarks;
     private String projectName;
+
+    public LocalDate getDateRaised() {
+        return dateRaised;
+    }
+
+    public void setDateRaised(LocalDate dateRaised) {
+        this.dateRaised = dateRaised;
+    }
+
+    public LocalDate getTargetCloser() {
+        return targetCloser;
+    }
+
+    public void setTargetCloser(LocalDate targetCloser) {
+        this.targetCloser = targetCloser;
+    }
 
     public String getProjectName() {
         return projectName;

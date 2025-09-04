@@ -416,12 +416,13 @@ const ViewBudgetLineModal = ({ open, onClose, budgetLine }) => {
 
   // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  if (!dateString) return 'N/A';
+  const d = new Date(dateString);
+  const day = String(d.getDate()).padStart(2, '0');
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${monthStr}-${year}`;
   };
 
   // Field component for consistent styling
@@ -855,12 +856,24 @@ const { hasAccess } = useAccess(); // Access context
       width: 140,
       sortable: true,
       filter: true,
-      cellRenderer: params => (
-        <div className="flex items-center text-sm">
-          <Calendar size={14} className="text-blue-600 mr-2" />
-          <span className="truncate" title={params.value}>{params.value}</span>
-        </div>
-      )
+      cellRenderer: params => {
+        // Format date to DD-Mon-YYYY
+        let formatted = '';
+        if (params.value) {
+          const d = new Date(params.value);
+          const day = String(d.getDate()).padStart(2, '0');
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthStr = monthNames[d.getMonth()];
+          const year = d.getFullYear();
+          formatted = `${day}-${monthStr}-${year}`;
+        }
+        return (
+          <div className="flex items-center text-sm">
+            <Calendar size={14} className="text-blue-600 mr-2" />
+            <span className="truncate" title={params.value}>{formatted}</span>
+          </div>
+        );
+      }
     },
    
     {

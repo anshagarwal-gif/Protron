@@ -814,13 +814,6 @@ const UserManagement = () => {
               </button>
             )}
 
-            <button
-              onClick={() => handleAuditTrail(user.email)}
-              className="p-2 rounded-full hover:bg-purple-100 transition-colors"
-              title="Download audit trail"
-            >
-              <FileText size={16} className="text-purple-600" />
-            </button>
           </div>
         );
       }

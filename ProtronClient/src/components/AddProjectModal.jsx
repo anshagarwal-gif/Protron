@@ -588,17 +588,14 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         type="number"
                                         placeholder="Enter amount"
                                         value={formData.cost || ''}
-                                        onChange={(e) => {
-                                            // Accept only up to two decimal places
-                                            let value = e.target.value;
-                                            // Remove non-numeric except dot
-                                            value = value.replace(/[^\d.]/g, "");
-                                            // Limit to two decimals
-                                            if (value.includes(".")) {
-                                                const [intPart, decPart] = value.split(".");
-                                                value = intPart + "." + (decPart.substring(0, 2));
-                                            }
-                                            setFormData({ ...formData, cost: value });
+                                        onChange={e => {
+                                            let value = e.target.value.replace(/[^0-9.]/g, '');
+                                            const parts = value.split('.');
+                                            if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                            if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                            if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                            value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                            setFormData(prev => ({ ...prev, cost: value }));
                                         }}
                                         disabled={isSubmitting}
                                         className={`w-full h-10 px-3 py-2 pl-8 border rounded-md focus:ring-2 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.cost ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-green-500 focus:border-green-500'}`}
@@ -610,6 +607,40 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     </span>
                                 </div>
                                 {errors.cost && <div className="text-xs text-red-600 mt-1">{errors.cost}</div>}
+                            </div>
+                            {/* Business Value Amount */}
+                            <div className="flex-none w-full">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Value Amount</label>
+                                <input
+                                    type="number"
+                                    placeholder="Enter business value amount"
+                                    value={formData.businessValueAmount || ''}
+                                    onChange={e => {
+                                        let value = e.target.value.replace(/[^0-9.]/g, '');
+                                        const parts = value.split('.');
+                                        if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                        if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                        if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                        value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                        setFormData(prev => ({ ...prev, businessValueAmount: value }));
+                                    }}
+                                    min="0"
+                                    disabled={isSubmitting}
+                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md"
+                                />
+                            </div>
+                            {/* Business Value Type */}
+                            <div className="flex-none w-full">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Value Type</label>
+                                <select
+                                    value={formData.businessValueType || 'One Time'}
+                                    onChange={e => setFormData({ ...formData, businessValueType: e.target.value })}
+                                    disabled={isSubmitting}
+                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md"
+                                >
+                                    <option value="One Time">One Time</option>
+                                    <option value="Yearly">Yearly</option>
+                                </select>
                             </div>
                         </div>
 

@@ -25,20 +25,22 @@ import dayjs from 'dayjs';;
 
 const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => {
     const [formData, setFormData] = useState({
-        pricing: '',
-        unit: '',
-        estimatedReleaseDate: '',
-        taskType: 'developer', // Default value
-        systemImpacted: member?.systemImpacted?.systemId || "" // Default value from member object
+    pricing: '',
+    unit: '',
+    estimatedReleaseDate: '',
+    onBoardingDate: '',
+    taskType: 'developer', // Default value
+    systemImpacted: member?.systemImpacted?.systemId || "" // Default value from member object
     });
 
     // Store initial data for reset functionality
     const [initialFormData, setInitialFormData] = useState({
-        pricing: '',
-        unit: '',
-        estimatedReleaseDate: '',
-        taskType: 'developer',
-        systemImpacted: member?.systemImpacted?.systemId || ""
+    pricing: '',
+    unit: '',
+    estimatedReleaseDate: '',
+    onBoardingDate: '',
+    taskType: 'developer',
+    systemImpacted: member?.systemImpacted?.systemId || ""
     });
 
     // Theme colors
@@ -55,6 +57,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                 pricing: member.pricing || '',
                 unit: member.unit || 'INR',
                 estimatedReleaseDate: member.estimatedReleaseDate || '',
+                onBoardingDate: member.onBoardingDate || '',
                 // Use the member's taskType if it exists, otherwise default to 'developer'
                 taskType: member.taskType || 'developer',
                 systemImpacted: member?.systemImpacted?.systemId || "" // Default value from member object
@@ -253,6 +256,17 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                             setFormData((prev) => ({
                                 ...prev,
                                 estimatedReleaseDate: newDate ? newDate.format('YYYY-MM-DD') : ''
+                            }))
+                        }
+                    />
+                    <DatePicker
+                        onFocus={(e) => e.target.showPicker()}
+                        label="Onboarding Date"
+                        value={formData.onBoardingDate ? dayjs(formData.onBoardingDate) : null}
+                        onChange={(newDate) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                onBoardingDate: newDate ? newDate.format('YYYY-MM-DD') : ''
                             }))
                         }
                         slotProps={{

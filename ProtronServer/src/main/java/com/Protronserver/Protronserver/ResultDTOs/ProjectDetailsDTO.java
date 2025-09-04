@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.ResultDTOs;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -37,6 +38,8 @@ public class ProjectDetailsDTO {
     private String businessUnitFundedBy;
     private String businessUnitDeliveredTo;
     private Integer priority;
+    private BigDecimal businessValueAmount;
+    private String businessValueType;
 
     private String defineDone;
 
@@ -46,7 +49,7 @@ public class ProjectDetailsDTO {
                              Long managerId, String managerName, String managerEmpCode,
                              Long sponsorId, String sponsorName, String sponsorEmpCode,
                              String productOwner, String scrumMaster, String architect, String chiefScrumMaster,
-                             String deliveryLeader, String businessUnitFundedBy, String businessUnitDeliveredTo, Integer priority, String defineDone) {
+                             String deliveryLeader, String businessUnitFundedBy, String businessUnitDeliveredTo, Integer priority, String defineDone, BigDecimal businessValueAmount, String businessValueType) {
         this.projectCode = projectCode;
         this.projectId = projectId;
         this.projectName = projectName;
@@ -72,6 +75,8 @@ public class ProjectDetailsDTO {
         this.businessUnitDeliveredTo = businessUnitDeliveredTo;
         this.priority = priority;
         this.defineDone = defineDone;
+        this.businessValueAmount = businessValueAmount;
+        this.businessValueType = businessValueType;
     }
 
     public String getDefineDone() {
@@ -288,6 +293,22 @@ public class ProjectDetailsDTO {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    public BigDecimal getBusinessValueAmount() {
+        return businessValueAmount;
+    }
+
+    public void setBusinessValueAmount(BigDecimal businessValueAmount) {
+        this.businessValueAmount = businessValueAmount;
+    }
+
+    public String getBusinessValueType() {
+        return businessValueType;
+    }
+
+    public void setBusinessValueType(String businessValueType) {
+        this.businessValueType = businessValueType;
     }
 
     // All setters and getters

@@ -89,6 +89,8 @@ public class ManageProjectService {
         project.setBusinessUnitFundedBy(request.getBusinessUnitFundedBy());
         project.setBusinessUnitDeliveredTo(request.getBusinessUnitDeliveredTo());
         project.setPriority(request.getPriority());
+        project.setBusinessValueAmount(request.getBusinessValueAmount());
+        project.setBusinessValueType(request.getBusinessValueType());
 
         project.setStartTimestamp(LocalDateTime.now());
         project.setEndTimestamp(null);
@@ -204,6 +206,8 @@ public class ManageProjectService {
         updatedProject.setBusinessUnitDeliveredTo(request.getBusinessUnitDeliveredTo());
         updatedProject.setPriority(request.getPriority());
         updatedProject.setCreatedOn(existingProject.getCreatedOn());
+        updatedProject.setBusinessValueAmount(request.getBusinessValueAmount());
+        updatedProject.setBusinessValueType(request.getBusinessValueType());
 
         // Set manager if ID is passed
         if (request.getProjectManagerId() != null) {
@@ -312,6 +316,8 @@ public class ManageProjectService {
         updatedProject.setBusinessUnitFundedBy(existingProject.getBusinessUnitFundedBy());
         updatedProject.setBusinessUnitDeliveredTo(existingProject.getBusinessUnitDeliveredTo());
         updatedProject.setPriority(existingProject.getPriority());
+        updatedProject.setBusinessValueAmount(existingProject.getBusinessValueAmount());
+        updatedProject.setBusinessValueType(existingProject.getBusinessValueType());
 
         // New field update
         updatedProject.setDefineDone(dod);

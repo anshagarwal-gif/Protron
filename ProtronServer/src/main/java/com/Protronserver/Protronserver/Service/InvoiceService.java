@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.Protronserver.Protronserver.Entities.Project;
+import com.Protronserver.Protronserver.Repository.ProjectRepository;
+import java.util.HashMap;
 
 @Service
 public class InvoiceService {
@@ -37,6 +40,9 @@ public class InvoiceService {
 
     @Autowired
     private InvoiceRepository invoiceRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     /**
      * Generates a custom invoice ID in format: INV-MMDDYYYY-100001
@@ -103,6 +109,7 @@ public class InvoiceService {
             invoice.setHoursSpent(requestDTO.getHoursSpent());
             invoice.setTotalAmount(totalAmount);
             invoice.setRemarks(requestDTO.getRemarks());
+            invoice.setProjectName(requestDTO.getProjectName());
             invoice.setCreatedAt(LocalDateTime.now());
 
             // Generate PDF
@@ -154,6 +161,7 @@ public class InvoiceService {
             invoice.setHoursSpent(requestDTO.getHoursSpent());
             invoice.setTotalAmount(totalAmount);
             invoice.setRemarks(requestDTO.getRemarks());
+            invoice.setProjectName(requestDTO.getProjectName());
             invoice.setCreatedAt(LocalDateTime.now());
 
             // Process attachments (up to 4)
@@ -352,7 +360,7 @@ public class InvoiceService {
         document.add(title);
 
         // Invoice ID and Name
-        document.add(new Paragraph("Invoice ID: " + invoice.getInvoiceId(), headerFont));
+        document.add(new Paragraph("Invoice ID: " + invoice.getInvoiceId(), normalFont));
         document.add(new Paragraph("Invoice Name: " + invoice.getInvoiceName(), normalFont));
         String createdAtFormatted = formatLocalDateTimeWithSuffix(invoice.getCreatedAt());
         document.add(new Paragraph("Created At: " + createdAtFormatted, normalFont));
@@ -364,8 +372,8 @@ public class InvoiceService {
         detailsTable.setSpacingAfter(20);
 
         // Customer details
-        detailsTable.addCell(new Phrase("Customer Name: " + invoice.getCustomerName(), headerFont));
-        detailsTable.addCell(new Phrase("Supplier Name: " + invoice.getSupplierName(), headerFont));
+        detailsTable.addCell(new Phrase("Customer Name: " + invoice.getCustomerName(), normalFont));
+        detailsTable.addCell(new Phrase("Supplier Name: " + invoice.getSupplierName(), normalFont));
         detailsTable.addCell(new Phrase(
                 "Customer Address: " + (invoice.getCustomerAddress() != null ? invoice.getCustomerAddress() : ""),
                 normalFont));
@@ -387,14 +395,16 @@ public class InvoiceService {
         workTable.setWidthPercentage(100);
         workTable.setSpacingAfter(20);
 
-        workTable.addCell(new Phrase("Employee Name:", headerFont));
+        workTable.addCell(new Phrase("Employee Name:", normalFont));
         workTable.addCell(new Phrase(invoice.getEmployeeName(), normalFont));
-        workTable.addCell(new Phrase("Rate:", headerFont));
+        workTable.addCell(new Phrase("Rate:", normalFont));
         workTable.addCell(new Phrase(invoice.getCurrency() + " " + invoice.getRate().toString(), normalFont));
-        workTable.addCell(new Phrase("From Date:", headerFont));
+        workTable.addCell(new Phrase("From Date:", normalFont));
         workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getFromDate()), normalFont));
-        workTable.addCell(new Phrase("To Date:", headerFont));
+        workTable.addCell(new Phrase("To Date:", normalFont));
         workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getToDate()), normalFont));
+        workTable.addCell(new Phrase("Project Name:", normalFont));
+        workTable.addCell(new Phrase(invoice.getProjectName() != null ? invoice.getProjectName() : "N/A", normalFont));
 
         document.add(workTable);
 
@@ -428,8 +438,9 @@ public class InvoiceService {
 
         // --- DATA ROW ---
         String description = (invoice.getEmployeeName() != null ? invoice.getEmployeeName() : "");
+
         if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
-            description += "\nRemarks: " + invoice.getRemarks();
+            description += "\n" + invoice.getRemarks();
         }
 
         PdfPCell c1 = new PdfPCell(new Phrase(description, normalFont));
@@ -515,7 +526,7 @@ public class InvoiceService {
         document.add(title);
 
         // Invoice ID and Name - Handle null values
-        document.add(new Paragraph("Invoice ID: " + generateInvoiceId(), headerFont));
+        document.add(new Paragraph("Invoice ID: " + generateInvoiceId(), normalFont));
         document.add(new Paragraph("Invoice Name: " +
                 (invoiceData.get("invoiceName") != null ? invoiceData.get("invoiceName").toString() : ""), normalFont));
         String createdAtFormatted = formatLocalDateTimeWithSuffix(LocalDateTime.now());
@@ -530,10 +541,10 @@ public class InvoiceService {
         // Customer details - Handle null values
         detailsTable.addCell(new Phrase("Customer Name: " +
                 (invoiceData.get("customerName") != null ? invoiceData.get("customerName").toString() : ""),
-                headerFont));
+                normalFont));
         detailsTable.addCell(new Phrase("Supplier Name: " +
                 (invoiceData.get("supplierName") != null ? invoiceData.get("supplierName").toString() : ""),
-                headerFont));
+                normalFont));
         detailsTable.addCell(new Phrase("Customer Address: " +
                 (invoiceData.get("customerAddress") != null ? invoiceData.get("customerAddress").toString() : ""),
                 normalFont));
@@ -561,7 +572,7 @@ public class InvoiceService {
                 (invoiceData.get("employeeName") != null ? invoiceData.get("employeeName").toString() : ""),
                 normalFont));
 
-        workTable.addCell(new Phrase("Rate:", headerFont));
+        workTable.addCell(new Phrase("Rate:", normalFont));
         String currency = invoiceData.get("currency") != null ? invoiceData.get("currency").toString() : "";
         String rate = invoiceData.get("rate") != null ? invoiceData.get("rate").toString() : "";
         workTable.addCell(new Phrase(currency + (currency.isEmpty() || rate.isEmpty() ? "" : " ") + rate, normalFont));
@@ -586,10 +597,14 @@ public class InvoiceService {
             // If parsing fails, toDate remains null
         }
 
-        workTable.addCell(new Phrase("From Date:", headerFont));
+        workTable.addCell(new Phrase("From Date:", normalFont));
         workTable.addCell(new Phrase(formatDateWithSuffix(fromDate), normalFont));
-        workTable.addCell(new Phrase("To Date:", headerFont));
+        workTable.addCell(new Phrase("To Date:", normalFont));
         workTable.addCell(new Phrase(formatDateWithSuffix(toDate), normalFont));
+        workTable.addCell(new Phrase("Project Name:", normalFont));
+        workTable.addCell(new Phrase(
+                (invoiceData.get("projectName") != null ? invoiceData.get("projectName").toString() : "N/A"),
+                normalFont));
         document.add(workTable);
 
         // ==================== REMARKS TABLE ====================
@@ -633,7 +648,7 @@ public class InvoiceService {
                 if (!description.isEmpty()) {
                     description += "\n";
                 }
-                description += "Remarks: " + remarks;
+                description += remarks;
             }
         }
 
@@ -1157,6 +1172,7 @@ public class InvoiceService {
         dto.setHoursSpent(invoice.getHoursSpent());
         dto.setTotalAmount(invoice.getTotalAmount());
         dto.setRemarks(invoice.getRemarks());
+        dto.setProjectName(invoice.getProjectName());
         dto.setPdfFileName(invoice.getPdfFileName());
         dto.setCreatedAt(invoice.getCreatedAt() != null ? invoice.getCreatedAt().toLocalDate() : null);
 
@@ -1268,6 +1284,27 @@ public class InvoiceService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error retrieving deleted invoices", e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Get projects for invoice dropdown
+     */
+    public List<Map<String, Object>> getProjectsForInvoice() {
+        try {
+            List<Project> projects = projectRepository.findByEndTimestampIsNull();
+            return projects.stream()
+                    .map(project -> {
+                        Map<String, Object> projectMap = new HashMap<>();
+                        projectMap.put("projectId", project.getProjectId());
+                        projectMap.put("projectCode", project.getProjectCode());
+                        projectMap.put("projectName", project.getProjectName());
+                        return projectMap;
+                    })
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error retrieving projects for invoice: {}", e.getMessage(), e);
             return new ArrayList<>();
         }
     }

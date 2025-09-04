@@ -69,7 +69,9 @@ const ProjectManagement = () => {
     deliveryLeader: '',
     businessUnitFundedBy: '',
     businessUnitDeliveredTo: '',
-    priority: 1
+    priority: 1,
+    businessValueAmount: '',
+    businessValueType: 'One Time'
   });
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -332,6 +334,25 @@ const handleDodUpdate = async () => {
       tooltipValueGetter: (params) => params.value || 'N/A'
     },
     {
+      headerName: 'Business Value Amount',
+      field: 'businessValueAmount',
+      valueFormatter: (params) => params.value ? `${params.value}` : '-',
+      minWidth: 150,
+      filter: 'agNumberColumnFilter',
+      cellStyle: { textAlign: 'right', fontWeight: '500' }
+    },
+    {
+      headerName: 'Business Value Type',
+      field: 'businessValueType',
+      cellRenderer: (params) => {
+        const value = params.value || 'N/A';
+        return <span>{value}</span>;
+      },
+      minWidth: 120,
+      filter: 'agSetColumnFilter',
+      cellStyle: { textAlign: 'center' }
+    },
+    {
       headerName: 'Actions',
       cellRenderer: ActionsRenderer,
       minWidth: 300,
@@ -510,7 +531,9 @@ const handleDodUpdate = async () => {
         deliveryLeader: data.deliveryLeader,
         businessUnitFundedBy: data.businessUnitFundedBy,
         businessUnitDeliveredTo: data.businessUnitDeliveredTo,
-        priority: data.priority
+        priority: data.priority,
+        businessValueAmount: data.businessValueAmount || 0,
+        businessValueType: data.businessValueType || 'One Time'
       };
       console.log(payload);
       const response = await axios.post(`${API_BASE_URL}/api/projects/add`, payload, {

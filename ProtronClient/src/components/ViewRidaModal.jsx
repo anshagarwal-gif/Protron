@@ -31,10 +31,20 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
 
   if (!open || !ridaData) return null;
 
-  const Field = ({ label, value, className = '' }) => (
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const d = new Date(dateString);
+    if (isNaN(d)) return 'N/A';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const Field = ({ label, value, className = '', isDate }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">{value || 'N/A'}</div>
+      <div className="text-sm text-gray-900 font-medium">{isDate ? formatDate(value) : (value || 'N/A')}</div>
     </div>
   );
 
@@ -58,12 +68,14 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
 
         <div className="p-6 space-y-6">
           <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Field label="Type" value={ridaData.type} />
               <Field label="Meeting Reference" value={ridaData.meetingReference} />
               <Field label="Raised By" value={ridaData.raisedBy} />
               <Field label="Owner" value={ridaData.owner} />
               <Field label="Status" value={ridaData.status} />
+              <Field label="Date Raised" value={ridaData.dateRaised} isDate />
+              <Field label="Target Closer" value={ridaData.targetCloser} isDate />
             </div>
           </div>
 

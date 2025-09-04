@@ -16,7 +16,9 @@ import {
     MessageSquare,
     Paperclip,
     Trash2,
-    EyeIcon
+    EyeIcon,
+    Folder,
+    AlertCircle
 } from 'lucide-react';
 import GlobalSnackbar from './GlobalSnackbar';
 
@@ -42,7 +44,8 @@ const AddInvoiceModal = ({
     viewMode,
     // currentWeekStart,
     // currentMonthRange,
-    employee
+    employee,
+    isFromInvoiceManagement = false
 }) => {
     const [formData, setFormData] = useState({
         invoiceName: '',
@@ -60,6 +63,7 @@ const AddInvoiceModal = ({
         hoursSpent: '',
         totalAmount: '',
         remarks: '',
+        projectName: '',
         employeeId: ''
     });
 
@@ -73,9 +77,7 @@ const AddInvoiceModal = ({
     const [errors, setErrors] = useState({});
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [fetchedTasks, setFetchedTasks] = useState([]);
-    // const [fetchingTasks, setFetchingTasks] = useState(false);
-
-    const [fetchingTasks, setFetchingTasks] = useState(false);
+    const [projects, setProjects] = useState([]);
     // Single attachment field that handles multiple files (up to 4)
     const [attachments, setAttachments] = useState([]);
     const [attachTimesheet, setAttachTimesheet] = useState(false);
@@ -399,19 +401,33 @@ const AddInvoiceModal = ({
 
             setEmployees(employeeOptions);
 
+            // Fetch projects
+            await fetchProjects();
+
         } catch (error) {
             console.error('Error fetching dropdown data:', error);
             setEmployees([]);
             alert(`Failed to fetch employee data: ${error.message}`);
-            setCustomers([]);
-            setSuppliers([]);
-            setCustomerAddresses([]);
-            setSupplierAddresses([]);
             setErrors({
                 submit: "Failed to fetch Employees, please try again."
             })
         } finally {
             setLoadingEmployees(false);
+        }
+    };
+
+    const fetchProjects = async () => {
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await axios.get(
+                `${API_BASE_URL}/api/invoices/projects`,
+                {
+                    headers: { Authorization: token }
+                }
+            );
+            setProjects(response.data);
+        } catch (error) {
+            console.error('Error fetching projects:', error);
         }
     };
 
@@ -581,9 +597,7 @@ const AddInvoiceModal = ({
             }));
         }
 
-        if (errors.employeeName) {
-            setErrors(prev => ({ ...prev, employeeName: '' }));
-        }
+
         if (errors.rate) {
             setErrors(prev => ({ ...prev, rate: '' }));
         }
@@ -649,7 +663,7 @@ const AddInvoiceModal = ({
         // Invoice name is now optional - no validation needed
         if (!formData.customerName.trim()) newErrors.customerName = 'Customer name is required';
         if (!formData.supplierName.trim()) newErrors.supplierName = 'Supplier name is required';
-        if (!formData.employeeName.trim()) newErrors.employeeName = 'Employee name is required';
+        // Employee name is now optional - no validation needed
         if (!formData.rate || parseFloat(formData.rate) <= 0) newErrors.rate = 'Valid rate is required';
         if (!formData.fromDate) newErrors.fromDate = 'From date is required';
         if (!formData.toDate) newErrors.toDate = 'To date is required';
@@ -702,6 +716,7 @@ const AddInvoiceModal = ({
                 hoursSpent: parseFloat(formData.hoursSpent),
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
                 remarks: formData.remarks || "",
+                projectName: formData.projectName || "",
                 // Include timesheet data if checkbox is checked
                 timesheetData: timesheetPreviewData ? prepareTimesheetData() : null
             };
@@ -741,11 +756,11 @@ const AddInvoiceModal = ({
                 );
             }
 
-            console.log('Invoice generated successfully:', response.data);
+            console.log(isFromInvoiceManagement ? 'Invoice saved successfully:' : 'Invoice generated successfully:', response.data);
             setSnackbar((prev) => ({
                 ...prev,
                 open: true,
-                message: "PO Consumption Created Successfully",
+                message: isFromInvoiceManagement ? "Invoice Saved Successfully" : "PO Consumption Created Successfully",
                 severity: "success",
             }))
 
@@ -755,8 +770,8 @@ const AddInvoiceModal = ({
                 onSubmit(response.data);
             }
 
-            // Ask user if they want to download the PDF
-            if (response.data.invoiceId) {
+            // Ask user if they want to download the PDF only when NOT from invoice management
+            if (!isFromInvoiceManagement && response.data.invoiceId) {
                 setTimeout(() => {
                     handleDownloadInvoice(response.data.invoiceId, response.data.invoiceName);
                 }, 500);
@@ -768,7 +783,7 @@ const AddInvoiceModal = ({
         } catch (error) {
             console.error('Error creating invoice:', error);
 
-            let errorMessage = 'Failed to create invoice. Please try again.';
+            let errorMessage = isFromInvoiceManagement ? 'Failed to save invoice. Please try again.' : 'Failed to create invoice. Please try again.';
             setErrors({
                 submit: errorMessage
             })
@@ -809,6 +824,7 @@ const AddInvoiceModal = ({
                 hoursSpent: parseFloat(formData.hoursSpent) || 0,
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
                 remarks: formData.remarks || "",
+                projectName: formData.projectName || "",
                 // Include timesheet data if checkbox is checked
                 timesheetData: attachTimesheet ? prepareTimesheetData() : null
             };
@@ -908,6 +924,7 @@ const AddInvoiceModal = ({
             hoursSpent: '',
             totalAmount: '',
             remarks: '',
+            projectName: '',
             employeeId: ''
         });
         setErrors({});
@@ -927,12 +944,7 @@ const AddInvoiceModal = ({
         }
         return `${currencySymbols[formData.currency] || '$'}0.00`;
     };
-    const handleDateInputClick = (inputName) => {
-        const dateInput = document.getElementsByName(inputName)[0];
-        if (dateInput) {
-            dateInput.showPicker();
-        }
-    };
+
     const getTimesheetSummary = () => {
         if (!attachTimesheet || !fetchedTasks.length) return null;
 
@@ -963,7 +975,7 @@ const AddInvoiceModal = ({
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-green-900 flex items-center">
                         <FileText className="mr-2" size={24} />
-                        Generate New Invoice
+                        {isFromInvoiceManagement ? 'Add New Invoice' : 'Generate New Invoice'}
                         {getAttachedFilesCount() > 0 && (
                             <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                                 {getAttachedFilesCount()} file{getAttachedFilesCount() > 1 ? 's' : ''} attached
@@ -985,14 +997,14 @@ const AddInvoiceModal = ({
 
                 <div className="p-6 overflow-y-auto flex-grow">
                     <div className="space-y-6">
-                        {/* 1st Line: Invoice ID and Invoice Name */}
+                        {/* 1st Line: Invoice ID, Invoice Name, and Project Name */}
                         {errors.submit && (
                             <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
                                 <AlertCircle size={18} className="text-red-500 mr-2" />
                                 <span className="text-red-700 text-sm">{errors.submit}</span>
                             </div>
                         )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Invoice ID *
@@ -1025,6 +1037,37 @@ const AddInvoiceModal = ({
                                     {formData.invoiceName.length}/100 characters
                                 </div>
                                 {errors.invoiceName && <p className="text-red-500 text-xs mt-1">{errors.invoiceName}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                                    <Folder className="mr-2 text-green-600" size={16} />
+                                    Project Name
+                                </label>
+                                <CreatableSelect
+                                    options={projects.map(project => ({
+                                        value: project.projectName,
+                                        label: `${project.projectCode} - ${project.projectName}`
+                                    }))}
+                                    value={formData.projectName ? {
+                                        value: formData.projectName,
+                                        label: formData.projectName
+                                    } : null}
+                                    onChange={(option) => {
+                                        if (option) {
+                                            setFormData(prev => ({ ...prev, projectName: option.value }));
+                                        } else {
+                                            setFormData(prev => ({ ...prev, projectName: '' }));
+                                        }
+                                    }}
+                                    onCreateOption={(inputValue) => {
+                                        setFormData(prev => ({ ...prev, projectName: inputValue }));
+                                    }}
+                                    placeholder="Select or create project..."
+                                    className="w-full"
+                                    isClearable
+                                    isSearchable
+                                />
+                                {errors.projectName && <p className="text-red-500 text-xs mt-1">{errors.projectName}</p>}
                             </div>
                         </div>
 
@@ -1144,7 +1187,7 @@ const AddInvoiceModal = ({
                         <div className="grid grid-cols-3 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Employee Name *
+                                    Employee Name
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
                                 </label>
                                 <div className="relative">
@@ -1166,14 +1209,13 @@ const AddInvoiceModal = ({
                                                 ...base,
                                                 height: '40px',
                                                 paddingLeft: '28px',
-                                                borderColor: errors.employeeName ? '#ef4444' : state.isFocused ? '#10b981' : '#d1d5db',
+                                                borderColor: state.isFocused ? '#10b981' : '#d1d5db',
                                                 boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
                                             }),
                                             valueContainer: (base) => ({ ...base, padding: '0 6px' }),
                                         }}
                                     />
                                 </div>
-                                {errors.employeeName && <p className="text-red-500 text-xs mt-1">{errors.employeeName}</p>}
                             </div>
 
                             <div>
@@ -1450,6 +1492,8 @@ const AddInvoiceModal = ({
                             )}
                         </div>
 
+                        {/* Project */}
+                       
                         {/* Remarks */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -1581,13 +1625,18 @@ const AddInvoiceModal = ({
                     <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center z-10">
                         <div className="text-center">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-                            <p className="text-lg font-medium text-gray-900">Generating Invoice...</p>
+                            <p className="text-lg font-medium text-gray-900">
+                                {isFromInvoiceManagement ? 'Saving Invoice...' : 'Generating Invoice...'}
+                            </p>
                             <p className="text-sm text-gray-600">
-                                {attachTimesheet
-                                    ? `Including ${viewMode?.toLowerCase() || ''} timesheet data...`
-                                    : attachments.length > 0
-                                        ? `Processing ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}...`
-                                        : 'Please wait while we create your invoice'
+                                {isFromInvoiceManagement 
+                                    ? 'Please wait while we save your invoice'
+                                    : (attachTimesheet
+                                        ? `Including ${viewMode?.toLowerCase() || ''} timesheet data...`
+                                        : attachments.length > 0
+                                            ? `Processing ${attachments.length} attachment${attachments.length > 1 ? 's' : ''}...`
+                                            : 'Please wait while we create your invoice'
+                                    )
                                 }
                             </p>
                         </div>
@@ -1603,13 +1652,17 @@ const AddInvoiceModal = ({
                     >
                         Cancel
                     </button>
-                    <button
-                        onClick={handleInvoicePreview}
-                        disabled={loading}
-                        className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50"
-                    >
-                        Preview
-                    </button>
+                    
+                    {/* Show Preview and Generate Invoice buttons only when NOT from invoice management */}
+                    {!isFromInvoiceManagement && (
+                        <button
+                            onClick={handleInvoicePreview}
+                            disabled={loading}
+                            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50"
+                        >
+                            Preview
+                        </button>
+                    )}
 
                     <button
                         onClick={handleSubmit}
@@ -1619,13 +1672,13 @@ const AddInvoiceModal = ({
                         {loading ? (
                             <>
                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                {attachTimesheet ? 'Including Timesheet...' : attachments.length > 0 ? 'Uploading...' : 'Generating...'}
+                                {isFromInvoiceManagement ? 'Saving...' : (attachTimesheet ? 'Including Timesheet...' : attachments.length > 0 ? 'Uploading...' : 'Generating...')}
                             </>
                         ) : (
                             <>
                                 <FileText className="mr-2" size={16} />
-                                Generate Invoice
-                                {(attachments.length > 0 || attachTimesheet) && (
+                                {isFromInvoiceManagement ? 'Save Invoice' : 'Generate Invoice'}
+                                {!isFromInvoiceManagement && (attachments.length > 0 || attachTimesheet) && (
                                     <span className="ml-1 bg-green-600 text-green-200 text-xs px-1.5 py-0.5 rounded-full">
                                         {attachTimesheet ? '+📊' : `+${attachments.length}`}
                                     </span>

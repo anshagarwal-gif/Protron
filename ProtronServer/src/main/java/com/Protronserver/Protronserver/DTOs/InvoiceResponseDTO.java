@@ -34,6 +34,7 @@ public class InvoiceResponseDTO {
     private Double hoursSpent;
     private BigDecimal totalAmount;
     private String remarks;
+    private String projectName;
     private String pdfFileName;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -166,6 +167,14 @@ public class InvoiceResponseDTO {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getPdfFileName() {

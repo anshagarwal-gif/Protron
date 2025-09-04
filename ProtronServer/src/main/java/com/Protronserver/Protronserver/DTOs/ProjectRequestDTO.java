@@ -1,5 +1,8 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import jakarta.persistence.Column;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -32,6 +35,24 @@ public class ProjectRequestDTO {
     private String businessUnitFundedBy;
     private String businessUnitDeliveredTo;
     private Integer priority; // 1–10
+    private BigDecimal businessValueAmount;
+    private String businessValueType;
+
+    public BigDecimal getBusinessValueAmount() {
+        return businessValueAmount;
+    }
+
+    public void setBusinessValueAmount(BigDecimal businessValueAmount) {
+        this.businessValueAmount = businessValueAmount;
+    }
+
+    public String getBusinessValueType() {
+        return businessValueType;
+    }
+
+    public void setBusinessValueType(String businessValueType) {
+        this.businessValueType = businessValueType;
+    }
 
     public String getProductOwner() {
         return productOwner;

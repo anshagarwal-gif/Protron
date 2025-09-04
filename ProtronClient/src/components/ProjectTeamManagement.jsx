@@ -114,13 +114,13 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       {
         headerName: 'Cost Currency',
         field: 'unit',
-        minWidth: 130,
+        maxWidth: 100,
         cellStyle: { borderRight: '1px solid #e5e7eb' }
       },
       {
         headerName: 'Cost',
         field: 'pricing',
-        minWidth: 100,
+        maxWidth: 95,
         cellStyle: { borderRight: '1px solid #e5e7eb' }
       },
       {
@@ -133,7 +133,15 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         headerName: 'Est.Release',
         field: 'estimatedReleaseDate',
         minWidth: 150,
-        cellStyle: { borderRight: '1px solid #e5e7eb' }
+        cellStyle: { borderRight: '1px solid #e5e7eb' },
+        valueFormatter: params => formatDate(params.value)
+      },
+      {
+        headerName: 'Onboarding Date',
+        field: 'onBoardingDate',
+        minWidth: 150,
+        cellStyle: { textAlign: 'center' },
+        valueFormatter: params => formatDate(params.value)
       }
 
     ];
@@ -147,7 +155,6 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         pinned: 'right'
       });
     }
-
     return baseColumns;
   }, [hasAccess]);
 
@@ -184,6 +191,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         pricing: member.pricing,
         systemImpacted: { systemName: member.systemName, systemId: member.systemId },
         estimatedReleaseDate: member.estimatedReleaseDate,
+        onBoardingDate: member.onBoardingDate,
         status: member.status,
       }));
       setTeamMembers(mappedTeamMembers);
@@ -295,6 +303,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         taskType: memberData.tasktype,
         unit: memberData.unit,
         estimatedReleaseDate: memberData.releaseDate,
+        onBoardingDate: memberData.onBoardingDate,
         systemImpacted: memberData.systemImpacted,
       };
       console.log("Request Body:", requestBody);
@@ -366,6 +375,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         'Cost': employee.pricing,
         'System Impacted': employee.systemImpacted.systemName,
         'Estimated Release Date': employee.estimatedReleaseDate,
+        'Onboarding Date': employee.onBoardingDate,
       }));
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
