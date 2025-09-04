@@ -24,6 +24,7 @@ import ManageRoleModal from "../components/ManageRoleModal";
 import AddRoleModal from "../components/AddRoleModal";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import UserEditForm from "../components/UserEditForm"; // Import your user edit form component
+import UserDetails from "../components/UserDetails";
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -67,36 +68,36 @@ const UserManagement = () => {
   };
 
   const handleEditClick = (employee) => {
-        setSelectedEmployee(employee);
-        setIsEditFormOpen(true);
-    };
+    setSelectedEmployee(employee);
+    setIsEditFormOpen(true);
+  };
 
-    const handleEditSubmit = async (updatedData) => {
-            try {
-                const res = await axios.put(
-                    `${import.meta.env.VITE_API_URL}/api/users/${selectedEmployee.userId}/editable-details`,
-                    updatedData,
-                    {
-                        headers: { Authorization: `${sessionStorage.getItem('token')}` },
-                    }
-                );
-                setSnackbar({
-                    open: true,
-                    message: 'User updated successfully!',
-                    severity: 'success',
-                });
-                // Update the employee list with the updated data
-                fetchEmployees();
-                setIsEditFormOpen(false);
-            } catch (error) {
-                console.error('Error updating user:', error);
-                setSnackbar({
-                    open: true,
-                    message: 'Failed to update user. Please try again.',
-                    severity: 'error',
-                });
-            }
-        };
+  const handleEditSubmit = async (updatedData) => {
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/users/${selectedEmployee.userId}/editable-details`,
+        updatedData,
+        {
+          headers: { Authorization: `${sessionStorage.getItem('token')}` },
+        }
+      );
+      setSnackbar({
+        open: true,
+        message: 'User updated successfully!',
+        severity: 'success',
+      });
+      // Update the employee list with the updated data
+      fetchEmployees();
+      setIsEditFormOpen(false);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to update user. Please try again.',
+        severity: 'error',
+      });
+    }
+  };
 
 
 
@@ -123,7 +124,7 @@ const UserManagement = () => {
         'Role': getRoleName(user.role),
         'Tenant': getTenantName(user),
         'Status': getUserStatus(user),
-       
+
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -205,41 +206,41 @@ const UserManagement = () => {
   };
 
   const fetchEmployees = async () => {
-  setLoading(true);
-  setError(null);
-  try {
-    const tenantId = sessionStorage.getItem("tenantId");
-    const token = sessionStorage.getItem('token');
+    setLoading(true);
+    setError(null);
+    try {
+      const tenantId = sessionStorage.getItem("tenantId");
+      const token = sessionStorage.getItem('token');
 
-    if (!tenantId || !token) {
-      throw new Error("Missing authentication credentials");
-    }
-
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/getAllUsers`,
-      {
-        headers: { Authorization: `${token}` }
+      if (!tenantId || !token) {
+        throw new Error("Missing authentication credentials");
       }
-    );
 
-    // Ensure users is always an array
-    const fetchedUsers = Array.isArray(res.data) ? res.data : [];
-    setUsers(fetchedUsers);
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/getAllUsers`,
+        {
+          headers: { Authorization: `${token}` }
+        }
+      );
 
-    const uniqueTenants = [...new Set(
-      fetchedUsers
-        .map(emp => emp.tenantName)
-        .filter(Boolean)
-    )];
-    setTenants(["All Tenants", ...uniqueTenants]);
-  } catch (error) {
-    console.error("Error fetching employees:", error);
-    setError(error.message || "Failed to fetch users");
-    setUsers([]); // Set users to an empty array on error
-  } finally {
-    setLoading(false);
-  }
-};
+      // Ensure users is always an array
+      const fetchedUsers = Array.isArray(res.data) ? res.data : [];
+      setUsers(fetchedUsers);
+
+      const uniqueTenants = [...new Set(
+        fetchedUsers
+          .map(emp => emp.tenantName)
+          .filter(Boolean)
+      )];
+      setTenants(["All Tenants", ...uniqueTenants]);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      setError(error.message || "Failed to fetch users");
+      setUsers([]); // Set users to an empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchRoles = async () => {
     try {
@@ -291,43 +292,43 @@ const UserManagement = () => {
   };
 
   const filteredUsers = (Array.isArray(users) ? users : []).filter(user => {
-  const tenantMatch = selectedTenant === "All Tenants" ||
-    user.tenantName === selectedTenant;
+    const tenantMatch = selectedTenant === "All Tenants" ||
+      user.tenantName === selectedTenant;
 
-  const roleName = getRoleName(user.role);
-  const searchMatch = searchQuery === "" ||
-    (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      roleName.toLowerCase().includes(searchQuery.toLowerCase()));
+    const roleName = getRoleName(user.role);
+    const searchMatch = searchQuery === "" ||
+      (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        roleName.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  return tenantMatch && searchMatch;
-});
-const filteredRoles = roles.filter(role => {
-  if (searchQuery === "") return true;
-  
-  const searchLower = searchQuery.toLowerCase();
-  
-  // Search in role name
-  const roleNameMatch = role.roleName?.toLowerCase().includes(searchLower);
-  
-  // Search in access rights/permissions
-  const accessRightsMatch = role.roleAccessRights?.some(accessRight => {
-    const ar = accessRight.accessRight;
-    // Search in module name
-    const moduleNameMatch = ar?.moduleName?.toLowerCase().includes(searchLower);
-    
-    // Search in permission types (view, edit, delete)
-    const permissionMatch = (
-      (ar?.canView && 'view'.includes(searchLower)) ||
-      (ar?.canEdit && 'edit'.includes(searchLower)) ||
-      (ar?.canDelete && 'delete'.includes(searchLower))
-    );
-    
-    return moduleNameMatch || permissionMatch;
+    return tenantMatch && searchMatch;
   });
-  
-  return roleNameMatch || accessRightsMatch;
-});
+  const filteredRoles = roles.filter(role => {
+    if (searchQuery === "") return true;
+
+    const searchLower = searchQuery.toLowerCase();
+
+    // Search in role name
+    const roleNameMatch = role.roleName?.toLowerCase().includes(searchLower);
+
+    // Search in access rights/permissions
+    const accessRightsMatch = role.roleAccessRights?.some(accessRight => {
+      const ar = accessRight.accessRight;
+      // Search in module name
+      const moduleNameMatch = ar?.moduleName?.toLowerCase().includes(searchLower);
+
+      // Search in permission types (view, edit, delete)
+      const permissionMatch = (
+        (ar?.canView && 'view'.includes(searchLower)) ||
+        (ar?.canEdit && 'edit'.includes(searchLower)) ||
+        (ar?.canDelete && 'delete'.includes(searchLower))
+      );
+
+      return moduleNameMatch || permissionMatch;
+    });
+
+    return roleNameMatch || accessRightsMatch;
+  });
   // Action functions
   const handleHold = async (user) => {
     try {
@@ -616,6 +617,25 @@ const filteredRoles = roles.filter(role => {
     }
   };
 
+  const NameCellRenderer = ({ data }) => {
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+      // Pass whole user object in state
+      navigate(`/user/${data.userId}`, { state: { user: data } });
+    };
+
+    return (
+      <span
+        onClick={handleClick}
+        className="text-blue-600 cursor-pointer hover:underline font-bold"
+      >
+        {data.name}
+      </span>
+    );
+  };
+
+
   // AG Grid column definitions for users
   const userColumnDefs = useMemo(() => [
     {
@@ -633,12 +653,11 @@ const filteredRoles = roles.filter(role => {
     {
       headerName: "Name",
       field: "name",
-      valueGetter: params => getFullName(params.data),
       flex: 1,
       minWidth: 150,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold' }
+      cellRenderer: NameCellRenderer
     },
     {
       headerName: "Email",
@@ -696,54 +715,54 @@ const filteredRoles = roles.filter(role => {
       filter: true
     },
     {
-  headerName: "Status",
-  field: "status",
-  valueGetter: params => getUserStatus(params.data),
-  width: 120,
-  sortable: true,
-  filter: true,
-  cellRenderer: params => {
-    const rawStatus = params.value?.toLowerCase() || "inactive";
+      headerName: "Status",
+      field: "status",
+      valueGetter: params => getUserStatus(params.data),
+      width: 120,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const rawStatus = params.value?.toLowerCase() || "inactive";
 
-    const getStatusStyle = (status) => {
-      switch (status) {
-        case "active":
-          return "bg-green-100 text-green-800";
-        case "hold":
-        case "on hold":
-          return "bg-yellow-100 text-yellow-800";
-        case "removed":
-          return "bg-red-100 text-red-800";
-        case "inactive":
-        default:
-          return "bg-gray-100 text-gray-800";
+        const getStatusStyle = (status) => {
+          switch (status) {
+            case "active":
+              return "bg-green-100 text-green-800";
+            case "hold":
+            case "on hold":
+              return "bg-yellow-100 text-yellow-800";
+            case "removed":
+              return "bg-red-100 text-red-800";
+            case "inactive":
+            default:
+              return "bg-gray-100 text-gray-800";
+          }
+        };
+
+        const getStatusLabel = (status) => {
+          switch (status) {
+            case "active":
+              return "Active";
+            case "hold":
+            case "on hold":
+              return "On Hold";
+            case "removed":
+              return "Removed";
+            case "inactive":
+            default:
+              return "Inactive";
+          }
+        };
+
+        return (
+          <span
+            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(rawStatus)}`}
+          >
+            {getStatusLabel(rawStatus)}
+          </span>
+        );
       }
-    };
-
-    const getStatusLabel = (status) => {
-      switch (status) {
-        case "active":
-          return "Active";
-        case "hold":
-        case "on hold":
-          return "On Hold";
-        case "removed":
-          return "Removed";
-        case "inactive":
-        default:
-          return "Inactive";
-      }
-    };
-
-    return (
-      <span
-        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(rawStatus)}`}
-      >
-        {getStatusLabel(rawStatus)}
-      </span>
-    );
-  }
-},
+    },
     {
       headerName: "Actions",
       field: "actions",
@@ -1367,7 +1386,7 @@ const filteredRoles = roles.filter(role => {
             <AgGridReact
               columnDefs={roleColumnDefs}
               rowData={filteredRoles}
-              
+
               defaultColDef={defaultColDef}
               pagination={true}
               paginationPageSize={10}
@@ -1447,14 +1466,14 @@ const filteredRoles = roles.filter(role => {
       />
 
       {isEditFormOpen && (
-      
-                      <UserEditForm
-                          userId={selectedEmployee.userId}
-                          onSubmit={handleEditSubmit}
-                          onCancel={() => setIsEditFormOpen(false)}
-                      />
-      
-                  )}
+
+        <UserEditForm
+          userId={selectedEmployee.userId}
+          onSubmit={handleEditSubmit}
+          onCancel={() => setIsEditFormOpen(false)}
+        />
+
+      )}
     </div>
   );
 };

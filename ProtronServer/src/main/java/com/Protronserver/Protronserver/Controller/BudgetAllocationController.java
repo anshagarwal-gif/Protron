@@ -4,7 +4,7 @@ import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Service.*;
 import com.Protronserver.Protronserver.DTOs.*;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
-import com.Protronserver.Protronserver.Entities.SystemMaster;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,16 +48,16 @@ public class BudgetAllocationController {
             // Validate allocation amount is positive
             if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
                 return ResponseEntity.badRequest()
-                        .body("Budget allocation failed! The allocation amount must be greater than zero.\n\n" +
-                                "Please enter a valid positive amount.");
+                        .body("Budget allocation failed! The allocation amount must be greater than zero.\n\n"
+                                + "Please enter a valid positive amount.");
             }
 
             // Validate allocation amount is not unreasonably large
             if (request.getAmount().compareTo(budgetLine.getAmountApproved().multiply(new BigDecimal("10"))) > 0) {
                 return ResponseEntity.badRequest()
-                        .body("Budget allocation failed! The requested amount is unreasonably large.\n\n" +
-                                "The allocation amount cannot be more than 10 times the approved budget.\n" +
-                                "Please review and adjust the amount.");
+                        .body("Budget allocation failed! The requested amount is unreasonably large.\n\n"
+                                + "The allocation amount cannot be more than 10 times the approved budget.\n"
+                                + "Please review and adjust the amount.");
             }
 
             // Validate allocation amount doesn't exceed available budget
@@ -68,13 +68,13 @@ public class BudgetAllocationController {
 
             if (newTotal.compareTo(budgetLine.getAmountApproved()) > 0) {
                 String errorMessage = String.format(
-                        "Budget allocation failed! The requested amount (%s %s) exceeds the available budget.\n\n" +
-                                "Budget Details:\n" +
-                                "• Total Approved Budget: %s %s\n" +
-                                "• Already Allocated: %s %s\n" +
-                                "• Remaining Budget: %s %s\n" +
-                                "• Requested Amount: %s %s\n\n" +
-                                "Please reduce the allocation amount to %s %s or less.",
+                        "Budget allocation failed! The requested amount (%s %s) exceeds the available budget.\n\n"
+                        + "Budget Details:\n"
+                        + "• Total Approved Budget: %s %s\n"
+                        + "• Already Allocated: %s %s\n"
+                        + "• Remaining Budget: %s %s\n"
+                        + "• Requested Amount: %s %s\n\n"
+                        + "Please reduce the allocation amount to %s %s or less.",
                         budgetLine.getCurrency(), request.getAmount().toString(),
                         budgetLine.getCurrency(), budgetLine.getAmountApproved().toString(),
                         budgetLine.getCurrency(), currentAllocations.toString(),
@@ -94,7 +94,15 @@ public class BudgetAllocationController {
 
             allocation.setVendorName(request.getVendorName());
 
-            // Handle system - either from SystemMaster or custom system name
+// ✅ Validation: Either vendorName OR System is required
+            if ((request.getVendorName() == null || request.getVendorName().trim().isEmpty())) {
+                if (request.getSystemId() == null
+                        && (request.getSystemName() == null || request.getSystemName().trim().isEmpty())) {
+                    return ResponseEntity.badRequest().body("Either Vendor Name or System is required");
+                }
+            }
+
+// Handle system only if provided
             if (request.getSystemId() != null) {
                 // Use existing system from SystemMaster
                 SystemMaster system = systemMasterService.getSystemById(request.getSystemId());
@@ -108,7 +116,9 @@ public class BudgetAllocationController {
                 allocation.setSystem(null);
                 allocation.setSystemName(request.getSystemName().trim());
             } else {
-                return ResponseEntity.badRequest().body("Either System ID or System Name is required");
+                // If vendorName is present, it's fine to skip system
+                allocation.setSystem(null);
+                allocation.setSystemName(null);
             }
 
             allocation.setAmount(request.getAmount());
@@ -129,16 +139,16 @@ public class BudgetAllocationController {
 
         } catch (Exception e) {
             String errorMessage = String.format(
-                    "Failed to create budget allocation!\n\n" +
-                            "Error Details:\n" +
-                            "• Error Type: %s\n" +
-                            "• Error Message: %s\n\n" +
-                            "Possible Causes:\n" +
-                            "• Database connection issues\n" +
-                            "• Invalid data format\n" +
-                            "• Insufficient permissions\n" +
-                            "• Budget line not found\n\n" +
-                            "Please check your input and try again. If the problem persists, contact system administrator.",
+                    "Failed to create budget allocation!\n\n"
+                    + "Error Details:\n"
+                    + "• Error Type: %s\n"
+                    + "• Error Message: %s\n\n"
+                    + "Possible Causes:\n"
+                    + "• Database connection issues\n"
+                    + "• Invalid data format\n"
+                    + "• Insufficient permissions\n"
+                    + "• Budget line not found\n\n"
+                    + "Please check your input and try again. If the problem persists, contact system administrator.",
                     e.getClass().getSimpleName(),
                     e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
@@ -261,16 +271,16 @@ public class BudgetAllocationController {
             // Validate allocation amount is positive
             if (request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
                 return ResponseEntity.badRequest()
-                        .body("Budget allocation update failed! The allocation amount must be greater than zero.\n\n" +
-                                "Please enter a valid positive amount.");
+                        .body("Budget allocation update failed! The allocation amount must be greater than zero.\n\n"
+                                + "Please enter a valid positive amount.");
             }
 
             // Validate allocation amount is not unreasonably large
             if (request.getAmount().compareTo(budgetLine.getAmountApproved().multiply(new BigDecimal("10"))) > 0) {
                 return ResponseEntity.badRequest()
-                        .body("Budget allocation update failed! The requested amount is unreasonably large.\n\n" +
-                                "The allocation amount cannot be more than 10 times the approved budget.\n" +
-                                "Please review and adjust the amount.");
+                        .body("Budget allocation update failed! The requested amount is unreasonably large.\n\n"
+                                + "The allocation amount cannot be more than 10 times the approved budget.\n"
+                                + "Please review and adjust the amount.");
             }
 
             // Calculate new total allocations (excluding current allocation)
@@ -282,13 +292,12 @@ public class BudgetAllocationController {
             if (newTotal.compareTo(budgetLine.getAmountApproved()) > 0) {
                 String errorMessage = String.format(
                         "Budget allocation update failed! The requested amount (%s %s) exceeds the available budget.\n\n"
-                                +
-                                "Budget Details:\n" +
-                                "• Total Approved Budget: %s %s\n" +
-                                "• Already Allocated (excluding current): %s %s\n" +
-                                "• Remaining Budget: %s %s\n" +
-                                "• Requested Amount: %s %s\n\n" +
-                                "Please reduce the allocation amount to %s %s or less.",
+                        + "Budget Details:\n"
+                        + "• Total Approved Budget: %s %s\n"
+                        + "• Already Allocated (excluding current): %s %s\n"
+                        + "• Remaining Budget: %s %s\n"
+                        + "• Requested Amount: %s %s\n\n"
+                        + "Please reduce the allocation amount to %s %s or less.",
                         budgetLine.getCurrency(), request.getAmount().toString(),
                         budgetLine.getCurrency(), budgetLine.getAmountApproved().toString(),
                         budgetLine.getCurrency(), allocationsWithoutCurrent.toString(),
@@ -342,16 +351,16 @@ public class BudgetAllocationController {
 
         } catch (Exception e) {
             String errorMessage = String.format(
-                    "Failed to update budget allocation!\n\n" +
-                            "Error Details:\n" +
-                            "• Error Type: %s\n" +
-                            "• Error Message: %s\n\n" +
-                            "Possible Causes:\n" +
-                            "• Database connection issues\n" +
-                            "• Invalid data format\n" +
-                            "• Allocation not found\n" +
-                            "• Insufficient permissions\n\n" +
-                            "Please check your input and try again. If the problem persists, contact system administrator.",
+                    "Failed to update budget allocation!\n\n"
+                    + "Error Details:\n"
+                    + "• Error Type: %s\n"
+                    + "• Error Message: %s\n\n"
+                    + "Possible Causes:\n"
+                    + "• Database connection issues\n"
+                    + "• Invalid data format\n"
+                    + "• Allocation not found\n"
+                    + "• Insufficient permissions\n\n"
+                    + "Please check your input and try again. If the problem persists, contact system administrator.",
                     e.getClass().getSimpleName(),
                     e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
@@ -384,21 +393,21 @@ public class BudgetAllocationController {
                     amountAvailable);
 
             String successMessage = String.format(
-                    "Budget allocation deleted successfully!\n\n" +
-                            "Deleted Allocation Details:\n" +
-                            "• Tenant ID: %s\n" +
-                            "• Vendor: %s\n" +
-                            "• System: %s\n" +
-                            "• Amount: %s %s\n" +
-                            "• Remarks: %s\n\n" +
-                            "Updated Budget Status:\n" +
-                            "• Total Approved: %s %s\n" +
-                            "• Remaining Allocated: %s %s\n" +
-                            "• Available Budget: %s %s",
+                    "Budget allocation deleted successfully!\n\n"
+                    + "Deleted Allocation Details:\n"
+                    + "• Tenant ID: %s\n"
+                    + "• Vendor: %s\n"
+                    + "• System: %s\n"
+                    + "• Amount: %s %s\n"
+                    + "• Remarks: %s\n\n"
+                    + "Updated Budget Status:\n"
+                    + "• Total Approved: %s %s\n"
+                    + "• Remaining Allocated: %s %s\n"
+                    + "• Available Budget: %s %s",
                     allocation.getTenantId(),
                     allocation.getVendorName(),
                     allocation.getSystemName() != null ? allocation.getSystemName()
-                            : (allocation.getSystem() != null ? allocation.getSystem().getSystemName() : "N/A"),
+                    : (allocation.getSystem() != null ? allocation.getSystem().getSystemName() : "N/A"),
                     budgetLine.getCurrency(), allocation.getAmount().toString(),
                     allocation.getRemarks() != null ? allocation.getRemarks() : "N/A",
                     budgetLine.getCurrency(), budgetLine.getAmountApproved().toString(),
@@ -409,15 +418,15 @@ public class BudgetAllocationController {
 
         } catch (Exception e) {
             String errorMessage = String.format(
-                    "Failed to delete budget allocation!\n\n" +
-                            "Error Details:\n" +
-                            "• Error Type: %s\n" +
-                            "• Error Message: %s\n\n" +
-                            "Possible Causes:\n" +
-                            "• Database connection issues\n" +
-                            "• Foreign key constraints\n" +
-                            "• Insufficient permissions\n\n" +
-                            "Please try again or contact system administrator if the problem persists.",
+                    "Failed to delete budget allocation!\n\n"
+                    + "Error Details:\n"
+                    + "• Error Type: %s\n"
+                    + "• Error Message: %s\n\n"
+                    + "Possible Causes:\n"
+                    + "• Database connection issues\n"
+                    + "• Foreign key constraints\n"
+                    + "• Insufficient permissions\n\n"
+                    + "Please try again or contact system administrator if the problem persists.",
                     e.getClass().getSimpleName(),
                     e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);

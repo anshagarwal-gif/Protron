@@ -34,6 +34,7 @@ import PageNotFound from './utils/PageNotFound';
 import SessionExpired from './utils/SessionExpired';
 import Unauthorized from './utils/Unauthorized';
 import { useSessionTimer } from './hooks/useSessionTimer'; // Adjust path as needed
+import UserDetails from './components/UserDetails';
 
 // Memoized route components to prevent unnecessary re-renders
 const MemoizedUserManagement = memo(UserManagement);
@@ -128,6 +129,7 @@ const AppContent = () => {
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" element={<MemoizedDashboard />} />
               <Route path="/projects" element={<MemoizedProjectManagement />} />
+              <Route path="/user/:id" element={<UserDetails/>}/>
               <Route path="/signup" element={<Signup/>}/>
               {/* <Route path="/team" element={<MemoizedTeamManagement />} /> */}
               <Route
