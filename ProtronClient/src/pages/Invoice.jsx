@@ -380,7 +380,13 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         }
       );
 
-      setInvoiceList(response.data || []);
+      // Sort invoice list by startTimestamp (latest first)
+      const sortedList = (response.data || []).sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      });
+      setInvoiceList(sortedList);
     } catch (error) {
       console.error("Error fetching invoice data:", error);
       setError(error.message || "Failed to fetch invoice data");

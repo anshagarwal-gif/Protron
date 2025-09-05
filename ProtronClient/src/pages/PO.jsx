@@ -139,7 +139,13 @@ const POManagement = () => {
         }
       );
 
-      setPOList(response.data);
+      // Sort POs by createTimestamp (latest first)
+      const sortedPOs = (response.data || []).sort((a, b) => {
+        const dateA = a.createTimestamp ? new Date(a.createTimestamp) : new Date(0);
+        const dateB = b.createTimestamp ? new Date(b.createTimestamp) : new Date(0);
+        return dateB - dateA;
+      });
+      setPOList(sortedPOs);
     } catch (error) {
       console.error("Error fetching PO data:", error);
       setError(error.message || "Failed to fetch PO data");

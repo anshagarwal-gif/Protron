@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.ResultDTOs;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,10 +17,11 @@ public class ProjectTableDTO {
     private String unit;
     private Double projectCost;
     private int projectTeamCount;
+    private LocalDateTime startTimestamp;
 
     public ProjectTableDTO(String projectCode, Long projectId, String projectName, Date startDate,
                            Long pmId, String pmName, Long sponsorId, String sponsorName,
-                           String unit, Double projectCost, int projectTeamCount) {
+                           String unit, Double projectCost, int projectTeamCount, LocalDateTime startTimestamp) {
         this.projectCode = projectCode;
         this.projectId = projectId;
         this.projectName = projectName;
@@ -31,6 +33,15 @@ public class ProjectTableDTO {
         this.unit = unit;
         this.projectCost = projectCost;
         this.projectTeamCount = projectTeamCount;
+        this.startTimestamp = startTimestamp;
+    }
+
+    public LocalDateTime getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public void setStartTimestamp(LocalDateTime startTimestamp) {
+        this.startTimestamp = startTimestamp;
     }
 
     public String getProjectCode() {

@@ -193,7 +193,13 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         estimatedReleaseDate: member.estimatedReleaseDate,
         onBoardingDate: member.onBoardingDate,
         status: member.status,
-      }));
+        startTimestamp: member.startTimestamp // for sorting
+      }))
+      .sort((a, b) => {
+        const dateA = a.startTimestamp ? new Date(a.startTimestamp) : new Date(0);
+        const dateB = b.startTimestamp ? new Date(b.startTimestamp) : new Date(0);
+        return dateB - dateA;
+      });
       setTeamMembers(mappedTeamMembers);
     } catch (error) {
       console.error("Failed to fetch team members:", error);
