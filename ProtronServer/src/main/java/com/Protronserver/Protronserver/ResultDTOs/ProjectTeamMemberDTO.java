@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.ResultDTOs;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ProjectTeamMemberDTO {
     private Long projectTeamId;
@@ -15,10 +16,11 @@ public class ProjectTeamMemberDTO {
     private LocalDate estimatedReleaseDate;
     private LocalDate onBoardingDate;
     private String status;
+    private LocalDateTime startTimestamp;
 
     public ProjectTeamMemberDTO(Long projectTeamId, Long userId, String name, String empCode, String email,
                                 String unit, Double pricing,Long systemId, String systemName,
-                                LocalDate estimatedReleaseDate, LocalDate onBoardingDate, String status) {
+                                LocalDate estimatedReleaseDate, LocalDate onBoardingDate, String status, LocalDateTime startTimestamp) {
         this.projectTeamId = projectTeamId;
         this.userId = userId;
         this.name = name;
@@ -31,6 +33,15 @@ public class ProjectTeamMemberDTO {
         this.estimatedReleaseDate = estimatedReleaseDate;
         this.onBoardingDate = onBoardingDate;
         this.status = status;
+        this.startTimestamp = startTimestamp;
+    }
+
+    public LocalDateTime getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public void setStartTimestamp(LocalDateTime startTimestamp) {
+        this.startTimestamp = startTimestamp;
     }
 
     public Long getSystemId() {

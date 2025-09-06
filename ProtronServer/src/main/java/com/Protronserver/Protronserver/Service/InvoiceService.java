@@ -727,58 +727,19 @@ public class InvoiceService {
     // Helper method to safely format dates (assuming this doesn't exist)
 
     private String formatLocalDateTimeWithSuffix(LocalDateTime dateTime) {
-        int day = dateTime.getDayOfMonth();
-        String daySuffix;
-        if (day >= 11 && day <= 13) {
-            daySuffix = "th";
-        } else {
-            switch (day % 10) {
-                case 1:
-                    daySuffix = "st";
-                    break;
-                case 2:
-                    daySuffix = "nd";
-                    break;
-                case 3:
-                    daySuffix = "rd";
-                    break;
-                default:
-                    daySuffix = "th";
-                    break;
-            }
+        if (dateTime == null) {
+            return ""; // Return empty string for null values
         }
-        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
-        return day + daySuffix + " " + dateTime.format(monthYearFormatter);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
+        return dateTime.format(formatter);
     }
 
     private String formatDateWithSuffix(LocalDate date) {
         if (date == null) {
-            return ""; // Return empty string for null dates
+            return ""; // Return empty string for null values
         }
-
-        int day = date.getDayOfMonth();
-        String daySuffix;
-
-        if (day >= 11 && day <= 13) {
-            daySuffix = "th";
-        } else {
-            switch (day % 10) {
-                case 1:
-                    daySuffix = "st";
-                    break;
-                case 2:
-                    daySuffix = "nd";
-                    break;
-                case 3:
-                    daySuffix = "rd";
-                    break;
-                default:
-                    daySuffix = "th";
-            }
-        }
-
-        DateTimeFormatter monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy");
-        return day + daySuffix + " " + date.format(monthYearFormatter);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
+        return date.format(formatter);
     }
 
     /**

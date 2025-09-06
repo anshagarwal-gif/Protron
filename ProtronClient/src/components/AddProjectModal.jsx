@@ -151,8 +151,10 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     const [systems, setSystems] = useState([]);
 
     const userOptions = users.map((user) => ({
-        value: user.name,
+        value: user.userId,
         label: user.name,
+        name: user.name,
+        userId: user.userId
     }));
     const [errors, setErrors] = useState({})
 
@@ -243,13 +245,47 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
         setIsSubmitting(true);
         try {
-            await onSubmit({ ...formData, projectCode }); // Ensure projectCode is sent
-            setErrors({})
+            // Only Project Manager and Sponsor send userId, all others send name
+            const submitData = { ...formData, projectCode };
+            // Project Manager
+            if (formData.manager && typeof formData.manager === 'object' && formData.manager.userId) {
+                submitData.manager = formData.manager.userId;
+            } else if (formData.manager && typeof formData.manager === 'string') {
+                const found = userOptions.find(u => u.label === formData.manager || u.userId === formData.manager);
+                if (found) submitData.manager = found.userId;
+                else submitData.manager = formData.manager;
+            }
+            // Sponsor
+            if (formData.sponsor && typeof formData.sponsor === 'object' && formData.sponsor.userId) {
+                submitData.sponsor = formData.sponsor.userId;
+            } else if (formData.sponsor && typeof formData.sponsor === 'string') {
+                const found = userOptions.find(u => u.label === formData.sponsor || u.userId === formData.sponsor);
+                if (found) submitData.sponsor = found.userId;
+                else submitData.sponsor = formData.sponsor;
+            }
+            // All other dropdowns: send name only
+            [
+                'productOwner',
+                'scrumMaster',
+                'architect',
+                'chiefScrumMaster',
+                'deliveryLeader',
+                'businessUnitFundedBy',
+                'businessUnitDeliveredTo'
+            ].forEach(function(field) {
+                if (formData[field] && typeof formData[field] === 'object' && formData[field].name) {
+                    submitData[field] = formData[field].name;
+                } else if (formData[field] && typeof formData[field] === 'string') {
+                    submitData[field] = formData[field];
+                }
+            });
+            await onSubmit(submitData);
+            setErrors({});
         } catch (error) {
             console.error('Error creating project:', error);
             setErrors({
                 submit: "Error creating project"
-            })
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -375,14 +411,14 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     options={userOptions}
                                     value={
                                         formData.manager
-                                            ? {
-                                                label: formData.manager,
-                                                value: formData.manager,
-                                            }
+                                            ? (typeof formData.manager === 'object'
+                                                ? userOptions.find(u => u.userId === formData.manager.userId)
+                                                : userOptions.find(u => u.userId === formData.manager || u.label === formData.manager)
+                                            )
                                             : null
                                     }
                                     onChange={(selected) =>
-                                        handleChange("manager", selected ? selected.value : "")
+                                        handleChange("manager", selected ? { userId: selected.value, name: selected.label } : "")
                                     }
                                     placeholder="Search or add a manager..."
                                     isClearable
@@ -403,14 +439,14 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     options={userOptions}
                                     value={
                                         formData.sponsor
-                                            ? {
-                                                label: formData.sponsor,
-                                                value: formData.sponsor,
-                                            }
+                                            ? (typeof formData.sponsor === 'object'
+                                                ? userOptions.find(u => u.userId === formData.sponsor.userId)
+                                                : userOptions.find(u => u.userId === formData.sponsor || u.label === formData.sponsor)
+                                            )
                                             : null
                                     }
                                     onChange={(selected) =>
-                                        handleChange("sponsor", selected ? selected.value : "")
+                                        handleChange("sponsor", selected ? { userId: selected.value, name: selected.label } : "")
                                     }
                                     placeholder="Search or add a sponsor..."
                                     isClearable
@@ -510,8 +546,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.productOwner ? { label: formData.productOwner, value: formData.productOwner } : null}
-                                    onChange={(selected) => handleChange('productOwner', selected?.value || '')}
+                                    value={formData.productOwner ? userOptions.find(u => u.label === formData.productOwner) : null}
+                                    onChange={(selected) => handleChange('productOwner', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -525,8 +561,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Scrum Master</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.scrumMaster ? { label: formData.scrumMaster, value: formData.scrumMaster } : null}
-                                    onChange={(selected) => handleChange('scrumMaster', selected?.value || '')}
+                                    value={formData.scrumMaster ? userOptions.find(u => u.label === formData.scrumMaster) : null}
+                                    onChange={(selected) => handleChange('scrumMaster', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -540,8 +576,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Architect</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.architect ? { label: formData.architect, value: formData.architect } : null}
-                                    onChange={(selected) => handleChange('architect', selected?.value || '')}
+                                    value={formData.architect ? userOptions.find(u => u.label === formData.architect) : null}
+                                    onChange={(selected) => handleChange('architect', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -555,8 +591,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Chief Scrum Master</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.chiefScrumMaster ? { label: formData.chiefScrumMaster, value: formData.chiefScrumMaster } : null}
-                                    onChange={(selected) => handleChange('chiefScrumMaster', selected?.value || '')}
+                                    value={formData.chiefScrumMaster ? userOptions.find(u => u.label === formData.chiefScrumMaster) : null}
+                                    onChange={(selected) => handleChange('chiefScrumMaster', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -572,8 +608,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Leader</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.deliveryLeader ? { label: formData.deliveryLeader, value: formData.deliveryLeader } : null}
-                                    onChange={(selected) => handleChange('deliveryLeader', selected?.value || '')}
+                                    value={formData.deliveryLeader ? userOptions.find(u => u.label === formData.deliveryLeader) : null}
+                                    onChange={(selected) => handleChange('deliveryLeader', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -587,8 +623,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.businessUnitFundedBy ? { label: formData.businessUnitFundedBy, value: formData.businessUnitFundedBy } : null}
-                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected?.value || '')}
+                                    value={formData.businessUnitFundedBy ? userOptions.find(u => u.label === formData.businessUnitFundedBy) : null}
+                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -602,8 +638,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.businessUnitDeliveredTo ? { label: formData.businessUnitDeliveredTo, value: formData.businessUnitDeliveredTo } : null}
-                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected?.value || '')}
+                                    value={formData.businessUnitDeliveredTo ? userOptions.find(u => u.label === formData.businessUnitDeliveredTo) : null}
+                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -839,6 +875,6 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             )}
         </>
     );
-};
+}
 
 export default AddProjectModal;

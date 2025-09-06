@@ -140,7 +140,7 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
       console.log('Raw milestones data from API:', response.data); // Debug log
 
       // Transform the backend data to match display requirements
-      const transformedMilestones = response.data.map(milestone => ({
+      let transformedMilestones = response.data.map(milestone => ({
         msId: milestone.msId,
         milestoneName: milestone.msName || 'N/A',
         milestoneDescription: milestone.msDesc || 'N/A',
@@ -151,8 +151,16 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
         duration: milestone.msDuration || 0,
         remark: milestone.msRemarks || '',
         attachment: milestone.attachment || null, // Add attachment field
-        createdDate: milestone.createdDate || null
+        createdDate: milestone.createdDate || null,
+        startTimestamp: milestone.startTimestamp || milestone.msDate || null // fallback if needed
       }));
+
+      // Sort milestones by startTimestamp descending (latest first)
+      transformedMilestones = transformedMilestones.sort((a, b) => {
+        const aTime = a.startTimestamp ? new Date(a.startTimestamp).getTime() : 0;
+        const bTime = b.startTimestamp ? new Date(b.startTimestamp).getTime() : 0;
+        return bTime - aTime;
+      });
 
       setMilestones(transformedMilestones);
     } catch (error) {

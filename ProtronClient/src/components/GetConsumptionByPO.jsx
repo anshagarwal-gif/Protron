@@ -394,7 +394,13 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
         }
       })
       console.log("PO Consumption Details", response.data)
-      setConsumptions(response.data || [])
+      // Sort PO consumption details by createdTimestamp descending (latest first)
+      const sortedData = (response.data || []).sort((a, b) => {
+        const aTime = a.createdTimestamp ? new Date(a.createdTimestamp).getTime() : 0;
+        const bTime = b.createdTimestamp ? new Date(b.createdTimestamp).getTime() : 0;
+        return bTime - aTime;
+      });
+      setConsumptions(sortedData)
       setError(null)
     } catch (err) {
       console.error('Error fetching consumption details:', err)

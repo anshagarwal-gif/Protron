@@ -321,7 +321,13 @@ const GetSRNDetailsByPO = ({ poId }) => {
         }
       })
       console.log(response.data)
-      setSrnDetails(response.data || [])
+      // Sort SRN details by createdTimestamp descending (latest first)
+      const sortedData = (response.data || []).sort((a, b) => {
+        const aTime = a.createdTimestamp ? new Date(a.createdTimestamp).getTime() : 0;
+        const bTime = b.createdTimestamp ? new Date(b.createdTimestamp).getTime() : 0;
+        return bTime - aTime;
+      });
+      setSrnDetails(sortedData)
       setError(null)
     } catch (err) {
       console.error('Error fetching SRN details:', err)
