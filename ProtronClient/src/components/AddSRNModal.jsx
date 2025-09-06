@@ -550,7 +550,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     ))}
                                 </select>
                                 {errors.poId && (
-                                    <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.poId}`}>
+                                    <p className="absolute mt-1 text-xs text-red-600" title={`Error: ${errors.poId}`}>
                                         {errors.poId}
                                     </p>
                                 )}
@@ -578,7 +578,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     />
                                 </div>
                                 {errors.srnName && (
-                                    <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.srnName}`}>
+                                    <p className="absolute mt-1 text-xs text-red-600" title={`Error: ${errors.srnName}`}>
                                         {errors.srnName}
                                     </p>
                                 )}
@@ -608,7 +608,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     ))}
                                 </select>
                                 {errors.msId && (
-                                    <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.msId}`}>
+                                    <p className="absolute mt-1 text-xs text-red-600" title={`Error: ${errors.msId}`}>
                                         {errors.msId}
                                     </p>
                                 )}
