@@ -506,6 +506,8 @@ const handleDodUpdate = async () => {
       return;
     }
 
+    console.log(data)
+
     try {
       const payload = {
         projectCode: data.projectCode,

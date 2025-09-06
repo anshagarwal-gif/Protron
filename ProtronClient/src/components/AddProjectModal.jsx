@@ -108,145 +108,6 @@ const Dropdown = ({
     );
 };
 
-// Multi-select Dropdown Component
-const MultiSelectDropdown = ({
-    options = [],
-    value = [],
-    onChange,
-    placeholder,
-    label,
-    icon: Icon,
-    getOptionLabel = (option) => option,
-    isOptionEqualToValue = (option, value) => option === value
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const dropdownRef = useRef(null);
-
-    const filteredOptions = options.filter(option =>
-        getOptionLabel(option).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const selectedOptions = options.filter(option =>
-        value.some(selectedValue => isOptionEqualToValue(option, selectedValue))
-    );
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
-                setSearchTerm('');
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleOptionToggle = (option) => {
-        const optionValue = option.userId || option;
-        const isSelected = value.includes(optionValue);
-
-        if (isSelected) {
-            onChange(value.filter(v => v !== optionValue));
-        } else {
-            onChange([...value, optionValue]);
-        }
-    };
-
-    return (
-        <div className="relative z-10" ref={dropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            <div
-                className={`relative z-10 w-full h-10 border border-gray-300 rounded-md px-3 py-2 bg-white cursor-pointer flex items-center hover:border-green-500 ${isOpen ? 'border-green-600' : ''
-                    }`}
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                {Icon && <Icon className="w-5 h-5 text-green-800 mr-2" />}
-                <input
-                    type="text"
-                    className="flex-1 outline-none bg-transparent cursor-pointer"
-                    placeholder={placeholder}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    readOnly={!isOpen}
-                />
-                <div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-            </div>
-
-            {isOpen && (
-                <div className="fixed z-50 w-[300px] mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {filteredOptions.length > 0 ? (
-                        filteredOptions.map((option, index) => {
-                            const optionValue = option.userId || option;
-                            const isSelected = value.includes(optionValue);
-
-                            return (
-                                <div
-                                    key={index}
-                                    className={`px-3 py-2 hover:bg-green-50 cursor-pointer flex items-center ${isSelected ? 'bg-green-100' : ''
-                                        }`}
-                                    onClick={() => handleOptionToggle(option)}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={() => { }}
-                                        className="mr-2 text-green-600"
-                                    />
-                                    {option.name && (
-                                        <div className="w-6 h-6 rounded-full bg-green-800 text-white text-xs flex items-center justify-center mr-2">
-                                            {option.name.charAt(0)}
-                                        </div>
-                                    )}
-                                    {getOptionLabel(option)}
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="px-3 py-2 text-gray-500 text-sm">No options found</div>
-                    )}
-                </div>
-            )}
-
-            {/* Display selected team members */}
-            {selectedOptions.length > 0 && (
-                <div className="mt-2 p-2 border border-green-800 rounded-md bg-white max-h-32 overflow-auto">
-                    <div className="text-xs text-gray-600 mb-2">
-                        Selected Team Members ({selectedOptions.length})
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                        {selectedOptions.map((option) => (
-                            <div
-                                key={option.userId || option}
-                                className="flex items-center bg-green-700 text-white rounded px-2 py-1 text-sm w-full"
-                            >
-                                <div className="w-4 h-4 rounded-full bg-green-800 text-white text-xs flex items-center justify-center mr-1">
-                                    {option.name?.charAt(0)}
-                                </div>
-                                <span className="truncate flex-1 text-xs">{option.name}</span>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        const optionValue = option.userId || option;
-                                        onChange(value.filter(v => v !== optionValue));
-                                    }}
-                                    className="ml-1 text-white hover:bg-white hover:bg-opacity-20 rounded p-0.5"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
 
 // Date Picker Component (simplified)
 const DatePicker = ({ label, value, onChange, icon: Icon, error }) => {
@@ -772,17 +633,90 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
                         {/* Row 3: Team Members and Systems Impacted */}
                         <div className="flex gap-4 items-start">
-                            <div className="flex-1">
-                                <MultiSelectDropdown
-                                    options={users}
-                                    value={formData.teamMembers || []}
-                                    onChange={(value) => handleChange('teamMembers', value)}
-                                    label="Team Members"
+                            <div className='flex-1'>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Add Team Members
+                                </label>
+                                <CreatableSelect
+                                    options={users.map(user => ({
+                                        label: user.name,
+                                        value: user.userId
+                                    }))}
+                                    value={(formData.teamMembers || []).map(member => ({
+                                        label: users.find(u => u.userId === member)?.name || member,
+                                        value: member
+                                    }))}
+                                    onChange={(selected) => {
+                                        handleChange(
+                                            "teamMembers",
+                                            selected?.map(s => s.value) || []
+                                        );
+                                    }}
                                     placeholder="Search for team members..."
-                                    icon={Users}
-                                    getOptionLabel={(option) => option.name || ''}
-                                    isOptionEqualToValue={(option, value) => option.userId === value}
+                                    isClearable
+                                    isMulti
+                                    isSearchable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 }),
+                                        control: base => ({
+                                            ...base,
+                                            minHeight: "40px",
+                                            fontSize: "14px"
+                                        })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    noOptionsMessage={() => "No team members found. Type to create new one."}
+                                    loadingMessage={() => "Loading team members..."}
                                 />
+
+                                <div className="text-xs text-gray-600 mt-1">
+                                    Enter a team member’s name and press Enter to add.
+                                </div>
+
+                                {/* Debug info */}
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Available users: {users.length} | Selected: {formData.teamMembers?.length || 0}
+                                </div>
+
+                                {/* Display added team members */}
+                                {formData.teamMembers?.length > 0 && (
+                                    <div className="mt-2 p-2 border border-blue-800 rounded-md bg-white overflow-auto">
+                                        <div className="text-xs text-gray-600 mb-2">
+                                            Added Team Members ({formData.teamMembers.length})
+                                        </div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {formData.teamMembers.map((memberId, index) => {
+                                                const user = users.find(u => u.userId === memberId);
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center bg-blue-700 text-white rounded px-2 py-1 text-sm"
+                                                    >
+                                                        <span className="truncate flex-1 text-xs">
+                                                            {user?.name || memberId}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            disabled={isSubmitting}
+                                                            onClick={() => {
+                                                                if (!isSubmitting) {
+                                                                    const updatedMembers = formData.teamMembers.filter(
+                                                                        m => m !== memberId
+                                                                    );
+                                                                    handleChange("teamMembers", updatedMembers);
+                                                                }
+                                                            }}
+                                                            className="ml-1 text-white hover:bg-white hover:bg-opacity-20 rounded p-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex-1">
