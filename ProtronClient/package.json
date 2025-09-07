@@ -36,7 +36,7 @@
     "react-router-dom": "^7.5.3",
     "react-select": "^5.10.2",
     "tailwindcss": "^4.1.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
