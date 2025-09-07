@@ -179,7 +179,13 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
         }
       );
 
-      setSRNList(response.data);
+      // Sort SRN list by createdTimestamp (latest first)
+      const sortedList = (response.data || []).sort((a, b) => {
+        const dateA = a.createdTimestamp ? new Date(a.createdTimestamp) : new Date(0);
+        const dateB = b.createdTimestamp ? new Date(b.createdTimestamp) : new Date(0);
+        return dateB - dateA;
+      });
+      setSRNList(sortedList);
     } catch (error) {
       console.error("Error fetching SRN data:", error);
       setError(error.message || "Failed to fetch SRN data");

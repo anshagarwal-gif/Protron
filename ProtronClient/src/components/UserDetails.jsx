@@ -14,7 +14,12 @@ import {
   Trash2,
   Lock,
   Unlock,
+  FolderOpen,
+  Briefcase,
 } from "lucide-react"
+import axios from "axios"
+import { useEffect, useState } from "react"
+
 
 const UserDetails = () => {
   const location = useLocation()
@@ -24,7 +29,10 @@ const UserDetails = () => {
   if (!user) {
     return <p className="p-4 text-center text-gray-500">No user data found. Please navigate from the user list page.</p>
   }
+  const [projects, setProjects] = useState([])
+  const [projectsLoading, setProjectsLoading] = useState(true)
 
+  
   // Define access rights mapping for easier display
   const accessMapping = {
     canView: { label: "View", icon: Eye, color: "emerald" },
@@ -75,6 +83,35 @@ const UserDetails = () => {
     return "bg-gray-50 text-gray-400 border-gray-200"
   }
 
+  const fetchProjects = async () =>{
+    setProjectsLoading(true)
+    const token = sessionStorage.getItem('token')
+    if(!token){
+      setProjectsLoading(false)
+      return
+    }
+    try{
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/user/active-projects?userId=${user.userId}`,
+        {
+          headers:{
+            Authorization: `${token}`
+          }
+        }
+      )
+      setProjects(res.data)
+    }catch(err){
+      console.log(err)
+    } finally {
+      setProjectsLoading(false)
+    }
+  }
+
+  useEffect(()=>{
+    fetchProjects()
+  },[])
+  
+  console.log(projects)
+  
   return (
     <div className=" bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-3 sm:p-12">
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-green-100 p-6 sm:p-8 mx-auto">
@@ -125,6 +162,63 @@ const UserDetails = () => {
               <p className="text-gray-800 font-medium text-balance">{item.value}</p>
             </div>
           ))}
+        </div>
+
+        {/* Active Projects Section */}
+        <div className="mt-12">
+          <div className="flex items-center space-x-3 mb-8">
+            <div className="p-2 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg">
+              <Briefcase size={24} className="text-emerald-600" />
+            </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent">
+              Active Projects
+            </h2>
+          </div>
+
+          {projectsLoading ? (
+            <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-green-50/30 rounded-xl border border-green-100">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+              <p className="text-gray-500 text-lg font-medium">Loading projects...</p>
+            </div>
+          ) : projects.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+              {projects.map((project) => (
+                <div
+                  key={project.projectId}
+                  className="bg-gradient-to-br from-white to-green-50/50 rounded-xl p-6 border border-green-100 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105"
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="p-3 bg-gradient-to-br from-emerald-100 to-green-100 rounded-lg">
+                      <FolderOpen size={24} className="text-emerald-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-800 leading-tight">
+                        {project.projectName}
+                      </h3>
+                      <p className="text-sm text-gray-500 font-medium">
+                        ID: {project.projectId}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-emerald-700">Status</span>
+                      <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wide">
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-green-50/30 rounded-xl border border-green-100">
+              <FolderOpen size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500 text-lg font-medium">No active projects found</p>
+              <p className="text-gray-400 text-sm mt-2">This user is not currently assigned to any active projects</p>
+            </div>
+          )}
         </div>
 
         {/* Access Rights Section */}
@@ -229,4 +323,4 @@ const UserDetails = () => {
   )
 }
 
-export default UserDetails
+export default UserDetails;

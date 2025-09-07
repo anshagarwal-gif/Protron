@@ -516,7 +516,13 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       );
 
       // Use real data only - no mock attachments
-      setConsumptionList(response.data);
+      // Sort PO consumption by createdTimestamp (latest first)
+      const sortedList = (response.data || []).sort((a, b) => {
+        const dateA = a.createdTimestamp ? new Date(a.createdTimestamp) : new Date(0);
+        const dateB = b.createdTimestamp ? new Date(b.createdTimestamp) : new Date(0);
+        return dateB - dateA;
+      });
+      setConsumptionList(sortedList);
     } catch (error) {
       console.error("Error fetching PO Consumption data:", error);
       setError(error.message || "Failed to fetch PO Consumption data");

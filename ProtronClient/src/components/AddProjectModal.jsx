@@ -108,145 +108,6 @@ const Dropdown = ({
     );
 };
 
-// Multi-select Dropdown Component
-const MultiSelectDropdown = ({
-    options = [],
-    value = [],
-    onChange,
-    placeholder,
-    label,
-    icon: Icon,
-    getOptionLabel = (option) => option,
-    isOptionEqualToValue = (option, value) => option === value
-}) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const dropdownRef = useRef(null);
-
-    const filteredOptions = options.filter(option =>
-        getOptionLabel(option).toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const selectedOptions = options.filter(option =>
-        value.some(selectedValue => isOptionEqualToValue(option, selectedValue))
-    );
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
-                setSearchTerm('');
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const handleOptionToggle = (option) => {
-        const optionValue = option.userId || option;
-        const isSelected = value.includes(optionValue);
-
-        if (isSelected) {
-            onChange(value.filter(v => v !== optionValue));
-        } else {
-            onChange([...value, optionValue]);
-        }
-    };
-
-    return (
-        <div className="relative z-10" ref={dropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-            <div
-                className={`relative z-10 w-full h-10 border border-gray-300 rounded-md px-3 py-2 bg-white cursor-pointer flex items-center hover:border-green-500 ${isOpen ? 'border-green-600' : ''
-                    }`}
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                {Icon && <Icon className="w-5 h-5 text-green-800 mr-2" />}
-                <input
-                    type="text"
-                    className="flex-1 outline-none bg-transparent cursor-pointer"
-                    placeholder={placeholder}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    readOnly={!isOpen}
-                />
-                <div className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`}>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-            </div>
-
-            {isOpen && (
-                <div className="fixed z-50 w-[300px] mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {filteredOptions.length > 0 ? (
-                        filteredOptions.map((option, index) => {
-                            const optionValue = option.userId || option;
-                            const isSelected = value.includes(optionValue);
-
-                            return (
-                                <div
-                                    key={index}
-                                    className={`px-3 py-2 hover:bg-green-50 cursor-pointer flex items-center ${isSelected ? 'bg-green-100' : ''
-                                        }`}
-                                    onClick={() => handleOptionToggle(option)}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={isSelected}
-                                        onChange={() => { }}
-                                        className="mr-2 text-green-600"
-                                    />
-                                    {option.name && (
-                                        <div className="w-6 h-6 rounded-full bg-green-800 text-white text-xs flex items-center justify-center mr-2">
-                                            {option.name.charAt(0)}
-                                        </div>
-                                    )}
-                                    {getOptionLabel(option)}
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="px-3 py-2 text-gray-500 text-sm">No options found</div>
-                    )}
-                </div>
-            )}
-
-            {/* Display selected team members */}
-            {selectedOptions.length > 0 && (
-                <div className="mt-2 p-2 border border-green-800 rounded-md bg-white max-h-32 overflow-auto">
-                    <div className="text-xs text-gray-600 mb-2">
-                        Selected Team Members ({selectedOptions.length})
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                        {selectedOptions.map((option) => (
-                            <div
-                                key={option.userId || option}
-                                className="flex items-center bg-green-700 text-white rounded px-2 py-1 text-sm w-full"
-                            >
-                                <div className="w-4 h-4 rounded-full bg-green-800 text-white text-xs flex items-center justify-center mr-1">
-                                    {option.name?.charAt(0)}
-                                </div>
-                                <span className="truncate flex-1 text-xs">{option.name}</span>
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        const optionValue = option.userId || option;
-                                        onChange(value.filter(v => v !== optionValue));
-                                    }}
-                                    className="ml-1 text-white hover:bg-white hover:bg-opacity-20 rounded p-0.5"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
 
 // Date Picker Component (simplified)
 const DatePicker = ({ label, value, onChange, icon: Icon, error }) => {
@@ -290,8 +151,10 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     const [systems, setSystems] = useState([]);
 
     const userOptions = users.map((user) => ({
-        value: user.name,
+        value: user.userId,
         label: user.name,
+        name: user.name,
+        userId: user.userId
     }));
     const [errors, setErrors] = useState({})
 
@@ -382,13 +245,47 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
         setIsSubmitting(true);
         try {
-            await onSubmit({ ...formData, projectCode }); // Ensure projectCode is sent
-            setErrors({})
+            // Only Project Manager and Sponsor send userId, all others send name
+            const submitData = { ...formData, projectCode };
+            // Project Manager
+            if (formData.manager && typeof formData.manager === 'object' && formData.manager.userId) {
+                submitData.manager = formData.manager.userId;
+            } else if (formData.manager && typeof formData.manager === 'string') {
+                const found = userOptions.find(u => u.label === formData.manager || u.userId === formData.manager);
+                if (found) submitData.manager = found.userId;
+                else submitData.manager = formData.manager;
+            }
+            // Sponsor
+            if (formData.sponsor && typeof formData.sponsor === 'object' && formData.sponsor.userId) {
+                submitData.sponsor = formData.sponsor.userId;
+            } else if (formData.sponsor && typeof formData.sponsor === 'string') {
+                const found = userOptions.find(u => u.label === formData.sponsor || u.userId === formData.sponsor);
+                if (found) submitData.sponsor = found.userId;
+                else submitData.sponsor = formData.sponsor;
+            }
+            // All other dropdowns: send name only
+            [
+                'productOwner',
+                'scrumMaster',
+                'architect',
+                'chiefScrumMaster',
+                'deliveryLeader',
+                'businessUnitFundedBy',
+                'businessUnitDeliveredTo'
+            ].forEach(function(field) {
+                if (formData[field] && typeof formData[field] === 'object' && formData[field].name) {
+                    submitData[field] = formData[field].name;
+                } else if (formData[field] && typeof formData[field] === 'string') {
+                    submitData[field] = formData[field];
+                }
+            });
+            await onSubmit(submitData);
+            setErrors({});
         } catch (error) {
             console.error('Error creating project:', error);
             setErrors({
                 submit: "Error creating project"
-            })
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -514,14 +411,14 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     options={userOptions}
                                     value={
                                         formData.manager
-                                            ? {
-                                                label: formData.manager,
-                                                value: formData.manager,
-                                            }
+                                            ? (typeof formData.manager === 'object'
+                                                ? userOptions.find(u => u.userId === formData.manager.userId)
+                                                : userOptions.find(u => u.userId === formData.manager || u.label === formData.manager)
+                                            )
                                             : null
                                     }
                                     onChange={(selected) =>
-                                        handleChange("manager", selected ? selected.value : "")
+                                        handleChange("manager", selected ? { userId: selected.value, name: selected.label } : "")
                                     }
                                     placeholder="Search or add a manager..."
                                     isClearable
@@ -542,14 +439,14 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     options={userOptions}
                                     value={
                                         formData.sponsor
-                                            ? {
-                                                label: formData.sponsor,
-                                                value: formData.sponsor,
-                                            }
+                                            ? (typeof formData.sponsor === 'object'
+                                                ? userOptions.find(u => u.userId === formData.sponsor.userId)
+                                                : userOptions.find(u => u.userId === formData.sponsor || u.label === formData.sponsor)
+                                            )
                                             : null
                                     }
                                     onChange={(selected) =>
-                                        handleChange("sponsor", selected ? selected.value : "")
+                                        handleChange("sponsor", selected ? { userId: selected.value, name: selected.label } : "")
                                     }
                                     placeholder="Search or add a sponsor..."
                                     isClearable
@@ -649,8 +546,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.productOwner ? { label: formData.productOwner, value: formData.productOwner } : null}
-                                    onChange={(selected) => handleChange('productOwner', selected?.value || '')}
+                                    value={formData.productOwner ? userOptions.find(u => u.label === formData.productOwner) : null}
+                                    onChange={(selected) => handleChange('productOwner', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -664,8 +561,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Scrum Master</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.scrumMaster ? { label: formData.scrumMaster, value: formData.scrumMaster } : null}
-                                    onChange={(selected) => handleChange('scrumMaster', selected?.value || '')}
+                                    value={formData.scrumMaster ? userOptions.find(u => u.label === formData.scrumMaster) : null}
+                                    onChange={(selected) => handleChange('scrumMaster', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -679,8 +576,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Architect</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.architect ? { label: formData.architect, value: formData.architect } : null}
-                                    onChange={(selected) => handleChange('architect', selected?.value || '')}
+                                    value={formData.architect ? userOptions.find(u => u.label === formData.architect) : null}
+                                    onChange={(selected) => handleChange('architect', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -694,8 +591,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Chief Scrum Master</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.chiefScrumMaster ? { label: formData.chiefScrumMaster, value: formData.chiefScrumMaster } : null}
-                                    onChange={(selected) => handleChange('chiefScrumMaster', selected?.value || '')}
+                                    value={formData.chiefScrumMaster ? userOptions.find(u => u.label === formData.chiefScrumMaster) : null}
+                                    onChange={(selected) => handleChange('chiefScrumMaster', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -711,8 +608,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Leader</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.deliveryLeader ? { label: formData.deliveryLeader, value: formData.deliveryLeader } : null}
-                                    onChange={(selected) => handleChange('deliveryLeader', selected?.value || '')}
+                                    value={formData.deliveryLeader ? userOptions.find(u => u.label === formData.deliveryLeader) : null}
+                                    onChange={(selected) => handleChange('deliveryLeader', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -726,8 +623,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.businessUnitFundedBy ? { label: formData.businessUnitFundedBy, value: formData.businessUnitFundedBy } : null}
-                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected?.value || '')}
+                                    value={formData.businessUnitFundedBy ? userOptions.find(u => u.label === formData.businessUnitFundedBy) : null}
+                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -741,8 +638,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
                                 <CreatableSelect
                                     options={userOptions}
-                                    value={formData.businessUnitDeliveredTo ? { label: formData.businessUnitDeliveredTo, value: formData.businessUnitDeliveredTo } : null}
-                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected?.value || '')}
+                                    value={formData.businessUnitDeliveredTo ? userOptions.find(u => u.label === formData.businessUnitDeliveredTo) : null}
+                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected ? selected.label : '')}
                                     placeholder="Select or type name..."
                                     isClearable
                                     styles={{
@@ -772,17 +669,90 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
                         {/* Row 3: Team Members and Systems Impacted */}
                         <div className="flex gap-4 items-start">
-                            <div className="flex-1">
-                                <MultiSelectDropdown
-                                    options={users}
-                                    value={formData.teamMembers || []}
-                                    onChange={(value) => handleChange('teamMembers', value)}
-                                    label="Team Members"
+                            <div className='flex-1'>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Add Team Members
+                                </label>
+                                <CreatableSelect
+                                    options={users.map(user => ({
+                                        label: user.name,
+                                        value: user.userId
+                                    }))}
+                                    value={(formData.teamMembers || []).map(member => ({
+                                        label: users.find(u => u.userId === member)?.name || member,
+                                        value: member
+                                    }))}
+                                    onChange={(selected) => {
+                                        handleChange(
+                                            "teamMembers",
+                                            selected?.map(s => s.value) || []
+                                        );
+                                    }}
                                     placeholder="Search for team members..."
-                                    icon={Users}
-                                    getOptionLabel={(option) => option.name || ''}
-                                    isOptionEqualToValue={(option, value) => option.userId === value}
+                                    isClearable
+                                    isMulti
+                                    isSearchable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({ ...base, zIndex: 9999 }),
+                                        control: base => ({
+                                            ...base,
+                                            minHeight: "40px",
+                                            fontSize: "14px"
+                                        })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    noOptionsMessage={() => "No team members found. Type to create new one."}
+                                    loadingMessage={() => "Loading team members..."}
                                 />
+
+                                <div className="text-xs text-gray-600 mt-1">
+                                    Enter a team member’s name and press Enter to add.
+                                </div>
+
+                                {/* Debug info */}
+                                <div className="text-xs text-gray-500 mt-1">
+                                    Available users: {users.length} | Selected: {formData.teamMembers?.length || 0}
+                                </div>
+
+                                {/* Display added team members */}
+                                {formData.teamMembers?.length > 0 && (
+                                    <div className="mt-2 p-2 border border-blue-800 rounded-md bg-white overflow-auto">
+                                        <div className="text-xs text-gray-600 mb-2">
+                                            Added Team Members ({formData.teamMembers.length})
+                                        </div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {formData.teamMembers.map((memberId, index) => {
+                                                const user = users.find(u => u.userId === memberId);
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center bg-blue-700 text-white rounded px-2 py-1 text-sm"
+                                                    >
+                                                        <span className="truncate flex-1 text-xs">
+                                                            {user?.name || memberId}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            disabled={isSubmitting}
+                                                            onClick={() => {
+                                                                if (!isSubmitting) {
+                                                                    const updatedMembers = formData.teamMembers.filter(
+                                                                        m => m !== memberId
+                                                                    );
+                                                                    handleChange("teamMembers", updatedMembers);
+                                                                }
+                                                            }}
+                                                            className="ml-1 text-white hover:bg-white hover:bg-opacity-20 rounded p-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex-1">
@@ -905,6 +875,6 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             )}
         </>
     );
-};
+}
 
 export default AddProjectModal;

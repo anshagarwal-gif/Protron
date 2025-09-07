@@ -58,15 +58,15 @@ export default function SprintManagement({ projectId, open, onClose }) {
     const d = new Date(dateString);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  return `${day}-${monthStr}-${year}`;
+    const year = d.getFullYear();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    return `${day}-${monthStr}-${year}`;
   };
 
   const downloadSprintExcel = () => {
     try {
-      const headers = ['#','Sprint Name','Start Date','End Date','Description','Created On'];
+      const headers = ['#', 'Sprint Name', 'Start Date', 'End Date', 'Description', 'Created On'];
       const rows = (sprints || []).map((s, idx) => ([
         idx + 1,
         s.sprintName || '',
@@ -110,9 +110,11 @@ export default function SprintManagement({ projectId, open, onClose }) {
   const handleDeleteSprint = async (rowIndex) => {
     const sprintId = sprints[rowIndex].sprintId;
     try {
-      await fetch(`${API_BASE_URL}/api/sprints/${sprintId}`, { method: 'DELETE', headers: {
+      await fetch(`${API_BASE_URL}/api/sprints/${sprintId}`, {
+        method: 'DELETE', headers: {
           'authorization': `${sessionStorage.getItem('token')}`,
-        }, });
+        },
+      });
       setSnackbar({ open: true, message: 'Sprint deleted', severity: 'success' });
       fetchSprints();
     } catch (e) {
@@ -140,34 +142,34 @@ export default function SprintManagement({ projectId, open, onClose }) {
 
   const handleEditSubmit = async (formData) => {
     setSnackbar({ open: true, message: 'Sprint updated', severity: 'success' });
-      setEditModalOpen(false);
-      fetchSprints();
+    setEditModalOpen(false);
+    fetchSprints();
   };
 
   const columnDefs = [
     { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50 },
     { headerName: 'Sprint Name', field: 'sprintName', flex: 1 },
-    { 
-      headerName: 'Start Date', 
-      field: 'startDate', 
+    {
+      headerName: 'Start Date',
+      field: 'startDate',
       width: 140,
       cellRenderer: (params) => {
         return params.value ? formatDate(params.value) : '';
       }
     },
-    { 
-      headerName: 'End Date', 
-      field: 'endDate', 
+    {
+      headerName: 'End Date',
+      field: 'endDate',
       width: 140,
       cellRenderer: (params) => {
         return params.value ? formatDate(params.value) : '';
       }
     },
     { headerName: 'Description', field: 'description', flex: 2 },
-    { 
-      headerName: 'Created On', 
-      field: 'createdOn', 
-      width: 140, 
+    {
+      headerName: 'Created On',
+      field: 'createdOn',
+      width: 140,
       cellRenderer: (params) => {
         if (!params.value) return '';
         const d = new Date(params.value);
@@ -379,7 +381,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
     }
     setUploading(false);
     setSprintFiles([]);
-    fetchAttachments(sprintId);  
+    fetchAttachments(sprintId);
   };
 
   const handleSubmit = async (e) => {
@@ -476,13 +478,16 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                 {errors.sprintName && <span className="text-red-500 text-xs mt-1 block">{errors.sprintName}</span>}
               </div>
               <div className="col-span-6">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Project Name</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Project Name
+                </label>
                 <input
                   name="projectName"
                   value={formData.projectName}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100 truncate"
                   disabled
                   placeholder="Project Name"
+                  title={formData.projectName}
                 />
               </div>
             </div>

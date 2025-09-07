@@ -618,7 +618,13 @@ const { hasAccess } = useAccess(); // Access context
         }
       );
 
-      setBudgetLineList(response.data || []);
+      // Sort budget lines by startTimestamp (latest first)
+      const sortedBudgetLines = (response.data || []).sort((a, b) => {
+        const dateA = a.startTimestamp ? new Date(a.startTimestamp) : new Date(0);
+        const dateB = b.startTimestamp ? new Date(b.startTimestamp) : new Date(0);
+        return dateB - dateA;
+      });
+      setBudgetLineList(sortedBudgetLines);
     } catch (error) {
       console.error("Error fetching budget line data:", error);
       setError(error.message || "Failed to fetch budget line data");

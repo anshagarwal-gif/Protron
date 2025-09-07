@@ -99,7 +99,7 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
             "p.projectCode, p.projectId, p.projectName, p.startDate, " +
             "pm.userId, CONCAT(pm.firstName, ' ', pm.lastName), " +
             "s.userId, CONCAT(s.firstName, ' ', s.lastName), " +
-            "p.unit, p.projectCost, SIZE(p.projectTeam)) " +
+            "p.unit, p.projectCost, SIZE(p.projectTeam), p.startTimestamp) " +
             "FROM Project p " +
             "LEFT JOIN p.projectManager pm " +
             "LEFT JOIN p.sponsor s " +

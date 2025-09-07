@@ -58,6 +58,7 @@ public class ManageProjectService {
     private SprintRepository sprintRepository;
 
     public Project addProject(ProjectRequestDTO request) {
+        System.out.println(request.getProductOwner());
         Project project = new Project();
         project.setProjectCode(request.getProjectCode());
         project.setProjectName(request.getProjectName());

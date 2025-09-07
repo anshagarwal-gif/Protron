@@ -406,18 +406,25 @@ const handleDodUpdate = async () => {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
 
-      // Map the response data to match the expected structure
+      // Map the response data to match the expected structure and sort by startTimestamp (latest first)
       const mappedProjects = res.data.map((dto) => ({
         projectCode: dto.projectCode,
         projectId: dto.projectId,
         projectName: dto.projectName,
         startDate: dto.startDate,
-        projectManager: dto.pmId ? { userId: dto.pmId, firstName: dto.pmName.split(' ')[0], lastName: dto.pmName.split(' ')[1] || '' } : null,
-        sponsor: dto.sponsorId ? { userId: dto.sponsorId, firstName: dto.sponsorName.split(' ')[0], lastName: dto.sponsorName.split(' ')[1] || '' } : null,
+        startTimestamp: dto.startTimestamp, // keep for sorting
+        projectManager: dto.pmId ? { userId: dto.pmId, firstName: dto.pmName?.split(' ')[0] || '', lastName: dto.pmName?.split(' ')[1] || '' } : null,
+        sponsor: dto.sponsorId ? { userId: dto.sponsorId, firstName: dto.sponsorName?.split(' ')[0] || '', lastName: dto.sponsorName?.split(' ')[1] || '' } : null,
         unit: dto.unit,
         projectCost: dto.projectCost,
         projectTeam: Array(dto.projectTeamCount).fill({}), // Placeholder for team members
-      }));
+      }))
+      .sort((a, b) => {
+        // Convert ISO strings to Date objects for comparison
+        const dateA = a.startTimestamp ? new Date(a.startTimestamp) : new Date(0);
+        const dateB = b.startTimestamp ? new Date(b.startTimestamp) : new Date(0);
+        return dateB - dateA;
+      });
 
       setProjects(mappedProjects);
       setFilteredProjects(mappedProjects);
@@ -505,6 +512,8 @@ const handleDodUpdate = async () => {
       });
       return;
     }
+
+    console.log(data)
 
     try {
       const payload = {
