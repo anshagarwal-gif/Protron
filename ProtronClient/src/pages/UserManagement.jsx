@@ -778,7 +778,7 @@ const UserManagement = () => {
               user.status?.toLowerCase() === 'active' ? (
                 <button
                   onClick={() => handleHold(user)}
-                  className="p-2 rounded-full hover:bg-orange-100 transition-colors"
+                  className="p-2 rounded-full hover:bg-orange-100 transition-colors cursor-pointer"
                   title="Put user on hold"
                 >
                   <Pause size={16} className="text-orange-600" />
@@ -786,7 +786,7 @@ const UserManagement = () => {
               ) : (
                 <button
                   onClick={() => handleActivate(user)}
-                  className="p-2 rounded-full hover:bg-green-100 transition-colors"
+                  className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
                   title="Activate user account"
                 >
                   <ShieldCheck size={16} className="text-green-600" />
@@ -797,7 +797,7 @@ const UserManagement = () => {
             {hasAccess('users', 'edit') && (
               <button
                 onClick={() => handleManageUser(user)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Edit user permissions"
               >
                 <UserCog size={16} className="text-blue-600" />
@@ -807,7 +807,7 @@ const UserManagement = () => {
             {hasAccess('users', 'edit') && (
               <button
                 onClick={() => handleEditClick(user)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Edit user"
               >
                 <UserRoundPen size={16} className="text-blue-600" />
@@ -872,7 +872,7 @@ const UserManagement = () => {
           <div className="flex justify-center gap-2 h-full items-center">
             <button
               onClick={() => handleManageRole(role.roleId)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="Manage Role Permissions"
             >
               <UserCog size={16} className="text-blue-600" />
@@ -909,7 +909,7 @@ const UserManagement = () => {
               }`}
           />
           <button
-            className={`relative z-10 px-6 py-2 rounded-full transition-colors duration-300 ${activeTab === "users" ? "text-green-600" : "text-gray-600"
+            className={`relative z-10 px-6 py-2 rounded-full transition-colors duration-300 cursor-pointer ${activeTab === "users" ? "text-green-600" : "text-gray-600"
               }`}
             onClick={() => setActiveTab("users")}
           >
@@ -919,7 +919,7 @@ const UserManagement = () => {
             </div>
           </button>
           <button
-            className={`relative z-10 px-6 py-2 rounded-full transition-colors duration-300 ${activeTab === "roles" ? "text-green-600" : "text-gray-600"
+            className={`relative z-10 px-6 py-2 rounded-full transition-colors duration-300 cursor-pointer ${activeTab === "roles" ? "text-green-600" : "text-gray-600"
               }`}
             onClick={() => setActiveTab("roles")}
           >
@@ -946,7 +946,7 @@ const UserManagement = () => {
 
           {/* Download Excel Button */}
           <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
             onClick={activeTab === "users" ? downloadUsersExcel : downloadRolesExcel}
           >
             <Download size={18} className="mr-2" />
@@ -956,7 +956,7 @@ const UserManagement = () => {
           {/* Create User/Role Button */}
           {(hasAccess('users', 'edit') && activeTab === "users") && (
             <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
               onClick={() => navigate('/signup')}
             >
               <Plus size={18} className="mr-2" />
@@ -965,7 +965,7 @@ const UserManagement = () => {
           )}
           {activeTab === "roles" && hasAccess('users', 'edit') && (
             <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
               onClick={() => setIsAddRoleModalOpen(true)}
             >
               <Plus size={18} className="mr-2" />

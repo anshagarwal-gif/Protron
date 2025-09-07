@@ -534,7 +534,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
           <div className="flex justify-center gap-2 h-full items-center">
             <button
               onClick={() => handleViewSRNDetails(srn)}
-              className="p-2 rounded-full hover:bg-green-100 transition-colors"
+              className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
               title="View SRN Details"
             >
               <Eye size={16} className="text-green-600" />
@@ -542,7 +542,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
             {hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleEditSRN(srn)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Edit SRN"
               >
                 <Edit size={16} className="text-blue-600" />
@@ -551,7 +551,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
             {hasAccess('budget', 'delete') && (
               <button
                 onClick={() => handleDeleteSRN(srn.srnId)}
-                className="p-2 rounded-full hover:bg-red-100 transition-colors"
+                className="p-2 rounded-full hover:bg-red-100 transition-colors cursor-pointer"
                 title="Delete SRN"
               >
                 <Trash2 size={16} className="text-red-600" />

@@ -356,7 +356,7 @@ const TaskDetailsModal = ({
                   {hasAccess("timesheet", "edit") && isEmployeeView && (
                     <button
                       onClick={handleEdit}
-                      className="inline-flex items-center px-2 sm:px-3 py-1 bg-emerald-500 text-white rounded-lg sm:rounded-xl hover:bg-emerald-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                      className="inline-flex items-center px-2 sm:px-3 py-1 bg-emerald-500 text-white rounded-lg sm:rounded-xl hover:bg-emerald-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-xs cursor-pointer"
                       aria-label="Edit task"
                     >
                       <Edit3 className="h-3 w-3 sm:mr-1.5" />
@@ -366,7 +366,7 @@ const TaskDetailsModal = ({
                   {hasAccess("timesheet", "delete") && isEmployeeView && (
                     <button
                       onClick={handleDelete}
-                      className="inline-flex items-center px-2 sm:px-3 py-1 bg-red-500 text-white rounded-lg sm:rounded-xl hover:bg-red-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-xs"
+                      className="inline-flex items-center px-2 sm:px-3 py-1 bg-red-500 text-white rounded-lg sm:rounded-xl hover:bg-red-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 text-xs cursor-pointer"
                       aria-label="Delete task"
                     >
                       <Trash2 className="h-3 w-3 sm:mr-1.5" />
@@ -377,7 +377,7 @@ const TaskDetailsModal = ({
                 
                 <button
                   onClick={onClose}
-                  className="p-2 sm:p-3 hover:bg-white/60 rounded-lg sm:rounded-2xl transition-all duration-200 group flex-shrink-0"
+                  className="p-2 sm:p-3 hover:bg-white/60 rounded-lg sm:rounded-2xl transition-all duration-200 group flex-shrink-0 cursor-pointer"
                   aria-label="Close modal"
                 >
                   <X className="h-4 w-4 sm:h-6 sm:w-6 text-gray-500 group-hover:text-gray-700" />

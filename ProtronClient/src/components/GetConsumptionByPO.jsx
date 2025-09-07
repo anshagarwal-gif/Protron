@@ -353,14 +353,14 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
           <div className="flex justify-center gap-2 h-full items-center">
             <button
               onClick={() => handleViewConsumption(consumption)}
-              className="p-2 rounded-full hover:bg-green-100 transition-colors"
+              className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
               title="View Consumption"
             >
               <Eye size={16} className="text-green-600" />
             </button>
             <button
               onClick={() => handleEditConsumption(consumption)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="Edit Consumption"
             >
               <Edit size={16} className="text-blue-600" />
@@ -463,7 +463,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
             <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
           <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
             onClick={downloadConsumptionExcel}
             disabled={filteredConsumptions.length === 0}
           >
@@ -471,7 +471,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
             Download Excel
           </button>
           <button
-            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
             onClick={handleOpenConsumptionModal}
           >
             <Plus size={18} className="mr-2" />

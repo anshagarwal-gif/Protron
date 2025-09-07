@@ -492,7 +492,7 @@ const POManagement = () => {
             {/* View Button (always visible) */}
             <button
               onClick={() => handleViewPO(po)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="View PO"
             >
               <Eye size={16} className="text-blue-600" />
@@ -501,7 +501,7 @@ const POManagement = () => {
             {hasAccess && hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleEditPO(po)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Edit PO"
               >
                 <Edit size={16} className="text-blue-600" />
@@ -635,7 +635,7 @@ const POManagement = () => {
                 <button
                   key={tab.id}
                   ref={(el) => (tabRefs.current[tab.id] = el)}
-                  className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap ${
+                  className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap cursor-pointer ${
                     activeTab === tab.id ? "text-green-600" : "text-gray-600"
                   }`}
                   onClick={() => setActiveTab(tab.id)}
@@ -677,7 +677,7 @@ const POManagement = () => {
 
           {/* Download Excel Button */}
           <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
             onClick={
               activeTab === "approval" ? downloadApprovalExcel :
                 activeTab === "details" ? downloadPOExcel :
@@ -694,7 +694,7 @@ const POManagement = () => {
           {/* Add Button (edit access) */}
           {hasAccess && hasAccess('budget', 'edit') && (
             <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
               onClick={
                 activeTab === "approval" ? handleAddApproval :
                   activeTab === "details" ? handleAddPO :

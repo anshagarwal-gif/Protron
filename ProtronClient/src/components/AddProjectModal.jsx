@@ -833,21 +833,21 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             <button
                                 onClick={onClose}
                                 disabled={isSubmitting}
-                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleReset}
                                 disabled={isSubmitting}
-                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="px-6 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                             >
                                 Reset
                             </button>
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="px-8 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center min-w-[140px]"
+                                className="px-8 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center min-w-[140px] cursor-pointer"
                             >
                                 {isSubmitting ? (
                                     <>

@@ -858,14 +858,14 @@ const TimesheetManager = () => {
                 />
                 <button
                   onClick={() => setViewMode("Weekly")}
-                  className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 ${viewMode === "Weekly" ? "text-green-600" : "text-gray-600"
+                  className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 cursor-pointer ${viewMode === "Weekly" ? "text-green-600" : "text-gray-600"
                     }`}
                 >
                   Weekly
                 </button>
                 <button
                   onClick={() => setViewMode("Monthly")}
-                  className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 ${viewMode === "Monthly" ? "text-green-600" : "text-gray-600"
+                  className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 cursor-pointer ${viewMode === "Monthly" ? "text-green-600" : "text-gray-600"
                     }`}
                 >
                   Monthly
@@ -876,7 +876,7 @@ const TimesheetManager = () => {
               <div className="flex items-center bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => navigatePeriod("prev")}
-                  className="p-2 hover:bg-white rounded-md transition-colors"
+                  className="p-2 hover:bg-white rounded-md transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="h-4 w-4 text-gray-600" />
                 </button>
@@ -914,7 +914,7 @@ const TimesheetManager = () => {
                 </div>
                 <button
                   onClick={() => navigatePeriod("next")}
-                  className="p-2 hover:bg-white rounded-md transition-colors"
+                  className="p-2 hover:bg-white rounded-md transition-colors cursor-pointer"
                 >
                   <ChevronRight className="h-4 w-4 text-gray-600" />
                 </button>
@@ -928,7 +928,7 @@ const TimesheetManager = () => {
               {/* Action Buttons */}
               {hasAccess("timesheet", "edit") && (
                 <button
-                  className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={handleCopyLastWeek}
                 >
                   <span>📋</span>
@@ -940,21 +940,21 @@ const TimesheetManager = () => {
                   setSelectedCell({ date: new Date() }); // Ensure the current date is passed
                   setShowLogTimeModal(true);
                 }}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
               >
 
                 <span>Add Timesheet Task</span>
               </button>
               <button
                 onClick={downloadExcel}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
               >
                 <Download className="h-4 w-4" />
                 <span>Download Excel</span>
               </button>
               {hasAccess(import.meta.env.VITE_GENERATE_INVOICE_MODULE, "view") &&(<button
                 onClick={handleGenerateInvoice}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
               >
                 <FileText className="h-4 w-4" />
                 <span>Generate Invoice</span>
@@ -1121,6 +1121,7 @@ const TimesheetManager = () => {
                                           e.stopPropagation();
                                           setTaskDetail(entry.fullTask);
                                         }}
+                                        className="cursor-pointer"
                                       >
                                         <Eye className="h-4 w-4 text-green-500 hover:text-gray-600" />
                                       </button>

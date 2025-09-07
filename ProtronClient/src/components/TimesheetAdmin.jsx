@@ -199,7 +199,7 @@ const TimesheetManager = () => {
       <Link
         to="/individual-timesheet"
         state={{ employee: data }}
-        className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800"
+        className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
       >
         <span className="hidden xl:inline">View Details</span>
         <ChevronRight className="w-4 h-4" />
@@ -575,7 +575,7 @@ const TimesheetManager = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={goToPreviousWeek}
-                    className="p-2 hover:bg-gray-100 rounded"
+                    className="p-2 hover:bg-gray-100 rounded cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -591,7 +591,7 @@ const TimesheetManager = () => {
 
                   <button
                     onClick={goToNextWeek}
-                    className="p-2 hover:bg-gray-100 rounded"
+                    className="p-2 hover:bg-gray-100 rounded cursor-pointer"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -644,7 +644,7 @@ const TimesheetManager = () => {
                         setSearchTerm('');
                         handleSearch('');
                       }}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
                     >
                       <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
                     </button>
@@ -654,7 +654,7 @@ const TimesheetManager = () => {
                 {/* Download Excel Button */}
                 <button
                   onClick={downloadExcel}
-                  className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 transition-colors duration-200"
+                  className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 transition-colors duration-200 cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download Excel</span>

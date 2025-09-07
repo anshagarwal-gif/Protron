@@ -412,14 +412,14 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
           <div className="flex justify-center gap-2 h-full items-center">
             <button
             onClick={() => setSelectedMilestone(milestone)}
-            className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+            className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
             title="View Milestone"
           >
             <Eye size={16} className="text-blue-600" />
           </button>
             <button
               onClick={() => handleEditMilestone(milestone)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="Edit Milestone"
             >
               <Edit size={16} className="text-blue-600" />
@@ -474,7 +474,7 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
           <p className="text-gray-500 mb-4">{error || "PO not found"}</p>
           <button
             onClick={() => navigate('/po')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md cursor-pointer"
           >
             Back to PO Management
           </button>
@@ -490,7 +490,7 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/po')}
-            className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+            className="p-2 rounded-full hover:bg-gray-200 transition-colors cursor-pointer"
             title="Back to PO Management"
           >
             <ArrowLeft size={20} className="text-gray-600" />
@@ -606,7 +606,7 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
 
             {/* Download Excel Button */}
             <button
-              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
               onClick={downloadMilestonesExcel}
               disabled={filteredMilestones.length === 0}
             >
@@ -616,7 +616,7 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
 
             {/* Add Milestone Button */}
             <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
               onClick={handleAddMilestone}
             >
               <Plus size={18} className="mr-2" />

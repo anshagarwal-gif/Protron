@@ -14,9 +14,6 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
   const [systemsImpacted, setSystemsImpacted] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const {hasAccess} = useAccess();
-    const [ridaList, setRidaList] = useState([]);
-    const [releaseList, setReleaseList] = useState([]);
-    const [sprintList, setSprintList] = useState([]);
 
   const handleProjectEdit = (projectId) => {
     setShowEditModal(false);
@@ -59,43 +56,9 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
   useEffect(() => {
 
     if (projectId) {
-        fetchRidaList(projectId);
-        fetchReleaseList(projectId);
-        fetchSprintList(projectId);
       fetchProjectDetails(projectId);
     }
   }, [projectId]);
-    // Fetch RIDA, Release, Sprint lists
-    const fetchRidaList = async (projectId) => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/rida/project/${projectId}`, {
-          method: 'GET',
-          headers: { 'authorization': `${sessionStorage.getItem('token')}` },
-        });
-        const data = await res.json();
-        setRidaList(data);
-      } catch (e) { setRidaList([]); }
-    };
-    const fetchReleaseList = async (projectId) => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/releases/project/${projectId}`, {
-          method: 'GET',
-          headers: { 'authorization': `${sessionStorage.getItem('token')}` },
-        });
-        const data = await res.json();
-        setReleaseList(data);
-      } catch (e) { setReleaseList([]); }
-    };
-    const fetchSprintList = async (projectId) => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/sprints/project/${projectId}`, {
-          method: 'GET',
-          headers: { 'authorization': `${sessionStorage.getItem('token')}` },
-        });
-        const data = await res.json();
-        setSprintList(data);
-      } catch (e) { setSprintList([]); }
-    };
 
   if (!projectId) return null;
 
@@ -349,106 +312,8 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                         </div>
                         </div>
 
-                        {/* RIDA Table */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">RIDA List</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm border">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-2 py-1 border">#</th>
-                        <th className="px-2 py-1 border">Type</th>
-                        <th className="px-2 py-1 border">Meeting Ref</th>
-                        <th className="px-2 py-1 border">Date Raised</th>
-                        <th className="px-2 py-1 border">Target Closer</th>
-                        <th className="px-2 py-1 border">Description</th>
-                        <th className="px-2 py-1 border">Raised By</th>
-                        <th className="px-2 py-1 border">Owner</th>
-                        <th className="px-2 py-1 border">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ridaList.length === 0 ? (
-                        <tr><td colSpan={7} className="text-center py-2">No RIDA found</td></tr>
-                      ) : ridaList.map((rida, idx) => (
-                        <tr key={rida.id || idx}>
-                          <td className="border px-2 py-1">{idx + 1}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.type}>{rida.type}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.meetingReference}>{rida.meetingReference}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.dateRaised}>{formatDate(rida.dateRaised)}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.targetCloser}>{formatDate(rida.targetCloser)}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.itemDescription}>{rida.itemDescription}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.raisedBy}>{rida.raisedBy}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.owner}>{rida.owner}</td>
-                          <td className="border px-2 py-1 truncate" title={rida.status}>{rida.status}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
 
-              {/* Release Table */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">Release List</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm border">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-2 py-1 border">#</th>
-                        <th className="px-2 py-1 border">Release Name</th>
-                        <th className="px-2 py-1 border">Start Date</th>
-                        <th className="px-2 py-1 border">End Date</th>
-                        <th className="px-2 py-1 border">Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {releaseList.length === 0 ? (
-                        <tr><td colSpan={5} className="text-center py-2">No Release found</td></tr>
-                      ) : releaseList.map((rel, idx) => (
-                        <tr key={rel.releaseId || idx}>
-                          <td className="border px-2 py-1">{idx + 1}</td>
-                          <td className="border px-2 py-1 truncate" title={rel.releaseName}>{rel.releaseName}</td>
-                          <td className="border px-2 py-1 truncate" title={rel.startDate ? formatDate(rel.startDate) : ''}>{rel.startDate ? formatDate(rel.startDate) : ''}</td>
-                          <td className="border px-2 py-1 truncate" title={rel.endDate ? formatDate(rel.endDate) : ''}>{rel.endDate ? formatDate(rel.endDate) : ''}</td>
-                          <td className="border px-2 py-1 truncate" title={rel.description}>{rel.description}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
 
-              {/* Sprint Table */}
-              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">Sprint List</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm border">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-2 py-1 border">#</th>
-                        <th className="px-2 py-1 border">Sprint Name</th>
-                        <th className="px-2 py-1 border">Start Date</th>
-                        <th className="px-2 py-1 border">End Date</th>
-                        <th className="px-2 py-1 border">Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sprintList.length === 0 ? (
-                        <tr><td colSpan={5} className="text-center py-2">No Sprint found</td></tr>
-                      ) : sprintList.map((sprint, idx) => (
-                        <tr key={sprint.sprintId || idx}>
-                          <td className="border px-2 py-1">{idx + 1}</td>
-                          <td className="border px-2 py-1 truncate" title={sprint.sprintName}>{sprint.sprintName}</td>
-                          <td className="border px-2 py-1 truncate" title={sprint.startDate ? formatDate(sprint.startDate) : ''}>{sprint.startDate ? formatDate(sprint.startDate) : ''}</td>
-                          <td className="border px-2 py-1 truncate" title={sprint.endDate ? formatDate(sprint.endDate) : ''}>{sprint.endDate ? formatDate(sprint.endDate) : ''}</td>
-                          <td className="border px-2 py-1 truncate" title={sprint.description}>{sprint.description}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
 
             </>
           ) : (
