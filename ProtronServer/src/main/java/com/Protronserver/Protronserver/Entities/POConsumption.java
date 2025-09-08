@@ -40,7 +40,7 @@ public class POConsumption {
     @Column(name = "project")
     private String project;
 
-    @Column(name = "work_desc")
+    @Column(name = "work_desc", length = 500)
     private String workDesc;
 
     @Column(name = "work_assigndate")
@@ -49,7 +49,7 @@ public class POConsumption {
     @Column(name = "work_completiondate")
     private Date workCompletionDate;
 
-    @Column(name = "remarks")
+    @Column(name = "remarks", length = 500)
     private String remarks;
 
     @Column(name = "system_name")
