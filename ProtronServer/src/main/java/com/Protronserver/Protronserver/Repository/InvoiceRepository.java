@@ -74,7 +74,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     """, nativeQuery = true)
     long countTodaysInvoices();
 
-    List<Invoice> findByDeletedFalseOrderByCreatedAtDesc();
+    List<Invoice> findByTenantIdAndDeletedFalseOrderByCreatedAtDesc(Long tenantId);
 
     List<Invoice> findAllByOrderByCreatedAtDesc();
 
@@ -85,10 +85,10 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     @Query(value = """
         SELECT * FROM invoices 
         WHERE LOWER(customer_name) LIKE LOWER(CONCAT('%', :customerName, '%')) 
-          AND deleted = false 
+          AND deleted = false AND tenant_id = :tenantId
         ORDER BY created_at DESC
     """, nativeQuery = true)
-    List<Invoice> findByCustomerNameContainingIgnoreCaseAndDeletedFalse(@Param("customerName") String customerName);
+    List<Invoice> findByTenantIdAndCustomerNameContainingIgnoreCase(@Param("customerName") String customerName, @Param("tenantId") Long tenantId);
 
     @Query(value = """
     SELECT 

@@ -519,7 +519,6 @@ const handleDodUpdate = async () => {
       const payload = {
         projectCode: data.projectCode,
         projectName: data.projectName,
-        projectIcon: data.projectIcon,
         startDate: data.startDate,
         endDate: data.endDate,
         projectCost: data.cost,
@@ -558,7 +557,6 @@ const handleDodUpdate = async () => {
       // Reset form
       setFormData({
         projectName: '',
-        projectIcon: null,
         startDate: null,
         endDate: null,
         manager: null,

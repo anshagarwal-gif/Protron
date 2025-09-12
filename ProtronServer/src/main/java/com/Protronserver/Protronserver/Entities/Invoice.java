@@ -29,6 +29,9 @@ public class Invoice {
     @Column(unique = true, nullable = false)
     private String invoiceId;
 
+    @Column(nullable = false)
+    private Long tenantId;
+
     @Column(columnDefinition = "TEXT")
     private String invoiceName;
     @Column(columnDefinition = "TEXT")
@@ -164,6 +167,14 @@ public class Invoice {
         if (attachment4FileName != null)
             fileNames.add(attachment4FileName);
         return fileNames;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public Long getId() {

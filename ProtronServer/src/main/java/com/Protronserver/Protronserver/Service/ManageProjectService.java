@@ -57,12 +57,11 @@ public class ManageProjectService {
     @Autowired
     private SprintRepository sprintRepository;
 
-    public Project addProject(ProjectRequestDTO request) {
+    public Long addProject(ProjectRequestDTO request) {
         System.out.println(request.getProductOwner());
         Project project = new Project();
         project.setProjectCode(request.getProjectCode());
         project.setProjectName(request.getProjectName());
-        project.setProjectIcon(request.getProjectIcon());
         project.setStartDate(request.getStartDate());
         project.setEndDate(request.getEndDate());
         project.setProjectCost(request.getProjectCost());
@@ -143,7 +142,7 @@ public class ManageProjectService {
             savedProject.setSystemImpacted(systems);
         }
 
-        return savedProject;
+        return savedProject.getProjectId();
     }
 
     public List<Project> getAllProjects() {
@@ -186,8 +185,6 @@ public class ManageProjectService {
         updatedProject.setTenant(existingProject.getTenant());
         updatedProject.setProjectName(
                 request.getProjectName() != null ? request.getProjectName() : existingProject.getProjectName());
-        updatedProject.setProjectIcon(
-                request.getProjectIcon() != null ? request.getProjectIcon() : existingProject.getProjectIcon());
         updatedProject
                 .setStartDate(request.getStartDate() != null ? request.getStartDate() : existingProject.getStartDate());
         updatedProject.setEndDate(request.getEndDate() != null ? request.getEndDate() : existingProject.getEndDate());
@@ -299,7 +296,6 @@ public class ManageProjectService {
         updatedProject.setProjectCode(existingProject.getProjectCode());
         updatedProject.setTenant(existingProject.getTenant());
         updatedProject.setProjectName(existingProject.getProjectName());
-        updatedProject.setProjectIcon(existingProject.getProjectIcon());
         updatedProject.setStartDate(existingProject.getStartDate());
         updatedProject.setEndDate(existingProject.getEndDate());
         updatedProject.setProjectCost(existingProject.getProjectCost());

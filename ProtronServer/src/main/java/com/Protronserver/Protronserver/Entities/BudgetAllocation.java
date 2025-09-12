@@ -2,6 +2,8 @@ package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 import com.Protronserver.Protronserver.Entities.SystemMaster;
 
 /**
@@ -39,6 +41,10 @@ public class BudgetAllocation {
     @Column(name = "remarks", length = 500)
     private String remarks;
 
+    private LocalDateTime startTimestamp;
+    private LocalDateTime endTimestamp;
+    private String lastUpdatedBy;
+
     // Default constructor
     public BudgetAllocation() {
     }
@@ -53,9 +59,36 @@ public class BudgetAllocation {
         this.systemName = systemName;
         this.amount = amount;
         this.remarks = remarks;
+        this.startTimestamp = LocalDateTime.now();
     }
 
     // Getters and Setters
+
+
+    public LocalDateTime getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public void setStartTimestamp(LocalDateTime startTimestamp) {
+        this.startTimestamp = startTimestamp;
+    }
+
+    public LocalDateTime getEndTimestamp() {
+        return endTimestamp;
+    }
+
+    public void setEndTimestamp(LocalDateTime endTimestamp) {
+        this.endTimestamp = endTimestamp;
+    }
+
+    public String getLastUpdatedBy() {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy(String lastUpdatedBy) {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
+
     public Integer getAllocationId() {
         return allocationId;
     }

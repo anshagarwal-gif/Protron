@@ -2,11 +2,13 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +25,9 @@ public class BudgetAllocationService {
     @Autowired
     private BudgetLineRepository budgetLineRepository;
 
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
+
     public BudgetAllocation save(BudgetAllocation budgetAllocation) {
         return budgetAllocationRepository.save(budgetAllocation);
     }
@@ -34,7 +39,7 @@ public class BudgetAllocationService {
 
     @Transactional(readOnly = true)
     public List<BudgetAllocation> findAll() {
-        return budgetAllocationRepository.findAll();
+        return budgetAllocationRepository.findByEndTimestampIsNull();
     }
 
     public void delete(Integer allocationId) {
@@ -43,12 +48,12 @@ public class BudgetAllocationService {
 
     @Transactional(readOnly = true)
     public List<BudgetAllocation> findByBudgetLineId(Integer budgetLineId) {
-        return budgetAllocationRepository.findByBudgetLineId(budgetLineId);
+        return budgetAllocationRepository.findByBudgetLineIdAndEndTimestampIsNull(budgetLineId);
     }
 
     @Transactional(readOnly = true)
     public List<BudgetAllocation> findByTenantId(String tenantId) {
-        return budgetAllocationRepository.findByTenantId(tenantId);
+        return budgetAllocationRepository.findByTenantIdAndEndTimestampIsNull(tenantId);
     }
 
     @Transactional(readOnly = true)
@@ -125,8 +130,19 @@ public class BudgetAllocationService {
         return budgetAllocationRepository.findByRemarksContainingIgnoreCase(remarks);
     }
 
+    @Transactional
     public void deleteByBudgetLineId(Integer budgetLineId) {
-        budgetAllocationRepository.deleteByBudgetLineId(budgetLineId);
+        List<BudgetAllocation> allocations = budgetAllocationRepository.findByBudgetLineIdAndEndTimestampIsNull(budgetLineId);
+
+        if (allocations != null && !allocations.isEmpty()) {
+            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
+
+            for (BudgetAllocation alloc : allocations) {
+                alloc.setEndTimestamp(LocalDateTime.now());
+                alloc.setLastUpdatedBy(updatedBy);
+                budgetAllocationRepository.save(alloc);
+            }
+        }
     }
 
     @Transactional(readOnly = true)

@@ -202,7 +202,6 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     // Ensure formData is always defined and has default values
     const defaultFormData = {
         projectName: '',
-        projectIcon: null,
         startDate: null,
         endDate: null,
         unit: 'USD',
@@ -299,12 +298,6 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
             fetchProjectData();
         }
     }, [open, projectId, users]);
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setLocalFormData((prev) => ({ ...prev, projectIcon: URL.createObjectURL(file) }));
-        }
-    };
     const handleChange = (field, value) => {
         setLocalFormData((prev) => ({
             ...prev,
@@ -466,25 +459,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                             <div className="flex-1">
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
                                                 <div className="h-10 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
-                                                    {localFormData.projectIcon ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <img
-                                                                src={localFormData.projectIcon}
-                                                                alt="Project Icon"
-                                                                className="w-10 h-10 rounded-full object-cover"
-                                                            />
-                                                            <label className="px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                                                Change
-                                                                <input hidden accept="image/*" type="file" onChange={handleImageUpload} title={localFormData.projectIcon} />
-                                                            </label>
-                                                        </div>
-                                                    ) : (
-                                                        <label className="flex items-center gap-2 px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                                            <Upload className="w-4 h-4" />
-                                                            Project Icon
-                                                            <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
-                                                        </label>
-                                                    )}
+
                                                 </div>
                                             </div>
                                             <DatePicker

@@ -28,8 +28,6 @@ public class ProjectDetailsDTO {
     private String sponsorName;
     private String sponsorEmpCode;
 
-    private String projectIcon;
-
     private String productOwner;
     private String scrumMaster;
     private String architect;
@@ -45,7 +43,7 @@ public class ProjectDetailsDTO {
 
     public ProjectDetailsDTO(String projectCode, Long projectId, String projectName, String tenantName,
                              Date startDate, Date endDate, String unit, Double projectCost,
-                             LocalDateTime createdDate, String projectIcon,
+                             LocalDateTime createdDate,
                              Long managerId, String managerName, String managerEmpCode,
                              Long sponsorId, String sponsorName, String sponsorEmpCode,
                              String productOwner, String scrumMaster, String architect, String chiefScrumMaster,
@@ -59,7 +57,6 @@ public class ProjectDetailsDTO {
         this.unit = unit;
         this.projectCost = projectCost;
         this.createdDate = createdDate;
-        this.projectIcon = projectIcon;
         this.managerId = managerId;
         this.managerName = managerName;
         this.managerEmpCode = managerEmpCode;
@@ -109,14 +106,6 @@ public class ProjectDetailsDTO {
 
     public void setSponsorId(Long sponsorId) {
         this.sponsorId = sponsorId;
-    }
-
-    public String getProjectIcon() {
-        return projectIcon;
-    }
-
-    public void setProjectIcon(String projectIcon) {
-        this.projectIcon = projectIcon;
     }
 
     public Long getProjectId() {

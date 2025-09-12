@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
 import com.Protronserver.Protronserver.Entities.Invoice;
 import com.Protronserver.Protronserver.Repository.InvoiceRepository;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
@@ -44,6 +45,9 @@ public class InvoiceService {
     @Autowired
     private ProjectRepository projectRepository;
 
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
+
     /**
      * Generates a custom invoice ID in format: INV-MMDDYYYY-100001
      *
@@ -81,6 +85,9 @@ public class InvoiceService {
     @Transactional
     public InvoiceResponseDTO createInvoice(InvoiceRequestDTO requestDTO) {
         try {
+
+            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
             // Calculate total amount if not provided
             BigDecimal totalAmount = requestDTO.getTotalAmount();
             if (totalAmount == null) {
@@ -93,7 +100,7 @@ public class InvoiceService {
             // Generate custom invoice ID
             String customInvoiceId = generateInvoiceId();
             invoice.setInvoiceId(customInvoiceId);
-
+            invoice.setTenantId(tenantId);
             invoice.setInvoiceName(requestDTO.getInvoiceName());
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
             invoice.setSupplierInfo(requestDTO.getSupplierInfo());
@@ -133,6 +140,9 @@ public class InvoiceService {
     public InvoiceResponseDTO createInvoiceWithAttachments(InvoiceRequestDTO requestDTO,
             List<MultipartFile> attachments) {
         try {
+
+            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
             // Calculate total amount if not provided
             BigDecimal totalAmount = requestDTO.getTotalAmount();
             if (totalAmount == null) {
@@ -145,7 +155,7 @@ public class InvoiceService {
             // Generate custom invoice ID
             String customInvoiceId = generateInvoiceId();
             invoice.setInvoiceId(customInvoiceId);
-
+            invoice.setTenantId(tenantId);
             invoice.setInvoiceName(requestDTO.getInvoiceName());
             invoice.setCustomerName(requestDTO.getCustomerName());
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
@@ -334,7 +344,8 @@ public class InvoiceService {
     }
 
     public List<InvoiceResponseDTO> searchInvoicesByCustomer(String customerName) {
-        return invoiceRepository.findByCustomerNameContainingIgnoreCase(customerName).stream()
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+        return invoiceRepository.findByTenantIdAndCustomerNameContainingIgnoreCase(customerName, tenantId).stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -1209,7 +1220,10 @@ public class InvoiceService {
      */
     public List<InvoiceResponseDTO> getAllInvoices() {
         try {
-            List<Invoice> invoices = invoiceRepository.findByDeletedFalseOrderByCreatedAtDesc();
+
+            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+            List<Invoice> invoices = invoiceRepository.findByTenantIdAndDeletedFalseOrderByCreatedAtDesc(tenantId);
             return invoices.stream()
                     .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
@@ -1254,7 +1268,8 @@ public class InvoiceService {
      */
     public List<Map<String, Object>> getProjectsForInvoice() {
         try {
-            List<Project> projects = projectRepository.findByEndTimestampIsNull();
+            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+            List<Project> projects = projectRepository.findByTenantTenantIdAndEndTimestampIsNull(tenantId);
             return projects.stream()
                     .map(project -> {
                         Map<String, Object> projectMap = new HashMap<>();
