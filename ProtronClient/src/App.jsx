@@ -35,7 +35,7 @@ import SessionExpired from './utils/SessionExpired';
 import Unauthorized from './utils/Unauthorized';
 import { useSessionTimer } from './hooks/useSessionTimer'; // Adjust path as needed
 import UserDetails from './components/UserDetails';
-
+import ProjectMatricsLanding from './pages/LandingPage';
 // Memoized route components to prevent unnecessary re-renders
 const MemoizedUserManagement = memo(UserManagement);
 const MemoizedPOManagement = memo(POManagement);
@@ -99,7 +99,7 @@ const AppContent = () => {
 
   return (
     <>
-      {isAuthenticated && !sessionExpired && (
+      {isAuthenticated && !sessionExpired && location.pathname !== '/landing' && (
         <Navbar 
           setIsAuthenticated={setIsAuthenticated} 
           sessionTimer={sessionTimer} // Pass sessionTimer instead of countdown
@@ -110,7 +110,8 @@ const AppContent = () => {
           {!isAuthenticated || sessionExpired ? (
             // Unauthenticated routes - removed fragment wrapper
             <>
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/" element={<Navigate to="/landing" replace />} />
+              <Route path="/landing" element={<ProjectMatricsLanding />} />
               <Route
                 path="/login"
                 element={<Login setIsAuthenticated={handleLogin} />}
@@ -127,6 +128,7 @@ const AppContent = () => {
             // Authenticated routes - removed fragment wrapper
             <>
               <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route path="/landing" element={<ProjectMatricsLanding />} />
               <Route path="/dashboard" element={<MemoizedDashboard />} />
               <Route path="/projects" element={<MemoizedProjectManagement />} />
               <Route path="/user/:id" element={<UserDetails/>}/>

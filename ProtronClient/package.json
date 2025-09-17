@@ -23,6 +23,7 @@
     "axios": "^1.8.4",
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.13",
+    "emailjs-com": "^3.2.0",
     "exceljs": "^4.4.0",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.488.0",
