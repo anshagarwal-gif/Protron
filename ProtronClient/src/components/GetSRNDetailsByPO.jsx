@@ -280,14 +280,14 @@ const GetSRNDetailsByPO = ({ poId }) => {
           <div className="flex justify-center gap-2 h-full items-center">
             <button
               onClick={() => handleViewSRN(srn)}
-              className="p-2 rounded-full hover:bg-green-100 transition-colors"
+              className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
               title="View SRN"
             >
               <Eye size={16} className="text-green-600" />
             </button>
             <button
               onClick={() => handleEditSRN(srn)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="Edit SRN"
             >
               <Edit size={16} className="text-blue-600" />

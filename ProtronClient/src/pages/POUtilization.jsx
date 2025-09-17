@@ -935,7 +935,7 @@ const columnDefs = useMemo(() => [
           {/* View Button */}
           <button
             onClick={() => handleViewConsumption(consumption)}
-            className="p-1 rounded hover:bg-green-100 text-green-600"
+            className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
             title="View Details"
           >
             <Eye size={16} />
@@ -944,7 +944,7 @@ const columnDefs = useMemo(() => [
           {hasAccess('budget', 'edit') && (
             <button
               onClick={() => handleEditConsumption(consumption)}
-              className="p-1 rounded hover:bg-blue-100 text-blue-600"
+              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
               title="Edit Consumption"
             >
               <Edit size={16} />
@@ -954,7 +954,7 @@ const columnDefs = useMemo(() => [
           {hasAccess('budget', 'delete') && (
             <button
               onClick={() => handleDeleteConsumption(consumption.utilizationId)}
-              className="p-1 rounded hover:bg-red-100 text-red-600"
+              className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer"
               title="Delete Consumption"
             >
               <Trash2 size={16} />

@@ -87,11 +87,11 @@ const POManagement = () => {
     setIsViewModalOpen(true);
   };
   const tabs = [
-  { id: "approval", label: "Approved Budget Tracker", short: "ABT" },
-  { id: "details", label: "Purchase Order Details", short: "POD" },
-  { id: "utilization", label: "Purchase Order – Consumption Details", short: "PO-CD" },
-  { id: "srn", label: "Service Release Tracker", short: "SRT" },
-  { id: "invoice", label: "Invoice Tracker", short: "IT" },
+  { id: "approval", label: "Approved Budget Tracker", short: "ABT", fullForm: "Approved Budget Tracker" },
+  { id: "details", label: "Purchase Order Details", short: "POD", fullForm: "Purchase Order Details" },
+  { id: "utilization", label: "Purchase Order – Consumption Details", short: "PO-CD", fullForm: "Purchase Order – Consumption Details" },
+  { id: "srn", label: "Service Release Tracker", short: "SRT", fullForm: "Service Release Tracker" },
+  { id: "invoice", label: "Invoice Tracker", short: "IT", fullForm: "Invoice Tracker" },
 ];
   useEffect(() => {
     const el = tabRefs.current[activeTab];
@@ -492,7 +492,7 @@ const POManagement = () => {
             {/* View Button (always visible) */}
             <button
               onClick={() => handleViewPO(po)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="View PO"
             >
               <Eye size={16} className="text-blue-600" />
@@ -501,7 +501,7 @@ const POManagement = () => {
             {hasAccess && hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleEditPO(po)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Edit PO"
               >
                 <Edit size={16} className="text-blue-600" />
@@ -623,29 +623,36 @@ const POManagement = () => {
       <div className="flex justify-between items-center mb-6">
         {/* Left side - 5-Slider toggle buttons and title */}
         <div className="flex items-center gap-6">
-  <div className="relative bg-gray-200 p-1 rounded-full flex w-full">
-    {/* Capsule */}
-    <div
-      className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-      style={capsuleStyle}
-    />
+          <div className="relative bg-gray-200 p-1 rounded-full flex w-full">
+            {/* Capsule */}
+            <div
+              className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+              style={capsuleStyle}
+            />
 
-    {tabs.map((tab) => {
-      return (
-        <button
-          key={tab.id}
-          ref={(el) => (tabRefs.current[tab.id] = el)}
-          className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap ${
-            activeTab === tab.id ? "text-green-600" : "text-gray-600"
-          }`}
-          onClick={() => setActiveTab(tab.id)}
-        >
-          {activeTab === tab.id ? tab.label : tab.short}
-        </button>
-      );
-    })}
-  </div>
-</div>
+            {tabs.map((tab) => {
+              return (
+                <button
+                  key={tab.id}
+                  ref={(el) => (tabRefs.current[tab.id] = el)}
+                  className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap cursor-pointer ${
+                    activeTab === tab.id ? "text-green-600" : "text-gray-600"
+                  }`}
+                  onClick={() => setActiveTab(tab.id)}
+                >
+                  {activeTab === tab.id ? tab.label : tab.short}
+                </button>
+              );
+            })}
+          </div>
+          
+          {/* Current Tab Full Form Display */}
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold text-green-600 whitespace-nowrap">
+              {tabs.find(tab => tab.id === activeTab)?.fullForm}
+            </h1>
+          </div>
+        </div>
 
 
         {/* Right side - Search and action buttons */}
@@ -670,7 +677,7 @@ const POManagement = () => {
 
           {/* Download Excel Button */}
           <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
             onClick={
               activeTab === "approval" ? downloadApprovalExcel :
                 activeTab === "details" ? downloadPOExcel :
@@ -687,7 +694,7 @@ const POManagement = () => {
           {/* Add Button (edit access) */}
           {hasAccess && hasAccess('budget', 'edit') && (
             <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors"
+              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
               onClick={
                 activeTab === "approval" ? handleAddApproval :
                   activeTab === "details" ? handleAddPO :

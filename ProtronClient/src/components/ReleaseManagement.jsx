@@ -190,13 +190,13 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
       width: 120,
       cellRenderer: (params) => (
         <div className="flex gap-1">
-          <button onClick={() => handleViewRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700" title="View">
+          <button onClick={() => handleViewRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700 cursor-pointer" title="View">
             <Eye size={16} />
           </button>
-          <button onClick={() => handleEditRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600" title="Edit">
+          <button onClick={() => handleEditRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
             <Pencil size={16} />
           </button>
-          <button onClick={() => handleDeleteRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600" title="Delete">
+          <button onClick={() => handleDeleteRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
           </button>
         </div>
@@ -211,17 +211,17 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
           <div className="bg-gray-50 border-b px-6 py-4 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-green-900">Release Management</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full">Close</button>
+            <h2 className="text-xl font-semibold text-green-900">Release Management | {projectName}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full cursor-pointer">Close</button>
           </div>
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-green-900">Release List</h3>
               <div className="flex items-center gap-2">
-                <button onClick={downloadReleaseExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800">
+                <button onClick={downloadReleaseExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer">
                   <Download size={16} className="mr-2" /> Download Excel
                 </button>
-                <button onClick={handleAddRelease} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">
+                <button onClick={handleAddRelease} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 cursor-pointer">
                   Add Release
                 </button>
               </div>
@@ -460,7 +460,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            {initialData ? 'Edit Release' : 'Add Release'}
+            {initialData ? 'Edit Release' : 'Add Release'} | {projectName}
           </h2>
           <button
             onClick={onClose}
@@ -486,16 +486,6 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                   required
                 />
                 {errors.releaseName && <span className="text-red-500 text-xs mt-1 block">{errors.releaseName}</span>}
-              </div>
-              <div className="col-span-6">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Project Name</label>
-                <input
-                  name="projectName"
-                  value={formData.projectName}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
-                  disabled
-                  placeholder="Project Name"
-                />
               </div>
             </div>
             <div className="grid grid-cols-12 gap-4">
@@ -636,13 +626,13 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center"
+              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center cursor-pointer"
               disabled={uploading || submitting}
             >
               {submitting ? (

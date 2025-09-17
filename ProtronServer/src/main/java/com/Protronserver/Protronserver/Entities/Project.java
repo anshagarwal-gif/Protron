@@ -27,7 +27,6 @@ public class Project {
     @Column(unique = true, nullable = false)
     private String projectCode;
     private String projectName;
-    private String projectIcon;
     private Date startDate;
     private Date endDate;
     private String unit;
@@ -166,14 +165,6 @@ public class Project {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
-    }
-
-    public String getProjectIcon() {
-        return projectIcon;
-    }
-
-    public void setProjectIcon(String projectIcon) {
-        this.projectIcon = projectIcon;
     }
 
     public Date getStartDate() {

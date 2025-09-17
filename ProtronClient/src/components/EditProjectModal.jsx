@@ -206,7 +206,6 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
     // Ensure formData is always defined and has default values
     const defaultFormData = {
         projectName: '',
-        projectIcon: null,
         startDate: null,
         endDate: null,
         unit: 'USD',
@@ -330,12 +329,6 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
             fetchProjectData();
         }
     }, [open, projectId, users]);
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setLocalFormData((prev) => ({ ...prev, projectIcon: URL.createObjectURL(file) }));
-        }
-    };
     const handleChange = (field, value) => {
         setLocalFormData((prev) => ({
             ...prev,

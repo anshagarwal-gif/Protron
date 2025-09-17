@@ -488,7 +488,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       }
 
 
-      onSubmit(response.data);
+      // onSubmit(response.data);
       handleClose();
          } catch (error) {
        console.error("Error adding PO consumption:", error);

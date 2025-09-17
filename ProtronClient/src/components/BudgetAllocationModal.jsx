@@ -177,8 +177,12 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
     // Budget validation
     if (budgetLine && formData.amount) {
       const requestedAmount = parseFloat(formData.amount);
-      const remainingBudget =
-        parseFloat(budgetLine.amountApproved || 0) - totalAllocated;
+      let remainingBudget = parseFloat(budgetLine.amountApproved || 0) - totalAllocated;
+
+      // If editing an existing allocation, add its current amount to the available budget
+      if (!isAddMode && editingAllocation) {
+        remainingBudget += parseFloat(editingAllocation.amount || 0);
+      }
 
       if (requestedAmount > remainingBudget) {
         newErrors.amount = `Amount exceeds remaining budget. Available: ${currency} ${remainingBudget.toLocaleString()}`;
@@ -399,7 +403,7 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
           </h2>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
             disabled={submitting}
           >
             <X size={20} className="text-gray-400" />
@@ -616,7 +620,7 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                    className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
                     disabled={submitting}
                   >
                     Cancel
@@ -625,7 +629,7 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer"
                 >
                   {submitting ? (
                     <>
@@ -696,14 +700,14 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleEdit(allocation)}
-                              className="text-blue-600 hover:text-blue-800 p-1"
+                              className="text-blue-600 hover:text-blue-800 p-1 cursor-pointer"
                               title="Edit"
                             >
                               <Edit size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(allocation.allocationId)}
-                              className="text-red-600 hover:text-red-800 p-1"
+                              className="text-red-600 hover:text-red-800 p-1 cursor-pointer"
                               title="Delete"
                             >
                               <Trash2 size={16} />
@@ -767,14 +771,14 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
               <button
                 type="button"
                 onClick={cancelDelete}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors cursor-pointer"
               >
                 Delete Allocation
               </button>

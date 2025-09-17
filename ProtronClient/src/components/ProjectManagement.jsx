@@ -194,7 +194,7 @@ const handleDodUpdate = async () => {
         {/* View Project Button */}
         <button
           onClick={() => handleView(params.data.projectId)}
-          className="p-2 rounded-full hover:bg-green-100"
+          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
           title="View"
         >
           <FiEye size={20} className="text-green-700" />
@@ -204,22 +204,15 @@ const handleDodUpdate = async () => {
         {hasAccess('project_team', 'view') && (
           <button
             onClick={() => handleManageTeam(params.data.projectId, params.data)}
-            className="p-2 rounded-full hover:bg-green-100"
+            className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
             title="Manage Team"
           >
             <FiUsers size={20} className="text-green-700" />
           </button>)}
 
         <button
-          onClick={() => handleOpenDodModal(params.data)}
-          className="p-2 rounded-full hover:bg-green-100"
-          title="Define of Done"
-        >
-          <FileCheck2 size={20} className="text-green-700" />
-        </button>
-        <button
           onClick={() => handleRidaManagement(params.data.projectId)}
-          className="p-2 rounded-full hover:bg-green-100"
+          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
           title="RIDA Management"
         >
           <ListChecks size={20} className="text-green-700" />
@@ -229,7 +222,7 @@ const handleDodUpdate = async () => {
             setReleaseProjectId(params.data.projectId);
             setShowReleaseManagement(true);
           }}
-          className="p-2 rounded-full hover:bg-green-100"
+          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
           title="Release Management"
         >
           <AiFillProject size={20} className="text-green-700" />
@@ -239,10 +232,17 @@ const handleDodUpdate = async () => {
             setSelectedProjectId(params.data.projectId);
             setShowSprintManagement(true);
           }}
-          className="p-2 rounded-full hover:bg-blue-100"
+          className="p-2 rounded-full hover:bg-blue-100 cursor-pointer"
           title="Sprint Management"
         >
           <span role="img" aria-label="Sprint" className="text-blue-700 font-bold">S</span>
+        </button>
+        <button
+          onClick={() => handleOpenDodModal(params.data)}
+          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
+          title="Define of Done"
+        >
+          <FileCheck2 size={20} className="text-green-700" />
         </button>
       </div>
     );
@@ -307,7 +307,7 @@ const handleDodUpdate = async () => {
 
     },
     {
-      headerName: 'Cost Currency',
+      headerName: 'Cost',
       field: 'unit',
       valueFormatter: (params) => params.value || '-',
       maxWidth: 110,
@@ -519,7 +519,6 @@ const handleDodUpdate = async () => {
       const payload = {
         projectCode: data.projectCode,
         projectName: data.projectName,
-        projectIcon: data.projectIcon,
         startDate: data.startDate,
         endDate: data.endDate,
         projectCost: data.cost,
@@ -558,7 +557,6 @@ const handleDodUpdate = async () => {
       // Reset form
       setFormData({
         projectName: '',
-        projectIcon: null,
         startDate: null,
         endDate: null,
         manager: null,
@@ -707,7 +705,7 @@ const handleDodUpdate = async () => {
               <div className="flex gap-2 w-full sm:w-auto">
                 {/* Excel Download Button */}
                 <button
-                  className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none"
+                  className="border px-3 py-2 rounded bg-green-700 text-white hover:bg-green-600 flex items-center justify-center flex-1 sm:flex-none cursor-pointer"
                   onClick={downloadExcel}
                 >
                   <AiOutlineDownload className="mr-1" />
@@ -717,7 +715,7 @@ const handleDodUpdate = async () => {
                 {/* Add Project Button */}
                 {hasAccess('projects', 'edit') && (
                   <button
-                    className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none"
+                    className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none cursor-pointer"
                     onClick={() => setShowAddModal(true)}
                   >
                     <span className="hidden sm:inline mr-1">+</span> Add Project
@@ -1349,14 +1347,14 @@ const handleDodUpdate = async () => {
                 </div>
                 <div className="flex justify-end gap-2">
                   <button
-                    className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+                    className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer"
                     onClick={handleCloseDodModal}
                     disabled={dodLoading}
                   >
                     Cancel
                   </button>
                   <button
-                    className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800"
+                    className="px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 cursor-pointer"
                     onClick={handleDodUpdate}
                     disabled={dodLoading || dodValue.length > 500}
                   >

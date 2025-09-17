@@ -304,7 +304,7 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <button
                 onClick={handleDownloadPDF}
-                className="flex items-center justify-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm sm:text-base"
+                className="flex items-center justify-center px-3 sm:px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm sm:text-base cursor-pointer"
               >
                 <Download size={14} className="sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Download PDF
@@ -318,7 +318,7 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"
+              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm sm:text-base cursor-pointer"
             >
               Close
             </button>
@@ -774,7 +774,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           {hasAccess('budget', 'edit') && (
             <button
               onClick={() => handleViewInvoice(params.data)}
-              className="p-1 rounded hover:bg-blue-100 text-blue-600"
+              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
               title="Edit Invoice"
             >
               <Eye size={16} />
@@ -784,7 +784,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           {hasAccess('budget', 'delete') && (
             <button
               onClick={() => handleSoftDeleteInvoice(params.data.invoiceId, params.data.invoiceName)}
-              className="p-1 rounded hover:bg-red-100 text-red-600"
+              className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer"
               title="Delete Invoice"
             >
               <Trash2 size={16} />

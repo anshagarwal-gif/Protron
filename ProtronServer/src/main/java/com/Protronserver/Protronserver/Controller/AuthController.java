@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.security.SecureRandom;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,6 +34,9 @@ public class AuthController {
 
     BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    // Secure random number generator for cryptographic operations
+    private final SecureRandom secureRandom = new SecureRandom();
+
     @PostMapping("/send-otp")
     public ResponseEntity<?> sendOtp(@RequestBody Map<String, String> request) {
 
@@ -42,7 +46,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Email not found");
         }
 
-        String otp = String.valueOf(new Random().nextInt(900000) + 100000); // 6-digit OTP
+        String otp = String.valueOf(secureRandom.nextInt(900000) + 100000); // 6-digit OTP using SecureRandom
         otpStore.storeOtp(email, otp);
 
         // Send Email

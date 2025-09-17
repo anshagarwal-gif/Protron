@@ -218,7 +218,7 @@ const DocumentsDisplay = ({ budgetLine }) => {
                 className={`w-full px-2 py-1.5 text-xs rounded-md transition-colors flex items-center justify-center space-x-1 ${
                   downloadingDocs.has(document.documentId)
                     ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-green-600 text-white hover:bg-green-700 cursor-pointer'
                 }`}
               >
                 {downloadingDocs.has(document.documentId) ? (
@@ -896,7 +896,7 @@ const { hasAccess } = useAccess(); // Access context
             {/* View Button (always visible) */}
             <button
               onClick={() => handleViewBudgetLine(budgetLine)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors"
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="View Budget Line"
             >
               <Eye size={14} className="text-green-600" />
@@ -905,7 +905,7 @@ const { hasAccess } = useAccess(); // Access context
             {hasAccess && hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleEditBudgetLine(budgetLine)}
-                className="p-2 rounded-full hover:bg-yellow-100 transition-colors"
+                className="p-2 rounded-full hover:bg-yellow-100 transition-colors cursor-pointer"
                 title="Edit Budget Line"
               >
                 <Pencil size={14} className="text-yellow-600" />
@@ -916,7 +916,7 @@ const { hasAccess } = useAccess(); // Access context
             {hasAccess && hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleOpenBudgetAllocation(budgetLine)}
-                className="p-2 rounded-full hover:bg-green-100 transition-colors"
+                className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
                 title="Manage Budget Allocations"
               >
                 <Plus size={14} className="text-green-600" />

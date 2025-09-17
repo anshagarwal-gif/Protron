@@ -284,14 +284,14 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={downloadMilestoneExcel}
-                                    className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 transition-colors"
+                                    className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 transition-colors cursor-pointer"
                                 >
                                     <Download size={16} className="mr-2" />
                                     Download Excel
                                 </button>
                                 <button
                                     onClick={handleAddMilestone}
-                                    className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors"
+                                    className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors cursor-pointer"
                                 >
                                     <Plus size={16} className="mr-2" />
                                     Add Milestone

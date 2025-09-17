@@ -168,13 +168,13 @@ export default function RidaManagement({ projectId, open, onClose }) {
       width: 120,
       cellRenderer: (params) => (
         <div className="flex gap-1">
-          <button onClick={() => handleViewRida(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700" title="View">
+          <button onClick={() => handleViewRida(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700 cursor-pointer" title="View">
             <Eye size={16} />
           </button>
-          <button onClick={() => handleEditRida(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600" title="Edit">
+          <button onClick={() => handleEditRida(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
             <Pencil size={16} />
           </button>
-          <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600" title="Delete">
+          <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
           </button>
         </div>
@@ -189,17 +189,17 @@ export default function RidaManagement({ projectId, open, onClose }) {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
         <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
           <div className="bg-gray-50 border-b px-6 py-4 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-green-900">RIDA Management</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full">Close</button>
+            <h2 className="text-xl font-semibold text-green-900">RIDA Management | {projectName}</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full cursor-pointer">Close</button>
           </div>
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-green-900">RIDA List</h3>
               <div className="flex items-center gap-2">
-                <button onClick={downloadRidaExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800">
+                <button onClick={downloadRidaExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer">
                   <Download size={16} className="mr-2" /> Download Excel
                 </button>
-                <button onClick={handleAddRida} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800">
+                <button onClick={handleAddRida} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 cursor-pointer">
                   <Plus size={16} className="mr-2" /> Add RIDA
                 </button>
               </div>
@@ -363,7 +363,9 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
       if (res.ok) {
         setExistingAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error('Error deleting existing attachment:', err);
+    }
   };
 
   const validate = () => {
@@ -454,11 +456,11 @@ return (
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <h2 className="text-xl font-bold text-gray-900 flex items-center">
           <FileText size={20} className="mr-2 text-green-600" />
-          {initialData ? 'Edit RIDA' : 'Add RIDA'}
+          {initialData ? 'Edit RIDA' : 'Add RIDA'} | {projectName}
         </h2>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
         >
           <X size={20} className="text-gray-400" />
         </button>
@@ -620,7 +622,7 @@ return (
             </div>
           </div>
 
-          {/* Row 4: Status and Project Name */}
+          {/* Row 4: Status */}
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-6">
               <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -637,20 +639,6 @@ return (
                 styles={{ control: (base) => ({ ...base, borderColor: errors.status ? 'red' : base.borderColor }) }}
               />
               {errors.status && <span className="text-red-500 text-xs mt-1 block">{errors.status}</span>}
-            </div>
-
-            <div className="col-span-6">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <Folder size={14} className="inline mr-1" />
-                Project Name
-              </label>
-              <input
-                type="text"
-                value={formData.projectName}
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
-                disabled
-                placeholder="Project Name"
-              />
             </div>
           </div>
 
@@ -743,13 +731,13 @@ return (
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center"
+            className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center cursor-pointer"
             disabled={uploading || submitting}
           >
             {submitting ? (
