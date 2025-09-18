@@ -384,17 +384,11 @@ export default function ProjectMatricsLanding() {
       </nav>
 
       <section id="home" className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-50">
-        {/* Background Elements */}
+        {/* Clean Background Elements */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-pulse"></div>
-          <div
-            className="absolute top-40 right-20 w-64 h-64 bg-green-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"
-            style={{ animationDelay: "2s" }}
-          ></div>
-          <div
-            className="absolute -bottom-32 left-1/2 w-96 h-96 bg-green-700 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"
-            style={{ animationDelay: "4s" }}
-          ></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-green-200 rounded-full mix-blend-multiply opacity-30"></div>
+          <div className="absolute top-40 right-20 w-64 h-64 bg-green-500 rounded-full mix-blend-multiply opacity-20"></div>
+          <div className="absolute -bottom-32 left-1/2 w-96 h-96 bg-green-700 rounded-full mix-blend-multiply opacity-10"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-32">
@@ -406,17 +400,17 @@ export default function ProjectMatricsLanding() {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-30 items-center">
             <div className="text-center lg:text-left">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight">
+              <h1 className="text-5xl font-black text-gray-900 mb-8 leading-tight">
                 The Future of
                 <span className="block text-green-500 relative">
                   Project Management
-                  <div className="absolute -bottom-2 left-0 w-full h-1 bg-green-200 rounded-full"></div>
+                  <div className="absolute -bottom-2 left-0 w-full h-1 bg-green-300 rounded-full"></div>
                 </span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-lg text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 Powered by AI, trusted by 150,000+ teams worldwide. Transform your project delivery with intelligent
                 automation and real-time insights.
               </p>
@@ -440,17 +434,17 @@ export default function ProjectMatricsLanding() {
               {/* Trust Indicators */}
               <div className="grid grid-cols-3 gap-6 text-center lg:text-left">
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">150K+</div>
-                  <div className="text-sm text-gray-600">Active Users</div>
+                  <div className="text-3xl font-black text-gray-900 mb-1">150K+</div>
+                  <div className="text-sm text-gray-600 font-medium">Active Users</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">99.99%</div>
-                  <div className="text-sm text-gray-600">Uptime SLA</div>
+                  <div className="text-3xl font-black text-gray-900 mb-1">99.99%</div>
+                  <div className="text-sm text-gray-600 font-medium">Uptime SLA</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">4.9/5</div>
-                  <div className="text-sm text-gray-600 flex items-center justify-center lg:justify-start">
-                    <Star className="h-4 w-4 text-yellow-400 mr-1" />
+                  <div className="text-3xl font-black text-gray-900 mb-1">4.9/5</div>
+                  <div className="text-sm text-gray-600 flex items-center justify-center lg:justify-start font-medium">
+                    <Star className="h-4 w-4 text-yellow-400 mr-1 fill-current" />
                     G2 Rating
                   </div>
                 </div>
@@ -459,14 +453,14 @@ export default function ProjectMatricsLanding() {
 
             {/* Hero Dashboard Mockup */}
             <div className="relative">
-              <div className="relative bg-white rounded-3xl shadow-2xl p-8 transform rotate-2 hover:rotate-0 transition-transform duration-700">
+              <div className="relative bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
                 <div className="bg-green-500 rounded-2xl p-6 mb-6">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="text-white font-semibold">Project Dashboard</div>
+                    <div className="text-white font-bold text-lg">Project Dashboard</div>
                     <div className="flex space-x-2">
-                      <div className="w-3 h-3 bg-white/30 rounded-full"></div>
-                      <div className="w-3 h-3 bg-white/30 rounded-full"></div>
-                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
@@ -486,41 +480,51 @@ export default function ProjectMatricsLanding() {
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl">
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-100">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                        <Code className="h-5 w-5 text-white" />
+                      <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                        <Code className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">Website Redesign</div>
+                        <div className="font-bold text-gray-900">Website Redesign</div>
                         <div className="text-sm text-gray-600">Due in 3 days</div>
                       </div>
                     </div>
-                    <div className="text-green-600 font-semibold">92%</div>
+                    <div className="text-right">
+                      <div className="text-green-600 font-bold text-xl">92%</div>
+                      <div className="w-16 h-2 bg-green-200 rounded-full mt-1">
+                        <div className="w-full h-full bg-green-500 rounded-full" style={{ width: '92%' }}></div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gray-400 rounded-lg flex items-center justify-center">
-                        <Smartphone className="h-5 w-5 text-white" />
+                      <div className="w-12 h-12 bg-gray-400 rounded-lg flex items-center justify-center">
+                        <Smartphone className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900">Mobile App</div>
+                        <div className="font-bold text-gray-900">Mobile App</div>
                         <div className="text-sm text-gray-600">Due in 1 week</div>
                       </div>
                     </div>
-                    <div className="text-gray-600 font-semibold">67%</div>
+                    <div className="text-right">
+                      <div className="text-gray-600 font-bold text-xl">67%</div>
+                      <div className="w-16 h-2 bg-gray-200 rounded-full mt-1">
+                        <div className="w-full h-full bg-gray-400 rounded-full" style={{ width: '67%' }}></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Floating Elements */}
-              <div className="absolute -top-6 -right-6 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-bounce">
+              {/* Clean Floating Elements */}
+              <div className="absolute -top-4 -right-4 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
                 Live Updates
               </div>
-              <div className="absolute -bottom-6 -left-6 bg-white rounded-xl p-4 shadow-lg border border-green-100">
+              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-4 shadow-lg border border-gray-100">
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                   <span className="text-sm font-medium text-gray-700">3,247 users online</span>
                 </div>
               </div>
@@ -530,13 +534,13 @@ export default function ProjectMatricsLanding() {
           {/* Company Logos */}
           <div className="mt-24 text-center">
             <p className="text-gray-600 font-medium mb-8">Trusted by industry leaders worldwide</p>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center opacity-60">
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-8 items-center opacity-70">
               {companyLogos.map((company, index) => (
-                <div key={index} className="text-center">
-                  <div className="w-16 h-16 bg-gray-200 rounded-xl mx-auto mb-2 flex items-center justify-center">
-                    <Building className="h-8 w-8 text-gray-400" />
+                <div key={index} className="text-center hover:opacity-100 transition-opacity">
+                  <div className="w-16 h-16 bg-gray-100 rounded-xl mx-auto mb-2 flex items-center justify-center border border-gray-200">
+                    <Building className="h-8 w-8 text-gray-500" />
                   </div>
-                  <div className="text-xs text-gray-500 font-medium">{company.name}</div>
+                  <div className="text-xs text-gray-600 font-medium">{company.name}</div>
                   <div className="text-xs text-gray-400">{company.size}</div>
                 </div>
               ))}
