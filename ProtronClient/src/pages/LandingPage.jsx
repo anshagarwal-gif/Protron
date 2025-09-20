@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from "react"
@@ -30,6 +31,11 @@ import {
   Code,
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import dashboard from "../assets/dashboard.png"
+import budgetmanagement from "../assets/budgetmanagement.png"
+import timesheet from "../assets/timesheet.png"
+import usermanagement from "../assets/usermanagement.png"
+import projectmanagement from "../assets/projectmanagement.png"
 
 export default function ProjectMatricsLanding() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false)
@@ -45,46 +51,46 @@ export default function ProjectMatricsLanding() {
   })
   const [status, setStatus] = useState("")
 
+  const handleSignInClick = () =>{
+    navigate("/login")
+  }
+
   const features = [
     {
       icon: Clock,
-      title: "Advanced Time Tracking",
+      title: "Timesheet Management",
       description:
         "AI-powered time tracking with automatic project detection, billable hours calculation, and productivity insights.",
       category: "Productivity",
       highlight: "Save 40% time on reporting",
+      screenshot: timesheet,
     },
     {
       icon: DollarSign,
-      title: "Smart Budget Analytics",
+      title: "Budget Tracking",
       description:
         "Real-time budget monitoring with predictive analytics, cost forecasting, and automated alerts for budget overruns.",
       category: "Finance",
       highlight: "Reduce costs by 25%",
+      screenshot: budgetmanagement,
     },
     {
       icon: Users,
-      title: "Intelligent Resource Planning",
+      title: "User Management",
       description:
         "AI-driven resource allocation with capacity planning, skill matching, and workload balancing across teams.",
       category: "Management",
       highlight: "Optimize team efficiency",
+      screenshot: usermanagement,
     },
     {
       icon: CheckCircle,
-      title: "Milestone Automation",
+      title: "Project Management",
       description:
         "Automated milestone tracking with dependency management, critical path analysis, and progress visualization.",
       category: "Tracking",
       highlight: "Never miss deadlines",
-    },
-    {
-      icon: Calendar,
-      title: "Dynamic Timeline Engine",
-      description:
-        "Interactive Gantt charts with drag-and-drop scheduling, resource conflicts detection, and timeline optimization.",
-      category: "Planning",
-      highlight: "Visual project planning",
+      screenshot: projectmanagement,
     },
     {
       icon: BarChart3,
@@ -92,23 +98,9 @@ export default function ProjectMatricsLanding() {
       description: "Customizable executive dashboards with KPI tracking, performance metrics, and automated reporting.",
       category: "Analytics",
       highlight: "Data-driven decisions",
+      screenshot: dashboard,
     },
-    {
-      icon: Target,
-      title: "Agile Methodology Suite",
-      description:
-        "Complete Scrum and Kanban implementation with sprint planning, velocity tracking, and burndown charts.",
-      category: "Agile",
-      highlight: "Boost team velocity",
-    },
-    {
-      icon: Zap,
-      title: "Procurement Automation",
-      description:
-        "End-to-end purchase order management with vendor integration, approval workflows, and spend analytics.",
-      category: "Operations",
-      highlight: "Streamline procurement",
-    },
+    
   ]
 
   const testimonials = [
@@ -222,7 +214,7 @@ export default function ProjectMatricsLanding() {
     { name: "Jira", logo: "🎯" },
     { name: "GitHub", logo: "🐙" },
     { name: "Google Workspace", logo: "📊" },
-    { name: "Salesforce", logo: "☁️" },
+    { name: "Salesforce", logo: "☁" },
   ]
 
   const companyLogos = [
@@ -318,7 +310,7 @@ export default function ProjectMatricsLanding() {
                 Contact
               </a>
               <div className="flex items-center space-x-3">
-                <button className="text-gray-700 hover:text-green-600 transition-colors font-medium px-4 py-2 rounded-lg hover:bg-green-50">
+                <button onClick={handleSignInClick} className="text-gray-700 hover:text-green-600 transition-colors font-medium px-4 py-2 rounded-lg hover:bg-green-50">
                   Sign In
                 </button>
                 <button
@@ -575,7 +567,7 @@ export default function ProjectMatricsLanding() {
         </div>
       </section>
 
-      {/* Features Section - Enhanced */}
+      {/* Features Section - Alternating Feature/Screenshot */}
       <section id="features" className="py-24 bg-green-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
@@ -593,157 +585,38 @@ export default function ProjectMatricsLanding() {
             </p>
           </div>
 
-          {/* Bento Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {/* Large Feature Card */}
-            <div className="lg:col-span-2 lg:row-span-2 bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center">
-                  <BarChart3 className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">AI-Powered Analytics</h3>
-                  <p className="text-green-600 font-semibold">Predictive Insights</p>
-                </div>
-              </div>
-              <p className="text-gray-600 mb-6 text-lg leading-relaxed">
-                Get intelligent project insights with machine learning algorithms that predict risks, optimize
-                resources, and suggest improvements before issues arise.
-              </p>
-              <div className="bg-green-50 rounded-2xl p-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">94%</div>
-                    <div className="text-sm text-gray-600">Accuracy Rate</div>
+          {/* Alternating Feature/Screenshot Layout */}
+          <div className="space-y-24">
+            {features.map((feature, idx) => (
+              <div
+                key={feature.title}
+                className={`flex flex-col md:flex-row items-center ${idx % 2 === 1 ? 'md:flex-row-reverse' : ''} gap-10 md:gap-24`}
+              >
+                {/* Feature Text */}
+                <div className="flex-1 flex flex-col items-start md:items-start px-0 md:px-8">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-14 h-14 bg-green-500 rounded-xl flex items-center justify-center">
+                      <feature.icon className="h-7 w-7 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-1">{feature.title}</h3>
+                      <p className="text-green-600 font-semibold text-base">{feature.category}</p>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">3x</div>
-                    <div className="text-sm text-gray-600">Faster Decisions</div>
-                  </div>
+                  <p className="text-gray-700 mb-4 text-lg leading-relaxed">{feature.description}</p>
+                  <div className="text-green-600 font-semibold text-base mb-2">{feature.highlight}</div>
+                </div>
+                {/* Screenshot - Jira style, no box, open layout */}
+                <div className="flex-1 flex justify-center items-center">
+                  <img
+                    src={feature.screenshot}
+                    alt={feature.title + ' screenshot'}
+                    className="min-w-[700px] min-h-[280px] object-cover"
+                    style={{ boxShadow: '0 8px 32px 0 rgba(16, 185, 129, 0.10)', borderRadius: '1.5rem', border: 'none', background: 'none' }}
+                  />
                 </div>
               </div>
-            </div>
-
-            {/* Medium Feature Cards */}
-            <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">Enterprise Security</h3>
-                  <p className="text-green-600 font-medium">SOC 2 Compliant</p>
-                </div>
-              </div>
-              <p className="text-gray-600 mb-4">
-                Bank-level security with end-to-end encryption, SSO integration, and compliance with industry standards.
-              </p>
-              <div className="flex items-center space-x-4 text-sm">
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">ISO 27001</span>
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">GDPR</span>
-                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">HIPAA</span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4">
-                <Clock className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Smart Time Tracking</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Automatic time detection with AI-powered project categorization.
-              </p>
-              <div className="text-green-600 font-semibold text-sm">Save 40% on reporting</div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4">
-                <Users className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Team Collaboration</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Real-time collaboration with integrated chat and file sharing.
-              </p>
-              <div className="text-green-600 font-semibold text-sm">Boost productivity 60%</div>
-            </div>
-
-            <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
-                  <Database className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">Advanced Integrations</h3>
-                  <p className="text-green-600 font-medium">500+ Apps Connected</p>
-                </div>
-              </div>
-              <p className="text-gray-600 mb-4">
-                Seamlessly connect with your favorite tools and automate workflows across your entire tech stack.
-              </p>
-              <div className="grid grid-cols-6 gap-3">
-                {integrations.map((integration, index) => (
-                  <div
-                    key={index}
-                    className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-lg hover:bg-green-100 transition-colors cursor-pointer"
-                  >
-                    {integration.logo}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4">
-                <Target className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Agile Workflows</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Complete Scrum and Kanban implementation with velocity tracking.
-              </p>
-              <div className="text-green-600 font-semibold text-sm">Increase velocity 45%</div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-green-100">
-              <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4">
-                <Smartphone className="h-6 w-6 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Mobile First</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Native mobile apps for iOS and Android with offline capabilities.
-              </p>
-              <div className="text-green-600 font-semibold text-sm">Work anywhere</div>
-            </div>
-          </div>
-
-          {/* Feature Categories */}
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="h-8 w-8 text-green-700" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Performance Optimization</h3>
-              <p className="text-gray-600">
-                AI-driven insights to optimize team performance and project delivery timelines.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Settings className="h-8 w-8 text-green-700" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Custom Automation</h3>
-              <p className="text-gray-600">
-                Build custom workflows and automate repetitive tasks to focus on what matters most.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="h-8 w-8 text-green-700" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">24/7 Support</h3>
-              <p className="text-gray-600">
-                Get expert help whenever you need it with our dedicated customer success team.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
