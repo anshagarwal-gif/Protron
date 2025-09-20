@@ -1,40 +1,86 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "task_attachment")
-
+@Getter
+@Setter
 public class TaskAttachment {
-      @Id
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column(name = "task_id", length = 15)
     private String taskId;
 
-    @Column(name = "tenant_id", length = 15)
-    private String tenantId;
+    private String fileName;
+    private String fileType;
+    private Long fileSize;
 
-    @Column(name = "project_id", length = 15)
-    private String projectId;
+    @Lob
+    private byte[] data;
 
-    @Column(name = "story_id", length = 15)
-    private String storyId;
+    @Column(name = "uploaded_at", nullable = false)
+    private LocalDateTime uploadedAt = LocalDateTime.now();
 
-    @Column(length = 50)
-    private String taskType;
+    public Long getId() {
+        return id;
+    }
 
-    @Column(length = 150)
-    private String taskTopic;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    @Column(length = 500)
-    private String taskDescription;
+    public String getTaskId() {
+        return taskId;
+    }
 
-    @Column(length = 50)
-    private String estTime;
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
 
-    @Column(length = 50)
-    private String timeSpent;
+    public String getFileName() {
+        return fileName;
+    }
 
-    @Column(length = 50)
-    private String timeRemaining;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 
+    public String getFileType() {
+        return fileType;
+    }
+
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
+
+    public LocalDateTime getUploadedAt() {
+        return uploadedAt;
+    }
+
+    public void setUploadedAt(LocalDateTime uploadedAt) {
+        this.uploadedAt = uploadedAt;
+    }
 }

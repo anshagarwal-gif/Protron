@@ -1,7 +1,5 @@
-package com.Protronserver.Protronserver.Entities;
+package com.Protronserver.Protronserver.ResultDTOs;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,88 +8,18 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "task")
-public class Task {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "task_id", length = 15, unique = true)
-    private String taskId;
-
-    @Column(name = "tenant_id", length = 15)
-    private Long tenantId;
-
-    @Column(name = "project_id", length = 15)
+public class TaskDto {
     private Long projectId;
-
-    @Column(name = "parent_id", length = 15)
     private String parentId;
-
-    @Column(name = "date")
     private LocalDate date;
-
-    @Column(length = 50)
     private String taskType;
-
-    @Column(length = 150)
     private String taskTopic;
-
-    @Column(length = 500)
     private String taskDescription;
-
-    @Column(length = 50)
     private String estTime;
-
-    @Column(length = 2)
     private int timeSpentHours;
-
-    @Column(length = 2)
     private int timeSpentMinutes;
-
-    @Column(length = 2)
     private int timeRemainingHours;
-
-    @Column(length = 2)
     private int timeRemainingMinutes;
-
-    private String createdBy;
-    private LocalDateTime dateCreated;
-
-    // Fields for versioning and soft delete
-    @Column(nullable = false)
-    private LocalDateTime startTimestamp;
-    private LocalDateTime endTimestamp;
-    private String lastUpdatedBy;
-
-    // Getters and setters
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
-    }
 
     public Long getProjectId() {
         return projectId;
@@ -179,45 +107,5 @@ public class Task {
 
     public void setTimeRemainingMinutes(int timeRemainingMinutes) {
         this.timeRemainingMinutes = timeRemainingMinutes;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public LocalDateTime getDateCreated() {
-        return dateCreated;
-    }
-
-    public void setDateCreated(LocalDateTime dateCreated) {
-        this.dateCreated = dateCreated;
-    }
-
-    public LocalDateTime getStartTimestamp() {
-        return startTimestamp;
-    }
-
-    public void setStartTimestamp(LocalDateTime startTimestamp) {
-        this.startTimestamp = startTimestamp;
-    }
-
-    public LocalDateTime getEndTimestamp() {
-        return endTimestamp;
-    }
-
-    public void setEndTimestamp(LocalDateTime endTimestamp) {
-        this.endTimestamp = endTimestamp;
-    }
-
-    public String getLastUpdatedBy() {
-        return lastUpdatedBy;
-    }
-
-    public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
     }
 }
