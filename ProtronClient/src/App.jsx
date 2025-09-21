@@ -36,12 +36,14 @@ import Unauthorized from './utils/Unauthorized';
 import { useSessionTimer } from './hooks/useSessionTimer'; // Adjust path as needed
 import UserDetails from './components/UserDetails';
 import ProjectMatricsLanding from './pages/LandingPage';
+import StoryDashboard from './pages/StoryDashboard';
 // Memoized route components to prevent unnecessary re-renders
 const MemoizedUserManagement = memo(UserManagement);
 const MemoizedPOManagement = memo(POManagement);
 const MemoizedProjectManagement = memo(ProjectManagement);
 const MemoizedTeamManagement = memo(TeamManagement);
 const MemoizedDashboard = memo(Dashboard);
+const MemoizedStoryDashboard = memo(StoryDashboard);
 
 const AppContent = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -131,6 +133,7 @@ const AppContent = () => {
               <Route path="/landing" element={<ProjectMatricsLanding />} />
               <Route path="/dashboard" element={<MemoizedDashboard />} />
               <Route path="/projects" element={<MemoizedProjectManagement />} />
+              <Route path="/stories" element={<MemoizedStoryDashboard />} />
               <Route path="/user/:id" element={<UserDetails/>}/>
               <Route path="/signup" element={<Signup/>}/>
               {/* <Route path="/team" element={<MemoizedTeamManagement />} /> */}

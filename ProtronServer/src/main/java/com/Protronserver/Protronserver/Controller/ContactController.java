@@ -1,4 +1,5 @@
 package com.Protronserver.Protronserver.Controller;
+
 import com.Protronserver.Protronserver.DTOs.ContactForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/contact")
-@CrossOrigin(origins = "*") // or limit it to your frontend's URL for security
 
 public class ContactController {
 
@@ -22,10 +22,9 @@ public class ContactController {
             message.setTo("bhagirath961778@gmail.com"); // your support email
             message.setSubject("New Contact Message from " + form.getName());
             message.setText(
-                "Name: " + form.getName() + "\n" +
-                "Email: " + form.getEmail() + "\n\n" +
-                "Message:\n" + form.getMessage()
-            );
+                    "Name: " + form.getName() + "\n" +
+                            "Email: " + form.getEmail() + "\n\n" +
+                            "Message:\n" + form.getMessage());
 
             mailSender.send(message);
 
@@ -35,5 +34,5 @@ public class ContactController {
             return ResponseEntity.status(500).body("Failed to send message.");
         }
     }
-    
+
 }
