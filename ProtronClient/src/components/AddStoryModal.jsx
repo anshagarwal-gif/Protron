@@ -329,26 +329,27 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
         throw new Error("Missing authentication credentials");
       }
 
-      // Create FormData for file upload
-      const submitData = new FormData();
-      submitData.append('projectId', parseInt(formData.projectId) || 0);
-      submitData.append('summary', formData.summary || '');
-      submitData.append('asA', formData.asA || '');
-      submitData.append('iWantTo', formData.iWantTo || '');
-      submitData.append('soThat', formData.soThat || '');
-      submitData.append('acceptanceCriteria', formData.acceptanceCriteria || '');
-      submitData.append('status', formData.status);
-      submitData.append('priority', parseInt(formData.priority) || 2);
-      submitData.append('storyPoints', parseInt(formData.storyPoints) || 0);
-      submitData.append('assignee', formData.assignee || '');
-      submitData.append('sprint', parseInt(formData.sprint) || 0);
-      submitData.append('release', parseInt(formData.release) || 0);
-      submitData.append('system', formData.system || '');
-      submitData.append('createdBy', formData.createdBy || '');
+      // Create UserStoryDto object for the API
+      const storyData = {
+        projectId: parseInt(formData.projectId) || null,
+        parentId: null, // Can be set if needed
+        status: formData.status,
+        priority: parseInt(formData.priority) || 2,
+        summary: formData.summary || '',
+        asA: formData.asA || '',
+        iWantTo: formData.iWantTo || '',
+        soThat: formData.soThat || '',
+        acceptanceCriteria: formData.acceptanceCriteria || '',
+        system: formData.system || '',
+        storyPoints: parseInt(formData.storyPoints) || 0,
+        assignee: formData.assignee || '',
+        releaseId: parseInt(formData.release) || null,
+        sprintId: parseInt(formData.sprint) || null
+      };
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/user-story/add`,
-        submitData,
+        `${import.meta.env.VITE_API_URL}/api/userstory`,
+        storyData,
         {
           headers: {
             Authorization: `${token}`,
@@ -358,18 +359,15 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
       );
       
       console.log("User Story added successfully:", response.data);
-      const storyId = response.data.id;
+      const storyUsId = response.data.usId; // Use usId for attachments
 
       if (storyFiles.length > 0) {
         for (const file of storyFiles) {
           const formData = new FormData();
           formData.append("file", file);
-          formData.append("level", "STORY");
-          formData.append("referenceId", storyId);
-          formData.append("referenceNumber", "");
 
           try {
-            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/story-attachments/upload`, {
+            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/userstory/${storyUsId}`, {
               method: "POST",
               headers: {
                 'Authorization': `${token}`

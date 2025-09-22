@@ -38,6 +38,17 @@ const StoryDashboard = () => {
   const [releaseList, setReleaseList] = useState([]); // List of releases for selected project
   const [users, setUsers] = useState([]); // List of users/employees
   const [statusFlags, setStatusFlags] = useState([]); // List of status flags
+  
+  // Cascading dropdown states
+  const [typeDropdowns, setTypeDropdowns] = useState({
+    level1: '', // Main type filter
+    level2: '', // Second level dropdown
+    level3: ''  // Third level dropdown
+  });
+  const [showTypeDropdowns, setShowTypeDropdowns] = useState({
+    level2: false,
+    level3: false
+  });
 
   // Custom cell renderers for AgGrid
   const StatusRenderer = useCallback((params) => {
@@ -188,79 +199,182 @@ const StoryDashboard = () => {
     }
   }, []);
 
-  // Mock data for demonstration
+  // Fetch stories from API
   useEffect(() => {
-        const mockStories = [
-          {
-            id: 1,
-            summary: 'User Authentication Implementation',
-            asA: 'a registered user',
-            iWantTo: 'log in securely to the system',
-            soThat: 'I can access my personal data and features',
-            acceptanceCriteria: 'User can log in with valid credentials, JWT token is generated, session is maintained',
-            status: 'in-progress',
-            priority: 1,
-            storyPoints: 8,
-            assignee: 'John Doe',
-            projectId: 1,
-            sprint: 1,
-            release: 1,
-            system: 'User Story',
-            createdBy: 'Jane Smith',
-            dateCreated: '2024-01-15T10:00:00',
-            tenantId: 1,
-            parentId: null,
-            startTimestamp: '2024-01-15T10:00:00',
-            endTimestamp: null
-          },
-          {
-            id: 2,
-            summary: 'Dashboard UI Enhancement',
-            asA: 'a dashboard user',
-            iWantTo: 'see improved layout and new widgets',
-            soThat: 'I can better monitor and analyze data',
-            acceptanceCriteria: 'Layout is responsive, widgets are interactive, data loads quickly',
-            status: 'todo',
-            priority: 2,
-            storyPoints: 13,
-            assignee: 'Jane Smith',
-            projectId: 2,
-            sprint: 2,
-            release: 2,
-            system: 'Solution Story',
-            createdBy: 'Project Manager',
-            dateCreated: '2024-01-18T09:00:00',
-            tenantId: 1,
-            parentId: null,
-            startTimestamp: '2024-01-18T09:00:00',
-            endTimestamp: null
-          },
-          {
-            id: 3,
-            summary: 'API Integration Testing',
-            asA: 'a developer',
-            iWantTo: 'have comprehensive API tests',
-            soThat: 'I can ensure API reliability and prevent regressions',
-            acceptanceCriteria: 'All endpoints are tested, error cases covered, performance tests included',
-            status: 'completed',
-            priority: 1,
-            storyPoints: 5,
-            assignee: 'Mike Johnson',
-            projectId: 1,
-            sprint: 1,
-            release: 1,
-            system: 'Task',
-            createdBy: 'Tech Lead',
-            dateCreated: '2024-01-10T14:00:00',
-            tenantId: 1,
-            parentId: null,
-            startTimestamp: '2024-01-10T14:00:00',
-            endTimestamp: '2024-01-22T17:00:00'
-          }
+    const fetchStories = async () => {
+      try {
+        setLoading(true);
+        const token = sessionStorage.getItem('token');
+        
+        // Determine which API to call based on the selected type filter
+        let apiUrl = '';
+        const selectedType = filters.type || '';
+        
+        // Parse the cascading type string to find the most recent entity type selection
+        const typeParts = selectedType.split(' > ');
+        const lastEntityType = typeParts[typeParts.length - 1];
+        
+        // Check the most recent entity type selection
+        if (lastEntityType === 'User Story') {
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
+        } else if (lastEntityType === 'Solution Story') {
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/active`;
+        } else if (lastEntityType === 'Task') {
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks`;
+        } else {
+          // Default to UserStory if no specific type is selected
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
+        }
+        
+        const response = await fetch(apiUrl, {
+          headers: { Authorization: token }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setStories(data);
+        } else {
+          console.error('Failed to fetch stories:', response.status, response.statusText);
+          // Fallback to empty array if API fails
+          setStories([]);
+        }
+      } catch (error) {
+        console.error('Error fetching stories:', error);
+        // Fallback to empty array if API fails
+        setStories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStories();
+  }, [filters.type]);
+
+  // Function to refresh stories after add/edit operations
+  const refreshStories = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem('token');
+      
+        // Determine which API to call based on the selected type filter
+        let apiUrl = '';
+        const selectedType = filters.type || '';
+        
+        // Parse the cascading type string to find the most recent entity type selection
+        const typeParts = selectedType.split(' > ');
+        const lastEntityType = typeParts[typeParts.length - 1];
+        
+        // Check the most recent entity type selection
+        if (lastEntityType === 'User Story') {
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
+        } else if (lastEntityType === 'Solution Story') {
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/active`;
+        } else if (lastEntityType === 'Task') {
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks`;
+        } else {
+          // Default to UserStory if no specific type is selected
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
+        }
+      
+      const response = await fetch(apiUrl, {
+        headers: { Authorization: token }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setStories(data);
+      } else {
+        console.error('Failed to fetch stories');
+      }
+    } catch (error) {
+      console.error('Error fetching stories:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters.type]);
+
+  // Clear type filters when project changes
+  useEffect(() => {
+    if (!filters.projectName) {
+      clearTypeFilters();
+    }
+  }, [filters.projectName]);
+
+  // Cascading dropdown logic
+  const getTypeOptions = (level, parentValue) => {
+    if (level === 1) {
+      // Level 1: Only show User Story and Solution Story when project is selected
+      return filters.projectName ? [
+        { value: 'User Story', label: 'User Story' },
+        { value: 'Solution Story', label: 'Solution Story' }
+      ] : [];
+    } else if (level === 2) {
+      // Level 2: Show options based on level 1 selection
+      if (parentValue === 'User Story') {
+        return [
+          { value: 'Solution Story', label: 'Solution Story' },
+          { value: 'Task', label: 'Task' }
         ];
-    setStories(mockStories);
-    setLoading(false);
-  }, []);
+      } else if (parentValue === 'Solution Story') {
+        return [
+          { value: 'Task', label: 'Task' }
+        ];
+      }
+      return [];
+    } else if (level === 3) {
+      // Level 3: Only show Task when Solution Story is selected in level 2
+      if (parentValue === 'Solution Story') {
+        return [
+          { value: 'Task', label: 'Task' }
+        ];
+      }
+      return [];
+    }
+    return [];
+  };
+
+  const handleTypeChange = (level, value) => {
+    const newTypeDropdowns = { ...typeDropdowns };
+    const newShowDropdowns = { ...showTypeDropdowns };
+
+    if (level === 1) {
+      newTypeDropdowns.level1 = value;
+      newTypeDropdowns.level2 = '';
+      newTypeDropdowns.level3 = '';
+      
+      // Show Level 2 for both User Story and Solution Story
+      newShowDropdowns.level2 = value ? true : false;
+      newShowDropdowns.level3 = false;
+      
+      // Update main type filter
+      setFilters(prev => ({ ...prev, type: value }));
+    } else if (level === 2) {
+      newTypeDropdowns.level2 = value;
+      newTypeDropdowns.level3 = '';
+      
+      // Show Level 3 only if User Story is selected in Level 1 AND Solution Story in Level 2
+      newShowDropdowns.level3 = (newTypeDropdowns.level1 === 'User Story' && value === 'Solution Story') ? true : false;
+      
+      // Update main type filter to include both levels
+      const combinedType = `${newTypeDropdowns.level1} > ${value}`;
+      setFilters(prev => ({ ...prev, type: combinedType }));
+    } else if (level === 3) {
+      newTypeDropdowns.level3 = value;
+      
+      // Update main type filter to include all levels
+      const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2} > ${value}`;
+      setFilters(prev => ({ ...prev, type: combinedType }));
+    }
+
+    setTypeDropdowns(newTypeDropdowns);
+    setShowTypeDropdowns(newShowDropdowns);
+  };
+
+  const clearTypeFilters = () => {
+    setTypeDropdowns({ level1: '', level2: '', level3: '' });
+    setShowTypeDropdowns({ level2: false, level3: false });
+    setFilters(prev => ({ ...prev, type: '' }));
+  };
 
   const filteredStories = stories.filter(story => {
     const matchesProjectName = !filters.projectName || story.projectId?.toString().includes(filters.projectName);
@@ -268,7 +382,22 @@ const StoryDashboard = () => {
     const matchesAssignee = !filters.assignee || story.assignee?.toLowerCase().includes(filters.assignee.toLowerCase());
     const matchesCreatedBy = !filters.createdBy || story.createdBy?.toLowerCase().includes(filters.createdBy.toLowerCase());
     const matchesStatus = filters.status === 'all' || story.status === filters.status;
-    const matchesType = !filters.type || story.system?.toLowerCase().includes(filters.type.toLowerCase());
+    // Handle cascading type filtering
+    const matchesType = !filters.type || (() => {
+      if (!filters.type) return true;
+      
+      // If it's a simple type filter (no cascading)
+      if (!filters.type.includes('>')) {
+        return story.system?.toLowerCase().includes(filters.type.toLowerCase());
+      }
+      
+      // Handle cascading type filters
+      const typeParts = filters.type.split(' > ');
+      const storyType = story.system?.toLowerCase();
+      
+      // Check if story matches any part of the cascading filter
+      return typeParts.some(part => storyType?.includes(part.toLowerCase()));
+    })();
     const matchesCreatedDate = !filters.createdDate || story.dateCreated?.includes(filters.createdDate);
     const matchesRelease = !filters.release || story.release?.toString().includes(filters.release);
     
@@ -299,22 +428,53 @@ const StoryDashboard = () => {
     }
   };
 
-  const handleAddStory = (story) => {
-    setStories([...stories, story]);
+  const handleAddStory = async () => {
+    await refreshStories();
+    setShowAddModal(false);
+    toast.success('Story added successfully!');
   };
 
-  const handleUpdateStory = (updatedStory) => {
-    setStories(stories.map(story => 
-      story.id === updatedStory.id ? updatedStory : story
-    ));
+  const handleUpdateStory = async () => {
+    await refreshStories();
+    setShowEditModal(false);
+    toast.success('Story updated successfully!');
   };
 
-  const handleDeleteStory = useCallback((id) => {
+  const handleDeleteStory = useCallback(async (id) => {
     if (window.confirm('Are you sure you want to delete this story?')) {
-      setStories(stories.filter(story => story.id !== id));
-      toast.success('Story deleted successfully');
+      try {
+        const token = sessionStorage.getItem('token');
+        
+        // First get the usId for the story
+        const storyResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/userstory/active/id/${id}`, {
+          headers: { Authorization: token }
+        });
+        
+        if (storyResponse.ok) {
+          const storyData = await storyResponse.json();
+          const usId = storyData.usId;
+          
+          // Delete the story using usId
+          const deleteResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/userstory/${usId}`, {
+            method: 'DELETE',
+            headers: { Authorization: token }
+          });
+          
+          if (deleteResponse.ok) {
+            await refreshStories();
+            toast.success('Story deleted successfully');
+          } else {
+            toast.error('Failed to delete story');
+          }
+        } else {
+          toast.error('Failed to find story');
+        }
+      } catch (error) {
+        console.error('Error deleting story:', error);
+        toast.error('Error deleting story');
+      }
     }
-  }, [stories]);
+  }, [refreshStories]);
 
   const openEditModal = useCallback((story) => {
     setSelectedStory(story);
@@ -466,115 +626,364 @@ const StoryDashboard = () => {
     );
   }, [openViewModal, openEditModal, handleDeleteStory]);
 
-  // AgGrid column definitions
-  const columnDefs = useMemo(() => [
-    {
-      headerName: '#',
-      valueGetter: (params) => params.node.rowIndex + 1,
-      width: 60,
-      pinned: 'left',
-      suppressMenu: true,
-      sortable: false,
-      filter: false,
-    },
-    {
-      headerName: 'Project ID',
-      field: 'projectId',
-      width: 100,
-      filter: 'agNumberColumnFilter',
-      cellStyle: { textAlign: 'center', fontWeight: '500' }
-    },
-    {
-      headerName: 'Summary',
-      field: 'summary',
-      flex: 1,
-      minWidth: 200,
-      filter: 'agTextColumnFilter',
-      cellStyle: { fontWeight: '500' }
-    },
-    {
-      headerName: 'As A',
-      field: 'asA',
-      flex: 1,
-      minWidth: 150,
-      filter: 'agTextColumnFilter',
-      cellClass: 'ag-cell-truncate',
-      tooltipValueGetter: (params) => params.value || 'N/A'
-    },
-    {
-      headerName: 'I Want To',
-      field: 'iWantTo',
-      flex: 1,
-      minWidth: 200,
-      filter: 'agTextColumnFilter',
-      cellClass: 'ag-cell-truncate',
-      tooltipValueGetter: (params) => params.value || 'N/A'
-    },
-    {
-      headerName: 'So That',
-      field: 'soThat',
-      flex: 1,
-      minWidth: 200,
-      filter: 'agTextColumnFilter',
-      cellClass: 'ag-cell-truncate',
-      tooltipValueGetter: (params) => params.value || 'N/A'
-    },
-    {
-      headerName: 'Status',
-      field: 'status',
-      cellRenderer: StatusRenderer,
-      width: 120,
-      filter: 'agSetColumnFilter',
-      filterParams: {
-        values: ['todo', 'in-progress', 'completed', 'blocked', 'not-ready', 'ready']
+  // AgGrid column definitions - Dynamic based on type filter
+  const columnDefs = useMemo(() => {
+    const baseColumns = [
+      {
+        headerName: '#',
+        valueGetter: (params) => params.node.rowIndex + 1,
+        width: 60,
+        pinned: 'left',
+        suppressMenu: true,
+        sortable: false,
+        filter: false,
+      },
+      {
+        headerName: 'Project ID',
+        field: 'projectId',
+        width: 100,
+        filter: 'agNumberColumnFilter',
+        cellStyle: { textAlign: 'center', fontWeight: '500' }
       }
-    },
-    {
-      headerName: 'Priority',
-      field: 'priority',
-      cellRenderer: PriorityRenderer,
-      width: 100,
-      filter: 'agNumberColumnFilter',
-      valueFormatter: (params) => {
-        const priority = params.value;
-        if (priority === 1) return 'High';
-        if (priority === 2) return 'Medium';
-        if (priority === 3) return 'Low';
-        return priority;
-      }
-    },
-    {
-      headerName: 'Story Points',
-      field: 'storyPoints',
-      width: 100,
-      filter: 'agNumberColumnFilter',
-      cellStyle: { textAlign: 'center' }
-    },
-    {
-      headerName: 'Assignee',
-      field: 'assignee',
-      width: 120,
-      filter: 'agTextColumnFilter',
-      cellClass: 'ag-cell-truncate'
-    },
-    {
-      headerName: 'System',
-      field: 'system',
-      width: 120,
-      filter: 'agTextColumnFilter',
-      cellClass: 'ag-cell-truncate'
-    },
-    {
-      headerName: 'Actions',
-      cellRenderer: ActionsRenderer,
-      width: 120,
-      suppressMenu: true,
-      sortable: false,
-      filter: false,
-      pinned: 'right',
-      cellStyle: { textAlign: 'center' }
+    ];
+
+    // Determine which entity type is selected from any level of the cascading dropdowns
+    const selectedType = filters.type || '';
+    
+    // Parse the cascading type string to find the most recent entity type selection
+    // The string format is "Level1 > Level2 > Level3" or just "Level1"
+    const typeParts = selectedType.split(' > ');
+    const lastEntityType = typeParts[typeParts.length - 1]; // Get the last (most recent) selection
+    
+    // Check the most recent entity type selection
+    const isUserStory = lastEntityType === 'User Story';
+    const isSolutionStory = lastEntityType === 'Solution Story';
+    const isTask = lastEntityType === 'Task';
+    
+    if (isUserStory) {
+      return [
+        ...baseColumns,
+        {
+          headerName: 'Summary',
+          field: 'summary',
+          flex: 1,
+          minWidth: 200,
+          filter: 'agTextColumnFilter',
+          cellStyle: { fontWeight: '500' }
+        },
+        {
+          headerName: 'As A',
+          field: 'asA',
+          flex: 1,
+          minWidth: 150,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
+        },
+        {
+          headerName: 'I Want To',
+          field: 'iWantTo',
+          flex: 1,
+          minWidth: 200,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
+        },
+        {
+          headerName: 'So That',
+          field: 'soThat',
+          flex: 1,
+          minWidth: 200,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
+        },
+        {
+          headerName: 'Acceptance Criteria',
+          field: 'acceptanceCriteria',
+          flex: 1,
+          minWidth: 200,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
+        },
+        {
+          headerName: 'Status',
+          field: 'status',
+          cellRenderer: StatusRenderer,
+          width: 120,
+          filter: 'agSetColumnFilter',
+          filterParams: {
+            values: ['todo', 'in-progress', 'completed', 'blocked', 'not-ready', 'ready']
+          }
+        },
+        {
+          headerName: 'Priority',
+          field: 'priority',
+          cellRenderer: PriorityRenderer,
+          width: 100,
+          filter: 'agNumberColumnFilter',
+          valueFormatter: (params) => {
+            const priority = params.value;
+            if (priority === 1) return 'High';
+            if (priority === 2) return 'Medium';
+            if (priority === 3) return 'Low';
+            return priority;
+          }
+        },
+        {
+          headerName: 'Story Points',
+          field: 'storyPoints',
+          width: 100,
+          filter: 'agNumberColumnFilter',
+          cellStyle: { textAlign: 'center' }
+        },
+        {
+          headerName: 'Assignee',
+          field: 'assignee',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'System',
+          field: 'system',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'Actions',
+          cellRenderer: ActionsRenderer,
+          width: 120,
+          suppressMenu: true,
+          sortable: false,
+          filter: false,
+          pinned: 'right'
+        }
+      ];
+    } else if (isSolutionStory) {
+      return [
+        ...baseColumns,
+        {
+          headerName: 'Summary',
+          field: 'summary',
+          flex: 1,
+          minWidth: 200,
+          filter: 'agTextColumnFilter',
+          cellStyle: { fontWeight: '500' }
+        },
+        {
+          headerName: 'Description',
+          field: 'description',
+          flex: 1,
+          minWidth: 300,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
+        },
+        {
+          headerName: 'Status',
+          field: 'status',
+          cellRenderer: StatusRenderer,
+          width: 120,
+          filter: 'agSetColumnFilter',
+          filterParams: {
+            values: ['todo', 'in-progress', 'completed', 'blocked', 'not-ready', 'ready']
+          }
+        },
+        {
+          headerName: 'Priority',
+          field: 'priority',
+          cellRenderer: PriorityRenderer,
+          width: 100,
+          filter: 'agNumberColumnFilter',
+          valueFormatter: (params) => {
+            const priority = params.value;
+            if (priority === 1) return 'High';
+            if (priority === 2) return 'Medium';
+            if (priority === 3) return 'Low';
+            return priority;
+          }
+        },
+        {
+          headerName: 'Story Points',
+          field: 'storyPoints',
+          width: 100,
+          filter: 'agNumberColumnFilter',
+          cellStyle: { textAlign: 'center' }
+        },
+        {
+          headerName: 'Assignee',
+          field: 'assignee',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'System',
+          field: 'system',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'Actions',
+          cellRenderer: ActionsRenderer,
+          width: 120,
+          suppressMenu: true,
+          sortable: false,
+          filter: false,
+          pinned: 'right'
+        }
+      ];
+    } else if (isTask) {
+      return [
+        ...baseColumns,
+        {
+          headerName: 'Task Type',
+          field: 'taskType',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'Task Topic',
+          field: 'taskTopic',
+          flex: 1,
+          minWidth: 150,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
+        },
+        {
+          headerName: 'Task Description',
+          field: 'taskDescription',
+          flex: 1,
+          minWidth: 200,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
+        },
+        {
+          headerName: 'Est. Time',
+          field: 'estTime',
+          width: 100,
+          filter: 'agTextColumnFilter',
+          cellStyle: { textAlign: 'center' }
+        },
+        {
+          headerName: 'Time Spent',
+          field: 'timeSpent',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellStyle: { textAlign: 'center' },
+          valueFormatter: (params) => {
+            const hours = params.data?.timeSpentHours || 0;
+            const minutes = params.data?.timeSpentMinutes || 0;
+            return `${hours}h ${minutes}m`;
+          }
+        },
+        {
+          headerName: 'Time Remaining',
+          field: 'timeRemaining',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellStyle: { textAlign: 'center' },
+          valueFormatter: (params) => {
+            const hours = params.data?.timeRemainingHours || 0;
+            const minutes = params.data?.timeRemainingMinutes || 0;
+            return `${hours}h ${minutes}m`;
+          }
+        },
+        {
+          headerName: 'Date',
+          field: 'date',
+          width: 100,
+          filter: 'agDateColumnFilter',
+          valueFormatter: (params) => {
+            return params.value ? new Date(params.value).toLocaleDateString() : 'N/A';
+          }
+        },
+        {
+          headerName: 'Created By',
+          field: 'createdBy',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'Actions',
+          cellRenderer: ActionsRenderer,
+          width: 120,
+          suppressMenu: true,
+          sortable: false,
+          filter: false,
+          pinned: 'right'
+        }
+      ];
+    } else {
+      // Default columns when no specific type is selected
+      return [
+        ...baseColumns,
+        {
+          headerName: 'Summary',
+          field: 'summary',
+          flex: 1,
+          minWidth: 200,
+          filter: 'agTextColumnFilter',
+          cellStyle: { fontWeight: '500' }
+        },
+        {
+          headerName: 'Status',
+          field: 'status',
+          cellRenderer: StatusRenderer,
+          width: 120,
+          filter: 'agSetColumnFilter',
+          filterParams: {
+            values: ['todo', 'in-progress', 'completed', 'blocked', 'not-ready', 'ready']
+          }
+        },
+        {
+          headerName: 'Priority',
+          field: 'priority',
+          cellRenderer: PriorityRenderer,
+          width: 100,
+          filter: 'agNumberColumnFilter',
+          valueFormatter: (params) => {
+            const priority = params.value;
+            if (priority === 1) return 'High';
+            if (priority === 2) return 'Medium';
+            if (priority === 3) return 'Low';
+            return priority;
+          }
+        },
+        {
+          headerName: 'Assignee',
+          field: 'assignee',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'System',
+          field: 'system',
+          width: 120,
+          filter: 'agTextColumnFilter',
+          cellClass: 'ag-cell-truncate'
+        },
+        {
+          headerName: 'Actions',
+          cellRenderer: ActionsRenderer,
+          width: 120,
+          suppressMenu: true,
+          sortable: false,
+          filter: false,
+          pinned: 'right'
+        }
+      ];
     }
-  ], [StatusRenderer, PriorityRenderer, ActionsRenderer]);
+  }, [filters.type, StatusRenderer, PriorityRenderer, ActionsRenderer]);
 
   // Default column properties
   const defaultColDef = useMemo(() => ({
@@ -791,44 +1200,6 @@ const StoryDashboard = () => {
             </select>
           </div>
 
-          {/* Type */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Type</label>
-            <CreatableSelect
-              value={filters.type ? { value: filters.type, label: filters.type } : null}
-              onChange={(selectedOption) => {
-                const value = selectedOption ? selectedOption.value : '';
-                setFilters({...filters, type: value});
-              }}
-              options={[
-                { value: 'User Story', label: 'User Story' },
-                { value: 'Solution Story', label: 'Solution Story' },
-                { value: 'Task', label: 'Task' }
-              ]}
-              isClearable
-              placeholder="Select or type type..."
-              className="text-sm"
-              styles={{
-                control: (provided) => ({
-                  ...provided,
-                  minHeight: '40px',
-                  borderColor: '#d1d5db',
-                  '&:hover': {
-                    borderColor: '#10b981'
-                  }
-                }),
-                menu: (provided) => ({
-                  ...provided,
-                  zIndex: 9999
-                }),
-                option: (provided, state) => ({
-                  ...provided,
-                  backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
-                  color: state.isFocused ? '#065f46' : '#374151'
-                })
-              }}
-            />
-          </div>
 
           {/* Created Date */}
           <div className="space-y-2">
@@ -879,9 +1250,125 @@ const StoryDashboard = () => {
               }}
             />
           </div>
-        </div>
+          </div>
 
-        {/* Clear Filters Button */}
+          {/* Type Filter */}
+          <div className="space-y-3">
+            <label className="block text-sm font-medium mt-3 text-gray-700">Type</label>
+            
+            {/* Horizontal layout for type filters */}
+            <div className="flex flex-wrap gap-2 items-end">
+              {/* Level 1: Main Type Filter */}
+              <div className="w-[220px]">
+                <CreatableSelect
+                  value={typeDropdowns.level1 ? { value: typeDropdowns.level1, label: typeDropdowns.level1 } : null}
+                  onChange={(selectedOption) => {
+                    const value = selectedOption ? selectedOption.value : '';
+                    handleTypeChange(1, value);
+                  }}
+                  options={getTypeOptions(1)}
+                  isClearable
+                  placeholder={filters.projectName ? "Select type..." : "Select project first"}
+                  isDisabled={!filters.projectName}
+                  className="text-sm"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '40px',
+                      borderColor: '#d1d5db',
+                      '&:hover': {
+                        borderColor: '#10b981'
+                      }
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 9999
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                      color: state.isFocused ? '#065f46' : '#374151'
+                    })
+                  }}
+                />
+              </div>
+
+              {/* Level 2: Second Type Filter */}
+              {showTypeDropdowns.level2 && (
+                <div className="w-[220px]">
+                  <CreatableSelect
+                    value={typeDropdowns.level2 ? { value: typeDropdowns.level2, label: typeDropdowns.level2 } : null}
+                    onChange={(selectedOption) => {
+                      const value = selectedOption ? selectedOption.value : '';
+                      handleTypeChange(2, value);
+                    }}
+                    options={getTypeOptions(2, typeDropdowns.level1)}
+                    isClearable
+                    placeholder="Select sub-type..."
+                    className="text-sm"
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        minHeight: '40px',
+                        borderColor: '#d1d5db',
+                        '&:hover': {
+                          borderColor: '#10b981'
+                        }
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 9999
+                      }),
+                      option: (provided, state) => ({
+                        ...provided,
+                        backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                        color: state.isFocused ? '#065f46' : '#374151'
+                      })
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Level 3: Third Type Filter */}
+              {showTypeDropdowns.level3 && (
+                <div className="w-[220px]">
+                  <CreatableSelect
+                    value={typeDropdowns.level3 ? { value: typeDropdowns.level3, label: typeDropdowns.level3 } : null}
+                    onChange={(selectedOption) => {
+                      const value = selectedOption ? selectedOption.value : '';
+                      handleTypeChange(3, value);
+                    }}
+                    options={getTypeOptions(3, typeDropdowns.level2)}
+                    isClearable
+                    placeholder="Select final type..."
+                    className="text-sm"
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        minHeight: '40px',
+                        borderColor: '#d1d5db',
+                        '&:hover': {
+                          borderColor: '#10b981'
+                        }
+                      }),
+                      menu: (provided) => ({
+                        ...provided,
+                        zIndex: 9999
+                      }),
+                      option: (provided, state) => ({
+                        ...provided,
+                        backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                        color: state.isFocused ? '#065f46' : '#374151'
+                      })
+                    }}
+                  />
+                </div>
+              )}
+
+            </div>
+          </div>
+
+          {/* Clear Filters Button */}
         <div className="mt-4 flex justify-end">
           <button
             onClick={() => setFilters({
