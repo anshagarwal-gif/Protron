@@ -9,28 +9,28 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "user_story")
+@Table(name = "user_story_table")
 public class UserStory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "us_id", length = 15, unique = true)
+    @Column(length = 15, unique = true)
     private String usId;
 
-    @Column(name = "tenant_id", length = 15)
+//    @Column(name = "tenant_id")
     private Long tenantId;
 
-    @Column(name = "project_id", length = 15)
+//    @Column(name = "project_id")
     private Long projectId;
 
-    @Column(name = "parent_id", length = 15)
+    @Column(length = 15)
     private String parentId;
 
     @Column(length = 100)
     private String status;
 
-    @Column(length = 3)
+//    @Column(name = "priority")
     private int priority;
 
     @Column(length = 500)
@@ -49,9 +49,9 @@ public class UserStory {
     private String acceptanceCriteria;
 
     @Column(length = 100)
-    private String system;
+    private String systemName;
 
-    @Column(name = "story_points", length = 3)
+//    @Column(name = "story_points")
     private int storyPoints;
 
     @Column(length = 100)
@@ -59,11 +59,10 @@ public class UserStory {
 
     private String createdBy;
     private LocalDateTime dateCreated;
-    private Long release;
+    private Long releaseId;
     private Long sprint;
 
     // Fields for versioning and soft delete
-    @Column(nullable = false)
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
     private String lastUpdatedBy;
@@ -144,6 +143,14 @@ public class UserStory {
         return iWantTo;
     }
 
+    public String getiWantTo() {
+        return iWantTo;
+    }
+
+    public void setiWantTo(String iWantTo) {
+        this.iWantTo = iWantTo;
+    }
+
     public void setIWantTo(String iWantTo) {
         this.iWantTo = iWantTo;
     }
@@ -165,11 +172,11 @@ public class UserStory {
     }
 
     public String getSystem() {
-        return system;
+        return systemName;
     }
 
     public void setSystem(String system) {
-        this.system = system;
+        this.systemName = system;
     }
 
     public int getStoryPoints() {
@@ -205,11 +212,11 @@ public class UserStory {
     }
 
     public Long getRelease() {
-        return release;
+        return releaseId;
     }
 
     public void setRelease(Long release) {
-        this.release = release;
+        this.releaseId = release;
     }
 
     public Long getSprint() {

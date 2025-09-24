@@ -79,6 +79,7 @@ public class SolutionStoryService {
         solutionStoryRepository.save(oldStory);
 
         SolutionStory newVersion = new SolutionStory();
+        newVersion.setSsId(oldStory.getSsId());
         newVersion.setTenantId(oldStory.getTenantId());
         newVersion.setProjectId(oldStory.getProjectId());
         newVersion.setParentId(oldStory.getParentId());
