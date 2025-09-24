@@ -20,5 +20,9 @@ public interface SolutionStoryRepository extends JpaRepository<SolutionStory, Lo
 
     boolean existsBySsId(String ssId);
 
+    List<SolutionStory> findByTenantIdAndReleaseIdAndEndTimestampIsNull(Long tenantId, Long releaseId);
+
+    List<SolutionStory> findByTenantIdAndSprintAndEndTimestampIsNull(Long tenantId, Long sprint);
+
 }
 
