@@ -2,8 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.Entities.UserStory;
 import com.Protronserver.Protronserver.Entities.UserStoryAttachment;
-import com.Protronserver.Protronserver.Repository.UserStoryAttachmentRepository;
-import com.Protronserver.Protronserver.Repository.UserStoryRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.UserStoryDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
@@ -28,6 +27,15 @@ public class UserStoryService {
     @Autowired
     private UserStoryAttachmentRepository userStoryAttachmentRepository;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private ReleaseRepository releaseRepository;
+
+    @Autowired
+    private SprintRepository sprintRepository;
+
     public UserStoryService(UserStoryRepository userStoryRepository, CustomIdGenerator idGenerator) {
         this.userStoryRepository = userStoryRepository;
         this.idGenerator = idGenerator;
@@ -35,6 +43,8 @@ public class UserStoryService {
 
     @Transactional
     public UserStory createUserStory(UserStoryDto storyDto) {
+
+        validateIds(storyDto);
 
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
@@ -72,6 +82,8 @@ public class UserStoryService {
     @Transactional
     public UserStory updateUserStory(String usId, UserStoryDto updatedStoryDto) {
         // 1. Find the current active record to "close" it
+
+        validateIds(updatedStoryDto);
 
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
@@ -173,6 +185,37 @@ public class UserStoryService {
     public List<UserStory> getActiveUserStoriesByParentId(String parentId) {
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         return userStoryRepository.findByTenantIdAndParentIdAndEndTimestampIsNull(tenantId, parentId);
+    }
+
+    private void validateIds(UserStoryDto storyDto) {
+        // --- Validate projectId ---
+        String projectCode = storyDto.projectId() != null ? storyDto.projectId().toString() : null;
+        if (projectCode == null || !projectCode.startsWith("PRJ-")) {
+            throw new RuntimeException("Invalid projectId format. Must start with 'PRJ-'");
+        }
+        if (!projectRepository.existsByProjectCode(projectCode)) {
+            throw new RuntimeException("Project not found with code: " + projectCode);
+        }
+
+        // --- Validate parentId ---
+        if (storyDto.parentId() != null) {
+            if (!storyDto.parentId().startsWith("PRJ-")) {
+                throw new RuntimeException("Invalid parentId format. Must start with 'PRJ-'");
+            }
+            if (!projectRepository.existsByProjectCode(storyDto.parentId())) {
+                throw new RuntimeException("Parent project not found with code: " + storyDto.parentId());
+            }
+        }
+
+        // --- Validate releaseId ---
+        if (storyDto.releaseId() != null && !releaseRepository.existsByReleaseId(storyDto.releaseId())) {
+            throw new RuntimeException("Release not found with id: " + storyDto.releaseId());
+        }
+
+        // --- Validate sprintId ---
+        if (storyDto.sprintId() != null && !sprintRepository.existsBySprintId(storyDto.sprintId())) {
+            throw new RuntimeException("Sprint not found with id: " + storyDto.sprintId());
+        }
     }
 
 }

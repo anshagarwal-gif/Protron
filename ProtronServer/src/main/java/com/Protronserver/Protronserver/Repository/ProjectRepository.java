@@ -67,4 +67,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query(value = "SELECT project_name FROM projects WHERE project_id = :id AND end_timestamp IS NULL", nativeQuery = true)
     String findProjectNameById(@Param("id") Long id);
 
+    boolean existsByProjectCode(String projectCode);
+
 }

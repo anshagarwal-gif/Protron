@@ -2,8 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.Entities.SolutionStory;
 import com.Protronserver.Protronserver.Entities.SolutionStoryAttachment;
-import com.Protronserver.Protronserver.Repository.SolutionStoryAttachmentRepository;
-import com.Protronserver.Protronserver.Repository.SolutionStoryRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.SolutionStoryDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
@@ -28,15 +27,65 @@ public class SolutionStoryService {
     @Autowired
     private SolutionStoryAttachmentRepository solutionStoryAttachmentRepository;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private ReleaseRepository releaseRepository;
+
+    @Autowired
+    private SprintRepository sprintRepository;
+
     public SolutionStoryService(SolutionStoryRepository solutionStoryRepository,
                                 CustomIdGenerator idGenerator) {
         this.solutionStoryRepository = solutionStoryRepository;
         this.idGenerator = idGenerator;
     }
 
+    private void validateIds(SolutionStoryDto storyDto) {
+
+        // --- Validate projectId ---
+        String projectCode = storyDto.projectId() != null ? "PRJ-" + storyDto.projectId() : null;
+        if (projectCode == null || !projectRepository.existsByProjectCode(projectCode)) {
+            throw new RuntimeException("Invalid Project ID: " + storyDto.projectId());
+        }
+
+        // --- Validate parentId ---
+        String parentId = storyDto.parentId();
+        if (parentId != null) {
+            if (parentId.startsWith("PRJ-")) {
+                if (!projectRepository.existsByProjectCode(parentId)) {
+                    throw new RuntimeException("Parent Project not found with code: " + parentId);
+                }
+            } else if (parentId.startsWith("US-")) {
+                if (!userStoryRepository.existsByUsId(parentId)) {
+                    throw new RuntimeException("Parent UserStory not found with usId: " + parentId);
+                }
+            } else {
+                throw new RuntimeException("Invalid parentId format. Must start with PRJ- or US-");
+            }
+        }
+
+        // --- Validate releaseId ---
+        if (storyDto.releaseId() != null && !releaseRepository.existsByReleaseId(storyDto.releaseId())) {
+            throw new RuntimeException("Release not found with ID: " + storyDto.releaseId());
+        }
+
+        // --- Validate sprintId ---
+        if (storyDto.sprintId() != null && !sprintRepository.existsBySprintId(storyDto.sprintId())) {
+            throw new RuntimeException("Sprint not found with ID: " + storyDto.sprintId());
+        }
+    }
+
     // --- Create ---
     @Transactional
     public SolutionStory createSolutionStory(SolutionStoryDto storyDto) {
+
+        validateIds(storyDto);
+
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
@@ -68,6 +117,9 @@ public class SolutionStoryService {
     // --- Update ---
     @Transactional
     public SolutionStory updateSolutionStory(String ssId, SolutionStoryDto updatedDto) {
+
+        validateIds(updatedDto);
+
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
         SolutionStory oldStory = solutionStoryRepository

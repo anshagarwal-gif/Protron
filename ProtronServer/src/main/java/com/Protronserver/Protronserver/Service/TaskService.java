@@ -2,8 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.Entities.Task;
 import com.Protronserver.Protronserver.Entities.TaskAttachment;
-import com.Protronserver.Protronserver.Repository.TaskAttachmentRepository;
-import com.Protronserver.Protronserver.Repository.TaskRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.TaskDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
@@ -30,13 +29,50 @@ public class TaskService {
     private TaskAttachmentRepository taskAttachmentRepository;
 
     @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private SolutionStoryRepository solutionStoryRepository;
+
+    @Autowired
     public TaskService(TaskRepository taskRepository, CustomIdGenerator idGenerator) {
         this.taskRepository = taskRepository;
         this.idGenerator = idGenerator;
     }
 
+    private void validateIds(TaskDto taskDto) {
+
+        // --- Validate projectId ---
+        String projectCode = taskDto.getProjectId() != null ? "PRJ-" + taskDto.getProjectId() : null;
+        if (projectCode == null || !projectRepository.existsByProjectCode(projectCode)) {
+            throw new RuntimeException("Invalid Project ID: " + taskDto.getProjectId());
+        }
+
+        // --- Validate parentId ---
+        String parentId = taskDto.getParentId();
+        if (parentId != null) {
+            if (parentId.startsWith("US-")) {
+                if (!userStoryRepository.existsByUsId(parentId)) {
+                    throw new RuntimeException("Parent UserStory not found with usId: " + parentId);
+                }
+            } else if (parentId.startsWith("SS-")) {
+                if (!solutionStoryRepository.existsBySsId(parentId)) {
+                    throw new RuntimeException("Parent SolutionStory not found with ssId: " + parentId);
+                }
+            } else {
+                throw new RuntimeException("Invalid parentId format. Must start with US- or SS-");
+            }
+        }
+    }
+
     @Transactional
     public Task createTask(TaskDto taskDto) {
+
+        validateIds(taskDto);
+
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
@@ -81,6 +117,9 @@ public class TaskService {
 
     @Transactional
     public Task updateTask(String taskId, TaskDto taskDto) {
+
+        validateIds(taskDto);
+
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
         Task oldTask = taskRepository.findByTaskId(taskId)
