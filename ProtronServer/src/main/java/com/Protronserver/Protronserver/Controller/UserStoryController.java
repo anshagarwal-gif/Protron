@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Controller;
 
+import com.Protronserver.Protronserver.DTOs.UserStoryFilterDTO;
 import com.Protronserver.Protronserver.Entities.UserStory;
 import com.Protronserver.Protronserver.Entities.UserStoryAttachment;
 import com.Protronserver.Protronserver.ResultDTOs.UserStoryDto;
@@ -93,6 +94,11 @@ public class UserStoryController {
     @GetMapping("/user-stories/{parentId}")
     public ResponseEntity<List<UserStory>> getActiveUserStories(@PathVariable String parentId) {
         return ResponseEntity.ok(userStoryService.getActiveUserStoriesByParentId(parentId));
+    }
+
+    @PostMapping("/filter")
+    public List<UserStory> filterUserStories(@RequestBody UserStoryFilterDTO filter) {
+        return userStoryService.getFilteredStories(filter);
     }
 }
 

@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Controller;
 
+import com.Protronserver.Protronserver.DTOs.TaskFilterDTO;
 import com.Protronserver.Protronserver.Entities.Task;
 import com.Protronserver.Protronserver.Entities.TaskAttachment;
 import com.Protronserver.Protronserver.ResultDTOs.TaskDto;
@@ -81,5 +82,10 @@ public class TaskController {
     @GetMapping("/tasks/{parentId}")
     public ResponseEntity<List<Task>> getActiveTasks(@PathVariable String parentId) {
         return ResponseEntity.ok(taskService.getActiveTasksByParentId(parentId));
+    }
+
+    @PostMapping("/filter")
+    public List<Task> filterTasks(@RequestBody TaskFilterDTO filter) {
+        return taskService.getFilteredTasks(filter);
     }
 }

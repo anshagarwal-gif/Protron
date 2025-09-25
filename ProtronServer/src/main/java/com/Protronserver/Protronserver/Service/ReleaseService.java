@@ -93,7 +93,7 @@ public class ReleaseService {
                 .findByTenantIdAndReleaseIdAndEndTimestampIsNull(oldRelease.getTenantId(), oldRelease.getReleaseId());
 
         for (UserStory us : userStories) {
-            us.setReleaseId(newRelease.getReleaseId());
+            us.setRelease(newRelease.getReleaseId());
         }
         userStoryRepository.saveAll(userStories);
 
@@ -102,7 +102,7 @@ public class ReleaseService {
                 .findByTenantIdAndReleaseIdAndEndTimestampIsNull(oldRelease.getTenantId(), oldRelease.getReleaseId());
 
         for (SolutionStory ss : solutionStories) {
-            ss.setReleaseId(newRelease.getReleaseId());
+            ss.setRelease(newRelease.getReleaseId());
         }
         solutionStoryRepository.saveAll(solutionStories);
 

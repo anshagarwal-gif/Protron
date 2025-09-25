@@ -1,5 +1,6 @@
 package com.Protronserver.Protronserver.Controller;
 
+import com.Protronserver.Protronserver.DTOs.SolutionStoryFilterDTO;
 import com.Protronserver.Protronserver.Entities.SolutionStory;
 import com.Protronserver.Protronserver.Entities.SolutionStoryAttachment;
 import com.Protronserver.Protronserver.ResultDTOs.SolutionStoryDto;
@@ -95,5 +96,10 @@ public class SolutionStoryController {
     @GetMapping("/solution-stories/{parentId}")
     public ResponseEntity<List<SolutionStory>> getActiveSolutionStories(@PathVariable String parentId) {
         return ResponseEntity.ok(solutionStoryService.getActiveSolutionStoriesByParentId(parentId));
+    }
+
+    @PostMapping("/filter")
+    public List<SolutionStory> filterSolutionStories(@RequestBody SolutionStoryFilterDTO filter) {
+        return solutionStoryService.getFilteredStories(filter);
     }
 }

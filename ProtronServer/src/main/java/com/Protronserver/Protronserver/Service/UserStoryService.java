@@ -1,11 +1,19 @@
 package com.Protronserver.Protronserver.Service;
 
+import com.Protronserver.Protronserver.DTOs.UserStoryFilterDTO;
 import com.Protronserver.Protronserver.Entities.UserStory;
 import com.Protronserver.Protronserver.Entities.UserStoryAttachment;
 import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.UserStoryDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,6 +29,9 @@ public class UserStoryService {
 
     private final UserStoryRepository userStoryRepository;
     private final CustomIdGenerator idGenerator;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
@@ -216,6 +228,55 @@ public class UserStoryService {
         if (storyDto.sprintId() != null && !sprintRepository.existsBySprintId(storyDto.sprintId())) {
             throw new RuntimeException("Sprint not found with id: " + storyDto.sprintId());
         }
+    }
+
+    public List<UserStory> getFilteredStories(UserStoryFilterDTO filter) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<UserStory> cq = cb.createQuery(UserStory.class);
+        Root<UserStory> root = cq.from(UserStory.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Always fetch only active (not soft-deleted)
+        predicates.add(cb.isNull(root.get("endTimestamp")));
+        predicates.add(cb.equal(root.get("tenantId"), loggedInUserUtils.getLoggedInUser().getTenant().getTenantId()));
+
+        if (filter.getProjectId() != null) {
+            predicates.add(cb.equal(root.get("projectId"), filter.getProjectId()));
+
+            if (filter.getSprint() != null) {
+                predicates.add(cb.equal(root.get("sprint"), filter.getSprint()));
+            }
+
+            if (filter.getReleaseId() != null) {
+                predicates.add(cb.equal(root.get("releaseId"), filter.getReleaseId()));
+            }
+        }
+
+        if (filter.getParentId() != null) {
+            predicates.add(cb.like(root.get("parentId"), filter.getParentId() + "%"));
+        }
+
+        if (filter.getStatus() != null) {
+            predicates.add(cb.equal(root.get("status"), filter.getStatus()));
+        }
+
+        if (filter.getAssignee() != null) {
+            predicates.add(cb.equal(root.get("assignee"), filter.getAssignee()));
+        }
+
+        if (filter.getCreatedBy() != null) {
+            predicates.add(cb.equal(root.get("createdBy"), filter.getCreatedBy()));
+        }
+
+        if (filter.getCreatedDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(root.get("dateCreated"), filter.getCreatedDate()));
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+
+        TypedQuery<UserStory> query = entityManager.createQuery(cq);
+        return query.getResultList();
     }
 
 }
