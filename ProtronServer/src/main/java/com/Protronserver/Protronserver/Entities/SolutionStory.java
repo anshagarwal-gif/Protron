@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "solution_story")
+@Table(name = "solution_story_table")
 public class SolutionStory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,10 +18,10 @@ public class SolutionStory {
     @Column(name = "ss_id", length = 15, unique=true)
     private String ssId;
 
-    @Column(name = "tenant_id", length = 15)
+    @Column(name = "tenant_id")
     private Long tenantId;
 
-    @Column(name = "project_id", length = 15)
+    @Column(name = "project_id")
     private Long projectId;
 
     @Column(name = "parent_id", length = 15)
@@ -40,9 +40,9 @@ public class SolutionStory {
     private String description;
 
     @Column(length = 100)
-    private String system;
+    private String systemName;
 
-    @Column(name = "story_points", length = 3)
+    @Column(name = "story_points")
     private int storyPoints;
 
     @Column(length = 100)
@@ -50,11 +50,10 @@ public class SolutionStory {
 
     private String createdBy;
     private LocalDateTime dateCreated;
-    private Long release;
+    private Long releaseId;
     private Long sprint;
 
     // Fields for versioning and soft delete
-    @Column(nullable = false)
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
     private String lastUpdatedBy;
@@ -135,11 +134,11 @@ public class SolutionStory {
     }
 
     public String getSystem() {
-        return system;
+        return systemName;
     }
 
     public void setSystem(String system) {
-        this.system = system;
+        this.systemName = system;
     }
 
     public int getStoryPoints() {
@@ -175,11 +174,11 @@ public class SolutionStory {
     }
 
     public Long getRelease() {
-        return release;
+        return releaseId;
     }
 
     public void setRelease(Long release) {
-        this.release = release;
+        this.releaseId = release;
     }
 
     public Long getSprint() {

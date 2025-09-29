@@ -15,5 +15,7 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
     @Modifying
     @Query("UPDATE Release re SET re.projectId = :newProjectId, re.projectName = :newProjectName WHERE re.projectId = :oldProjectId")
     void updateProjectForReleases(Long oldProjectId, Long newProjectId, String newProjectName);
+
+    boolean existsByReleaseId(Long releaseId);
 }
 

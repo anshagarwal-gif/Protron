@@ -1,12 +1,19 @@
 package com.Protronserver.Protronserver.Service;
 
+import com.Protronserver.Protronserver.DTOs.TaskFilterDTO;
 import com.Protronserver.Protronserver.Entities.Task;
 import com.Protronserver.Protronserver.Entities.TaskAttachment;
-import com.Protronserver.Protronserver.Repository.TaskAttachmentRepository;
-import com.Protronserver.Protronserver.Repository.TaskRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.TaskDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,6 +31,9 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final CustomIdGenerator idGenerator;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
 
@@ -30,13 +41,50 @@ public class TaskService {
     private TaskAttachmentRepository taskAttachmentRepository;
 
     @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private SolutionStoryRepository solutionStoryRepository;
+
+    @Autowired
     public TaskService(TaskRepository taskRepository, CustomIdGenerator idGenerator) {
         this.taskRepository = taskRepository;
         this.idGenerator = idGenerator;
     }
 
+    private void validateIds(TaskDto taskDto) {
+
+        // --- Validate projectId ---
+        String projectCode = taskDto.getProjectId() != null ? "PRJ-" + taskDto.getProjectId() : null;
+        if (projectCode == null || !projectRepository.existsByProjectCode(projectCode)) {
+            throw new RuntimeException("Invalid Project ID: " + taskDto.getProjectId());
+        }
+
+        // --- Validate parentId ---
+        String parentId = taskDto.getParentId();
+        if (parentId != null) {
+            if (parentId.startsWith("US-")) {
+                if (!userStoryRepository.existsByUsId(parentId)) {
+                    throw new RuntimeException("Parent UserStory not found with usId: " + parentId);
+                }
+            } else if (parentId.startsWith("SS-")) {
+                if (!solutionStoryRepository.existsBySsId(parentId)) {
+                    throw new RuntimeException("Parent SolutionStory not found with ssId: " + parentId);
+                }
+            } else {
+                throw new RuntimeException("Invalid parentId format. Must start with US- or SS-");
+            }
+        }
+    }
+
     @Transactional
     public Task createTask(TaskDto taskDto) {
+
+        validateIds(taskDto);
+
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
@@ -81,6 +129,9 @@ public class TaskService {
 
     @Transactional
     public Task updateTask(String taskId, TaskDto taskDto) {
+
+        validateIds(taskDto);
+
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
         Task oldTask = taskRepository.findByTaskId(taskId)
@@ -153,6 +204,39 @@ public class TaskService {
     public List<Task> getActiveTasksByParentId(String parentId) {
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         return taskRepository.findByTenantIdAndParentIdAndEndTimestampIsNull(tenantId, parentId);
+    }
+
+    public List<Task> getFilteredTasks(TaskFilterDTO filter) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Task> cq = cb.createQuery(Task.class);
+        Root<Task> root = cq.from(Task.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Always fetch only active (not soft-deleted)
+        predicates.add(cb.isNull(root.get("endTimestamp")));
+        predicates.add(cb.equal(root.get("tenantId"), loggedInUserUtils.getLoggedInUser().getTenant().getTenantId()));
+
+        if (filter.getProjectId() != null) {
+            predicates.add(cb.equal(root.get("projectId"), filter.getProjectId()));
+        }
+
+        if (filter.getParentId() != null) {
+            predicates.add(cb.like(root.get("parentId"), filter.getParentId() + "%"));
+        }
+
+        if (filter.getCreatedBy() != null) {
+            predicates.add(cb.equal(root.get("createdBy"), filter.getCreatedBy()));
+        }
+
+        if (filter.getCreatedDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(root.get("dateCreated"), filter.getCreatedDate()));
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+
+        TypedQuery<Task> query = entityManager.createQuery(cq);
+        return query.getResultList();
     }
 
 }

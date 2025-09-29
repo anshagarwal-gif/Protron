@@ -15,4 +15,6 @@ public interface SprintRepository extends JpaRepository<Sprint, Long> {
     @Modifying
     @Query("UPDATE Sprint s SET s.projectId = :newProjectId WHERE s.projectId = :oldProjectId")
     void updateProjectForSprints(Long oldProjectId, Long newProjectId);
+
+    boolean existsBySprintId(Long sprintId);
 }

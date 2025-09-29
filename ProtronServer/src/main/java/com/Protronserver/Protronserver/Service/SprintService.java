@@ -1,11 +1,15 @@
 // ...existing code...
 package com.Protronserver.Protronserver.Service;
 
+import com.Protronserver.Protronserver.Entities.SolutionStory;
 import com.Protronserver.Protronserver.Entities.Sprint;
+import com.Protronserver.Protronserver.Entities.UserStory;
+import com.Protronserver.Protronserver.Repository.SolutionStoryRepository;
 import com.Protronserver.Protronserver.Repository.SprintRepository;
 import com.Protronserver.Protronserver.Entities.SprintAttachment;
 import com.Protronserver.Protronserver.Repository.SprintAttachmentRepository;
 import com.Protronserver.Protronserver.DTOs.SprintAttachmentDTO;
+import com.Protronserver.Protronserver.Repository.UserStoryRepository;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
@@ -38,6 +42,12 @@ public class SprintService {
 
     @Autowired
     private SprintAttachmentRepository sprintAttachmentRepository;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private SolutionStoryRepository solutionStoryRepository;
 
     public List<Sprint> getAllSprints() {
         return sprintRepository.findAll();
@@ -78,6 +88,24 @@ public class SprintService {
         newSprint.setStartTimestamp(LocalDateTime.now());
         newSprint.setEndTimestamp(null);
         newSprint.setLastUpdatedBy(null);
+
+        List<UserStory> userStories = userStoryRepository
+                .findByTenantIdAndSprintAndEndTimestampIsNull(oldSprint.getTenantId(), oldSprint.getSprintId());
+
+        for (UserStory us : userStories) {
+            us.setSprint(newSprint.getSprintId());
+        }
+        userStoryRepository.saveAll(userStories);
+
+        // --- 🔹 Reassign all SolutionStories ---
+        List<SolutionStory> solutionStories = solutionStoryRepository
+                .findByTenantIdAndSprintAndEndTimestampIsNull(oldSprint.getTenantId(), oldSprint.getSprintId());
+
+        for (SolutionStory ss : solutionStories) {
+            ss.setSprint(newSprint.getSprintId());
+        }
+        solutionStoryRepository.saveAll(solutionStories);
+
         return sprintRepository.save(newSprint);
     }
 

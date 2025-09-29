@@ -2,12 +2,17 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.Entities.Release;
 import com.Protronserver.Protronserver.Entities.ReleaseAttachment;
+import com.Protronserver.Protronserver.Entities.SolutionStory;
+import com.Protronserver.Protronserver.Entities.UserStory;
 import com.Protronserver.Protronserver.Repository.ReleaseRepository;
 import com.Protronserver.Protronserver.Repository.ReleaseAttachmentRepository;
 import com.Protronserver.Protronserver.DTOs.ReleaseAttachementDTO;
+import com.Protronserver.Protronserver.Repository.SolutionStoryRepository;
+import com.Protronserver.Protronserver.Repository.UserStoryRepository;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authorization.method.AuthorizeReturnObject;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +32,12 @@ public class ReleaseService {
 
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private SolutionStoryRepository solutionStoryRepository;
 
     // --- Release CRUD ---
 
@@ -77,6 +88,23 @@ public class ReleaseService {
         newRelease.setStartTimestamp(LocalDateTime.now());
         newRelease.setEndTimestamp(null);
         newRelease.setLastUpdatedBy(null);
+
+        List<UserStory> userStories = userStoryRepository
+                .findByTenantIdAndReleaseIdAndEndTimestampIsNull(oldRelease.getTenantId(), oldRelease.getReleaseId());
+
+        for (UserStory us : userStories) {
+            us.setRelease(newRelease.getReleaseId());
+        }
+        userStoryRepository.saveAll(userStories);
+
+        // --- 🔹 Reassign all SolutionStories ---
+        List<SolutionStory> solutionStories = solutionStoryRepository
+                .findByTenantIdAndReleaseIdAndEndTimestampIsNull(oldRelease.getTenantId(), oldRelease.getReleaseId());
+
+        for (SolutionStory ss : solutionStories) {
+            ss.setRelease(newRelease.getReleaseId());
+        }
+        solutionStoryRepository.saveAll(solutionStories);
 
         return releaseRepository.save(newRelease);
     }

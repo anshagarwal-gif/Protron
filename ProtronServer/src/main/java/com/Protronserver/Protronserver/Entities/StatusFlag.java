@@ -11,7 +11,7 @@ public class StatusFlag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "statusid")
+    @Column(name = "status_id")
     private Integer statusId;
 
     @ManyToOne(fetch = FetchType.EAGER)

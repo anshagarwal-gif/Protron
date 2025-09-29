@@ -205,6 +205,7 @@ const StoryDashboard = () => {
       try {
         setLoading(true);
         const token = sessionStorage.getItem('token');
+        const tenantId = sessionStorage.getItem('tenantId');
         
         // Determine which API to call based on the selected type filter
         let apiUrl = '';
@@ -214,29 +215,148 @@ const StoryDashboard = () => {
         const typeParts = selectedType.split(' > ');
         const lastEntityType = typeParts[typeParts.length - 1];
         
-        // Check the most recent entity type selection
+        // Format the date to include time component for LocalDateTime
+        const formatDate = (dateStr) => {
+          if (!dateStr) return null;
+          // Append T00:00:00 to make it a valid LocalDateTime
+          return `${dateStr}T00:00:00`;
+        };
+
+        // Determine parentId based on type filters level
+        const getParentId = () => {
+          // If no project selected, return null
+          if (!filters.projectName) return null;
+          
+          // If no type selected, return null
+          if (!selectedType) return null;
+
+          // For first level type selection
+          if (typeParts.length === 1) {
+            return 'PRJ';
+          }
+
+          // For second level type selection
+          if (typeParts.length === 2) {
+            // Check the type selected in level 1
+            const type1 = typeParts[0];
+            return type1 === 'User Story' ? 'US' : 'SS';
+          }
+
+          // For third level type selection
+          if (typeParts.length === 3) {
+            return 'SS';
+          }
+
+          return null;
+        };
+
+        // Prepare common filter payload
+        const basePayload = {
+          tenantId: parseInt(tenantId),
+          projectId: filters.projectName ? parseInt(filters.projectName) : null,
+          createdBy: filters.createdBy || null,
+          createdDate: formatDate(filters.createdDate),
+          parentId: getParentId()
+        };
+
+        // Check the most recent entity type selection and prepare type-specific payload
         if (lastEntityType === 'User Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+          const payload = {
+            ...basePayload,
+            status: filters.status !== 'all' ? filters.status : null,
+            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            assignee: filters.assignee || null
+          };
+          
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 
+              'Authorization': token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setStories(data);
+          } else {
+            throw new Error('Failed to fetch user stories');
+          }
         } else if (lastEntityType === 'Solution Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/active`;
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/filter`;
+          const payload = {
+            ...basePayload,
+            status: filters.status !== 'all' ? filters.status : null,
+            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            assignee: filters.assignee || null
+          };
+          
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 
+              'Authorization': token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setStories(data);
+          } else {
+            throw new Error('Failed to fetch solution stories');
+          }
         } else if (lastEntityType === 'Task') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks`;
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks/filter`;
+          const payload = {
+            ...basePayload
+          };
+          
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 
+              'Authorization': token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setStories(data);
+          } else {
+            throw new Error('Failed to fetch tasks');
+          }
         } else {
           // Default to UserStory if no specific type is selected
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
-        }
-        
-        const response = await fetch(apiUrl, {
-          headers: { Authorization: token }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setStories(data);
-        } else {
-          console.error('Failed to fetch stories:', response.status, response.statusText);
-          // Fallback to empty array if API fails
-          setStories([]);
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+          const payload = {
+            ...basePayload,
+            status: filters.status !== 'all' ? filters.status : null,
+            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            assignee: filters.assignee || null
+          };
+          
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 
+              'Authorization': token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setStories(data);
+          } else {
+            throw new Error('Failed to fetch default stories');
+          }
         }
       } catch (error) {
         console.error('Error fetching stories:', error);
@@ -248,7 +368,7 @@ const StoryDashboard = () => {
     };
 
     fetchStories();
-  }, [filters.type]);
+  }, [filters]); // Updated dependency array to include all filters
 
   // Function to refresh stories after add/edit operations
   const refreshStories = useCallback(async () => {

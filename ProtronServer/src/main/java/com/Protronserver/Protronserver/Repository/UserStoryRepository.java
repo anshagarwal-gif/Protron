@@ -40,4 +40,10 @@ public interface UserStoryRepository extends JpaRepository<UserStory, Long> {
 
     List<UserStory> findByTenantIdAndParentIdAndEndTimestampIsNull(Long tenantId, String parentId);
 
+    boolean existsByUsId(String usId);
+
+    List<UserStory> findByTenantIdAndReleaseIdAndEndTimestampIsNull(Long tenantId, Long releaseId);
+
+    List<UserStory> findByTenantIdAndSprintAndEndTimestampIsNull(Long tenantId, Long sprint);
+
 }

@@ -1,12 +1,19 @@
 package com.Protronserver.Protronserver.Service;
 
+import com.Protronserver.Protronserver.DTOs.SolutionStoryFilterDTO;
 import com.Protronserver.Protronserver.Entities.SolutionStory;
 import com.Protronserver.Protronserver.Entities.SolutionStoryAttachment;
-import com.Protronserver.Protronserver.Repository.SolutionStoryAttachmentRepository;
-import com.Protronserver.Protronserver.Repository.SolutionStoryRepository;
+import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.SolutionStoryDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,11 +30,26 @@ public class SolutionStoryService {
     private final SolutionStoryRepository solutionStoryRepository;
     private final CustomIdGenerator idGenerator;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
 
     @Autowired
     private SolutionStoryAttachmentRepository solutionStoryAttachmentRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private ReleaseRepository releaseRepository;
+
+    @Autowired
+    private SprintRepository sprintRepository;
 
     public SolutionStoryService(SolutionStoryRepository solutionStoryRepository,
                                 CustomIdGenerator idGenerator) {
@@ -34,9 +57,47 @@ public class SolutionStoryService {
         this.idGenerator = idGenerator;
     }
 
+    private void validateIds(SolutionStoryDto storyDto) {
+
+        // --- Validate projectId ---
+        String projectCode = storyDto.projectId() != null ? "PRJ-" + storyDto.projectId() : null;
+        if (projectCode == null || !projectRepository.existsByProjectCode(projectCode)) {
+            throw new RuntimeException("Invalid Project ID: " + storyDto.projectId());
+        }
+
+        // --- Validate parentId ---
+        String parentId = storyDto.parentId();
+        if (parentId != null) {
+            if (parentId.startsWith("PRJ-")) {
+                if (!projectRepository.existsByProjectCode(parentId)) {
+                    throw new RuntimeException("Parent Project not found with code: " + parentId);
+                }
+            } else if (parentId.startsWith("US-")) {
+                if (!userStoryRepository.existsByUsId(parentId)) {
+                    throw new RuntimeException("Parent UserStory not found with usId: " + parentId);
+                }
+            } else {
+                throw new RuntimeException("Invalid parentId format. Must start with PRJ- or US-");
+            }
+        }
+
+        // --- Validate releaseId ---
+        if (storyDto.releaseId() != null && !releaseRepository.existsByReleaseId(storyDto.releaseId())) {
+            throw new RuntimeException("Release not found with ID: " + storyDto.releaseId());
+        }
+
+        // --- Validate sprintId ---
+        if (storyDto.sprintId() != null && !sprintRepository.existsBySprintId(storyDto.sprintId())) {
+            throw new RuntimeException("Sprint not found with ID: " + storyDto.sprintId());
+        }
+    }
+
     // --- Create ---
     @Transactional
     public SolutionStory createSolutionStory(SolutionStoryDto storyDto) {
+
+        validateIds(storyDto);
+
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
@@ -68,6 +129,9 @@ public class SolutionStoryService {
     // --- Update ---
     @Transactional
     public SolutionStory updateSolutionStory(String ssId, SolutionStoryDto updatedDto) {
+
+        validateIds(updatedDto);
+
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
         SolutionStory oldStory = solutionStoryRepository
@@ -79,6 +143,7 @@ public class SolutionStoryService {
         solutionStoryRepository.save(oldStory);
 
         SolutionStory newVersion = new SolutionStory();
+        newVersion.setSsId(oldStory.getSsId());
         newVersion.setTenantId(oldStory.getTenantId());
         newVersion.setProjectId(oldStory.getProjectId());
         newVersion.setParentId(oldStory.getParentId());
@@ -178,6 +243,55 @@ public class SolutionStoryService {
     public List<SolutionStory> getActiveSolutionStoriesByParentId(String parentId) {
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
         return solutionStoryRepository.findByTenantIdAndParentIdAndEndTimestampIsNull(tenantId, parentId);
+    }
+
+    public List<SolutionStory> getFilteredStories(SolutionStoryFilterDTO filter) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<SolutionStory> cq = cb.createQuery(SolutionStory.class);
+        Root<SolutionStory> root = cq.from(SolutionStory.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Always fetch only active (not soft-deleted)
+        predicates.add(cb.isNull(root.get("endTimestamp")));
+        predicates.add(cb.equal(root.get("tenantId"), loggedInUserUtils.getLoggedInUser().getTenant().getTenantId()));
+
+        if (filter.getProjectId() != null) {
+            predicates.add(cb.equal(root.get("projectId"), filter.getProjectId()));
+
+            if (filter.getSprint() != null) {
+                predicates.add(cb.equal(root.get("sprint"), filter.getSprint()));
+            }
+
+            if (filter.getReleaseId() != null) {
+                predicates.add(cb.equal(root.get("releaseId"), filter.getReleaseId()));
+            }
+        }
+
+        if (filter.getParentId() != null) {
+            predicates.add(cb.like(root.get("parentId"), filter.getParentId() + "%"));
+        }
+
+        if (filter.getStatus() != null) {
+            predicates.add(cb.equal(root.get("status"), filter.getStatus()));
+        }
+
+        if (filter.getAssignee() != null) {
+            predicates.add(cb.equal(root.get("assignee"), filter.getAssignee()));
+        }
+
+        if (filter.getCreatedBy() != null) {
+            predicates.add(cb.equal(root.get("createdBy"), filter.getCreatedBy()));
+        }
+
+        if (filter.getCreatedDate() != null) {
+            predicates.add(cb.greaterThanOrEqualTo(root.get("dateCreated"), filter.getCreatedDate()));
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+
+        TypedQuery<SolutionStory> query = entityManager.createQuery(cq);
+        return query.getResultList();
     }
 
 }
