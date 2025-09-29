@@ -616,6 +616,26 @@ const StoryDashboard = () => {
           <FiEdit size={16} />
         </button>
         <button
+          onClick={() => {
+            const parentStoryData = encodeURIComponent(JSON.stringify(story));
+            window.open(`/solution-story-management?parentStory=${parentStoryData}`, '_blank');
+          }}
+          className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
+          title="Add Solution Story"
+        >
+          <FiPlus size={16} />
+        </button>
+        <button
+          onClick={() => {
+            const parentStoryData = encodeURIComponent(JSON.stringify(story));
+            window.open(`/task-management?parentStory=${parentStoryData}`, '_blank');
+          }}
+          className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
+          title="Add Task"
+        >
+          <FiPlus size={16} />
+        </button>
+        <button
           onClick={() => handleDeleteStory(story.id)}
           className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
           title="Delete Story"
@@ -639,11 +659,18 @@ const StoryDashboard = () => {
         filter: false,
       },
       {
-        headerName: 'Project ID',
-        field: 'projectId',
-        width: 100,
-        filter: 'agNumberColumnFilter',
-        cellStyle: { textAlign: 'center', fontWeight: '500' }
+        headerName: 'Project',
+        field: 'projectName',
+        width: 200,
+        filter: 'agTextColumnFilter',
+        cellStyle: { fontWeight: '500' },
+        valueGetter: (params) => {
+          const projectId = params.data.projectId;
+          const project = projectList.find(p => p.projectId == projectId);
+          console.log('AG Grid - Looking for projectId:', projectId, 'in projectList:', projectList);
+          console.log('AG Grid - Found project:', project);
+          return project ? project.projectName : projectId;
+        }
       }
     ];
 
@@ -714,7 +741,7 @@ const StoryDashboard = () => {
           width: 120,
           filter: 'agSetColumnFilter',
           filterParams: {
-            values: ['todo', 'in-progress', 'completed', 'blocked', 'not-ready', 'ready']
+            values: ['todo', 'wip', 'done', 'blocked', 'not-ready', 'ready']
           }
         },
         {
@@ -789,7 +816,7 @@ const StoryDashboard = () => {
           width: 120,
           filter: 'agSetColumnFilter',
           filterParams: {
-            values: ['todo', 'in-progress', 'completed', 'blocked', 'not-ready', 'ready']
+            values: ['todo', 'wip', 'done', 'blocked', 'not-ready', 'ready']
           }
         },
         {
@@ -941,7 +968,7 @@ const StoryDashboard = () => {
           width: 120,
           filter: 'agSetColumnFilter',
           filterParams: {
-            values: ['todo', 'in-progress', 'completed', 'blocked', 'not-ready', 'ready']
+            values: ['todo', 'wip', 'done', 'blocked', 'not-ready', 'ready']
           }
         },
         {
@@ -1029,13 +1056,17 @@ const StoryDashboard = () => {
               <p className="text-gray-600">Manage and track user stories across projects</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 cursor-pointer"
-          >
-            <FiPlus size={20} />
-            <span>Add Story</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 cursor-pointer"
+            >
+              <FiPlus size={20} />
+              <span>Add Story</span>
+            </button>
+     
+      
+          </div>
         </div>
       </div>
 
@@ -1409,7 +1440,7 @@ const StoryDashboard = () => {
         <div className="flex items-center space-x-4">
           {/* View Toggle Buttons */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">View:</span>
+           
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('dashboard')}
@@ -1843,7 +1874,10 @@ const StoryDashboard = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <button
-                          onClick={() => setShowAddModal(true)}
+                          onClick={() => {
+                            setSelectedStory({ status: 'todo' });
+                            setShowAddModal(true);
+                          }}
                           className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                           title="Add Story to TO-DO"
                         >
@@ -1860,7 +1894,10 @@ const StoryDashboard = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <button
-                          onClick={() => setShowAddModal(true)}
+                          onClick={() => {
+                            setSelectedStory({ status: 'wip' });
+                            setShowAddModal(true);
+                          }}
                           className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                           title="Add Story to WIP"
                         >
@@ -1868,7 +1905,7 @@ const StoryDashboard = () => {
                         </button>
                         <span>WIP</span>
                         <span className="ml-2 bg-blue-200 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">
-                          {filteredStories.filter(story => story.status === 'in-progress').length}
+                          {filteredStories.filter(story => story.status === 'wip').length}
                         </span>
                       </div>
                     </div>
@@ -1877,7 +1914,10 @@ const StoryDashboard = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <button
-                          onClick={() => setShowAddModal(true)}
+                          onClick={() => {
+                            setSelectedStory({ status: 'done' });
+                            setShowAddModal(true);
+                          }}
                           className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                           title="Add Story to Done"
                         >
@@ -1885,7 +1925,7 @@ const StoryDashboard = () => {
                         </button>
                         <span>Done</span>
                         <span className="ml-2 bg-green-200 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
-                          {filteredStories.filter(story => story.status === 'completed').length}
+                          {filteredStories.filter(story => story.status === 'done').length}
                         </span>
                       </div>
                     </div>
@@ -1896,7 +1936,10 @@ const StoryDashboard = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <button
-                              onClick={() => setShowAddModal(true)}
+                              onClick={() => {
+                                setSelectedStory({ status: 'not-ready' });
+                                setShowAddModal(true);
+                              }}
                               className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                               title="Add Story to Not Ready"
                             >
@@ -1913,7 +1956,10 @@ const StoryDashboard = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <button
-                              onClick={() => setShowAddModal(true)}
+                              onClick={() => {
+                                setSelectedStory({ status: 'ready' });
+                                setShowAddModal(true);
+                              }}
                               className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                               title="Add Story to Ready"
                             >
@@ -1987,8 +2033,12 @@ const StoryDashboard = () => {
                   {/* WIP Column */}
                   <td className={`px-6 py-4 align-top border-r border-gray-200 bg-blue-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
                     <div className="space-y-3">
-                      {filteredStories
-                        .filter(story => story.status === 'in-progress')
+                      {(() => {
+                        const wipStories = filteredStories.filter(story => story.status === 'wip');
+                        console.log('WIP Stories:', wipStories);
+                        console.log('All filtered stories statuses:', filteredStories.map(s => ({ id: s.id, status: s.status, summary: s.summary })));
+                        return wipStories;
+                      })()
                         .map((story) => (
                           <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
                             <div className="flex items-start justify-between mb-2">
@@ -2039,8 +2089,11 @@ const StoryDashboard = () => {
                   {/* Done Column */}
                   <td className={`px-6 py-4 align-top ${showBacklog ? 'border-r border-gray-200' : ''} bg-green-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
                     <div className="space-y-3">
-                      {filteredStories
-                        .filter(story => story.status === 'completed')
+                      {(() => {
+                        const completedStories = filteredStories.filter(story => story.status === 'done');
+                        console.log('Completed Stories:', completedStories);
+                        return completedStories;
+                      })()
                         .map((story) => (
                           <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
                             <div className="flex items-start justify-between mb-2">
@@ -2218,8 +2271,12 @@ const StoryDashboard = () => {
       {/* Add Story Modal */}
       <AddStoryModal
         open={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          setSelectedStory(null);
+        }}
         onSubmit={handleAddStory}
+        initialStatus={selectedStory?.status}
       />
 
       {/* Edit Story Modal */}
@@ -2236,6 +2293,7 @@ const StoryDashboard = () => {
         onClose={() => setShowViewModal(false)}
         storyData={selectedStory}
       />
+
     </div>
   );
 };

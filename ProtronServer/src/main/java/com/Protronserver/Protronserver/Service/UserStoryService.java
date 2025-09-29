@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserStoryService {
@@ -161,6 +162,12 @@ public class UserStoryService {
     @Transactional(readOnly = true)
     public List<UserStoryAttachment> getAttachments(String usId) {
         return userStoryAttachmentRepository.findByUsId(usId);
+    }
+
+    // --- Download an attachment by ID ---
+    @Transactional(readOnly = true)
+    public Optional<UserStoryAttachment> downloadAttachment(Long attachmentId) {
+        return userStoryAttachmentRepository.findById(attachmentId);
     }
 
     // --- Delete an attachment by ID ---

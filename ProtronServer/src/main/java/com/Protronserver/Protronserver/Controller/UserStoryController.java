@@ -83,6 +83,23 @@ public class UserStoryController {
         return ResponseEntity.ok(userStoryService.getAttachments(usId));
     }
 
+    // 🔹 Download attachment by ID
+    @GetMapping("/attachment/{attachmentId}/download")
+    public ResponseEntity<org.springframework.core.io.ByteArrayResource> downloadAttachment(
+            @PathVariable Long attachmentId) {
+        return userStoryService.downloadAttachment(attachmentId)
+                .map(attachment -> {
+                    org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(
+                            attachment.getData());
+                    return ResponseEntity.ok()
+                            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                                    "attachment; filename=\"" + attachment.getFileName() + "\"")
+                            .contentType(org.springframework.http.MediaType.parseMediaType(attachment.getFileType()))
+                            .body(resource);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     // 🔹 Delete attachment by ID
     @DeleteMapping("/{attachmentId}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable Long attachmentId) {
@@ -95,4 +112,3 @@ public class UserStoryController {
         return ResponseEntity.ok(userStoryService.getActiveUserStoriesByParentId(parentId));
     }
 }
-

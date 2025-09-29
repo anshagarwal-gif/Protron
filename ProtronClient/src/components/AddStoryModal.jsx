@@ -9,7 +9,7 @@ import GlobalSnackbar from "./GlobalSnackbar";
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const AddStoryModal = ({ open, onClose, onSubmit }) => {
+const AddStoryModal = ({ open, onClose, onSubmit, initialStatus }) => {
   const [formData, setFormData] = useState({
     projectId: "",
     summary: "",
@@ -17,7 +17,7 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
     iWantTo: "",
     soThat: "",
     acceptanceCriteria: "",
-    status: "todo",
+    status: initialStatus || "todo",
     priority: 2,
     storyPoints: 0,
     assignee: "",
@@ -419,7 +419,7 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
       iWantTo: "",
       soThat: "",
       acceptanceCriteria: "",
-      status: "todo",
+      status: initialStatus || "todo",
       priority: 2,
       storyPoints: 0,
       assignee: "",
@@ -633,7 +633,10 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
                   Sprint
                 </label>
                 <CreatableSelect
-                  value={formData.sprint ? { value: formData.sprint, label: formData.sprint } : null}
+                  value={formData.sprint ? (() => {
+                    const selectedSprint = sprintList.find(sprint => sprint.sprintId.toString() === formData.sprint);
+                    return selectedSprint ? { value: formData.sprint, label: selectedSprint.sprintName } : { value: formData.sprint, label: formData.sprint };
+                  })() : null}
                   onChange={(selectedOption) => {
                     const value = selectedOption ? selectedOption.value : '';
                     setFormData(prev => ({ ...prev, sprint: value }));
@@ -676,7 +679,10 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
                   Release
                 </label>
                 <CreatableSelect
-                  value={formData.release ? { value: formData.release, label: formData.release } : null}
+                  value={formData.release ? (() => {
+                    const selectedRelease = releaseList.find(release => release.releaseId.toString() === formData.release);
+                    return selectedRelease ? { value: formData.release, label: selectedRelease.releaseName } : { value: formData.release, label: formData.release };
+                  })() : null}
                   onChange={(selectedOption) => {
                     const value = selectedOption ? selectedOption.value : '';
                     setFormData(prev => ({ ...prev, release: value }));
@@ -793,46 +799,10 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Building size={14} className="inline mr-1" />
-                  Story Attachments (Max 4)
-                </label>
-                <input
-                  type="file"
-                  name="storyAttachment"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-                  disabled={loading}
-                  multiple
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  title="Upload document or image file (max 10MB)"
-                />
-                {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
-                )}
-              </div>
+              
             </div>
 
-            {/* Selected Files List */}
-            <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-              {storyFiles.map((file, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                >
-                  <span className="truncate max-w-[150px]" title={file.name}>{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeStoryFile(index)}
-                    className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-
+            
             {/* Row 3: Summary */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -958,7 +928,45 @@ const AddStoryModal = ({ open, onClose, onSubmit }) => {
                 </p>
               )}
             </div>
+            <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Building size={14} className="inline mr-1" />
+                  Story Attachments (Max 4)
+                </label>
+                <input
+                  type="file"
+                  name="storyAttachment"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  disabled={loading}
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  title="Upload document or image file (max 10MB)"
+                />
+                {errors.attachment && (
+                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
+                )}
+              </div>
           </div>
+          {/* Selected Files List */}
+          <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+              {storyFiles.map((file, index) => (
+                <li
+                  key={index}
+                  className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                >
+                  <span className="truncate max-w-[150px]" title={file.name}>{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeStoryFile(index)}
+                    className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+
 
           {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
