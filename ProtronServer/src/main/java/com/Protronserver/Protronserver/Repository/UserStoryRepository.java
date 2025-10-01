@@ -12,6 +12,7 @@ public interface UserStoryRepository extends JpaRepository<UserStory, Long> {
 
     /**
      * Finds all active (not soft-deleted) stories for a given tenant.
+     * 
      * @param tenantId The ID of the tenant.
      * @return A list of active user stories.
      */
@@ -20,13 +21,16 @@ public interface UserStoryRepository extends JpaRepository<UserStory, Long> {
     /**
      * Finds the current, active version of a story by its custom business ID.
      * It orders by start time descending to get the most recent one first.
+     * 
      * @param usId The custom business ID (e.g., "US-00001").
      * @return An Optional containing the active user story if found.
      */
     Optional<UserStory> findTopByUsIdAndEndTimestampIsNullOrderByStartTimestampDesc(String usId);
 
     /**
-     * Counts how many stories exist with a given prefix. Used for generating a unique sequence number.
+     * Counts how many stories exist with a given prefix. Used for generating a
+     * unique sequence number.
+     * 
      * @param prefix The prefix to check (e.g., "US").
      * @return The count of existing stories.
      */

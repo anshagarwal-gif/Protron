@@ -1,4 +1,5 @@
 package com.Protronserver.Protronserver.Entities;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
@@ -18,10 +19,10 @@ public class UserStory {
     @Column(length = 15, unique = true)
     private String usId;
 
-//    @Column(name = "tenant_id")
+    // @Column(name = "tenant_id")
     private Long tenantId;
 
-//    @Column(name = "project_id")
+    // @Column(name = "project_id")
     private Long projectId;
 
     @Column(length = 15)
@@ -30,41 +31,48 @@ public class UserStory {
     @Column(length = 100)
     private String status;
 
-//    @Column(name = "priority")
+    // @Column(name = "priority")
     private int priority;
 
     @Column(length = 500)
     private String summary;
 
-    @Column(length = 150)
+    @Column(name = "as_a", length = 150)
     private String asA;
 
-    @Column(length = 500)
+    @Column(name = "i_want_to", length = 500)
     private String iWantTo;
 
-    @Column(length = 500)
+    @Column(name = "so_that", length = 500)
     private String soThat;
 
-    @Column(length = 1000)
+    @Column(name = "acceptance_criteria", length = 1000)
     private String acceptanceCriteria;
 
     @Column(length = 100)
     private String systemName;
 
-//    @Column(name = "story_points")
+    // @Column(name = "story_points")
     private int storyPoints;
 
     @Column(length = 100)
     private String assignee;
 
+    @Column(name = "created_by")
     private String createdBy;
+
+    @Column(name = "date_created")
     private LocalDateTime dateCreated;
     private Long releaseId;
     private Long sprint;
 
     // Fields for versioning and soft delete
     private LocalDateTime startTimestamp;
+
+    @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
+
+    @Column(name = "last_updated_by")
     private String lastUpdatedBy;
 
     public Long getId() {

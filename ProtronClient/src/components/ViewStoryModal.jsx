@@ -7,13 +7,16 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
+  const [projectName, setProjectName] = useState('');
+  const [sprintName, setSprintName] = useState('');
+  const [releaseName, setReleaseName] = useState('');
   const { sessionData } = useSession();
 
   useEffect(() => {
-    if (open && storyData?.id) {
+    if (open && storyData?.usId) {
       setLoadingAttachments(true);
       axios
-        .get(`${import.meta.env.VITE_API_URL}/api/story-attachments/meta/filter?level=STORY&referenceId=${storyData.id}`, {
+        .get(`${import.meta.env.VITE_API_URL}/api/userstory/${storyData.usId}`, {
           headers: {
             'Authorization': sessionData?.token
           }
@@ -28,7 +31,47 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
         })
         .finally(() => setLoadingAttachments(false));
     }
-  }, [open, storyData?.id]);
+  }, [open, storyData?.usId, sessionData?.token]);
+
+  // Fetch names for project, sprint, and release
+  useEffect(() => {
+    const fetchNames = async () => {
+      if (open && storyData) {
+        try {
+          // Fetch project name
+          if (storyData.projectId) {
+            const projectRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${storyData.projectId}/name`, {
+              headers: { 'Authorization': sessionData?.token }
+            });
+            setProjectName(projectRes.data || 'Unknown Project');
+          }
+
+          // Fetch sprint name
+          if (storyData.sprint) {
+            const sprintRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/sprints/${storyData.sprint}`, {
+              headers: { 'Authorization': sessionData?.token }
+            });
+            setSprintName(sprintRes.data.sprintName || 'Unknown Sprint');
+          }
+
+          // Fetch release name
+          if (storyData.release) {
+            const releaseRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/releases/${storyData.release}`, {
+              headers: { 'Authorization': sessionData?.token }
+            });
+            setReleaseName(releaseRes.data.releaseName || 'Unknown Release');
+          }
+        } catch (error) {
+          console.error('Error fetching names:', error);
+          setProjectName('Unknown Project');
+          setSprintName('Unknown Sprint');
+          setReleaseName('Unknown Release');
+        }
+      }
+    };
+
+    fetchNames();
+  }, [open, storyData, sessionData?.token]);
 
   if (!open || !storyData) return null;
 
@@ -133,7 +176,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
               <BookOpen size={24} className="text-white" />
               <div>
                 <h2 className="text-xl font-bold">User Story Details</h2>
-                <p className="text-green-100 text-sm">Story ID: {storyData.id}</p>
+                <p className="text-green-100 text-sm">Story ID: {storyData.usId}</p>
               </div>
             </div>
             <button
@@ -154,7 +197,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
               Basic Information
             </h3>
             <div className="grid grid-cols-2 gap-4">
-              <Field label="Project ID" value={storyData.projectId} />
+              <Field label="Project" value={projectName || storyData.projectId || 'N/A'} />
               <Field label="Summary" value={storyData.summary} />
               <Field label="Status" value={
                 <span className={getStatusTag(storyData.status)}>
@@ -168,8 +211,8 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
               } />
               <Field label="Story Points" value={storyData.storyPoints} />
               <Field label="Assignee" value={storyData.assignee} />
-              <Field label="Sprint" value={storyData.sprint} />
-              <Field label="Release" value={storyData.release} />
+              <Field label="Sprint" value={sprintName || storyData.sprint || 'N/A'} />
+              <Field label="Release" value={releaseName || storyData.release || 'N/A'} />
             </div>
           </div>
 
@@ -189,7 +232,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">I Want To</label>
                 <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border">
-                  {storyData.iWantTo || "N/A"}
+                  {storyData.iwantTo || "N/A"}
                 </div>
               </div>
               <div>
@@ -251,7 +294,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
                       onClick={() => {
                         // Handle file download
                         const link = document.createElement('a');
-                        link.href = `${import.meta.env.VITE_API_URL}/api/story-attachments/download/${attachment.id}`;
+                        link.href = `${import.meta.env.VITE_API_URL}/api/userstory/attachment/${attachment.id}/download`;
                         link.download = attachment.fileName;
                         link.click();
                       }}

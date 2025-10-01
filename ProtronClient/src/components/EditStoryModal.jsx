@@ -380,7 +380,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     const newErrors = {};
 
     // Validate required fields
-    if (!formData.projectId?.trim()) {
+    if (!formData.projectId) {
       newErrors.projectId = "Project ID is required";
     }
 
@@ -400,7 +400,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       newErrors.soThat = "So That is required";
     }
 
-    if (!formData.status?.trim()) {
+    if (!formData.status) {
       newErrors.status = "Status is required";
     }
 
@@ -752,7 +752,10 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                   Sprint
                 </label>
                 <CreatableSelect
-                  value={formData.sprint ? { value: formData.sprint, label: formData.sprint } : null}
+                  value={formData.sprint ? (() => {
+                    const selectedSprint = sprintList.find(sprint => sprint.sprintId.toString() === formData.sprint);
+                    return selectedSprint ? { value: formData.sprint, label: selectedSprint.sprintName } : { value: formData.sprint, label: formData.sprint };
+                  })() : null}
                   onChange={(selectedOption) => {
                     const value = selectedOption ? selectedOption.value : '';
                     setFormData(prev => ({ ...prev, sprint: value }));
@@ -795,7 +798,10 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                   Release
                 </label>
                 <CreatableSelect
-                  value={formData.release ? { value: formData.release, label: formData.release } : null}
+                  value={formData.release ? (() => {
+                    const selectedRelease = releaseList.find(release => release.releaseId.toString() === formData.release);
+                    return selectedRelease ? { value: formData.release, label: selectedRelease.releaseName } : { value: formData.release, label: formData.release };
+                  })() : null}
                   onChange={(selectedOption) => {
                     const value = selectedOption ? selectedOption.value : '';
                     setFormData(prev => ({ ...prev, release: value }));
