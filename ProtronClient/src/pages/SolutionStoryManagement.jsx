@@ -65,7 +65,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       setLoading(true);
       setError(null);
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/solutionstory/parent/${parentId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/solutionstory/solution-stories/${parentId}`, {
         headers: { Authorization: token }
       });
       

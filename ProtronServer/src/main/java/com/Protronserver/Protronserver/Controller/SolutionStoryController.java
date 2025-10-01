@@ -25,7 +25,7 @@ public class SolutionStoryController {
     }
 
     // --- Create ---
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<SolutionStory> createSolutionStory(@RequestBody SolutionStoryDto storyDto) {
         return ResponseEntity.ok(solutionStoryService.createSolutionStory(storyDto));
     }

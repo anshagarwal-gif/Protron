@@ -328,11 +328,11 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus }) => {
       if (!token) {
         throw new Error("Missing authentication credentials");
       }
-
+      console.log(projectList.find(project => project.projectId === parseInt(formData.projectId)), formData.projectId)
       // Create UserStoryDto object for the API
       const storyData = {
         projectId: parseInt(formData.projectId) || null,
-        parentId: null, // Can be set if needed
+        parentId: projectList.find(project => project.projectId === parseInt(formData.projectId))?.projectCode || null, // Can be set if needed
         status: formData.status,
         priority: parseInt(formData.priority) || 2,
         summary: formData.summary || '',
@@ -362,27 +362,26 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus }) => {
       const storyUsId = response.data.usId; // Use usId for attachments
 
       if (storyFiles.length > 0) {
+        const uploadPromises = [];
         for (const file of storyFiles) {
-          const formData = new FormData();
-          formData.append("file", file);
+          const fileFormData = new FormData();
+          fileFormData.append("file", file);
 
-          try {
-            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/userstory/${storyUsId}`, {
-              method: "POST",
+          // The endpoint should be /api/userstory/{usId}/attachment to match the backend
+          const uploadPromise = axios.post(
+            `${import.meta.env.VITE_API_URL}/api/userstory/${storyUsId}/attachment`,
+            fileFormData,
+            {
               headers: {
-                'Authorization': `${token}`
+                Authorization: `${token}`,
+                'Content-Type': 'multipart/form-data',
               },
-              body: formData
-            });
-            console.log("Attachment upload response:", uploadRes);
-
-            if (!uploadRes.ok) {
-              console.error(`Attachment upload failed for ${file.name}`);
             }
-          } catch (err) {
-            console.error("Attachment upload error:", err);
-          }
+          );
+          uploadPromises.push(uploadPromise);
         }
+        await Promise.all(uploadPromises);
+        console.log("All attachments uploaded successfully.");
       }
 
       onSubmit(response.data);

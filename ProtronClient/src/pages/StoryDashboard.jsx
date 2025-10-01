@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload } from 'react-icons/fi';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AgGridReact } from 'ag-grid-react';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
@@ -14,8 +15,9 @@ import ViewStoryModal from '../components/ViewStoryModal';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const StoryDashboard = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [stories, setStories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [filters, setFilters] = useState({
     projectName: '',
     sprint: '',
@@ -31,6 +33,7 @@ const StoryDashboard = () => {
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
   const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' or 'table'
+  const [gridApi, setGridApi] = useState(null);
   const [showBacklog, setShowBacklog] = useState(false); // Show backlog columns
   const [searchTerm, setSearchTerm] = useState(''); // Search term for stories
   const [projectList, setProjectList] = useState([]); // List of projects
@@ -38,7 +41,7 @@ const StoryDashboard = () => {
   const [releaseList, setReleaseList] = useState([]); // List of releases for selected project
   const [users, setUsers] = useState([]); // List of users/employees
   const [statusFlags, setStatusFlags] = useState([]); // List of status flags
-  
+
   // Cascading dropdown states
   const [typeDropdowns, setTypeDropdowns] = useState({
     level1: '', // Main type filter
@@ -53,11 +56,11 @@ const StoryDashboard = () => {
   // Custom cell renderers for AgGrid
   const StatusRenderer = useCallback((params) => {
     const status = params.value;
-    
+
     // Find the status flag that matches this status value
     const statusFlag = Array.isArray(statusFlags) ? statusFlags.find(flag => flag.statusValue === status) : null;
     const displayText = statusFlag ? statusFlag.statusName : (status ? status.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '');
-    
+
     // Default color mapping (can be enhanced to use status flag colors if available)
     const statusColors = {
       'todo': 'bg-gray-100 text-gray-800',
@@ -82,7 +85,7 @@ const StoryDashboard = () => {
       2: 'bg-yellow-100 text-yellow-800',
       3: 'bg-green-100 text-green-800'
     };
-    
+
     const priorityLabels = {
       1: 'HIGH',
       2: 'MEDIUM',
@@ -133,7 +136,7 @@ const StoryDashboard = () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/status-flags/type/story`, {
           headers: { Authorization: token }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setStatusFlags(Array.isArray(data) ? data : []);
@@ -157,19 +160,23 @@ const StoryDashboard = () => {
     if (!projectId) {
       setSprintList([]);
       setReleaseList([]);
+      // Clear and reset type filters when project is deselected
+      setTypeDropdowns({ level1: '', level2: '', level3: '' });
+      setFilters(prev => ({ ...prev, type: '' }));
+      setShowTypeDropdowns({ level2: false, level3: false });
       return;
     }
 
     try {
       const token = sessionStorage.getItem('token');
-      
+
       // Fetch sprints for the project
       const sprintUrl = `${import.meta.env.VITE_API_URL}/api/sprints/project/${projectId}`;
-      
+
       const sprintResponse = await fetch(sprintUrl, {
         headers: { Authorization: token }
       });
-      
+
       if (sprintResponse.ok) {
         const sprintData = await sprintResponse.json();
         setSprintList(Array.isArray(sprintData) ? sprintData : []);
@@ -180,11 +187,11 @@ const StoryDashboard = () => {
 
       // Fetch releases for the project
       const releaseUrl = `${import.meta.env.VITE_API_URL}/api/releases/project/${projectId}`;
-      
+
       const releaseResponse = await fetch(releaseUrl, {
         headers: { Authorization: token }
       });
-      
+
       if (releaseResponse.ok) {
         const releaseData = await releaseResponse.json();
         setReleaseList(Array.isArray(releaseData) ? releaseData : []);
@@ -197,24 +204,49 @@ const StoryDashboard = () => {
       setSprintList([]);
       setReleaseList([]);
     }
-  }, []);
+
+    // Set default type to 'User Story' when a project is selected
+    if (projectId) {
+      setFilters(prev => ({ ...prev, type: 'User Story' }));
+      setTypeDropdowns(prev => ({ ...prev, level1: 'User Story' }));
+      setShowTypeDropdowns(prev => ({ ...prev, level2: true }));
+    }
+  }, [setFilters, setTypeDropdowns, setShowTypeDropdowns]);
+
+  // Handle projectId from URL
+  useEffect(() => {
+    const projectIdFromUrl = searchParams.get('projectId');
+    if (projectIdFromUrl) {
+      setFilters(prevFilters => ({
+        ...prevFilters,
+        projectName: projectIdFromUrl,
+      }));
+      handleProjectChange(projectIdFromUrl);
+      searchParams.delete('projectId');
+      setSearchParams(searchParams, { replace: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, setSearchParams, handleProjectChange]);
 
   // Fetch stories from API
   useEffect(() => {
+    const isInitial = initialLoading;
     const fetchStories = async () => {
+      if (isInitial) {
+        setInitialLoading(true);
+      } else if (gridApi) gridApi.showLoadingOverlay();
       try {
-        setLoading(true);
         const token = sessionStorage.getItem('token');
         const tenantId = sessionStorage.getItem('tenantId');
-        
+
         // Determine which API to call based on the selected type filter
         let apiUrl = '';
         const selectedType = filters.type || '';
-        
+
         // Parse the cascading type string to find the most recent entity type selection
         const typeParts = selectedType.split(' > ');
         const lastEntityType = typeParts[typeParts.length - 1];
-        
+
         // Format the date to include time component for LocalDateTime
         const formatDate = (dateStr) => {
           if (!dateStr) return null;
@@ -222,12 +254,12 @@ const StoryDashboard = () => {
           return `${dateStr}T00:00:00`;
         };
 
-        // Determine parentId based on type filters level
+        // Determine parentId based on type filters level.
         const getParentId = () => {
           // If no project selected, return null
           if (!filters.projectName) return null;
-          
-          // If no type selected, return null
+
+          // If no type selected, we are fetching for a project, so parent is PRJ
           if (!selectedType) return null;
 
           // For first level type selection
@@ -254,7 +286,7 @@ const StoryDashboard = () => {
         const basePayload = {
           tenantId: parseInt(tenantId),
           projectId: filters.projectName ? parseInt(filters.projectName) : null,
-          createdBy: filters.createdBy || null,
+          assignee: filters.assignee || null, // Changed from createdBy to assignee as per API
           createdDate: formatDate(filters.createdDate),
           parentId: getParentId()
         };
@@ -267,18 +299,17 @@ const StoryDashboard = () => {
             status: filters.status !== 'all' ? filters.status : null,
             sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
             releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
-            assignee: filters.assignee || null
           };
-          
+
           const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Authorization': token,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             setStories(data);
@@ -291,19 +322,18 @@ const StoryDashboard = () => {
             ...basePayload,
             status: filters.status !== 'all' ? filters.status : null,
             sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
-            assignee: filters.assignee || null
+            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
           };
-          
+
           const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Authorization': token,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             setStories(data);
@@ -315,16 +345,16 @@ const StoryDashboard = () => {
           const payload = {
             ...basePayload
           };
-          
+
           const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Authorization': token,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             setStories(data);
@@ -338,19 +368,18 @@ const StoryDashboard = () => {
             ...basePayload,
             status: filters.status !== 'all' ? filters.status : null,
             sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
-            assignee: filters.assignee || null
+            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
           };
-          
+
           const response = await fetch(apiUrl, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Authorization': token,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             setStories(data);
@@ -363,55 +392,15 @@ const StoryDashboard = () => {
         // Fallback to empty array if API fails
         setStories([]);
       } finally {
-        setLoading(false);
+        if (isInitial) {
+          setInitialLoading(false);
+        } else if (gridApi) gridApi.hideOverlay();
       }
     };
 
     fetchStories();
-  }, [filters]); // Updated dependency array to include all filters
-
-  // Function to refresh stories after add/edit operations
-  const refreshStories = useCallback(async () => {
-    try {
-      setLoading(true);
-      const token = sessionStorage.getItem('token');
-      
-        // Determine which API to call based on the selected type filter
-        let apiUrl = '';
-        const selectedType = filters.type || '';
-        
-        // Parse the cascading type string to find the most recent entity type selection
-        const typeParts = selectedType.split(' > ');
-        const lastEntityType = typeParts[typeParts.length - 1];
-        
-        // Check the most recent entity type selection
-        if (lastEntityType === 'User Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
-        } else if (lastEntityType === 'Solution Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/active`;
-        } else if (lastEntityType === 'Task') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks`;
-        } else {
-          // Default to UserStory if no specific type is selected
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/active`;
-        }
-      
-      const response = await fetch(apiUrl, {
-        headers: { Authorization: token }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setStories(data);
-      } else {
-        console.error('Failed to fetch stories');
-      }
-    } catch (error) {
-      console.error('Error fetching stories:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters.type]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, gridApi]); // Updated dependency array to include all filters
 
   // Clear type filters when project changes
   useEffect(() => {
@@ -419,7 +408,6 @@ const StoryDashboard = () => {
       clearTypeFilters();
     }
   }, [filters.projectName]);
-
   // Cascading dropdown logic
   const getTypeOptions = (level, parentValue) => {
     if (level === 1) {
@@ -461,26 +449,26 @@ const StoryDashboard = () => {
       newTypeDropdowns.level1 = value;
       newTypeDropdowns.level2 = '';
       newTypeDropdowns.level3 = '';
-      
+
       // Show Level 2 for both User Story and Solution Story
       newShowDropdowns.level2 = value ? true : false;
       newShowDropdowns.level3 = false;
-      
+
       // Update main type filter
       setFilters(prev => ({ ...prev, type: value }));
     } else if (level === 2) {
       newTypeDropdowns.level2 = value;
       newTypeDropdowns.level3 = '';
-      
+
       // Show Level 3 only if User Story is selected in Level 1 AND Solution Story in Level 2
       newShowDropdowns.level3 = (newTypeDropdowns.level1 === 'User Story' && value === 'Solution Story') ? true : false;
-      
+
       // Update main type filter to include both levels
       const combinedType = `${newTypeDropdowns.level1} > ${value}`;
       setFilters(prev => ({ ...prev, type: combinedType }));
     } else if (level === 3) {
       newTypeDropdowns.level3 = value;
-      
+
       // Update main type filter to include all levels
       const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2} > ${value}`;
       setFilters(prev => ({ ...prev, type: combinedType }));
@@ -496,33 +484,8 @@ const StoryDashboard = () => {
     setFilters(prev => ({ ...prev, type: '' }));
   };
 
-  const filteredStories = stories.filter(story => {
-    const matchesProjectName = !filters.projectName || story.projectId?.toString().includes(filters.projectName);
-    const matchesSprint = !filters.sprint || story.sprint?.toString().includes(filters.sprint);
-    const matchesAssignee = !filters.assignee || story.assignee?.toLowerCase().includes(filters.assignee.toLowerCase());
-    const matchesCreatedBy = !filters.createdBy || story.createdBy?.toLowerCase().includes(filters.createdBy.toLowerCase());
-    const matchesStatus = filters.status === 'all' || story.status === filters.status;
-    // Handle cascading type filtering
-    const matchesType = !filters.type || (() => {
-      if (!filters.type) return true;
-      
-      // If it's a simple type filter (no cascading)
-      if (!filters.type.includes('>')) {
-        return story.system?.toLowerCase().includes(filters.type.toLowerCase());
-      }
-      
-      // Handle cascading type filters
-      const typeParts = filters.type.split(' > ');
-      const storyType = story.system?.toLowerCase();
-      
-      // Check if story matches any part of the cascading filter
-      return typeParts.some(part => storyType?.includes(part.toLowerCase()));
-    })();
-    const matchesCreatedDate = !filters.createdDate || story.dateCreated?.includes(filters.createdDate);
-    const matchesRelease = !filters.release || story.release?.toString().includes(filters.release);
-    
-    // Search functionality - search across multiple fields
-    const matchesSearch = !searchTerm || 
+  const filteredStories = useMemo(() => stories.filter(story => {
+    return !searchTerm ||
       story.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       story.asA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       story.iWantTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -534,10 +497,7 @@ const StoryDashboard = () => {
       story.projectId?.toString().includes(searchTerm) ||
       story.sprint?.toString().includes(searchTerm) ||
       story.release?.toString().includes(searchTerm);
-    
-    return matchesProjectName && matchesSprint && matchesAssignee && matchesCreatedBy && 
-           matchesStatus && matchesType && matchesCreatedDate && matchesRelease && matchesSearch;
-  });
+  }), [stories, searchTerm]);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -548,14 +508,20 @@ const StoryDashboard = () => {
     }
   };
 
+  const refreshStories = useCallback(() => {
+    // This function will now just trigger the useEffect by updating filters.
+    // A new object is created to ensure the state update is detected.
+    setFilters(currentFilters => ({ ...currentFilters }));
+  }, []);
+
   const handleAddStory = async () => {
-    await refreshStories();
+    refreshStories();
     setShowAddModal(false);
     toast.success('Story added successfully!');
   };
 
   const handleUpdateStory = async () => {
-    await refreshStories();
+    refreshStories();
     setShowEditModal(false);
     toast.success('Story updated successfully!');
   };
@@ -564,24 +530,24 @@ const StoryDashboard = () => {
     if (window.confirm('Are you sure you want to delete this story?')) {
       try {
         const token = sessionStorage.getItem('token');
-        
+
         // First get the usId for the story
         const storyResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/userstory/active/id/${id}`, {
           headers: { Authorization: token }
         });
-        
+
         if (storyResponse.ok) {
           const storyData = await storyResponse.json();
           const usId = storyData.usId;
-          
+
           // Delete the story using usId
           const deleteResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/userstory/${usId}`, {
             method: 'DELETE',
             headers: { Authorization: token }
           });
-          
+
           if (deleteResponse.ok) {
-            await refreshStories();
+            refreshStories();
             toast.success('Story deleted successfully');
           } else {
             toast.error('Failed to delete story');
@@ -686,7 +652,7 @@ const StoryDashboard = () => {
       const headers = Object.keys(dataToExport[0]);
       const csvContent = [
         headers.join(','),
-        ...dataToExport.map(row => 
+        ...dataToExport.map(row =>
           headers.map(header => {
             const value = row[header];
             // Escape commas and quotes in CSV
@@ -718,43 +684,49 @@ const StoryDashboard = () => {
 
   const ActionsRenderer = useCallback((params) => {
     const story = params.data;
-    
+    const storyId = story.id || story.ssId || story.taskId;
+    const storyType = story.id ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
+
     return (
       <div className="flex items-center space-x-2">
         <button
           onClick={() => openViewModal(story)}
           className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="View Story"
+          title={`View ${storyType || 'item'}`}
         >
           <FiEye size={16} />
         </button>
         <button
           onClick={() => openEditModal(story)}
           className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="Edit Story"
+          title={`Edit ${storyType || 'item'}`}
         >
           <FiEdit size={16} />
         </button>
-        <button
-          onClick={() => {
-            const parentStoryData = encodeURIComponent(JSON.stringify(story));
-            window.open(`/solution-story-management?parentStory=${parentStoryData}`, '_blank');
-          }}
-          className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="Add Solution Story"
-        >
-          <FiPlus size={16} />
-        </button>
-        <button
-          onClick={() => {
-            const parentStoryData = encodeURIComponent(JSON.stringify(story));
-            window.open(`/task-management?parentStory=${parentStoryData}`, '_blank');
-          }}
-          className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="Add Task"
-        >
-          <FiPlus size={16} />
-        </button>
+        {storyType === 'userstory' && (
+          <button
+            onClick={() => {
+              const parentStoryData = encodeURIComponent(JSON.stringify(story));
+              window.open(`/solution-story-management?parentStory=${parentStoryData}`, '_blank');
+            }}
+            className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Add Solution Story"
+          >
+            <FiPlus size={16} />
+          </button>
+        )}
+        {(storyType === 'userstory' || storyType === 'solutionstory') && (
+          <button
+            onClick={() => {
+              const parentStoryData = encodeURIComponent(JSON.stringify(story));
+              window.open(`/task-management?parentStory=${parentStoryData}`, '_blank');
+            }}
+            className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Add Task"
+          >
+            <FiPlus size={16} />
+          </button>
+        )}
         <button
           onClick={() => handleDeleteStory(story.id)}
           className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
@@ -796,17 +768,17 @@ const StoryDashboard = () => {
 
     // Determine which entity type is selected from any level of the cascading dropdowns
     const selectedType = filters.type || '';
-    
+
     // Parse the cascading type string to find the most recent entity type selection
     // The string format is "Level1 > Level2 > Level3" or just "Level1"
     const typeParts = selectedType.split(' > ');
     const lastEntityType = typeParts[typeParts.length - 1]; // Get the last (most recent) selection
-    
+
     // Check the most recent entity type selection
     const isUserStory = lastEntityType === 'User Story';
     const isSolutionStory = lastEntityType === 'Solution Story';
     const isTask = lastEntityType === 'Task';
-    
+
     if (isUserStory) {
       return [
         ...baseColumns,
@@ -1157,10 +1129,11 @@ const StoryDashboard = () => {
     paginationAutoPageSize: false
   }), []);
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <span className="ml-4 text-gray-600">Loading stories...</span>
       </div>
     );
   }
@@ -1184,8 +1157,8 @@ const StoryDashboard = () => {
               <FiPlus size={20} />
               <span>Add Story</span>
             </button>
-     
-      
+
+
           </div>
         </div>
       </div>
@@ -1201,15 +1174,15 @@ const StoryDashboard = () => {
               value={filters.projectName}
               onChange={(e) => {
                 const projectId = e.target.value;
-                setFilters({...filters, projectName: projectId, sprint: '', release: ''});
+                setFilters({ ...filters, projectName: projectId, sprint: '', release: '' });
                 handleProjectChange(projectId);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">All Projects</option>
               {projectList.map(project => (
-                <option 
-                  key={project.projectId} 
+                <option
+                  key={project.projectId}
                   value={project.projectId}
                   title={project.projectName}
                 >
@@ -1226,7 +1199,7 @@ const StoryDashboard = () => {
               value={filters.sprint ? { value: filters.sprint, label: filters.sprint } : null}
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
-                setFilters({...filters, sprint: value});
+                setFilters({ ...filters, sprint: value });
               }}
               options={Array.isArray(sprintList) ? sprintList.map(sprint => ({
                 value: sprint.sprintId.toString(),
@@ -1265,7 +1238,7 @@ const StoryDashboard = () => {
               value={filters.assignee ? { value: filters.assignee, label: filters.assignee } : null}
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
-                setFilters({...filters, assignee: value});
+                setFilters({ ...filters, assignee: value });
               }}
               options={users.map(user => ({
                 value: user.name,
@@ -1303,7 +1276,7 @@ const StoryDashboard = () => {
               value={filters.createdBy ? { value: filters.createdBy, label: filters.createdBy } : null}
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
-                setFilters({...filters, createdBy: value});
+                setFilters({ ...filters, createdBy: value });
               }}
               options={users.map(user => ({
                 value: user.name,
@@ -1339,7 +1312,7 @@ const StoryDashboard = () => {
             <label className="block text-sm font-medium text-gray-700">Status</label>
             <select
               value={filters.status}
-              onChange={(e) => setFilters({...filters, status: e.target.value})}
+              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
@@ -1358,7 +1331,7 @@ const StoryDashboard = () => {
             <input
               type="date"
               value={filters.createdDate}
-              onChange={(e) => setFilters({...filters, createdDate: e.target.value})}
+              onChange={(e) => setFilters({ ...filters, createdDate: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
@@ -1370,7 +1343,7 @@ const StoryDashboard = () => {
               value={filters.release ? { value: filters.release, label: filters.release } : null}
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
-                setFilters({...filters, release: value});
+                setFilters({ ...filters, release: value });
               }}
               options={Array.isArray(releaseList) ? releaseList.map(release => ({
                 value: release.releaseId.toString(),
@@ -1401,26 +1374,61 @@ const StoryDashboard = () => {
               }}
             />
           </div>
-          </div>
+        </div>
 
-          {/* Type Filter */}
-          <div className="space-y-3">
-            <label className="block text-sm font-medium mt-3 text-gray-700">Type</label>
-            
-            {/* Horizontal layout for type filters */}
-            <div className="flex flex-wrap gap-2 items-end">
-              {/* Level 1: Main Type Filter */}
+        {/* Type Filter */}
+        <div className="space-y-3">
+          <label className="block text-sm font-medium mt-3 text-gray-700">Type</label>
+
+          {/* Horizontal layout for type filters */}
+          <div className="flex flex-wrap gap-2 items-end">
+            {/* Level 1: Main Type Filter */}
+            <div className="w-[220px]">
+              <CreatableSelect
+                value={typeDropdowns.level1 ? { value: typeDropdowns.level1, label: typeDropdowns.level1 } : null}
+                onChange={(selectedOption) => {
+                  const value = selectedOption ? selectedOption.value : '';
+                  handleTypeChange(1, value);
+                }}
+                options={getTypeOptions(1)}
+                isClearable
+                placeholder={filters.projectName ? "Select type..." : "Select project first"}
+                isDisabled={!filters.projectName}
+                className="text-sm"
+                styles={{
+                  control: (provided) => ({
+                    ...provided,
+                    minHeight: '40px',
+                    borderColor: '#d1d5db',
+                    '&:hover': {
+                      borderColor: '#10b981'
+                    }
+                  }),
+                  menu: (provided) => ({
+                    ...provided,
+                    zIndex: 9999
+                  }),
+                  option: (provided, state) => ({
+                    ...provided,
+                    backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                    color: state.isFocused ? '#065f46' : '#374151'
+                  })
+                }}
+              />
+            </div>
+
+            {/* Level 2: Second Type Filter */}
+            {showTypeDropdowns.level2 && (
               <div className="w-[220px]">
                 <CreatableSelect
-                  value={typeDropdowns.level1 ? { value: typeDropdowns.level1, label: typeDropdowns.level1 } : null}
+                  value={typeDropdowns.level2 ? { value: typeDropdowns.level2, label: typeDropdowns.level2 } : null}
                   onChange={(selectedOption) => {
                     const value = selectedOption ? selectedOption.value : '';
-                    handleTypeChange(1, value);
+                    handleTypeChange(2, value);
                   }}
-                  options={getTypeOptions(1)}
+                  options={getTypeOptions(2, typeDropdowns.level1)}
                   isClearable
-                  placeholder={filters.projectName ? "Select type..." : "Select project first"}
-                  isDisabled={!filters.projectName}
+                  placeholder="Select sub-type..."
                   className="text-sm"
                   styles={{
                     control: (provided) => ({
@@ -1443,83 +1451,48 @@ const StoryDashboard = () => {
                   }}
                 />
               </div>
+            )}
 
-              {/* Level 2: Second Type Filter */}
-              {showTypeDropdowns.level2 && (
-                <div className="w-[220px]">
-                  <CreatableSelect
-                    value={typeDropdowns.level2 ? { value: typeDropdowns.level2, label: typeDropdowns.level2 } : null}
-                    onChange={(selectedOption) => {
-                      const value = selectedOption ? selectedOption.value : '';
-                      handleTypeChange(2, value);
-                    }}
-                    options={getTypeOptions(2, typeDropdowns.level1)}
-                    isClearable
-                    placeholder="Select sub-type..."
-                    className="text-sm"
-                    styles={{
-                      control: (provided) => ({
-                        ...provided,
-                        minHeight: '40px',
-                        borderColor: '#d1d5db',
-                        '&:hover': {
-                          borderColor: '#10b981'
-                        }
-                      }),
-                      menu: (provided) => ({
-                        ...provided,
-                        zIndex: 9999
-                      }),
-                      option: (provided, state) => ({
-                        ...provided,
-                        backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
-                        color: state.isFocused ? '#065f46' : '#374151'
-                      })
-                    }}
-                  />
-                </div>
-              )}
+            {/* Level 3: Third Type Filter */}
+            {showTypeDropdowns.level3 && (
+              <div className="w-[220px]">
+                <CreatableSelect
+                  value={typeDropdowns.level3 ? { value: typeDropdowns.level3, label: typeDropdowns.level3 } : null}
+                  onChange={(selectedOption) => {
+                    const value = selectedOption ? selectedOption.value : '';
+                    handleTypeChange(3, value);
+                  }}
+                  options={getTypeOptions(3, typeDropdowns.level2)}
+                  isClearable
+                  placeholder="Select final type..."
+                  className="text-sm"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '40px',
+                      borderColor: '#d1d5db',
+                      '&:hover': {
+                        borderColor: '#10b981'
+                      }
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 9999
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                      color: state.isFocused ? '#065f46' : '#374151'
+                    })
+                  }}
+                />
+              </div>
+            )}
 
-              {/* Level 3: Third Type Filter */}
-              {showTypeDropdowns.level3 && (
-                <div className="w-[220px]">
-                  <CreatableSelect
-                    value={typeDropdowns.level3 ? { value: typeDropdowns.level3, label: typeDropdowns.level3 } : null}
-                    onChange={(selectedOption) => {
-                      const value = selectedOption ? selectedOption.value : '';
-                      handleTypeChange(3, value);
-                    }}
-                    options={getTypeOptions(3, typeDropdowns.level2)}
-                    isClearable
-                    placeholder="Select final type..."
-                    className="text-sm"
-                    styles={{
-                      control: (provided) => ({
-                        ...provided,
-                        minHeight: '40px',
-                        borderColor: '#d1d5db',
-                        '&:hover': {
-                          borderColor: '#10b981'
-                        }
-                      }),
-                      menu: (provided) => ({
-                        ...provided,
-                        zIndex: 9999
-                      }),
-                      option: (provided, state) => ({
-                        ...provided,
-                        backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
-                        color: state.isFocused ? '#065f46' : '#374151'
-                      })
-                    }}
-                  />
-                </div>
-              )}
-
-            </div>
           </div>
+        </div>
 
-          {/* Clear Filters Button */}
+        {/* Clear Filters Button */}
         <div className="mt-4 flex justify-end">
           <button
             onClick={() => setFilters({
@@ -1560,25 +1533,23 @@ const StoryDashboard = () => {
         <div className="flex items-center space-x-4">
           {/* View Toggle Buttons */}
           <div className="flex items-center space-x-2">
-           
+
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewMode('dashboard')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${
-                  viewMode === 'dashboard'
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${viewMode === 'dashboard'
                     ? 'bg-white text-green-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
-                }`}
+                  }`}
               >
                 Dashboard View
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${
-                  viewMode === 'table'
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${viewMode === 'table'
                     ? 'bg-white text-green-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
-                }`}
+                  }`}
               >
                 Table View
               </button>
@@ -1958,8 +1929,9 @@ const StoryDashboard = () => {
               rowData={filteredStories}
               defaultColDef={defaultColDef}
               gridOptions={gridOptions}
-              suppressRowClickSelection={true}
+              overlayLoadingTemplate='<span class="ag-overlay-loading-center">Please wait while your rows are loading</span>'
               onGridReady={(params) => {
+                setGridApi(params.api);
                 params.api.sizeColumnsToFit();
               }}
               onFirstDataRendered={(params) => {
@@ -1985,7 +1957,7 @@ const StoryDashboard = () => {
               <span className="text-sm font-medium text-gray-700">Project Backlog</span>
             </label>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">

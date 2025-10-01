@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import {
     X,
     FileText,
-    Plus
+    Plus,
+    Building,
+    Calendar,
+    Clock
 } from 'lucide-react';
 import GlobalSnackbar from './GlobalSnackbar';
 
@@ -117,7 +120,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
 
         try {
             const token = sessionStorage.getItem('token');
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/task/${taskId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.TaskFilterDTO;
+import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Task;
 import com.Protronserver.Protronserver.Entities.TaskAttachment;
 import com.Protronserver.Protronserver.Repository.*;
@@ -58,9 +59,17 @@ public class TaskService {
     private void validateIds(TaskDto taskDto) {
 
         // --- Validate projectId ---
-        String projectCode = taskDto.getProjectId() != null ? "PRJ-" + taskDto.getProjectId() : null;
-        if (projectCode == null || !projectRepository.existsByProjectCode(projectCode)) {
-            throw new RuntimeException("Invalid Project ID: " + taskDto.getProjectId());
+        Long projectId = taskDto.getProjectId() != null ? taskDto.getProjectId() : null;
+        if (projectId == null) {
+            throw new RuntimeException("Invalid projectId format");
+        }
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
+        String projectCode = project.getProjectCode();
+
+        if (!projectRepository.existsByProjectCode(projectCode)) {
+            throw new RuntimeException("Project not found with code: " + projectCode);
         }
 
         // --- Validate parentId ---
@@ -162,6 +171,14 @@ public class TaskService {
         newTask.setStartTimestamp(LocalDateTime.now());
         newTask.setEndTimestamp(null);
         newTask.setLastUpdatedBy(null);
+
+        // Attachments are now handled in a separate call, so we don't process them here.
+        // if (taskDto.getAttachments() != null) {
+        //     for (TaskAttachment attachmentDto : taskDto.getAttachments()) {
+        //         attachmentDto.setTaskId(newTask.getTaskId());
+        //         taskAttachmentRepository.save(attachmentDto);
+        //     }
+        // }
 
         return taskRepository.save(newTask);
     }

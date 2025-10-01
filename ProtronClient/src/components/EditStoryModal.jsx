@@ -37,6 +37,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   const [users, setUsers] = useState([]);
   const [storyFiles, setStoryFiles] = useState([]);
   const [systems, setSystems] = useState([]);
+  const [newlyAddedFiles, setNewlyAddedFiles] = useState([]);
   const [sprintList, setSprintList] = useState([]);
   const [releaseList, setReleaseList] = useState([]);
   const [statusFlags, setStatusFlags] = useState([]); // List of status flags
@@ -85,17 +86,24 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
 
   const fetchStoryAttachments = async (storyId) => {
     try {
-      const token = sessionStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/story-attachments/meta/filter?level=STORY&referenceId=${storyId}`, {
-        headers: { Authorization: token }
-      });
+      const storyResponse = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/userstory/active/id/${storyId}`,
+        { headers: { Authorization: `${sessionStorage.getItem('token')}` } }
+      );
+      const usId = storyResponse.data.usId;
 
-      if (res.ok) {
-        const data = await res.json();
-        setStoryFiles(data);
-      }
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/userstory/${usId}/attachments`,
+        {
+          headers: { Authorization: token },
+        }
+      );
+
+      setStoryFiles(response.data); // These are existing attachments from the server
     } catch (error) {
       console.error("Error fetching story attachments:", error);
+      setStoryFiles([]);
     }
   };
 
@@ -109,7 +117,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
 
           // Fetch story data
           const storyResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/userstory/active/id/${storyId}`,
+            `${API_BASE_URL}/api/userstory/active/id/${storyId}`,
             {
               headers: { Authorization: `${token}` }
             }
@@ -134,7 +142,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
           });
 
           // Fetch attachments
-          await fetchStoryAttachments(storyId);
+          fetchStoryAttachments(storyId);
 
         } catch (error) {
           console.error("Error fetching story data:", error);
@@ -154,7 +162,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
 
           // Fetch projects list
           const projectResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/tenants/${sessionData.tenantId}/projects`,
+            `${API_BASE_URL}/api/tenants/${sessionData.tenantId}/projects`,
             {
               headers: { Authorization: `${token}` }
             }
@@ -171,7 +179,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       try {
         const token = sessionStorage.getItem('token');
         const tenantId = sessionStorage.getItem('tenantId');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, {
+        const res = await fetch(`${API_BASE_URL}/api/tenants/${tenantId}/users`, {
           headers: { Authorization: `${token}` }
         });
         const data = await res.json();
@@ -197,7 +205,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     const fetchStatusFlags = async () => {
       try {
         const token = sessionStorage.getItem('token');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/status-flags/type/story`, {
+        const response = await fetch(`${API_BASE_URL}/api/status-flags/type/story`, {
           headers: { Authorization: token }
         });
         
@@ -219,7 +227,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     fetchUsers();
     fetchSystems();
     fetchStatusFlags();
-
+    
   }, [open, storyId]);
 
   // Initialize character counts when form data is set
@@ -285,7 +293,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       const token = sessionStorage.getItem('token');
       
       // Fetch sprints for the project
-      const sprintResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/sprints/project/${projectId}`, {
+      const sprintResponse = await fetch(`${API_BASE_URL}/api/sprints/project/${projectId}`, {
         headers: { Authorization: token }
       });
       
@@ -298,7 +306,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       }
 
       // Fetch releases for the project
-      const releaseResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/releases/project/${projectId}`, {
+      const releaseResponse = await fetch(`${API_BASE_URL}/api/releases/project/${projectId}`, {
         headers: { Authorization: token }
       });
       
@@ -321,7 +329,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     if (!files.length) return;
 
     // Limit to 4 files total
-    if (storyFiles.length + files.length > 4) {
+    if (storyFiles.length + newlyAddedFiles.length + files.length > 4) {
       setErrors(prev => ({ ...prev, attachment: "Max 4 attachments allowed." }));
       return;
     }
@@ -359,13 +367,34 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       return;
     }
 
-    setStoryFiles(prev => [...prev, ...validFiles]);
+    setNewlyAddedFiles(prev => [...prev, ...validFiles]);
     setErrors(prev => ({ ...prev, attachment: "" }));
     e.target.value = null;
   };
 
-  const removeStoryFile = (index) => {
-    setStoryFiles(prev => prev.filter((_, i) => i !== index));
+  const removeNewFile = (index) => {
+    setNewlyAddedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingFile = async (attachmentId, index) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      await axios.delete(
+        `${API_BASE_URL}/api/userstory/attachment/${attachmentId}`,
+        {
+          headers: { Authorization: token },
+        }
+      );
+      setStoryFiles(prev => prev.filter((_, i) => i !== index));
+      setSnackbar({ open: true, message: "Attachment deleted.", severity: "success" });
+    } catch (error) {
+      console.error("Error deleting attachment:", error);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || "Failed to delete attachment.",
+        severity: "error",
+      });
+    }
   };
 
   // Function to handle date input clicks
@@ -449,13 +478,13 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
 
       // Get the usId from the story data
       const storyResponse = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/userstory/active/id/${storyId}`,
+        `${API_BASE_URL}/api/userstory/active/id/${storyId}`,
         { headers: { Authorization: `${token}` } }
       );
       const usId = storyResponse.data.usId;
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/userstory/${usId}`,
+        `${API_BASE_URL}/api/userstory/${usId}`,
         storyData,
         {
           headers: {
@@ -464,31 +493,26 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
           }
         }
       );
-      
       console.log("User Story updated successfully:", response.data);
 
-      if (storyFiles.length > 0) {
-        for (const file of storyFiles) {
-          const formData = new FormData();
-          formData.append("file", file);
-
-          try {
-            const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/userstory/${usId}`, {
-              method: "POST",
+      // Upload newly added files
+      if (newlyAddedFiles.length > 0) {
+        const uploadPromises = newlyAddedFiles.map(file => {
+          const fileFormData = new FormData();
+          fileFormData.append("file", file);
+          return axios.post(
+            `${API_BASE_URL}/api/userstory/${usId}/attachment`,
+            fileFormData,
+            {
               headers: {
-                'Authorization': `${token}`
-              },
-              body: formData
-            });
-            console.log("Attachment upload response:", uploadRes);
-
-            if (!uploadRes.ok) {
-              console.error(`Attachment upload failed for ${file.name}`);
+                Authorization: `${token}`,
+                'Content-Type': 'multipart/form-data',
+              }
             }
-          } catch (err) {
-            console.error("Attachment upload error:", err);
-          }
-        }
+          );
+        });
+        await Promise.all(uploadPromises);
+        console.log("All new attachments uploaded successfully.");
       }
 
       onSubmit(response.data);
@@ -539,6 +563,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     setAcceptanceCharCount(0);
     setProjectList([]);
     setStoryFiles([]);
+    setNewlyAddedFiles([]);
     onClose();
   };
 
@@ -938,25 +963,41 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                 )}
               </div>
             </div>
-
+            
             {/* Selected Files List */}
-            <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-              {storyFiles.map((file, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                >
-                  <span className="truncate max-w-[150px]" title={file.name}>{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeStoryFile(index)}
-                    className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-2 space-y-2">
+              <p className="text-xs font-medium text-gray-600">Attachments:</p>
+              <ul className="text-xs text-gray-700 flex flex-wrap gap-2">
+                {storyFiles.map((file, index) => (
+                  <li key={file.attachmentId} className="flex items-center justify-between bg-blue-50 px-3 py-1 rounded">
+                    <a href={`${API_BASE_URL}/api/userstory/attachment/${file.attachmentId}/download`} target="_blank" rel="noopener noreferrer" className="truncate max-w-[150px] text-blue-600 hover:underline" title={file.fileName}>
+                      {file.fileName}
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => removeExistingFile(file.attachmentId, index)}
+                      className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
+                      disabled={loading}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+                {newlyAddedFiles.map((file, index) => (
+                  <li key={index} className="flex items-center justify-between bg-green-50 px-3 py-1 rounded">
+                    <span className="truncate max-w-[150px]" title={file.name}>{file.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeNewFile(index)}
+                      className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
+                      disabled={loading}
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             {/* Row 3: Summary */}
             <div>

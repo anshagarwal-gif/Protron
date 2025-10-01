@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import GlobalSnackbar from './GlobalSnackbar';
+import { useSession } from '../Context/SessionContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -43,6 +44,7 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
   });
   const [error, setError] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
+  const { sessionData } = useSession();
 
   // Green theme colors
   const greenPrimary = '#15803d';
@@ -50,35 +52,35 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
   const fieldHeight = '40px';
 
   useEffect(() => {
-    if (parentStory) {
-      setFormData(prev => ({
-        ...prev,
-        projectId: parentStory.projectId,
-        parentId: parentStory.usId,
-        date: new Date().toISOString().split('T')[0]
-      }));
-    }
-    fetchProjects();
-  }, [parentStory]);
+    const fetchData = async () => {
+      if (open) {
+        // Set initial form data from parent story
+        if (parentStory) {
+          setFormData(prev => ({
+            ...prev,
+            projectId: parentStory.projectId,
+            parentId: parentStory.usId || parentStory.ssId, // Can be from UserStory or SolutionStory
+            date: new Date().toISOString().split('T')[0]
+          }));
+        }
 
-  const fetchProjects = async () => {
-    try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        showSnackbar("No authorization token found", 'error');
-        return;
+        const token = sessionStorage.getItem('token');
+        const tenantId = sessionStorage.getItem('tenantId');
+
+        // Fetch Projects
+        try {
+          const projectResponse = await axios.get(`${API_BASE_URL}/api/tenants/${tenantId}/projects`, {
+            headers: { Authorization: token }
+          });
+          setProjects(projectResponse.data);
+        } catch (error) {
+          console.error("Error fetching projects:", error);
+        }
       }
+    };
 
-      const res = await axios.get(`${API_BASE_URL}/api/projects/user/active-projects`, {
-        headers: { Authorization: token }
-      });
-
-      setProjects(res.data || []);
-    } catch (error) {
-      console.error("Failed to fetch projects:", error);
-      showSnackbar("Failed to fetch projects", 'error');
-    }
-  };
+    fetchData();
+  }, [open, parentStory, sessionData.tenantId]);
 
   const showSnackbar = (message, severity = 'info') => {
     setSnackbar({
@@ -109,17 +111,18 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    const newAttachments = files.map(file => ({
-      name: file.name,
-      size: file.size,
-      file: file,
-      isExisting: false
-    }));
+    const newFiles = Array.from(e.target.files);
+    if (!newFiles.length) return;
+
+    // Simple validation for file count
+    if (formData.attachments.length + newFiles.length > 4) {
+      showSnackbar("You can only upload a maximum of 4 files.", "error");
+      return;
+    }
 
     setFormData(prev => ({
       ...prev,
-      attachments: [...prev.attachments, ...newAttachments].slice(0, 4)
+      attachments: [...prev.attachments, ...newFiles]
     }));
   };
 
@@ -191,21 +194,7 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
       
-      // Prepare attachment data
-      const attachmentData = [];
-      for (const attachment of formData.attachments) {
-        if (!attachment.isExisting && attachment.file) {
-          const fileBytes = await fileToByteArray(attachment.file);
-          attachmentData.push({
-            fileName: attachment.name,
-            fileType: attachment.file.type,
-            data: fileBytes,
-            fileSize: attachment.file.size
-          });
-        }
-      }
-
-      const payload = {
+      const taskData = {
         projectId: parseInt(formData.projectId),
         parentId: formData.parentId,
         date: formData.date,
@@ -217,12 +206,11 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
         timeSpentMinutes: parseInt(formData.timeSpentMinutes) || 0,
         timeRemainingHours: parseInt(formData.timeRemainingHours) || 0,
         timeRemainingMinutes: parseInt(formData.timeRemainingMinutes) || 0,
-        attachments: attachmentData
       };
 
       const response = await axios.post(
         `${API_BASE_URL}/api/tasks/add`,
-        payload,
+        taskData,
         {
           headers: {
             Authorization: token,
@@ -230,6 +218,28 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
           }
         }
       );
+
+      const newTaskId = response.data.taskId;
+
+      // Step 2: Upload attachments if any
+      if (formData.attachments.length > 0) {
+        const uploadPromises = formData.attachments.map(file => {
+          const fileFormData = new FormData();
+          fileFormData.append("file", file);
+
+          return axios.post(
+            `${API_BASE_URL}/api/tasks/${newTaskId}/attachment`,
+            fileFormData,
+            {
+              headers: {
+                Authorization: token,
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+        });
+        await Promise.all(uploadPromises);
+      }
 
       showSnackbar("Task added successfully", 'success');
       onClose();
@@ -244,19 +254,6 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fileToByteArray = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const arrayBuffer = reader.result;
-        const byteArray = Array.from(new Uint8Array(arrayBuffer));
-        resolve(byteArray);
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
   };
 
   const resetForm = () => {
@@ -344,8 +341,9 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
                     <select
                       value={formData.projectId || ''}
                       onChange={handleInputChange("projectId")}
-                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
+                       className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
                       required
+                      disabled={!!parentStory}
                     >
                       <option value="">Select from list</option>
                       {projects.map((project) => (
@@ -659,16 +657,12 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
                   <div className="mt-2 flex flex-wrap gap-2">
                     {formData.attachments.map((file, index) => (
                       <div
-                        key={index}
-                        className={`flex items-center px-2 py-1 rounded-full text-sm border ${file.isExisting ? 'bg-green-50 text-green-600 border-green-300' : 'bg-emerald-50 text-emerald-700 border-emerald-300'}`}
+                        key={file.name + index}
+                        className="flex items-center px-2 py-1 rounded-full text-sm border bg-emerald-50 text-emerald-700 border-emerald-300"
                       >
                         <span className="mr-1 flex items-center gap-1">
-                          {file.isExisting ? '📎 ' : ''}
                           {truncateText(file.name, 15)}
-                          <span className="text-gray-500 text-xs">
-                            ({formatFileSize(file.size)})
-                          </span>
-                          {file.isExisting ? ' (existing)' : ''}
+                          <span className="text-gray-500 text-xs">({formatFileSize(file.size)})</span>
                         </span>
                         <button
                           onClick={() => handleRemoveAttachment(index)}

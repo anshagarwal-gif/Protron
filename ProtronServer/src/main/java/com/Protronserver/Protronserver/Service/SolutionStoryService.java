@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.SolutionStoryFilterDTO;
+import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.SolutionStory;
 import com.Protronserver.Protronserver.Entities.SolutionStoryAttachment;
 import com.Protronserver.Protronserver.Repository.*;
@@ -60,9 +61,17 @@ public class SolutionStoryService {
     private void validateIds(SolutionStoryDto storyDto) {
 
         // --- Validate projectId ---
-        String projectCode = storyDto.projectId() != null ? "PRJ-" + storyDto.projectId() : null;
-        if (projectCode == null || !projectRepository.existsByProjectCode(projectCode)) {
-            throw new RuntimeException("Invalid Project ID: " + storyDto.projectId());
+        Long projectId = storyDto.projectId() != null ? storyDto.projectId() : null;
+        if (projectId == null) {
+            throw new RuntimeException("Invalid projectId format");
+        }
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
+        String projectCode = project.getProjectCode();
+
+        if (!projectRepository.existsByProjectCode(projectCode)) {
+            throw new RuntimeException("Project not found with code: " + projectCode);
         }
 
         // --- Validate parentId ---
@@ -269,7 +278,7 @@ public class SolutionStoryService {
         }
 
         if (filter.getParentId() != null) {
-            predicates.add(cb.like(root.get("parentId"), filter.getParentId() + "%"));
+            predicates.add(cb.equal(root.get("parentId"), filter.getParentId()));
         }
 
         if (filter.getStatus() != null) {

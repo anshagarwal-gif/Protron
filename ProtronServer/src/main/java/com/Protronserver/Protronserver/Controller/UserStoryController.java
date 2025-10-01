@@ -71,7 +71,10 @@ public class UserStoryController {
         return ResponseEntity.ok(userStoryService.getActiveUserStoryByUsId(usId));
     }
 
-    @PostMapping("/{usId}")
+    // ------------------------
+    // 🔹 Attachments
+    // ------------------------
+    @PostMapping("/{usId}/attachment")
     public ResponseEntity<UserStoryAttachment> uploadAttachment(
             @PathVariable String usId,
             @RequestParam("file") MultipartFile file) throws IOException {
@@ -79,12 +82,12 @@ public class UserStoryController {
     }
 
     // 🔹 Get all attachments for a story
-    @GetMapping("/{usId}")
+    @GetMapping("/{usId}/attachments")
     public ResponseEntity<List<UserStoryAttachment>> getAttachments(@PathVariable String usId) {
         return ResponseEntity.ok(userStoryService.getAttachments(usId));
     }
 
-    // 🔹 Download attachment by ID
+    // 🔹 Download attachment by its own ID
     @GetMapping("/attachment/{attachmentId}/download")
     public ResponseEntity<org.springframework.core.io.ByteArrayResource> downloadAttachment(
             @PathVariable Long attachmentId) {
@@ -101,8 +104,8 @@ public class UserStoryController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // 🔹 Delete attachment by ID
-    @DeleteMapping("/{attachmentId}")
+    // 🔹 Delete attachment by its own ID
+    @DeleteMapping("/attachment/{attachmentId}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable Long attachmentId) {
         userStoryService.deleteAttachment(attachmentId);
         return ResponseEntity.noContent().build();

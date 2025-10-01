@@ -7,6 +7,7 @@ import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.UserStoryDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -14,6 +15,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.Protronserver.Protronserver.Entities.Project;
 
 @Service
 public class UserStoryService {
@@ -208,10 +212,15 @@ public class UserStoryService {
 
     private void validateIds(UserStoryDto storyDto) {
         // --- Validate projectId ---
-        String projectCode = storyDto.projectId() != null ? storyDto.projectId().toString() : null;
-        if (projectCode == null || !projectCode.startsWith("PRJ-")) {
-            throw new RuntimeException("Invalid projectId format. Must start with 'PRJ-'");
+        Long projectId = storyDto.projectId() != null ? storyDto.projectId() : null;
+        if (projectId == null) {
+            throw new RuntimeException("Invalid projectId format");
         }
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + projectId));
+        String projectCode = project.getProjectCode();
+
         if (!projectRepository.existsByProjectCode(projectCode)) {
             throw new RuntimeException("Project not found with code: " + projectCode);
         }

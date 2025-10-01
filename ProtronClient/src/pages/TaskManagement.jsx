@@ -65,7 +65,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       setLoading(true);
       setError(null);
       const token = sessionStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/task/parent/${parentId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tasks/tasks/${parentId}`, {
         headers: { Authorization: token }
       });
       

@@ -24,7 +24,7 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<Task> createTask(@RequestBody TaskDto taskDto) {
         return ResponseEntity.ok(taskService.createTask(taskDto));
     }
@@ -59,7 +59,7 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{taskId}")
+    @PostMapping("/{taskId}/attachment")
     public ResponseEntity<TaskAttachment> uploadAttachment(
             @PathVariable String taskId,
             @RequestParam("file") MultipartFile file) throws IOException {
@@ -67,13 +67,13 @@ public class TaskController {
     }
 
     // Get attachments for a task
-    @GetMapping("/{taskId}")
+    @GetMapping("/{taskId}/attachments")
     public ResponseEntity<List<TaskAttachment>> getAttachments(@PathVariable String taskId) {
         return ResponseEntity.ok(taskService.getAttachments(taskId));
     }
 
     // Delete attachment
-    @DeleteMapping("/{attachmentId}")
+    @DeleteMapping("/attachment/{attachmentId}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable Long attachmentId) {
         taskService.deleteAttachment(attachmentId);
         return ResponseEntity.noContent().build();
