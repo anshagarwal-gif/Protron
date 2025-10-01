@@ -78,12 +78,23 @@ const Login = ({ setIsAuthenticated }) => {
             //     navigate('/dashboard');
             // }, 5000); 
         } catch (error) {
+            console.error('Login failed:', error);
+
+            let errorMessage = 'Login failed. Please try again.';
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                errorMessage = error.response.data?.message || `Error: ${error.response.status} ${error.response.statusText}`;
+            } else if (error.request) {
+                // The request was made but no response was received
+                errorMessage = 'Network error. Please check your connection or if the server is running.';
+            }
+
             setSnackbar({
                 open: true,
-                message: error.response?.data || 'Login failed!',
+                message: errorMessage,
                 severity: 'error',
             });
-            console.error('Login failed:', error.response?.data);
         } finally {
             setIsLoading(false);
         }

@@ -901,8 +901,7 @@ const IndividualTimesheet = () => {
                     <button
 
                       onClick={() => { console.log(hiddenDateInputRef.current); hiddenDateInputRef.current?.showPicker() }}
-                      className="cursor-pointer"
-                      className="px-4 py-2 text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
+                      className="px-4 py-2 cursor-pointer text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
                     >
                       {getCurrentDateString()}
                     </button>
