@@ -9,7 +9,7 @@ import GlobalSnackbar from "./GlobalSnackbar";
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const AddStoryModal = ({ open, onClose, onSubmit, initialStatus }) => {
+const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }) => {
   const [formData, setFormData] = useState({
     projectId: "",
     summary: "",
@@ -17,7 +17,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus }) => {
     iWantTo: "",
     soThat: "",
     acceptanceCriteria: "",
-    status: initialStatus || "todo",
+    status: "todo",
     priority: 2,
     storyPoints: 0,
     assignee: "",
@@ -44,6 +44,30 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus }) => {
     message: "",
     severity: "info"
   });
+
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        projectId: initialValues?.projectName || "",
+        summary: "",
+        asA: "",
+        iWantTo: "",
+        soThat: "",
+        acceptanceCriteria: "",
+        status: initialStatus || (initialValues?.status !== 'all' ? initialValues?.status : 'todo') || "todo",
+        priority: 2,
+        storyPoints: 0,
+        assignee: initialValues?.assignee || "",
+        sprint: initialValues?.sprint || "",
+        release: initialValues?.release || "",
+        system: "",
+        createdBy: initialValues?.createdBy || ""
+      });
+      if (initialValues?.projectName) {
+        handleProjectChange(initialValues.projectName);
+      }
+    }
+  }, [open, initialValues, initialStatus]);
 
   // Fetch projects and users on modal open
   useEffect(() => {
@@ -752,49 +776,6 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus }) => {
                     menu: base => ({ ...base, zIndex: 9999 })
                   }}
                   className="text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <User size={14} className="inline mr-1" />
-                  Created By
-                </label>
-                <CreatableSelect
-                  value={formData.createdBy ? { value: formData.createdBy, label: formData.createdBy } : null}
-                  onChange={(selectedOption) => {
-                    const value = selectedOption ? selectedOption.value : '';
-                    setFormData(prev => ({ ...prev, createdBy: value }));
-                  }}
-                  options={users.map(user => ({
-                    value: user.name,
-                    label: user.name
-                  }))}
-                  isClearable
-                  placeholder="Select or type creator..."
-                  isDisabled={loading}
-                  className="text-sm"
-                  styles={{
-                    control: (provided) => ({
-                      ...provided,
-                      minHeight: '32px',
-                      borderColor: '#d1d5db',
-                      fontSize: '14px',
-                      '&:hover': {
-                        borderColor: '#10b981'
-                      }
-                    }),
-                    menu: (provided) => ({
-                      ...provided,
-                      zIndex: 9999
-                    }),
-                    option: (provided, state) => ({
-                      ...provided,
-                      backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
-                      color: state.isFocused ? '#065f46' : '#374151',
-                      fontSize: '14px'
-                    })
-                  }}
                 />
               </div>
 

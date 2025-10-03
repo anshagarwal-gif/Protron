@@ -10,5 +10,4 @@ public class ProtronserverApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ProtronserverApplication.class, args);
 	}
-
 }

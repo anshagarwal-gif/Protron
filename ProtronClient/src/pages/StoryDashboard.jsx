@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload } from 'react-icons/fi';
+import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload, FiGitBranch, FiCheckSquare } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AgGridReact } from 'ag-grid-react';
@@ -7,6 +7,7 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import CreatableSelect from 'react-select/creatable';
+import Select from 'react-select';
 import AddStoryModal from '../components/AddStoryModal';
 import EditStoryModal from '../components/EditStoryModal';
 import ViewStoryModal from '../components/ViewStoryModal';
@@ -712,7 +713,7 @@ const StoryDashboard = () => {
             className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
             title="Add Solution Story"
           >
-            <FiPlus size={16} />
+            <FiGitBranch size={16} />
           </button>
         )}
         {(storyType === 'userstory' || storyType === 'solutionstory') && (
@@ -724,7 +725,7 @@ const StoryDashboard = () => {
             className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
             title="Add Task"
           >
-            <FiPlus size={16} />
+            <FiCheckSquare size={16} />
           </button>
         )}
         <button
@@ -749,6 +750,13 @@ const StoryDashboard = () => {
         suppressMenu: true,
         sortable: false,
         filter: false,
+      },
+      {
+        headerName: 'ID',
+        valueGetter: (params) => params.data.usId || params.data.ssId || params.data.taskId,
+        width: 100,
+        filter: 'agTextColumnFilter',
+        cellStyle: { fontWeight: '500' }
       },
       {
         headerName: 'Project',
@@ -874,8 +882,8 @@ const StoryDashboard = () => {
         {
           headerName: 'Actions',
           cellRenderer: ActionsRenderer,
-          width: 120,
-          suppressMenu: true,
+          width: 180,
+          // suppressMenu: true,
           sortable: false,
           filter: false,
           pinned: 'right'
@@ -949,7 +957,7 @@ const StoryDashboard = () => {
         {
           headerName: 'Actions',
           cellRenderer: ActionsRenderer,
-          width: 120,
+          width: 150,
           suppressMenu: true,
           sortable: false,
           filter: false,
@@ -1034,7 +1042,7 @@ const StoryDashboard = () => {
         {
           headerName: 'Actions',
           cellRenderer: ActionsRenderer,
-          width: 120,
+          width: 150,
           suppressMenu: true,
           sortable: false,
           filter: false,
@@ -1094,7 +1102,7 @@ const StoryDashboard = () => {
         {
           headerName: 'Actions',
           cellRenderer: ActionsRenderer,
-          width: 120,
+          width: 150,
           suppressMenu: true,
           sortable: false,
           filter: false,
@@ -1149,17 +1157,6 @@ const StoryDashboard = () => {
               <p className="text-gray-600">Manage and track user stories across projects</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 cursor-pointer"
-            >
-              <FiPlus size={20} />
-              <span>Add Story</span>
-            </button>
-
-
-          </div>
         </div>
       </div>
 
@@ -1179,7 +1176,7 @@ const StoryDashboard = () => {
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
-              <option value="">All Projects</option>
+              <option value="" disabled>Select a project</option>
               {projectList.map(project => (
                 <option
                   key={project.projectId}
@@ -1196,7 +1193,10 @@ const StoryDashboard = () => {
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Sprint</label>
             <CreatableSelect
-              value={filters.sprint ? { value: filters.sprint, label: filters.sprint } : null}
+              value={filters.sprint ? {
+                value: filters.sprint,
+                label: sprintList.find(s => s.sprintId.toString() === filters.sprint)?.sprintName || filters.sprint
+              } : null}
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, sprint: value });
@@ -1340,7 +1340,10 @@ const StoryDashboard = () => {
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Release</label>
             <CreatableSelect
-              value={filters.release ? { value: filters.release, label: filters.release } : null}
+              value={filters.release ? {
+                value: filters.release,
+                label: releaseList.find(r => r.releaseId.toString() === filters.release)?.releaseName || filters.release
+              } : null}
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, release: value });
@@ -1384,14 +1387,13 @@ const StoryDashboard = () => {
           <div className="flex flex-wrap gap-2 items-end">
             {/* Level 1: Main Type Filter */}
             <div className="w-[220px]">
-              <CreatableSelect
+              <Select
                 value={typeDropdowns.level1 ? { value: typeDropdowns.level1, label: typeDropdowns.level1 } : null}
                 onChange={(selectedOption) => {
                   const value = selectedOption ? selectedOption.value : '';
                   handleTypeChange(1, value);
                 }}
                 options={getTypeOptions(1)}
-                isClearable
                 placeholder={filters.projectName ? "Select type..." : "Select project first"}
                 isDisabled={!filters.projectName}
                 className="text-sm"
@@ -1553,6 +1555,16 @@ const StoryDashboard = () => {
               >
                 Table View
               </button>
+            </div>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 cursor-pointer"
+              >
+                <FiPlus size={20} />
+                <span>Add Story</span>
+              </button>
+
             </div>
           </div>
 
@@ -2369,6 +2381,7 @@ const StoryDashboard = () => {
         }}
         onSubmit={handleAddStory}
         initialStatus={selectedStory?.status}
+        initialValues={filters}
       />
 
       {/* Edit Story Modal */}
