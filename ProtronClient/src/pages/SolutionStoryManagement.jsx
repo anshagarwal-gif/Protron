@@ -12,14 +12,12 @@ import {
   Eye,
   Trash2
 } from "lucide-react";
-import { useAccess } from "../Context/AccessContext";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSolutionStoryModal from "../components/AddSolutionStoryModal";
 import EditSolutionStoryModal from "../components/EditSolutionStoryModal";
 import ViewSolutionStoryModal from "../components/ViewSolutionStoryModal";
 
 const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
-  const { hasAccess } = useAccess();
   
   // State management
   const [solutionStories, setSolutionStories] = useState([]);
@@ -171,7 +169,17 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
             <Edit size={16} />
           </button>
       
-       
+        <button
+          onClick={() => {
+            const parentStoryData = encodeURIComponent(JSON.stringify(story));
+            window.open(`/task-management?parentStory=${parentStoryData}`, '_blank');
+          }}
+          className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
+          title="Add Task"
+        >
+          <Plus size={16} />
+        </button>
+
           <button
             onClick={() => handleDelete(story.ssId)}
             className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
@@ -182,7 +190,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
        
       </div>
     );
-  }, [hasAccess, handleView, handleEdit, handleDelete]);
+  }, [handleView, handleEdit, handleDelete]);
 
   const columnDefs = [
     {
@@ -313,7 +321,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     {
       headerName: "Actions",
       cellRenderer: ActionsRenderer,
-      width: 120,
+      width: 150,
       suppressMenu: true,
       sortable: false,
       filter: false,

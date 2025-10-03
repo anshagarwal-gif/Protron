@@ -21,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -133,7 +135,7 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public Optional<Task> getTaskByTaskId(String taskId) {
-        return taskRepository.findByTaskId(taskId);
+        return taskRepository.findByTaskIdAndEndTimestampIsNull(taskId);
     }
 
     @Transactional
@@ -143,7 +145,7 @@ public class TaskService {
 
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
-        Task oldTask = taskRepository.findByTaskId(taskId)
+        Task oldTask = taskRepository.findByTaskIdAndEndTimestampIsNull(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with taskId: " + taskId));
 
         // Soft-delete old task
@@ -172,12 +174,13 @@ public class TaskService {
         newTask.setEndTimestamp(null);
         newTask.setLastUpdatedBy(null);
 
-        // Attachments are now handled in a separate call, so we don't process them here.
+        // Attachments are now handled in a separate call, so we don't process them
+        // here.
         // if (taskDto.getAttachments() != null) {
-        //     for (TaskAttachment attachmentDto : taskDto.getAttachments()) {
-        //         attachmentDto.setTaskId(newTask.getTaskId());
-        //         taskAttachmentRepository.save(attachmentDto);
-        //     }
+        // for (TaskAttachment attachmentDto : taskDto.getAttachments()) {
+        // attachmentDto.setTaskId(newTask.getTaskId());
+        // taskAttachmentRepository.save(attachmentDto);
+        // }
         // }
 
         return taskRepository.save(newTask);
@@ -187,7 +190,7 @@ public class TaskService {
     public void deleteTask(String taskId) {
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
-        Task task = taskRepository.findByTaskId(taskId)
+        Task task = taskRepository.findByTaskIdAndEndTimestampIsNull(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with taskId: " + taskId));
 
         task.setEndTimestamp(LocalDateTime.now());
@@ -247,7 +250,11 @@ public class TaskService {
         }
 
         if (filter.getCreatedDate() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(root.get("dateCreated"), filter.getCreatedDate()));
+            LocalDate createdDate = filter.getCreatedDate().toLocalDate();
+            LocalDateTime startOfDay = createdDate.atStartOfDay();
+            LocalDateTime endOfDay = createdDate.atTime(LocalTime.MAX);
+
+            predicates.add(cb.between(root.get("dateCreated"), startOfDay, endOfDay));
         }
 
         cq.where(predicates.toArray(new Predicate[0]));
