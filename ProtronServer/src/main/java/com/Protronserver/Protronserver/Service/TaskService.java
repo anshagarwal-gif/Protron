@@ -133,7 +133,7 @@ public class TaskService {
 
     @Transactional(readOnly = true)
     public Optional<Task> getTaskByTaskId(String taskId) {
-        return taskRepository.findByTaskId(taskId);
+        return taskRepository.findByTaskIdAndEndTimestampIsNull(taskId);
     }
 
     @Transactional
@@ -188,7 +188,7 @@ public class TaskService {
     public void deleteTask(String taskId) {
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
-        Task task = taskRepository.findByTaskId(taskId)
+        Task task = taskRepository.findByTaskIdAndEndTimestampIsNull(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with taskId: " + taskId));
 
         task.setEndTimestamp(LocalDateTime.now());
