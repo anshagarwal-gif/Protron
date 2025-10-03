@@ -463,15 +463,26 @@ const StoryDashboard = () => {
       // Show Level 3 only if User Story is selected in Level 1 AND Solution Story in Level 2
       newShowDropdowns.level3 = (newTypeDropdowns.level1 === 'User Story' && value === 'Solution Story') ? true : false;
 
-      // Update main type filter to include both levels
-      const combinedType = `${newTypeDropdowns.level1} > ${value}`;
-      setFilters(prev => ({ ...prev, type: combinedType }));
+      // Update main type filter to include both levels if level2 has a value
+      if (value) {
+        const combinedType = `${newTypeDropdowns.level1} > ${value}`;
+        setFilters(prev => ({ ...prev, type: combinedType }));
+      } else {
+        // If level2 is deselected, revert to level1 only
+        setFilters(prev => ({ ...prev, type: newTypeDropdowns.level1 }));
+      }
     } else if (level === 3) {
       newTypeDropdowns.level3 = value;
 
-      // Update main type filter to include all levels
-      const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2} > ${value}`;
-      setFilters(prev => ({ ...prev, type: combinedType }));
+      // Update main type filter to include all levels if level3 has a value
+      if (value) {
+        const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2} > ${value}`;
+        setFilters(prev => ({ ...prev, type: combinedType }));
+      } else {
+        // If level3 is deselected, revert to level1 and level2
+        const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2}`;
+        setFilters(prev => ({ ...prev, type: combinedType }));
+      }
     }
 
     setTypeDropdowns(newTypeDropdowns);
