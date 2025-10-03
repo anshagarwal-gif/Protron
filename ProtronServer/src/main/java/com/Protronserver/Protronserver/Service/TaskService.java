@@ -143,7 +143,7 @@ public class TaskService {
 
         String email = loggedInUserUtils.getLoggedInUser().getEmail();
 
-        Task oldTask = taskRepository.findByTaskId(taskId)
+        Task oldTask = taskRepository.findByTaskIdAndEndTimestampIsNull(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with taskId: " + taskId));
 
         // Soft-delete old task
@@ -172,12 +172,13 @@ public class TaskService {
         newTask.setEndTimestamp(null);
         newTask.setLastUpdatedBy(null);
 
-        // Attachments are now handled in a separate call, so we don't process them here.
+        // Attachments are now handled in a separate call, so we don't process them
+        // here.
         // if (taskDto.getAttachments() != null) {
-        //     for (TaskAttachment attachmentDto : taskDto.getAttachments()) {
-        //         attachmentDto.setTaskId(newTask.getTaskId());
-        //         taskAttachmentRepository.save(attachmentDto);
-        //     }
+        // for (TaskAttachment attachmentDto : taskDto.getAttachments()) {
+        // attachmentDto.setTaskId(newTask.getTaskId());
+        // taskAttachmentRepository.save(attachmentDto);
+        // }
         // }
 
         return taskRepository.save(newTask);

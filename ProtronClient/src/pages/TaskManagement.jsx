@@ -12,14 +12,12 @@ import {
   Eye,
   Trash2
 } from "lucide-react";
-import { useAccess } from "../Context/AccessContext";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddTaskModal from "../components/AddTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
 import ViewTaskModal from "../components/ViewTaskModal";
 
 const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
-  const { hasAccess } = useAccess();
   
   // State management
   const [tasks, setTasks] = useState([]);
@@ -93,7 +91,9 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       try {
         const parsed = JSON.parse(decodeURIComponent(parentStoryData));
         setParentStory(parsed);
-        fetchTasks(parsed.usId);
+        // Handle both User Story (usId) and Solution Story (ssId) parent IDs
+        const parentId = parsed.usId || parsed.ssId;
+        fetchTasks(parentId);
       } catch (error) {
         console.error('Error parsing parent story data:', error);
         showSnackbar('Invalid parent story data', 'error');
@@ -139,7 +139,8 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
       if (response.ok) {
         showSnackbar('Task deleted successfully!', 'success');
-        fetchTasks(parentStory?.usId);
+        const parentId = parentStory?.usId || parentStory?.ssId;
+        fetchTasks(parentId);
       } else {
         showSnackbar('Failed to delete Task', 'error');
       }
@@ -147,7 +148,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       console.error('Error deleting Task:', error);
       showSnackbar('Failed to delete Task', 'error');
     }
-  }, [showSnackbar, fetchTasks, parentStory?.usId]);
+  }, [showSnackbar, fetchTasks, parentStory?.usId, parentStory?.ssId]);
 
   const ActionsRenderer = useCallback((params) => {
     const task = params.data;
@@ -181,7 +182,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         
       </div>
     );
-  }, [hasAccess, handleView, handleEdit, handleDelete]);
+  }, [handleView, handleEdit, handleDelete]);
 
   const columnDefs = [
     {
@@ -337,7 +338,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           <h2 className="text-2xl font-bold text-gray-900">Task Management</h2>
           {parentStory && (
             <p className="text-sm text-gray-600 mt-1">
-              Parent Story: {parentStory.summary} ({parentStory.usId})
+              Parent Story: {parentStory.summary} ({parentStory.usId || parentStory.ssId})
             </p>
           )}
         </div>
@@ -449,7 +450,8 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         <AddTaskModal
           open={isAddModalOpen}
           onClose={() => {
-            fetchTasks(parentStory?.usId);
+            const parentId = parentStory?.usId || parentStory?.ssId;
+            fetchTasks(parentId);
             setIsAddModalOpen(false);
           }}
           parentStory={parentStory}
@@ -460,7 +462,8 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         <EditTaskModal
           open={isEditModalOpen}
           onClose={() => {
-            fetchTasks(parentStory?.usId);
+            const parentId = parentStory?.usId || parentStory?.ssId;
+            fetchTasks(parentId);
             setIsEditModalOpen(false);
           }}
           taskId={selectedTaskId}
