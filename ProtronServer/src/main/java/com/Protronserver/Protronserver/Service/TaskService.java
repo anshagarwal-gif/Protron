@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.TaskFilterDTO;
+import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Task;
 import com.Protronserver.Protronserver.Entities.TaskAttachment;
@@ -51,6 +52,9 @@ public class TaskService {
 
     @Autowired
     private SolutionStoryRepository solutionStoryRepository;
+
+    @Autowired
+    private TimesheetTaskService timesheetTaskService;
 
     @Autowired
     public TaskService(TaskRepository taskRepository, CustomIdGenerator idGenerator) {
@@ -120,7 +124,28 @@ public class TaskService {
         task.setEndTimestamp(null);
         task.setLastUpdatedBy(null);
 
-        return taskRepository.save(task);
+        Task savedTask =  taskRepository.save(task);
+
+        boolean hasTimeSpent = (taskDto.getTimeSpentHours() > 0)
+                || (taskDto.getTimeSpentMinutes() > 0);
+
+        if (hasTimeSpent) {
+            TimesheetTaskRequestDTO timesheetDto = new TimesheetTaskRequestDTO();
+            timesheetDto.setTaskType(taskDto.getTaskType());
+            timesheetDto.setDate(java.sql.Date.valueOf(taskDto.getDate())); // convert LocalDate → Date
+            timesheetDto.setHoursSpent(taskDto.getTimeSpentHours());
+            timesheetDto.setMinutesSpent(taskDto.getTimeSpentMinutes());
+            timesheetDto.setRemainingHours(taskDto.getTimeRemainingHours());
+            timesheetDto.setRemainingMinutes(taskDto.getTimeRemainingMinutes());
+            timesheetDto.setTaskTopic(taskDto.getTaskTopic());
+            timesheetDto.setDescription(taskDto.getTaskDescription());
+            timesheetDto.setProjectId(taskDto.getProjectId());
+            timesheetDto.setAttachments(null);
+
+            timesheetTaskService.addTask(timesheetDto);
+        }
+
+        return savedTask;
     }
 
     @Transactional(readOnly = true)

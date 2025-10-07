@@ -329,6 +329,8 @@ const TaskDetailsModal = ({
     }
   })();
 
+  console.log(taskDetail)
+
   return (
     <>
       {/* Main Modal */}
