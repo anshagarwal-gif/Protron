@@ -21,7 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -284,7 +286,7 @@ public class SolutionStoryService {
         }
 
         if (filter.getParentId() != null) {
-            predicates.add(cb.equal(root.get("parentId"), filter.getParentId()));
+            predicates.add(cb.like(root.get("parentId"), filter.getParentId() + "%"));
         }
 
         if (filter.getStatus() != null) {
@@ -300,7 +302,11 @@ public class SolutionStoryService {
         }
 
         if (filter.getCreatedDate() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(root.get("dateCreated"), filter.getCreatedDate()));
+            LocalDate createdDate = filter.getCreatedDate().toLocalDate();
+            LocalDateTime startOfDay = createdDate.atStartOfDay();
+            LocalDateTime endOfDay = createdDate.atTime(LocalTime.MAX);
+
+            predicates.add(cb.between(root.get("dateCreated"), startOfDay, endOfDay));
         }
 
         cq.where(predicates.toArray(new Predicate[0]));

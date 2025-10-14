@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.TaskFilterDTO;
+import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Task;
 import com.Protronserver.Protronserver.Entities.TaskAttachment;
@@ -21,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,6 +52,9 @@ public class TaskService {
 
     @Autowired
     private SolutionStoryRepository solutionStoryRepository;
+
+    @Autowired
+    private TimesheetTaskService timesheetTaskService;
 
     @Autowired
     public TaskService(TaskRepository taskRepository, CustomIdGenerator idGenerator) {
@@ -118,7 +124,28 @@ public class TaskService {
         task.setEndTimestamp(null);
         task.setLastUpdatedBy(null);
 
-        return taskRepository.save(task);
+        Task savedTask =  taskRepository.save(task);
+
+        boolean hasTimeSpent = (taskDto.getTimeSpentHours() > 0)
+                || (taskDto.getTimeSpentMinutes() > 0);
+
+        if (hasTimeSpent) {
+            TimesheetTaskRequestDTO timesheetDto = new TimesheetTaskRequestDTO();
+            timesheetDto.setTaskType(taskDto.getTaskType());
+            timesheetDto.setDate(java.sql.Date.valueOf(taskDto.getDate())); // convert LocalDate → Date
+            timesheetDto.setHoursSpent(taskDto.getTimeSpentHours());
+            timesheetDto.setMinutesSpent(taskDto.getTimeSpentMinutes());
+            timesheetDto.setRemainingHours(taskDto.getTimeRemainingHours());
+            timesheetDto.setRemainingMinutes(taskDto.getTimeRemainingMinutes());
+            timesheetDto.setTaskTopic(taskDto.getTaskTopic());
+            timesheetDto.setDescription(taskDto.getTaskDescription());
+            timesheetDto.setProjectId(taskDto.getProjectId());
+            timesheetDto.setAttachments(null);
+
+            timesheetTaskService.addTask(timesheetDto);
+        }
+
+        return savedTask;
     }
 
     @Transactional(readOnly = true)
@@ -311,7 +338,11 @@ public class TaskService {
         }
 
         if (filter.getCreatedDate() != null) {
-            predicates.add(cb.greaterThanOrEqualTo(root.get("dateCreated"), filter.getCreatedDate()));
+            LocalDate createdDate = filter.getCreatedDate().toLocalDate();
+            LocalDateTime startOfDay = createdDate.atStartOfDay();
+            LocalDateTime endOfDay = createdDate.atTime(LocalTime.MAX);
+
+            predicates.add(cb.between(root.get("dateCreated"), startOfDay, endOfDay));
         }
 
         cq.where(predicates.toArray(new Predicate[0]));

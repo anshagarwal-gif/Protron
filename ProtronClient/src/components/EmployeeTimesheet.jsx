@@ -268,7 +268,9 @@ const TimesheetManager = () => {
         taskType: task.taskType,
         project: { projectName: task.projectName || "", projectId: task.projectId || "" },
         submitted: task.submitted,
-        attachments: task.attachments
+        attachments: task.attachments,
+        remainingHours: task.remainingHours || 0,
+        remainingMinutes: task.remainingMinutes || 0,
       }));
 
       // Group tasks by date
@@ -286,6 +288,8 @@ const TimesheetManager = () => {
           project: task.project,
           submitted: task.submitted,
           attachments: task.attachments,
+          remainingHours: task.remainingHours || 0,
+          remainingMinutes: task.remainingMinutes || 0,
           fullTask: task,
         });
       });
@@ -732,7 +736,7 @@ const TimesheetManager = () => {
                         title={`${entry.task} - ${entry.hours}h ${entry.minutes}m - ${entry.project}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setTaskDetail(entry.fullTask);
+                          setTaskDetail({...entry.fullTask, remainingHours: entry.remainingHours , remainingMinutes: entry.remainingMinutes});
                         }}
                       >
                         <span className="font-semibold">{entry.task}</span>
@@ -806,7 +810,7 @@ const TimesheetManager = () => {
                               title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setTaskDetail(entry.fullTask);
+                                setTaskDetail({...entry.fullTask, remainingHours: entry.remainingHours , remainingMinutes: entry.remainingMinutes});
                               }}
                             >
                               <span className="font-semibold">{entry.task}</span>
@@ -1084,7 +1088,7 @@ const TimesheetManager = () => {
                                   key={entry.id}
                                   className={`border rounded-xl p-2 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-between h-[150px] bg-green-50 border-green-200 ${isWeekendDay ? 'opacity-90' : ''
                                     }`}
-                                  onClick={() => setTaskDetail(entry.fullTask)}
+                                  onClick={() => setTaskDetail({...entry.fullTask, remainingHours: entry.remainingHours , remainingMinutes: entry.remainingMinutes})}
                                 >
                                   {entry.project && (
                                     <div className="flex justify-center mt-1">
@@ -1119,7 +1123,7 @@ const TimesheetManager = () => {
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          setTaskDetail(entry.fullTask);
+                                          setTaskDetail({...entry.fullTask, remainingHours: entry.remainingHours , remainingMinutes: entry.remainingMinutes});
                                         }}
                                         className="cursor-pointer"
                                       >
