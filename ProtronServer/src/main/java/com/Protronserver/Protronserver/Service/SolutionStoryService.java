@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SolutionStoryService {
@@ -53,7 +54,7 @@ public class SolutionStoryService {
     private SprintRepository sprintRepository;
 
     public SolutionStoryService(SolutionStoryRepository solutionStoryRepository,
-                                CustomIdGenerator idGenerator) {
+            CustomIdGenerator idGenerator) {
         this.solutionStoryRepository = solutionStoryRepository;
         this.idGenerator = idGenerator;
     }
@@ -241,6 +242,11 @@ public class SolutionStoryService {
     @Transactional(readOnly = true)
     public List<SolutionStoryAttachment> getAttachments(String ssId) {
         return solutionStoryAttachmentRepository.findBySsId(ssId);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SolutionStoryAttachment> downloadAttachment(Long attachmentId) {
+        return solutionStoryAttachmentRepository.findById(attachmentId);
     }
 
     @Transactional

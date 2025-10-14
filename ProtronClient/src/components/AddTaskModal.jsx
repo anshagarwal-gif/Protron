@@ -114,16 +114,22 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
     const newFiles = Array.from(e.target.files);
     if (!newFiles.length) return;
 
+    console.log('Selected files:', newFiles.map(f => ({ name: f.name, size: f.size })));
+
     // Simple validation for file count
     if (formData.attachments.length + newFiles.length > 4) {
       showSnackbar("You can only upload a maximum of 4 files.", "error");
       return;
     }
 
-    setFormData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...newFiles]
-    }));
+    setFormData(prev => {
+      const newAttachments = [...prev.attachments, ...newFiles];
+      console.log('Updated attachments:', newAttachments.length);
+      return {
+        ...prev,
+        attachments: newAttachments
+      };
+    });
   };
 
   const handleRemoveAttachment = (index) => {
@@ -190,6 +196,8 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
     
     if (!validateForm()) return;
 
+    console.log('Submitting task with attachments:', formData.attachments.length);
+
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
@@ -223,22 +231,41 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
 
       // Step 2: Upload attachments if any
       if (formData.attachments.length > 0) {
-        const uploadPromises = formData.attachments.map(file => {
-          const fileFormData = new FormData();
-          fileFormData.append("file", file);
+        try {
+          console.log('Uploading', formData.attachments.length, 'attachments for task:', newTaskId);
+          const uploadPromises = formData.attachments.map((file, index) => {
+            console.log(`Preparing upload ${index + 1}/${formData.attachments.length}:`, file.name);
+            const fileFormData = new FormData();
+            fileFormData.append("file", file);
 
-          return axios.post(
-            `${API_BASE_URL}/api/tasks/${newTaskId}/attachment`,
-            fileFormData,
-            {
-              headers: {
-                Authorization: token,
-                'Content-Type': 'multipart/form-data',
-              },
-            }
-          );
-        });
-        await Promise.all(uploadPromises);
+            const uploadUrl = `${API_BASE_URL}/api/tasks/${newTaskId}/attachment`;
+            console.log('Upload URL:', uploadUrl);
+
+            return axios.post(
+              uploadUrl,
+              fileFormData,
+              {
+                headers: {
+                  Authorization: token,
+                  // Remove Content-Type header - let axios set it automatically for FormData
+                },
+                timeout: 30000, // 30 second timeout
+              }
+            ).then(response => {
+              console.log(`Successfully uploaded: ${file.name}`, response.data);
+              return response;
+            }).catch(error => {
+              console.error(`Failed to upload: ${file.name}`, error.response?.data || error.message);
+              throw error;
+            });
+          });
+          await Promise.all(uploadPromises);
+          console.log('All attachments uploaded successfully');
+        } catch (uploadError) {
+          console.error('Attachment upload error:', uploadError);
+          console.error('Upload error details:', uploadError.response?.data);
+          showSnackbar("Task created but some attachments failed to upload", 'warning');
+        }
       }
 
       showSnackbar("Task added successfully", 'success');

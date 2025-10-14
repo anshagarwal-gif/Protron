@@ -198,19 +198,82 @@ public class TaskService {
 
     @Transactional
     public TaskAttachment addAttachment(String taskId, MultipartFile file) throws IOException {
-        TaskAttachment attachment = new TaskAttachment();
-        attachment.setTaskId(taskId);
-        attachment.setFileName(file.getOriginalFilename());
-        attachment.setFileType(file.getContentType());
-        attachment.setFileSize(file.getSize());
-        attachment.setData(file.getBytes());
-        attachment.setUploadedAt(LocalDateTime.now());
-        return taskAttachmentRepository.save(attachment);
+        try {
+            System.out.println("TaskService: Adding attachment for taskId: " + taskId);
+            System.out.println("TaskService: File name: " + file.getOriginalFilename());
+            System.out.println("TaskService: File size: " + file.getSize());
+            System.out.println("TaskService: File type: " + file.getContentType());
+
+            TaskAttachment attachment = new TaskAttachment();
+            attachment.setTaskId(taskId);
+            attachment.setFileName(file.getOriginalFilename());
+            attachment.setFileType(file.getContentType());
+            attachment.setFileSize(file.getSize());
+            attachment.setData(file.getBytes());
+            attachment.setUploadedAt(LocalDateTime.now());
+
+            System.out.println("TaskService: Attempting to save attachment...");
+            TaskAttachment savedAttachment = taskAttachmentRepository.save(attachment);
+            System.out.println("TaskService: Save operation completed successfully");
+            System.out.println("TaskService: Attachment saved successfully with ID: " + savedAttachment.getId());
+
+            return savedAttachment;
+        } catch (Exception e) {
+            System.err.println("TaskService: Error adding attachment for taskId: " + taskId);
+            System.err.println("TaskService: Error message: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
-    @Transactional(readOnly = true)
     public List<TaskAttachment> getAttachments(String taskId) {
-        return taskAttachmentRepository.findByTaskId(taskId);
+        try {
+            System.out.println("TaskService: Getting attachments for taskId: " + taskId);
+
+            List<TaskAttachment> attachments = null;
+            try {
+                // Try JPA generated method first
+                System.out.println("TaskService: Trying JPA findByTaskId...");
+                attachments = taskAttachmentRepository.findByTaskId(taskId);
+            } catch (Exception e1) {
+                System.err.println("TaskService: JPA method failed, trying native query: " + e1.getMessage());
+                try {
+                    // Fallback to native SQL query
+                    System.out.println("TaskService: Trying native SQL query...");
+                    attachments = taskAttachmentRepository.findByTaskIdNative(taskId);
+                } catch (Exception e2) {
+                    System.err.println("TaskService: Native query also failed: " + e2.getMessage());
+
+                    // For now, return empty list instead of throwing exception
+                    System.out.println("TaskService: Returning empty list due to errors");
+                    return List.of();
+                }
+            }
+
+            System.out.println("TaskService: Found " + (attachments != null ? attachments.size() : 0) + " attachments");
+
+            if (attachments != null) {
+                for (TaskAttachment att : attachments) {
+                    System.out.println("TaskService: Attachment ID: " + att.getId() +
+                            ", fileName: " + att.getFileName());
+                }
+            }
+
+            return attachments != null ? attachments : List.of();
+
+        } catch (Exception e) {
+            System.err.println("TaskService: Error getting attachments for taskId: " + taskId);
+            System.err.println("TaskService: Error message: " + e.getMessage());
+            e.printStackTrace();
+
+            // Don't throw exception, just return empty list
+            System.out.println("TaskService: Returning empty list due to error");
+            return List.of();
+        }
+    }
+
+    public Optional<TaskAttachment> downloadAttachment(Long attachmentId) {
+        return taskAttachmentRepository.findById(attachmentId);
     }
 
     @Transactional

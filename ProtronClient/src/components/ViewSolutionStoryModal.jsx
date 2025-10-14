@@ -17,22 +17,23 @@ const ViewSolutionStoryModal = ({ open, onClose, storyData }) => {
     if (open && storyData?.ssId) {
       setLoadingAttachments(true);
       axios
-        .get(`${import.meta.env.VITE_API_URL}/api/solutionstory/${storyData.ssId}`, {
+        .get(`${import.meta.env.VITE_API_URL}/api/solutionstory/${storyData.ssId}/attachments`, {
           headers: {
-            'Authorization': sessionData?.token
+            'Authorization': sessionStorage.getItem('token')
           }
         })
         .then((res) => {
+          console.log('Solution story attachments loaded:', res.data);
           setAttachments(res.data);
           setAttachmentError(null);
         })
         .catch((err) => {
+          console.error('Error loading Solution story attachments:', err);
           setAttachmentError("Failed to load attachments.");
-          console.error(err);
         })
         .finally(() => setLoadingAttachments(false));
     }
-  }, [open, storyData?.ssId, sessionData?.token]);
+  }, [open, storyData?.ssId]);
 
   // Fetch names for project, sprint, release, and parent story
   useEffect(() => {

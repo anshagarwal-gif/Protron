@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,8 +19,6 @@ const truncateText = (text, maxLength = 20) => {
 };
 
 const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
-  if (!open) return null;
-
   const [formData, setFormData] = useState({
     projectId: '',
     parentId: '',
@@ -32,7 +30,8 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
     storyPoints: 0,
     assignee: '',
     releaseId: '',
-    sprintId: ''
+    sprintId: '',
+    attachments: []
   });
 
   const [users, setUsers] = useState([]);
@@ -45,7 +44,6 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
     message: '',
     severity: 'success'
   });
-  const [error, setError] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
   const { sessionData } = useSession();
   
@@ -126,6 +124,35 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  const handleFileChange = (e) => {
+    const newFiles = Array.from(e.target.files);
+    if (!newFiles.length) return;
+
+    // Simple validation for file count
+    if (formData.attachments.length + newFiles.length > 4) {
+      showSnackbar("You can only upload a maximum of 4 files.", "error");
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...newFiles]
+    }));
+  };
+
+  const handleRemoveAttachment = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index)
+    }));
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const handleInputChange = (field) => (event) => {
     const value = event.target.value;
     setFormData(prev => ({
@@ -195,7 +222,60 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
         }
       );
 
-      showSnackbar("Solution Story added successfully", 'success');
+      console.log('Solution story creation response:', response.data);
+      console.log('Response data type:', typeof response.data);
+      const newSolutionStoryId = response.data.ssId || response.data.id || (response.data && response.data.toString());
+      console.log('Extracted solution story ID:', newSolutionStoryId);
+
+      // Upload attachments if any
+      if (formData.attachments.length > 0) {
+        console.log('Uploading attachments for solution story:', newSolutionStoryId);
+        console.log('Solution story response data type:', typeof newSolutionStoryId);
+        
+        // Validate that we have a valid ID
+        let finalSolutionStoryId = newSolutionStoryId;
+        if (typeof finalSolutionStoryId === 'object' && finalSolutionStoryId !== null) {
+          finalSolutionStoryId = finalSolutionStoryId.ssId || finalSolutionStoryId.id || finalSolutionStoryId.toString();
+          console.log('Processed solution story ID:', finalSolutionStoryId);
+        }
+        
+        if (!finalSolutionStoryId || typeof finalSolutionStoryId !== 'string') {
+          console.error('Invalid solution story ID after processing:', finalSolutionStoryId);
+          showSnackbar("Solution Story created but attachment upload failed due to invalid ID", 'warning');
+        } else {
+          let attachmentUploadCount = 0;
+          const uploadErrors = [];
+
+          for (const file of formData.attachments) {
+          try {
+            const formData_upload = new FormData();
+            formData_upload.append('file', file);
+
+            const uploadUrl = `${API_BASE_URL}/api/solutionstory/${finalSolutionStoryId}`;
+            console.log('Upload URL:', uploadUrl);
+            await axios.post(uploadUrl, formData_upload, {
+              headers: {
+                'Authorization': token
+              },
+              timeout: 30000 // 30 seconds timeout
+            });
+            attachmentUploadCount++;
+          } catch (uploadError) {
+            console.error('Failed to upload attachment:', uploadError);
+            uploadErrors.push(file.name);
+          }
+          }
+
+          if (uploadErrors.length > 0) {
+            showSnackbar(`Solution Story added successfully, but ${uploadErrors.length} attachments failed to upload`, 'warning');
+          } else if (attachmentUploadCount > 0) {
+            showSnackbar(`Solution Story added successfully with ${attachmentUploadCount} attachments`, 'success');
+          }
+        }
+      } else {
+        showSnackbar("Solution Story added successfully", 'success');
+      }
+
       onClose();
       resetForm();
     } catch (error) {
@@ -222,16 +302,18 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
       storyPoints: 0,
       assignee: '',
       releaseId: '',
-      sprintId: ''
+      sprintId: '',
+      attachments: []
     });
     setFieldErrors({});
-    setError({});
   };
 
   const handleClose = () => {
     resetForm();
     onClose();
   };
+
+  if (!open) return null;
 
   return (
     <>
@@ -544,6 +626,65 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
               </div>
               <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
                 {formData.description.length} / 500
+              </div>
+            </div>
+
+            {/* Attachments Section */}
+            <div className="w-full mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Attachments
+              </label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-4 mb-2">
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleFileChange}
+                      disabled={formData.attachments.length >= 4}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-2 text-sm text-gray-700">
+                      <svg
+                        className="w-5 h-5 text-green-600"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z" />
+                      </svg>
+                      <span className="text-green-600 font-medium">
+                        {formData.attachments.length >= 4 ? "Max files reached" : "Attach Files"}
+                      </span>
+                      {formData.attachments.length < 4 && (
+                        <span className="text-gray-500 text-xs">(max 4 files)</span>
+                      )}
+                    </div>
+                  </label>
+                </div>
+
+                {/* Selected Files List */}
+                {formData.attachments.length > 0 && (
+                  <div className="space-y-1">
+                    {formData.attachments.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm"
+                      >
+                        <span className="text-gray-700 flex items-center gap-2">
+                          <span className="truncate">{file.name}</span>
+                          <span className="text-gray-500 text-xs">({formatFileSize(file.size)})</span>
+                        </span>
+                        <button
+                          onClick={() => handleRemoveAttachment(index)}
+                          type="button"
+                          className="ml-2 text-sm text-gray-500 hover:text-red-500"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 

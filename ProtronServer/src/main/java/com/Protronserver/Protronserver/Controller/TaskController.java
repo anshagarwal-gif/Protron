@@ -69,7 +69,35 @@ public class TaskController {
     // Get attachments for a task
     @GetMapping("/{taskId}/attachments")
     public ResponseEntity<List<TaskAttachment>> getAttachments(@PathVariable String taskId) {
-        return ResponseEntity.ok(taskService.getAttachments(taskId));
+        try {
+            System.out.println("TaskController: Getting attachments for taskId: " + taskId);
+            List<TaskAttachment> attachments = taskService.getAttachments(taskId);
+            System.out.println(
+                    "TaskController: Found " + (attachments != null ? attachments.size() : 0) + " attachments");
+            return ResponseEntity.ok(attachments);
+        } catch (Exception e) {
+            System.err.println("TaskController: Error getting attachments: " + e.getMessage());
+            e.printStackTrace();
+            // Return empty list instead of error to prevent transaction rollback
+            return ResponseEntity.ok(List.of());
+        }
+    }
+
+    // Download attachment by its own ID
+    @GetMapping("/attachment/{attachmentId}/download")
+    public ResponseEntity<org.springframework.core.io.ByteArrayResource> downloadAttachment(
+            @PathVariable Long attachmentId) {
+        return taskService.downloadAttachment(attachmentId)
+                .map(attachment -> {
+                    org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(
+                            attachment.getData());
+                    return ResponseEntity.ok()
+                            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                                    "attachment; filename=\"" + attachment.getFileName() + "\"")
+                            .contentType(org.springframework.http.MediaType.parseMediaType(attachment.getFileType()))
+                            .body(resource);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Delete attachment

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, User, Hash, Activity, Briefcase } from 'lucide-react';
 import axios from 'axios';
-import { useSession } from '../Context/SessionContext';
 
 const ViewTaskModal = ({ open, onClose, taskData, parentStory }) => {
   const [attachments, setAttachments] = useState([]);
@@ -9,52 +8,85 @@ const ViewTaskModal = ({ open, onClose, taskData, parentStory }) => {
   const [attachmentError, setAttachmentError] = useState(null);
   const [projectName, setProjectName] = useState('');
   const [parentStoryName, setParentStoryName] = useState('');
-  const { sessionData } = useSession();
 
   useEffect(() => {
     if (open && taskData?.taskId) {
       setLoadingAttachments(true);
-      axios
-        .get(`${import.meta.env.VITE_API_URL}/api/tasks/${taskData.taskId}/attachments`, {
-          headers: {
-            'Authorization': sessionData?.token
-          }
-        })
-        .then((res) => {
+      console.log('Loading attachments for taskId:', taskData.taskId);
+      const token = sessionStorage.getItem('token');
+      
+      // Try both attachment endpoints
+      const fetchAttachments = async () => {
+        try {
+          // First try regular TaskController (String taskId)
+          console.log('Trying regular TaskController endpoint...');
+          const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/tasks/${taskData.taskId}/attachments`, {
+            headers: {
+              'Authorization': token
+            }
+          });
+          console.log('Task attachments loaded:', res.data);
           setAttachments(res.data);
           setAttachmentError(null);
-        })
-        .catch((err) => {
-          setAttachmentError("Failed to load attachments.");
-          console.error(err);
-        })
-        .finally(() => setLoadingAttachments(false));
+          
+        } catch (err) {
+          console.error('Error loading Task attachments from TaskController:', err);
+          
+          // If taskId is a number, try TimesheetTaskController as fallback
+          if (!isNaN(parseInt(taskData.taskId))) {
+            try {
+              console.log('Trying TimesheetTaskController endpoint as fallback...');
+              const timesheetRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/timesheet-tasks/${parseInt(taskData.taskId)}/attachments`, {
+                headers: {
+                  'Authorization': token
+                }
+              });
+              console.log('TimesheetTask attachments loaded:', timesheetRes.data);
+              setAttachments(timesheetRes.data);
+              setAttachmentError(null);
+              
+            } catch (timesheetErr) {
+              console.error('Error loading TimesheetTask attachments:', timesheetErr);
+              setAttachmentError("Failed to load attachments.");
+            }
+          } else {
+            setAttachmentError("Failed to load attachments.");
+          }
+        }
+      };
+      
+      fetchAttachments().finally(() => setLoadingAttachments(false));
     }
-  }, [open, taskData?.taskId, sessionData?.token]);
+  }, [open, taskData?.taskId]);
 
   // Fetch names for project and parent story
   useEffect(() => {
     const fetchNames = async () => {
       if (open && taskData) {
         try {
+          const token = sessionStorage.getItem('token');
+          console.log('Fetching names for task:', taskData);
+          
           // Fetch project name
           if (taskData.projectId) {
+            console.log('Fetching project name for projectId:', taskData.projectId);
             const projectRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${taskData.projectId}/name`, {
-              headers: { 'Authorization': sessionData?.token }
+              headers: { 'Authorization': token }
             });
+            console.log('Project name response:', projectRes.data);
             setProjectName(projectRes.data || 'Unknown Project');
           }
 
           // Fetch parent story name
           if (taskData.parentId) {
             if (taskData.parentId.startsWith('US-')) {
-              const userStoryRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/userstory/${taskData.parentId}`, {
-                headers: { 'Authorization': sessionData?.token }
+              const userStoryRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/userstory/active/usid/${taskData.parentId}`, {
+                headers: { 'Authorization': token }
               });
               setParentStoryName(userStoryRes.data.summary || taskData.parentId);
             } else if (taskData.parentId.startsWith('SS-')) {
-              const solutionStoryRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/solutionstory/${taskData.parentId}`, {
-                headers: { 'Authorization': sessionData?.token }
+              const solutionStoryRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/solutionstory/active/ssid/${taskData.parentId}`, {
+                headers: { 'Authorization': token }
               });
               setParentStoryName(solutionStoryRes.data.summary || taskData.parentId);
             } else {
@@ -70,9 +102,12 @@ const ViewTaskModal = ({ open, onClose, taskData, parentStory }) => {
     };
 
     fetchNames();
-  }, [open, taskData, sessionData?.token]);
+  }, [open, taskData]);
 
   if (!open || !taskData) return null;
+
+  // Debug log the taskData structure
+  console.log('ViewTaskModal taskData:', taskData);
 
   // Format date
   const formatDate = (dateString) => {
@@ -214,15 +249,25 @@ const ViewTaskModal = ({ open, onClose, taskData, parentStory }) => {
                       <div>
                         <div className="text-sm font-medium text-gray-900">{attachment.fileName}</div>
                         <div className="text-xs text-gray-500">
-                          {attachment.fileSize ? `${(attachment.fileSize / 1024).toFixed(1)} KB` : 'Unknown size'}
+                          {attachment.fileSize ? `${(attachment.fileSize / 1024).toFixed(1)} KB` : 'Unknown size'} 
+                          {attachment.attachmentId ? ` (ID: ${attachment.attachmentId})` : attachment.id ? ` (ID: ${attachment.id})` : ''}
                         </div>
                       </div>
                     </div>
                     <button
                       onClick={() => {
                         // Handle file download
+                        const token = sessionStorage.getItem('token');
                         const link = document.createElement('a');
-                        link.href = `${import.meta.env.VITE_API_URL}/api/tasks/attachment/${attachment.id}/download`;
+                        // Check if attachment has attachmentId (TimesheetTask) or id (Task)
+                        const attachmentId = attachment.attachmentId || attachment.id;
+                        if (attachment.attachmentId) {
+                          // TimesheetTask attachment
+                          link.href = `${import.meta.env.VITE_API_URL}/api/timesheet-tasks/attachments/${attachmentId}`;
+                        } else {
+                          // Regular Task attachment
+                          link.href = `${import.meta.env.VITE_API_URL}/api/tasks/attachment/${attachmentId}/download`;
+                        }
                         link.download = attachment.fileName;
                         link.click();
                       }}

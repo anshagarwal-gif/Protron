@@ -82,12 +82,30 @@ public class SolutionStoryController {
         return ResponseEntity.ok(solutionStoryService.addAttachment(ssId, file));
     }
 
-    @GetMapping("/{ssId}")
+    // Get attachments for a solution story
+    @GetMapping("/{ssId}/attachments")
     public ResponseEntity<List<SolutionStoryAttachment>> getAttachments(@PathVariable String ssId) {
         return ResponseEntity.ok(solutionStoryService.getAttachments(ssId));
     }
 
-    @DeleteMapping("/{attachmentId}")
+    // Download attachment by its own ID
+    @GetMapping("/attachment/{attachmentId}/download")
+    public ResponseEntity<org.springframework.core.io.ByteArrayResource> downloadAttachment(
+            @PathVariable Long attachmentId) {
+        return solutionStoryService.downloadAttachment(attachmentId)
+                .map(attachment -> {
+                    org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(
+                            attachment.getData());
+                    return ResponseEntity.ok()
+                            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                                    "attachment; filename=\"" + attachment.getFileName() + "\"")
+                            .contentType(org.springframework.http.MediaType.parseMediaType(attachment.getFileType()))
+                            .body(resource);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/attachment/{attachmentId}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable Long attachmentId) {
         solutionStoryService.deleteAttachment(attachmentId);
         return ResponseEntity.noContent().build();

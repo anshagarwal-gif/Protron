@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, BookOpen, User, Target, CheckCircle, Calendar, Building, FileText, Hash, Activity, Briefcase } from 'lucide-react';
 import axios from 'axios';
-import { useSession } from '../Context/SessionContext';
 
 const ViewStoryModal = ({ open, onClose, storyData }) => {
   const [attachments, setAttachments] = useState([]);
@@ -10,38 +9,41 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
   const [projectName, setProjectName] = useState('');
   const [sprintName, setSprintName] = useState('');
   const [releaseName, setReleaseName] = useState('');
-  const { sessionData } = useSession();
 
   useEffect(() => {
     if (open && storyData?.usId) {
       setLoadingAttachments(true);
+      const token = sessionStorage.getItem('token');
       axios
-        .get(`${import.meta.env.VITE_API_URL}/api/userstory/${storyData.usId}`, {
+        .get(`${import.meta.env.VITE_API_URL}/api/userstory/${storyData.usId}/attachments`, {
           headers: {
-            'Authorization': sessionData?.token
+            'Authorization': token
           }
         })
         .then((res) => {
+          console.log('UserStory attachments loaded:', res.data);
           setAttachments(res.data);
           setAttachmentError(null);
         })
         .catch((err) => {
+          console.error('Error loading UserStory attachments:', err);
           setAttachmentError("Failed to load attachments.");
-          console.error(err);
         })
         .finally(() => setLoadingAttachments(false));
     }
-  }, [open, storyData?.usId, sessionData?.token]);
+  }, [open, storyData?.usId]);
 
   // Fetch names for project, sprint, and release
   useEffect(() => {
     const fetchNames = async () => {
       if (open && storyData) {
         try {
+          const token = sessionStorage.getItem('token');
+          
           // Fetch project name
           if (storyData.projectId) {
             const projectRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/projects/${storyData.projectId}/name`, {
-              headers: { 'Authorization': sessionData?.token }
+              headers: { 'Authorization': token }
             });
             setProjectName(projectRes.data || 'Unknown Project');
           }
@@ -49,7 +51,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
           // Fetch sprint name
           if (storyData.sprint) {
             const sprintRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/sprints/${storyData.sprint}`, {
-              headers: { 'Authorization': sessionData?.token }
+              headers: { 'Authorization': token }
             });
             setSprintName(sprintRes.data.sprintName || 'Unknown Sprint');
           }
@@ -57,7 +59,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
           // Fetch release name
           if (storyData.release) {
             const releaseRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/releases/${storyData.release}`, {
-              headers: { 'Authorization': sessionData?.token }
+              headers: { 'Authorization': token }
             });
             setReleaseName(releaseRes.data.releaseName || 'Unknown Release');
           }
@@ -71,7 +73,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
     };
 
     fetchNames();
-  }, [open, storyData, sessionData?.token]);
+  }, [open, storyData]);
 
   if (!open || !storyData) return null;
 
