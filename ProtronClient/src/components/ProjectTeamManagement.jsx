@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight, FiPlus, FiChevronDown, FiUser } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight, FiPlus, FiChevronDown, FiUser, FiEdit } from 'react-icons/fi';
 import { AiOutlineDownload } from 'react-icons/ai';
 import axios from 'axios';
 import EditTeamMemberModal from './EditTeamMemberModal';
@@ -62,21 +62,17 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
 
   const ActionsCellRenderer = (params) => {
     if (!hasAccess('project_team', 'edit')) return null;
-
     return (
-      <select
-        className="w-32 bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-        onChange={(e) => {
-          const action = e.target.value;
-          if (action === "edit") {
-            handleEditMember(params.data);
-          }
-          e.target.selectedIndex = 0;
-        }}
-      >
-        <option value="">Actions</option>
-        <option value="edit">Edit</option>
-      </select>
+      <div className="flex items-center justify-end h-full pr-2">
+        <button
+          onClick={() => handleEditMember(params.data)}
+          title="Edit"
+          className="bg-transparent hover:bg-green-50 text-green-700 hover:text-green-800 p-2 rounded flex items-center justify-center"
+          style={{ padding: 6 }}
+        >
+          <FiEdit />
+        </button>
+      </div>
     );
   };
 
@@ -149,7 +145,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       baseColumns.push({
         headerName: 'Actions',
         cellRenderer: ActionsCellRenderer,
-        minWidth: 120,
+        maxWidth: 120,
         sortable: false,
         filter: false,
         pinned: 'right'
