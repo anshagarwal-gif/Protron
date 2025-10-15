@@ -92,17 +92,27 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
       }
     };
     
-    const fetchUsers = async () => {
+    // Fetch project-team users for a given projectId
+    const fetchUsers = async (projectId) => {
+      if (!projectId) {
+        setUsers([]);
+        return;
+      }
       try {
         const token = sessionStorage.getItem('token');
-        const tenantId = sessionStorage.getItem('tenantId');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
           headers: { Authorization: `${token}` }
         });
-        const data = await res.json();
-        setUsers(data);
+        if (res.ok) {
+          const data = await res.json();
+          setUsers(Array.isArray(data) ? data : []);
+        } else {
+          console.warn('Failed to fetch project team users, falling back to tenant users');
+          setUsers([]);
+        }
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching project team users:', error);
+        setUsers([]);
       }
     };
 
@@ -140,7 +150,10 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
     };
 
     fetchProjectsAndUsers();
-    fetchUsers();
+    // If initialValues include a project, fetch its team
+    if (initialValues?.projectName) {
+      fetchUsers(initialValues.projectName);
+    }
     fetchSystems();
     fetchStatusFlags();
 
@@ -238,6 +251,9 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
       setSprintList([]);
       setReleaseList([]);
     }
+
+    // Fetch project team users for this project
+    fetchUsers(projectId);
   };
 
   const handleFileChange = (e) => {
@@ -514,7 +530,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
                   }}
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.projectId ? 'border-red-500' : 'border-gray-300'
                     }`}
-                  disabled={loading}
+                  disabled={loading || !!initialValues?.projectName}
                   title={formData.projectId ? `Selected Project ID: ${formData.projectId}` : "Select a Project ID"}
                 >
                   <option value="" title="No project selected">Select Project</option>

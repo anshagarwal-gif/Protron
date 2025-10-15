@@ -63,7 +63,8 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
             date: taskData.date || '',
             taskType: taskData.taskType || '',
             taskTopic: taskData.taskTopic || '',
-            taskDescription: taskData.taskDefinition || '',
+            // Use taskDescription field from API response to populate the textarea
+            taskDescription: taskData.taskDescription || '',
             estTime: taskData.estTime || '',
             timeSpentHours: taskData.timeSpentHours || 0,
             timeSpentMinutes: taskData.timeSpentMinutes || 0,

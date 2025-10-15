@@ -9,8 +9,13 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 import AddStoryModal from '../components/AddStoryModal';
+import AddSolutionStoryModal from '../components/AddSolutionStoryModal';
+import AddTaskModal from '../components/AddTaskModal';
 import EditStoryModal from '../components/EditStoryModal';
+import EditSolutionStoryModal from '../components/EditSolutionStoryModal';
+import EditTaskModal from '../components/EditTaskModal';
 import ViewStoryModal from '../components/ViewStoryModal';
+import ViewTaskModal from '../components/ViewTaskModal';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -30,8 +35,14 @@ const StoryDashboard = () => {
     release: ''
   });
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddSolutionModal, setShowAddSolutionModal] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+  const [initialProjectForAdd, setInitialProjectForAdd] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditSolutionModal, setShowEditSolutionModal] = useState(false);
+  const [showEditTaskModal, setShowEditTaskModal] = useState(false);
+  const [showViewTaskModal, setShowViewTaskModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
   const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' or 'table'
   const [gridApi, setGridApi] = useState(null);
@@ -117,19 +128,7 @@ const StoryDashboard = () => {
       }
     };
 
-    const fetchUsers = async () => {
-      try {
-        const token = sessionStorage.getItem('token');
-        const tenantId = sessionStorage.getItem('tenantId');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users`, {
-          headers: { Authorization: token }
-        });
-        const data = await response.json();
-        setUsers(data);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-      }
-    };
+    // Note: users are fetched per-project via fetchUsers(projectId). Do not fetch tenant users on mount.
 
     const fetchStatusFlags = async () => {
       try {
@@ -152,9 +151,34 @@ const StoryDashboard = () => {
     };
 
     fetchProjects();
-    fetchUsers();
     fetchStatusFlags();
   }, []);
+
+  // Fetch users for a specific project (project-team members)
+  const fetchUsers = async (projectId) => {
+    if (!projectId) {
+      setUsers([]);
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
+        headers: { Authorization: token }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } else {
+        console.warn('Failed to fetch project team users:', response.status, response.statusText);
+        setUsers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching project team users:', error);
+      setUsers([]);
+    }
+  };
 
   // Handle project selection to fetch sprints and releases
   const handleProjectChange = useCallback(async (projectId) => {
@@ -165,6 +189,8 @@ const StoryDashboard = () => {
       setTypeDropdowns({ level1: '', level2: '', level3: '' });
       setFilters(prev => ({ ...prev, type: '' }));
       setShowTypeDropdowns({ level2: false, level3: false });
+      // Clear users when no project is selected
+      setUsers([]);
       return;
     }
 
@@ -206,6 +232,9 @@ const StoryDashboard = () => {
       setReleaseList([]);
     }
 
+    // Fetch project team users
+    fetchUsers(projectId);
+
     // Set default type to 'User Story' when a project is selected
     if (projectId) {
       setFilters(prev => ({ ...prev, type: 'User Story' }));
@@ -229,6 +258,22 @@ const StoryDashboard = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setSearchParams, handleProjectChange]);
 
+  // Restore last selected project from localStorage if URL param not present
+  useEffect(() => {
+    const projectIdFromUrl = searchParams.get('projectId');
+    if (!projectIdFromUrl) {
+      const savedProject = localStorage.getItem('storyDashboard.projectId');
+      if (savedProject) {
+        setFilters(prevFilters => ({
+          ...prevFilters,
+          projectName: savedProject,
+        }));
+        handleProjectChange(savedProject);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Fetch stories from API
   useEffect(() => {
     const isInitial = initialLoading;
@@ -248,6 +293,15 @@ const StoryDashboard = () => {
         const typeParts = selectedType.split(' > ');
         const lastEntityType = typeParts[typeParts.length - 1];
 
+        // If the user hasn't selected a project yet, do not load user stories (or default userstory view).
+        // This prevents loading all user stories on initial page load.
+        if ((!filters.projectName) && (lastEntityType === 'User Story' || !selectedType)) {
+          // Clear any previously loaded stories and exit early
+          setStories([]);
+          setInitialLoading(false);
+          return;
+        }
+
         // Format the date to include time component for LocalDateTime
         const formatDate = (dateStr) => {
           if (!dateStr) return null;
@@ -260,24 +314,29 @@ const StoryDashboard = () => {
           // If no project selected, return null
           if (!filters.projectName) return null;
 
-          // If no type selected, we are fetching for a project, so parent is PRJ
+          // If no type selected, we are fetching for a project, so parent is null (handled elsewhere)
           if (!selectedType) return null;
 
-          // For first level type selection
-          if (typeParts.length === 1) {
-            return 'PRJ';
-          }
+          // For first level type selection -> decide based on which top-level was chosen
+            if (typeParts.length === 1) {
+              // If user selected User Story at level1, filter by project prefix
+              if (lastEntityType === 'User Story') return 'PRJ-';
+              // If user selected Solution Story at level1, we want to fetch all solution stories for the project
+              // So return null here and rely on projectId in the payload.
+              if (lastEntityType === 'Solution Story') return null;
+              return null;
+            }
 
           // For second level type selection
           if (typeParts.length === 2) {
             // Check the type selected in level 1
             const type1 = typeParts[0];
-            return type1 === 'User Story' ? 'US' : 'SS';
+            return type1 === 'User Story' ? 'US-' : 'SS-';
           }
 
           // For third level type selection
           if (typeParts.length === 3) {
-            return 'SS';
+            return 'SS-';
           }
 
           return null;
@@ -409,6 +468,15 @@ const StoryDashboard = () => {
       clearTypeFilters();
     }
   }, [filters.projectName]);
+
+  // Persist selected project to localStorage whenever it changes
+  useEffect(() => {
+    if (filters.projectName) {
+      localStorage.setItem('storyDashboard.projectId', String(filters.projectName));
+    } else {
+      localStorage.removeItem('storyDashboard.projectId');
+    }
+  }, [filters.projectName]);
   // Cascading dropdown logic
   const getTypeOptions = (level, parentValue) => {
     if (level === 1) {
@@ -532,6 +600,40 @@ const StoryDashboard = () => {
     toast.success('Story added successfully!');
   };
 
+  // Open appropriate add modal depending on selected type dropdowns
+  const openAddBasedOnType = (initialStatus = null, parentForTask = null) => {
+    // Determine an initial project to pass into modals: prefer filter-selected projectName (id), then selectedStory.projectId
+    const projectIdFromFilters = filters.projectName ? (isNaN(filters.projectName) ? null : parseInt(filters.projectName)) : null;
+    const projectId = projectIdFromFilters || selectedStory?.projectId || null;
+    setInitialProjectForAdd(projectId);
+
+    // If level3 explicitly set to 'Task', open Add Task
+    if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') {
+      setShowAddTaskModal(true);
+      return;
+    }
+
+    // If level1 or level2 is Solution Story, open Add Solution Story
+    const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
+    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    if (level1IsSS || level2IsSS) {
+      setShowAddSolutionModal(true);
+      return;
+    }
+
+    // Default to Add Story
+    setShowAddModal(true);
+  };
+
+  // Determine readable label for Add button based on selected dropdowns
+  const getAddButtonLabel = () => {
+    if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') return 'Add Task';
+    const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
+    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    if (level1IsSS || level2IsSS) return 'Add Solution Story';
+    return 'Add User Story';
+  };
+
   const handleUpdateStory = async () => {
     refreshStories();
     setShowEditModal(false);
@@ -575,14 +677,70 @@ const StoryDashboard = () => {
   }, [refreshStories]);
 
   const openEditModal = useCallback((story) => {
+    // Open the correct edit modal depending on the item type
     setSelectedStory(story);
-    setShowEditModal(true);
+    // Prefer explicit identifiers: usId (user story), ssId (solution story), taskId (task)
+    const storyType = story.usId ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
+    if (storyType === 'userstory') {
+      setShowEditModal(true);
+    } else if (storyType === 'solutionstory') {
+      setShowEditSolutionModal(true);
+    } else if (storyType === 'task') {
+      setShowEditTaskModal(true);
+    } else {
+      setShowEditModal(true);
+    }
   }, []);
 
   const openViewModal = useCallback((story) => {
     setSelectedStory(story);
-    setShowViewModal(true);
+    const storyType = story.usId ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
+    if (storyType === 'task') {
+      setShowViewTaskModal(true);
+    } else {
+      setShowViewModal(true);
+    }
   }, []);
+
+  const handleDeleteSolutionStory = useCallback(async (ssId) => {
+    if (!window.confirm('Are you sure you want to delete this solution story?')) return;
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/solutionstory/${ssId}`, {
+        method: 'DELETE',
+        headers: { Authorization: token }
+      });
+      if (response.ok) {
+        refreshStories();
+        toast.success('Solution story deleted successfully');
+      } else {
+        toast.error('Failed to delete solution story');
+      }
+    } catch (error) {
+      console.error('Error deleting solution story:', error);
+      toast.error('Error deleting solution story');
+    }
+  }, [refreshStories]);
+
+  const handleDeleteTask = useCallback(async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/task/${taskId}`, {
+        method: 'DELETE',
+        headers: { Authorization: token }
+      });
+      if (response.ok) {
+        refreshStories();
+        toast.success('Task deleted successfully');
+      } else {
+        toast.error('Failed to delete task');
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast.error('Error deleting task');
+    }
+  }, [refreshStories]);
 
   // Download Excel function
   const downloadExcel = useCallback(() => {
@@ -697,10 +855,27 @@ const StoryDashboard = () => {
   const ActionsRenderer = useCallback((params) => {
     const story = params.data;
     const storyId = story.id || story.ssId || story.taskId;
-    const storyType = story.id ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
 
+    // Prefer the currently selected type filter (last entity) to determine which actions to show.
+    const selectedType = filters.type || '';
+    let storyType = null;
+    if (selectedType) {
+      const parts = selectedType.split(' > ');
+      const last = parts[parts.length - 1];
+      if (last === 'User Story') storyType = 'userstory';
+      else if (last === 'Solution Story') storyType = 'solutionstory';
+      else if (last === 'Task') storyType = 'task';
+    }
+
+    // Fallback: infer from object fields when no explicit filter is selected
+    if (!storyType) {
+      storyType = story.id ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
+    }
+
+    // Render different action sets based on the item type
     return (
       <div className="flex items-center space-x-2">
+        {/* View */}
         <button
           onClick={() => openViewModal(story)}
           className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
@@ -708,6 +883,8 @@ const StoryDashboard = () => {
         >
           <FiEye size={16} />
         </button>
+
+        {/* Edit - opens specific modal per type */}
         <button
           onClick={() => openEditModal(story)}
           className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
@@ -715,6 +892,8 @@ const StoryDashboard = () => {
         >
           <FiEdit size={16} />
         </button>
+
+        {/* For user stories allow adding solution story */}
         {storyType === 'userstory' && (
           <button
             onClick={() => {
@@ -727,6 +906,8 @@ const StoryDashboard = () => {
             <FiGitBranch size={16} />
           </button>
         )}
+
+        {/* For userstory and solutionstory allow adding a task */}
         {(storyType === 'userstory' || storyType === 'solutionstory') && (
           <button
             onClick={() => {
@@ -739,16 +920,36 @@ const StoryDashboard = () => {
             <FiCheckSquare size={16} />
           </button>
         )}
-        <button
-          onClick={() => handleDeleteStory(story.id)}
-          className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="Delete Story"
-        >
-          <FiTrash2 size={16} />
-        </button>
+
+        {/* Delete: call type-specific delete handlers where applicable */}
+        {storyType === 'solutionstory' ? (
+          <button
+            onClick={() => handleDeleteSolutionStory(story.ssId)}
+            className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Delete Solution Story"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        ) : storyType === 'task' ? (
+          <button
+            onClick={() => handleDeleteTask(story.taskId)}
+            className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Delete Task"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        ) : (
+          <button
+            onClick={() => handleDeleteStory(story.id)}
+            className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Delete Story"
+          >
+            <FiTrash2 size={16} />
+          </button>
+        )}
       </div>
     );
-  }, [openViewModal, openEditModal, handleDeleteStory]);
+  }, [openViewModal, openEditModal, handleDeleteStory, handleDeleteSolutionStory, handleDeleteTask, filters.type]);
 
   // AgGrid column definitions - Dynamic based on type filter
   const columnDefs = useMemo(() => {
@@ -1573,7 +1774,7 @@ const StoryDashboard = () => {
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 cursor-pointer"
               >
                 <FiPlus size={20} />
-                <span>Add Story</span>
+                <span>Add User Story</span>
               </button>
 
             </div>
@@ -1991,7 +2192,7 @@ const StoryDashboard = () => {
                         <button
                           onClick={() => {
                             setSelectedStory({ status: 'todo' });
-                            setShowAddModal(true);
+                            openAddBasedOnType('todo');
                           }}
                           className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                           title="Add Story to TO-DO"
@@ -2011,7 +2212,7 @@ const StoryDashboard = () => {
                         <button
                           onClick={() => {
                             setSelectedStory({ status: 'wip' });
-                            setShowAddModal(true);
+                            openAddBasedOnType('wip');
                           }}
                           className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                           title="Add Story to WIP"
@@ -2031,7 +2232,7 @@ const StoryDashboard = () => {
                         <button
                           onClick={() => {
                             setSelectedStory({ status: 'done' });
-                            setShowAddModal(true);
+                            openAddBasedOnType('done');
                           }}
                           className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                           title="Add Story to Done"
@@ -2053,7 +2254,7 @@ const StoryDashboard = () => {
                             <button
                               onClick={() => {
                                 setSelectedStory({ status: 'not-ready' });
-                                setShowAddModal(true);
+                                openAddBasedOnType('not-ready');
                               }}
                               className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                               title="Add Story to Not Ready"
@@ -2073,7 +2274,7 @@ const StoryDashboard = () => {
                             <button
                               onClick={() => {
                                 setSelectedStory({ status: 'ready' });
-                                setShowAddModal(true);
+                                openAddBasedOnType('ready');
                               }}
                               className="mr-2 p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors duration-200 cursor-pointer"
                               title="Add Story to Ready"
@@ -2135,11 +2336,11 @@ const StoryDashboard = () => {
                       {/* Add Story Button for TO-DO */}
                       <div className="group">
                         <button
-                          onClick={() => setShowAddModal(true)}
+                          onClick={() => openAddBasedOnType()}
                           className="w-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg p-4 text-gray-500 hover:text-gray-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                         >
                           <FiPlus size={16} />
-                          <span className="text-sm font-medium">Add Story</span>
+                          <span className="text-sm font-medium">{getAddButtonLabel()}</span>
                         </button>
                       </div>
                     </div>
@@ -2191,11 +2392,11 @@ const StoryDashboard = () => {
                       {/* Add Story Button for WIP */}
                       <div className="group">
                         <button
-                          onClick={() => setShowAddModal(true)}
+                          onClick={() => openAddBasedOnType()}
                           className="w-full bg-blue-100 hover:bg-blue-200 border-2 border-dashed border-blue-300 hover:border-blue-400 rounded-lg p-4 text-blue-500 hover:text-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                         >
                           <FiPlus size={16} />
-                          <span className="text-sm font-medium">Add Story</span>
+                          <span className="text-sm font-medium">{getAddButtonLabel()}</span>
                         </button>
                       </div>
                     </div>
@@ -2246,11 +2447,11 @@ const StoryDashboard = () => {
                       {/* Add Story Button for Done */}
                       <div className="group">
                         <button
-                          onClick={() => setShowAddModal(true)}
+                          onClick={() => openAddBasedOnType()}
                           className="w-full bg-green-100 hover:bg-green-200 border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-4 text-green-500 hover:text-green-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                         >
                           <FiPlus size={16} />
-                          <span className="text-sm font-medium">Add Story</span>
+                          <span className="text-sm font-medium">{getAddButtonLabel()}</span>
                         </button>
                       </div>
                     </div>
@@ -2299,11 +2500,11 @@ const StoryDashboard = () => {
                         {/* Add Story Button for Not Ready */}
                         <div className="group">
                           <button
-                            onClick={() => setShowAddModal(true)}
+                            onClick={() => openAddBasedOnType()}
                             className="w-full bg-red-100 hover:bg-red-200 border-2 border-dashed border-red-300 hover:border-red-400 rounded-lg p-4 text-red-500 hover:text-red-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
-                            <span className="text-sm font-medium">Add Story</span>
+                            <span className="text-sm font-medium">{getAddButtonLabel()}</span>
                           </button>
                         </div>
                       </div>
@@ -2353,11 +2554,11 @@ const StoryDashboard = () => {
                         {/* Add Story Button for Ready */}
                         <div className="group">
                           <button
-                            onClick={() => setShowAddModal(true)}
+                            onClick={() => openAddBasedOnType()}
                             className="w-full bg-purple-100 hover:bg-purple-200 border-2 border-dashed border-purple-300 hover:border-purple-400 rounded-lg p-4 text-purple-500 hover:text-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
-                            <span className="text-sm font-medium">Add Story</span>
+                            <span className="text-sm font-medium">{getAddButtonLabel()}</span>
                           </button>
                         </div>
                       </div>
@@ -2395,12 +2596,68 @@ const StoryDashboard = () => {
         initialValues={filters}
       />
 
+      {/* Add Solution Story Modal (context-aware) */}
+      <AddSolutionStoryModal
+        open={showAddSolutionModal}
+        onClose={() => {
+          setShowAddSolutionModal(false);
+          setSelectedStory(null);
+          refreshStories();
+        }}
+        parentStory={null}
+        initialProjectId={initialProjectForAdd}
+      />
+
+      {/* Add Task Modal (context-aware) */}
+      <AddTaskModal
+        open={showAddTaskModal}
+        onClose={() => {
+          setShowAddTaskModal(false);
+          setSelectedStory(null);
+          refreshStories();
+        }}
+        parentStory={null}
+        initialProjectId={initialProjectForAdd}
+      />
+
       {/* Edit Story Modal */}
       <EditStoryModal
         open={showEditModal}
         onClose={() => setShowEditModal(false)}
         onSubmit={handleUpdateStory}
         storyId={selectedStory?.id}
+      />
+
+      {/* Edit Solution Story Modal */}
+      <EditSolutionStoryModal
+        open={showEditSolutionModal}
+        onClose={() => {
+          setShowEditSolutionModal(false);
+          // Refresh stories so updates to solution story are visible immediately
+          refreshStories();
+        }}
+        // Prefer ssId (e.g. 'SS-123') which the backend expects; fall back to numeric id only if ssId missing
+        storyId={selectedStory?.ssId || selectedStory?.id}
+        storyData={selectedStory}
+      />
+
+      {/* Edit Task Modal (open inline modal when editing a task from dashboard) */}
+      <EditTaskModal
+        open={showEditTaskModal}
+        onClose={() => {
+          setShowEditTaskModal(false);
+          // Refresh stories/tasks so edits are immediately visible
+          refreshStories();
+        }}
+        taskId={selectedStory?.taskId}
+        taskData={selectedStory}
+      />
+
+      {/* View Task Modal */}
+      <ViewTaskModal
+        open={showViewTaskModal}
+        onClose={() => setShowViewTaskModal(false)}
+        taskData={selectedStory}
       />
 
       {/* View Story Modal */}

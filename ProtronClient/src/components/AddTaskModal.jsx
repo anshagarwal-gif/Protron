@@ -17,7 +17,7 @@ const truncateText = (text, maxLength = 20) => {
   return text.substring(0, maxLength) + "...";
 };
 
-const AddTaskModal = ({ open, onClose, parentStory }) => {
+const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
   if (!open) return null;
 
   const [formData, setFormData] = useState({
@@ -62,6 +62,11 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
             parentId: parentStory.usId || parentStory.ssId, // Can be from UserStory or SolutionStory
             date: new Date().toISOString().split('T')[0]
           }));
+        }
+
+        // If no parentStory and an initialProjectId was passed from dashboard, pre-fill projectId
+        if (!parentStory && initialProjectId) {
+          setFormData(prev => ({ ...prev, projectId: initialProjectId }));
         }
 
         const token = sessionStorage.getItem('token');
@@ -368,9 +373,9 @@ const AddTaskModal = ({ open, onClose, parentStory }) => {
                     <select
                       value={formData.projectId || ''}
                       onChange={handleInputChange("projectId")}
-                       className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
-                      required
-                      disabled={!!parentStory}
+                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${initialProjectId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        required
+                        disabled={!!parentStory || !!initialProjectId}
                     >
                       <option value="">Select from list</option>
                       {projects.map((project) => (
