@@ -52,6 +52,14 @@ public class RidaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/complete/{ridaId}")
+    public ResponseEntity<RidaResultDTO> completeRida(
+            @PathVariable Long ridaId
+    ){
+        RidaResultDTO updatedRida = ridaService.completeRida(ridaId);
+        return ResponseEntity.ok(updatedRida);
+    }
+
     // ✅ Get all RIDA by Project
     @GetMapping("/project/{projectId}")
     public ResponseEntity<List<RidaResultDTO>> getAllRidaByProject(@PathVariable Long projectId) {

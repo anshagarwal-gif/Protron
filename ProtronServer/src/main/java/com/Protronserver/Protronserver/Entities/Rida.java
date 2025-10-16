@@ -52,6 +52,15 @@ public class Rida {
     @Column(name = "remarks", length = 1000)
     private String remarks;
 
+    @Column(name = "isCompleted")
+    private Boolean isCompleted;
+
+    @Column(name = "completedBy")
+    private String completedBy;
+
+    @Column(name = "completedAt")
+    private LocalDateTime completedAt;
+
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
     private String lastUpdatedBy;
@@ -190,5 +199,29 @@ public class Rida {
 
     public void setTargetCloser(LocalDate targetCloser) {
         this.targetCloser = targetCloser;
+    }
+
+    public Boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(Boolean completed) {
+        isCompleted = completed;
+    }
+
+    public String getCompletedBy() {
+        return completedBy;
+    }
+
+    public void setCompletedBy(String completedBy) {
+        this.completedBy = completedBy;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 }

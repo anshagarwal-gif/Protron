@@ -59,6 +59,16 @@ public class RidaService {
         rida.setEndTimestamp(null);
         rida.setLastUpdatedBy(null);
 
+        if(dto.getStatus().equals("Closed")){
+            rida.setCompleted(true);
+            rida.setCompletedAt(LocalDateTime.now());
+            rida.setCompletedBy(loggedInUserUtils.getLoggedInUser().getEmail());
+        }else{
+            rida.setCompleted(false);
+            rida.setCompletedAt(null);
+            rida.setCompletedBy(null);
+        }
+
         Rida savedRida = ridaRepository.save(rida);
 
         String tenantId = currentTenant.toString();
@@ -77,7 +87,10 @@ public class RidaService {
                 savedRida.getDateRaised(),
                 savedRida.getTargetCloser(),
                 savedRida.getStatus(),
-                savedRida.getRemarks()
+                savedRida.getRemarks(),
+                savedRida.isCompleted(),
+                savedRida.getCompletedAt(),
+                savedRida.getCompletedBy()
         );
     }
 
@@ -114,6 +127,16 @@ public class RidaService {
         newRida.setEndTimestamp(null);
         newRida.setLastUpdatedBy(null);
 
+        if(dto.getStatus().equals("Closed")){
+            newRida.setCompleted(true);
+            newRida.setCompletedAt(LocalDateTime.now());
+            newRida.setCompletedBy(loggedInUserUtils.getLoggedInUser().getEmail());
+        }else{
+            newRida.setCompleted(false);
+            newRida.setCompletedAt(null);
+            newRida.setCompletedBy(null);
+        }
+
         Rida savedRida = ridaRepository.save(newRida);
 
         return new RidaResultDTO(
@@ -130,11 +153,14 @@ public class RidaService {
                 savedRida.getDateRaised(),
                 savedRida.getTargetCloser(),
                 savedRida.getStatus(),
-                savedRida.getRemarks()
+                savedRida.getRemarks(),
+                savedRida.isCompleted(),
+                savedRida.getCompletedAt(),
+                savedRida.getCompletedBy()
         );
     }
 
-    public void deleteRida(Long id) {
+    public RidaResultDTO deleteRida(Long id) {
         Rida rida = ridaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rida not found"));
 
@@ -145,7 +171,61 @@ public class RidaService {
             rida.setLastUpdatedBy(loggedInUserEmail);
         }
 
-        ridaRepository.save(rida);
+        Rida savedRida = ridaRepository.save(rida);
+
+        return new RidaResultDTO(
+                savedRida.getId(),
+                savedRida.getProjectName(),
+                savedRida.getProject().getProjectId(),
+                savedRida.getTenantId().toString(),
+                savedRida.getMeetingReference(),
+                savedRida.getItemDescription(),
+                savedRida.getType(),
+                savedRida.getStartTimestamp(), // raisedOn
+                savedRida.getRaisedBy(),
+                savedRida.getOwner(),
+                savedRida.getDateRaised(),
+                savedRida.getTargetCloser(),
+                savedRida.getStatus(),
+                savedRida.getRemarks(),
+                savedRida.isCompleted(),
+                savedRida.getCompletedAt(),
+                savedRida.getCompletedBy()
+        );
+    }
+
+    public RidaResultDTO completeRida(Long id){
+        Rida rida = ridaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Rida not found"));
+
+        String loggedInUserEmail = loggedInUserUtils.getLoggedInUser().getEmail();
+
+        rida.setCompleted(true);
+        rida.setCompletedBy(loggedInUserEmail);
+        rida.setCompletedAt(LocalDateTime.now());
+        rida.setStatus("Closed");
+
+        Rida savedRida = ridaRepository.save(rida);
+
+        return new RidaResultDTO(
+                savedRida.getId(),
+                savedRida.getProjectName(),
+                savedRida.getProject().getProjectId(),
+                savedRida.getTenantId().toString(),
+                savedRida.getMeetingReference(),
+                savedRida.getItemDescription(),
+                savedRida.getType(),
+                savedRida.getStartTimestamp(), // raisedOn
+                savedRida.getRaisedBy(),
+                savedRida.getOwner(),
+                savedRida.getDateRaised(),
+                savedRida.getTargetCloser(),
+                savedRida.getStatus(),
+                savedRida.getRemarks(),
+                savedRida.isCompleted(),
+                savedRida.getCompletedAt(),
+                savedRida.getCompletedBy()
+        );
     }
 
     public List<RidaResultDTO> getAllRidaByProject(Long projectId) {

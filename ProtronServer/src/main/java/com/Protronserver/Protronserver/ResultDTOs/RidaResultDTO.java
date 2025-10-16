@@ -19,12 +19,15 @@ public class RidaResultDTO {
     private LocalDate targetCloser;
     private String status;
     private String remarks;
+    private Boolean isCompleted;
+    private LocalDateTime completedAt;
+    private String completedBy;
 
     // constructor
     public RidaResultDTO(Long id, String projectName, Long projectId, String tenantName,
                          String meetingReference, String itemDescription, String type,
                          LocalDateTime raisedOn, String raisedBy, String owner, LocalDate dateRaised, LocalDate targetCloser,
-                         String status, String remarks) {
+                         String status, String remarks, Boolean isCompleted, LocalDateTime completedAt, String completedBy) {
         this.id = id;
         this.projectName = projectName;
         this.projectId = projectId;
@@ -39,6 +42,9 @@ public class RidaResultDTO {
         this.targetCloser = targetCloser;
         this.status = status;
         this.remarks = remarks;
+        this.isCompleted = isCompleted;
+        this.completedAt = completedAt;
+        this.completedBy = completedBy;
     }
 
     public LocalDate getDateRaised() {
@@ -151,5 +157,29 @@ public class RidaResultDTO {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public Boolean getCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(Boolean completed) {
+        isCompleted = completed;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+
+    public String getCompletedBy() {
+        return completedBy;
+    }
+
+    public void setCompletedBy(String completedBy) {
+        this.completedBy = completedBy;
     }
 }

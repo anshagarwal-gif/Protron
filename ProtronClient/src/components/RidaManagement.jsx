@@ -139,6 +139,23 @@ export default function RidaManagement({ projectId, open, onClose }) {
     }
   };
 
+  const handleCompleteRida = async (ridaId) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(`${API_BASE_URL}/api/rida/complete/${ridaId}`, null, {
+        headers: { Authorization: token }
+      });
+      // Update the RIDA in the list
+      setRidas(prevRidas => prevRidas.map(rida => 
+        rida.id === ridaId ? response.data : rida
+      ));
+      setSnackbar({ open: true, message: 'RIDA marked as completed!', severity: 'success' });
+    } catch (err) {
+      console.error('Error completing RIDA:', err);
+      setSnackbar({ open: true, message: 'Failed to complete RIDA', severity: 'error' });
+    }
+  };
+
   const handleAddSubmit = (result) => {
     setAddModalOpen(false);
     setSnackbar({ open: true, message: 'RIDA added!', severity: 'success' });
@@ -177,6 +194,15 @@ export default function RidaManagement({ projectId, open, onClose }) {
           <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
           </button>
+          {params.data.status !== 'Closed' && (
+            <button 
+              onClick={() => handleCompleteRida(params.data.id)} 
+              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer" 
+              title="Complete RIDA"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
         </div>
       ),
     }

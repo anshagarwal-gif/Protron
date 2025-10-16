@@ -41,6 +41,18 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
     return `${day}-${month}-${year}`;
   };
 
+  const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return 'N/A';
+    const d = new Date(dateTimeString);
+    if (isNaN(d)) return 'N/A';
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = d.toLocaleString('en-US', { month: 'short' });
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  };
+
   const Field = ({ label, value, className = '', isDate }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
@@ -67,6 +79,32 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
         </div>
 
         <div className="p-6 space-y-6">
+          {/* Completion Information - Only show if RIDA is completed */}
+          {ridaData.completed && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <CheckCircle className="mr-2 text-green-600" size={18} />
+                Completion Details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded p-3 border">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Status</label>
+                  <div className="text-sm font-medium text-green-600 flex items-center">
+                    <CheckCircle size={14} className="mr-1" />
+                    Completed
+                  </div>
+                </div>
+                <div className="bg-white rounded p-3 border">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Completed By</label>
+                  <div className="text-sm font-medium text-gray-900">{ridaData.completedBy || 'N/A'}</div>
+                </div>
+                <div className="bg-white rounded p-3 border">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Completed At</label>
+                  <div className="text-sm font-medium text-gray-900">{formatDateTime(ridaData.completedAt)}</div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Field label="Type" value={ridaData.type} />
@@ -97,6 +135,8 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
               </div>
             </div>
           )}
+
+          
 
           {(attachments?.length || 0) > 0 && (
             <div className="bg-gray-50 rounded-lg p-4">
