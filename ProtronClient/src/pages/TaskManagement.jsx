@@ -2,16 +2,7 @@ import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandl
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import {
-  FileText,
-  Plus,
-  Search,
-  Edit,
-  Download,
-  Loader2,
-  Eye,
-  Trash2
-} from "lucide-react";
+import { FiFileText, FiPlus, FiSearch, FiEdit, FiDownload, FiLoader, FiEye, FiTrash2 } from 'react-icons/fi';
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddTaskModal from "../components/AddTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
@@ -105,7 +96,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const LoadingOverlay = () => (
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
-        <Loader2 className="mx-auto h-8 w-8 animate-spin text-purple-600" />
+  <FiLoader className="mx-auto h-8 w-8 animate-spin text-purple-600" />
         <p className="mt-2 text-sm text-gray-600">Loading tasks...</p>
       </div>
     </div>
@@ -160,7 +151,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
           title="View Task"
         >
-          <Eye size={16} />
+          <FiEye size={16} />
         </button>
       
           <button
@@ -168,7 +159,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
             title="Edit Task"
           >
-            <Edit size={16} />
+            <FiEdit size={16} />
           </button>
        
        
@@ -177,7 +168,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
             title="Delete Task"
           >
-            <Trash2 size={16} />
+            <FiTrash2 size={16} />
           </button>
         
       </div>
@@ -345,7 +336,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         <div className="flex items-center space-x-3">
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
               placeholder="Search tasks..."
@@ -358,7 +349,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             onClick={downloadTaskExcel}
             className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
           >
-            <Download size={16} className="mr-2" />
+            <FiDownload size={16} className="mr-2" />
             Download Excel
           </button>
          
@@ -366,7 +357,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               onClick={() => setIsAddModalOpen(true)}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
             >
-              <Plus size={16} className="mr-2" />
+              <FiPlus size={16} className="mr-2" />
               Add Task
             </button>
         
@@ -429,7 +420,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
              noRowsOverlayComponent={() => (
                <div className="flex items-center justify-center h-full">
                  <div className="text-gray-500 text-center">
-                   <FileText size={48} className="mx-auto mb-2 text-gray-300" />
+                   <FiFileText size={48} className="mx-auto mb-2 text-gray-300" />
                    <p className="text-lg font-medium">No tasks found</p>
                    <p className="text-sm">Try adjusting your search or add a new task</p>
                  </div>

@@ -2,18 +2,10 @@ import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandl
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import {
-  FileText,
-  Plus,
-  Search,
-  Edit,
-  Download,
-  Loader2,
-  Eye,
-  Trash2
-} from "lucide-react";
+import { FiFileText, FiCheckSquare, FiSearch, FiGitBranch, FiDownload, FiLoader, FiEye, FiTrash2 } from 'react-icons/fi';
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSolutionStoryModal from "../components/AddSolutionStoryModal";
+import AddTaskModal from "../components/AddTaskModal";
 import EditSolutionStoryModal from "../components/EditSolutionStoryModal";
 import ViewSolutionStoryModal from "../components/ViewSolutionStoryModal";
 
@@ -29,6 +21,8 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   const [selectedStoryId, setSelectedStoryId] = useState(null);
   const [selectedStory, setSelectedStory] = useState(null);
   const [parentStory, setParentStory] = useState(null);
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [addTaskParentStory, setAddTaskParentStory] = useState(null);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -104,7 +98,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   const LoadingOverlay = () => (
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
-        <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
+  <FiLoader className="mx-auto h-8 w-8 animate-spin text-blue-600" />
         <p className="mt-2 text-sm text-gray-600">Loading solution stories...</p>
       </div>
     </div>
@@ -124,6 +118,11 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   const handleView = useCallback((story) => {
     setSelectedStory(story);
     setIsViewModalOpen(true);
+  }, []);
+
+  const handleAddTask = useCallback((story) => {
+    setAddTaskParentStory(story);
+    setIsAddTaskModalOpen(true);
   }, []);
 
   const handleDelete = useCallback(async (ssId) => {
@@ -158,7 +157,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
           className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
           title="View Solution Story"
         >
-          <Eye size={16} />
+          <FiEye size={16} />
         </button>
       
           <button
@@ -166,18 +165,15 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
             className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
             title="Edit Solution Story"
           >
-            <Edit size={16} />
+            <FiGitBranch size={16} />
           </button>
       
         <button
-          onClick={() => {
-            const parentStoryData = encodeURIComponent(JSON.stringify(story));
-            window.open(`/task-management?parentStory=${parentStoryData}`, '_blank');
-          }}
+          onClick={() => handleAddTask(story)}
           className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
           title="Add Task"
         >
-          <Plus size={16} />
+          <FiCheckSquare size={16} />
         </button>
 
           <button
@@ -185,7 +181,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
             className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
             title="Delete Solution Story"
           >
-            <Trash2 size={16} />
+            <FiTrash2 size={16} />
           </button>
        
       </div>
@@ -371,7 +367,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         <div className="flex items-center space-x-3">
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
               placeholder="Search solution stories..."
@@ -384,7 +380,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
             onClick={downloadSolutionStoryExcel}
             className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
           >
-            <Download size={16} className="mr-2" />
+            <FiDownload size={16} className="mr-2" />
             Download Excel
           </button>
        
@@ -392,7 +388,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
               onClick={() => setIsAddModalOpen(true)}
               className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
             >
-              <Plus size={16} className="mr-2" />
+              <FiGitBranch size={16} className="mr-2" />
               Add Solution Story
             </button>
         
@@ -455,7 +451,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
              noRowsOverlayComponent={() => (
                <div className="flex items-center justify-center h-full">
                  <div className="text-gray-500 text-center">
-                   <FileText size={48} className="mx-auto mb-2 text-gray-300" />
+                   <FiFileText size={48} className="mx-auto mb-2 text-gray-300" />
                    <p className="text-lg font-medium">No solution stories found</p>
                    <p className="text-sm">Try adjusting your search or add a new solution story</p>
                  </div>
@@ -492,6 +488,17 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
           }}
           storyId={selectedStoryId}
           storyData={selectedStory}
+        />
+
+        <AddTaskModal
+          open={isAddTaskModalOpen}
+          onClose={() => {
+            // Close modal and refresh solution stories for the current parent user story
+            setIsAddTaskModalOpen(false);
+            setAddTaskParentStory(null);
+            fetchSolutionStories(parentStory?.usId);
+          }}
+          parentStory={addTaskParentStory || parentStory}
         />
    
 

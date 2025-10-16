@@ -18,7 +18,7 @@ const truncateText = (text, maxLength = 20) => {
   return text.substring(0, maxLength) + "...";
 };
 
-const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
+const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId }) => {
   const [formData, setFormData] = useState({
     projectId: '',
     parentId: '',
@@ -64,6 +64,11 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
           }));
         }
 
+        // If initialProjectId is provided (from dashboard context), pre-fill projectId
+        if (!parentStory && initialProjectId) {
+          setFormData(prev => ({ ...prev, projectId: initialProjectId }));
+        }
+
         const token = sessionStorage.getItem('token');
         const tenantId = sessionStorage.getItem('tenantId');
 
@@ -77,14 +82,27 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
           console.error("Error fetching projects:", error);
         }
 
-        // Fetch Users
-        try {
-          const usersResponse = await axios.get(`${API_BASE_URL}/api/tenants/${tenantId}/users`, {
-            headers: { Authorization: token }
-          });
-          setUsers(usersResponse.data || []);
-        } catch (error) {
-          console.error('Error fetching users:', error);
+        // Fetch project-team users if parent story provides a projectId, otherwise leave users empty
+        const fetchProjectUsers = async (projectId) => {
+          if (!projectId) return;
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/project-team/list/${projectId}`, {
+              headers: { Authorization: token }
+            });
+            if (res.ok) {
+              const data = await res.json();
+              setUsers(Array.isArray(data) ? data : []);
+            } else {
+              console.warn('Failed to fetch project team users:', res.status);
+              setUsers([]);
+            }
+          } catch (error) {
+            console.error('Error fetching project team users:', error);
+            setUsers([]);
+          }
+        };
+        if (parentStory?.projectId) {
+          await fetchProjectUsers(parentStory.projectId);
         }
 
         // Fetch Releases
@@ -197,9 +215,21 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
       
+      // Compute parentId to satisfy backend validation: must be null or start with PRJ- or US-
+      let computedParentId = null;
+      if (formData.parentId && formData.parentId.toString().trim() !== '') {
+        computedParentId = formData.parentId;
+      } else if (formData.projectId) {
+        const proj = projects.find(p => p.projectId === parseInt(formData.projectId));
+        // projectCode is expected to be like 'PRJ-<something>' on the server side
+        computedParentId = proj?.projectCode || null;
+      } else {
+        computedParentId = null;
+      }
+
       const payload = {
         projectId: parseInt(formData.projectId),
-        parentId: formData.parentId,
+        parentId: computedParentId,
         status: formData.status,
         priority: parseInt(formData.priority),
         summary: formData.summary,
@@ -374,8 +404,9 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory }) => {
                   <select
                     value={formData.projectId || ''}
                     onChange={handleInputChange("projectId")}
-                    className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${initialProjectId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                     required
+                    disabled={!!initialProjectId}
                   >
                     <option value="">Select from list</option>
                     {projects.map((project) => (
