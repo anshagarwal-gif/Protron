@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import * as forge from 'node-forge';
 import { EyeIcon, EyeOffIcon, MailIcon } from 'lucide-react';
 import GlobalSnackbar from '../components/GlobalSnackbar';
 import axios from 'axios';
@@ -21,11 +23,29 @@ const Login = ({ setIsAuthenticated }) => {
     const [showForgotPassword, setShowForgotPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false); // New state for loader
     const { updateSession } = useSession();
+    const [publicKey, setPublicKey] = useState(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+    const fetchKey = async () => {
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/security/public-key`);
+        const pem = "-----BEGIN PUBLIC KEY-----\n" + res.data.match(/.{1,64}/g).join("\n") + "\n-----END PUBLIC KEY-----";
+        setPublicKey(pem);
+    };
+    fetchKey();
+}, []);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
+
+    // Function to encrypt password
+    const encryptPassword = (password) => {
+    if (!publicKey) return password;
+    const rsa = forge.pki.publicKeyFromPem(publicKey);
+    const encrypted = rsa.encrypt(password, 'RSAES-PKCS1-V1_5');
+    return forge.util.encode64(encrypted);
+};
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -37,14 +57,12 @@ const Login = ({ setIsAuthenticated }) => {
 
         setIsLoading(true);
         try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_URL}/api/users/login`,
-                {
-                    email,
-                    password,
-                    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                }
-            );
+            const encryptedPassword = encryptPassword(password);
+const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/login`, {
+    email,
+    password: encryptedPassword,
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+});
 
             const data = response.data;
 

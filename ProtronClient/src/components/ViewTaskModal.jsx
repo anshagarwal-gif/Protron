@@ -255,21 +255,38 @@ const ViewTaskModal = ({ open, onClose, taskData, parentStory }) => {
                       </div>
                     </div>
                     <button
-                      onClick={() => {
-                        // Handle file download
-                        const token = sessionStorage.getItem('token');
-                        const link = document.createElement('a');
-                        // Check if attachment has attachmentId (TimesheetTask) or id (Task)
-                        const attachmentId = attachment.attachmentId || attachment.id;
-                        if (attachment.attachmentId) {
-                          // TimesheetTask attachment
-                          link.href = `${import.meta.env.VITE_API_URL}/api/timesheet-tasks/attachments/${attachmentId}`;
-                        } else {
-                          // Regular Task attachment
-                          link.href = `${import.meta.env.VITE_API_URL}/api/tasks/attachment/${attachmentId}/download`;
+                      onClick={async () => {
+                        try {
+                          const token = sessionStorage.getItem('token');
+                          const attachmentId = attachment.attachmentId || attachment.id;
+                          const url = attachment.attachmentId
+                            ? `${import.meta.env.VITE_API_URL}/api/timesheet-tasks/attachments/${attachmentId}`
+                            : `${import.meta.env.VITE_API_URL}/api/tasks/attachment/${attachmentId}/download`;
+
+                          const response = await axios({
+                            method: 'GET',
+                            url: url,
+                            responseType: 'blob',
+                            headers: {
+                              'Authorization': token
+                            }
+                          });
+
+                          // Create blob link to download
+                          const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+                          const link = document.createElement('a');
+                          link.href = blobUrl;
+                          link.setAttribute('download', attachment.fileName);
+                          document.body.appendChild(link);
+                          link.click();
+                          
+                          // Cleanup
+                          link.parentNode.removeChild(link);
+                          window.URL.revokeObjectURL(blobUrl);
+                        } catch (error) {
+                          console.error('Error downloading file:', error);
+                          alert('Failed to download file. Please try again.');
                         }
-                        link.download = attachment.fileName;
-                        link.click();
                       }}
                       className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer"
                     >

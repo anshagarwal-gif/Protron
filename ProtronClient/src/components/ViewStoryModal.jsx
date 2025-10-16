@@ -293,12 +293,34 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
                       </div>
                     </div>
                     <button
-                      onClick={() => {
-                        // Handle file download
-                        const link = document.createElement('a');
-                        link.href = `${import.meta.env.VITE_API_URL}/api/userstory/attachment/${attachment.id}/download`;
-                        link.download = attachment.fileName;
-                        link.click();
+                      onClick={async () => {
+                        try {
+                          const token = sessionStorage.getItem('token');
+                          const response = await axios({
+                            method: 'GET',
+                            url: `${import.meta.env.VITE_API_URL}/api/userstory/attachment/${attachment.id}/download`,
+                            responseType: 'blob',
+                            headers: {
+                              'Authorization': token
+                            }
+                          });
+
+                          // Create blob link to download
+                          const url = window.URL.createObjectURL(new Blob([response.data]));
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.setAttribute('download', attachment.fileName);
+                          document.body.appendChild(link);
+                          link.click();
+                          
+                          // Cleanup
+                          link.parentNode.removeChild(link);
+                          window.URL.revokeObjectURL(url);
+                        } catch (error) {
+                          console.error('Error downloading file:', error);
+                          // You might want to show an error message to the user here
+                          alert('Failed to download file. Please try again.');
+                        }
                       }}
                       className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors cursor-pointer"
                     >

@@ -11,6 +11,7 @@ import com.Protronserver.Protronserver.Repository.RolesRepository;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.Utils.JwtUtil;
+import com.Protronserver.Protronserver.Utils.RSAUtil;
 import jakarta.persistence.EntityNotFoundException;
 import com.Protronserver.Protronserver.DashboardRecords.UserCostCurrencyDTO;
 
@@ -50,6 +51,9 @@ public class UserService {
 
     @Autowired
     private RolesRepository rolesRepository;
+
+    @Autowired
+    private RSAUtil rsaUtil;
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -132,56 +136,67 @@ public class UserService {
     public Map<String, Object> loginUser(LoginRequest loginRequest) {
         Optional<User> userOptional = userRepository.findByEmailAndEndTimestampIsNull(loginRequest.getEmail());
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-                String token = jwtUtil.generateToken(user.getEmail());
-                loginAuditService.recordLogin(user, user.getTenant(), loginRequest.getTimezoneId());
-
-                Map<String, Object> response = new HashMap<>();
-                response.put("token", token);
-                response.put("email", user.getEmail());
-                response.put("empCode", user.getEmpCode());
-                response.put("tenantId", user.getTenant().getTenantId());
-                response.put("userId", user.getUserId());
-                response.put("role", user.getRole().getRoleName());
-                response.put("tenantName", user.getTenant().getTenantName());
-
-                // Get access rights for this user's role
-                List<Map<String, Object>> accessRightsList = user.getRole().getRoleAccessRights().stream()
-                        .map(ar -> {
-                            Map<String, Object> accessMap = new HashMap<>();
-                            accessMap.put("moduleName", ar.getAccessRight().getModuleName());
-                            accessMap.put("canView", ar.getAccessRight().isCanView());
-                            accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
-                            accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
-                            return accessMap;
-                        })
-                        .toList();
-
-                response.put("roleAccessRights", accessRightsList);
-
-                List<Map<String, Object>> userAccessRightsList = user.getUserAccessRights().stream()
-                        .map(ar -> {
-                            Map<String, Object> accessMap = new HashMap<>();
-                            accessMap.put("moduleName", ar.getAccessRight().getModuleName());
-                            accessMap.put("canView", ar.getAccessRight().isCanView());
-                            accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
-                            accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
-                            return accessMap;
-                        }).toList();
-
-                response.put("userAccessRights", userAccessRightsList);
-
-                return response;
-            } else {
-                throw new RuntimeException("Invalid credentials");
-            }
-        } else {
+        if (userOptional.isEmpty()) {
             throw new RuntimeException("User not found with this email");
         }
+
+        User user = userOptional.get();
+
+        try {
+            // 🔐 Step 1: Extract encrypted password and decode
+            String decryptedPassword = rsaUtil.decrypt(loginRequest.getPassword());
+
+            // 🔑 Compare decrypted password with DB hash
+            if (!passwordEncoder.matches(decryptedPassword, user.getPassword())) {
+                throw new RuntimeException("Invalid credentials");
+            }
+
+            // ✅ Step 5: Generate token and build response
+            String token = jwtUtil.generateToken(user.getEmail());
+            loginAuditService.recordLogin(user, user.getTenant(), loginRequest.getTimezoneId());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("email", user.getEmail());
+            response.put("empCode", user.getEmpCode());
+            response.put("tenantId", user.getTenant().getTenantId());
+            response.put("userId", user.getUserId());
+            response.put("role", user.getRole().getRoleName());
+            response.put("tenantName", user.getTenant().getTenantName());
+
+            // Role access rights
+            List<Map<String, Object>> accessRightsList = user.getRole().getRoleAccessRights().stream()
+                    .map(ar -> {
+                        Map<String, Object> accessMap = new HashMap<>();
+                        accessMap.put("moduleName", ar.getAccessRight().getModuleName());
+                        accessMap.put("canView", ar.getAccessRight().isCanView());
+                        accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
+                        accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
+                        return accessMap;
+                    }).toList();
+
+            response.put("roleAccessRights", accessRightsList);
+
+            // User access rights
+            List<Map<String, Object>> userAccessRightsList = user.getUserAccessRights().stream()
+                    .map(ar -> {
+                        Map<String, Object> accessMap = new HashMap<>();
+                        accessMap.put("moduleName", ar.getAccessRight().getModuleName());
+                        accessMap.put("canView", ar.getAccessRight().isCanView());
+                        accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
+                        accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
+                        return accessMap;
+                    }).toList();
+
+            response.put("userAccessRights", userAccessRightsList);
+
+            return response;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
     public void logoutUser(User user) {
         loginAuditService.recordLogout(user);
