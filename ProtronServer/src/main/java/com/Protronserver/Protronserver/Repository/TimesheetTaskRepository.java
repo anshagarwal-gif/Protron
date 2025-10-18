@@ -26,4 +26,6 @@ public interface TimesheetTaskRepository extends JpaRepository<TimesheetTask, Lo
             @Param("userId") Long userId
     );
 
+    TimesheetTask findByTaskRefAndEndTimestampIsNull(Long id);
+
 }

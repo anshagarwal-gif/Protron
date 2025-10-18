@@ -28,7 +28,7 @@ public class TimesheetTaskController {
 
     @PostMapping("/add")
     public ResponseEntity<TimesheetTask> addTimesheetTask(@RequestBody TimesheetTaskRequestDTO dto) {
-        TimesheetTask savedTask = timesheetTaskService.addTask(dto);
+        TimesheetTask savedTask = timesheetTaskService.addTask(dto, null);
         return ResponseEntity.ok(savedTask);
     }
 
@@ -72,7 +72,7 @@ public class TimesheetTaskController {
             @PathVariable Long taskId,
             @RequestBody TimesheetTaskRequestDTO dto) {
         System.out.println(taskId);
-        TimesheetTask updated = timesheetTaskService.updateTask(taskId, dto);
+        TimesheetTask updated = timesheetTaskService.updateTask(taskId, dto, null);
         return ResponseEntity.ok(updated);
     }
 

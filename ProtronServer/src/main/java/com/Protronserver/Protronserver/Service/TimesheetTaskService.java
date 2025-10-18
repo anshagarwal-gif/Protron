@@ -40,7 +40,10 @@ public class TimesheetTaskService {
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
 
-    public TimesheetTask addTask(TimesheetTaskRequestDTO dto) {
+    @Autowired
+    private TaskRepository taskRepository;
+
+    public TimesheetTask addTask(TimesheetTaskRequestDTO dto, Long taskRef) {
 
         User targetUser = loggedInUserUtils.getLoggedInUser();
 
@@ -60,6 +63,7 @@ public class TimesheetTaskService {
 
         task.setUser(targetUser);
         task.setTenant(targetUser.getTenant());
+        task.setTaskRef(taskRef);
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -193,7 +197,7 @@ public class TimesheetTaskService {
                 .orElse(null); // Return null instead of throwing exception for 404 handling
     }
 
-    public TimesheetTask updateTask(Long taskId, TimesheetTaskRequestDTO dto) {
+    public TimesheetTask updateTask(Long taskId, TimesheetTaskRequestDTO dto, Long taskRef) {
         TimesheetTask existingTask = timesheetTaskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
@@ -214,6 +218,13 @@ public class TimesheetTaskService {
         newTask.setRemainingHours(dto.getRemainingHours());
         newTask.setRemainingMinutes(dto.getRemainingMinutes());
         newTask.setDate(dto.getDate());
+        if(taskRef != null){
+            newTask.setTaskRef(taskRef);
+        }else if(existingTask.getTaskRef() != null){
+            newTask.setTaskRef(existingTask.getTaskRef());
+        }else{
+            newTask.setTaskRef(taskRef);
+        }
 
         Project project = projectRepository.findById(dto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("Project not found"));
@@ -229,6 +240,12 @@ public class TimesheetTaskService {
 
         // Save new task to get the ID
         TimesheetTask savedNewTask = timesheetTaskRepository.save(newTask);
+
+        Task referencedTask = taskRepository.findById(savedNewTask.getTaskRef())
+                .orElseThrow(()-> new RuntimeException("Referenced Task Edit failed"));
+        referencedTask.setTimeSpentHours(savedNewTask.getHoursSpent());
+        referencedTask.setTimeSpentMinutes(savedNewTask.getMinutesSpent());
+        taskRepository.save(referencedTask);
 
         // Fetch existing attachments of old task
         List<TimesheetTaskAttachment> existingAttachments = timesheetTaskAttachmentRepository

@@ -57,6 +57,9 @@ public class TaskService {
     private TimesheetTaskService timesheetTaskService;
 
     @Autowired
+    private TimesheetTaskRepository timesheetTaskRepository;
+
+    @Autowired
     public TaskService(TaskRepository taskRepository, CustomIdGenerator idGenerator) {
         this.taskRepository = taskRepository;
         this.idGenerator = idGenerator;
@@ -142,7 +145,7 @@ public class TaskService {
             timesheetDto.setProjectId(taskDto.getProjectId());
             timesheetDto.setAttachments(null);
 
-            timesheetTaskService.addTask(timesheetDto);
+            timesheetTaskService.addTask(timesheetDto, savedTask.getId());
         }
 
         return savedTask;
@@ -199,16 +202,34 @@ public class TaskService {
         newTask.setEndTimestamp(null);
         newTask.setLastUpdatedBy(null);
 
-        // Attachments are now handled in a separate call, so we don't process them
-        // here.
-        // if (taskDto.getAttachments() != null) {
-        // for (TaskAttachment attachmentDto : taskDto.getAttachments()) {
-        // attachmentDto.setTaskId(newTask.getTaskId());
-        // taskAttachmentRepository.save(attachmentDto);
-        // }
-        // }
+        Task savedTask =  taskRepository.save(newTask);
 
-        return taskRepository.save(newTask);
+        boolean timeSpentChanged =
+                (taskDto.getTimeSpentHours() != oldTask.getTimeSpentHours()) ||
+                        (taskDto.getTimeSpentMinutes() != oldTask.getTimeSpentMinutes());
+
+        if (timeSpentChanged) {
+
+            Long existingId = timesheetTaskRepository.findByTaskRefAndEndTimestampIsNull(oldTask.getId()).getTaskId();
+
+            TimesheetTaskRequestDTO timesheetDto = new TimesheetTaskRequestDTO();
+            timesheetDto.setTaskType(taskDto.getTaskType());
+            timesheetDto.setDate(java.sql.Date.valueOf(taskDto.getDate())); // convert LocalDate → Date
+            timesheetDto.setHoursSpent(taskDto.getTimeSpentHours());
+            timesheetDto.setMinutesSpent(taskDto.getTimeSpentMinutes());
+            timesheetDto.setRemainingHours(taskDto.getTimeRemainingHours());
+            timesheetDto.setRemainingMinutes(taskDto.getTimeRemainingMinutes());
+            timesheetDto.setTaskTopic(taskDto.getTaskTopic());
+            timesheetDto.setDescription(taskDto.getTaskDescription());
+            timesheetDto.setProjectId(taskDto.getProjectId());
+            timesheetDto.setAttachments(null);
+
+            // 🧩 Update timesheet entry
+            timesheetTaskService.updateTask(existingId, timesheetDto, savedTask.getId());
+        }
+
+        return savedTask;
+
     }
 
     @Transactional
