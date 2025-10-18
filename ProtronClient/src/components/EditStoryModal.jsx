@@ -30,6 +30,9 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   const [errors, setErrors] = useState({});
   const [projectList, setProjectList] = useState([]);
   const [summaryCharCount, setSummaryCharCount] = useState(0);
+  const [asACharCount, setAsACharCount] = useState(0);
+  const [iWantToCharCount, setIWantToCharCount] = useState(0);
+  const [soThatCharCount, setSoThatCharCount] = useState(0);
   const [acceptanceCharCount, setAcceptanceCharCount] = useState(0);
   const [initialLoading, setInitialLoading] = useState(false);
   const { sessionData } = useSession();
@@ -233,8 +236,11 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   // Initialize character counts when form data is set
   useEffect(() => {
     setSummaryCharCount(formData.summary.length);
+    setAsACharCount(formData.asA.length);
+    setIWantToCharCount(formData.iWantTo.length);
+    setSoThatCharCount(formData.soThat.length);
     setAcceptanceCharCount(formData.acceptanceCriteria.length);
-  }, [formData.summary, formData.acceptanceCriteria]);
+  }, [formData.summary, formData.asA, formData.iWantTo, formData.soThat, formData.acceptanceCriteria]);
 
   useEffect(() => {
     if (open) {
@@ -245,16 +251,43 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Check character limit for summary and acceptance criteria
+    // Check character limits for all fields
     if (name === 'summary') {
-      if (value.length > 100) {
+      if (value.length > 500) {
         setErrors(prev => ({
           ...prev,
-          [name]: "Summary cannot exceed 100 characters"
+          [name]: "Summary cannot exceed 500 characters"
         }));
         return;
       }
       setSummaryCharCount(value.length);
+    } else if (name === 'asA') {
+      if (value.length > 150) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "As A cannot exceed 150 characters"
+        }));
+        return;
+      }
+      setAsACharCount(value.length);
+    } else if (name === 'iWantTo') {
+      if (value.length > 500) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "I Want To cannot exceed 500 characters"
+        }));
+        return;
+      }
+      setIWantToCharCount(value.length);
+    } else if (name === 'soThat') {
+      if (value.length > 500) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "So That cannot exceed 500 characters"
+        }));
+        return;
+      }
+      setSoThatCharCount(value.length);
     } else if (name === 'acceptanceCriteria') {
       if (value.length > 1000) {
         setErrors(prev => ({
@@ -571,8 +604,8 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
 
   if (initialLoading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full max-h-[90vh] overflow-y-auto">
+      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
           <div className="flex items-center justify-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
             <span className="ml-3 text-gray-600">Loading story data...</span>
@@ -583,8 +616,8 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
@@ -1005,19 +1038,20 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                 <BookOpen size={14} className="inline mr-1" />
                 Summary *
                 <span className="float-right text-xs text-gray-500">
-                  {summaryCharCount}/100 characters
+                  {summaryCharCount}/500 characters
                 </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="summary"
                 value={formData.summary}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.summary ? 'border-red-500' : 'border-gray-300'
+                rows={3}
+                maxLength={500}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.summary ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="Enter story summary"
                 disabled={loading}
-                title={formData.summary ? `Summary (${summaryCharCount}/100 chars): ${formData.summary}` : "Enter story summary"}
+                title={formData.summary ? `Summary (${summaryCharCount}/500 chars): ${formData.summary}` : "Enter story summary"}
               />
               {errors.summary && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.summary}`}>
@@ -1031,17 +1065,21 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <User size={14} className="inline mr-1" />
                 As A *
+                <span className="float-right text-xs text-gray-500">
+                  {asACharCount}/150 characters
+                </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="asA"
                 value={formData.asA}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.asA ? 'border-red-500' : 'border-gray-300'
+                rows={2}
+                maxLength={150}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.asA ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="As a [user type]"
                 disabled={loading}
-                title={formData.asA ? `As A: ${formData.asA}` : "Enter user type"}
+                title={formData.asA ? `As A (${asACharCount}/150 chars): ${formData.asA}` : "Enter user type"}
               />
               {errors.asA && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.asA}`}>
@@ -1055,17 +1093,21 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <Target size={14} className="inline mr-1" />
                 I Want To *
+                <span className="float-right text-xs text-gray-500">
+                  {iWantToCharCount}/500 characters
+                </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="iWantTo"
                 value={formData.iWantTo}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.iWantTo ? 'border-red-500' : 'border-gray-300'
+                rows={3}
+                maxLength={500}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.iWantTo ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="I want to [action/goal]"
                 disabled={loading}
-                title={formData.iWantTo ? `I Want To: ${formData.iWantTo}` : "Enter desired action or goal"}
+                title={formData.iWantTo ? `I Want To (${iWantToCharCount}/500 chars): ${formData.iWantTo}` : "Enter desired action or goal"}
               />
               {errors.iWantTo && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.iWantTo}`}>
@@ -1079,17 +1121,21 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <CheckCircle size={14} className="inline mr-1" />
                 So That *
+                <span className="float-right text-xs text-gray-500">
+                  {soThatCharCount}/500 characters
+                </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="soThat"
                 value={formData.soThat}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.soThat ? 'border-red-500' : 'border-gray-300'
+                rows={3}
+                maxLength={500}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.soThat ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="So that [benefit/value]"
                 disabled={loading}
-                title={formData.soThat ? `So That: ${formData.soThat}` : "Enter benefit or value"}
+                title={formData.soThat ? `So That (${soThatCharCount}/500 chars): ${formData.soThat}` : "Enter benefit or value"}
               />
               {errors.soThat && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.soThat}`}>

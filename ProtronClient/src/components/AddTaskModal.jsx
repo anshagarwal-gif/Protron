@@ -319,47 +319,50 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
         open={open}
         onClose={handleClose}
         fullWidth
-        maxWidth="lg"
+        maxWidth="xl"
         PaperProps={{
           sx: {
             borderRadius: 2,
             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-            maxHeight: '90vh',
-            width: '95%',
-            maxWidth: '1000px'
+            maxHeight: '95vh',
+            width: { xs: '95%', sm: '90%', md: '85%', lg: '80%' },
+            maxWidth: { xs: '100%', sm: '1200px', md: '1400px', lg: '1600px' }
           }
         }}
       >
-          <DialogContent sx={{ p: 3, overflow: 'visible' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-              {/* Header */}
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
+          <DialogContent sx={{ p: 0, overflow: 'visible' }}>
+            {/* Header */}
+            <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">Add Task</h2>
+                    <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add Task</h2>
                     {parentStory && (
-                      <p className="text-sm text-gray-600">Parent Story: {parentStory.summary}</p>
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.summary}</p>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={handleClose}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
+            </div>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, p: 3 }}>
 
 
               {/* Row 1: Project and Task Type */}
-              <div className='grid grid-cols-3 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
                 <div className="w-full flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Project <span className="text-red-500">*</span>
@@ -451,7 +454,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
               </div>
 
               {/* Row 2: Time Fields */}
-              <div className='grid grid-cols-3 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
                 <div className="w-full">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Est. Time
@@ -719,11 +722,11 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                   Reset
                 </button>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     onClick={handleClose}
                     disabled={loading}
-                    className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
+                    className={`border rounded px-5 h-[42px] text-sm transition-colors order-2 sm:order-1 ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
                   >
                     Cancel
                   </button>
@@ -731,7 +734,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                   <button
                     onClick={handleSubmit}
                     disabled={loading}
-                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
+                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors order-1 sm:order-2 ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
                   >
                     {loading ? "Creating..." : "Add Task"}
                   </button>

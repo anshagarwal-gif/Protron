@@ -162,23 +162,23 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">
+      <div className="text-sm text-gray-900 font-medium break-words overflow-wrap-anywhere">
         {value || "N/A"}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 lg:p-6 backdrop-blur-sm">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <BookOpen size={24} className="text-white" />
+        <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <BookOpen size={20} className="text-white sm:w-6 sm:h-6" />
               <div>
-                <h2 className="text-xl font-bold">User Story Details</h2>
-                <p className="text-green-100 text-sm">Story ID: {storyData.usId}</p>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">User Story Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm">Story ID: {storyData.usId}</p>
               </div>
             </div>
             <button
@@ -191,16 +191,15 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Basic Information */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
               <FileText size={18} className="mr-2 text-green-600" />
               Basic Information
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               <Field label="Project" value={projectName || storyData.projectId || 'N/A'} />
-              <Field label="Summary" value={storyData.summary} />
               <Field label="Status" value={
                 <span className={getStatusTag(storyData.status)}>
                   {getStatusDisplay(storyData.status)}
@@ -218,34 +217,48 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
             </div>
           </div>
 
+          {/* Summary */}
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
+              <FileText size={18} className="mr-2 text-green-600" />
+              Summary
+            </h3>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Summary</label>
+              <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border min-h-[100px] break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                {storyData.summary || "N/A"}
+              </div>
+            </div>
+          </div>
+
           {/* User Story Details */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
               <User size={18} className="mr-2 text-green-600" />
               User Story Details
             </h3>
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">As A</label>
-                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border">
+                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border break-words overflow-wrap-anywhere whitespace-pre-wrap">
                   {storyData.asA || "N/A"}
                 </div>
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">I Want To</label>
-                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border">
+                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border break-words overflow-wrap-anywhere whitespace-pre-wrap">
                   {storyData.iwantTo || "N/A"}
                 </div>
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">So That</label>
-                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border">
+                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border break-words overflow-wrap-anywhere whitespace-pre-wrap">
                   {storyData.soThat || "N/A"}
                 </div>
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">Acceptance Criteria</label>
-                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border min-h-[100px]">
+                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border min-h-[100px] break-words overflow-wrap-anywhere whitespace-pre-wrap">
                   {storyData.acceptanceCriteria || "N/A"}
                 </div>
               </div>
@@ -253,22 +266,21 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
           </div>
 
           {/* Additional Information */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
               <Building size={18} className="mr-2 text-green-600" />
               Additional Information
             </h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               <Field label="System" value={storyData.system} />
               <Field label="Created By" value={storyData.createdBy} />
               <Field label="Date Created" value={formatDate(storyData.dateCreated)} />
-              <Field label="Start Timestamp" value={formatDate(storyData.startTimestamp)} />
             </div>
           </div>
 
           {/* Attachments */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center">
               <FileText size={18} className="mr-2 text-green-600" />
               Attachments
             </h3>
@@ -336,7 +348,7 @@ const ViewStoryModal = ({ open, onClose, storyData }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
           <div className="flex justify-end">
             <button
               onClick={onClose}

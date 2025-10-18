@@ -118,35 +118,37 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">
+      <div className="text-sm text-gray-900 font-medium break-words overflow-wrap-anywhere">
         {value || "N/A"}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-              <FileText size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <h2 className="text-lg sm:text-xl font-bold truncate">Invoice Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm truncate">Invoice ID: {invoice.invoiceId || 'N/A'}</p>
+        <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Invoice Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Invoice ID: {invoice.invoiceId || 'N/A'}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
             >
-              <X size={18} className="sm:w-5 sm:h-5" />
+              <X className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
 
-        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Basic Invoice Information */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">

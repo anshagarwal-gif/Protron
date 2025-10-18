@@ -56,42 +56,44 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">
+      <div className="text-sm text-gray-900 font-medium break-words overflow-wrap-anywhere">
         {value || "N/A"}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <FileText size={24} />
+        <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
               <div>
-                <h2 className="text-xl font-bold">Milestone Details</h2>
-                <p className="text-blue-100 text-sm">{milestoneData.milestoneName || milestoneData.msName || 'N/A'}</p>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Milestone Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">{milestoneData.milestoneName || milestoneData.msName || 'N/A'}</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-blue-700 rounded-lg transition-colors"
+              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
             >
-              <X size={20} />
+              <X className="w-5 h-5 text-white" />
             </button>
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Basic Information */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
               <Hash className="mr-2 text-blue-600" size={20} />
               Basic Information
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               <Field
                 label="Milestone Name"
                 value={milestoneData.milestoneName || milestoneData.msName}
@@ -126,7 +128,7 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
               Description
             </h3>
             <div className="bg-white rounded p-3 border">
-              <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm text-gray-900 leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap">
                 {milestoneData.milestoneDescription || milestoneData.msDesc || "No description available"}
               </p>
             </div>
@@ -140,7 +142,7 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
                 Remarks
               </h3>
               <div className="bg-white rounded p-3 border">
-                <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                <p className="text-sm text-gray-900 leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap">
                   {milestoneData.remark || milestoneData.msRemarks}
                 </p>
               </div>
@@ -181,7 +183,7 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
                         console.error("Failed to download attachment:", error);
                       }
                     }}
-                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm p-2 rounded border bg-white w-full text-left transition-colors"
+                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm p-2 rounded border bg-white w-full text-left transition-colors break-words overflow-wrap-anywhere"
                   >
                     📎 {att.fileName}
                   </button>

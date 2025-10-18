@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import CreatableSelect from 'react-select/creatable';
 import {
   FileText,
@@ -69,7 +69,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
     // Log file input reference
     useEffect(() => {
         console.log('File input ref:', fileInputRef.current);
-    }, [fileInputRef.current]);
+    }, []);
     const budgetEndDateInputRef = useRef(null);
     const firstInputRef = useRef(null);
 
@@ -135,122 +135,8 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
         }
     }, [formData.amountApproved, formData.amountUtilized]);
 
-    // Initialize dropdown data when modal opens and auto-reset form
-    useEffect(() => {
-        console.log('useEffect: Modal state changed:', { open, isEdit, budgetId: budgetLine?.budgetId });
-        
-        if (open) {
-            console.log('useEffect: Modal opened, fetching dropdown data first');
-            // Always fetch dropdown data first, then handle form population
-            fetchDropdownData().then(() => {
-                if (isEdit && budgetLine) {
-                    console.log('useEffect: In edit mode, populating form and fetching documents');
-                    console.log('useEffect: Available employees:', employees.length);
-                    console.log('useEffect: Available sponsors:', sponsors.length);
-                    console.log('useEffect: Budget line data:', budgetLine);
-                    
-                    // Populate form with existing data for editing
-                    setFormData({
-                        budgetName: budgetLine.budgetName || '',
-                        budgetDescription: budgetLine.budgetDescription || '',
-                        budgetLineItem: budgetLine.budgetLineItem || '',
-                        budgetEndDate: budgetLine.budgetEndDate || '',
-                        budgetOwner: budgetLine.budgetOwner || '',
-                        sponsor: budgetLine.sponsor || '',
-                        lob: budgetLine.lob || '',
-                        currency: budgetLine.currency || 'USD',
-                        amountApproved: budgetLine.amountApproved || '',
-                        amountUtilized: budgetLine.amountUtilized || '0',
-                        amountAvailable: budgetLine.amountAvailable || '',
-                        remarks: budgetLine.remarks || '',
-                        lastUpdatedBy: sessionStorage.getItem('userName') || ''
-                    });
-                    
-                    console.log('useEffect: Form data set, budgetOwner:', budgetLine.budgetOwner, 'sponsor:', budgetLine.sponsor);
-                    console.log('useEffect: Found budgetOwner in employees:', employees.find(emp => emp.value === budgetLine.budgetOwner));
-                    console.log('useEffect: Found sponsor in sponsors:', sponsors.find(sponsor => sponsor.value === budgetLine.sponsor));
-                    
-                    // Fetch existing documents for editing
-                    console.log('useEffect: Calling fetchExistingDocuments');
-                    fetchExistingDocuments();
-                } else {
-                    console.log('useEffect: Not in edit mode, resetting form');
-                    handleReset();
-                }
-            });
-        } else {
-            console.log('useEffect: Modal closed, resetting form');
-            // Reset form when modal closes
-            handleReset();
-        }
-    }, [open, isEdit, budgetLine]);
-
-    const fetchDropdownData = async () => {
-        try {
-            setLoadingEmployees(true);
-
-            const tenantId = sessionStorage.getItem("tenantId");
-            const token = sessionStorage.getItem("token");
-
-            if (!tenantId || !token) {
-                throw new Error('Missing tenantId or token');
-            }
-
-            const res = await axios.get(
-                `${API_BASE_URL}/api/tenants/${tenantId}/users`,
-                {
-                    headers: { Authorization: token }
-                }
-            );
-
-            if (!res.data || !Array.isArray(res.data)) {
-                throw new Error('Invalid API response structure');
-            }
-
-            // Transform employees data for dropdowns
-            const employeeOptions = res.data.map(emp => ({
-                label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-                value: emp.name,
-                empCode: emp.empCode,
-                email: emp.email,
-                userId: emp.userId,
-                status: emp.status
-            }));
-
-            // Same data for sponsors
-            const sponsorOptions = res.data.map(emp => ({
-                label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-                value: emp.name,
-                empCode: emp.empCode,
-                email: emp.email,
-                userId: emp.userId,
-                status: emp.status
-            }));
-
-            setEmployees(employeeOptions);
-            setSponsors(sponsorOptions);
-            
-            // Return a resolved promise to ensure proper async handling
-            return Promise.resolve();
-
-        } catch (error) {
-            console.error('Error fetching dropdown data:', error);
-            setEmployees([]);
-            setSponsors([]);
-            setSnackbar({
-                open: true,
-                message: `Failed to fetch employee data: ${error.message}`,
-                severity: 'error'
-            });
-            // Return a rejected promise to handle errors properly
-            return Promise.reject(error);
-        } finally {
-            setLoadingEmployees(false);
-        }
-    };
-
     // Fetch existing documents when editing
-    const fetchExistingDocuments = async () => {
+    const fetchExistingDocuments = useCallback(async () => {
         if (!isEdit || !budgetLine?.budgetId) {
             console.log('fetchExistingDocuments: Not in edit mode or no budgetLine:', { isEdit, budgetId: budgetLine?.budgetId });
             return;
@@ -302,7 +188,114 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                 severity: 'warning'
             });
         }
-    };
+    }, [isEdit, budgetLine?.budgetId]);
+
+    const fetchDropdownData = useCallback(async () => {
+        try {
+            setLoadingEmployees(true);
+
+            const tenantId = sessionStorage.getItem("tenantId");
+            const token = sessionStorage.getItem("token");
+
+            if (!tenantId || !token) {
+                throw new Error("Missing tenant ID or token");
+            }
+
+            // Fetch Users
+            try {
+                const res = await axios.get(
+                    `${API_BASE_URL}/api/tenants/${tenantId}/users`,
+                    {
+                        headers: { Authorization: token }
+                    }
+                );
+
+                if (!res.data || !Array.isArray(res.data)) {
+                    throw new Error("Invalid API response structure");
+                }
+
+                // Transform employees data for dropdowns
+                const employeeOptions = res.data.map(emp => ({
+                    label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
+                    value: emp.name,
+                    empCode: emp.empCode
+                }));
+
+                setEmployees(employeeOptions);
+                setSponsors(employeeOptions); // Use same data for sponsors
+                console.log('Employees loaded:', employeeOptions.length);
+
+            } catch (error) {
+                console.error('Error fetching employees:', error);
+                setSnackbar({
+                    open: true,
+                    message: `Failed to fetch employee data: ${error.message}`,
+                    severity: 'error'
+                });
+                // Return a rejected promise to handle errors properly
+                return Promise.reject(error);
+            } finally {
+                setLoadingEmployees(false);
+            }
+        } catch (error) {
+            console.error('Error in fetchDropdownData:', error);
+            setSnackbar({
+                open: true,
+                message: `Failed to fetch dropdown data: ${error.message}`,
+                severity: 'error'
+            });
+            // Return a rejected promise to handle errors properly
+            return Promise.reject(error);
+        } finally {
+            setLoadingEmployees(false);
+        }
+    }, []);
+
+    // Initialize dropdown data when modal opens and auto-reset form
+    useEffect(() => {
+        console.log('useEffect: Modal state changed:', { open, isEdit, budgetId: budgetLine?.budgetId });
+        
+        if (open) {
+            console.log('useEffect: Modal opened, fetching dropdown data first');
+            // Always fetch dropdown data first, then handle form population
+            fetchDropdownData().then(() => {
+                if (isEdit && budgetLine) {
+                    console.log('useEffect: In edit mode, populating form and fetching documents');
+                    console.log('useEffect: Budget line data:', budgetLine);
+                    
+                    // Populate form with existing data for editing
+                    setFormData({
+                        budgetName: budgetLine.budgetName || '',
+                        budgetDescription: budgetLine.budgetDescription || '',
+                        budgetLineItem: budgetLine.budgetLineItem || '',
+                        budgetEndDate: budgetLine.budgetEndDate || '',
+                        budgetOwner: budgetLine.budgetOwner || '',
+                        sponsor: budgetLine.sponsor || '',
+                        lob: budgetLine.lob || '',
+                        currency: budgetLine.currency || 'USD',
+                        amountApproved: budgetLine.amountApproved || '',
+                        amountUtilized: budgetLine.amountUtilized || '0',
+                        amountAvailable: budgetLine.amountAvailable || '',
+                        remarks: budgetLine.remarks || '',
+                        lastUpdatedBy: sessionStorage.getItem('userName') || ''
+                    });
+                    
+                    console.log('useEffect: Form data set, budgetOwner:', budgetLine.budgetOwner, 'sponsor:', budgetLine.sponsor);
+                    
+                    // Fetch existing documents for editing
+                    console.log('useEffect: Calling fetchExistingDocuments');
+                    fetchExistingDocuments();
+                } else {
+                    console.log('useEffect: Not in edit mode, resetting form');
+                    handleReset();
+                }
+            });
+        } else {
+            console.log('useEffect: Modal closed, resetting form');
+            // Reset form when modal closes
+            handleReset();
+        }
+    }, [open, isEdit, budgetLine, fetchExistingDocuments, fetchDropdownData]);
 
     const handleChange = (field) => (event) => {
         let value = event.target.value;
@@ -808,42 +801,45 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-                <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-green-900 flex items-center">
-                        <FileText className="mr-2" size={24} />
-                        {isEdit ? 'Edit Budget Line' : 'Create New Budget Line'}
-                        {(() => {
-                            const existingDocCount = documents.filter(doc => doc.isExistingDocument).length;
-                            const newFileCount = documents.filter(doc => !doc.isExistingDocument).length;
-                            const totalCount = existingDocCount + newFileCount;
-                            return totalCount > 0 ? (
-                            <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                                    {totalCount} file{totalCount > 1 ? 's' : ''} attached
-                                    {isEdit && existingDocCount > 0 && newFileCount > 0 && (
-                                        <span className="ml-1 text-green-700">
-                                            ({existingDocCount} existing, {newFileCount} new)
-                            </span>
-                        )}
-                                </span>
-                            ) : null;
-                        })()}
-                    </h2>
-                    <div className="flex items-center gap-2">
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="bg-green-600 text-white rounded-t-lg">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-4 sm:p-6">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                            <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">{isEdit ? 'Edit Budget Line' : 'Create New Budget Line'}</h2>
+                                {(() => {
+                                    const existingDocCount = documents.filter(doc => doc.isExistingDocument).length;
+                                    const newFileCount = documents.filter(doc => !doc.isExistingDocument).length;
+                                    const totalCount = existingDocCount + newFileCount;
+                                    return totalCount > 0 ? (
+                                        <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
+                                            {totalCount} file{totalCount > 1 ? 's' : ''} attached
+                                            {isEdit && existingDocCount > 0 && newFileCount > 0 && (
+                                                <span className="ml-1">({existingDocCount} existing, {newFileCount} new)</span>
+                                            )}
+                                        </p>
+                                    ) : null;
+                                })()}
+                            </div>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                        >
+                            <X className="w-5 h-5 text-white" />
+                        </button>
                     </div>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-grow">
-                    <div className="space-y-6">
+                <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
+                    <div className="space-y-4 sm:space-y-6">
                         {/* 1st Line: Budget Name */}
-                        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget Name *
@@ -865,7 +861,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                         </div>
 
                         {/* 2nd Line: Budget Line Item and Budget End Date */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget Line Item *
@@ -945,7 +941,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                         </div>
 
                         {/* 3rd Line: Budget Owner, Sponsor, LOB */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1004,7 +1000,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                         </div>
 
                         {/* 4th Line: Currency, Amount Approved, Amount Utilized */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Currency *
@@ -1105,7 +1101,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 rows={3}
                                 value={formData.budgetDescription}
                                 onChange={handleChange('budgetDescription')}
-                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${
+                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${
                                     errors.budgetDescription ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 maxLength={500}
@@ -1125,7 +1121,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 rows={3}
                                 value={formData.remarks}
                                 onChange={handleChange('remarks')}
-                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${
+                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${
                                     errors.remarks ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 maxLength={500}

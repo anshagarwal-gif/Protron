@@ -324,11 +324,11 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   return (
     <div className="w-full p-6 bg-white">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+        <div className="flex-1 min-w-0">
           <h2 className="text-2xl font-bold text-gray-900">Task Management</h2>
           {parentStory && (
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words overflow-wrap-anywhere whitespace-pre-wrap">
               Parent Story: {parentStory.summary} ({parentStory.usId || parentStory.ssId})
             </p>
           )}
