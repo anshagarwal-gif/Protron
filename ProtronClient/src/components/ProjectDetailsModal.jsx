@@ -73,33 +73,27 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
     return `${day}-${month}-${year}`;
   };
 
-  // Field component for consistent styling (matching PO modal)
+  // Field component for consistent styling with text wrapping
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div
-        className="text-sm text-gray-900 font-medium truncate"
-        title={value || "N/A"}
-        style={{ maxWidth: '100%' }}
-      >
+      <div className="text-sm text-gray-900 font-medium break-words overflow-wrap-anywhere">
         {value || "N/A"}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-3 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-              <Building size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <h2 className="text-lg sm:text-xl font-bold truncate">Project Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm truncate">
-                  {projectDetails?.projectCode || 'Loading...'}
-                </p>
+        <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <Building size={20} className="text-white sm:w-6 sm:h-6" />
+              <div>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Project Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm">ID: {projectDetails?.projectCode || 'Loading...'}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -107,35 +101,35 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
               {hasAccess("projects", "edit") && (
                 <button
                   onClick={() => setShowEditModal(true)}
-                  className="p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+                  className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
                   title="Edit Project"
                   disabled={!projectDetails}
                 >
-                  <Pencil size={18} className="sm:w-5 sm:h-5" />
+                  <Pencil size={20} className="text-white" />
                 </button>
               )}
               {/* Delete button in header */}
               {hasAccess("projects", "delete") && (
                 <button
                 onClick={handleDeleteProject}
-                className="p-2 hover:bg-red-700 rounded-lg transition-colors flex-shrink-0"
+                className="p-2 hover:bg-red-700 rounded-full transition-colors cursor-pointer"
                 title="Delete Project"
                 disabled={!projectDetails}
               >
-                <Trash2 size={18} className="sm:w-5 sm:h-5 text-red-600" />
+                <Trash2 size={20} className="text-red-200" />
               </button>
               )}
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
               >
-                <X size={18} className="sm:w-5 sm:h-5" />
+                <X size={20} className="text-white" />
               </button>
             </div>
           </div>
         </div>
 
-        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {isLoading ? (
             <div className="text-center py-8 sm:py-12">
               <div className="text-gray-600 text-sm flex items-center justify-center">
@@ -151,7 +145,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                   <Hash className="mr-2 text-green-600" size={18} />
                   Basic Information
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                   <Field
                     label="Project Name"
                     value={projectDetails.projectName}
@@ -171,7 +165,6 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                   <Field
                     label="Project Cost"
                     value={projectDetails.unit + " " + projectDetails.projectCost}
-                    className="sm:col-span-2 lg:col-span-1"
                   />
                 </div>
               </div>
@@ -182,7 +175,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                   <Target className="mr-2 text-green-600" size={18} />
                   Leadership Information
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                   <Field
                     label="Project Manager"
                     value={projectDetails.managerName || "Not assigned"}
@@ -248,8 +241,8 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                         {teamMembers.map((member, index) => (
                           <div key={index} className="flex items-center text-xs sm:text-sm p-2 border rounded bg-gray-50">
                             <User size={14} className="sm:w-4 sm:h-4 text-gray-600 mr-2 flex-shrink-0" />
-                            <span className="text-gray-900 font-medium min-w-0 flex-1">
-                              <span className="block truncate">
+                            <span className="text-gray-900 font-medium min-w-0 flex-1 break-words overflow-wrap-anywhere">
+                              <span className="block">
                                 {member.fullName}
                                 {member.empCode && (
                                   <span className="text-gray-500 ml-1">
@@ -284,7 +277,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                             {systemsImpacted.map((system, index) => (
                               <div key={index} className="flex items-center text-xs sm:text-sm p-2 border rounded bg-gray-50">
                               <Settings size={14} className="sm:w-4 sm:h-4 text-gray-600 mr-2 flex-shrink-0" />
-                              <span className="text-gray-900 font-medium min-w-0 flex-1 truncate">
+                              <span className="text-gray-900 font-medium min-w-0 flex-1 break-words overflow-wrap-anywhere">
                                 {system.systemName}
                               </span>
                               </div>
@@ -307,7 +300,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                           <CheckCircle className="mr-2 text-green-600" size={18} />
                           Definition of Done
                         </h3>
-                        <div className="bg-white rounded p-2 sm:p-3 border min-h-[60px] text-gray-900 text-sm break-words whitespace-pre-wrap">
+                        <div className="bg-white rounded p-2 sm:p-3 border min-h-[60px] text-gray-900 text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap">
                           {projectDetails.defineDone ? projectDetails.defineDone : <span className="text-gray-500">No DoD defined for this project.</span>}
                         </div>
                         </div>
@@ -335,11 +328,11 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
           />
         )}
         {/* Footer */}
-        <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t rounded-b-lg">
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t rounded-b-lg">
           <div className="flex justify-end">
             <button
               onClick={onClose}
-              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
             >
               Close
             </button>

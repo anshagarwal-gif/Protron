@@ -128,7 +128,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
     };
 
     fetchData();
-  }, [open, parentStory, sessionData.tenantId]);
+  }, [open, parentStory, sessionData.tenantId, initialProjectId]);
 
   const showSnackbar = (message, severity = 'info') => {
     setSnackbar({
@@ -351,46 +351,49 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
         open={open}
         onClose={handleClose}
         fullWidth
-        maxWidth="lg"
+        maxWidth="xl"
         PaperProps={{
           sx: {
             borderRadius: 2,
             boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-            maxHeight: '90vh',
-            width: '95%',
-            maxWidth: '1000px'
+            maxHeight: '95vh',
+            width: { xs: '95%', sm: '90%', md: '85%', lg: '80%' },
+            maxWidth: { xs: '100%', sm: '1200px', md: '1400px', lg: '1600px' }
           }
         }}
       >
-        <DialogContent sx={{ p: 3, overflow: 'visible' }}>
+        <DialogContent sx={{ p: 0, overflow: 'visible' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
+            <div className="bg-green-600 text-white rounded-t-lg">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-4 sm:p-6">
+                <div className="flex items-center space-x-2 sm:space-x-3">
+                  <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add Solution Story</h2>
+                    {parentStory && (
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.summary}</p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={handleClose}
+                  className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                >
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Add Solution Story</h2>
-                  {parentStory && (
-                    <p className="text-sm text-gray-600">Parent Story: {parentStory.summary}</p>
-                  )}
-                </div>
+                </button>
               </div>
-              <button
-                onClick={handleClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
             </div>
 
-            {/* Row 1: Project, Status, Priority */}
-            <div className='grid grid-cols-3 gap-3'>
+            {/* Form Content */}
+            <div className="p-4 sm:p-6 space-y-4">
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
               <div className="w-full flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Project <span className="text-red-500">*</span>
@@ -478,7 +481,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
             </div>
 
             {/* Row 2: Summary, System, Story Points */}
-            <div className='grid grid-cols-3 gap-3'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
               <div className="w-full md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Summary <span className="text-red-500">*</span>
@@ -499,7 +502,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                     onChange={handleInputChange('summary')}
                     placeholder="Enter solution story summary..."
                     maxLength={200}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 break-words overflow-wrap-anywhere"
                     style={{ height: fieldHeight }}
                   />
                 </div>
@@ -539,7 +542,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
             </div>
 
             {/* Row 3: Assignee, Release, Sprint */}
-            <div className='grid grid-cols-3 gap-3'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Assignee
@@ -652,7 +655,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                   onChange={handleInputChange('description')}
                   rows={4}
                   maxLength={500}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
                 ></textarea>
               </div>
               <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
@@ -746,6 +749,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                   {loading ? "Creating..." : "Add Solution Story"}
                 </button>
               </div>
+            </div>
             </div>
           </Box>
         </DialogContent>

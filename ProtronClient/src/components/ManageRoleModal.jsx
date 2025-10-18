@@ -57,12 +57,15 @@ const ManageRoleModal = ({
         open={open}
         onClose={onClose}
         fullWidth
-        maxWidth="lg"
+        maxWidth="xl"
         PaperProps={{
           sx: {
             borderRadius: 2,
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            overflowY:"auto"
+            overflowY:"auto",
+            maxHeight: "95vh",
+            width: { xs: '95%', sm: '90%', md: '85%', lg: '80%' },
+            maxWidth: { xs: '100%', sm: '1200px', md: '1400px', lg: '1600px' }
           },
         }}
       >

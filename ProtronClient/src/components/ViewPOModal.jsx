@@ -85,23 +85,23 @@ const ViewPOModal = ({ open, onClose, poData }) => {
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">
+      <div className="text-sm text-gray-900 font-medium break-words overflow-wrap-anywhere">
         {value || "N/A"}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <FileText size={24} />
+        <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <FileText size={20} className="text-white sm:w-6 sm:h-6" />
               <div>
-                <h2 className="text-xl font-bold">Purchase Order Details</h2>
-                <p className="text-green-100 text-sm">PO #{poData.poNumber || 'N/A'}</p>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Purchase Order Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm">PO #{poData.poNumber || 'N/A'}</p>
               </div>
             </div>
             <button
@@ -113,14 +113,14 @@ const ViewPOModal = ({ open, onClose, poData }) => {
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Basic Information */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
               <Hash className="mr-2 text-green-600" size={20} />
               Basic Information
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               <Field
                 label="PO Number"
                 value={poData.poNumber}
@@ -215,13 +215,13 @@ const ViewPOModal = ({ open, onClose, poData }) => {
           </div>
 
           {/* Description */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 flex items-center">
               <FileText className="mr-2 text-green-600" size={20} />
               Description
             </h3>
             <div className="bg-white rounded p-3 border">
-              <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm text-gray-900 leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap">
                 {poData.poDesc || "No description available"}
               </p>
             </div>
@@ -229,8 +229,8 @@ const ViewPOModal = ({ open, onClose, poData }) => {
 
           {/* Attachments */}
           {attachments.length > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 flex items-center">
                 <FileText className="mr-2 text-green-600" size={20} />
                 Attachments ({attachments.length})
               </h3>
@@ -261,9 +261,9 @@ const ViewPOModal = ({ open, onClose, poData }) => {
                         console.error("Failed to download attachment:", error);
                       }
                     }}
-                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm p-2 rounded border bg-white w-full text-left transition-colors"
+                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm p-2 rounded border bg-white w-full text-left transition-colors break-words overflow-wrap-anywhere"
                   >
-                    📎 {att.fileName}
+                    📎 <span className="break-words overflow-wrap-anywhere">{att.fileName}</span>
                   </button>
                 ))}
               </div>
@@ -290,7 +290,7 @@ const ViewPOModal = ({ open, onClose, poData }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t rounded-b-lg">
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t rounded-b-lg">
           <div className="flex justify-end">
             <button
               onClick={onClose}

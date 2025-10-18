@@ -44,31 +44,31 @@ const ViewSprintModal = ({ open, onClose, sprintData, projectName }) => {
   const Field = ({ label, value, className = '' }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">{value || 'N/A'}</div>
+      <div className="text-sm text-gray-900 font-medium break-words overflow-wrap-anywhere">{value || 'N/A'}</div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <FileText size={20} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
+        <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <FileText size={20} className="text-white sm:w-6 sm:h-6" />
               <div>
-                <h2 className="text-lg font-bold">Sprint Details</h2>
-                <p className="text-green-100 text-sm">{sprintData.sprintName || 'N/A'}</p>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Sprint Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm">ID: {sprintData.sprintName || 'N/A'}</p>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 hover:bg-green-700 rounded-lg transition-colors">
-              <X size={18} />
+            <button onClick={onClose} className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer">
+              <X size={20} className="text-white" />
             </button>
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               <Field label="Sprint Name" value={sprintData.sprintName} />
               <Field label="Project Name" value={projectName} />
               <Field label="Start Date" value={formatDate(sprintData.startDate)} />
@@ -78,17 +78,17 @@ const ViewSprintModal = ({ open, onClose, sprintData, projectName }) => {
           </div>
 
           {sprintData.description && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Description</h3>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Description</h3>
               <div className="bg-white rounded p-3 border">
-                <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">{sprintData.description}</p>
+                <p className="text-sm text-gray-900 leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap">{sprintData.description}</p>
               </div>
             </div>
           )}
 
           {(attachments?.length || 0) > 0 && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">Attachments ({attachments.length})</h3>
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Attachments ({attachments.length})</h3>
               <div className="space-y-2">
                 {attachments.map((att, idx) => (
                   <button
@@ -113,9 +113,9 @@ const ViewSprintModal = ({ open, onClose, sprintData, projectName }) => {
                         console.error('Failed to download attachment:', error);
                       }
                     }}
-                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm p-2 rounded border bg-white w-full text-left transition-colors"
+                    className="flex items-center text-blue-700 hover:text-blue-900 hover:bg-blue-50 text-sm p-2 rounded border bg-white w-full text-left transition-colors break-words overflow-wrap-anywhere"
                   >
-                    📎 {att.fileName}
+                    📎 <span className="break-words overflow-wrap-anywhere">{att.fileName}</span>
                   </button>
                 ))}
               </div>
@@ -131,7 +131,7 @@ const ViewSprintModal = ({ open, onClose, sprintData, projectName }) => {
           )}
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 border-t rounded-b-lg">
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t rounded-b-lg">
           <div className="flex justify-end">
             <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors">Close</button>
           </div>

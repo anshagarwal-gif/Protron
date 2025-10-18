@@ -489,26 +489,31 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-                <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                    <div>
-                        <h2 className="text-xl font-semibold text-green-900 flex items-center">
-                            <Receipt size={20} className="mr-2 text-green-600" />
-                            Create New SRN
-                        </h2>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="bg-green-600 text-white rounded-t-lg">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-4 sm:p-6">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                            <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                                <Receipt className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Create New SRN</h2>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleClose}
+                            className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                            disabled={loading}
+                        >
+                            <X className="w-5 h-5 text-white" />
+                        </button>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                        disabled={loading}
-                    >
-                        <X size={20} />
-                    </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-grow">
+                {/* Form */}
+                <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Error Display */}
                         {errors.submit && (
@@ -519,7 +524,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                         )}
 
                         {/* Row 1: Select PO, Milestone, SRN Type, Currency, and Amount */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-15 items-end">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 items-end">
                             <div className="lg:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Select PO *
@@ -637,19 +642,16 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 )}
                             </div>
                         </div>
-                        <div className='grid grid-cols-5 gap-15'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4'>
                             <div className="lg:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
                                 <input type="text" value={formData.srnCurrency} readOnly className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100" />
                             </div>
 
                             <div className="lg:col-span-1">
-                                <div className='flex gap-2 items-center justify-between'>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">SRN Amount *</label>
-                                    <span className="text-[10px] text-red-500">
-                                        {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
-                                    </span>
-                                </div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    SRN Amount *
+                                </label>
 
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
@@ -680,6 +682,10 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                         title={formData.srnAmount ? `Amount: ${getCurrencySymbol(formData.srnCurrency)}${parseFloat(formData.srnAmount).toLocaleString()}` : "Enter SRN amount"}
                                     />
                                 </div>
+
+                                <p className="mt-1 text-xs text-gray-500">
+                                    {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
+                                </p>
 
                                 {errors.srnAmount && (
                                     <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.srnAmount}`}>
@@ -766,7 +772,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 </p>
                             )}
                         </div>
-                        <div className="grid grid-cols-6 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
 
 
                             <div>

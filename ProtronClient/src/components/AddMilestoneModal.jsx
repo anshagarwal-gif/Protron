@@ -338,25 +338,31 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            <Target size={20} className="mr-2 text-green-600" />
-            Add New Milestone
-          </h2>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            disabled={loading}
-          >
-            <X size={20} className="text-gray-400" />
-          </button>
+        <div className="bg-green-600 text-white rounded-t-lg">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-4 sm:p-6">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add New Milestone</h2>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+              disabled={loading}
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-grow">
           {/* Error Display */}
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
@@ -367,7 +373,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
           <div className="space-y-4">
             {/* Row 1: Milestone Name, Currency, and Amount (all at top) */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Target size={14} className="inline mr-1" />
@@ -466,7 +472,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
             </div>
 
             {/* Row 2: Duration, Date and Attachment */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -504,7 +510,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 value={formData.msDesc}
                 onChange={handleInputChange}
                 rows={4}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${errors.msDesc ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder={`Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max ${DESC_CHAR_LIMIT} characters)`}
                 disabled={loading}
               />
@@ -527,7 +533,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 value={formData.msRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > REMARKS_CHAR_LIMIT ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${remarksCharCount > REMARKS_CHAR_LIMIT ? 'border-red-500' : 'border-gray-300'}`}
                 placeholder={`Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max ${REMARKS_CHAR_LIMIT} characters)`}
                 disabled={loading}
               />

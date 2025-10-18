@@ -436,48 +436,56 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-                    <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                        <h2 className="text-xl font-semibold text-green-900">
-                            Create new Purchase Order
-                        </h2>
-                        <button
-                            onClick={() => {
-                                onClose();
-                                setFormData({
-                                    poNumber: '',
-                                    poType: '',
-                                    poAmount: '',
-                                    currency: 'USD',
-                                    customerName: '',
-                                    sponsorName: '',
-                                    sponsorLob: '',
-                                    budgetLineItem: '',
-                                    budgetLineAmount: '',
-                                    budgetLineRemarks: '',
-                                    businessValueAmount: '',
-                                    businessValueType: '',
-                                    poCountry: '',
-                                    supplierName: sessionStorage.getItem('tenantName') || '',
-                                    projectName: '',
-                                    spocName: '',
-                                    startDate: '',
-                                    endDate: '',
-                                    projectDescription: '',
-                                    milestones: []
-                                });
-                            }}
-                            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                        >
-                            <X size={20} />
-                        </button>
+            <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+                <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+                    {/* Header */}
+                    <div className="bg-green-600 text-white rounded-t-lg">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-4 sm:p-6">
+                            <div className="flex items-center space-x-2 sm:space-x-3">
+                                <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                                    <FileText className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="text-base sm:text-lg lg:text-xl font-bold">Create new Purchase Order</h2>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    onClose();
+                                    setFormData({
+                                        poNumber: '',
+                                        poType: '',
+                                        poAmount: '',
+                                        currency: 'USD',
+                                        customerName: '',
+                                        sponsorName: '',
+                                        sponsorLob: '',
+                                        budgetLineItem: '',
+                                        budgetLineAmount: '',
+                                        budgetLineRemarks: '',
+                                        businessValueAmount: '',
+                                        businessValueType: '',
+                                        poCountry: '',
+                                        supplierName: sessionStorage.getItem('tenantName') || '',
+                                        projectName: '',
+                                        spocName: '',
+                                        startDate: '',
+                                        endDate: '',
+                                        projectDescription: '',
+                                        milestones: []
+                                    });
+                                }}
+                                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                            >
+                                <X className="w-5 h-5 text-white" />
+                            </button>
+                        </div>
                     </div>
 
-                    <div className="p-6 overflow-y-auto flex-grow">
+                    <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
 
                         <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 items-end">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         PO Number <span className='text-red-500'>*</span>

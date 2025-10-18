@@ -455,26 +455,26 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            {initialData ? 'Edit Release' : 'Add Release'} | {projectName}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center mb-2 sm:mb-0">
+            {initialData ? 'Edit Release' : 'Add Release'} | <span className="break-words overflow-wrap-anywhere">{projectName}</span>
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
           >
             <span className="text-gray-400">&#10005;</span>
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div className="space-y-4">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Release Name *</label>
                 <input
                   name="releaseName"
@@ -488,8 +488,8 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 {errors.releaseName && <span className="text-red-500 text-xs mt-1 block">{errors.releaseName}</span>}
               </div>
             </div>
-            <div className="grid grid-cols-12 gap-4">
-              <div className="col-span-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Start Date *</label>
                 <input
                   type="date"
@@ -502,7 +502,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 />
                 {errors.startDate && <span className="text-red-500 text-xs mt-1 block">{errors.startDate}</span>}
               </div>
-              <div className="col-span-3">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Start Time *</label>
                 <input
                   type="time"
@@ -516,7 +516,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 />
                 {errors.startTime && <span className="text-red-500 text-xs mt-1 block">{errors.startTime}</span>}
               </div>
-              <div className="col-span-3">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">End Date *</label>
                 <input
                   type="date"
@@ -529,7 +529,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 />
                 {errors.endDate && <span className="text-red-500 text-xs mt-1 block">{errors.endDate}</span>}
               </div>
-              <div className="col-span-3">
+              <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">End Time *</label>
                 <input
                   type="time"
@@ -550,7 +550,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
                 rows={3}
                 placeholder="Enter release description..."
                 maxLength={500}
@@ -622,17 +622,17 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
             </div>
           </div>
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 p-4 sm:p-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer order-2 sm:order-1"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center cursor-pointer"
+              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center justify-center cursor-pointer order-1 sm:order-2"
               disabled={uploading || submitting}
             >
               {submitting ? (

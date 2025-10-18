@@ -1,5 +1,5 @@
 // AddStoryModal.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { X, BookOpen, User, Target, CheckCircle, AlertCircle, Building, Calendar } from "lucide-react";
 import CreatableSelect from 'react-select/creatable';
 import axios from "axios";
@@ -30,6 +30,9 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
   const [errors, setErrors] = useState({});
   const [projectList, setProjectList] = useState([]);
   const [summaryCharCount, setSummaryCharCount] = useState(0);
+  const [asACharCount, setAsACharCount] = useState(0);
+  const [iWantToCharCount, setIWantToCharCount] = useState(0);
+  const [soThatCharCount, setSoThatCharCount] = useState(0);
   const [acceptanceCharCount, setAcceptanceCharCount] = useState(0);
   const { sessionData } = useSession();
 
@@ -44,6 +47,77 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
     message: "",
     severity: "info"
   });
+
+  // Fetch project-team users for a given projectId
+  const fetchUsers = useCallback(async (projectId) => {
+    if (!projectId) {
+      setUsers([]);
+      return;
+    }
+    try {
+      const token = sessionStorage.getItem('token');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
+        headers: { Authorization: `${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } else {
+        console.warn('Failed to fetch project team users, falling back to tenant users');
+        setUsers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching project team users:', error);
+      setUsers([]);
+    }
+  }, []);
+
+  // Handle project selection to fetch sprints and releases
+  const handleProjectChange = useCallback(async (projectId) => {
+    if (!projectId) {
+      setSprintList([]);
+      setReleaseList([]);
+      setFormData(prev => ({ ...prev, sprint: '', release: '' }));
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('token');
+      
+      // Fetch sprints for the project
+      const sprintResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/sprints/project/${projectId}`, {
+        headers: { Authorization: token }
+      });
+      
+      if (sprintResponse.ok) {
+        const sprintData = await sprintResponse.json();
+        setSprintList(Array.isArray(sprintData) ? sprintData : []);
+      } else {
+        console.warn('Failed to fetch sprints:', sprintResponse.status);
+        setSprintList([]);
+      }
+
+      // Fetch releases for the project
+      const releaseResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/releases/project/${projectId}`, {
+        headers: { Authorization: token }
+      });
+      
+      if (releaseResponse.ok) {
+        const releaseData = await releaseResponse.json();
+        setReleaseList(Array.isArray(releaseData) ? releaseData : []);
+      } else {
+        console.warn('Failed to fetch releases:', releaseResponse.status);
+        setReleaseList([]);
+      }
+    } catch (error) {
+      console.error('Error fetching sprints and releases:', error);
+      setSprintList([]);
+      setReleaseList([]);
+    }
+
+    // Fetch project team users for this project
+    fetchUsers(projectId);
+  }, [fetchUsers]);
 
   useEffect(() => {
     if (open) {
@@ -67,7 +141,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
         handleProjectChange(initialValues.projectName);
       }
     }
-  }, [open, initialValues, initialStatus]);
+  }, [open, initialValues, initialStatus, handleProjectChange]);
 
   // Fetch projects and users on modal open
   useEffect(() => {
@@ -89,30 +163,6 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
         } catch (error) {
           console.error("Error fetching projects:", error);
         }
-      }
-    };
-    
-    // Fetch project-team users for a given projectId
-    const fetchUsers = async (projectId) => {
-      if (!projectId) {
-        setUsers([]);
-        return;
-      }
-      try {
-        const token = sessionStorage.getItem('token');
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/project-team/list/${projectId}`, {
-          headers: { Authorization: `${token}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setUsers(Array.isArray(data) ? data : []);
-        } else {
-          console.warn('Failed to fetch project team users, falling back to tenant users');
-          setUsers([]);
-        }
-      } catch (error) {
-        console.error('Error fetching project team users:', error);
-        setUsers([]);
       }
     };
 
@@ -157,13 +207,16 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
     fetchSystems();
     fetchStatusFlags();
 
-  }, [open]);
+  }, [open, sessionData.tenantId, initialValues.projectName, fetchUsers]);
 
   // Initialize character counts when form data is set
   useEffect(() => {
     setSummaryCharCount(formData.summary.length);
+    setAsACharCount(formData.asA.length);
+    setIWantToCharCount(formData.iWantTo.length);
+    setSoThatCharCount(formData.soThat.length);
     setAcceptanceCharCount(formData.acceptanceCriteria.length);
-  }, [formData.summary, formData.acceptanceCriteria]);
+  }, [formData.summary, formData.asA, formData.iWantTo, formData.soThat, formData.acceptanceCriteria]);
 
   useEffect(() => {
     if (open) {
@@ -174,16 +227,43 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Check character limit for summary and acceptance criteria
+    // Check character limits for all fields
     if (name === 'summary') {
-      if (value.length > 100) {
+      if (value.length > 500) {
         setErrors(prev => ({
           ...prev,
-          [name]: "Summary cannot exceed 100 characters"
+          [name]: "Summary cannot exceed 500 characters"
         }));
         return;
       }
       setSummaryCharCount(value.length);
+    } else if (name === 'asA') {
+      if (value.length > 150) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "As A cannot exceed 150 characters"
+        }));
+        return;
+      }
+      setAsACharCount(value.length);
+    } else if (name === 'iWantTo') {
+      if (value.length > 500) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "I Want To cannot exceed 500 characters"
+        }));
+        return;
+      }
+      setIWantToCharCount(value.length);
+    } else if (name === 'soThat') {
+      if (value.length > 500) {
+        setErrors(prev => ({
+          ...prev,
+          [name]: "So That cannot exceed 500 characters"
+        }));
+        return;
+      }
+      setSoThatCharCount(value.length);
     } else if (name === 'acceptanceCriteria') {
       if (value.length > 1000) {
         setErrors(prev => ({
@@ -207,53 +287,6 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
         [name]: ""
       }));
     }
-  };
-
-  // Handle project selection to fetch sprints and releases
-  const handleProjectChange = async (projectId) => {
-    if (!projectId) {
-      setSprintList([]);
-      setReleaseList([]);
-      setFormData(prev => ({ ...prev, sprint: '', release: '' }));
-      return;
-    }
-
-    try {
-      const token = sessionStorage.getItem('token');
-      
-      // Fetch sprints for the project
-      const sprintResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/sprints/project/${projectId}`, {
-        headers: { Authorization: token }
-      });
-      
-      if (sprintResponse.ok) {
-        const sprintData = await sprintResponse.json();
-        setSprintList(Array.isArray(sprintData) ? sprintData : []);
-      } else {
-        console.warn('Failed to fetch sprints:', sprintResponse.status);
-        setSprintList([]);
-      }
-
-      // Fetch releases for the project
-      const releaseResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/releases/project/${projectId}`, {
-        headers: { Authorization: token }
-      });
-      
-      if (releaseResponse.ok) {
-        const releaseData = await releaseResponse.json();
-        setReleaseList(Array.isArray(releaseData) ? releaseData : []);
-      } else {
-        console.warn('Failed to fetch releases:', releaseResponse.status);
-        setReleaseList([]);
-      }
-    } catch (error) {
-      console.error('Error fetching sprints and releases:', error);
-      setSprintList([]);
-      setReleaseList([]);
-    }
-
-    // Fetch project team users for this project
-    fetchUsers(projectId);
   };
 
   const handleFileChange = (e) => {
@@ -308,13 +341,6 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
     setStoryFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Function to handle date input clicks
-  const handleDateInputClick = (inputName) => {
-    const dateInput = document.getElementsByName(inputName)[0];
-    if (dateInput) {
-      dateInput.showPicker();
-    }
-  };
 
   const validateForm = async () => {
     const newErrors = {};
@@ -478,12 +504,12 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <div className="mb-2 sm:mb-0">
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center">
               <BookOpen size={20} className="mr-2 text-green-600" />
               Add New User Story
             </h2>
@@ -503,7 +529,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {/* Error Display */}
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
@@ -778,7 +804,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
                       system: selected?.value || ''
                     }));
                   }}
-                  placeholder="Search for systems or type new..."
+                  placeholder="Search or type new..."
                   isClearable
                   isSearchable
                   formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
@@ -805,19 +831,20 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
                 <BookOpen size={14} className="inline mr-1" />
                 Summary *
                 <span className="float-right text-xs text-gray-500">
-                  {summaryCharCount}/100 characters
+                  {summaryCharCount}/500 characters
                 </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="summary"
                 value={formData.summary}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.summary ? 'border-red-500' : 'border-gray-300'
+                rows={3}
+                maxLength={500}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${errors.summary ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="Enter story summary"
                 disabled={loading}
-                title={formData.summary ? `Summary (${summaryCharCount}/100 chars): ${formData.summary}` : "Enter story summary"}
+                title={formData.summary ? `Summary (${summaryCharCount}/500 chars): ${formData.summary}` : "Enter story summary"}
               />
               {errors.summary && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.summary}`}>
@@ -831,17 +858,21 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <User size={14} className="inline mr-1" />
                 As A *
+                <span className="float-right text-xs text-gray-500">
+                  {asACharCount}/150 characters
+                </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="asA"
                 value={formData.asA}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.asA ? 'border-red-500' : 'border-gray-300'
+                rows={2}
+                maxLength={150}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.asA ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="As a [user type]"
                 disabled={loading}
-                title={formData.asA ? `As A: ${formData.asA}` : "Enter user type"}
+                title={formData.asA ? `As A (${asACharCount}/150 chars): ${formData.asA}` : "Enter user type"}
               />
               {errors.asA && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.asA}`}>
@@ -855,17 +886,21 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <Target size={14} className="inline mr-1" />
                 I Want To *
+                <span className="float-right text-xs text-gray-500">
+                  {iWantToCharCount}/500 characters
+                </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="iWantTo"
                 value={formData.iWantTo}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.iWantTo ? 'border-red-500' : 'border-gray-300'
+                rows={3}
+                maxLength={500}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.iWantTo ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="I want to [action/goal]"
                 disabled={loading}
-                title={formData.iWantTo ? `I Want To: ${formData.iWantTo}` : "Enter desired action or goal"}
+                title={formData.iWantTo ? `I Want To (${iWantToCharCount}/500 chars): ${formData.iWantTo}` : "Enter desired action or goal"}
               />
               {errors.iWantTo && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.iWantTo}`}>
@@ -879,17 +914,21 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <CheckCircle size={14} className="inline mr-1" />
                 So That *
+                <span className="float-right text-xs text-gray-500">
+                  {soThatCharCount}/500 characters
+                </span>
               </label>
-              <input
-                type="text"
+              <textarea
                 name="soThat"
                 value={formData.soThat}
                 onChange={handleInputChange}
-                className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.soThat ? 'border-red-500' : 'border-gray-300'
+                rows={3}
+                maxLength={500}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.soThat ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="So that [benefit/value]"
                 disabled={loading}
-                title={formData.soThat ? `So That: ${formData.soThat}` : "Enter benefit or value"}
+                title={formData.soThat ? `So That (${soThatCharCount}/500 chars): ${formData.soThat}` : "Enter benefit or value"}
               />
               {errors.soThat && (
                 <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.soThat}`}>
@@ -965,11 +1004,11 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
 
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 p-4 sm:p-6">
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer order-2 sm:order-1"
               disabled={loading}
             >
               Cancel
@@ -977,7 +1016,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center cursor-pointer"
+              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer order-1 sm:order-2"
             >
               {loading ? (
                 <>
