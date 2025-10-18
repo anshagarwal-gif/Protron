@@ -39,7 +39,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("SELECT new com.Protronserver.Protronserver.ResultDTOs.ProjectDetailsDTO(" +
             "p.projectCode, p.projectId, p.projectName, t.tenantName, p.startDate, p.endDate, p.unit, p.projectCost, " +
-            "p.startTimestamp, p.projectIcon, " +
+            "p.startTimestamp, " +
             "pm.userId, CONCAT(pm.firstName, ' ', pm.lastName), pm.empCode, " +
             "s.userId, CONCAT(s.firstName, ' ', s.lastName), s.empCode, " +
             "p.productOwner, p.scrumMaster, p.architect, p.chiefScrumMaster, " +
@@ -66,5 +66,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query(value = "SELECT project_name FROM projects WHERE project_id = :id AND end_timestamp IS NULL", nativeQuery = true)
     String findProjectNameById(@Param("id") Long id);
+
+    boolean existsByProjectCode(String projectCode);
 
 }

@@ -1,0 +1,123 @@
+package com.Protronserver.Protronserver.Controller;
+
+import com.Protronserver.Protronserver.DTOs.UserStoryFilterDTO;
+import com.Protronserver.Protronserver.Entities.UserStory;
+import com.Protronserver.Protronserver.Entities.UserStoryAttachment;
+import com.Protronserver.Protronserver.ResultDTOs.UserStoryDto;
+import com.Protronserver.Protronserver.Service.UserStoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/userstory")
+public class UserStoryController {
+
+    @Autowired
+    private UserStoryService userStoryService;
+
+    // ------------------------
+    // 🔹 Create a new story
+    // ------------------------
+    @PostMapping
+    public ResponseEntity<UserStory> createUserStory(@RequestBody UserStoryDto storyDto) {
+        return ResponseEntity.ok(userStoryService.createUserStory(storyDto));
+    }
+
+    // ------------------------
+    // 🔹 Update an existing story (by usId)
+    // ------------------------
+    @PutMapping("/{usId}")
+    public ResponseEntity<UserStory> updateUserStory(
+            @PathVariable String usId,
+            @RequestBody UserStoryDto updatedStoryDto) {
+        return ResponseEntity.ok(userStoryService.updateUserStory(usId, updatedStoryDto));
+    }
+
+    // ------------------------
+    // 🔹 Soft delete a story (by usId)
+    // ------------------------
+    @DeleteMapping("/{usId}")
+    public ResponseEntity<Void> deleteUserStory(@PathVariable String usId) {
+        userStoryService.deleteUserStory(usId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ------------------------
+    // 🔹 Get all active stories (all tenants)
+    // ------------------------
+    @GetMapping("/active")
+    public ResponseEntity<List<UserStory>> getAllActiveUserStories() {
+        return ResponseEntity.ok(userStoryService.getActiveUserStoriesForLoggedInTenant());
+    }
+
+    // ------------------------
+    // 🔹 Get single story by DB id
+    // ------------------------
+    @GetMapping("/active/id/{id}")
+    public ResponseEntity<UserStory> getActiveStoryById(@PathVariable Long id) {
+        return ResponseEntity.ok(userStoryService.getActiveUserStoryById(id));
+    }
+
+    // ------------------------
+    // 🔹 Get single story by business usId
+    // ------------------------
+    @GetMapping("/active/usid/{usId}")
+    public ResponseEntity<UserStory> getActiveStoryByUsId(@PathVariable String usId) {
+        return ResponseEntity.ok(userStoryService.getActiveUserStoryByUsId(usId));
+    }
+
+    // ------------------------
+    // 🔹 Attachments
+    // ------------------------
+    @PostMapping("/{usId}/attachment")
+    public ResponseEntity<UserStoryAttachment> uploadAttachment(
+            @PathVariable String usId,
+            @RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.ok(userStoryService.addAttachment(usId, file));
+    }
+
+    // 🔹 Get all attachments for a story
+    @GetMapping("/{usId}/attachments")
+    public ResponseEntity<List<UserStoryAttachment>> getAttachments(@PathVariable String usId) {
+        return ResponseEntity.ok(userStoryService.getAttachments(usId));
+    }
+
+    // 🔹 Download attachment by its own ID
+    @GetMapping("/attachment/{attachmentId}/download")
+    public ResponseEntity<org.springframework.core.io.ByteArrayResource> downloadAttachment(
+            @PathVariable Long attachmentId) {
+        return userStoryService.downloadAttachment(attachmentId)
+                .map(attachment -> {
+                    org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(
+                            attachment.getData());
+                    return ResponseEntity.ok()
+                            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                                    "attachment; filename=\"" + attachment.getFileName() + "\"")
+                            .contentType(org.springframework.http.MediaType.parseMediaType(attachment.getFileType()))
+                            .body(resource);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // 🔹 Delete attachment by its own ID
+    @DeleteMapping("/attachment/{attachmentId}")
+    public ResponseEntity<Void> deleteAttachment(@PathVariable Long attachmentId) {
+        userStoryService.deleteAttachment(attachmentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/user-stories/{parentId}")
+    public ResponseEntity<List<UserStory>> getActiveUserStories(@PathVariable String parentId) {
+        return ResponseEntity.ok(userStoryService.getActiveUserStoriesByParentId(parentId));
+    }
+
+    @PostMapping("/filter")
+    public List<UserStory> filterUserStories(@RequestBody UserStoryFilterDTO filter) {
+        return userStoryService.getFilteredStories(filter);
+    }
+}

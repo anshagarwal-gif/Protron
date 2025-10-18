@@ -1,31 +1,49 @@
 package com.Protronserver.Protronserver.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "status_flags")
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class StatusFlag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "status_id", nullable = false, updatable = false)
+    @Column(name = "status_id")
     private Integer statusId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tenant_id", nullable = false)
-    private Tenant tenant; // Assuming Tenant entity exists
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
+    @JsonManagedReference
+    private Tenant tenant;
 
-    @Column(name = "status_type", length = 50)
+    @Column(name = "status_type")
     private String statusType;
 
-    @Column(name = "status_name", length = 50)
+    @Column(name = "status_name")
     private String statusName;
 
-    @Column(name = "status_value", length = 50)
+    @Column(name = "status_value")
     private String statusValue;
 
-    @Column(name = "remarks", length = 250)
+    @Column(name = "remarks")
     private String remarks;
+
+    // Default constructor
+    public StatusFlag() {
+    }
+
+    // Constructor with all fields
+    public StatusFlag(Tenant tenant, String statusType, String statusName, String statusValue, String remarks) {
+        this.tenant = tenant;
+        this.statusType = statusType;
+        this.statusName = statusName;
+        this.statusValue = statusValue;
+        this.remarks = remarks;
+    }
 
     // Getters and Setters
     public Integer getStatusId() {
@@ -42,6 +60,11 @@ public class StatusFlag {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
+    }
+
+    // Safe getter for tenant ID to avoid lazy loading issues
+    public Long getTenantId() {
+        return tenant != null ? tenant.getTenantId() : null;
     }
 
     public String getStatusType() {
@@ -74,5 +97,17 @@ public class StatusFlag {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    @Override
+    public String toString() {
+        return "StatusFlag{" +
+                "statusId=" + statusId +
+                ", tenant=" + (tenant != null ? tenant.getTenantId() : "null") +
+                ", statusType='" + statusType + '\'' +
+                ", statusName='" + statusName + '\'' +
+                ", statusValue='" + statusValue + '\'' +
+                ", remarks='" + remarks + '\'' +
+                '}';
     }
 }

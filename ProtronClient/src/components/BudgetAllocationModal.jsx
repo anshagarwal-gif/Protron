@@ -177,8 +177,12 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
     // Budget validation
     if (budgetLine && formData.amount) {
       const requestedAmount = parseFloat(formData.amount);
-      const remainingBudget =
-        parseFloat(budgetLine.amountApproved || 0) - totalAllocated;
+      let remainingBudget = parseFloat(budgetLine.amountApproved || 0) - totalAllocated;
+
+      // If editing an existing allocation, add its current amount to the available budget
+      if (!isAddMode && editingAllocation) {
+        remainingBudget += parseFloat(editingAllocation.amount || 0);
+      }
 
       if (requestedAmount > remainingBudget) {
         newErrors.amount = `Amount exceeds remaining budget. Available: ${currency} ${remainingBudget.toLocaleString()}`;

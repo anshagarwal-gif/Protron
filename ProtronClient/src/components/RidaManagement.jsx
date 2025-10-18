@@ -139,6 +139,23 @@ export default function RidaManagement({ projectId, open, onClose }) {
     }
   };
 
+  const handleCompleteRida = async (ridaId) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.put(`${API_BASE_URL}/api/rida/complete/${ridaId}`, null, {
+        headers: { Authorization: token }
+      });
+      // Update the RIDA in the list
+      setRidas(prevRidas => prevRidas.map(rida => 
+        rida.id === ridaId ? response.data : rida
+      ));
+      setSnackbar({ open: true, message: 'RIDA marked as completed!', severity: 'success' });
+    } catch (err) {
+      console.error('Error completing RIDA:', err);
+      setSnackbar({ open: true, message: 'Failed to complete RIDA', severity: 'error' });
+    }
+  };
+
   const handleAddSubmit = (result) => {
     setAddModalOpen(false);
     setSnackbar({ open: true, message: 'RIDA added!', severity: 'success' });
@@ -177,6 +194,15 @@ export default function RidaManagement({ projectId, open, onClose }) {
           <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
           </button>
+          {params.data.status !== 'Closed' && (
+            <button 
+              onClick={() => handleCompleteRida(params.data.id)} 
+              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer" 
+              title="Complete RIDA"
+            >
+              <CheckCircle size={16} />
+            </button>
+          )}
         </div>
       ),
     }
@@ -450,13 +476,13 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
   if (!open) return null;
 
 return (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+  <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+    <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+        <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center mb-2 sm:mb-0">
           <FileText size={20} className="mr-2 text-green-600" />
-          {initialData ? 'Edit RIDA' : 'Add RIDA'} | {projectName}
+          {initialData ? 'Edit RIDA' : 'Add RIDA'} | <span className="break-words overflow-wrap-anywhere">{projectName}</span>
         </h2>
         <button
           onClick={onClose}
@@ -467,11 +493,11 @@ return (
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
         <div className="space-y-4">
           {/* Row 1: Type, Meeting Reference, Date Raised, Target Closer */}
-          <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <Tag size={14} className="inline mr-1" />
                 Type *
@@ -488,7 +514,7 @@ return (
               {errors.type && <span className="text-red-500 text-xs mt-1 block">{errors.type}</span>}
             </div>
 
-            <div className="col-span-3">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <Calendar size={14} className="inline mr-1" />
                 Meeting Reference
@@ -511,7 +537,7 @@ return (
               {errors.meetingReference && <span className="text-red-500 text-xs mt-1 block">{errors.meetingReference}</span>}
             </div>
 
-            <div className="col-span-3">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Date Raised
               </label>
@@ -525,7 +551,7 @@ return (
               />
             </div>
 
-            <div className="col-span-3">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 Target Closer
               </label>
@@ -552,7 +578,7 @@ return (
             <textarea
               value={formData.itemDescription}
               onChange={e => setFormData(f => ({ ...f, itemDescription: e.target.value }))}
-              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.itemDescription ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${errors.itemDescription ? 'border-red-500' : 'border-gray-300'}`}
               rows={4}
               placeholder="Enter detailed item description..."
               maxLength={500}
@@ -562,8 +588,8 @@ return (
           </div>
 
           {/* Row 3: Raised By and Owner */}
-          <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <User size={14} className="inline mr-1" />
                 Raised By
@@ -583,7 +609,7 @@ return (
                 isSearchable
                 isClearable
                 placeholder="Select or type name"
-                formatCreateLabel={inputValue => `Add \"${inputValue}\"`}
+                formatCreateLabel={inputValue => `Add "${inputValue}"`}
                 styles={{
                   control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.raisedBy ? 'red' : base.borderColor }),
                   menu: (base) => ({ ...base, zIndex: 9999 })
@@ -592,7 +618,7 @@ return (
               {errors.raisedBy && <span className="text-red-500 text-xs mt-1 block">{errors.raisedBy}</span>}
             </div>
 
-            <div className="col-span-6">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <UserCheck size={14} className="inline mr-1" />
                 Owner
@@ -612,7 +638,7 @@ return (
                 isSearchable
                 isClearable
                 placeholder="Select or type name"
-                formatCreateLabel={inputValue => `Add \"${inputValue}\"`}
+                formatCreateLabel={inputValue => `Add "${inputValue}"`}
                 styles={{
                   control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.owner ? 'red' : base.borderColor }),
                   menu: (base) => ({ ...base, zIndex: 9999 })
@@ -623,8 +649,8 @@ return (
           </div>
 
           {/* Row 4: Status */}
-          <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">
                 <CheckCircle size={14} className="inline mr-1" />
                 Status *
@@ -654,7 +680,7 @@ return (
             <textarea
               value={formData.remarks}
               onChange={e => setFormData(f => ({ ...f, remarks: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
               rows={3}
               placeholder="Enter additional remarks or notes..."
               maxLength={1000}
@@ -727,17 +753,17 @@ return (
         </div>
 
         {/* Form Actions */}
-        <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 p-4 sm:p-6">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
+            className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer order-2 sm:order-1"
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center cursor-pointer"
+            className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center justify-center cursor-pointer order-1 sm:order-2"
             disabled={uploading || submitting}
           >
             {submitting ? (

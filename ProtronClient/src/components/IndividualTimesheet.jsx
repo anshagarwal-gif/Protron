@@ -324,7 +324,9 @@ const IndividualTimesheet = () => {
         taskType: task.taskType,
         project: { projectName: task.projectName || "", projectId: task.projectId || "" },
         submitted: task.submitted,
-        attachments: task.attachments
+        attachments: task.attachments,
+        remainingHours: task.remainingHours || 0,
+        remainingMinutes: task.remainingMinutes || 0,
       }));
 
       // Group tasks by date
@@ -342,6 +344,8 @@ const IndividualTimesheet = () => {
           project: task.project,
           submitted: task.submitted,
           attachments: task.attachments,
+          remainingHours: task.remainingHours || 0,
+          remainingMinutes: task.remainingMinutes || 0,
           fullTask: task,
         });
       });
@@ -728,7 +732,7 @@ const IndividualTimesheet = () => {
                         title={`${entry.task} - ${entry.hours}h ${entry.minutes}m - ${entry.project}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setTaskDetail(entry.fullTask);
+                          setTaskDetail({...entry.fullTask , remainingHours: entry.remainingHours, remainingMinutes: entry.remainingMinutes});
                         }}
                       >
                         <span className="font-semibold">{entry.task}</span>
@@ -804,7 +808,7 @@ const IndividualTimesheet = () => {
                               title={`${entry.task} - ${entry.hours}h - ${entry.project}`}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setTaskDetail(entry.fullTask);
+                                setTaskDetail({...entry.fullTask, remainingHours: entry.remainingHours , remainingMinutes: entry.remainingMinutes});
                               }}
                             >
                               <span className="font-semibold">{entry.task}</span>
@@ -901,8 +905,7 @@ const IndividualTimesheet = () => {
                     <button
 
                       onClick={() => { console.log(hiddenDateInputRef.current); hiddenDateInputRef.current?.showPicker() }}
-                      className="cursor-pointer"
-                      className="px-4 py-2 text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
+                      className="px-4 py-2 cursor-pointer text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
                     >
                       {getCurrentDateString()}
                     </button>
@@ -1103,7 +1106,7 @@ const IndividualTimesheet = () => {
                                   key={entry.id}
                                   className={`border rounded-xl p-2 hover:shadow-md transition group relative cursor-pointer flex flex-col justify-between h-[150px] bg-green-50 border-green-200 ${isWeekendDay ? 'opacity-90' : ''
                                     }`}
-                                  onClick={() => setTaskDetail(entry.fullTask)}
+                                  onClick={() => setTaskDetail({...entry.fullTask, remainingHours: entry.remainingHours , remainingMinutes: entry.remainingMinutes})}
                                 >
                                   {entry.project && (
                                     <div className="flex justify-center mt-1">
@@ -1138,7 +1141,7 @@ const IndividualTimesheet = () => {
                                         <button
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            setTaskDetail(entry.fullTask);
+                                            setTaskDetail({...entry.fullTask, remainingHours: entry.remainingHours , remainingMinutes: entry.remainingMinutes});
                                           }}
                                           className="cursor-pointer"
                                         >

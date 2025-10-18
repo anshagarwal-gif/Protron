@@ -14,7 +14,6 @@ import java.util.List;
 public class ProjectUpdateDTO {
 
     private String projectName;
-    private String projectIcon;
     private Date startDate;
     private Date endDate;
     private Double projectCost;
@@ -128,14 +127,6 @@ public class ProjectUpdateDTO {
 
     public void setProjectName(String projectName) {
         this.projectName = projectName;
-    }
-
-    public String getProjectIcon() {
-        return projectIcon;
-    }
-
-    public void setProjectIcon(String projectIcon) {
-        this.projectIcon = projectIcon;
     }
 
     public Date getStartDate() {

@@ -215,13 +215,6 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         }
     }, [open]);
 
-    const handleImageUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setFormData((prev) => ({ ...prev, projectIcon: URL.createObjectURL(file) }));
-        }
-    };
-
     const handleChange = (field, value) => {
         setFormData((prev) => ({
             ...prev,
@@ -343,42 +336,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 </div>
                             </div>
 
-                            <div className="flex-none w-full">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
-                                <div className="h-10 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
-                                    {formData.projectIcon ? (
-                                        <div className="flex items-center gap-2">
-                                            <img
-                                                src={formData.projectIcon}
-                                                alt="Project Icon"
-                                                className="w-8 h-8 rounded-full object-cover"
-                                            />
-                                            <label className={`px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                                Change
-                                                <input
-                                                    hidden
-                                                    accept="image/*"
-                                                    type="file"
-                                                    onChange={handleImageUpload}
-                                                    disabled={isSubmitting}
-                                                />
-                                            </label>
-                                        </div>
-                                    ) : (
-                                        <label className={`flex items-center gap-2 px-3 py-1 text-xs border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                            <Upload className="w-4 h-4" />
-                                            Project Icon
-                                            <input
-                                                hidden
-                                                accept="image/*"
-                                                type="file"
-                                                onChange={handleImageUpload}
-                                                disabled={isSubmitting}
-                                            />
-                                        </label>
-                                    )}
-                                </div>
-                            </div>
+
 
                             <div className="flex-none w-full">
                                 <DatePicker
@@ -427,7 +385,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         menu: (base) => ({ ...base, zIndex: 9999 }),
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    isValidNewOption={() => false}
                                 />
                             </div>
 
@@ -455,7 +413,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         menu: (base) => ({ ...base, zIndex: 9999 }),
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    isValidNewOption={() => false}
                                 />
                             </div>
 
@@ -701,9 +659,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             fontSize: "14px"
                                         })
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                     noOptionsMessage={() => "No team members found. Type to create new one."}
                                     loadingMessage={() => "Loading team members..."}
+                                    isValidNewOption={() => false}
                                 />
 
                                 <div className="text-xs text-gray-600 mt-1">

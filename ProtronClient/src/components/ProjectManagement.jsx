@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
 import { AiFillProject, AiOutlineSearch, AiOutlineDownload } from "react-icons/ai"
 import { FiChevronDown, FiUsers, FiEdit, FiEye } from "react-icons/fi"
 import { AgGridReact } from 'ag-grid-react'
@@ -25,6 +26,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const ProjectManagement = () => {
   const { hasAccess } = useAccess();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -143,13 +145,15 @@ const handleDodUpdate = async () => {
 
   // Custom cell renderers for AgGrid
   const ProjectNameRenderer = (params) => {
+    const handleProjectClick = () => {
+      navigate(`/stories?projectId=${params.data.projectId}`);
+    };
+
     return (
       <span
-        className="font-medium hover:text-green-600 truncate"
+        className="font-medium hover:text-green-600 truncate cursor-pointer"
         title={params.value}
-        style={{
-          color: hasAccess('project_team', 'view') ? undefined : 'inherit'
-        }}
+        onClick={handleProjectClick}
       >
         {params.value}
       </span>
@@ -519,7 +523,6 @@ const handleDodUpdate = async () => {
       const payload = {
         projectCode: data.projectCode,
         projectName: data.projectName,
-        projectIcon: data.projectIcon,
         startDate: data.startDate,
         endDate: data.endDate,
         projectCost: data.cost,
@@ -558,7 +561,6 @@ const handleDodUpdate = async () => {
       // Reset form
       setFormData({
         projectName: '',
-        projectIcon: null,
         startDate: null,
         endDate: null,
         manager: null,

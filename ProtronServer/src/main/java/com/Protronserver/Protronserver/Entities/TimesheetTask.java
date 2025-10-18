@@ -36,6 +36,8 @@ public class TimesheetTask {
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
 
+    private Long taskRef;
+
     private String lastUpdatedBy;
     // IMPORTANT: Make sure to eagerly fetch attachments or use @JsonProperty
     @OneToMany(mappedBy = "timesheetTask", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -192,5 +194,13 @@ public class TimesheetTask {
 
     public void setTaskTopic(String taskTopic) {
         this.taskTopic = taskTopic;
+    }
+
+    public Long getTaskRef() {
+        return taskRef;
+    }
+
+    public void setTaskRef(Long taskRef) {
+        this.taskRef = taskRef;
     }
 }

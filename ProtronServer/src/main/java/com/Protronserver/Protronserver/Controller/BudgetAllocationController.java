@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -123,6 +124,9 @@ public class BudgetAllocationController {
 
             allocation.setAmount(request.getAmount());
             allocation.setRemarks(request.getRemarks());
+            allocation.setStartTimestamp(LocalDateTime.now());
+            allocation.setEndTimestamp(null);
+            allocation.setLastUpdatedBy(null);
 
             // Save allocation
             BudgetAllocation savedAllocation = budgetAllocationService.save(allocation);
@@ -253,11 +257,11 @@ public class BudgetAllocationController {
     }
 
     /**
-     * Update budget allocation
+     * Update budget allocation (soft update with versioning)
      */
     @PutMapping("/{allocationId}")
     public ResponseEntity<?> updateBudgetAllocation(@PathVariable Integer allocationId,
-            @Valid @RequestBody BudgetAllocationRequest request) {
+                                                    @Valid @RequestBody BudgetAllocationRequest request) {
         try {
             Optional<BudgetAllocation> existingAllocationOpt = budgetAllocationService.findById(allocationId);
 
@@ -292,12 +296,12 @@ public class BudgetAllocationController {
             if (newTotal.compareTo(budgetLine.getAmountApproved()) > 0) {
                 String errorMessage = String.format(
                         "Budget allocation update failed! The requested amount (%s %s) exceeds the available budget.\n\n"
-                        + "Budget Details:\n"
-                        + "• Total Approved Budget: %s %s\n"
-                        + "• Already Allocated (excluding current): %s %s\n"
-                        + "• Remaining Budget: %s %s\n"
-                        + "• Requested Amount: %s %s\n\n"
-                        + "Please reduce the allocation amount to %s %s or less.",
+                                + "Budget Details:\n"
+                                + "• Total Approved Budget: %s %s\n"
+                                + "• Already Allocated (excluding current): %s %s\n"
+                                + "• Remaining Budget: %s %s\n"
+                                + "• Requested Amount: %s %s\n\n"
+                                + "Please reduce the allocation amount to %s %s or less.",
                         budgetLine.getCurrency(), request.getAmount().toString(),
                         budgetLine.getCurrency(), budgetLine.getAmountApproved().toString(),
                         budgetLine.getCurrency(), allocationsWithoutCurrent.toString(),
@@ -309,35 +313,51 @@ public class BudgetAllocationController {
                 return ResponseEntity.badRequest().body(errorMessage);
             }
 
-            // Update allocation fields
-            existingAllocation.setVendorName(request.getVendorName());
+            boolean hasVendor = request.getVendorName() != null && !request.getVendorName().trim().isEmpty();
+            boolean hasSystemId = request.getSystemId() != null;
+            boolean hasSystemName = request.getSystemName() != null && !request.getSystemName().trim().isEmpty();
 
-            // Handle system - either from SystemMaster or custom system name
-            if (request.getSystemId() != null) {
-                // Use existing system from SystemMaster
+            if (!hasVendor && !hasSystemId && !hasSystemName) {
+                return ResponseEntity.badRequest().body("At least Vendor Name or System (ID/Name) is required");
+            }
+
+            // --- Soft close the old allocation ---
+            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
+
+            existingAllocation.setEndTimestamp(LocalDateTime.now());
+            existingAllocation.setLastUpdatedBy(updatedBy);
+            budgetAllocationService.save(existingAllocation);
+
+            // --- Create a new allocation record with updated values ---
+            BudgetAllocation newAllocation = new BudgetAllocation();
+            newAllocation.setBudgetLine(budgetLine);
+
+            if (hasVendor) {
+                newAllocation.setVendorName(request.getVendorName().trim());
+            }
+
+            if (hasSystemId) {
                 SystemMaster system = systemMasterService.getSystemById(request.getSystemId());
                 if (system == null) {
                     return ResponseEntity.badRequest().body("System not found with ID: " + request.getSystemId());
                 }
-                existingAllocation.setSystem(system);
-                existingAllocation.setSystemName(system.getSystemName()); // Set system name for consistency
-            } else if (request.getSystemName() != null && !request.getSystemName().trim().isEmpty()) {
-                // Use custom system name
-                existingAllocation.setSystem(null);
-                existingAllocation.setSystemName(request.getSystemName().trim());
-            } else {
-                return ResponseEntity.badRequest().body("Either System ID or System Name is required");
+                newAllocation.setSystem(system);
+                newAllocation.setSystemName(system.getSystemName());
+            } else if (hasSystemName) {
+                newAllocation.setSystem(null);
+                newAllocation.setSystemName(request.getSystemName().trim());
             }
 
-            existingAllocation.setAmount(request.getAmount());
-            existingAllocation.setRemarks(request.getRemarks());
+            newAllocation.setAmount(request.getAmount());
+            newAllocation.setRemarks(request.getRemarks());
 
-            // Automatically update tenant ID from logged-in user (same as project module)
+            // Set tenant from logged in user
             String currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId().toString();
-            existingAllocation.setTenantId(currentTenantId);
+            newAllocation.setTenantId(currentTenantId);
 
-            // Save updated allocation
-            BudgetAllocation updatedAllocation = budgetAllocationService.save(existingAllocation);
+            newAllocation.setStartTimestamp(LocalDateTime.now());
+
+            BudgetAllocation savedAllocation = budgetAllocationService.save(newAllocation);
 
             // Update budget line amounts
             BigDecimal totalAllocated = budgetAllocationService
@@ -346,30 +366,28 @@ public class BudgetAllocationController {
             budgetLineService.updateBudgetAmounts(budgetLine.getBudgetId(), budgetLine.getAmountUtilized(),
                     amountAvailable);
 
-            BudgetAllocationResponse response = convertToResponse(updatedAllocation);
+            BudgetAllocationResponse response = convertToResponse(savedAllocation);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             String errorMessage = String.format(
                     "Failed to update budget allocation!\n\n"
-                    + "Error Details:\n"
-                    + "• Error Type: %s\n"
-                    + "• Error Message: %s\n\n"
-                    + "Possible Causes:\n"
-                    + "• Database connection issues\n"
-                    + "• Invalid data format\n"
-                    + "• Allocation not found\n"
-                    + "• Insufficient permissions\n\n"
-                    + "Please check your input and try again. If the problem persists, contact system administrator.",
+                            + "Error Details:\n"
+                            + "• Error Type: %s\n"
+                            + "• Error Message: %s\n\n"
+                            + "Possible Causes:\n"
+                            + "• Database connection issues\n"
+                            + "• Invalid data format\n"
+                            + "• Allocation not found\n"
+                            + "• Insufficient permissions\n\n"
+                            + "Please check your input and try again. If the problem persists, contact system administrator.",
                     e.getClass().getSimpleName(),
                     e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
     }
 
-    /**
-     * Delete budget allocation
-     */
+    
     @DeleteMapping("/{allocationId}")
     public ResponseEntity<?> deleteBudgetAllocation(@PathVariable Integer allocationId) {
         try {
@@ -382,56 +400,66 @@ public class BudgetAllocationController {
             BudgetAllocation allocation = allocationOpt.get();
             BudgetLine budgetLine = allocation.getBudgetLine();
 
-            // Delete allocation
-            budgetAllocationService.delete(allocationId);
+            // --- Soft delete instead of physical delete ---
+            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
 
-            // Update budget line amounts after deletion
+            allocation.setEndTimestamp(LocalDateTime.now());
+            allocation.setLastUpdatedBy(updatedBy);
+            budgetAllocationService.save(allocation);
+
+            // --- Update budget line amounts after soft deletion ---
             BigDecimal totalAllocated = budgetAllocationService
                     .getTotalAllocationAmountByBudgetLineId(budgetLine.getBudgetId());
             BigDecimal amountAvailable = budgetLine.getAmountApproved().subtract(totalAllocated);
-            budgetLineService.updateBudgetAmounts(budgetLine.getBudgetId(), budgetLine.getAmountUtilized(),
-                    amountAvailable);
+            budgetLineService.updateBudgetAmounts(
+                    budgetLine.getBudgetId(),
+                    budgetLine.getAmountUtilized(),
+                    amountAvailable
+            );
 
             String successMessage = String.format(
-                    "Budget allocation deleted successfully!\n\n"
-                    + "Deleted Allocation Details:\n"
-                    + "• Tenant ID: %s\n"
-                    + "• Vendor: %s\n"
-                    + "• System: %s\n"
-                    + "• Amount: %s %s\n"
-                    + "• Remarks: %s\n\n"
-                    + "Updated Budget Status:\n"
-                    + "• Total Approved: %s %s\n"
-                    + "• Remaining Allocated: %s %s\n"
-                    + "• Available Budget: %s %s",
+                    "Budget allocation deleted successfully (soft delete)!\n\n"
+                            + "Deleted Allocation Details:\n"
+                            + "• Tenant ID: %s\n"
+                            + "• Vendor: %s\n"
+                            + "• System: %s\n"
+                            + "• Amount: %s %s\n"
+                            + "• Remarks: %s\n\n"
+                            + "Updated Budget Status:\n"
+                            + "• Total Approved: %s %s\n"
+                            + "• Remaining Allocated: %s %s\n"
+                            + "• Available Budget: %s %s",
                     allocation.getTenantId(),
                     allocation.getVendorName(),
                     allocation.getSystemName() != null ? allocation.getSystemName()
-                    : (allocation.getSystem() != null ? allocation.getSystem().getSystemName() : "N/A"),
+                            : (allocation.getSystem() != null ? allocation.getSystem().getSystemName() : "N/A"),
                     budgetLine.getCurrency(), allocation.getAmount().toString(),
                     allocation.getRemarks() != null ? allocation.getRemarks() : "N/A",
                     budgetLine.getCurrency(), budgetLine.getAmountApproved().toString(),
                     budgetLine.getCurrency(), totalAllocated.toString(),
-                    budgetLine.getCurrency(), amountAvailable.toString());
+                    budgetLine.getCurrency(), amountAvailable.toString()
+            );
 
             return ResponseEntity.ok(successMessage);
 
         } catch (Exception e) {
             String errorMessage = String.format(
                     "Failed to delete budget allocation!\n\n"
-                    + "Error Details:\n"
-                    + "• Error Type: %s\n"
-                    + "• Error Message: %s\n\n"
-                    + "Possible Causes:\n"
-                    + "• Database connection issues\n"
-                    + "• Foreign key constraints\n"
-                    + "• Insufficient permissions\n\n"
-                    + "Please try again or contact system administrator if the problem persists.",
+                            + "Error Details:\n"
+                            + "• Error Type: %s\n"
+                            + "• Error Message: %s\n\n"
+                            + "Possible Causes:\n"
+                            + "• Database connection issues\n"
+                            + "• Foreign key constraints\n"
+                            + "• Insufficient permissions\n\n"
+                            + "Please try again or contact system administrator if the problem persists.",
                     e.getClass().getSimpleName(),
-                    e.getMessage());
+                    e.getMessage()
+            );
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         }
     }
+
 
     /**
      * Get allocation summary by budget line

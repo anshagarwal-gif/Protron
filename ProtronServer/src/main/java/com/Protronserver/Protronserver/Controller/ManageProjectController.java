@@ -33,10 +33,10 @@ public class ManageProjectController {
 
     // Add a new project
     @PostMapping("/add")
-    public ResponseEntity<Project> addProject(@RequestBody ProjectRequestDTO request) {
+    public ResponseEntity<Long> addProject(@RequestBody ProjectRequestDTO request) {
         logger.info("Hello");
 
-        Project project = manageProjectService.addProject(request);
+        Long project = manageProjectService.addProject(request);
         return new ResponseEntity<>(project, HttpStatus.CREATED);
     }
 

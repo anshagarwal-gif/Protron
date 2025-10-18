@@ -27,21 +27,21 @@ public class RidaController {
 
     // ✅ Add RIDA
     @PostMapping("/project/{projectId}")
-    public ResponseEntity<Rida> addRida(
+    public ResponseEntity<RidaResultDTO> addRida(
             @PathVariable Long projectId,
             @RequestBody RidaRequestDTO dto
     ) {
-        Rida saved = ridaService.addRida(dto, projectId);
+        RidaResultDTO saved = ridaService.addRida(dto, projectId);
         return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     // ✅ Edit RIDA
     @PutMapping("/{ridaId}")
-    public ResponseEntity<Rida> editRida(
+    public ResponseEntity<RidaResultDTO> editRida(
             @PathVariable Long ridaId,
             @RequestBody RidaEditRequestDTO dto
     ) {
-        Rida updated = ridaService.editRida(dto, ridaId);
+        RidaResultDTO updated = ridaService.editRida(dto, ridaId);
         return ResponseEntity.ok(updated);
     }
 
@@ -50,6 +50,14 @@ public class RidaController {
     public ResponseEntity<Void> deleteRida(@PathVariable Long ridaId) {
         ridaService.deleteRida(ridaId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/complete/{ridaId}")
+    public ResponseEntity<RidaResultDTO> completeRida(
+            @PathVariable Long ridaId
+    ){
+        RidaResultDTO updatedRida = ridaService.completeRida(ridaId);
+        return ResponseEntity.ok(updatedRida);
     }
 
     // ✅ Get all RIDA by Project

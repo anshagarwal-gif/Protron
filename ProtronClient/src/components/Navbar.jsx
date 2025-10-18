@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FiHome, FiUser, FiUserCheck, FiFolder, FiFileText, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown } from "react-icons/fi";
+import { FiHome, FiUser, FiUserCheck, FiFolder, FiFileText, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown, FiBookOpen } from "react-icons/fi";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext"; // Import AccessContext
@@ -192,6 +192,7 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
   const modules = [
     { key: "dashboard", label: "Dashboard", path: "/dashboard", moduleName: "dashboard", icon: FiHome },
     { key: "projects", label: "Projects", path: "/projects", moduleName: "projects", icon: FiFolder },
+    { key: "stories", label: " Story ", path: "/stories", moduleName: "projects", icon: FiBookOpen },
     // { key: "team", label: "Team", path: "/team", moduleName: "teams", icon: FiUserCheck },
     { key: "timesheet", label: "Timesheet", path: "/timesheet", moduleName: "timesheet", icon: FiClock },
     { key: "users", label: "Users", path: "/users", moduleName: "users", icon: FiUser },

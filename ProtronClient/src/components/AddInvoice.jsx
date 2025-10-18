@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import CreatableSelect from 'react-select/creatable';
 import OrganizationSelect from './OrganizationSelect'; // Import OrganizationSelect
 import axios from 'axios';
@@ -324,16 +324,7 @@ const AddInvoiceModal = ({
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    // Initialize dropdown data when modal opens and auto-reset form
-    useEffect(() => {
-        if (open) {
-            fetchDropdownData();
-            // Auto-reset form when modal opens
-            handleReset();
-        }
-    }, [open]);
-
-    const fetchDropdownData = async () => {
+    const fetchDropdownData = useCallback(async () => {
         try {
             setLoadingEmployees(true);
 
@@ -371,34 +362,6 @@ const AddInvoiceModal = ({
                 mobilePhone: emp.mobilePhone
             }));
 
-            // Enhanced customer options with address info
-            // const customerOptionsWithAddress = res.data.map(emp => ({
-            //     label: `${emp.name} ${emp.empCode ? `(${emp.empCode})` : ''}`.trim(),
-            //     value: emp.name,
-            //     empCode: emp.empCode,
-            //     cost: emp.cost,
-            //     email: emp.email,
-            //     userId: emp.userId,
-            //     status: emp.status,
-            //     address: (() => {
-            //         const addressParts = [];
-            //         if (emp.city) addressParts.push(emp.city);
-            //         if (emp.state) addressParts.push(emp.state);
-            //         if (emp.country) addressParts.push(emp.country);
-
-            //         if (addressParts.length > 0) {
-            //             return addressParts.join(', ');
-            //         } else {
-            //             return `Address for ${emp.name}`;
-            //         }
-            //     })(),
-            //     city: emp.city,
-            //     state: emp.state,
-            //     country: emp.country,
-            //     mobilePhone: emp.mobilePhone,
-            //     currency: emp.unit || emp.currency || 'USD'
-            // }));
-
             setEmployees(employeeOptions);
 
             // Fetch projects
@@ -414,7 +377,16 @@ const AddInvoiceModal = ({
         } finally {
             setLoadingEmployees(false);
         }
-    };
+    }, []);
+
+    // Initialize dropdown data when modal opens and auto-reset form
+    useEffect(() => {
+        if (open) {
+            fetchDropdownData();
+            // Auto-reset form when modal opens
+            handleReset();
+        }
+    }, [open, fetchDropdownData]);
 
     const fetchProjects = async () => {
         try {
@@ -970,32 +942,41 @@ const AddInvoiceModal = ({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-                <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-green-900 flex items-center">
-                        <FileText className="mr-2" size={24} />
-                        {isFromInvoiceManagement ? 'Add New Invoice' : 'Generate New Invoice'}
-                        {getAttachedFilesCount() > 0 && (
-                            <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                                {getAttachedFilesCount()} file{getAttachedFilesCount() > 1 ? 's' : ''} attached
-                            </span>
-                        )}
-                        {attachTimesheet && (
-                            <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                                Timesheet Included
-                            </span>
-                        )}
-                    </h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="bg-green-600 text-white rounded-t-lg">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 p-4 sm:p-6">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                            <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">
+                                    {isFromInvoiceManagement ? 'Add New Invoice' : 'Generate New Invoice'}
+                                </h2>
+                                {getAttachedFilesCount() > 0 && (
+                                    <span className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
+                                        {getAttachedFilesCount()} file{getAttachedFilesCount() > 1 ? 's' : ''} attached
+                                    </span>
+                                )}
+                                {attachTimesheet && (
+                                    <span className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
+                                        Timesheet Included
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                        >
+                            <X className="w-5 h-5 text-white" />
+                        </button>
+                    </div>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-grow">
+                <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
                     <div className="space-y-6">
                         {/* 1st Line: Invoice ID, Invoice Name, and Project Name */}
                         {errors.submit && (
@@ -1004,7 +985,7 @@ const AddInvoiceModal = ({
                                 <span className="text-red-700 text-sm">{errors.submit}</span>
                             </div>
                         )}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Invoice ID *
@@ -1072,7 +1053,7 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* 2nd Line: Customer Name and Customer Address */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div className="col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Customer Name *
@@ -1128,7 +1109,7 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* 3rd Line: Supplier Name and Supplier Address */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div className="">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Supplier Name *
@@ -1184,7 +1165,7 @@ const AddInvoiceModal = ({
 
 
 
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Employee Name
@@ -1342,7 +1323,7 @@ const AddInvoiceModal = ({
 
 
                         {/* 6th Line: From Date and To Date */}
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     From Date *
@@ -1505,7 +1486,7 @@ const AddInvoiceModal = ({
                                 rows={3}
                                 value={formData.remarks}
                                 onChange={handleChange('remarks')}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
                                 maxLength={500}
                             />
                             <div className="text-right text-sm text-gray-500 mt-1">

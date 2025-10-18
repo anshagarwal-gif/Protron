@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 import "./App.css";
 
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 
 import Sidebar from './components/sidebar';
 import ProjectTeamManagement from './components/ProjectTeamManagement';
@@ -35,13 +35,19 @@ import SessionExpired from './utils/SessionExpired';
 import Unauthorized from './utils/Unauthorized';
 import { useSessionTimer } from './hooks/useSessionTimer'; // Adjust path as needed
 import UserDetails from './components/UserDetails';
-
+import ProjectMatricsLanding from './pages/LandingPage';
+import StoryDashboard from './pages/StoryDashboard';
+import SolutionStoryManagement from './pages/SolutionStoryManagement';
+import TaskManagement from './pages/TaskManagement';
 // Memoized route components to prevent unnecessary re-renders
 const MemoizedUserManagement = memo(UserManagement);
 const MemoizedPOManagement = memo(POManagement);
 const MemoizedProjectManagement = memo(ProjectManagement);
 const MemoizedTeamManagement = memo(TeamManagement);
 const MemoizedDashboard = memo(Dashboard);
+const MemoizedStoryDashboard = memo(StoryDashboard);
+const MemoizedSolutionStoryManagement = memo(SolutionStoryManagement);
+const MemoizedTaskManagement = memo(TaskManagement);
 
 const AppContent = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -99,7 +105,7 @@ const AppContent = () => {
 
   return (
     <>
-      {isAuthenticated && !sessionExpired && (
+      {isAuthenticated && !sessionExpired && location.pathname !== '/landing' && (
         <Navbar 
           setIsAuthenticated={setIsAuthenticated} 
           sessionTimer={sessionTimer} // Pass sessionTimer instead of countdown
@@ -110,7 +116,8 @@ const AppContent = () => {
           {!isAuthenticated || sessionExpired ? (
             // Unauthenticated routes - removed fragment wrapper
             <>
-              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/" element={<Navigate to="/landing" replace />} />
+              <Route path="/landing" element={<ProjectMatricsLanding />} />
               <Route
                 path="/login"
                 element={<Login setIsAuthenticated={handleLogin} />}
@@ -127,8 +134,12 @@ const AppContent = () => {
             // Authenticated routes - removed fragment wrapper
             <>
               <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route path="/landing" element={<ProjectMatricsLanding />} />
               <Route path="/dashboard" element={<MemoizedDashboard />} />
               <Route path="/projects" element={<MemoizedProjectManagement />} />
+              <Route path="/stories" element={<MemoizedStoryDashboard />} />
+              <Route path="/solution-story-management" element={<MemoizedSolutionStoryManagement />} />
+              <Route path="/task-management" element={<MemoizedTaskManagement />} />
               <Route path="/user/:id" element={<UserDetails/>}/>
               <Route path="/signup" element={<Signup/>}/>
               {/* <Route path="/team" element={<MemoizedTeamManagement />} /> */}

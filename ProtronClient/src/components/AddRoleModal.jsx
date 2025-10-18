@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, Typography, Box, Paper, Switch, Button, TextField,useMediaQuery, useTheme } from "@mui/material";
 import axios from 'axios';
 // Helper to format module names
@@ -11,7 +11,6 @@ const formatModuleName = (moduleName) =>
 const AddRoleModal = ({
   open,
   onClose,
-  modulesList, // List of modules fetched from the API
   onSubmit,
 }) => {
   const theme = useTheme();
@@ -97,12 +96,14 @@ return module.moduleName;
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="lg"
+      maxWidth="xl"
       PaperProps={{
         sx: {
           borderRadius: 2,
           boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-          maxHeight: "90vh",
+          maxHeight: "95vh",
+          width: { xs: '95%', sm: '90%', md: '85%', lg: '80%' },
+          maxWidth: { xs: '100%', sm: '1200px', md: '1400px', lg: '1600px' }
         },
       }}
     >

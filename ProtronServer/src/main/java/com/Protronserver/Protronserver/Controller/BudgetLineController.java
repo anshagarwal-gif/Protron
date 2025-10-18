@@ -6,6 +6,7 @@ import com.Protronserver.Protronserver.DTOs.*;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.Protronserver.Protronserver.Entities.SystemMaster;
 import com.Protronserver.Protronserver.Service.BudgetDocumentService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +81,8 @@ public class BudgetLineController {
             budgetLine.setAmountAvailable(request.getAmountAvailable());
             budgetLine.setRemarks(request.getRemarks());
             budgetLine.setStartTimestamp(LocalDateTime.now());
-            budgetLine.setLastUpdatedBy(request.getLastUpdatedBy());
+            budgetLine.setLastUpdatedBy(null);
+            budgetLine.setEndTimestamp(null);
             budgetLine.setAttachment(request.getAttachment());
 
             // Save budget line
@@ -95,6 +97,9 @@ public class BudgetLineController {
                     allocation.setVendorName(allocationRequest.getVendorName());
                     allocation.setAmount(allocationRequest.getAmount());
                     allocation.setRemarks(allocationRequest.getRemarks());
+                    allocation.setStartTimestamp(LocalDateTime.now());
+                    allocation.setEndTimestamp(null);
+                    allocation.setLastUpdatedBy(null);
 
                     // Handle system - either from SystemMaster or custom system name
                     if (allocationRequest.getSystemId() != null) {
@@ -129,102 +134,103 @@ public class BudgetLineController {
      * Edit an existing budget line item
      */
     @PutMapping("/{budgetId}")
+    @Transactional
     public ResponseEntity<?> editBudgetLine(@PathVariable Integer budgetId,
-            @Valid @RequestBody BudgetLineRequest request) {
+                                            @Valid @RequestBody BudgetLineRequest request) {
         try {
-            Optional<BudgetLine> existingBudgetLineOpt = budgetLineService.findById(budgetId);
+            // 1. Fetch active budget line
+            BudgetLine existingBudgetLine = budgetLineService.findById(budgetId)
+                    .orElseThrow(() -> new RuntimeException("Budget line not found with ID: " + budgetId));
 
-            if (!existingBudgetLineOpt.isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
+            // 2. Close old budget line
+            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
 
-            BudgetLine existingBudgetLine = existingBudgetLineOpt.get();
-
-            // Get existing allocations for this budget line
-            List<BudgetAllocation> existingAllocations = budgetAllocationService.findByBudgetLineId(budgetId);
-
-            // Calculate total allocation amount (existing + new)
-            BigDecimal totalAllocationAmount = BigDecimal.ZERO;
-
-            // Add existing allocations that are not being updated
-            for (BudgetAllocation existingAllocation : existingAllocations) {
-                totalAllocationAmount = totalAllocationAmount.add(existingAllocation.getAmount());
-            }
-
-            // Add new allocations if provided in request
-            if (request.getAllocations() != null && !request.getAllocations().isEmpty()) {
-                BigDecimal newAllocationsTotal = request.getAllocations().stream()
-                        .map(allocation -> allocation.getAmount())
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                totalAllocationAmount = totalAllocationAmount.add(newAllocationsTotal);
-            }
-
-            // Validate amount approved against total allocations
-            if (totalAllocationAmount.compareTo(BigDecimal.ZERO) > 0 &&
-                    request.getAmountApproved().compareTo(totalAllocationAmount) < 0) {
-                return ResponseEntity.badRequest()
-                        .body("Error: Amount approved (" + request.getAmountApproved() +
-                                ") cannot be less than total allocation amount (" + totalAllocationAmount + ")");
-            }
-
-            // Update budget line fields
-            // Automatically set tenant ID from logged-in user (same as project module)
-            String currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId().toString();
-            existingBudgetLine.setTenantId(currentTenantId);
-
-            existingBudgetLine.setBudgetName(request.getBudgetName());
-            existingBudgetLine.setBudgetDescription(request.getBudgetDescription());
-            existingBudgetLine.setBudgetLineItem(request.getBudgetLineItem());
-            existingBudgetLine.setBudgetEndDate(request.getBudgetEndDate());
-            existingBudgetLine.setBudgetOwner(request.getBudgetOwner());
-            existingBudgetLine.setSponsor(request.getSponsor());
-            existingBudgetLine.setLob(request.getLob());
-            existingBudgetLine.setCurrency(request.getCurrency());
-            existingBudgetLine.setAmountApproved(request.getAmountApproved());
-            existingBudgetLine.setAmountUtilized(request.getAmountUtilized());
-            existingBudgetLine.setAmountAvailable(request.getAmountAvailable());
-            existingBudgetLine.setRemarks(request.getRemarks());
             existingBudgetLine.setEndTimestamp(LocalDateTime.now());
-            existingBudgetLine.setLastUpdatedBy(request.getLastUpdatedBy());
+            existingBudgetLine.setLastUpdatedBy(updatedBy);
+            budgetLineService.save(existingBudgetLine);
 
-            if (request.getAttachment() != null) {
-                existingBudgetLine.setAttachment(request.getAttachment());
+            // 3. Create new version of budget line
+            BudgetLine newBudgetLine = new BudgetLine();
+            newBudgetLine.setTenantId(existingBudgetLine.getTenantId());
+
+            // copy values from request or fallback to existing
+            newBudgetLine.setBudgetName(request.getBudgetName() != null ? request.getBudgetName() : existingBudgetLine.getBudgetName());
+            newBudgetLine.setBudgetDescription(request.getBudgetDescription() != null ? request.getBudgetDescription() : existingBudgetLine.getBudgetDescription());
+            newBudgetLine.setBudgetLineItem(request.getBudgetLineItem() != null ? request.getBudgetLineItem() : existingBudgetLine.getBudgetLineItem());
+            newBudgetLine.setBudgetEndDate(request.getBudgetEndDate() != null ? request.getBudgetEndDate() : existingBudgetLine.getBudgetEndDate());
+            newBudgetLine.setBudgetOwner(request.getBudgetOwner() != null ? request.getBudgetOwner() : existingBudgetLine.getBudgetOwner());
+            newBudgetLine.setSponsor(request.getSponsor() != null ? request.getSponsor() : existingBudgetLine.getSponsor());
+            newBudgetLine.setLob(request.getLob() != null ? request.getLob() : existingBudgetLine.getLob());
+            newBudgetLine.setCurrency(request.getCurrency() != null ? request.getCurrency() : existingBudgetLine.getCurrency());
+            newBudgetLine.setAmountApproved(request.getAmountApproved() != null ? request.getAmountApproved() : existingBudgetLine.getAmountApproved());
+            newBudgetLine.setAmountUtilized(request.getAmountUtilized() != null ? request.getAmountUtilized() : existingBudgetLine.getAmountUtilized());
+            newBudgetLine.setAmountAvailable(request.getAmountAvailable() != null ? request.getAmountAvailable() : existingBudgetLine.getAmountAvailable());
+            newBudgetLine.setRemarks(request.getRemarks() != null ? request.getRemarks() : existingBudgetLine.getRemarks());
+            newBudgetLine.setAttachment(request.getAttachment() != null ? request.getAttachment() : existingBudgetLine.getAttachment());
+
+            newBudgetLine.setStartTimestamp(LocalDateTime.now());
+            newBudgetLine.setEndTimestamp(null);
+            newBudgetLine.setLastUpdatedBy(updatedBy);
+
+            // save new budget line
+            newBudgetLine = budgetLineService.save(newBudgetLine);
+
+            // 4. Close old allocations
+            List<BudgetAllocation> oldAllocations = budgetAllocationService.findByBudgetLineId(budgetId);
+            for (BudgetAllocation alloc : oldAllocations) {
+                alloc.setEndTimestamp(LocalDateTime.now());
+                alloc.setLastUpdatedBy(updatedBy);
+                budgetAllocationService.save(alloc);
             }
 
-            // Save updated budget line
-            BudgetLine updatedBudgetLine = budgetLineService.save(existingBudgetLine);
+            // 5. Create new allocations
+            if (request.getAllocations() != null && !request.getAllocations().isEmpty()) {
+                for (BudgetLineAllocationRequest allocReq : request.getAllocations()) {
+                    BudgetAllocation newAlloc = new BudgetAllocation();
+                    newAlloc.setBudgetLine(newBudgetLine);
+                    newAlloc.setTenantId(newBudgetLine.getTenantId());
+                    newAlloc.setVendorName(allocReq.getVendorName());
+                    newAlloc.setAmount(allocReq.getAmount());
+                    newAlloc.setRemarks(allocReq.getRemarks());
+                    newAlloc.setStartTimestamp(LocalDateTime.now());
+                    newAlloc.setEndTimestamp(null);
+                    newAlloc.setLastUpdatedBy(updatedBy);
 
-            // Save new allocations if provided
-            if (request.getAllocations() != null) {
-                for (BudgetLineAllocationRequest allocationRequest : request.getAllocations()) {
-                    BudgetAllocation allocation = new BudgetAllocation();
-                    allocation.setBudgetLine(updatedBudgetLine);
-                    allocation.setTenantId(currentTenantId);
-                    allocation.setVendorName(allocationRequest.getVendorName());
-                    allocation.setAmount(allocationRequest.getAmount());
-                    allocation.setRemarks(allocationRequest.getRemarks());
-
-                    // Handle system - either from SystemMaster or custom system name
-                    if (allocationRequest.getSystemId() != null) {
-                        // Use existing system from SystemMaster
-                        SystemMaster system = systemMasterService.getSystemById(allocationRequest.getSystemId());
+                    // handle system
+                    if (allocReq.getSystemId() != null) {
+                        SystemMaster system = systemMasterService.getSystemById(allocReq.getSystemId());
                         if (system != null) {
-                            allocation.setSystem(system);
-                            allocation.setSystemName(system.getSystemName());
+                            newAlloc.setSystem(system);
+                            newAlloc.setSystemName(system.getSystemName());
                         } else {
-                            allocation.setSystemName(allocationRequest.getSystemName());
+                            newAlloc.setSystemName(allocReq.getSystemName());
                         }
-                    } else if (allocationRequest.getSystemName() != null
-                            && !allocationRequest.getSystemName().trim().isEmpty()) {
-                        // Use custom system name
-                        allocation.setSystemName(allocationRequest.getSystemName().trim());
+                    } else if (allocReq.getSystemName() != null && !allocReq.getSystemName().trim().isEmpty()) {
+                        newAlloc.setSystemName(allocReq.getSystemName().trim());
                     }
 
-                    budgetAllocationService.save(allocation);
+                    budgetAllocationService.save(newAlloc);
+                }
+            } else {
+                // if no new allocations passed, carry forward old ones into new version
+                for (BudgetAllocation oldAlloc : oldAllocations) {
+                    BudgetAllocation carriedAlloc = new BudgetAllocation();
+                    carriedAlloc.setBudgetLine(newBudgetLine);
+                    carriedAlloc.setTenantId(oldAlloc.getTenantId());
+                    carriedAlloc.setVendorName(oldAlloc.getVendorName());
+                    carriedAlloc.setAmount(oldAlloc.getAmount());
+                    carriedAlloc.setRemarks(oldAlloc.getRemarks());
+                    carriedAlloc.setSystem(oldAlloc.getSystem());
+                    carriedAlloc.setSystemName(oldAlloc.getSystemName());
+                    carriedAlloc.setStartTimestamp(LocalDateTime.now());
+                    carriedAlloc.setEndTimestamp(null);
+                    carriedAlloc.setLastUpdatedBy(updatedBy);
+                    budgetAllocationService.save(carriedAlloc);
                 }
             }
 
-            BudgetLineResponse response = convertToResponse(updatedBudgetLine);
+            // 6. Return response for new version
+            BudgetLineResponse response = convertToResponse(newBudgetLine);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -279,7 +285,7 @@ public class BudgetLineController {
     @GetMapping("/tenant/{tenantId}")
     public ResponseEntity<?> getBudgetLinesByTenant(@PathVariable String tenantId) {
         try {
-            List<BudgetLine> budgetLines = budgetLineService.findByTenantId(tenantId);
+            List<BudgetLine> budgetLines = budgetLineService.findByTenantIdAndEndTimestampIsNull(tenantId);
             List<BudgetLineResponse> responses = budgetLines.stream()
                     .map(this::convertToResponse)
                     .collect(java.util.stream.Collectors.toList());
@@ -317,11 +323,8 @@ public class BudgetLineController {
     @DeleteMapping("/{budgetId}")
     public ResponseEntity<?> deleteBudgetLine(@PathVariable Integer budgetId) {
         try {
-            Optional<BudgetLine> budgetLineOpt = budgetLineService.findById(budgetId);
-
-            if (!budgetLineOpt.isPresent()) {
-                return ResponseEntity.notFound().build();
-            }
+            BudgetLine budgetLineOpt = budgetLineService.findById(budgetId)
+                    .orElseThrow(()->new RuntimeException("Budget Line not found"));
 
             // Delete associated allocations first
             budgetAllocationService.deleteByBudgetLineId(budgetId);
@@ -329,8 +332,9 @@ public class BudgetLineController {
             // Delete associated documents first
             budgetDocumentService.deleteDocumentsByBudgetId(budgetId);
 
-            // Delete budget line
-            budgetLineService.delete(budgetId);
+            budgetLineOpt.setEndTimestamp(LocalDateTime.now());
+            budgetLineOpt.setLastUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
+            budgetLineService.save(budgetLineOpt);
 
             return ResponseEntity.ok("Budget line deleted successfully");
 

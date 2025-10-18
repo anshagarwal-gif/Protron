@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,9 @@ public class BudgetLineService {
     @Autowired
     private BudgetLineRepository budgetLineRepository;
 
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
+
     public BudgetLine save(BudgetLine budgetLine) {
         if (budgetLine.getBudgetId() == null) {
             // New budget line
@@ -39,7 +43,8 @@ public class BudgetLineService {
 
     @Transactional(readOnly = true)
     public List<BudgetLine> findAll() {
-        return budgetLineRepository.findAll();
+        String tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId().toString();
+        return budgetLineRepository.findByTenantIdAndEndTimestampIsNull(tenantId);
     }
 
     public void delete(Integer budgetId) {
@@ -47,13 +52,14 @@ public class BudgetLineService {
     }
 
     @Transactional(readOnly = true)
-    public List<BudgetLine> findByTenantId(String tenantId) {
-        return budgetLineRepository.findByTenantId(tenantId);
+    public List<BudgetLine> findByTenantIdAndEndTimestampIsNull(String tenantId) {
+        return budgetLineRepository.findByTenantIdAndEndTimestampIsNull(tenantId);
     }
 
     @Transactional(readOnly = true)
     public List<BudgetLine> findByBudgetOwner(String budgetOwner) {
-        return budgetLineRepository.findByBudgetOwner(budgetOwner);
+        String tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId().toString();
+        return budgetLineRepository.findByTenantIdAndBudgetOwnerAndEndTimestampIsNull(budgetOwner, tenantId);
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +84,7 @@ public class BudgetLineService {
 
     @Transactional(readOnly = true)
     public List<BudgetLine> findByTenantIdAndBudgetOwner(String tenantId, String budgetOwner) {
-        return budgetLineRepository.findByTenantIdAndBudgetOwner(tenantId, budgetOwner);
+        return budgetLineRepository.findByTenantIdAndBudgetOwnerAndEndTimestampIsNull(tenantId, budgetOwner);
     }
 
     @Transactional(readOnly = true)
