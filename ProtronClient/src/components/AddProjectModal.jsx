@@ -385,7 +385,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         menu: (base) => ({ ...base, zIndex: 9999 }),
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    isValidNewOption={() => false}
                                 />
                             </div>
 
@@ -413,7 +413,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                         menu: (base) => ({ ...base, zIndex: 9999 }),
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    isValidNewOption={() => false}
                                 />
                             </div>
 
@@ -659,9 +659,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             fontSize: "14px"
                                         })
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                     noOptionsMessage={() => "No team members found. Type to create new one."}
                                     loadingMessage={() => "Loading team members..."}
+                                    isValidNewOption={() => false}
                                 />
 
                                 <div className="text-xs text-gray-600 mt-1">
