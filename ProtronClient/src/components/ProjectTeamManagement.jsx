@@ -120,17 +120,16 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         cellStyle: { borderRight: '1px solid #e5e7eb' }
       },
       {
+        headerName: 'Pricing Type',
+        field: 'pricingType',
+        maxWidth: 95,
+        cellStyle: { borderRight: '1px solid #e5e7eb' },
+      },
+      {
         headerName: 'System Impacted',
         field: 'systemImpacted.systemName',
         minWidth: 180,
         cellStyle: { borderRight: '1px solid #e5e7eb' }
-      },
-      {
-        headerName: 'Est.Release',
-        field: 'estimatedReleaseDate',
-        minWidth: 150,
-        cellStyle: { borderRight: '1px solid #e5e7eb' },
-        valueFormatter: params => formatDate(params.value)
       },
       {
         headerName: 'Onboarding Date',
@@ -138,8 +137,14 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         minWidth: 150,
         cellStyle: { textAlign: 'center' },
         valueFormatter: params => formatDate(params.value)
+      },
+      {
+        headerName: 'Est.Release',
+        field: 'estimatedReleaseDate',
+        minWidth: 150,
+        cellStyle: { borderRight: '1px solid #e5e7eb' },
+        valueFormatter: params => formatDate(params.value)
       }
-
     ];
     if (hasAccess('project_team', 'edit')) {
       baseColumns.push({
@@ -185,6 +190,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         empCode: member.empCode,
         unit: member.unit,
         pricing: member.pricing,
+        pricingType: member.pricingType,
         systemImpacted: { systemName: member.systemName, systemId: member.systemId },
         estimatedReleaseDate: member.estimatedReleaseDate,
         onBoardingDate: member.onBoardingDate,
@@ -300,6 +306,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         empCode: memberData.employeeCode,
         userId: selectedUser.userId,
         pricing: memberData.cost,
+        pricingType: memberData.pricingType,
         status: "active",
         projectId: projectId,
         taskType: memberData.tasktype,

@@ -22,13 +22,13 @@ public class ManageTeamController {
     private ManageTeamService manageTeamService;
 
     @PostMapping("/add")
-    public ResponseEntity<ProjectTeam> addTeamMember(@RequestBody TeamMemberRequestDTO dto) {
-        ProjectTeam saved = manageTeamService.createProjectTeam(dto);
+    public ResponseEntity<String> addTeamMember(@RequestBody TeamMemberRequestDTO dto) {
+        String saved = manageTeamService.createProjectTeam(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
     @PutMapping("/edit/{id}")
-    public ProjectTeam update(@PathVariable Long id, @RequestBody TeamMemberEditDTO dto) {
+    public String update(@PathVariable Long id, @RequestBody TeamMemberEditDTO dto) {
         return manageTeamService.updateProjectTeam(id, dto);
     }
 

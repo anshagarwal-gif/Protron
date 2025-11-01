@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 public class TeamMemberRequestDTO {
     private Double pricing;
+    private String pricingType;
     private String empCode;
     private String status = "active";
     private Long projectId;
@@ -23,6 +24,14 @@ public class TeamMemberRequestDTO {
 
     // Added last updated by field
     private String lastUpdatedBy;
+
+    public String getPricingType() {
+        return pricingType;
+    }
+
+    public void setPricingType(String pricingType) {
+        this.pricingType = pricingType;
+    }
 
     public Long getSystemImpacted() {
         return systemImpacted;

@@ -26,6 +26,7 @@ import dayjs from 'dayjs';;
 const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => {
     const [formData, setFormData] = useState({
     pricing: '',
+    pricingType: 'hourly',
     unit: '',
     estimatedReleaseDate: '',
     onBoardingDate: '',
@@ -40,7 +41,8 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
     estimatedReleaseDate: '',
     onBoardingDate: '',
     taskType: 'developer',
-    systemImpacted: member?.systemImpacted?.systemId || ""
+    systemImpacted: member?.systemImpacted?.systemId || "",
+    pricingType: 'hourly'
     });
 
     // Theme colors
@@ -209,6 +211,7 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                     </FormControl>
 
                     <Box sx={{ display: 'flex', gap: 3 }}>
+                        
                         <Box sx={{ width: '50%' }}>
                             <FormControl fullWidth>
                                 <InputLabel>Unit</InputLabel>
@@ -245,20 +248,21 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                                 }}
                             />
                         </Box>
+                        <Box sx={{ width: '50%' }}>
+                            <TextField
+                                fullWidth
+                                label="Pricing Type"
+                                name="pricingType"
+                                value="hourly"
+                                disabled
+                                variant="outlined"
+                                
+                            />
+                        </Box>
 
                     </Box>
 
-                    <DatePicker
-                        onFocus={(e) => e.target.showPicker()}
-                        label="Estimated Release Date"
-                        value={formData.estimatedReleaseDate ? dayjs(formData.estimatedReleaseDate) : null}
-                        onChange={(newDate) =>
-                            setFormData((prev) => ({
-                                ...prev,
-                                estimatedReleaseDate: newDate ? newDate.format('YYYY-MM-DD') : ''
-                            }))
-                        }
-                    />
+                    
                     <DatePicker
                         onFocus={(e) => e.target.showPicker()}
                         label="Onboarding Date"
@@ -288,6 +292,37 @@ const EditTeamMemberModal = ({ isOpen, onClose, member, onUpdate, project }) => 
                                 }
                             }
                         }}
+                    />
+                    <DatePicker
+                        onFocus={(e) => e.target.showPicker()}
+                        label="Estimated Release Date"
+                        value={formData.estimatedReleaseDate ? dayjs(formData.estimatedReleaseDate) : null}
+                        onChange={(newDate) =>
+                            setFormData((prev) => ({
+                                ...prev,
+                                estimatedReleaseDate: newDate ? newDate.format('YYYY-MM-DD') : ''
+                            }))
+                        }
+                        slotProps={{
+                            textField: {
+                                fullWidth: true,
+                                required: true,
+                                InputProps: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <CalendarTodayIcon sx={{ color: greenPrimary }} />
+                                        </InputAdornment>
+                                    ),
+                                    sx: { height: fieldHeight }
+                                },
+                                onClick: (e) => {
+                                    // Open the picker when clicking anywhere in the input
+                                    if (e.target && e.target.focus) e.target.focus();
+                                    if (e.target && e.target.showPicker) e.target.showPicker();
+                                }
+                            }
+                        }}
+                        
                     />
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
                         <Button

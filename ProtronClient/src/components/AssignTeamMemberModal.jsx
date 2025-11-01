@@ -15,7 +15,8 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
   releaseDate: '',
   onBoardingDate: '',
   tasktype: '',
-  systemImpacted: ''
+  systemImpacted: '',
+  pricingType: 'hourly'
   });
   const dateInputRef = useRef(null);
 
@@ -281,6 +282,20 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                 </div>
               </div>
               <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Type</label>
+                <div className="relative">
+                  
+                  <input
+                    type="text"
+                    name="pricingType"
+                    value="Hourly"
+                    disabled
+                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
                 <div className="relative">
                   <select
@@ -322,24 +337,6 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                 </div>
               </div>
               <div className='flex-1'>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Release Date</label>
-                <div className="relative" onClick={handleDateInputClick}>
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <input
-                    ref={dateInputRef}
-                    type="date"
-                    name="releaseDate"
-                    value={formData.releaseDate}
-                    onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
-                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-              </div>
-              <div className='flex-1'>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Onboarding Date</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -357,6 +354,25 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                   />
                 </div>
               </div>
+              <div className='flex-1'>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Release Date</label>
+                <div className="relative" onClick={handleDateInputClick}>
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-green-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    name="releaseDate"
+                    value={formData.releaseDate}
+                    onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
+                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+              </div>
+              
             </div>
 
             {/* Third Row: Pricing and Release Date */}

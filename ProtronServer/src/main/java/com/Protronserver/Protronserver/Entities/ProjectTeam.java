@@ -24,6 +24,7 @@ public class ProjectTeam {
     private String status;
     private String taskType;
     private String unit;
+    private String pricingType;
     // Added timestamp fields
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
@@ -39,6 +40,14 @@ public class ProjectTeam {
     @JsonIgnoreProperties({"projectTeams", "project", "tenant"})
     @Where(clause = "end_timestamp IS NULL")
     private Systemimpacted systemimpacted;
+
+    public String getPricingType() {
+        return pricingType;
+    }
+
+    public void setPricingType(String pricingType) {
+        this.pricingType = pricingType;
+    }
 
     public Systemimpacted getSystemimpacted() {
         return systemimpacted;

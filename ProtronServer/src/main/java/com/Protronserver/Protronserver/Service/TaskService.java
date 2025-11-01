@@ -2,9 +2,7 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.DTOs.TaskFilterDTO;
 import com.Protronserver.Protronserver.DTOs.TimesheetTaskRequestDTO;
-import com.Protronserver.Protronserver.Entities.Project;
-import com.Protronserver.Protronserver.Entities.Task;
-import com.Protronserver.Protronserver.Entities.TaskAttachment;
+import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
 import com.Protronserver.Protronserver.ResultDTOs.TaskDto;
 import com.Protronserver.Protronserver.Utils.CustomIdGenerator;
@@ -28,6 +26,8 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static java.lang.Long.parseLong;
 
 @Service
 public class TaskService {

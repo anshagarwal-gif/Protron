@@ -34,9 +34,10 @@ public class ManageTeamService {
     @Autowired
     private SystemImpactedRepository systemImpactedRepository;
 
-    public ProjectTeam createProjectTeam(TeamMemberRequestDTO dto) {
+    public String createProjectTeam(TeamMemberRequestDTO dto) {
         ProjectTeam team = new ProjectTeam();
         team.setPricing(dto.getPricing());
+        team.setPricingType(dto.getPricingType());
         team.setEmpCode(dto.getEmpCode());
         team.setStatus(dto.getStatus());
         team.setUnit(dto.getUnit());
@@ -58,7 +59,8 @@ public class ManageTeamService {
         if (project.isPresent() && user.isPresent()) {
             team.setProject(project.get());
             team.setUser(user.get());
-            return projectTeamRepository.save(team);
+            projectTeamRepository.save(team);
+            return "Success";
         }
 
         throw new RuntimeException("Project or User not found");
@@ -69,7 +71,7 @@ public class ManageTeamService {
                 .orElseThrow(() -> new RuntimeException("Team Member not found"));
     }
 
-    public ProjectTeam updateProjectTeam(Long id, TeamMemberEditDTO dto) {
+    public String updateProjectTeam(Long id, TeamMemberEditDTO dto) {
         ProjectTeam team = getProjectTeamById(id);
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof User user) {
@@ -81,6 +83,7 @@ public class ManageTeamService {
 
         ProjectTeam newVersionMember = new ProjectTeam();
         newVersionMember.setPricing(dto.getPricing());
+        newVersionMember.setPricingType(dto.getPricingType());
         newVersionMember.setUnit(dto.getUnit());
         newVersionMember.setEstimatedReleaseDate(dto.getEstimatedReleaseDate());
         newVersionMember.setOnBoardingDate(dto.getOnBoardingDate());
@@ -97,7 +100,9 @@ public class ManageTeamService {
             newVersionMember.setSystemimpacted(systemimpacted);
         }
 
-        return projectTeamRepository.save(newVersionMember);
+        projectTeamRepository.save(newVersionMember);
+
+        return "Success";
 
     }
 
@@ -116,6 +121,7 @@ public class ManageTeamService {
 
         ProjectTeam newVersionMember = new ProjectTeam();
         newVersionMember.setPricing(team.getPricing());
+        newVersionMember.setPricingType(team.getPricingType());
         newVersionMember.setUnit(team.getUnit());
         newVersionMember.setEstimatedReleaseDate(team.getEstimatedReleaseDate());
         newVersionMember.setOnBoardingDate(team.getOnBoardingDate());

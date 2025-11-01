@@ -11,6 +11,7 @@ import java.time.LocalDate;
 public class TeamMemberEditDTO {
 
     private Double pricing;
+    private String pricingType;
     private String unit;
     private String taskType;
     private Long systemImpacted;
@@ -19,6 +20,14 @@ public class TeamMemberEditDTO {
     private LocalDate estimatedReleaseDate;
 
     private LocalDate onBoardingDate;
+
+    public String getPricingType() {
+        return pricingType;
+    }
+
+    public void setPricingType(String pricingType) {
+        this.pricingType = pricingType;
+    }
 
     public LocalDate getOnBoardingDate() {
         return onBoardingDate;
