@@ -37,6 +37,10 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
   const [users, setUsers] = useState([]);
   const [releases, setReleases] = useState([]);
   const [sprints, setSprints] = useState([]);
+  const [releaseFixed, setReleaseFixed] = useState(false);
+  const [sprintFixed, setSprintFixed] = useState(false);
+  const [systemFixed, setSystemFixed] = useState(false);
+  const [assigneeFixed, setAssigneeFixed] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
@@ -51,7 +55,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
   const greenPrimary = '#15803d';
   const greenHover = '#047857';
   const fieldHeight = '40px';
-
+  console.log(parentStory);
   useEffect(() => {
     const fetchData = async () => {
       if (open) {
@@ -60,8 +64,17 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
           setFormData(prev => ({
             ...prev,
             projectId: parentStory.projectId,
-            parentId: parentStory.usId
+            parentId: parentStory.usId,
+            releaseId: parentStory.releaseId ? String(parentStory.releaseId) : '',
+            sprintId: parentStory.sprint ? String(parentStory.sprint) : '',
+            system: parentStory.system || prev.system || '',
+            assignee: parentStory.assignee || prev.assignee || ''
           }));
+          // Mark release/sprint/system/assignee as fixed (uneditable) when provided by parentStory
+          if (parentStory.releaseId) setReleaseFixed(true);
+          if (parentStory.sprint) setSprintFixed(true);
+          if (parentStory.system) setSystemFixed(true);
+          if (parentStory.assignee) setAssigneeFixed(true);
         }
 
         // If initialProjectId is provided (from dashboard context), pre-fill projectId
@@ -105,24 +118,31 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
           await fetchProjectUsers(parentStory.projectId);
         }
 
-        // Fetch Releases
-        try {
-          const releasesResponse = await axios.get(`${API_BASE_URL}/api/releases`, {
-            headers: { Authorization: token }
-          });
-          setReleases(releasesResponse.data || []);
-        } catch (error) {
-          console.error('Error fetching releases:', error);
-        }
+        // Fetch Releases and Sprints scoped to the project if we have a projectId
+  const projectIdToUse = parentStory?.projectId || initialProjectId || formData.projectId || null;
+        if (projectIdToUse) {
+          try {
+            const releasesResponse = await axios.get(`${API_BASE_URL}/api/releases/project/${projectIdToUse}`, {
+              headers: { Authorization: token }
+            });
+            setReleases(releasesResponse.data || []);
+          } catch (error) {
+            console.error('Error fetching releases for project', projectIdToUse, error);
+            setReleases([]);
+          }
 
-        // Fetch Sprints
-        try {
-          const sprintsResponse = await axios.get(`${API_BASE_URL}/api/sprints`, {
-            headers: { Authorization: token }
-          });
-          setSprints(sprintsResponse.data || []);
-        } catch (error) {
-          console.error('Error fetching sprints:', error);
+          try {
+            const sprintsResponse = await axios.get(`${API_BASE_URL}/api/sprints/project/${projectIdToUse}`, {
+              headers: { Authorization: token }
+            });
+            setSprints(sprintsResponse.data || []);
+          } catch (error) {
+            console.error('Error fetching sprints for project', projectIdToUse, error);
+            setSprints([]);
+          }
+        } else {
+          setReleases([]);
+          setSprints([]);
         }
       }
     };
@@ -237,8 +257,8 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
         system: formData.system,
         storyPoints: parseInt(formData.storyPoints) || 0,
         assignee: formData.assignee,
-        releaseId: formData.releaseId || null,
-        sprintId: formData.sprintId || null
+        releaseId: formData.releaseId ? parseInt(formData.releaseId) : null,
+        sprintId: formData.sprintId ? parseInt(formData.sprintId) : null
       };
 
       const response = await axios.post(
@@ -331,11 +351,15 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
       system: '',
       storyPoints: 0,
       assignee: '',
-      releaseId: '',
-      sprintId: '',
+      releaseId: parentStory?.releaseId ? String(parentStory.releaseId) : '',
+      sprintId: parentStory?.sprint ? String(parentStory.sprint) : '',
       attachments: []
     });
     setFieldErrors({});
+    setReleaseFixed(!!parentStory?.releaseId);
+    setSprintFixed(!!parentStory?.sprint);
+    setSystemFixed(!!parentStory?.system);
+    setAssigneeFixed(!!parentStory?.assignee);
   };
 
   const handleClose = () => {
@@ -376,7 +400,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                   <div>
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add Solution Story</h2>
                     {parentStory && (
-                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.summary}</p>
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.usId}</p>
                     )}
                   </div>
                 </div>
@@ -482,47 +506,28 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
 
             {/* Row 2: Summary, System, Story Points */}
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-              <div className="w-full md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Summary <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5"
-                      fill={greenPrimary}
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
-                    </svg>
-                  </div>
-                  <input
-                    type="text"
-                    value={formData.summary || ''}
-                    onChange={handleInputChange('summary')}
-                    placeholder="Enter solution story summary..."
-                    maxLength={200}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 break-words overflow-wrap-anywhere"
-                    style={{ height: fieldHeight }}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-1 text-right pr-1">
-                  {formData.summary?.length || 0} / 200
-                </p>
-              </div>
+              
 
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   System
                 </label>
-                <input
-                  type="text"
-                  value={formData.system || ''}
-                  onChange={handleInputChange('system')}
-                  placeholder="Enter system name"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                  style={{ height: fieldHeight }}
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.system || ''}
+                    onChange={(e) => { if (!systemFixed) handleInputChange('system')(e); }}
+                    placeholder="Enter system name"
+                    className={`w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${systemFixed ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
+                    style={{ height: fieldHeight }}
+                    disabled={systemFixed}
+                  />
+                </div>
               </div>
 
               <div className="w-full">
@@ -556,6 +561,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                   <CreatableSelect
                     value={formData.assignee ? { value: formData.assignee, label: formData.assignee } : null}
                     onChange={(selectedOption) => {
+                      if (assigneeFixed) return; // prevent change when fixed
                       const value = selectedOption ? selectedOption.value : '';
                       setFormData(prev => ({ ...prev, assignee: value }));
                     }}
@@ -563,10 +569,10 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                       value: user.name,
                       label: user.name
                     }))}
-                    isClearable
+                    isClearable={!assigneeFixed}
                     placeholder="Select or type assignee..."
-                    isDisabled={loading}
-                    className="text-sm"
+                    isDisabled={loading || assigneeFixed}
+                    className={`text-sm ${assigneeFixed ? 'opacity-60 bg-gray-100' : ''}`}
                     styles={{
                       control: (provided) => ({
                         ...provided,
@@ -581,8 +587,10 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                         ...provided,
                         zIndex: 9999
                       }),
-                      input: (provided) => ({ ...provided, paddingLeft: '20px' }),
-                      placeholder: (provided) => ({ ...provided, paddingLeft: '20px' })
+                      valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                      singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                      input: (provided) => ({ ...provided, marginLeft: 0 }),
+                      placeholder: (provided) => ({ ...provided, marginLeft: 0 })
                     }}
                   />
                 </div>
@@ -598,19 +606,38 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                       <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <select
-                    value={formData.releaseId || ''}
-                    onChange={handleInputChange('releaseId')}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    style={{ height: fieldHeight }}
-                  >
-                    <option value="">Select release</option>
-                    {releases.map((release) => (
-                      <option key={release.releaseId} value={release.releaseId}>
-                        {release.releaseName}
-                      </option>
-                    ))}
-                  </select>
+                  <CreatableSelect
+                    value={formData.releaseId ? (() => {
+                      const selectedRelease = releases.find(r => r.releaseId.toString() === formData.releaseId.toString());
+                      return selectedRelease ? { value: formData.releaseId, label: selectedRelease.releaseName } : { value: formData.releaseId, label: formData.releaseId };
+                    })() : null}
+                    onChange={(selectedOption) => {
+                      if (releaseFixed) return; // prevent change when fixed
+                      const value = selectedOption ? selectedOption.value : '';
+                      setFormData(prev => ({ ...prev, releaseId: value }));
+                    }}
+                    options={releases.map(release => ({ value: release.releaseId.toString(), label: release.releaseName }))}
+                    isClearable={!releaseFixed}
+                    placeholder="Select release"
+                    isDisabled={loading || releaseFixed}
+                    className={`text-sm ${releaseFixed ? 'opacity-60 bg-gray-100' : ''}`}
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        minHeight: '40px',
+                        borderColor: '#d1d5db',
+                        fontSize: '14px',
+                        '&:hover': {
+                          borderColor: '#10b981'
+                        }
+                      }),
+                      menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                      valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                      singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                      input: (provided) => ({ ...provided, marginLeft: 0 }),
+                      placeholder: (provided) => ({ ...provided, marginLeft: 0 })
+                    }}
+                  />
                 </div>
               </div>
 
@@ -624,19 +651,36 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                     </svg>
                   </div>
-                  <select
-                    value={formData.sprintId || ''}
-                    onChange={handleInputChange('sprintId')}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    style={{ height: fieldHeight }}
-                  >
-                    <option value="">Select sprint</option>
-                    {sprints.map((sprint) => (
-                      <option key={sprint.sprintId} value={sprint.sprintId}>
-                        {sprint.sprintName}
-                      </option>
-                    ))}
-                  </select>
+                  <CreatableSelect
+                    value={formData.sprintId ? (() => {
+                      const selectedSprint = sprints.find(s => s.sprintId.toString() === formData.sprintId.toString());
+                      return selectedSprint ? { value: formData.sprintId, label: selectedSprint.sprintName } : { value: formData.sprintId, label: formData.sprintId };
+                    })() : null}
+                    onChange={(selectedOption) => {
+                      if (sprintFixed) return; // prevent change when fixed
+                      const value = selectedOption ? selectedOption.value : '';
+                      setFormData(prev => ({ ...prev, sprintId: value }));
+                    }}
+                    options={sprints.map(sprint => ({ value: sprint.sprintId.toString(), label: sprint.sprintName }))}
+                    isClearable={!sprintFixed}
+                    placeholder="Select sprint"
+                    isDisabled={loading || sprintFixed}
+                    className={`text-sm ${sprintFixed ? 'opacity-60 bg-gray-100' : ''}`}
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        minHeight: '40px',
+                        borderColor: '#d1d5db',
+                        fontSize: '14px',
+                        '&:hover': { borderColor: '#10b981' }
+                      }),
+                      menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                      valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                      singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                      input: (provided) => ({ ...provided, marginLeft: 0 }),
+                      placeholder: (provided) => ({ ...provided, marginLeft: 0 })
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -662,6 +706,26 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                 {formData.description.length} / 500
               </div>
             </div>
+              <div className="w-full md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Summary <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <textarea
+                    id="summary"
+                    name="summary"
+                    placeholder="Enter solution story summary..."
+                    value={formData.summary || ''}
+                    onChange={handleInputChange('summary')}
+                    rows={4}
+                    maxLength={200}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                  />
+                </div>
+                <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
+                  {formData.summary?.length || 0} / 200
+                </div>
+              </div>
 
             {/* Attachments Section */}
             <div className="w-full mb-4">

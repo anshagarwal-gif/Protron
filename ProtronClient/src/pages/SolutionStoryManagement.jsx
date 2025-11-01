@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandl
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
-import { FiFileText, FiCheckSquare, FiSearch, FiGitBranch, FiDownload, FiLoader, FiEye, FiTrash2 } from 'react-icons/fi';
+import { FiFileText, FiCheckSquare, FiSearch, FiGitBranch, FiDownload, FiLoader, FiEye, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSolutionStoryModal from "../components/AddSolutionStoryModal";
 import AddTaskModal from "../components/AddTaskModal";
@@ -165,7 +165,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
             className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
             title="Edit Solution Story"
           >
-            <FiGitBranch size={16} />
+            <FiEdit2 size={16} />
           </button>
       
         <button

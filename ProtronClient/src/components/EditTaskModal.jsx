@@ -357,7 +357,11 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">Edit Task</h2>
+                  {taskData && (
+                    <div className="flex items-center space-x-4">
                   <p className="text-sm text-gray-600">Task ID: {taskData?.taskId}</p>
+                  <p className="text-sm text-gray-600">Parent ID: {taskData?.parentId}</p>
+                  </div>)}
                 </div>
               </div>
               <button

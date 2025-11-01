@@ -19,6 +19,7 @@ const truncateText = (text, maxLength = 20) => {
 
 const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
   if (!open) return null;
+  console.log(parentStory);
 
   const [formData, setFormData] = useState({
     projectId: '',
@@ -343,7 +344,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                   <div>
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add Task</h2>
                     {parentStory && (
-                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.summary}</p>
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.usId}</p>
                     )}
                   </div>
                 </div>

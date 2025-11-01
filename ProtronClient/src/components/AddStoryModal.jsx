@@ -143,6 +143,19 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
     }
   }, [open, initialValues, initialStatus, handleProjectChange]);
 
+  const getParentIdDisplay = (projId) => {
+    if (!projId) return '—';
+    const asString = String(projId);
+    if (asString.startsWith('PRJ-')) return asString;
+    // if numeric id, prefix with PRJ-
+    if (/^\d+$/.test(asString)) return `PRJ-${asString}`;
+    // try to find matching project by projectName or projectId
+    const found = projectList.find(p => String(p.projectId) === asString || p.projectName === asString || p.projectCode === asString);
+    if (found) return found.projectCode ? found.projectCode : `PRJ-${found.projectId}`;
+    // fallback: prefix anyway
+    return `PRJ-${asString}`;
+  };
+
   // Fetch projects and users on modal open
   useEffect(() => {
     const fetchProjectsAndUsers = async () => {
@@ -504,8 +517,10 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+      {/* thin black overlay behind the modal (no blur) */}
+      <div className="absolute inset-0 bg-black opacity-50" aria-hidden="true"></div>
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
           <div className="mb-2 sm:mb-0">
@@ -513,6 +528,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
               <BookOpen size={20} className="mr-2 text-green-600" />
               Add New User Story
             </h2>
+            <p className="mt-1 text-sm text-gray-600">Parent ID: {getParentIdDisplay(formData.projectId)}</p>
             {errors.submit && (
               <p className="mt-1 text-red-600" style={{ fontSize: '10px' }}>
                 {errors.submit}

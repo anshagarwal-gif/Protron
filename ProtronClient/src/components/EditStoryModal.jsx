@@ -147,6 +147,11 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
           // Fetch attachments
           fetchStoryAttachments(storyId);
 
+          // Fetch users for the story's project (project-scoped)
+          if (storyData.projectId) {
+            fetchProjectUsers(storyData.projectId);
+          }
+
         } catch (error) {
           console.error("Error fetching story data:", error);
           setErrors({
@@ -158,7 +163,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       }
     };
 
-    const fetchProjectsAndUsers = async () => {
+    const fetchProjects = async () => {
       if (open) {
         try {
           const token = sessionStorage.getItem('token');
@@ -170,25 +175,26 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               headers: { Authorization: `${token}` }
             }
           );
-          setProjectList(projectResponse.data);
+          setProjectList(projectResponse.data || []);
 
         } catch (error) {
           console.error("Error fetching projects:", error);
         }
       }
     };
-    
-    const fetchUsers = async () => {
+
+    const fetchProjectUsers = async (projectId) => {
+      if (!projectId) return setUsers([]);
+
       try {
         const token = sessionStorage.getItem('token');
-        const tenantId = sessionStorage.getItem('tenantId');
-        const res = await fetch(`${API_BASE_URL}/api/tenants/${tenantId}/users`, {
-          headers: { Authorization: `${token}` }
+        const response = await axios.get(`${API_BASE_URL}/api/project-team/list/${projectId}`, {
+          headers: { Authorization: token }
         });
-        const data = await res.json();
-        setUsers(data);
+        setUsers(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching project team users:', error);
+        setUsers([]);
       }
     };
 
@@ -225,13 +231,22 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       }
     };
 
-    fetchStoryData();
-    fetchProjectsAndUsers();
-    fetchUsers();
-    fetchSystems();
-    fetchStatusFlags();
+  fetchStoryData();
+  fetchProjects();
+  fetchSystems();
+  fetchStatusFlags();
     
   }, [open, storyId]);
+
+  const getParentIdDisplay = (projId) => {
+    if (!projId) return '—';
+    const asString = String(projId);
+    if (asString.startsWith('PRJ-')) return asString;
+    if (/^\d+$/.test(asString)) return `PRJ-${asString}`;
+    const found = projectList.find(p => String(p.projectId) === asString || p.projectName === asString || p.projectCode === asString);
+    if (found) return found.projectCode ? found.projectCode : `PRJ-${found.projectId}`;
+    return `PRJ-${asString}`;
+  };
 
   // Initialize character counts when form data is set
   useEffect(() => {
@@ -354,6 +369,14 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       console.error('Error fetching sprints and releases:', error);
       setSprintList([]);
       setReleaseList([]);
+    }
+    
+    // Also fetch project-team users for the selected project
+    try {
+      await fetchProjectUsers(projectId);
+    } catch (err) {
+      // fetchProjectUsers handles its own errors but catch to avoid unhandled rejection
+      console.error('Error fetching project users after project change:', err);
     }
   };
 
@@ -604,8 +627,10 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
 
   if (initialLoading) {
     return (
-      <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
-        <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
+      <div className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+        {/* thin black overlay behind the modal while loading */}
+        <div className="absolute inset-0 bg-black opacity-20" aria-hidden="true"></div>
+        <div className="relative bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
           <div className="flex items-center justify-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
             <span className="ml-3 text-gray-600">Loading story data...</span>
@@ -616,8 +641,10 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   }
 
   return (
-    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+      {/* thin black overlay behind the modal (no blur) */}
+      <div className="absolute inset-0 bg-black opacity-20" aria-hidden="true"></div>
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
@@ -625,6 +652,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               <BookOpen size={20} className="mr-2 text-green-600" />
               Edit User Story
             </h2>
+            <p className="mt-1 text-sm text-gray-600">Parent ID: {getParentIdDisplay(formData.projectId)}</p>
             {errors.submit && (
               <p className="mt-1 text-red-600" style={{ fontSize: '10px' }}>
                 {errors.submit}

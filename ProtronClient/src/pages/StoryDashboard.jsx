@@ -21,6 +21,15 @@ import ViewTaskModal from '../components/ViewTaskModal';
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const StoryDashboard = () => {
+  // Debugging: render & state change counters to help trace duplicate renders
+  const renderCountRef = React.useRef(0);
+  renderCountRef.current += 1;
+  // Track the last projectId we handled from the URL or localStorage to avoid double-processing
+  const lastHandledProjectIdRef = React.useRef(null);
+  // Log lightweight info in dev only
+  if (import.meta.env.DEV) {
+    console.debug(`StoryDashboard render #${renderCountRef.current}`);
+  }
   const [searchParams, setSearchParams] = useSearchParams();
   const [stories, setStories] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -243,39 +252,56 @@ const StoryDashboard = () => {
     }
   }, [setFilters, setTypeDropdowns, setShowTypeDropdowns]);
 
-  // Handle projectId from URL
+  // Prefer projectId from URL (navigation) over saved localStorage project.
+  // Use lastHandledProjectIdRef to avoid double-processing the same id
   useEffect(() => {
     const projectIdFromUrl = searchParams.get('projectId');
-    if (projectIdFromUrl) {
+
+    // If there's a URL param and we haven't handled this specific id yet, process it
+    if (projectIdFromUrl && projectIdFromUrl !== lastHandledProjectIdRef.current) {
+      const projectIdStr = String(projectIdFromUrl);
+      lastHandledProjectIdRef.current = projectIdStr;
       setFilters(prevFilters => ({
         ...prevFilters,
-        projectName: projectIdFromUrl,
+        projectName: projectIdStr,
       }));
-      handleProjectChange(projectIdFromUrl);
-      searchParams.delete('projectId');
-      setSearchParams(searchParams, { replace: true });
+      handleProjectChange(projectIdStr);
+
+      // Remove projectId from URL cleanly
+      try {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('projectId');
+        setSearchParams(newParams, { replace: true });
+      } catch (e) {
+        // fallback: mutate and set
+        searchParams.delete('projectId');
+        setSearchParams(searchParams, { replace: true });
+      }
+
+      return;
+    }
+
+    // No URL param -> fall back to localStorage (if present) only if we haven't handled any project yet
+    if (!projectIdFromUrl && lastHandledProjectIdRef.current === null) {
+      const savedProject = localStorage.getItem('storyDashboard.projectId');
+      if (savedProject) {
+        const savedStr = String(savedProject);
+        lastHandledProjectIdRef.current = savedStr;
+        setFilters(prevFilters => ({
+          ...prevFilters,
+          projectName: savedStr,
+        }));
+        handleProjectChange(savedStr);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setSearchParams, handleProjectChange]);
 
-  // Restore last selected project from localStorage if URL param not present
-  useEffect(() => {
-    const projectIdFromUrl = searchParams.get('projectId');
-    if (!projectIdFromUrl) {
-      const savedProject = localStorage.getItem('storyDashboard.projectId');
-      if (savedProject) {
-        setFilters(prevFilters => ({
-          ...prevFilters,
-          projectName: savedProject,
-        }));
-        handleProjectChange(savedProject);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Fetch stories from API
   useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.debug('useEffect(fetchStories) triggered - filters:', filters, 'selectedStory:', selectedStory?.id || selectedStory?.ssId || selectedStory?.taskId || null);
+    }
     const isInitial = initialLoading;
     const fetchStories = async () => {
       if (isInitial) {
@@ -462,6 +488,28 @@ const StoryDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, gridApi]); // Updated dependency array to include all filters
 
+  const filteredStories = useMemo(() => stories.filter(story => {
+    return !searchTerm ||
+      story.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.asA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.iWantTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.soThat?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.acceptanceCriteria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.assignee?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.system?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.createdBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.projectId?.toString().includes(searchTerm) ||
+      story.sprint?.toString().includes(searchTerm) ||
+      story.release?.toString().includes(searchTerm);
+  }), [stories, searchTerm]);
+
+  // Debug: log when filteredStories changes
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.debug('filteredStories changed, count=', filteredStories.length, 'ids=', filteredStories.map(s => s.id || s.ssId || s.taskId));
+    }
+  }, [filteredStories]);
+
   // Clear type filters when project changes
   useEffect(() => {
     if (!filters.projectName) {
@@ -564,20 +612,6 @@ const StoryDashboard = () => {
     setFilters(prev => ({ ...prev, type: '' }));
   };
 
-  const filteredStories = useMemo(() => stories.filter(story => {
-    return !searchTerm ||
-      story.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.asA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.iWantTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.soThat?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.acceptanceCriteria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.assignee?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.system?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.createdBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.projectId?.toString().includes(searchTerm) ||
-      story.sprint?.toString().includes(searchTerm) ||
-      story.release?.toString().includes(searchTerm);
-  }), [stories, searchTerm]);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -1392,7 +1426,7 @@ const StoryDashboard = () => {
               {projectList.map(project => (
                 <option
                   key={project.projectId}
-                  value={project.projectId}
+                  value={project.projectId?.toString()}
                   title={project.projectName}
                 >
                   {project.projectName.length > 30 ? `${project.projectName.substring(0, 30)}...` : project.projectName}
@@ -2154,6 +2188,7 @@ const StoryDashboard = () => {
               defaultColDef={defaultColDef}
               gridOptions={gridOptions}
               overlayLoadingTemplate='<span class="ag-overlay-loading-center">Please wait while your rows are loading</span>'
+              overlayNoRowsTemplate={`<div class="text-center p-6"><svg xmlns="http://www.w3.org/2000/svg" class="mx-auto text-gray-400" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2 9 3.343 9 5s1.343 3 3 3zM21 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/></svg><div class="mt-4 text-gray-700">No stories found</div></div>`}
               onGridReady={(params) => {
                 setGridApi(params.api);
                 params.api.sizeColumnsToFit();
@@ -2292,177 +2327,31 @@ const StoryDashboard = () => {
                   )}
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  {/* TO-DO Column */}
-                  <td className={`px-6 py-4 align-top border-r border-gray-200 bg-gray-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
-                    <div className="space-y-3">
-                      {filteredStories
-                        .filter(story => story.status === 'todo')
-                        .map((story) => (
-                          <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                <button
-                                  onClick={() => openViewModal(story)}
-                                  className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiEye size={14} />
-                                </button>
-                                <button
-                                  onClick={() => openEditModal(story)}
-                                  className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiEdit size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteStory(story.id)}
-                                  className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiTrash2 size={14} />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-gray-500">{story.assignee}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      {/* Add Story Button for TO-DO */}
-                      <div className="group">
-                        <button
-                          onClick={() => openAddBasedOnType()}
-                          className="w-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg p-4 text-gray-500 hover:text-gray-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
-                        >
-                          <FiPlus size={16} />
-                          <span className="text-sm font-medium">{getAddButtonLabel()}</span>
-                        </button>
+              {filteredStories.length === 0 ? (
+                <tbody>
+                  <tr>
+                    <td colSpan={showBacklog ? 4 : 3} className="px-6 py-12 text-center">
+                      <div className="text-center">
+                        <FiBookOpen className="mx-auto text-gray-400" size={48} />
+                        <h3 className="mt-4 text-lg font-medium text-gray-900">No stories found</h3>
+                        <p className="mt-2 text-gray-500">
+                          {Object.values(filters).some(filter => filter && filter !== 'all')
+                            ? 'Try adjusting your filter criteria'
+                            : 'Get started by adding your first story'
+                          }
+                        </p>
                       </div>
-                    </div>
-                  </td>
-
-                  {/* WIP Column */}
-                  <td className={`px-6 py-4 align-top border-r border-gray-200 bg-blue-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
-                    <div className="space-y-3">
-                      {(() => {
-                        const wipStories = filteredStories.filter(story => story.status === 'wip');
-                        console.log('WIP Stories:', wipStories);
-                        console.log('All filtered stories statuses:', filteredStories.map(s => ({ id: s.id, status: s.status, summary: s.summary })));
-                        return wipStories;
-                      })()
-                        .map((story) => (
-                          <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                <button
-                                  onClick={() => openViewModal(story)}
-                                  className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiEye size={14} />
-                                </button>
-                                <button
-                                  onClick={() => openEditModal(story)}
-                                  className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiEdit size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteStory(story.id)}
-                                  className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiTrash2 size={14} />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-gray-500">{story.assignee}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      {/* Add Story Button for WIP */}
-                      <div className="group">
-                        <button
-                          onClick={() => openAddBasedOnType()}
-                          className="w-full bg-blue-100 hover:bg-blue-200 border-2 border-dashed border-blue-300 hover:border-blue-400 rounded-lg p-4 text-blue-500 hover:text-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
-                        >
-                          <FiPlus size={16} />
-                          <span className="text-sm font-medium">{getAddButtonLabel()}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Done Column */}
-                  <td className={`px-6 py-4 align-top ${showBacklog ? 'border-r border-gray-200' : ''} bg-green-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
-                    <div className="space-y-3">
-                      {(() => {
-                        const completedStories = filteredStories.filter(story => story.status === 'done');
-                        console.log('Completed Stories:', completedStories);
-                        return completedStories;
-                      })()
-                        .map((story) => (
-                          <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                <button
-                                  onClick={() => openViewModal(story)}
-                                  className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiEye size={14} />
-                                </button>
-                                <button
-                                  onClick={() => openEditModal(story)}
-                                  className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiEdit size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteStory(story.id)}
-                                  className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-                                >
-                                  <FiTrash2 size={14} />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-gray-500">{story.assignee}</span>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      {/* Add Story Button for Done */}
-                      <div className="group">
-                        <button
-                          onClick={() => openAddBasedOnType()}
-                          className="w-full bg-green-100 hover:bg-green-200 border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-4 text-green-500 hover:text-green-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
-                        >
-                          <FiPlus size={16} />
-                          <span className="text-sm font-medium">{getAddButtonLabel()}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Not Ready Column - Only show when backlog is enabled */}
-                  {showBacklog && (
-                    <td className="px-6 py-4 align-top border-r border-gray-200 bg-red-50 min-h-[400px] w-1/5">
+                    </td>
+                  </tr>
+                </tbody>
+              ) : (
+                <tbody>
+                  <tr>
+                    {/* TO-DO Column */}
+                    <td className={`px-6 py-4 align-top border-r border-gray-200 bg-gray-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
                       <div className="space-y-3">
                         {filteredStories
-                          .filter(story => story.status === 'not-ready')
+                          .filter(story => story.status === 'todo')
                           .map((story) => (
                             <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
                               <div className="flex items-start justify-between mb-2">
@@ -2470,19 +2359,19 @@ const StoryDashboard = () => {
                                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
                                   <button
                                     onClick={() => openViewModal(story)}
-                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
                                   >
                                     <FiEye size={14} />
                                   </button>
                                   <button
                                     onClick={() => openEditModal(story)}
-                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
                                   >
                                     <FiEdit size={14} />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteStory(story.id)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
                                   >
                                     <FiTrash2 size={14} />
                                   </button>
@@ -2497,11 +2386,11 @@ const StoryDashboard = () => {
                               </div>
                             </div>
                           ))}
-                        {/* Add Story Button for Not Ready */}
+                        {/* Add Story Button for TO-DO */}
                         <div className="group">
                           <button
                             onClick={() => openAddBasedOnType()}
-                            className="w-full bg-red-100 hover:bg-red-200 border-2 border-dashed border-red-300 hover:border-red-400 rounded-lg p-4 text-red-500 hover:text-red-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
+                            className="w-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg p-4 text-gray-500 hover:text-gray-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
                             <span className="text-sm font-medium">{getAddButtonLabel()}</span>
@@ -2509,14 +2398,16 @@ const StoryDashboard = () => {
                         </div>
                       </div>
                     </td>
-                  )}
 
-                  {/* Ready Column - Only show when backlog is enabled */}
-                  {showBacklog && (
-                    <td className="px-6 py-4 align-top bg-purple-50 min-h-[400px] w-1/5">
+                    {/* WIP Column */}
+                    <td className={`px-6 py-4 align-top border-r border-gray-200 bg-blue-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
                       <div className="space-y-3">
-                        {filteredStories
-                          .filter(story => story.status === 'ready')
+                        {(() => {
+                          const wipStories = filteredStories.filter(story => story.status === 'wip');
+                          console.log('WIP Stories:', wipStories);
+                          console.log('All filtered stories statuses:', filteredStories.map(s => ({ id: s.id, status: s.status, summary: s.summary })));
+                          return wipStories;
+                        })()
                           .map((story) => (
                             <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
                               <div className="flex items-start justify-between mb-2">
@@ -2524,19 +2415,19 @@ const StoryDashboard = () => {
                                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
                                   <button
                                     onClick={() => openViewModal(story)}
-                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
                                   >
                                     <FiEye size={14} />
                                   </button>
                                   <button
                                     onClick={() => openEditModal(story)}
-                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
                                   >
                                     <FiEdit size={14} />
                                   </button>
                                   <button
                                     onClick={() => handleDeleteStory(story.id)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
                                   >
                                     <FiTrash2 size={14} />
                                   </button>
@@ -2551,11 +2442,11 @@ const StoryDashboard = () => {
                               </div>
                             </div>
                           ))}
-                        {/* Add Story Button for Ready */}
+                        {/* Add Story Button for WIP */}
                         <div className="group">
                           <button
                             onClick={() => openAddBasedOnType()}
-                            className="w-full bg-purple-100 hover:bg-purple-200 border-2 border-dashed border-purple-300 hover:border-purple-400 rounded-lg p-4 text-purple-500 hover:text-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
+                            className="w-full bg-blue-100 hover:bg-blue-200 border-2 border-dashed border-blue-300 hover:border-blue-400 rounded-lg p-4 text-blue-500 hover:text-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
                             <span className="text-sm font-medium">{getAddButtonLabel()}</span>
@@ -2563,26 +2454,178 @@ const StoryDashboard = () => {
                         </div>
                       </div>
                     </td>
-                  )}
-                </tr>
-              </tbody>
+
+                    {/* Done Column */}
+                    <td className={`px-6 py-4 align-top ${showBacklog ? 'border-r border-gray-200' : ''} bg-green-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
+                      <div className="space-y-3">
+                        {(() => {
+                          const completedStories = filteredStories.filter(story => story.status === 'done');
+                          console.log('Completed Stories:', completedStories);
+                          return completedStories;
+                        })()
+                          .map((story) => (
+                            <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
+                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
+                                  <button
+                                    onClick={() => openViewModal(story)}
+                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
+                                  >
+                                    <FiEye size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => openEditModal(story)}
+                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
+                                  >
+                                    <FiEdit size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteStory(story.id)}
+                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
+                                  >
+                                    <FiTrash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">{story.assignee}</span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
+                                  {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        {/* Add Story Button for Done */}
+                        <div className="group">
+                          <button
+                            onClick={() => openAddBasedOnType()}
+                            className="w-full bg-green-100 hover:bg-green-200 border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-4 text-green-500 hover:text-green-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
+                          >
+                            <FiPlus size={16} />
+                            <span className="text-sm font-medium">{getAddButtonLabel()}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Not Ready Column - Only show when backlog is enabled */}
+                    {showBacklog && (
+                      <td className="px-6 py-4 align-top border-r border-gray-200 bg-red-50 min-h-[400px] w-1/5">
+                        <div className="space-y-3">
+                          {filteredStories
+                            .filter(story => story.status === 'not-ready')
+                            .map((story) => (
+                              <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
+                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
+                                    <button
+                                      onClick={() => openViewModal(story)}
+                                      className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                    >
+                                      <FiEye size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => openEditModal(story)}
+                                      className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                    >
+                                      <FiEdit size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteStory(story.id)}
+                                      className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                    >
+                                      <FiTrash2 size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-gray-500">{story.assignee}</span>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
+                                    {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          {/* Add Story Button for Not Ready */}
+                          <div className="group">
+                            <button
+                              onClick={() => openAddBasedOnType()}
+                              className="w-full bg-red-100 hover:bg-red-200 border-2 border-dashed border-red-300 hover:border-red-400 rounded-lg p-4 text-red-500 hover:text-red-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
+                            >
+                              <FiPlus size={16} />
+                              <span className="text-sm font-medium">{getAddButtonLabel()}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    )}
+
+                    {/* Ready Column - Only show when backlog is enabled */}
+                    {showBacklog && (
+                      <td className="px-6 py-4 align-top bg-purple-50 min-h-[400px] w-1/5">
+                        <div className="space-y-3">
+                          {filteredStories
+                            .filter(story => story.status === 'ready')
+                            .map((story) => (
+                              <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
+                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
+                                    <button
+                                      onClick={() => openViewModal(story)}
+                                      className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                    >
+                                      <FiEye size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => openEditModal(story)}
+                                      className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                    >
+                                      <FiEdit size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteStory(story.id)}
+                                      className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                    >
+                                      <FiTrash2 size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-gray-500">{story.assignee}</span>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
+                                    {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          {/* Add Story Button for Ready */}
+                          <div className="group">
+                            <button
+                              onClick={() => openAddBasedOnType()}
+                              className="w-full bg-purple-100 hover:bg-purple-200 border-2 border-dashed border-purple-300 hover:border-purple-400 rounded-lg p-4 text-purple-500 hover:text-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
+                            >
+                              <FiPlus size={16} />
+                              <span className="text-sm font-medium">{getAddButtonLabel()}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                </tbody>
+              )}
             </table>
           </div>
         </div>
       )}
 
-      {filteredStories.length === 0 && (
-        <div className="text-center py-12">
-          <FiBookOpen className="mx-auto text-gray-400" size={48} />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No stories found</h3>
-          <p className="mt-2 text-gray-500">
-            {Object.values(filters).some(filter => filter && filter !== 'all')
-              ? 'Try adjusting your filter criteria'
-              : 'Get started by adding your first story'
-            }
-          </p>
-        </div>
-      )}
+      {/* No external empty-state; when there are no stories we render the message inside the table (table view) or use AG Grid's overlay (dashboard view). */}
 
       {/* Add Story Modal */}
       <AddStoryModal

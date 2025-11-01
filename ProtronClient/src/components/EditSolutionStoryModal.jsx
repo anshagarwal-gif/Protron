@@ -20,6 +20,7 @@ const truncateText = (text, maxLength = 20) => {
 
 const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
   if (!open) return null;
+  console.log(storyData)
 
   const [formData, setFormData] = useState({
     projectId: '',
@@ -39,6 +40,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
   const [users, setUsers] = useState([]);
   const [releases, setReleases] = useState([]);
   const [sprints, setSprints] = useState([]);
+  const [releaseFixed, setReleaseFixed] = useState(false);
+  const [sprintFixed, setSprintFixed] = useState(false);
   const [projects, setProjects] = useState([]);
   const [systems, setSystems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -77,9 +80,14 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
             system: storyData.system || '',
             storyPoints: storyData.storyPoints || 0,
             assignee: storyData.assignee || '',
-            releaseId: storyData.releaseId || '',
-            sprintId: storyData.sprintId || ''
+            // Accept both sprintId and sprint from backend payloads
+            releaseId: storyData.releaseId || storyData.release || '',
+            sprintId: storyData.sprintId || storyData.sprint || ''
           });
+
+          // Mark release/sprint as fixed when storyData provides them
+          if (storyData.releaseId || storyData.release) setReleaseFixed(true);
+          if (storyData.sprintId || storyData.sprint) setSprintFixed(true);
 
           setSummaryCharCount(storyData.summary?.length || 0);
           setDescriptionCharCount(storyData.description?.length || 0);
@@ -89,7 +97,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
 
         } catch (error) {
           console.error("Error fetching story data:", error);
-          setErrors(prev => ({ ...prev, submit: "Failed to load story data." }));
+          setError(prev => ({ ...prev, submit: "Failed to load story data." }));
         } finally {
           setInitialLoading(false);
         }
@@ -101,17 +109,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
 
         // Fetch all required data in parallel
         try {
-          const [projectsRes, usersRes, releasesRes, sprintsRes, systemsRes] = await Promise.all([
+          const [projectsRes, systemsRes] = await Promise.all([
             axios.get(`${API_BASE_URL}/api/tenants/${tenantId}/projects`, {
-              headers: { Authorization: token }
-            }),
-            axios.get(`${API_BASE_URL}/api/tenants/${tenantId}/users`, {
-              headers: { Authorization: token }
-            }),
-            axios.get(`${API_BASE_URL}/api/releases`, {
-              headers: { Authorization: token }
-            }),
-            axios.get(`${API_BASE_URL}/api/sprints`, {
               headers: { Authorization: token }
             }),
             axios.get(`${API_BASE_URL}/api/systems/tenant`, {
@@ -120,10 +119,40 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
           ]);
 
           setProjects(projectsRes.data);
-          setUsers(usersRes.data);
-          setReleases(releasesRes.data);
-          setSprints(sprintsRes.data);
           setSystems(systemsRes.data);
+
+          // Fetch project-team users scoped to the story's project if available
+          const projectIdToUse = storyData?.projectId || null;
+          if (projectIdToUse) {
+            try {
+              const usersRes = await axios.get(`${API_BASE_URL}/api/project-team/list/${projectIdToUse}`, { headers: { Authorization: token } });
+              setUsers(usersRes.data || []);
+            } catch (err) {
+              console.error('Failed to fetch project team users for project', projectIdToUse, err);
+              setUsers([]);
+            }
+          } else {
+            setUsers([]);
+          }
+
+          // Fetch releases and sprints scoped to the story's project (if available)
+          if (projectIdToUse) {
+            try {
+              const [releasesRes, sprintsRes] = await Promise.all([
+                axios.get(`${API_BASE_URL}/api/releases/project/${projectIdToUse}`, { headers: { Authorization: token } }),
+                axios.get(`${API_BASE_URL}/api/sprints/project/${projectIdToUse}`, { headers: { Authorization: token } })
+              ]);
+              setReleases(releasesRes.data || []);
+              setSprints(sprintsRes.data || []);
+            } catch (err) {
+              console.error('Error fetching releases/sprints for project', projectIdToUse, err);
+              setReleases([]);
+              setSprints([]);
+            }
+          } else {
+            setReleases([]);
+            setSprints([]);
+          }
 
         } catch (error) {
           console.error("Error fetching data:", error);
@@ -237,14 +266,34 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
   };
 
   const handleProjectChange = (projectId) => {
-    if (projectId) {
-      // Filter sprints and releases for the selected project
-      const projectSprints = sprints.filter(sprint => sprint.projectId === parseInt(projectId));
-      const projectReleases = releases.filter(release => release.projectId === parseInt(projectId));
-      
-      setReleases(projectReleases);
-      setSprints(projectSprints);
+    if (!projectId) {
+      setReleases([]);
+      setSprints([]);
+      return;
     }
+
+    // Fetch sprints and releases for the selected project from server
+    const token = sessionStorage.getItem('token');
+    axios.get(`${API_BASE_URL}/api/releases/project/${projectId}`, { headers: { Authorization: token } })
+      .then(res => setReleases(res.data || []))
+      .catch(err => {
+        console.error('Failed to fetch releases for project', projectId, err);
+        setReleases([]);
+      });
+
+    axios.get(`${API_BASE_URL}/api/sprints/project/${projectId}`, { headers: { Authorization: token } })
+      .then(res => setSprints(res.data || []))
+      .catch(err => {
+        console.error('Failed to fetch sprints for project', projectId, err);
+        setSprints([]);
+      });
+    // Also fetch project-team users for the selected project
+    axios.get(`${API_BASE_URL}/api/project-team/list/${projectId}`, { headers: { Authorization: token } })
+      .then(res => setUsers(Array.isArray(res.data) ? res.data : []))
+      .catch(err => {
+        console.error('Failed to fetch project team users for project', projectId, err);
+        setUsers([]);
+      });
   };
 
   const formatDate = (dateString) => {
@@ -294,8 +343,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
         priority: parseInt(formData.priority),
         storyPoints: parseInt(formData.storyPoints) || 0,
         assignee: formData.assignee,
-        sprint: formData.sprintId || null,
-        release: formData.releaseId || null,
+        sprint: formData.sprintId ? parseInt(formData.sprintId) : null,
+        release: formData.releaseId ? parseInt(formData.releaseId) : null,
         system: formData.system,
         createdBy: formData.createdBy || "Unknown",
         tenantId: sessionData?.tenantId
@@ -370,8 +419,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
         system: storyData.system || '',
         storyPoints: storyData.storyPoints || 0,
         assignee: storyData.assignee || '',
-        releaseId: storyData.releaseId || '',
-        sprintId: storyData.sprintId || '',
+        releaseId: storyData.releaseId || storyData.release || '',
+        sprintId: storyData.sprintId || storyData.sprint || '',
         attachments: []
       });
       setNewAttachments([]);
@@ -380,6 +429,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
     }
     setFieldErrors({});
     setError({});
+    setReleaseFixed(!!(storyData?.releaseId || storyData?.release));
+    setSprintFixed(!!(storyData?.sprintId || storyData?.sprint));
   };
 
   const handleClose = () => {
@@ -429,7 +480,10 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">Edit Solution Story</h2>
-                  <p className="text-sm text-gray-600">Story ID: {storyData?.ssId}</p>
+                  <div className="flex items-center space-x-4">
+                    <p className="text-sm text-gray-600">Story ID: {storyData?.ssId}</p>
+                    <p className="text-sm text-gray-600">Parent ID: {storyData?.parentId}</p>
+                  </div>
                 </div>
               </div>
               <button
@@ -584,11 +638,15 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                     }))}
                     isClearable
                     placeholder="Select or type system..."
-                    isDisabled={loading}
-                    className="text-sm"
+                    isDisabled={loading || sprintFixed}
+                    className={`text-sm ${sprintFixed ? 'opacity-60' : ''}`}
                     styles={{
                       control: (provided) => ({ ...provided, minHeight: '40px', borderColor: '#d1d5db', fontSize: '14px', '&:hover': { borderColor: '#15803d' } }),
                       menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                      valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                      singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                      input: (provided) => ({ ...provided, marginLeft: 0 }),
+                      placeholder: (provided) => ({ ...provided, marginLeft: 0 }),
                       option: (provided, state) => ({ ...provided, backgroundColor: state.isFocused ? '#ecfdf5' : 'white', color: state.isFocused ? '#15803d' : '#374151', fontSize: '14px' })
                     }}
                   />
@@ -610,8 +668,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                     }))}
                     isClearable
                     placeholder="Select or type assignee..."
-                    isDisabled={loading}
-                    className="text-sm"
+                    isDisabled={loading || releaseFixed}
+                    className={`text-sm ${releaseFixed ? 'opacity-60' : ''}`}
                     styles={{
                       control: (provided) => ({ ...provided, minHeight: '40px', borderColor: '#d1d5db', fontSize: '14px', '&:hover': { borderColor: '#15803d' } }),
                       menu: (provided) => ({ ...provided, zIndex: 9999 }),
@@ -630,6 +688,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       return selectedSprint ? { value: formData.sprintId, label: selectedSprint.sprintName } : { value: formData.sprintId, label: formData.sprintId };
                     })() : null}
                     onChange={(selectedOption) => {
+                      // Prevent changes when sprint is fixed
+                      if (sprintFixed) return;
                       const value = selectedOption ? selectedOption.value : '';
                       setFormData(prev => ({ ...prev, sprintId: value }));
                     }}
@@ -637,10 +697,10 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       value: sprint.sprintId.toString(),
                       label: sprint.sprintName
                     }))}
-                    isClearable
+                    isClearable={!sprintFixed}
                     placeholder="Select sprint..."
-                    isDisabled={loading}
-                    className="text-sm"
+                    isDisabled={loading || sprintFixed}
+                    className={`text-sm ${sprintFixed ? 'opacity-60 bg-gray-100' : ''}`}
                     styles={{
                       control: (provided) => ({ ...provided, minHeight: '40px', borderColor: '#d1d5db', fontSize: '14px', '&:hover': { borderColor: '#15803d' } }),
                       menu: (provided) => ({ ...provided, zIndex: 9999 }),
@@ -659,6 +719,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       return selectedRelease ? { value: formData.releaseId, label: selectedRelease.releaseName } : { value: formData.releaseId, label: formData.releaseId };
                     })() : null}
                     onChange={(selectedOption) => {
+                      // Prevent changes when release is fixed
+                      if (releaseFixed) return;
                       const value = selectedOption ? selectedOption.value : '';
                       setFormData(prev => ({ ...prev, releaseId: value }));
                     }}
@@ -666,10 +728,10 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       value: release.releaseId.toString(),
                       label: release.releaseName
                     }))}
-                    isClearable
+                    isClearable={!releaseFixed}
                     placeholder="Select release..."
-                    isDisabled={loading}
-                    className="text-sm"
+                    isDisabled={loading || releaseFixed}
+                    className={`text-sm ${releaseFixed ? 'opacity-60 bg-gray-100' : ''}`}
                     styles={{
                       control: (provided) => ({ ...provided, minHeight: '40px', borderColor: '#d1d5db', fontSize: '14px', '&:hover': { borderColor: '#15803d' } }),
                       menu: (provided) => ({ ...provided, zIndex: 9999 }),
@@ -681,23 +743,22 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
 
               {/* Summary */}
               <div className="w-full mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Summary <span className="text-red-500">*</span>
-                  <span className="float-right text-xs text-gray-500">
-                    {formData.summary.length} / 100 characters
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.summary || ''}
-                  onChange={handleInputChange('summary')}
-                  placeholder="Enter summary..."
-                  maxLength={100}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                  style={{ height: fieldHeight }}
-                  disabled={loading}
-                  required
-                />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Summary <span className="text-red-500">*</span>
+                    <span className="float-right text-xs text-gray-500">
+                      {formData.summary.length} / 100 characters
+                    </span>
+                  </label>
+                  <textarea
+                    value={formData.summary || ''}
+                    onChange={handleInputChange('summary')}
+                    placeholder="Enter summary..."
+                    rows={3}
+                    maxLength={100}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                    disabled={loading}
+                    required
+                  />
                 {fieldErrors.summary && (
                   <p className="mt-1 text-sm text-red-600">{fieldErrors.summary}</p>
                 )}
@@ -730,7 +791,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Attachments ({existingAttachments.length + newAttachments.length}/4)
                 </label>
-                
+
                 {/* File Upload */}
                 <div className="mb-3">
                   <label className={`border border-dashed rounded p-3 flex items-center justify-center min-h-[50px] bg-gray-50 w-full cursor-pointer transition ${existingAttachments.length + newAttachments.length >= 4 ? 'cursor-not-allowed opacity-50' : 'hover:border-green-700 hover:bg-green-50'}`}>
@@ -743,16 +804,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       className="hidden"
                     />
                     <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <svg
-                        className="w-5 h-5 text-green-600"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z" />
-                      </svg>
-                      <span>
-                        {existingAttachments.length + newAttachments.length >= 4 ? 'Max files reached' : 'Add Attachments'}
-                      </span>
+                      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z"/></svg>
+                      <span>{existingAttachments.length + newAttachments.length >= 4 ? 'Max files reached' : 'Add Attachments'}</span>
                     </div>
                   </label>
                 </div>
@@ -765,27 +818,18 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       {existingAttachments.map((attachment, index) => (
                         <div key={attachment.id} className="flex items-center justify-between bg-blue-50 p-3 rounded border text-sm">
                           <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z" />
-                            </svg>
+                            <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>
                             <span className="text-blue-700 font-medium">{attachment.fileName}</span>
                             <span className="text-blue-500 text-xs">({formatFileSize(attachment.fileSize)})</span>
                           </div>
                           <div className="flex gap-2">
                             <button
-                              onClick={() => {
-                                window.open(`${API_BASE_URL}/api/solutionstory/attachment/${attachment.id}/download`, '_blank');
-                              }}
+                              onClick={() => { window.open(`${API_BASE_URL}/api/solutionstory/attachment/${attachment.id}/download`, '_blank'); }}
                               className="text-xs text-blue-600 hover:text-blue-800 underline"
                             >
                               Download
                             </button>
-                            <button
-                              onClick={() => handleRemoveExistingAttachment(attachment.id, index)}
-                              className="text-xs text-red-600 hover:text-red-800"
-                            >
-                              Delete
-                            </button>
+                            <button onClick={() => handleRemoveExistingAttachment(attachment.id, index)} className="text-xs text-red-600 hover:text-red-800">Delete</button>
                           </div>
                         </div>
                       ))}
@@ -801,51 +845,32 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       {newAttachments.map((file, index) => (
                         <div key={index} className="flex items-center justify-between bg-green-50 p-3 rounded border text-sm">
                           <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z" />
-                            </svg>
+                            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z"/></svg>
                             <span className="text-green-700 font-medium">{file.name}</span>
                             <span className="text-green-500 text-xs">({formatFileSize(file.size)})</span>
                           </div>
-                          <button
-                            onClick={() => handleRemoveNewAttachment(index)}
-                            className="text-xs text-red-600 hover:text-red-800"
-                          >
-                            Remove
-                          </button>
+                          <button onClick={() => handleRemoveNewAttachment(index)} className="text-xs text-red-600 hover:text-red-800">Remove</button>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-between items-center mt-2">
-                <button
-                  onClick={resetForm}
-                  disabled={loading}
-                  className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}
-                >
-                  Reset
-                </button>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleClose}
-                    disabled={loading}
-                    className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
-                  >
-                    Cancel
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center mt-2">
+                  <button onClick={resetForm} disabled={loading} className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}>
+                    Reset
                   </button>
 
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
-                  >
-                    {loading ? "Updating..." : "Update Solution Story"}
-                  </button>
+                  <div className="flex gap-4">
+                    <button onClick={handleClose} disabled={loading} className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}>
+                      Cancel
+                    </button>
+
+                    <button type="submit" disabled={loading} className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}>
+                      {loading ? "Updating..." : "Update Solution Story"}
+                    </button>
+                  </div>
                 </div>
               </div>
             </form>
@@ -854,12 +879,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
       </Dialog>
 
       {/* Global Snackbar */}
-      <GlobalSnackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={handleSnackbarClose}
-      />
+      <GlobalSnackbar open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={handleSnackbarClose} />
     </>
   );
 };
