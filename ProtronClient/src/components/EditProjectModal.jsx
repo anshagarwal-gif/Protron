@@ -407,6 +407,16 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         label: user.name,
     }));
 
+    // Business Unit options
+    const businessUnitOptions = [
+        { value: 'finance', label: 'Finance' },
+        { value: 'it', label: 'IT' },
+        { value: 'product', label: 'Product' },
+        { value: 'production', label: 'Production' },
+        { value: 'sales', label: 'Sales' },
+        { value: 'engineering', label: 'Engineering' }
+    ];
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-auto shadow-xl">
@@ -666,8 +676,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
                                     <CreatableSelect
-                                        options={userOptions}
-                                        value={localFormData.businessUnitFundedBy ? { label: localFormData.businessUnitFundedBy, value: localFormData.businessUnitFundedBy } : null}
+                                        options={businessUnitOptions}
+                                        value={localFormData.businessUnitFundedBy ? businessUnitOptions.find(u => u.label.toLowerCase() === localFormData.businessUnitFundedBy.toLowerCase() || u.value.toLowerCase() === localFormData.businessUnitFundedBy.toLowerCase()) || { value: localFormData.businessUnitFundedBy, label: localFormData.businessUnitFundedBy } : null}
                                         onChange={(selected) => handleChange('businessUnitFundedBy', selected?.value || '')}
                                         placeholder="Select or type name..."
                                         isClearable
@@ -682,8 +692,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
                                     <CreatableSelect
-                                        options={userOptions}
-                                        value={localFormData.businessUnitDeliveredTo ? { label: localFormData.businessUnitDeliveredTo, value: localFormData.businessUnitDeliveredTo } : null}
+                                        options={businessUnitOptions}
+                                        value={localFormData.businessUnitDeliveredTo ? businessUnitOptions.find(u => u.label.toLowerCase() === localFormData.businessUnitDeliveredTo.toLowerCase() || u.value.toLowerCase() === localFormData.businessUnitDeliveredTo.toLowerCase()) || { value: localFormData.businessUnitDeliveredTo, label: localFormData.businessUnitDeliveredTo } : null}
                                         onChange={(selected) => handleChange('businessUnitDeliveredTo', selected?.value || '')}
                                         placeholder="Select or type name..."
                                         isClearable

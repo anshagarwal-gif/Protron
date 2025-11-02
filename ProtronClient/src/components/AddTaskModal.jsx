@@ -292,7 +292,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
   const resetForm = () => {
     setFormData({
       projectId: parentStory?.projectId || '',
-      parentId: parentStory?.usId || '',
+      parentId: parentStory?.usId || parentStory?.ssId || '',
       date: new Date().toISOString().split('T')[0],
       taskType: '',
       taskTopic: '',
@@ -344,7 +344,18 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                   <div>
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add Task</h2>
                     {parentStory && (
-                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.usId}</p>
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
+                        {parentStory.ssId ? (
+                          <>
+                            Parent Story: {parentStory.ssId}
+                            {parentStory.parentId && parentStory.parentId.startsWith('US-') && (
+                              <> | User Story: {parentStory.parentId}</>
+                            )}
+                          </>
+                        ) : (
+                          <>Parent Story: {parentStory.usId}</>
+                        )}
+                      </p>
                     )}
                   </div>
                 </div>
