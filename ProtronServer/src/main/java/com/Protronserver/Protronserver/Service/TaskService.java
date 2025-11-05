@@ -117,6 +117,7 @@ public class TaskService {
         task.setTaskTopic(taskDto.getTaskTopic());
         task.setTaskDescription(taskDto.getTaskDescription());
         task.setEstTime(taskDto.getEstTime());
+        task.setStatus(taskDto.getStatus());
         task.setTimeSpentHours(taskDto.getTimeSpentHours());
         task.setTimeSpentMinutes(taskDto.getTimeSpentMinutes());
         task.setTimeRemainingHours(taskDto.getTimeRemainingHours());
@@ -190,6 +191,7 @@ public class TaskService {
         newTask.setDate(taskDto.getDate());
         newTask.setTaskType(taskDto.getTaskType());
         newTask.setTaskTopic(taskDto.getTaskTopic());
+        newTask.setStatus(taskDto.getStatus());
         newTask.setTaskDescription(taskDto.getTaskDescription());
         newTask.setEstTime(taskDto.getEstTime());
         newTask.setTimeSpentHours(taskDto.getTimeSpentHours());

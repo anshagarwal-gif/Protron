@@ -33,6 +33,9 @@ public class Task {
     @Column(name = "date")
     private LocalDate date;
 
+    @Column(length = 100)
+    private String status;
+
     @Column(length = 50)
     private String taskType;
 
@@ -219,5 +222,13 @@ public class Task {
 
     public void setLastUpdatedBy(String lastUpdatedBy) {
         this.lastUpdatedBy = lastUpdatedBy;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

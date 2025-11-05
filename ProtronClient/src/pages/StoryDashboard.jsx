@@ -711,29 +711,28 @@ const StoryDashboard = () => {
   }, [refreshStories]);
 
   const openEditModal = useCallback((story) => {
-    // Open the correct edit modal depending on the item type
     setSelectedStory(story);
-    // Prefer explicit identifiers: usId (user story), ssId (solution story), taskId (task)
-    const storyType = story.usId ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
-    if (storyType === 'userstory') {
-      setShowEditModal(true);
-    } else if (storyType === 'solutionstory') {
-      setShowEditSolutionModal(true);
-    } else if (storyType === 'task') {
-      setShowEditTaskModal(true);
-    } else {
-      setShowEditModal(true);
-    }
+    setShowEditModal(true);
+  }, []);
+
+  const openEditTaskModal = useCallback((task) => {
+    setSelectedStory(task);
+    setShowEditTaskModal(true);
+  }, []);
+
+  const openEditSolutionModal = useCallback((story) => {
+    setSelectedStory(story);
+    setShowEditSolutionModal(true);
   }, []);
 
   const openViewModal = useCallback((story) => {
     setSelectedStory(story);
-    const storyType = story.usId ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
-    if (storyType === 'task') {
-      setShowViewTaskModal(true);
-    } else {
-      setShowViewModal(true);
-    }
+    setShowViewModal(true);
+  }, []);
+
+  const openViewTaskModal = useCallback((task) => {
+    setSelectedStory(task);
+    setShowViewTaskModal(true);
   }, []);
 
   const handleDeleteSolutionStory = useCallback(async (ssId) => {
@@ -1382,6 +1381,99 @@ const StoryDashboard = () => {
     suppressPaginationPanel: false,
     paginationAutoPageSize: false
   }), []);
+
+  // Card renderer based on item type
+  const renderCard = useCallback((item) => {
+    // Check if it's a task by looking for task-specific fields
+    const isTask = 'taskId' in item;
+    // Check if it's a solution story (you might need to adjust this condition)
+    const isSolutionStory = 'ssId' in item;
+
+    return (
+      <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+        <div className="flex items-start justify-between mb-2">
+          {/* Title section - different for each type */}
+          <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">
+            {isTask ? item.taskTopic : item.summary}
+          </h4>
+
+          {/* Action buttons - different handlers for each type */}
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
+            <button
+              onClick={() => isTask ? openViewTaskModal(item) : openViewModal(item)}
+              className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
+            >
+              <FiEye size={14} />
+            </button>
+            <button
+              onClick={() => {
+                if (isTask) openEditTaskModal(item);
+                else if (isSolutionStory) openEditSolutionModal(item);
+                else openEditModal(item);
+              }}
+              className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
+            >
+              <FiEdit size={14} />
+            </button>
+            <button
+              onClick={() => {
+                if (isTask) handleDeleteTask(item.taskId);
+                else if (isSolutionStory) handleDeleteSolutionStory(item.ssId);
+                else handleDeleteStory(item.id);
+              }}
+              className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
+            >
+              <FiTrash2 size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Content section - different for each type */}
+        {isTask ? (
+          <>
+            {/* Task-specific content */}
+            <div className="mb-2">
+              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full mr-2">
+                {item.taskType}
+              </span>
+              <span className="text-xs text-gray-500">
+                Est: {item.estTime}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{item.taskDescription}</p>
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-500">{item.createdBy}</span>
+                <span className="text-gray-400">·</span>
+                <span className="text-gray-500">
+                  {new Date(item.dateCreated).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-gray-500">
+                  {item.timeSpentHours}h {item.timeSpentMinutes}m
+                </span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* User Story/Solution Story content */}
+            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+              {item.asA} {item.iWantTo} {item.soThat}
+            </p>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-500">{item.assignee}</span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+                {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MEDIUM' : 'LOW'}
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal, 
+      handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, getPriorityColor]);
 
   if (initialLoading) {
     return (
@@ -2352,40 +2444,7 @@ const StoryDashboard = () => {
                       <div className="space-y-3">
                         {filteredStories
                           .filter(story => story.status === 'todo')
-                          .map((story) => (
-                            <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                  <button
-                                    onClick={() => openViewModal(story)}
-                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiEye size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => openEditModal(story)}
-                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiEdit size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteStory(story.id)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiTrash2 size={14} />
-                                  </button>
-                                </div>
-                              </div>
-                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{story.assignee}</span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                  {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                          .map(story => renderCard(story))}
                         {/* Add Story Button for TO-DO */}
                         <div className="group">
                           <button
@@ -2402,46 +2461,9 @@ const StoryDashboard = () => {
                     {/* WIP Column */}
                     <td className={`px-6 py-4 align-top border-r border-gray-200 bg-blue-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
                       <div className="space-y-3">
-                        {(() => {
-                          const wipStories = filteredStories.filter(story => story.status === 'wip');
-                          console.log('WIP Stories:', wipStories);
-                          console.log('All filtered stories statuses:', filteredStories.map(s => ({ id: s.id, status: s.status, summary: s.summary })));
-                          return wipStories;
-                        })()
-                          .map((story) => (
-                            <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                  <button
-                                    onClick={() => openViewModal(story)}
-                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiEye size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => openEditModal(story)}
-                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiEdit size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteStory(story.id)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiTrash2 size={14} />
-                                  </button>
-                                </div>
-                              </div>
-                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{story.assignee}</span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                  {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                        {filteredStories
+                          .filter(story => story.status === 'wip')
+                          .map(story => renderCard(story))}
                         {/* Add Story Button for WIP */}
                         <div className="group">
                           <button
@@ -2458,45 +2480,9 @@ const StoryDashboard = () => {
                     {/* Done Column */}
                     <td className={`px-6 py-4 align-top ${showBacklog ? 'border-r border-gray-200' : ''} bg-green-50 min-h-[400px] ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
                       <div className="space-y-3">
-                        {(() => {
-                          const completedStories = filteredStories.filter(story => story.status === 'done');
-                          console.log('Completed Stories:', completedStories);
-                          return completedStories;
-                        })()
-                          .map((story) => (
-                            <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                  <button
-                                    onClick={() => openViewModal(story)}
-                                    className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiEye size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => openEditModal(story)}
-                                    className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiEdit size={14} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteStory(story.id)}
-                                    className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-                                  >
-                                    <FiTrash2 size={14} />
-                                  </button>
-                                </div>
-                              </div>
-                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{story.assignee}</span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                  {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                        {filteredStories
+                          .filter(story => story.status === 'done')
+                          .map(story => renderCard(story))}
                         {/* Add Story Button for Done */}
                         <div className="group">
                           <button

@@ -16,10 +16,19 @@ public class TaskDto {
     private String taskTopic;
     private String taskDescription;
     private String estTime;
+    private String status;
     private int timeSpentHours;
     private int timeSpentMinutes;
     private int timeRemainingHours;
     private int timeRemainingMinutes;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public Long getProjectId() {
         return projectId;

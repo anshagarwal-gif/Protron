@@ -33,7 +33,8 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
     timeSpentMinutes: 0,
     timeRemainingHours: 0,
     timeRemainingMinutes: 0,
-    attachments: []
+    attachments: [],
+    status: 'todo'  // Adding status field with default value
   });
 
   const [projects, setProjects] = useState([]);
@@ -43,6 +44,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
     message: '',
     severity: 'success'
   });
+  const [statusFlags, setStatusFlags] = useState([]);
   const [error, setError] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
   const { sessionData } = useSession();
@@ -51,6 +53,26 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
   const greenPrimary = '#15803d';
   const greenHover = '#047857';
   const fieldHeight = '40px';
+
+  const fetchStatusFlags = async () => {
+      try {
+        const token = sessionStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/status-flags/type/story`, {
+          headers: { Authorization: token }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setStatusFlags(Array.isArray(data) ? data : []);
+        } else {
+          console.warn('Failed to fetch status flags:', response.status, response.statusText);
+          setStatusFlags([]);
+        }
+      } catch (error) {
+        console.error('Error fetching status flags:', error);
+        setStatusFlags([]);
+      }
+    };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -86,6 +108,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
     };
 
     fetchData();
+    fetchStatusFlags();
   }, [open, parentStory, sessionData.tenantId]);
 
   const showSnackbar = (message, severity = 'info') => {
@@ -220,6 +243,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
         timeSpentMinutes: parseInt(formData.timeSpentMinutes) || 0,
         timeRemainingHours: parseInt(formData.timeRemainingHours) || 0,
         timeRemainingMinutes: parseInt(formData.timeRemainingMinutes) || 0,
+        status: formData.status,
       };
 
       const response = await axios.post(
@@ -302,7 +326,8 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
       timeSpentMinutes: 0,
       timeRemainingHours: 0,
       timeRemainingMinutes: 0,
-      attachments: []
+      attachments: [],
+      status: 'todo'
     });
     setFieldErrors({});
     setError({});
@@ -451,6 +476,36 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                   <p className="text-xs text-gray-500 mt-1 text-right pr-1">
                     {formData.taskTopic?.length || 0} / 100
                   </p>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="w-full mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="h-5 w-5"
+                      fill={greenPrimary}
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                  <select
+                    value={formData.status}
+                    onChange={handleInputChange('status')}
+                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    style={{ height: fieldHeight }}
+                  >
+                    {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
+                    <option key={statusFlag.statusId} value={statusFlag.statusValue} title={`${statusFlag.statusName} - ${statusFlag.remarks || 'No description available'}`}>
+                      {statusFlag.statusName}
+                    </option>
+                  ))}
+                  </select>
                 </div>
               </div>
 
