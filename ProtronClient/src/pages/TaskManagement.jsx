@@ -329,7 +329,16 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           <h2 className="text-2xl font-bold text-gray-900">Task Management</h2>
           {parentStory && (
             <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words overflow-wrap-anywhere whitespace-pre-wrap">
-              Parent Story: {parentStory.summary} ({parentStory.usId || parentStory.ssId})
+              {parentStory.ssId ? (
+                <>
+                  Parent Story: {parentStory.summary} ({parentStory.ssId})
+                  {parentStory.parentId && parentStory.parentId.startsWith('US-') && (
+                    <> | User Story: ({parentStory.parentId})</>
+                  )}
+                </>
+              ) : (
+                <>Parent Story: {parentStory.summary} ({parentStory.usId})</>
+              )}
             </p>
           )}
         </div>

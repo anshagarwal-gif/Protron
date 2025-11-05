@@ -163,6 +163,16 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
         label: system.systemName,
     }));
 
+    // Business Unit options
+    const businessUnitOptions = [
+        { value: 'finance', label: 'Finance' },
+        { value: 'it', label: 'IT' },
+        { value: 'product', label: 'Product' },
+        { value: 'production', label: 'Production' },
+        { value: 'sales', label: 'Sales' },
+        { value: 'engineering', label: 'Engineering' }
+    ];
+
     const fetchUsers = async () => {
         try {
             // Replace with your actual fetch implementation
@@ -577,36 +587,62 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                 />
                             </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
-                                <CreatableSelect
-                                    options={userOptions}
-                                    value={formData.businessUnitFundedBy ? userOptions.find(u => u.label === formData.businessUnitFundedBy) : null}
-                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected ? selected.label : '')}
-                                    placeholder="Select or type name..."
-                                    isClearable
-                                    styles={{
-                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                        menu: base => ({ ...base, zIndex: 9999 })
-                                    }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
-                                <CreatableSelect
-                                    options={userOptions}
-                                    value={formData.businessUnitDeliveredTo ? userOptions.find(u => u.label === formData.businessUnitDeliveredTo) : null}
-                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected ? selected.label : '')}
-                                    placeholder="Select or type name..."
-                                    isClearable
-                                    styles={{
-                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                        menu: base => ({ ...base, zIndex: 9999 })
-                                    }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                />
-                            </div>
+                             <div className="flex-1">
+                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
+                                 <CreatableSelect
+                                     options={businessUnitOptions}
+                                     value={formData.businessUnitFundedBy ? businessUnitOptions.find(u => u.label.toLowerCase() === formData.businessUnitFundedBy.toLowerCase() || u.value.toLowerCase() === formData.businessUnitFundedBy.toLowerCase()) || { value: formData.businessUnitFundedBy, label: formData.businessUnitFundedBy } : null}
+                                     onChange={(selected) => handleChange('businessUnitFundedBy', selected ? selected.label : '')}
+                                     placeholder="Select or type name..."
+                                     isClearable
+                                     styles={{
+                                         menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                         menu: base => ({ 
+                                             ...base, 
+                                             zIndex: 9999,
+                                             maxHeight: 200,
+                                             overflow: 'hidden'
+                                         }),
+                                         menuList: base => ({
+                                             ...base,
+                                             maxHeight: 200,
+                                             overflowY: 'auto',
+                                             overflowX: 'hidden'
+                                         })
+                                     }}
+                                     formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                     menuPortalTarget={document.body}
+                                     menuPosition="fixed"
+                                 />
+                             </div>
+                             <div className="flex-1">
+                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
+                                 <CreatableSelect
+                                     options={businessUnitOptions}
+                                     value={formData.businessUnitDeliveredTo ? businessUnitOptions.find(u => u.label.toLowerCase() === formData.businessUnitDeliveredTo.toLowerCase() || u.value.toLowerCase() === formData.businessUnitDeliveredTo.toLowerCase()) || { value: formData.businessUnitDeliveredTo, label: formData.businessUnitDeliveredTo } : null}
+                                     onChange={(selected) => handleChange('businessUnitDeliveredTo', selected ? selected.label : '')}
+                                     placeholder="Select or type name..."
+                                     isClearable
+                                     styles={{
+                                         menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                         menu: base => ({ 
+                                             ...base, 
+                                             zIndex: 9999,
+                                             maxHeight: 200,
+                                             overflow: 'hidden'
+                                         }),
+                                         menuList: base => ({
+                                             ...base,
+                                             maxHeight: 200,
+                                             overflowY: 'auto',
+                                             overflowX: 'hidden'
+                                         })
+                                     }}
+                                     formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                     menuPortalTarget={document.body}
+                                     menuPosition="fixed"
+                                 />
+                             </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Priority (1-10)</label>
                                 <select
