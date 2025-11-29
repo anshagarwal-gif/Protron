@@ -79,7 +79,7 @@ const StoryDashboard = () => {
   // Cascading dropdown states
   const [typeDropdowns, setTypeDropdowns] = useState({
     level1: '', // Main type filter
-    level2: '', // Second level dropdown
+    level2: [], // Second level dropdown (Array for multi-select)
     level3: ''  // Third level dropdown
   });
   const [showTypeDropdowns, setShowTypeDropdowns] = useState({
@@ -208,7 +208,7 @@ const StoryDashboard = () => {
       setSprintList([]);
       setReleaseList([]);
       // Clear and reset type filters when project is deselected
-      setTypeDropdowns({ level1: '', level2: '', level3: '' });
+      setTypeDropdowns({ level1: '', level2: [], level3: '' });
       setFilters(prev => ({ ...prev, type: '' }));
       setShowTypeDropdowns({ level2: false, level3: false });
       // Clear users when no project is selected
@@ -332,18 +332,8 @@ const StoryDashboard = () => {
         let apiUrl = '';
         const selectedType = filters.type || '';
 
-        // Parse the cascading type string to find the most recent entity type selection
-        const typeParts = selectedType.split(' > ');
-        const lastEntityType = typeParts[typeParts.length - 1];
-
-        // If the user hasn't selected a project yet, do not load user stories (or default userstory view).
-        // This prevents loading all user stories on initial page load.
-        if ((!filters.projectName) && (lastEntityType === 'User Story' || !selectedType)) {
-          // Clear any previously loaded stories and exit early
-          setStories([]);
-          setInitialLoading(false);
-          return;
-        }
+        // Check for multi-selection in Level 2
+        const isMultiSelect = selectedType.includes('Solution Story') && selectedType.includes('Task') && selectedType.includes(',');
 
         // Format the date to include time component for LocalDateTime
         const formatDate = (dateStr) => {
@@ -352,56 +342,30 @@ const StoryDashboard = () => {
           return `${dateStr}T00:00:00`;
         };
 
-        // Determine parentId based on type filters level.
-        const getParentId = () => {
-          // If no project selected, return null
-          if (!filters.projectName) return null;
-
-          // If no type selected, we are fetching for a project, so parent is null (handled elsewhere)
-          if (!selectedType) return null;
-
-          // For first level type selection -> decide based on which top-level was chosen
-          if (typeParts.length === 1) {
-            // If user selected User Story at level1, filter by project prefix
-            if (lastEntityType === 'User Story') return 'PRJ-';
-            // If user selected Solution Story at level1, we want to fetch all solution stories for the project
-            // So return null here and rely on projectId in the payload.
-            if (lastEntityType === 'Solution Story') return null;
-            return null;
-          }
-
-          // For second level type selection
-          if (typeParts.length === 2) {
-            // Check the type selected in level 1
-            const type1 = typeParts[0];
-            return type1 === 'User Story' ? 'US-' : 'SS-';
-          }
-
-          // For third level type selection
-          if (typeParts.length === 3) {
-            return 'SS-';
-          }
-
-          return null;
-        };
-
         // Prepare common filter payload
         const basePayload = {
           tenantId: parseInt(tenantId),
           projectId: filters.projectName ? parseInt(filters.projectName) : null,
-          assignee: filters.assignee || null, // Changed from createdBy to assignee as per API
+          assignee: filters.assignee || null,
           createdDate: formatDate(filters.createdDate),
-          parentId: getParentId()
         };
 
-        // Check the most recent entity type selection and prepare type-specific payload
-        if (lastEntityType === 'User Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+        if (isMultiSelect) {
+          // CUMULATIVE API CALL
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/cumulative/filter`;
+
           const payload = {
-            ...basePayload,
-            status: filters.status !== 'all' ? filters.status : null,
-            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            taskFilter: {
+              ...basePayload,
+              parentId: 'US-' // Tasks under User Stories
+            },
+            solutionStoryFilter: {
+              ...basePayload,
+              parentId: 'US-', // Solution Stories under User Stories
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
+            }
           };
 
           const response = await fetch(apiUrl, {
@@ -415,84 +379,109 @@ const StoryDashboard = () => {
 
           if (response.ok) {
             const data = await response.json();
-            setStories(data);
+            // Merge tasks and solution stories into a single list
+            const mergedStories = [...(data.tasks || []), ...(data.solutionStories || [])];
+            setStories(mergedStories);
           } else {
-            throw new Error('Failed to fetch user stories');
-          }
-        } else if (lastEntityType === 'Solution Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/filter`;
-          const payload = {
-            ...basePayload,
-            status: filters.status !== 'all' ? filters.status : null,
-            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
-          };
-
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setStories(data);
-          } else {
-            throw new Error('Failed to fetch solution stories');
-          }
-        } else if (lastEntityType === 'Task') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks/filter`;
-          const payload = {
-            ...basePayload
-          };
-
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setStories(data);
-          } else {
-            throw new Error('Failed to fetch tasks');
+            throw new Error('Failed to fetch cumulative stories');
           }
         } else {
-          // Default to UserStory if no specific type is selected
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
-          const payload = {
-            ...basePayload,
-            status: filters.status !== 'all' ? filters.status : null,
-            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
+          // SINGLE SELECTION LOGIC (Existing)
+          const typeParts = selectedType.split(' > ');
+          const lastEntityType = typeParts[typeParts.length - 1];
+
+          // If the user hasn't selected a project yet, do not load user stories (or default userstory view).
+          if ((!filters.projectName) && (lastEntityType === 'User Story' || !selectedType)) {
+            setStories([]);
+            setInitialLoading(false);
+            return;
+          }
+
+          const getParentId = () => {
+            if (!filters.projectName) return null;
+            if (!selectedType) return null;
+            if (typeParts.length === 1) {
+              if (lastEntityType === 'User Story') return 'PRJ-';
+              if (lastEntityType === 'Solution Story') return null;
+              return null;
+            }
+            if (typeParts.length === 2) {
+              const type1 = typeParts[0];
+              return type1 === 'User Story' ? 'US-' : 'SS-';
+            }
+            if (typeParts.length === 3) {
+              return 'SS-';
+            }
+            return null;
           };
 
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
+          const payload = {
+            ...basePayload,
+            parentId: getParentId()
+          };
 
-          if (response.ok) {
-            const data = await response.json();
-            setStories(data);
+          if (lastEntityType === 'User Story') {
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+            const usPayload = {
+              ...payload,
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            };
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(usPayload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch user stories');
+
+          } else if (lastEntityType === 'Solution Story') {
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/filter`;
+            const ssPayload = {
+              ...payload,
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
+            };
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(ssPayload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch solution stories');
+
+          } else if (lastEntityType === 'Task') {
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks/filter`;
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch tasks');
+
           } else {
-            throw new Error('Failed to fetch default stories');
+            // Default
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+            const usPayload = {
+              ...payload,
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            };
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(usPayload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch default stories');
           }
         }
       } catch (error) {
         console.error('Error fetching stories:', error);
-        // Fallback to empty array if API fails
         setStories([]);
       } finally {
         if (isInitial) {
@@ -503,11 +492,12 @@ const StoryDashboard = () => {
 
     fetchStories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTrigger, gridApi]); // Updated dependency array to depend on searchTrigger
+  }, [searchTrigger, gridApi]);
 
   const filteredStories = useMemo(() => stories.filter(story => {
     return !searchTerm ||
       story.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      story.taskTopic?.toLowerCase().includes(searchTerm.toLowerCase()) || // Added taskTopic check
       story.asA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       story.iWantTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       story.soThat?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -564,11 +554,13 @@ const StoryDashboard = () => {
       return [];
     } else if (level === 3) {
       // Level 3: Only show Task when Solution Story is selected in level 2
-      if (parentValue === 'Solution Story') {
+      // Check if parentValue is a single string (not array) and is 'Solution Story'
+      if (parentValue?.includes('Solution Story')) {
         return [
           { value: 'Task', label: 'Task' }
         ];
       }
+      // If parentValue is an array (multi-select), Level 3 should generally be hidden or empty
       return [];
     }
     return [];
@@ -580,7 +572,7 @@ const StoryDashboard = () => {
 
     if (level === 1) {
       newTypeDropdowns.level1 = value;
-      newTypeDropdowns.level2 = '';
+      newTypeDropdowns.level2 = []; // Reset to empty array
       newTypeDropdowns.level3 = '';
 
       // Show Level 2 for both User Story and Solution Story
@@ -590,15 +582,20 @@ const StoryDashboard = () => {
       // Update main type filter
       setFilters(prev => ({ ...prev, type: value }));
     } else if (level === 2) {
-      newTypeDropdowns.level2 = value;
+      // Value comes as an array of objects from react-select isMulti
+      // We need to extract values
+      const selectedValues = value ? value.map(v => v.value) : [];
+      newTypeDropdowns.level2 = selectedValues;
       newTypeDropdowns.level3 = '';
 
-      // Show Level 3 only if User Story is selected in Level 1 AND Solution Story in Level 2
-      newShowDropdowns.level3 = (newTypeDropdowns.level1 === 'User Story' && value === 'Solution Story') ? true : false;
+      // Show Level 3 only if User Story is selected in Level 1 AND ONLY Solution Story is selected in Level 2
+      const isOnlySolutionStory = selectedValues.length === 1 && selectedValues[0] === 'Solution Story';
+      newShowDropdowns.level3 = (newTypeDropdowns.level1 === 'User Story' && isOnlySolutionStory) ? true : false;
 
-      // Update main type filter to include both levels if level2 has a value
-      if (value) {
-        const combinedType = `${newTypeDropdowns.level1} > ${value}`;
+      // Update main type filter
+      if (selectedValues.length > 0) {
+        const joinedValues = selectedValues.join(', ');
+        const combinedType = `${newTypeDropdowns.level1} > ${joinedValues}`;
         setFilters(prev => ({ ...prev, type: combinedType }));
       } else {
         // If level2 is deselected, revert to level1 only
@@ -609,11 +606,14 @@ const StoryDashboard = () => {
 
       // Update main type filter to include all levels if level3 has a value
       if (value) {
-        const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2} > ${value}`;
+        // level2 should be a single value string here if level3 is active
+        const level2Val = Array.isArray(newTypeDropdowns.level2) ? newTypeDropdowns.level2[0] : newTypeDropdowns.level2;
+        const combinedType = `${newTypeDropdowns.level1} > ${level2Val} > ${value}`;
         setFilters(prev => ({ ...prev, type: combinedType }));
       } else {
         // If level3 is deselected, revert to level1 and level2
-        const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2}`;
+        const level2Val = Array.isArray(newTypeDropdowns.level2) ? newTypeDropdowns.level2[0] : newTypeDropdowns.level2;
+        const combinedType = `${newTypeDropdowns.level1} > ${level2Val}`;
         setFilters(prev => ({ ...prev, type: combinedType }));
       }
     }
@@ -623,7 +623,7 @@ const StoryDashboard = () => {
   };
 
   const clearTypeFilters = () => {
-    setTypeDropdowns({ level1: '', level2: '', level3: '' });
+    setTypeDropdowns({ level1: '', level2: [], level3: '' });
     setShowTypeDropdowns({ level2: false, level3: false });
     setFilters(prev => ({ ...prev, type: '' }));
   };
@@ -1794,12 +1794,17 @@ const StoryDashboard = () => {
 
             {/* Level 2: Second Type Filter */}
             {showTypeDropdowns.level2 && (
-              <div className="w-[220px]">
+              <div className="w-[300px]"> {/* Increased width for multi-select */}
                 <CreatableSelect
-                  value={typeDropdowns.level2 ? { value: typeDropdowns.level2, label: typeDropdowns.level2 } : null}
-                  onChange={(selectedOption) => {
-                    const value = selectedOption ? selectedOption.value : '';
-                    handleTypeChange(2, value);
+                  isMulti={typeDropdowns.level1 === 'User Story'} // Enable multi-select only for User Story path
+                  value={
+                    Array.isArray(typeDropdowns.level2)
+                      ? typeDropdowns.level2.map(val => ({ value: val, label: val }))
+                      : (typeDropdowns.level2 ? [{ value: typeDropdowns.level2, label: typeDropdowns.level2 }] : [])
+                  }
+                  onChange={(selectedOptions) => {
+                    // react-select returns array of options for isMulti
+                    handleTypeChange(2, selectedOptions);
                   }}
                   options={getTypeOptions(2, typeDropdowns.level1)}
                   isClearable
