@@ -74,6 +74,7 @@ const StoryDashboard = () => {
   const [releaseList, setReleaseList] = useState([]); // List of releases for selected project
   const [users, setUsers] = useState([]); // List of users/employees
   const [statusFlags, setStatusFlags] = useState([]); // List of status flags
+  const [searchTrigger, setSearchTrigger] = useState(0); // Trigger for API calls
 
   // Cascading dropdown states
   const [typeDropdowns, setTypeDropdowns] = useState({
@@ -278,6 +279,8 @@ const StoryDashboard = () => {
         projectName: projectIdStr,
       }));
       handleProjectChange(projectIdStr);
+      // Trigger search immediately when loading from URL
+      setSearchTrigger(prev => prev + 1);
 
       // Remove projectId from URL cleanly
       try {
@@ -304,9 +307,11 @@ const StoryDashboard = () => {
           projectName: savedStr,
         }));
         handleProjectChange(savedStr);
+        // Trigger search immediately when loading from localStorage
+        setSearchTrigger(prev => prev + 1);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setSearchParams, handleProjectChange]);
 
   // Fetch stories from API
@@ -356,14 +361,14 @@ const StoryDashboard = () => {
           if (!selectedType) return null;
 
           // For first level type selection -> decide based on which top-level was chosen
-            if (typeParts.length === 1) {
-              // If user selected User Story at level1, filter by project prefix
-              if (lastEntityType === 'User Story') return 'PRJ-';
-              // If user selected Solution Story at level1, we want to fetch all solution stories for the project
-              // So return null here and rely on projectId in the payload.
-              if (lastEntityType === 'Solution Story') return null;
-              return null;
-            }
+          if (typeParts.length === 1) {
+            // If user selected User Story at level1, filter by project prefix
+            if (lastEntityType === 'User Story') return 'PRJ-';
+            // If user selected Solution Story at level1, we want to fetch all solution stories for the project
+            // So return null here and rely on projectId in the payload.
+            if (lastEntityType === 'Solution Story') return null;
+            return null;
+          }
 
           // For second level type selection
           if (typeParts.length === 2) {
@@ -498,7 +503,7 @@ const StoryDashboard = () => {
 
     fetchStories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, gridApi]); // Updated dependency array to include all filters
+  }, [searchTrigger, gridApi]); // Updated dependency array to depend on searchTrigger
 
   const filteredStories = useMemo(() => stories.filter(story => {
     return !searchTerm ||
@@ -634,9 +639,8 @@ const StoryDashboard = () => {
   };
 
   const refreshStories = useCallback(() => {
-    // This function will now just trigger the useEffect by updating filters.
-    // A new object is created to ensure the state update is detected.
-    setFilters(currentFilters => ({ ...currentFilters }));
+    // Trigger the useEffect by updating searchTrigger
+    setSearchTrigger(prev => prev + 1);
   }, []);
 
   const handleAddStory = async () => {
@@ -1503,8 +1507,8 @@ const StoryDashboard = () => {
         )}
       </div>
     );
-  }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal, 
-      handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, getPriorityColor]);
+  }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal,
+    handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, getPriorityColor]);
 
   if (initialLoading) {
     return (
@@ -1881,6 +1885,13 @@ const StoryDashboard = () => {
             <FiFilter size={16} />
             <span>Clear Filters</span>
           </button>
+          <button
+            onClick={() => setSearchTrigger(prev => prev + 1)}
+            className="ml-2 px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2 cursor-pointer"
+          >
+            <FiFilter size={16} />
+            <span>Search</span>
+          </button>
         </div>
       </div>
 
@@ -1909,8 +1920,8 @@ const StoryDashboard = () => {
               <button
                 onClick={() => setViewMode('dashboard')}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${viewMode === 'dashboard'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
                   }`}
               >
                 Table View
@@ -1918,8 +1929,8 @@ const StoryDashboard = () => {
               <button
                 onClick={() => setViewMode('table')}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${viewMode === 'table'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
                   }`}
               >
                 Dashboard View
