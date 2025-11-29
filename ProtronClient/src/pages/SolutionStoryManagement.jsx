@@ -104,6 +104,16 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     </div>
   );
 
+  // Generic AG Grid cell renderer that attaches a native title tooltip for full-cell hover
+  const CellWithTitle = (params) => {
+    const value = params.valueFormatted ?? params.value ?? '';
+    return (
+      <div title={value !== undefined && value !== null ? String(value) : ''} className="truncate max-w-full overflow-hidden whitespace-nowrap">
+        {value}
+      </div>
+    );
+  };
+
   const downloadSolutionStoryExcel = () => {
     // TODO: Implement Excel download functionality
     showSnackbar('Excel download functionality coming soon', 'info');
@@ -336,6 +346,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     suppressMenu: false,
     menuTabs: ['filterMenuTab'],
+    cellRenderer: CellWithTitle,
   };
 
   // Filter data based on search query
@@ -506,6 +517,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         open={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         storyData={selectedStory}
+        onEdit={handleEdit}
       />
 
       {/* Global Snackbar */}

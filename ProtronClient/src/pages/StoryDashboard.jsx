@@ -15,10 +15,21 @@ import EditStoryModal from '../components/EditStoryModal';
 import EditSolutionStoryModal from '../components/EditSolutionStoryModal';
 import EditTaskModal from '../components/EditTaskModal';
 import ViewStoryModal from '../components/ViewStoryModal';
+import ViewSolutionStoryModal from '../components/ViewSolutionStoryModal';
 import ViewTaskModal from '../components/ViewTaskModal';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+// Generic AG Grid cell renderer that attaches a native title tooltip for full-cell hover
+const CellWithTitle = (params) => {
+  const value = params.valueFormatted ?? params.value ?? '';
+  return (
+    <div title={value !== undefined && value !== null ? String(value) : ''} className="truncate max-w-full overflow-hidden whitespace-nowrap">
+      {value}
+    </div>
+  );
+};
 
 const StoryDashboard = () => {
   // Debugging: render & state change counters to help trace duplicate renders
@@ -52,6 +63,7 @@ const StoryDashboard = () => {
   const [showEditSolutionModal, setShowEditSolutionModal] = useState(false);
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [showViewTaskModal, setShowViewTaskModal] = useState(false);
+  const [showViewSolutionModal, setShowViewSolutionModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
   const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' or 'table'
   const [gridApi, setGridApi] = useState(null);
@@ -531,7 +543,6 @@ const StoryDashboard = () => {
       // Level 1: Only show User Story and Solution Story when project is selected
       return filters.projectName ? [
         { value: 'User Story', label: 'User Story' },
-        { value: 'Solution Story', label: 'Solution Story' }
       ] : [];
     } else if (level === 2) {
       // Level 2: Show options based on level 1 selection
@@ -730,6 +741,11 @@ const StoryDashboard = () => {
     setShowViewModal(true);
   }, []);
 
+  const openViewSolutionModal = useCallback((story) => {
+    setSelectedStory(story);
+    setShowViewSolutionModal(true);
+  }, []);
+
   const openViewTaskModal = useCallback((task) => {
     setSelectedStory(task);
     setShowViewTaskModal(true);
@@ -910,7 +926,11 @@ const StoryDashboard = () => {
       <div className="flex items-center space-x-2">
         {/* View */}
         <button
-          onClick={() => openViewModal(story)}
+          onClick={() => {
+            if (storyType === 'task') openViewTaskModal(story);
+            else if (storyType === 'solutionstory') openViewSolutionModal(story);
+            else openViewModal(story);
+          }}
           className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
           title={`View ${storyType || 'item'}`}
         >
@@ -919,7 +939,11 @@ const StoryDashboard = () => {
 
         {/* Edit - opens specific modal per type */}
         <button
-          onClick={() => openEditModal(story)}
+          onClick={() => {
+            if (storyType === 'task') openEditTaskModal(story);
+            else if (storyType === 'solutionstory') openEditSolutionModal(story);
+            else openEditModal(story);
+          }}
           className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
           title={`Edit ${storyType || 'item'}`}
         >
@@ -1363,6 +1387,9 @@ const StoryDashboard = () => {
     resizable: true,
     filter: true,
     floatingFilter: false
+    ,
+    // Use the generic cell renderer to attach native title tooltips
+    cellRenderer: CellWithTitle
   }), []);
 
   // Grid options
@@ -1400,7 +1427,11 @@ const StoryDashboard = () => {
           {/* Action buttons - different handlers for each type */}
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
             <button
-              onClick={() => isTask ? openViewTaskModal(item) : openViewModal(item)}
+              onClick={() => {
+                if (isTask) openViewTaskModal(item);
+                else if (isSolutionStory) openViewSolutionModal(item);
+                else openViewModal(item);
+              }}
               className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
             >
               <FiEye size={14} />
@@ -1882,7 +1913,7 @@ const StoryDashboard = () => {
                     : 'text-gray-600 hover:text-gray-800'
                   }`}
               >
-                Dashboard View
+                Table View
               </button>
               <button
                 onClick={() => setViewMode('table')}
@@ -1891,7 +1922,7 @@ const StoryDashboard = () => {
                     : 'text-gray-600 hover:text-gray-800'
                   }`}
               >
-                Table View
+                Dashboard View
               </button>
             </div>
             <div className="flex items-center space-x-3">
@@ -2514,7 +2545,11 @@ const StoryDashboard = () => {
                                       <FiEye size={14} />
                                     </button>
                                     <button
-                                      onClick={() => openEditModal(story)}
+                                      onClick={() => {
+                                        if (story.taskId) openEditTaskModal(story);
+                                        else if (story.ssId) openEditSolutionModal(story);
+                                        else openEditModal(story);
+                                      }}
                                       className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
                                     >
                                       <FiEdit size={14} />
@@ -2568,7 +2603,11 @@ const StoryDashboard = () => {
                                       <FiEye size={14} />
                                     </button>
                                     <button
-                                      onClick={() => openEditModal(story)}
+                                      onClick={() => {
+                                        if (story.taskId) openEditTaskModal(story);
+                                        else if (story.ssId) openEditSolutionModal(story);
+                                        else openEditModal(story);
+                                      }}
                                       className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
                                     >
                                       <FiEdit size={14} />
@@ -2687,6 +2726,15 @@ const StoryDashboard = () => {
         open={showViewTaskModal}
         onClose={() => setShowViewTaskModal(false)}
         taskData={selectedStory}
+        onEdit={openEditTaskModal}
+      />
+
+      {/* View Solution Story Modal */}
+      <ViewSolutionStoryModal
+        open={showViewSolutionModal}
+        onClose={() => setShowViewSolutionModal(false)}
+        storyData={selectedStory}
+        onEdit={openEditSolutionModal}
       />
 
       {/* View Story Modal */}
@@ -2694,6 +2742,12 @@ const StoryDashboard = () => {
         open={showViewModal}
         onClose={() => setShowViewModal(false)}
         storyData={selectedStory}
+        onEdit={(story) => {
+          // decide which edit modal to open based on available ids
+          if (story?.taskId) openEditTaskModal(story);
+          else if (story?.ssId) openEditSolutionModal(story);
+          else openEditModal(story);
+        }}
       />
 
     </div>

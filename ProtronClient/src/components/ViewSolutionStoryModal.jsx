@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { X, BookOpen, User, Target, CheckCircle, Calendar, Building, FileText, Hash, Activity, Briefcase } from 'lucide-react';
+import { FiEdit2 } from 'react-icons/fi';
 import axios from 'axios';
 import { useSession } from '../Context/SessionContext';
 
-const ViewSolutionStoryModal = ({ open, onClose, storyData }) => {
+const ViewSolutionStoryModal = ({ open, onClose, storyData, onEdit }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -191,7 +192,7 @@ const ViewSolutionStoryModal = ({ open, onClose, storyData }) => {
       <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <BookOpen size={20} className="text-white sm:w-6 sm:h-6" />
               <div>
@@ -199,12 +200,30 @@ const ViewSolutionStoryModal = ({ open, onClose, storyData }) => {
                 <p className="text-green-100 text-xs sm:text-sm">Story ID: {storyData.ssId}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-            >
-              <X size={20} className="text-white" />
-            </button>
+            <div className="flex items-center space-x-2">
+              {onEdit && (
+                <button
+                  onClick={() => {
+                    try {
+                      onEdit(storyData);
+                    } catch (e) {
+                      console.error('Error in onEdit callback:', e);
+                    }
+                    onClose && onClose();
+                  }}
+                  className="p-2 bg-white rounded-full hover:bg-green-50 transition-colors flex items-center justify-center cursor-pointer"
+                  title="Edit Solution Story"
+                >
+                  <FiEdit2 size={16} className="text-green-600" />
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
           </div>
         </div>
 

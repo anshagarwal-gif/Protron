@@ -52,6 +52,16 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
     );
   };
 
+  // Generic AG Grid cell renderer that attaches a native title tooltip for full-cell hover
+  const CellWithTitle = (params) => {
+    const value = params.valueFormatted ?? params.value ?? '';
+    return (
+      <div title={value !== undefined && value !== null ? String(value) : ''} className="truncate max-w-full overflow-hidden whitespace-nowrap">
+        {value}
+      </div>
+    );
+  };
+
   const EmailCellRenderer = (params) => {
     return (
       <div className="cursor-pointer max-w-[200px] truncate h-full" title={params.value}>
@@ -848,7 +858,8 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                     sortable: true,
                     filter: true,
                     resizable: true,
-                    minWidth: 80
+                    minWidth: 80,
+                    cellRenderer: CellWithTitle
                   }}
                 />
               </div>
