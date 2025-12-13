@@ -1146,7 +1146,9 @@ const StoryDashboard = () => {
         valueGetter: (params) => params.data.usId || params.data.ssId || params.data.taskId,
         width: 100,
         filter: 'agTextColumnFilter',
-        cellStyle: { fontWeight: '500' }
+        cellStyle: { fontWeight: '500' },
+        cellClass: 'ag-cell-truncate',
+        tooltipValueGetter: (params) => params.value || 'N/A'
       },
       {
         headerName: 'Project',
@@ -1154,6 +1156,12 @@ const StoryDashboard = () => {
         width: 200,
         filter: 'agTextColumnFilter',
         cellStyle: { fontWeight: '500' },
+        cellClass: 'ag-cell-truncate',
+        tooltipValueGetter: (params) => {
+          const projectId = params.data.projectId;
+          const project = projectList.find(p => p.projectId == projectId);
+          return project ? project.projectName : projectId;
+        },
         valueGetter: (params) => {
           const projectId = params.data.projectId;
           const project = projectList.find(p => p.projectId == projectId);
@@ -1186,7 +1194,9 @@ const StoryDashboard = () => {
           flex: 1,
           minWidth: 200,
           filter: 'agTextColumnFilter',
-          cellStyle: { fontWeight: '500' }
+          cellStyle: { fontWeight: '500' },
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'As A',
@@ -1260,14 +1270,16 @@ const StoryDashboard = () => {
           field: 'assignee',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'System',
           field: 'system',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -1288,7 +1300,9 @@ const StoryDashboard = () => {
           flex: 1,
           minWidth: 200,
           filter: 'agTextColumnFilter',
-          cellStyle: { fontWeight: '500' }
+          cellStyle: { fontWeight: '500' },
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Description',
@@ -1335,14 +1349,16 @@ const StoryDashboard = () => {
           field: 'assignee',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'System',
           field: 'system',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -1362,7 +1378,8 @@ const StoryDashboard = () => {
           field: 'taskType',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Task Topic',
@@ -1427,7 +1444,8 @@ const StoryDashboard = () => {
           field: 'createdBy',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -1449,7 +1467,9 @@ const StoryDashboard = () => {
           flex: 1,
           minWidth: 200,
           filter: 'agTextColumnFilter',
-          cellStyle: { fontWeight: '500' }
+          cellStyle: { fontWeight: '500' },
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Status',
@@ -1480,14 +1500,16 @@ const StoryDashboard = () => {
           field: 'assignee',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'System',
           field: 'system',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -1545,11 +1567,11 @@ const StoryDashboard = () => {
     const createdByText = item.createdBy || '';
 
     return (
-      <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-        <div className="flex items-start justify-between mb-2">
+      <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden h-32 flex flex-col">
+        <div className="flex items-start justify-between mb-2 min-h-[2.5rem] flex-shrink-0">
           {/* Title section - different for each type */}
           <h4
-            className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+            className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words overflow-hidden text-ellipsis flex-1 min-w-0"
             title={titleText}
           >
             {titleText}
@@ -1591,77 +1613,79 @@ const StoryDashboard = () => {
         </div>
 
         {/* Content section - different for each type */}
-        {isTask ? (
-          <>
-            {/* Task-specific content */}
-            <div className="mb-2 flex flex-wrap items-center gap-2">
-              {item.taskType && (
-                <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full truncate max-w-full" title={item.taskType}>
-                  {item.taskType}
-                </span>
-              )}
-              {item.estTime && (
-                <span className="text-xs text-gray-500 truncate" title={`Est: ${item.estTime}`}>
-                  Est: {item.estTime}
-                </span>
-              )}
-            </div>
-            {taskDescriptionText && (
-              <p
-                className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
-                title={taskDescriptionText}
-              >
-                {taskDescriptionText}
-              </p>
-            )}
-            <div className="flex items-center justify-between text-xs gap-2">
-              <div className="flex items-center space-x-2 min-w-0 flex-1">
-                {createdByText && (
-                  <span className="text-gray-500 truncate" title={createdByText}>
-                    {createdByText}
+        <div className="flex-1 flex flex-col justify-between min-h-0">
+          {isTask ? (
+            <>
+              {/* Task-specific content */}
+              <div className="mb-2 flex flex-wrap items-center gap-2 flex-shrink-0">
+                {item.taskType && (
+                  <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full truncate max-w-full" title={item.taskType}>
+                    {item.taskType}
                   </span>
                 )}
-                {createdByText && item.dateCreated && (
-                  <span className="text-gray-400 flex-shrink-0">·</span>
-                )}
-                {item.dateCreated && (
-                  <span className="text-gray-500 truncate flex-shrink-0" title={new Date(item.dateCreated).toLocaleDateString()}>
-                    {new Date(item.dateCreated).toLocaleDateString()}
+                {item.estTime && (
+                  <span className="text-xs text-gray-500 truncate" title={`Est: ${item.estTime}`}>
+                    Est: {item.estTime}
                   </span>
                 )}
               </div>
-              <div className="flex items-center space-x-2 flex-shrink-0">
-                {(item.timeSpentHours || item.timeSpentMinutes) && (
-                  <span className="text-gray-500 truncate" title={`${item.timeSpentHours || 0}h ${item.timeSpentMinutes || 0}m`}>
-                    {item.timeSpentHours || 0}h {item.timeSpentMinutes || 0}m
+              {taskDescriptionText && (
+                <p
+                  className="text-xs text-gray-600 mb-2 line-clamp-2 break-words overflow-hidden text-ellipsis flex-shrink-0"
+                  title={taskDescriptionText}
+                >
+                  {taskDescriptionText}
+                </p>
+              )}
+              <div className="flex items-center justify-between text-xs gap-2 mt-auto flex-shrink-0">
+                <div className="flex items-center space-x-2 min-w-0 flex-1 overflow-hidden">
+                  {createdByText && (
+                    <span className="text-gray-500 truncate overflow-hidden text-ellipsis whitespace-nowrap" title={createdByText}>
+                      {createdByText}
+                    </span>
+                  )}
+                  {createdByText && item.dateCreated && (
+                    <span className="text-gray-400 flex-shrink-0">·</span>
+                  )}
+                  {item.dateCreated && (
+                    <span className="text-gray-500 truncate flex-shrink-0 whitespace-nowrap" title={new Date(item.dateCreated).toLocaleDateString()}>
+                      {new Date(item.dateCreated).toLocaleDateString()}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2 flex-shrink-0">
+                  {(item.timeSpentHours || item.timeSpentMinutes) && (
+                    <span className="text-gray-500 truncate whitespace-nowrap" title={`${item.timeSpentHours || 0}h ${item.timeSpentMinutes || 0}m`}>
+                      {item.timeSpentHours || 0}h {item.timeSpentMinutes || 0}m
+                    </span>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* User Story/Solution Story content */}
+              {storyContentText && (
+                <p
+                  className="text-xs text-gray-600 mb-2 line-clamp-2 break-words overflow-hidden text-ellipsis flex-shrink-0"
+                  title={storyContentText}
+                >
+                  {storyContentText}
+                </p>
+              )}
+              <div className="flex items-center justify-between text-xs gap-2 mt-auto flex-shrink-0">
+                {assigneeText && (
+                  <span className="text-gray-500 truncate min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap" title={assigneeText}>
+                    {assigneeText}
                   </span>
                 )}
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* User Story/Solution Story content */}
-            {storyContentText && (
-              <p
-                className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
-                title={storyContentText}
-              >
-                {storyContentText}
-              </p>
-            )}
-            <div className="flex items-center justify-between text-xs gap-2">
-              {assigneeText && (
-                <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
-                  {assigneeText}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(item.priority)}`}>
+                  {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MEDIUM' : 'LOW'}
                 </span>
-              )}
-              <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(item.priority)}`}>
-                {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MEDIUM' : 'LOW'}
-              </span>
-            </div>
-          </>
-        )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     );
   }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal,
@@ -2165,6 +2189,14 @@ const StoryDashboard = () => {
           <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
             <style jsx>{`
             .ag-cell-truncate {
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
+              min-width: 0;
+            }
+            
+            .ag-cell-truncate .ag-cell-value {
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
@@ -2746,10 +2778,10 @@ const StoryDashboard = () => {
                               const storyContentText = `${story.asA || ''} ${story.iWantTo || ''} ${story.soThat || ''}`.trim();
                               const assigneeText = story.assignee || '';
                               return (
-                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-                                  <div className="flex items-start justify-between mb-2">
+                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden h-32 flex flex-col">
+                                  <div className="flex items-start justify-between mb-2 min-h-[2.5rem] flex-shrink-0">
                                     <h4
-                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words overflow-hidden text-ellipsis flex-1 min-w-0"
                                       title={story.summary}
                                     >
                                       {story.summary}
@@ -2779,23 +2811,25 @@ const StoryDashboard = () => {
                                       </button>
                                     </div>
                                   </div>
-                                  {storyContentText && (
-                                    <p
-                                      className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
-                                      title={storyContentText}
-                                    >
-                                      {storyContentText}
-                                    </p>
-                                  )}
-                                  <div className="flex items-center justify-between text-xs gap-2">
-                                    {assigneeText && (
-                                      <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
-                                        {assigneeText}
-                                      </span>
+                                  <div className="flex-1 flex flex-col justify-between min-h-0">
+                                    {storyContentText && (
+                                      <p
+                                        className="text-xs text-gray-600 mb-2 line-clamp-2 break-words overflow-hidden text-ellipsis flex-shrink-0"
+                                        title={storyContentText}
+                                      >
+                                        {storyContentText}
+                                      </p>
                                     )}
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
-                                      {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                    </span>
+                                    <div className="flex items-center justify-between text-xs gap-2 mt-auto flex-shrink-0">
+                                      {assigneeText && (
+                                        <span className="text-gray-500 truncate min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap" title={assigneeText}>
+                                          {assigneeText}
+                                        </span>
+                                      )}
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
+                                        {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -2824,10 +2858,10 @@ const StoryDashboard = () => {
                               const storyContentText = `${story.asA || ''} ${story.iWantTo || ''} ${story.soThat || ''}`.trim();
                               const assigneeText = story.assignee || '';
                               return (
-                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-                                  <div className="flex items-start justify-between mb-2">
+                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden h-32 flex flex-col">
+                                  <div className="flex items-start justify-between mb-2 min-h-[2.5rem] flex-shrink-0">
                                     <h4
-                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words overflow-hidden text-ellipsis flex-1 min-w-0"
                                       title={story.summary}
                                     >
                                       {story.summary}
@@ -2857,23 +2891,25 @@ const StoryDashboard = () => {
                                       </button>
                                     </div>
                                   </div>
-                                  {storyContentText && (
-                                    <p
-                                      className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
-                                      title={storyContentText}
-                                    >
-                                      {storyContentText}
-                                    </p>
-                                  )}
-                                  <div className="flex items-center justify-between text-xs gap-2">
-                                    {assigneeText && (
-                                      <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
-                                        {assigneeText}
-                                      </span>
+                                  <div className="flex-1 flex flex-col justify-between min-h-0">
+                                    {storyContentText && (
+                                      <p
+                                        className="text-xs text-gray-600 mb-2 line-clamp-2 break-words overflow-hidden text-ellipsis flex-shrink-0"
+                                        title={storyContentText}
+                                      >
+                                        {storyContentText}
+                                      </p>
                                     )}
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
-                                      {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                    </span>
+                                    <div className="flex items-center justify-between text-xs gap-2 mt-auto flex-shrink-0">
+                                      {assigneeText && (
+                                        <span className="text-gray-500 truncate min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap" title={assigneeText}>
+                                          {assigneeText}
+                                        </span>
+                                      )}
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
+                                        {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                               );
