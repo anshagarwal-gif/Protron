@@ -2582,7 +2582,7 @@ const StoryDashboard = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead className="bg-gray-50">
                 <tr>
                   <th className={`px-6 py-4 text-left text-sm font-medium text-gray-900 border-r border-gray-200 ${showBacklog ? 'w-1/5' : 'w-1/3'}`}>
