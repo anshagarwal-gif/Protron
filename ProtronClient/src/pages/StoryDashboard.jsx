@@ -716,16 +716,14 @@ const StoryDashboard = () => {
     setInitialProjectForAdd(projectId);
 
     // If level3 explicitly set to 'Task', open Add Task
-    if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') {
+    if (typeDropdowns.level3 && String(typeDropdowns.level3).toLowerCase() === 'task') {
       setShowAddTaskModal(true);
       return;
     }
 
     // If level1 or level2 is Solution Story, open Add Solution Story
     const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = Array.isArray(typeDropdowns.level2) 
-      ? typeDropdowns.level2.some(val => val && val.toLowerCase() === 'solution story')
-      : typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
     if (level1IsSS || level2IsSS) {
       setShowAddSolutionModal(true);
       return;
@@ -739,9 +737,7 @@ const StoryDashboard = () => {
   const getAddButtonLabel = () => {
     if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') return 'Add Task';
     const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = Array.isArray(typeDropdowns.level2) 
-      ? typeDropdowns.level2.some(val => val && val.toLowerCase() === 'solution story')
-      : typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
     if (level1IsSS || level2IsSS) return 'Add Solution Story';
     return 'Add User Story';
   };
