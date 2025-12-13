@@ -10,3 +10,29 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+@keyframes bgPulse {
+  0% {
+    background-color: #59cf84;
+    box-shadow: 0 0 10px #59cf84;
+    color: black;
+    /* green */
+  }
+
+  50% {
+    background-color: #15803d;
+    box-shadow: 0 0 10px #15803d;
+    color: #ffffff;
+    /* darker green */
+  }
+
+  100% {
+    background-color: #59cf84;
+    box-shadow: 0 0 10px #59cf84;
+    color: black;
+  }
+}
+
+.search-btn-storydashboard {
+  animation: bgPulse 1.5s ease-in-out infinite;
+}

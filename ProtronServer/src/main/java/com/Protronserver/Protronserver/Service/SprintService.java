@@ -1,12 +1,9 @@
 // ...existing code...
 package com.Protronserver.Protronserver.Service;
 
-import com.Protronserver.Protronserver.Entities.SolutionStory;
-import com.Protronserver.Protronserver.Entities.Sprint;
-import com.Protronserver.Protronserver.Entities.UserStory;
+import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.SolutionStoryRepository;
 import com.Protronserver.Protronserver.Repository.SprintRepository;
-import com.Protronserver.Protronserver.Entities.SprintAttachment;
 import com.Protronserver.Protronserver.Repository.SprintAttachmentRepository;
 import com.Protronserver.Protronserver.DTOs.SprintAttachmentDTO;
 import com.Protronserver.Protronserver.Repository.UserStoryRepository;
@@ -136,11 +133,35 @@ public class SprintService {
         return sprintAttachmentRepository.findBySprintId(sprintId);
     }
 
+    public SprintAttachment getAttachment(Long attachmentId) {
+        return sprintAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("Attachment not found"));
+    }
+
     public void deleteAttachment(Long attachmentId) {
         sprintAttachmentRepository.deleteById(attachmentId);
     }
 
     public List<Sprint> getSprintsByProjectId(Long projectId) {
         return sprintRepository.findAllByProjectIdAndEndTimestampIsNull(projectId);
+    }
+
+    public void copyAttachments(List<Long> sourceAttachmentIds, Long targetSprintId) {
+        List<SprintAttachment> sourceAttachments = sprintAttachmentRepository.findAllById(sourceAttachmentIds);
+
+        if (sourceAttachments.isEmpty()) {
+            return;
+        }
+
+        for (SprintAttachment source : sourceAttachments) {
+            SprintAttachment copy = new SprintAttachment();
+            copy.setFileName(source.getFileName());
+            copy.setFileType(source.getFileType());
+            copy.setFileSize(source.getFileSize());
+            copy.setData(source.getData());
+            copy.setUploadedAt(LocalDateTime.now());
+            copy.setSprintId(targetSprintId);
+            sprintAttachmentRepository.save(copy);
+        }
     }
 }

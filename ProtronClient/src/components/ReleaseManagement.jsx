@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import GlobalSnackbar from './GlobalSnackbar';
 import ViewReleaseModal from './ViewReleaseModal';
-import { Pencil, Trash2, Eye, Download } from 'lucide-react';
+import { Pencil, Trash2, Eye, Download, Copy } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -13,6 +13,8 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
   const [editingRelease, setEditingRelease] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [viewingRelease, setViewingRelease] = useState(null);
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [duplicatingRelease, setDuplicatingRelease] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [projectName, setProjectName] = useState('');
 
@@ -58,15 +60,15 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     const d = new Date(dateString);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  return `${day}-${monthStr}-${year}`;
+    const year = d.getFullYear();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    return `${day}-${monthStr}-${year}`;
   };
 
   const downloadReleaseExcel = () => {
     try {
-      const headers = ['#','Release Name','Start Date','End Date','Description','Created On'];
+      const headers = ['#', 'Release Name', 'Start Date', 'End Date', 'Description', 'Created On'];
       const rows = (releases || []).map((r, idx) => ([
         idx + 1,
         r.releaseName || '',
@@ -107,12 +109,19 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     setViewModalOpen(true);
   };
 
+  const handleDuplicateRelease = (rowIndex) => {
+    setDuplicatingRelease(releases[rowIndex]);
+    setDuplicateModalOpen(true);
+  };
+
   const handleDeleteRelease = async (rowIndex) => {
     const releaseId = releases[rowIndex].releaseId;
     try {
-      await fetch(`${API_BASE_URL}/api/releases/${releaseId}`, { method: 'DELETE', headers: {
+      await fetch(`${API_BASE_URL}/api/releases/${releaseId}`, {
+        method: 'DELETE', headers: {
           'authorization': `${sessionStorage.getItem('token')}`,
-        }, });
+        },
+      });
       setSnackbar({ open: true, message: 'Release deleted', severity: 'success' });
       fetchReleases();
     } catch (e) {
@@ -140,16 +149,22 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
 
   const handleEditSubmit = async (formData) => {
     setSnackbar({ open: true, message: 'Release updated', severity: 'success' });
-      setEditModalOpen(false);
-      fetchReleases();
+    setEditModalOpen(false);
+    fetchReleases();
+  };
+
+  const handleDuplicateSubmit = (result) => {
+    setDuplicateModalOpen(false);
+    setSnackbar({ open: true, message: 'Release duplicated!', severity: 'success' });
+    fetchReleases();
   };
 
   const columnDefs = [
     { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50 },
     { headerName: 'Release Name', field: 'releaseName', flex: 1 },
-    { 
-      headerName: 'Start Date', 
-      field: 'startDate', 
+    {
+      headerName: 'Start Date',
+      field: 'startDate',
       width: 110,
       cellRenderer: (params) => {
         return params.value ? formatDate(params.value) : '';
@@ -161,9 +176,9 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
       width: 90,
       cellRenderer: (params) => params.value ? params.value : '',
     },
-    { 
-      headerName: 'End Date', 
-      field: 'endDate', 
+    {
+      headerName: 'End Date',
+      field: 'endDate',
       width: 110,
       cellRenderer: (params) => {
         return params.value ? formatDate(params.value) : '';
@@ -176,10 +191,10 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
       cellRenderer: (params) => params.value ? params.value : '',
     },
     { headerName: 'Description', field: 'description', flex: 2 },
-    { 
-      headerName: 'Created On', 
-      field: 'createdOn', 
-      width: 110, 
+    {
+      headerName: 'Created On',
+      field: 'createdOn',
+      width: 110,
       cellRenderer: (params) => {
         return params.value ? formatDate(params.value) : '';
       }
@@ -198,6 +213,9 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
           </button>
           <button onClick={() => handleDeleteRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
+          </button>
+          <button onClick={() => handleDuplicateRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
+            <Copy size={16} />
           </button>
         </div>
       ),
@@ -267,6 +285,14 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
             onClose={() => setViewModalOpen(false)}
             releaseData={viewingRelease}
           />
+          <DuplicateReleaseModal
+            open={duplicateModalOpen}
+            onClose={() => setDuplicateModalOpen(false)}
+            onSubmit={handleDuplicateSubmit}
+            initialData={duplicatingRelease}
+            projectName={projectName}
+            projectId={projectId}
+          />
         </div>
       </div>
     </>
@@ -307,7 +333,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
         setExistingAttachments([]);
       }
     } else {
-  setFormData({ releaseName: '', startDate: '', startTime: '', endDate: '', endTime: '', description: '', projectName: projectName || '' });
+      setFormData({ releaseName: '', startDate: '', startTime: '', endDate: '', endTime: '', description: '', projectName: projectName || '' });
       setReleaseFiles([]);
       setExistingAttachments([]);
     }
@@ -360,15 +386,15 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
   };
 
   const validate = () => {
-  const errs = {};
-  if (!formData.releaseName) errs.releaseName = 'Required';
-  if (!formData.startDate) errs.startDate = 'Required';
-  if (!formData.startTime) errs.startTime = 'Required';
-  if (!formData.endDate) errs.endDate = 'Required';
-  if (!formData.endTime) errs.endTime = 'Required';
-  if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
-  setErrors(errs);
-  return Object.keys(errs).length === 0;
+    const errs = {};
+    if (!formData.releaseName) errs.releaseName = 'Required';
+    if (!formData.startDate) errs.startDate = 'Required';
+    if (!formData.startTime) errs.startTime = 'Required';
+    if (!formData.endDate) errs.endDate = 'Required';
+    if (!formData.endTime) errs.endTime = 'Required';
+    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleChange = (e) => {
@@ -391,7 +417,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
     }
     setUploading(false);
     setReleaseFiles([]);
-    fetchAttachments(releaseId);  
+    fetchAttachments(releaseId);
   };
 
   const handleSubmit = async (e) => {
@@ -642,6 +668,329 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 </svg>
               ) : null}
               {initialData ? 'Update Release' : 'Add Release'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectName, projectId }) {
+  const [formData, setFormData] = useState({
+    releaseName: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: '',
+    description: '',
+    projectName: '',
+  });
+  const [releaseFiles, setReleaseFiles] = useState([]);
+  const [existingAttachments, setExistingAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        releaseName: initialData.releaseName || '',
+        startDate: initialData.startDate ? initialData.startDate.substring(0, 10) : '',
+        startTime: initialData.startTime || '',
+        endDate: initialData.endDate ? initialData.endDate.substring(0, 10) : '',
+        endTime: initialData.endTime || '',
+        description: initialData.description || '',
+        projectName: projectName || '',
+      });
+      if (initialData.releaseId) {
+        fetchAttachments(initialData.releaseId);
+      } else {
+        setExistingAttachments([]);
+      }
+    } else {
+      setFormData({ releaseName: '', startDate: '', startTime: '', endDate: '', endTime: '', description: '', projectName: projectName || '' });
+      setExistingAttachments([]);
+    }
+    setReleaseFiles([]);
+    setErrors({});
+  }, [initialData, open, projectName]);
+
+  const fetchAttachments = async (releaseId) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/releases/${releaseId}/attachments`, {
+        headers: { 'authorization': `${sessionStorage.getItem('token')}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setExistingAttachments(data);
+      } else {
+        setExistingAttachments([]);
+      }
+    } catch (e) {
+      setExistingAttachments([]);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length === 0) return;
+    const total = (existingAttachments.length || 0) + releaseFiles.length + selectedFiles.length;
+    if (total > 4) {
+      alert('You can only add up to 4 attachments.');
+      return;
+    }
+    setReleaseFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+    e.target.value = null;
+  };
+
+  const removeAttachment = (indexToRemove) => {
+    setReleaseFiles((prevFiles) => prevFiles.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleDeleteExistingAttachment = (attachmentId) => {
+    // For duplicate modal, we only remove from the list of "to be copied" attachments
+    // We do NOT delete from the server, as that would delete from the source release.
+    setExistingAttachments((prev) => prev.filter(att => att.id !== attachmentId));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!formData.releaseName) errs.releaseName = 'Required';
+    if (!formData.startDate) errs.startDate = 'Required';
+    if (!formData.startTime) errs.startTime = 'Required';
+    if (!formData.endDate) errs.endDate = 'Required';
+    if (!formData.endTime) errs.endTime = 'Required';
+    if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const uploadFiles = async (releaseId) => {
+    if (releaseFiles.length === 0) return;
+    setUploading(true);
+    const token = sessionStorage.getItem('token');
+    for (const file of releaseFiles) {
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        await fetch(`${API_BASE_URL}/api/releases/${releaseId}/attachments`, {
+          method: 'POST',
+          headers: { 'authorization': token },
+          body: fd,
+        });
+      } catch (err) {
+        console.error('Error uploading duplicate file:', err);
+      }
+    }
+    setUploading(false);
+    setReleaseFiles([]);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+    setSubmitting(true);
+    const token = sessionStorage.getItem('token');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/releases`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': token,
+        },
+        body: JSON.stringify({ ...formData, projectId }),
+      });
+      const data = await res.json();
+      const releaseId = data.releaseId || data.id;
+
+      // 1. Upload new files
+      await uploadFiles(releaseId);
+
+      // 2. Copy existing attachments (if any remaining)
+      if (existingAttachments.length > 0) {
+        const sourceAttachmentIds = existingAttachments.map(att => att.id);
+        await fetch(`${API_BASE_URL}/api/releases/${releaseId}/attachments/copy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'authorization': token,
+          },
+          body: JSON.stringify(sourceAttachmentIds),
+        });
+      }
+
+      if (typeof onSubmit === 'function') onSubmit(data);
+      if (typeof onClose === 'function') onClose();
+    } catch (err) {
+      console.error('Error duplicating Release:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center mb-2 sm:mb-0">
+            Duplicate Release | <span className="break-words overflow-wrap-anywhere">{projectName}</span>
+          </h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+            <span className="text-gray-400">&#10005;</span>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Release Name *</label>
+                <input
+                  name="releaseName"
+                  value={formData.releaseName}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.releaseName ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder="Enter release name"
+                  maxLength={100}
+                  required
+                />
+                {errors.releaseName && <span className="text-red-500 text-xs mt-1 block">{errors.releaseName}</span>}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Date *</label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  onFocus={e => e.target.showPicker && e.target.showPicker()}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.startDate ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.startDate && <span className="text-red-500 text-xs mt-1 block">{errors.startDate}</span>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time *</label>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  onClick={e => e.target.showPicker && e.target.showPicker()}
+                  step="1"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.startTime ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.startTime && <span className="text-red-500 text-xs mt-1 block">{errors.startTime}</span>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Date *</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  onFocus={e => e.target.showPicker && e.target.showPicker()}
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.endDate ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.endDate && <span className="text-red-500 text-xs mt-1 block">{errors.endDate}</span>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Time *</label>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  onClick={e => e.target.showPicker && e.target.showPicker()}
+                  step="1"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.endTime ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {errors.endTime && <span className="text-red-500 text-xs mt-1 block">{errors.endTime}</span>}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${errors.description ? 'border-red-500' : 'border-gray-300'}`}
+                rows={3}
+                placeholder="Enter release description..."
+                maxLength={500}
+              />
+              {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description}</span>}
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Release Attachments (Max 4)</label>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="duplicate-release-attachment-input"
+                  multiple
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  className="hidden"
+                  disabled={(existingAttachments.length + releaseFiles.length) >= 4}
+                />
+                <label
+                  htmlFor="duplicate-release-attachment-input"
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${releaseFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  style={(existingAttachments.length + releaseFiles.length) >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
+                >
+                  <span className="text-gray-500 truncate">
+                    {releaseFiles.length > 0 ? `${releaseFiles.length} file(s) selected` : 'Click to select files'}
+                  </span>
+                </label>
+              </div>
+              <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                {releaseFiles.map((file, index) => (
+                  <li key={index} className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]">
+                    <span className="truncate max-w-[100px]" title={file.name}>{file.name}</span>
+                    <button type="button" onClick={() => removeAttachment(index)} className="ml-2 text-red-600 hover:text-red-800 text-xs">Delete</button>
+                  </li>
+                ))}
+              </ul>
+              {/* Existing Attachments (Source) */}
+              {existingAttachments.length > 0 && (
+                <div className="mt-2">
+                  <div className="font-semibold text-xs mb-1">Source Release Attachments:</div>
+                  <ul className="text-sm text-gray-700 flex flex-wrap gap-2">
+                    {existingAttachments.map(att => (
+                      <li key={att.id} className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]">
+                        <span className="truncate max-w-[100px]" title={att.fileName}>{att.fileName}</span>
+                        <button type="button" onClick={() => handleDeleteExistingAttachment(att.id)} className="ml-2 text-red-600 hover:text-red-800 text-xs">Delete</button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 p-4 sm:p-6">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer order-2 sm:order-1">Cancel</button>
+            <button type="submit" className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center justify-center cursor-pointer order-1 sm:order-2" disabled={uploading || submitting}>
+              {submitting ? (
+                <svg className="animate-spin mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+              ) : null}
+              Add Release
             </button>
           </div>
         </form>

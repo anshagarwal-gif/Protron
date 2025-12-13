@@ -252,6 +252,11 @@ public class RidaService {
         return attachmentRepository.findAllByRidaId(ridaId);
     }
 
+    public RidaAttachment getAttachment(Long attachmentId) {
+        return attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("Attachment not found"));
+    }
+
     @Transactional
     public void updateProjectForAttachments(List<Long> attachmentIds, Long projectId) {
         List<RidaAttachment> attachments = attachmentRepository.findAllById(attachmentIds);
@@ -265,6 +270,24 @@ public class RidaService {
         }
 
         attachmentRepository.saveAll(attachments);
+    }
+
+    @Transactional
+    public void copyAttachments(List<Long> sourceAttachmentIds, Long targetRidaId) {
+        List<RidaAttachment> sourceAttachments = attachmentRepository.findAllById(sourceAttachmentIds);
+
+        if (sourceAttachments.isEmpty()) {
+            return;
+        }
+
+        for (RidaAttachment source : sourceAttachments) {
+            RidaAttachment copy = new RidaAttachment();
+            copy.setFileName(source.getFileName());
+            copy.setContentType(source.getContentType());
+            copy.setData(source.getData());
+            copy.setRidaId(targetRidaId);
+            attachmentRepository.save(copy);
+        }
     }
 
 }

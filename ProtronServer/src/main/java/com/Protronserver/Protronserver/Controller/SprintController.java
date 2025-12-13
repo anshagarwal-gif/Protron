@@ -63,6 +63,14 @@ public class SprintController {
         return sprintService.getAttachments(sprintId);
     }
 
+    @GetMapping("/attachments/{attachmentId}/download")
+    public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long attachmentId) {
+        SprintAttachment attachment = sprintService.getAttachment(attachmentId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + attachment.getFileName() + "\"")
+                .body(attachment.getData());
+    }
+
     @DeleteMapping("/attachments/{attachmentId}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable Long attachmentId) {
         sprintService.deleteAttachment(attachmentId);
@@ -81,6 +89,15 @@ public class SprintController {
             @RequestBody List<Long> attachmentIds
     ) {
         sprintService.updateProjectForAttachments(attachmentIds, projectId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{targetSprintId}/attachments/copy")
+    public ResponseEntity<Void> copyAttachments(
+            @PathVariable Long targetSprintId,
+            @RequestBody List<Long> sourceAttachmentIds
+    ) {
+        sprintService.copyAttachments(sourceAttachmentIds, targetSprintId);
         return ResponseEntity.ok().build();
     }
 

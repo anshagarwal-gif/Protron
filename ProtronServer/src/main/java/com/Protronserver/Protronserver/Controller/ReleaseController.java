@@ -65,6 +65,14 @@ public class ReleaseController {
         return releaseService.getAttachments(releaseId);
     }
 
+    @GetMapping("/attachments/{attachmentId}/download")
+    public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long attachmentId) {
+        ReleaseAttachment attachment = releaseService.getAttachment(attachmentId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + attachment.getFileName() + "\"")
+                .body(attachment.getData());
+    }
+
     @DeleteMapping("/attachments/{attachmentId}")
     public ResponseEntity<Void> deleteAttachment(@PathVariable Long attachmentId) {
         releaseService.deleteAttachment(attachmentId);
@@ -85,6 +93,16 @@ public class ReleaseController {
         releaseService.updateProjectForAttachments(attachmentIds, projectId);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{targetReleaseId}/attachments/copy")
+    public ResponseEntity<Void> copyAttachments(
+            @PathVariable Long targetReleaseId,
+            @RequestBody List<Long> sourceAttachmentIds
+    ) {
+        releaseService.copyAttachments(sourceAttachmentIds, targetReleaseId);
+        return ResponseEntity.ok().build();
+    }
+
 
 }
 

@@ -96,6 +96,14 @@ public class RidaController {
         return ResponseEntity.ok(attachments);
     }
 
+    @GetMapping("/attachments/{attachmentId}/download")
+    public ResponseEntity<byte[]> downloadAttachment(@PathVariable Long attachmentId) {
+        RidaAttachment attachment = ridaService.getAttachment(attachmentId);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + attachment.getFileName() + "\"")
+                .body(attachment.getData());
+    }
+
     // ✅ Bulk update project for Rida attachments
     @PutMapping("/attachments/update-project/{projectId}")
     public ResponseEntity<Void> updateProjectForAttachments(
@@ -103,6 +111,15 @@ public class RidaController {
             @RequestBody List<Long> attachmentIds
     ) {
         ridaService.updateProjectForAttachments(attachmentIds, projectId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{targetRidaId}/attachments/copy")
+    public ResponseEntity<Void> copyAttachments(
+            @PathVariable Long targetRidaId,
+            @RequestBody List<Long> sourceAttachmentIds
+    ) {
+        ridaService.copyAttachments(sourceAttachmentIds, targetRidaId);
         return ResponseEntity.ok().build();
     }
 }

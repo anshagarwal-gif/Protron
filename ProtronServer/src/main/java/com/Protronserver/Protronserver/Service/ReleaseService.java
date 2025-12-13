@@ -142,6 +142,11 @@ public class ReleaseService {
         return releaseAttachmentRepository.findAllByReleaseId(releaseId);
     }
 
+    public ReleaseAttachment getAttachment(Long attachmentId) {
+        return releaseAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("Attachment not found"));
+    }
+
     public void deleteAttachment(Long attachmentId) {
         releaseAttachmentRepository.deleteById(attachmentId);
     }
@@ -159,9 +164,29 @@ public class ReleaseService {
         }
 
         for (ReleaseAttachment attachment : attachments) {
-            attachment.setReleaseId(projectId); // assuming releaseId here is project mapping
+            attachment.setReleaseId(projectId);
         }
 
         releaseAttachmentRepository.saveAll(attachments);
+    }
+
+    @Transactional
+    public void copyAttachments(List<Long> sourceAttachmentIds, Long targetReleaseId) {
+        List<ReleaseAttachment> sourceAttachments = releaseAttachmentRepository.findAllById(sourceAttachmentIds);
+
+        if (sourceAttachments.isEmpty()) {
+            return;
+        }
+
+        for (ReleaseAttachment source : sourceAttachments) {
+            ReleaseAttachment copy = new ReleaseAttachment();
+            copy.setFileName(source.getFileName());
+            copy.setFileType(source.getFileType());
+            copy.setFileSize(source.getFileSize());
+            copy.setData(source.getData());
+            copy.setUploadedAt(LocalDateTime.now());
+            copy.setReleaseId(targetReleaseId);
+            releaseAttachmentRepository.save(copy);
+        }
     }
 }

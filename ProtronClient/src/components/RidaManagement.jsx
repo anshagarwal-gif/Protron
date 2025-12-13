@@ -37,7 +37,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
   const [duplicatingRida, setDuplicatingRida] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [projectName, setProjectName] = useState('');
-  
+
 
   useEffect(() => {
     if (open && projectId) {
@@ -72,17 +72,17 @@ export default function RidaManagement({ projectId, open, onClose }) {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${monthStr}-${year}`;
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   const downloadRidaExcel = () => {
     try {
       const headers = [
-        '#','Type','Meeting Ref','Description','Raised By','Owner','Status','Remarks'
+        '#', 'Type', 'Meeting Ref', 'Description', 'Raised By', 'Owner', 'Status', 'Remarks'
       ];
       const rows = (ridas || []).map((rida, idx) => ([
         idx + 1,
@@ -157,7 +157,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
         headers: { Authorization: token }
       });
       // Update the RIDA in the list
-      setRidas(prevRidas => prevRidas.map(rida => 
+      setRidas(prevRidas => prevRidas.map(rida =>
         rida.id === ridaId ? response.data : rida
       ));
       setSnackbar({ open: true, message: 'RIDA marked as completed!', severity: 'success' });
@@ -208,16 +208,16 @@ export default function RidaManagement({ projectId, open, onClose }) {
           <button onClick={() => handleEditRida(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
             <Pencil size={16} />
           </button>
-                  <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
+          <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
           </button>
-                  <button onClick={() => handleDuplicateRida(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
-                    <Copy size={16} />
-                  </button>
+          <button onClick={() => handleDuplicateRida(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
+            <Copy size={16} />
+          </button>
           {params.data.status !== 'Closed' && (
-            <button 
-              onClick={() => handleCompleteRida(params.data.id)} 
-              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer" 
+            <button
+              onClick={() => handleCompleteRida(params.data.id)}
+              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
               title="Complete RIDA"
             >
               <CheckCircle size={16} />
@@ -503,53 +503,53 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
 
   if (!open) return null;
 
-return (
-  <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
-    <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-        <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center mb-2 sm:mb-0">
-          <FileText size={20} className="mr-2 text-green-600" />
-          {initialData ? 'Edit RIDA' : 'Add RIDA'} | <span className="break-words overflow-wrap-anywhere">{projectName}</span>
-        </h2>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-        >
-          <X size={20} className="text-gray-400" />
-        </button>
-      </div>
+  return (
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center mb-2 sm:mb-0">
+            <FileText size={20} className="mr-2 text-green-600" />
+            {initialData ? 'Edit RIDA' : 'Add RIDA'} | <span className="break-words overflow-wrap-anywhere">{projectName}</span>
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+          >
+            <X size={20} className="text-gray-400" />
+          </button>
+        </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
-        <div className="space-y-4">
-          {/* Row 1: Type, Meeting Reference, Date Raised, Target Closer */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <Tag size={14} className="inline mr-1" />
-                Type *
-              </label>
-              <Select
-                options={typeOptions}
-                value={typeOptions.find(opt => opt.value === formData.type) || null}
-                onChange={opt => setFormData(f => ({ ...f, type: opt ? opt.value : '' }))}
-                isClearable
-                placeholder="Select type"
-                className="text-sm"
-                styles={{ control: (base) => ({ ...base, borderColor: errors.type ? 'red' : base.borderColor }) }}
-              />
-              {errors.type && <span className="text-red-500 text-xs mt-1 block">{errors.type}</span>}
-            </div>
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+          <div className="space-y-4">
+            {/* Row 1: Type, Meeting Reference, Date Raised, Target Closer */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Tag size={14} className="inline mr-1" />
+                  Type *
+                </label>
+                <Select
+                  options={typeOptions}
+                  value={typeOptions.find(opt => opt.value === formData.type) || null}
+                  onChange={opt => setFormData(f => ({ ...f, type: opt ? opt.value : '' }))}
+                  isClearable
+                  placeholder="Select type"
+                  className="text-sm"
+                  styles={{ control: (base) => ({ ...base, borderColor: errors.type ? 'red' : base.borderColor }) }}
+                />
+                {errors.type && <span className="text-red-500 text-xs mt-1 block">{errors.type}</span>}
+              </div>
 
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <Calendar size={14} className="inline mr-1" />
-                Meeting Reference
-                <span className="float-right text-xs text-gray-500">
-                  {formData.meetingReference.length}/100
-                </span>
-              </label>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <Calendar size={14} className="inline mr-1" />
+                  Meeting Reference
+                  <span className="float-right text-xs text-gray-500">
+                    {formData.meetingReference.length}/100
+                  </span>
+                </label>
                 <input
                   type="text"
                   value={formData.meetingReference}
@@ -562,251 +562,251 @@ return (
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.meetingReference ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Enter meeting reference"
                 />
-              {errors.meetingReference && <span className="text-red-500 text-xs mt-1 block">{errors.meetingReference}</span>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Date Raised
-              </label>
-              <input
-                type="date"
-                value={formData.dateRaised}
-                onChange={e => setFormData(f => ({ ...f, dateRaised: e.target.value }))}
-                className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 border-gray-300"
-                placeholder="Select date raised"
-                onClick={e => e.target.showPicker && e.target.showPicker()}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Target Closer
-              </label>
-              <input
-                type="date"
-                value={formData.targetCloser}
-                onChange={e => setFormData(f => ({ ...f, targetCloser: e.target.value }))}
-                className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 border-gray-300"
-                placeholder="Select target closer date"
-                onClick={e => e.target.showPicker && e.target.showPicker()}
-              />
-            </div>
-          </div>
-
-          {/* Row 2: Item Description (large box) */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              <FileText size={14} className="inline mr-1" />
-              Item Description *
-              <span className="float-right text-xs text-gray-500">
-                {formData.itemDescription.length}/500 characters
-              </span>
-            </label>
-            <textarea
-              value={formData.itemDescription}
-              onChange={e => setFormData(f => ({ ...f, itemDescription: e.target.value }))}
-              className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${errors.itemDescription ? 'border-red-500' : 'border-gray-300'}`}
-              rows={4}
-              placeholder="Enter detailed item description..."
-              maxLength={500}
-              required
-            />
-            {errors.itemDescription && <span className="text-red-500 text-xs mt-1 block">{errors.itemDescription}</span>}
-          </div>
-
-          {/* Row 3: Raised By and Owner */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <User size={14} className="inline mr-1" />
-                Raised By
-                <span className="float-right text-xs text-gray-500">
-                  {formData.raisedBy.length}/100 characters
-                </span>
-              </label>
-              <CreatableSelect
-                options={teamMembers}
-                value={formData.raisedBy ? teamMembers.find(opt => opt.value === formData.raisedBy) || { label: formData.raisedBy, value: formData.raisedBy } : null}
-                onChange={selectedOption => {
-                  let value = selectedOption?.value || '';
-                  if (value.length > 100) value = value.slice(0, 100);
-                  setFormData(f => ({ ...f, raisedBy: value }));
-                }}
-                classNamePrefix="react-select"
-                isSearchable
-                isClearable
-                placeholder="Select or type name"
-                formatCreateLabel={inputValue => `Add "${inputValue}"`}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.raisedBy ? 'red' : base.borderColor }),
-                  menu: (base) => ({ ...base, zIndex: 9999 })
-                }}
-              />
-              {errors.raisedBy && <span className="text-red-500 text-xs mt-1 block">{errors.raisedBy}</span>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <UserCheck size={14} className="inline mr-1" />
-                Owner
-                <span className="float-right text-xs text-gray-500">
-                  {formData.owner.length}/100 characters
-                </span>
-              </label>
-              <CreatableSelect
-                options={teamMembers}
-                value={formData.owner ? teamMembers.find(opt => opt.value === formData.owner) || { label: formData.owner, value: formData.owner } : null}
-                onChange={selectedOption => {
-                  let value = selectedOption?.value || '';
-                  if (value.length > 100) value = value.slice(0, 100);
-                  setFormData(f => ({ ...f, owner: value }));
-                }}
-                classNamePrefix="react-select"
-                isSearchable
-                isClearable
-                placeholder="Select or type name"
-                formatCreateLabel={inputValue => `Add "${inputValue}"`}
-                styles={{
-                  control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.owner ? 'red' : base.borderColor }),
-                  menu: (base) => ({ ...base, zIndex: 9999 })
-                }}
-              />
-              {errors.owner && <span className="text-red-500 text-xs mt-1 block">{errors.owner}</span>}
-            </div>
-          </div>
-
-          {/* Row 4: Status */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <CheckCircle size={14} className="inline mr-1" />
-                Status *
-              </label>
-              <Select
-                options={statusOptions}
-                value={statusOptions.find(opt => opt.value === formData.status) || null}
-                onChange={opt => setFormData(f => ({ ...f, status: opt ? opt.value : '' }))}
-                isClearable
-                placeholder="Select status"
-                className="text-sm"
-                styles={{ control: (base) => ({ ...base, borderColor: errors.status ? 'red' : base.borderColor }) }}
-              />
-              {errors.status && <span className="text-red-500 text-xs mt-1 block">{errors.status}</span>}
-            </div>
-          </div>
-
-          {/* Row 5: Remarks (large box) */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              <MessageSquare size={14} className="inline mr-1" />
-              Remarks
-              <span className="float-right text-xs text-gray-500">
-                {formData.remarks.length}/1000 characters
-              </span>
-            </label>
-            <textarea
-              value={formData.remarks}
-              onChange={e => setFormData(f => ({ ...f, remarks: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
-              rows={3}
-              placeholder="Enter additional remarks or notes..."
-              maxLength={1000}
-            />
-          </div>
-
-          {/* Row 6: Attachments */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">Attachments (Max 4)</label>
-            <div className="relative">
-              <input
-                type="file"
-                id="rida-attachment-input"
-                multiple
-                onChange={handleFileChange}
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                className="hidden"
-                disabled={existingAttachments.length + ridaFiles.length >= 4 || uploading}
-              />
-              <label
-                htmlFor="rida-attachment-input"
-                className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + ridaFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                style={existingAttachments.length + ridaFiles.length >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
-              >
-                <span className="text-gray-500 truncate">
-                  {ridaFiles.length > 0 ? `${ridaFiles.length} file(s) selected` : 'Click to select files'}
-                </span>
-              </label>
-            </div>
-            <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
-              {ridaFiles.map((file, index) => (
-                <li
-                  key={index}
-                  className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]"
-                >
-                  <span className="truncate max-w-[100px]" title={file.name}>
-                    {file.name}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(index)}
-                    className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {/* Existing Attachments (Edit) */}
-            {existingAttachments.length > 0 && (
-              <div className="mt-2">
-                <div className="font-semibold text-xs mb-1">Existing Attachments:</div>
-                <ul className="text-sm text-gray-700 flex flex-wrap gap-2">
-                  {existingAttachments.map(att => (
-                    <li key={att.id} className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]">
-                      <span className="truncate max-w-[100px]" title={att.fileName}>{att.fileName}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteExistingAttachment(att.id)}
-                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                {errors.meetingReference && <span className="text-red-500 text-xs mt-1 block">{errors.meetingReference}</span>}
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Form Actions */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 p-4 sm:p-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer order-2 sm:order-1"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center justify-center cursor-pointer order-1 sm:order-2"
-            disabled={uploading || submitting}
-          >
-            {submitting ? (
-              <svg className="animate-spin mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-              </svg>
-            ) : <FileText size={14} className="mr-2" />}
-            {initialData ? 'Update RIDA' : 'Add RIDA'}
-          </button>
-        </div>
-      </form>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Date Raised
+                </label>
+                <input
+                  type="date"
+                  value={formData.dateRaised}
+                  onChange={e => setFormData(f => ({ ...f, dateRaised: e.target.value }))}
+                  className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 border-gray-300"
+                  placeholder="Select date raised"
+                  onClick={e => e.target.showPicker && e.target.showPicker()}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Target Closer
+                </label>
+                <input
+                  type="date"
+                  value={formData.targetCloser}
+                  onChange={e => setFormData(f => ({ ...f, targetCloser: e.target.value }))}
+                  className="w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 border-gray-300"
+                  placeholder="Select target closer date"
+                  onClick={e => e.target.showPicker && e.target.showPicker()}
+                />
+              </div>
+            </div>
+
+            {/* Row 2: Item Description (large box) */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <FileText size={14} className="inline mr-1" />
+                Item Description *
+                <span className="float-right text-xs text-gray-500">
+                  {formData.itemDescription.length}/500 characters
+                </span>
+              </label>
+              <textarea
+                value={formData.itemDescription}
+                onChange={e => setFormData(f => ({ ...f, itemDescription: e.target.value }))}
+                className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${errors.itemDescription ? 'border-red-500' : 'border-gray-300'}`}
+                rows={4}
+                placeholder="Enter detailed item description..."
+                maxLength={500}
+                required
+              />
+              {errors.itemDescription && <span className="text-red-500 text-xs mt-1 block">{errors.itemDescription}</span>}
+            </div>
+
+            {/* Row 3: Raised By and Owner */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <User size={14} className="inline mr-1" />
+                  Raised By
+                  <span className="float-right text-xs text-gray-500">
+                    {formData.raisedBy.length}/100 characters
+                  </span>
+                </label>
+                <CreatableSelect
+                  options={teamMembers}
+                  value={formData.raisedBy ? teamMembers.find(opt => opt.value === formData.raisedBy) || { label: formData.raisedBy, value: formData.raisedBy } : null}
+                  onChange={selectedOption => {
+                    let value = selectedOption?.value || '';
+                    if (value.length > 100) value = value.slice(0, 100);
+                    setFormData(f => ({ ...f, raisedBy: value }));
+                  }}
+                  classNamePrefix="react-select"
+                  isSearchable
+                  isClearable
+                  placeholder="Select or type name"
+                  formatCreateLabel={inputValue => `Add "${inputValue}"`}
+                  styles={{
+                    control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.raisedBy ? 'red' : base.borderColor }),
+                    menu: (base) => ({ ...base, zIndex: 9999 })
+                  }}
+                />
+                {errors.raisedBy && <span className="text-red-500 text-xs mt-1 block">{errors.raisedBy}</span>}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <UserCheck size={14} className="inline mr-1" />
+                  Owner
+                  <span className="float-right text-xs text-gray-500">
+                    {formData.owner.length}/100 characters
+                  </span>
+                </label>
+                <CreatableSelect
+                  options={teamMembers}
+                  value={formData.owner ? teamMembers.find(opt => opt.value === formData.owner) || { label: formData.owner, value: formData.owner } : null}
+                  onChange={selectedOption => {
+                    let value = selectedOption?.value || '';
+                    if (value.length > 100) value = value.slice(0, 100);
+                    setFormData(f => ({ ...f, owner: value }));
+                  }}
+                  classNamePrefix="react-select"
+                  isSearchable
+                  isClearable
+                  placeholder="Select or type name"
+                  formatCreateLabel={inputValue => `Add "${inputValue}"`}
+                  styles={{
+                    control: (base) => ({ ...base, minHeight: '38px', fontSize: '0.95rem', borderColor: errors.owner ? 'red' : base.borderColor }),
+                    menu: (base) => ({ ...base, zIndex: 9999 })
+                  }}
+                />
+                {errors.owner && <span className="text-red-500 text-xs mt-1 block">{errors.owner}</span>}
+              </div>
+            </div>
+
+            {/* Row 4: Status */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <CheckCircle size={14} className="inline mr-1" />
+                  Status *
+                </label>
+                <Select
+                  options={statusOptions}
+                  value={statusOptions.find(opt => opt.value === formData.status) || null}
+                  onChange={opt => setFormData(f => ({ ...f, status: opt ? opt.value : '' }))}
+                  isClearable
+                  placeholder="Select status"
+                  className="text-sm"
+                  styles={{ control: (base) => ({ ...base, borderColor: errors.status ? 'red' : base.borderColor }) }}
+                />
+                {errors.status && <span className="text-red-500 text-xs mt-1 block">{errors.status}</span>}
+              </div>
+            </div>
+
+            {/* Row 5: Remarks (large box) */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                <MessageSquare size={14} className="inline mr-1" />
+                Remarks
+                <span className="float-right text-xs text-gray-500">
+                  {formData.remarks.length}/1000 characters
+                </span>
+              </label>
+              <textarea
+                value={formData.remarks}
+                onChange={e => setFormData(f => ({ ...f, remarks: e.target.value }))}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                rows={3}
+                placeholder="Enter additional remarks or notes..."
+                maxLength={1000}
+              />
+            </div>
+
+            {/* Row 6: Attachments */}
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Attachments (Max 4)</label>
+              <div className="relative">
+                <input
+                  type="file"
+                  id="rida-attachment-input"
+                  multiple
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  className="hidden"
+                  disabled={existingAttachments.length + ridaFiles.length >= 4 || uploading}
+                />
+                <label
+                  htmlFor="rida-attachment-input"
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + ridaFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  style={existingAttachments.length + ridaFiles.length >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
+                >
+                  <span className="text-gray-500 truncate">
+                    {ridaFiles.length > 0 ? `${ridaFiles.length} file(s) selected` : 'Click to select files'}
+                  </span>
+                </label>
+              </div>
+              <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                {ridaFiles.map((file, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]"
+                  >
+                    <span className="truncate max-w-[100px]" title={file.name}>
+                      {file.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(index)}
+                      className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {/* Existing Attachments (Edit) */}
+              {existingAttachments.length > 0 && (
+                <div className="mt-2">
+                  <div className="font-semibold text-xs mb-1">Existing Attachments:</div>
+                  <ul className="text-sm text-gray-700 flex flex-wrap gap-2">
+                    {existingAttachments.map(att => (
+                      <li key={att.id} className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]">
+                        <span className="truncate max-w-[100px]" title={att.fileName}>{att.fileName}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteExistingAttachment(att.id)}
+                          className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 p-4 sm:p-6">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer order-2 sm:order-1"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center justify-center cursor-pointer order-1 sm:order-2"
+              disabled={uploading || submitting}
+            >
+              {submitting ? (
+                <svg className="animate-spin mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+              ) : <FileText size={14} className="mr-2" />}
+              {initialData ? 'Update RIDA' : 'Add RIDA'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-);
+  );
 }
 
 // Modal for duplicating a RIDA (prefills selected RIDA and creates a new one)
@@ -916,20 +916,10 @@ function DuplicateRidaModal({ open, onClose, onSubmit, initialData, projectName,
     setRidaFiles((prev) => prev.filter((_, idx) => idx !== indexToRemove));
   };
 
-  const handleDeleteExistingAttachment = async (attachmentId) => {
-    if (!initialData?.id) return;
-    try {
-      const token = sessionStorage.getItem('token');
-      const res = await fetch(`${API_BASE_URL}/api/rida/attachments/${attachmentId}`, {
-        method: 'DELETE',
-        headers: { Authorization: token }
-      });
-      if (res.ok) {
-        setExistingAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
-      }
-    } catch (err) {
-      console.error('Error deleting existing attachment (duplicate modal):', err);
-    }
+  const handleDeleteExistingAttachment = (attachmentId) => {
+    // For duplicate modal, we only remove from the list of "to be copied" attachments
+    // We do NOT delete from the server, as that would delete from the source rida.
+    setExistingAttachments((prev) => prev.filter(att => att.id !== attachmentId));
   };
 
   const validate = () => {
@@ -982,7 +972,22 @@ function DuplicateRidaModal({ open, onClose, onSubmit, initialData, projectName,
       });
       const result = await res.json();
       const ridaId = result.id;
+
+      // 1. Upload new files
       await uploadFiles(ridaId);
+
+      // 2. Copy existing attachments (if any remaining)
+      if (existingAttachments.length > 0) {
+        const sourceAttachmentIds = existingAttachments.map(att => att.id);
+        await fetch(`${API_BASE_URL}/api/rida/${ridaId}/attachments/copy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'authorization': token,
+          },
+          body: JSON.stringify(sourceAttachmentIds),
+        });
+      }
       if (typeof onSubmit === 'function') onSubmit(result);
       if (typeof onClose === 'function') onClose();
     } catch (err) {
