@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, User, Hash, Activity, Briefcase } from 'lucide-react';
+import { FiEdit2 } from 'react-icons/fi';
 import axios from 'axios';
 
-const ViewTaskModal = ({ open, onClose, taskData, parentStory }) => {
+const ViewTaskModal = ({ open, onClose, taskData, parentStory, onEdit }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -149,12 +150,30 @@ const ViewTaskModal = ({ open, onClose, taskData, parentStory }) => {
                 <p className="text-green-100 text-xs sm:text-sm">Task ID: {taskData.taskId}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-            >
-              <X size={20} className="text-white" />
-            </button>
+            <div className="flex items-center space-x-2">
+              {onEdit && (
+                <button
+                  onClick={() => {
+                    try {
+                      onEdit(taskData);
+                    } catch (e) {
+                      console.error('Error in onEdit callback:', e);
+                    }
+                    onClose && onClose();
+                  }}
+                  className="p-2 bg-white rounded-full hover:bg-green-50 transition-colors flex items-center justify-center cursor-pointer"
+                  title="Edit Task"
+                >
+                  <FiEdit2 size={16} className="text-green-600" />
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
           </div>
         </div>
 

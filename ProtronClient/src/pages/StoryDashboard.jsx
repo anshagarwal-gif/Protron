@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload, FiGitBranch, FiCheckSquare } from 'react-icons/fi';
+import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload, FiGitBranch, FiCheckSquare, FiChevronRight } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AgGridReact } from 'ag-grid-react';
@@ -15,10 +15,21 @@ import EditStoryModal from '../components/EditStoryModal';
 import EditSolutionStoryModal from '../components/EditSolutionStoryModal';
 import EditTaskModal from '../components/EditTaskModal';
 import ViewStoryModal from '../components/ViewStoryModal';
+import ViewSolutionStoryModal from '../components/ViewSolutionStoryModal';
 import ViewTaskModal from '../components/ViewTaskModal';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+// Generic AG Grid cell renderer that attaches a native title tooltip for full-cell hover
+const CellWithTitle = (params) => {
+  const value = params.valueFormatted ?? params.value ?? '';
+  return (
+    <div title={value !== undefined && value !== null ? String(value) : ''} className="truncate max-w-full overflow-hidden whitespace-nowrap">
+      {value}
+    </div>
+  );
+};
 
 const StoryDashboard = () => {
   // Debugging: render & state change counters to help trace duplicate renders
@@ -52,6 +63,7 @@ const StoryDashboard = () => {
   const [showEditSolutionModal, setShowEditSolutionModal] = useState(false);
   const [showEditTaskModal, setShowEditTaskModal] = useState(false);
   const [showViewTaskModal, setShowViewTaskModal] = useState(false);
+  const [showViewSolutionModal, setShowViewSolutionModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
   const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' or 'table'
   const [gridApi, setGridApi] = useState(null);
@@ -62,11 +74,13 @@ const StoryDashboard = () => {
   const [releaseList, setReleaseList] = useState([]); // List of releases for selected project
   const [users, setUsers] = useState([]); // List of users/employees
   const [statusFlags, setStatusFlags] = useState([]); // List of status flags
+  const [searchTrigger, setSearchTrigger] = useState(0); // Trigger for API calls
+  const [showSearchHelper, setShowSearchHelper] = useState(false);
 
   // Cascading dropdown states
   const [typeDropdowns, setTypeDropdowns] = useState({
     level1: '', // Main type filter
-    level2: '', // Second level dropdown
+    level2: [], // Second level dropdown (Array for multi-select)
     level3: ''  // Third level dropdown
   });
   const [showTypeDropdowns, setShowTypeDropdowns] = useState({
@@ -195,7 +209,7 @@ const StoryDashboard = () => {
       setSprintList([]);
       setReleaseList([]);
       // Clear and reset type filters when project is deselected
-      setTypeDropdowns({ level1: '', level2: '', level3: '' });
+      setTypeDropdowns({ level1: '', level2: [], level3: '' });
       setFilters(prev => ({ ...prev, type: '' }));
       setShowTypeDropdowns({ level2: false, level3: false });
       // Clear users when no project is selected
@@ -266,6 +280,8 @@ const StoryDashboard = () => {
         projectName: projectIdStr,
       }));
       handleProjectChange(projectIdStr);
+      // Trigger search immediately when loading from URL
+      setSearchTrigger(prev => prev + 1);
 
       // Remove projectId from URL cleanly
       try {
@@ -292,9 +308,11 @@ const StoryDashboard = () => {
           projectName: savedStr,
         }));
         handleProjectChange(savedStr);
+        // Trigger search immediately when loading from localStorage
+        setSearchTrigger(prev => prev + 1);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setSearchParams, handleProjectChange]);
 
   // Fetch stories from API
@@ -315,18 +333,8 @@ const StoryDashboard = () => {
         let apiUrl = '';
         const selectedType = filters.type || '';
 
-        // Parse the cascading type string to find the most recent entity type selection
-        const typeParts = selectedType.split(' > ');
-        const lastEntityType = typeParts[typeParts.length - 1];
-
-        // If the user hasn't selected a project yet, do not load user stories (or default userstory view).
-        // This prevents loading all user stories on initial page load.
-        if ((!filters.projectName) && (lastEntityType === 'User Story' || !selectedType)) {
-          // Clear any previously loaded stories and exit early
-          setStories([]);
-          setInitialLoading(false);
-          return;
-        }
+        // Check for multi-selection in Level 2
+        const isMultiSelect = selectedType.includes('Solution Story') && selectedType.includes('Task') && selectedType.includes(',');
 
         // Format the date to include time component for LocalDateTime
         const formatDate = (dateStr) => {
@@ -335,56 +343,30 @@ const StoryDashboard = () => {
           return `${dateStr}T00:00:00`;
         };
 
-        // Determine parentId based on type filters level.
-        const getParentId = () => {
-          // If no project selected, return null
-          if (!filters.projectName) return null;
-
-          // If no type selected, we are fetching for a project, so parent is null (handled elsewhere)
-          if (!selectedType) return null;
-
-          // For first level type selection -> decide based on which top-level was chosen
-            if (typeParts.length === 1) {
-              // If user selected User Story at level1, filter by project prefix
-              if (lastEntityType === 'User Story') return 'PRJ-';
-              // If user selected Solution Story at level1, we want to fetch all solution stories for the project
-              // So return null here and rely on projectId in the payload.
-              if (lastEntityType === 'Solution Story') return null;
-              return null;
-            }
-
-          // For second level type selection
-          if (typeParts.length === 2) {
-            // Check the type selected in level 1
-            const type1 = typeParts[0];
-            return type1 === 'User Story' ? 'US-' : 'SS-';
-          }
-
-          // For third level type selection
-          if (typeParts.length === 3) {
-            return 'SS-';
-          }
-
-          return null;
-        };
-
         // Prepare common filter payload
         const basePayload = {
           tenantId: parseInt(tenantId),
           projectId: filters.projectName ? parseInt(filters.projectName) : null,
-          assignee: filters.assignee || null, // Changed from createdBy to assignee as per API
+          assignee: filters.assignee || null,
           createdDate: formatDate(filters.createdDate),
-          parentId: getParentId()
         };
 
-        // Check the most recent entity type selection and prepare type-specific payload
-        if (lastEntityType === 'User Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+        if (isMultiSelect) {
+          // CUMULATIVE API CALL
+          apiUrl = `${import.meta.env.VITE_API_URL}/api/cumulative/filter`;
+
           const payload = {
-            ...basePayload,
-            status: filters.status !== 'all' ? filters.status : null,
-            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            taskFilter: {
+              ...basePayload,
+              parentId: 'US-' // Tasks under User Stories
+            },
+            solutionStoryFilter: {
+              ...basePayload,
+              parentId: 'US-', // Solution Stories under User Stories
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
+            }
           };
 
           const response = await fetch(apiUrl, {
@@ -398,84 +380,109 @@ const StoryDashboard = () => {
 
           if (response.ok) {
             const data = await response.json();
-            setStories(data);
+            // Merge tasks and solution stories into a single list
+            const mergedStories = [...(data.tasks || []), ...(data.solutionStories || [])];
+            setStories(mergedStories);
           } else {
-            throw new Error('Failed to fetch user stories');
-          }
-        } else if (lastEntityType === 'Solution Story') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/filter`;
-          const payload = {
-            ...basePayload,
-            status: filters.status !== 'all' ? filters.status : null,
-            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
-          };
-
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setStories(data);
-          } else {
-            throw new Error('Failed to fetch solution stories');
-          }
-        } else if (lastEntityType === 'Task') {
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks/filter`;
-          const payload = {
-            ...basePayload
-          };
-
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setStories(data);
-          } else {
-            throw new Error('Failed to fetch tasks');
+            throw new Error('Failed to fetch cumulative stories');
           }
         } else {
-          // Default to UserStory if no specific type is selected
-          apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
-          const payload = {
-            ...basePayload,
-            status: filters.status !== 'all' ? filters.status : null,
-            sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
-            releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
+          // SINGLE SELECTION LOGIC (Existing)
+          const typeParts = selectedType.split(' > ');
+          const lastEntityType = typeParts[typeParts.length - 1];
+
+          // If the user hasn't selected a project yet, do not load user stories (or default userstory view).
+          if ((!filters.projectName) && (lastEntityType === 'User Story' || !selectedType)) {
+            setStories([]);
+            setInitialLoading(false);
+            return;
+          }
+
+          const getParentId = () => {
+            if (!filters.projectName) return null;
+            if (!selectedType) return null;
+            if (typeParts.length === 1) {
+              if (lastEntityType === 'User Story') return 'PRJ-';
+              if (lastEntityType === 'Solution Story') return null;
+              return null;
+            }
+            if (typeParts.length === 2) {
+              const type1 = typeParts[0];
+              return type1 === 'User Story' ? 'US-' : 'SS-';
+            }
+            if (typeParts.length === 3) {
+              return 'SS-';
+            }
+            return null;
           };
 
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
+          const payload = {
+            ...basePayload,
+            parentId: getParentId()
+          };
 
-          if (response.ok) {
-            const data = await response.json();
-            setStories(data);
+          if (lastEntityType === 'User Story') {
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+            const usPayload = {
+              ...payload,
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            };
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(usPayload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch user stories');
+
+          } else if (lastEntityType === 'Solution Story') {
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/filter`;
+            const ssPayload = {
+              ...payload,
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null
+            };
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(ssPayload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch solution stories');
+
+          } else if (lastEntityType === 'Task') {
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks/filter`;
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch tasks');
+
           } else {
-            throw new Error('Failed to fetch default stories');
+            // Default
+            apiUrl = `${import.meta.env.VITE_API_URL}/api/userstory/filter`;
+            const usPayload = {
+              ...payload,
+              status: filters.status !== 'all' ? filters.status : null,
+              sprint: filters.projectName && filters.sprint ? parseInt(filters.sprint) : null,
+              releaseId: filters.projectName && filters.release ? parseInt(filters.release) : null,
+            };
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+              body: JSON.stringify(usPayload)
+            });
+            if (response.ok) setStories(await response.json());
+            else throw new Error('Failed to fetch default stories');
           }
         }
       } catch (error) {
         console.error('Error fetching stories:', error);
-        // Fallback to empty array if API fails
         setStories([]);
       } finally {
         if (isInitial) {
@@ -486,22 +493,82 @@ const StoryDashboard = () => {
 
     fetchStories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, gridApi]); // Updated dependency array to include all filters
+  }, [searchTrigger, gridApi]);
 
-  const filteredStories = useMemo(() => stories.filter(story => {
-    return !searchTerm ||
-      story.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.asA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.iWantTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.soThat?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.acceptanceCriteria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.assignee?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.system?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.createdBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.projectId?.toString().includes(searchTerm) ||
-      story.sprint?.toString().includes(searchTerm) ||
-      story.release?.toString().includes(searchTerm);
-  }), [stories, searchTerm]);
+  const filteredStories = useMemo(() => {
+    if (!searchTerm) return stories;
+
+    const searchLower = searchTerm.toLowerCase().trim();
+
+    return stories.filter(story => {
+      // Search in User Story fields
+      const matchesSummary = story.summary?.toLowerCase().includes(searchLower);
+      const matchesAsA = story.asA?.toLowerCase().includes(searchLower);
+      const matchesIWantTo = story.iWantTo?.toLowerCase().includes(searchLower);
+      const matchesSoThat = story.soThat?.toLowerCase().includes(searchLower);
+      const matchesAcceptanceCriteria = story.acceptanceCriteria?.toLowerCase().includes(searchLower);
+
+      // Search in Task fields
+      const matchesTaskTopic = story.taskTopic?.toLowerCase().includes(searchLower);
+      const matchesTaskDescription = story.taskDescription?.toLowerCase().includes(searchLower);
+      const matchesTaskId = story.taskId?.toLowerCase().includes(searchLower) ||
+        story.taskId?.toString().includes(searchTerm);
+
+      // Search in Solution Story fields
+      const matchesSsId = story.ssId?.toLowerCase().includes(searchLower) ||
+        story.ssId?.toString().includes(searchTerm);
+
+      // Search in User Story ID fields
+      const matchesUsId = story.usId?.toLowerCase().includes(searchLower) ||
+        story.usId?.toString().includes(searchTerm);
+      const matchesId = story.id?.toString().includes(searchTerm);
+
+      // Search in common fields
+      const matchesAssignee = story.assignee?.toLowerCase().includes(searchLower);
+      const matchesCreatedBy = story.createdBy?.toLowerCase().includes(searchLower);
+      const matchesSystem = story.system?.toLowerCase().includes(searchLower);
+
+      // Search in project ID
+      const matchesProjectId = story.projectId?.toString().includes(searchTerm);
+
+      // Search in project name by looking up from projectList
+      let matchesProjectName = false;
+      if (story.projectId && projectList.length > 0) {
+        const project = projectList.find(p => p.projectId == story.projectId);
+        if (project?.projectName) {
+          matchesProjectName = project.projectName.toLowerCase().includes(searchLower);
+        }
+      }
+
+      // Search in sprint and release
+      const matchesSprint = story.sprint?.toString().includes(searchTerm);
+      const matchesRelease = story.release?.toString().includes(searchTerm);
+
+      // Search in status
+      const matchesStatus = story.status?.toLowerCase().includes(searchLower);
+
+      // Return true if any field matches
+      return matchesSummary ||
+        matchesTaskTopic ||
+        matchesTaskDescription ||
+        matchesAsA ||
+        matchesIWantTo ||
+        matchesSoThat ||
+        matchesAcceptanceCriteria ||
+        matchesAssignee ||
+        matchesCreatedBy ||
+        matchesSystem ||
+        matchesProjectId ||
+        matchesProjectName ||
+        matchesTaskId ||
+        matchesSsId ||
+        matchesUsId ||
+        matchesId ||
+        matchesSprint ||
+        matchesRelease ||
+        matchesStatus;
+    });
+  }, [stories, searchTerm, projectList]);
 
   // Debug: log when filteredStories changes
   useEffect(() => {
@@ -531,7 +598,6 @@ const StoryDashboard = () => {
       // Level 1: Only show User Story and Solution Story when project is selected
       return filters.projectName ? [
         { value: 'User Story', label: 'User Story' },
-        { value: 'Solution Story', label: 'Solution Story' }
       ] : [];
     } else if (level === 2) {
       // Level 2: Show options based on level 1 selection
@@ -548,11 +614,13 @@ const StoryDashboard = () => {
       return [];
     } else if (level === 3) {
       // Level 3: Only show Task when Solution Story is selected in level 2
-      if (parentValue === 'Solution Story') {
+      // Check if parentValue is a single string (not array) and is 'Solution Story'
+      if (parentValue?.includes('Solution Story')) {
         return [
           { value: 'Task', label: 'Task' }
         ];
       }
+      // If parentValue is an array (multi-select), Level 3 should generally be hidden or empty
       return [];
     }
     return [];
@@ -564,7 +632,7 @@ const StoryDashboard = () => {
 
     if (level === 1) {
       newTypeDropdowns.level1 = value;
-      newTypeDropdowns.level2 = '';
+      newTypeDropdowns.level2 = []; // Reset to empty array
       newTypeDropdowns.level3 = '';
 
       // Show Level 2 for both User Story and Solution Story
@@ -574,15 +642,20 @@ const StoryDashboard = () => {
       // Update main type filter
       setFilters(prev => ({ ...prev, type: value }));
     } else if (level === 2) {
-      newTypeDropdowns.level2 = value;
+      // Value comes as an array of objects from react-select isMulti
+      // We need to extract values
+      const selectedValues = value ? value.map(v => v.value) : [];
+      newTypeDropdowns.level2 = selectedValues;
       newTypeDropdowns.level3 = '';
 
-      // Show Level 3 only if User Story is selected in Level 1 AND Solution Story in Level 2
-      newShowDropdowns.level3 = (newTypeDropdowns.level1 === 'User Story' && value === 'Solution Story') ? true : false;
+      // Show Level 3 only if User Story is selected in Level 1 AND ONLY Solution Story is selected in Level 2
+      const isOnlySolutionStory = selectedValues.length === 1 && selectedValues[0] === 'Solution Story';
+      newShowDropdowns.level3 = (newTypeDropdowns.level1 === 'User Story' && isOnlySolutionStory) ? true : false;
 
-      // Update main type filter to include both levels if level2 has a value
-      if (value) {
-        const combinedType = `${newTypeDropdowns.level1} > ${value}`;
+      // Update main type filter
+      if (selectedValues.length > 0) {
+        const joinedValues = selectedValues.join(', ');
+        const combinedType = `${newTypeDropdowns.level1} > ${joinedValues}`;
         setFilters(prev => ({ ...prev, type: combinedType }));
       } else {
         // If level2 is deselected, revert to level1 only
@@ -593,11 +666,14 @@ const StoryDashboard = () => {
 
       // Update main type filter to include all levels if level3 has a value
       if (value) {
-        const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2} > ${value}`;
+        // level2 should be a single value string here if level3 is active
+        const level2Val = Array.isArray(newTypeDropdowns.level2) ? newTypeDropdowns.level2[0] : newTypeDropdowns.level2;
+        const combinedType = `${newTypeDropdowns.level1} > ${level2Val} > ${value}`;
         setFilters(prev => ({ ...prev, type: combinedType }));
       } else {
         // If level3 is deselected, revert to level1 and level2
-        const combinedType = `${newTypeDropdowns.level1} > ${newTypeDropdowns.level2}`;
+        const level2Val = Array.isArray(newTypeDropdowns.level2) ? newTypeDropdowns.level2[0] : newTypeDropdowns.level2;
+        const combinedType = `${newTypeDropdowns.level1} > ${level2Val}`;
         setFilters(prev => ({ ...prev, type: combinedType }));
       }
     }
@@ -607,7 +683,7 @@ const StoryDashboard = () => {
   };
 
   const clearTypeFilters = () => {
-    setTypeDropdowns({ level1: '', level2: '', level3: '' });
+    setTypeDropdowns({ level1: '', level2: [], level3: '' });
     setShowTypeDropdowns({ level2: false, level3: false });
     setFilters(prev => ({ ...prev, type: '' }));
   };
@@ -623,9 +699,8 @@ const StoryDashboard = () => {
   };
 
   const refreshStories = useCallback(() => {
-    // This function will now just trigger the useEffect by updating filters.
-    // A new object is created to ensure the state update is detected.
-    setFilters(currentFilters => ({ ...currentFilters }));
+    // Trigger the useEffect by updating searchTrigger
+    setSearchTrigger(prev => prev + 1);
   }, []);
 
   const handleAddStory = async () => {
@@ -642,7 +717,7 @@ const StoryDashboard = () => {
     setInitialProjectForAdd(projectId);
 
     // If level3 explicitly set to 'Task', open Add Task
-    if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') {
+    if (typeDropdowns.level3 && String(typeDropdowns.level3).toLowerCase() === 'task') {
       setShowAddTaskModal(true);
       return;
     }
@@ -663,9 +738,46 @@ const StoryDashboard = () => {
   const getAddButtonLabel = () => {
     if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') return 'Add Task';
     const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    // Handle level2 which can be an array (multi-select) or a string
+    let level2IsSS = false;
+    if (typeDropdowns.level2) {
+      if (Array.isArray(typeDropdowns.level2)) {
+        // Check if any value in the array is 'solution story'
+        level2IsSS = typeDropdowns.level2.some(val => val && val.toLowerCase() === 'solution story');
+      } else {
+        level2IsSS = typeDropdowns.level2.toLowerCase() === 'solution story';
+      }
+    }
     if (level1IsSS || level2IsSS) return 'Add Solution Story';
     return 'Add User Story';
+  };
+
+  // Generate breadcrumb path based on type dropdowns
+  const getBreadcrumbPath = () => {
+    const path = [];
+
+    if (typeDropdowns.level1) {
+      path.push(typeDropdowns.level1);
+    }
+
+    if (typeDropdowns.level2 && typeDropdowns.level2.length > 0) {
+      // Handle array (multi-select) or single value
+      if (Array.isArray(typeDropdowns.level2)) {
+        // For multi-select, show all selected values
+        const level2Values = typeDropdowns.level2.filter(val => val);
+        if (level2Values.length > 0) {
+          path.push(level2Values.join(', '));
+        }
+      } else if (typeDropdowns.level2) {
+        path.push(typeDropdowns.level2);
+      }
+    }
+
+    if (typeDropdowns.level3) {
+      path.push(typeDropdowns.level3);
+    }
+
+    return path;
   };
 
   const handleUpdateStory = async () => {
@@ -728,6 +840,11 @@ const StoryDashboard = () => {
   const openViewModal = useCallback((story) => {
     setSelectedStory(story);
     setShowViewModal(true);
+  }, []);
+
+  const openViewSolutionModal = useCallback((story) => {
+    setSelectedStory(story);
+    setShowViewSolutionModal(true);
   }, []);
 
   const openViewTaskModal = useCallback((task) => {
@@ -889,39 +1006,67 @@ const StoryDashboard = () => {
     const story = params.data;
     const storyId = story.id || story.ssId || story.taskId;
 
-    // Prefer the currently selected type filter (last entity) to determine which actions to show.
-    const selectedType = filters.type || '';
+    // PRIORITIZE story object fields (taskId, ssId, id) to determine actual type
+    // This ensures correct actions when both Solution Story and Task are selected in filters
     let storyType = null;
-    if (selectedType) {
-      const parts = selectedType.split(' > ');
-      const last = parts[parts.length - 1];
-      if (last === 'User Story') storyType = 'userstory';
-      else if (last === 'Solution Story') storyType = 'solutionstory';
-      else if (last === 'Task') storyType = 'task';
+    if (story.taskId) {
+      storyType = 'task';
+    } else if (story.ssId) {
+      storyType = 'solutionstory';
+    } else if (story.id) {
+      storyType = 'userstory';
     }
 
-    // Fallback: infer from object fields when no explicit filter is selected
+    // Fallback: use filter selection only if object fields don't identify the type
     if (!storyType) {
-      storyType = story.id ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
+      const selectedType = filters.type || '';
+      if (selectedType) {
+        const parts = selectedType.split(' > ');
+        const last = parts[parts.length - 1];
+        if (last === 'User Story') storyType = 'userstory';
+        else if (last === 'Solution Story') storyType = 'solutionstory';
+        else if (last === 'Task') storyType = 'task';
+      }
     }
+
+    // Determine button labels based on actual story type
+    const getViewLabel = () => {
+      if (storyType === 'task') return 'View Task';
+      if (storyType === 'solutionstory') return 'View Solution Story';
+      return 'View User Story';
+    };
+
+    const getEditLabel = () => {
+      if (storyType === 'task') return 'Edit Task';
+      if (storyType === 'solutionstory') return 'Edit Solution Story';
+      return 'Edit User Story';
+    };
 
     // Render different action sets based on the item type
     return (
       <div className="flex items-center space-x-2">
         {/* View */}
         <button
-          onClick={() => openViewModal(story)}
+          onClick={() => {
+            if (storyType === 'task') openViewTaskModal(story);
+            else if (storyType === 'solutionstory') openViewSolutionModal(story);
+            else openViewModal(story);
+          }}
           className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-          title={`View ${storyType || 'item'}`}
+          title={getViewLabel()}
         >
           <FiEye size={16} />
         </button>
 
         {/* Edit - opens specific modal per type */}
         <button
-          onClick={() => openEditModal(story)}
+          onClick={() => {
+            if (storyType === 'task') openEditTaskModal(story);
+            else if (storyType === 'solutionstory') openEditSolutionModal(story);
+            else openEditModal(story);
+          }}
           className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-          title={`Edit ${storyType || 'item'}`}
+          title={getEditLabel()}
         >
           <FiEdit size={16} />
         </button>
@@ -1269,7 +1414,7 @@ const StoryDashboard = () => {
           }
         },
         {
-          headerName: 'Date',
+          headerName: 'Created Date',
           field: 'date',
           width: 100,
           filter: 'agDateColumnFilter',
@@ -1363,6 +1508,9 @@ const StoryDashboard = () => {
     resizable: true,
     filter: true,
     floatingFilter: false
+    ,
+    // Use the generic cell renderer to attach native title tooltips
+    cellRenderer: CellWithTitle
   }), []);
 
   // Grid options
@@ -1389,18 +1537,32 @@ const StoryDashboard = () => {
     // Check if it's a solution story (you might need to adjust this condition)
     const isSolutionStory = 'ssId' in item;
 
+    // Prepare text content for tooltips
+    const titleText = isTask ? item.taskTopic : item.summary;
+    const taskDescriptionText = item.taskDescription || '';
+    const storyContentText = `${item.asA || ''} ${item.iWantTo || ''} ${item.soThat || ''}`.trim();
+    const assigneeText = item.assignee || '';
+    const createdByText = item.createdBy || '';
+
     return (
-      <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+      <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
         <div className="flex items-start justify-between mb-2">
           {/* Title section - different for each type */}
-          <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">
-            {isTask ? item.taskTopic : item.summary}
+          <h4
+            className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+            title={titleText}
+          >
+            {titleText}
           </h4>
 
           {/* Action buttons - different handlers for each type */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 z-10">
             <button
-              onClick={() => isTask ? openViewTaskModal(item) : openViewModal(item)}
+              onClick={() => {
+                if (isTask) openViewTaskModal(item);
+                else if (isSolutionStory) openViewSolutionModal(item);
+                else openViewModal(item);
+              }}
               className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
             >
               <FiEye size={14} />
@@ -1432,39 +1594,69 @@ const StoryDashboard = () => {
         {isTask ? (
           <>
             {/* Task-specific content */}
-            <div className="mb-2">
-              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full mr-2">
-                {item.taskType}
-              </span>
-              <span className="text-xs text-gray-500">
-                Est: {item.estTime}
-              </span>
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              {item.taskType && (
+                <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full truncate max-w-full" title={item.taskType}>
+                  {item.taskType}
+                </span>
+              )}
+              {item.estTime && (
+                <span className="text-xs text-gray-500 truncate" title={`Est: ${item.estTime}`}>
+                  Est: {item.estTime}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{item.taskDescription}</p>
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-500">{item.createdBy}</span>
-                <span className="text-gray-400">·</span>
-                <span className="text-gray-500">
-                  {new Date(item.dateCreated).toLocaleDateString()}
-                </span>
+            {taskDescriptionText && (
+              <p
+                className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                title={taskDescriptionText}
+              >
+                {taskDescriptionText}
+              </p>
+            )}
+            <div className="flex items-center justify-between text-xs gap-2">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
+                {createdByText && (
+                  <span className="text-gray-500 truncate" title={createdByText}>
+                    {createdByText}
+                  </span>
+                )}
+                {createdByText && item.dateCreated && (
+                  <span className="text-gray-400 flex-shrink-0">·</span>
+                )}
+                {item.dateCreated && (
+                  <span className="text-gray-500 truncate flex-shrink-0" title={new Date(item.dateCreated).toLocaleDateString()}>
+                    {new Date(item.dateCreated).toLocaleDateString()}
+                  </span>
+                )}
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-500">
-                  {item.timeSpentHours}h {item.timeSpentMinutes}m
-                </span>
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                {(item.timeSpentHours || item.timeSpentMinutes) && (
+                  <span className="text-gray-500 truncate" title={`${item.timeSpentHours || 0}h ${item.timeSpentMinutes || 0}m`}>
+                    {item.timeSpentHours || 0}h {item.timeSpentMinutes || 0}m
+                  </span>
+                )}
               </div>
             </div>
           </>
         ) : (
           <>
             {/* User Story/Solution Story content */}
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-              {item.asA} {item.iWantTo} {item.soThat}
-            </p>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">{item.assignee}</span>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+            {storyContentText && (
+              <p
+                className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                title={storyContentText}
+              >
+                {storyContentText}
+              </p>
+            )}
+            <div className="flex items-center justify-between text-xs gap-2">
+              {assigneeText && (
+                <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
+                  {assigneeText}
+                </span>
+              )}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(item.priority)}`}>
                 {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MEDIUM' : 'LOW'}
               </span>
             </div>
@@ -1472,8 +1664,8 @@ const StoryDashboard = () => {
         )}
       </div>
     );
-  }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal, 
-      handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, getPriorityColor]);
+  }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal,
+    handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, getPriorityColor]);
 
   if (initialLoading) {
     return (
@@ -1511,6 +1703,7 @@ const StoryDashboard = () => {
                 const projectId = e.target.value;
                 setFilters({ ...filters, projectName: projectId, sprint: '', release: '' });
                 handleProjectChange(projectId);
+                setShowSearchHelper(true);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
@@ -1538,6 +1731,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, sprint: value });
+                setShowSearchHelper(true);
               }}
               options={Array.isArray(sprintList) ? sprintList.map(sprint => ({
                 value: sprint.sprintId.toString(),
@@ -1577,6 +1771,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, assignee: value });
+                setShowSearchHelper(true);
               }}
               options={users.map(user => ({
                 value: user.name,
@@ -1615,6 +1810,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, createdBy: value });
+                setShowSearchHelper(true);
               }}
               options={users.map(user => ({
                 value: user.name,
@@ -1650,7 +1846,7 @@ const StoryDashboard = () => {
             <label className="block text-sm font-medium text-gray-700">Status</label>
             <select
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setShowSearchHelper(true); }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
@@ -1669,7 +1865,7 @@ const StoryDashboard = () => {
             <input
               type="date"
               value={filters.createdDate}
-              onChange={(e) => setFilters({ ...filters, createdDate: e.target.value })}
+              onChange={(e) => { setFilters({ ...filters, createdDate: e.target.value }); setShowSearchHelper(true); }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
@@ -1685,6 +1881,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, release: value });
+                setShowSearchHelper(true);
               }}
               options={Array.isArray(releaseList) ? releaseList.map(release => ({
                 value: release.releaseId.toString(),
@@ -1730,6 +1927,7 @@ const StoryDashboard = () => {
                 onChange={(selectedOption) => {
                   const value = selectedOption ? selectedOption.value : '';
                   handleTypeChange(1, value);
+                  setShowSearchHelper(true);
                 }}
                 options={getTypeOptions(1)}
                 placeholder={filters.projectName ? "Select type..." : "Select project first"}
@@ -1759,12 +1957,18 @@ const StoryDashboard = () => {
 
             {/* Level 2: Second Type Filter */}
             {showTypeDropdowns.level2 && (
-              <div className="w-[220px]">
+              <div className="w-[300px]"> {/* Increased width for multi-select */}
                 <CreatableSelect
-                  value={typeDropdowns.level2 ? { value: typeDropdowns.level2, label: typeDropdowns.level2 } : null}
-                  onChange={(selectedOption) => {
-                    const value = selectedOption ? selectedOption.value : '';
-                    handleTypeChange(2, value);
+                  isMulti={typeDropdowns.level1 === 'User Story'} // Enable multi-select only for User Story path
+                  value={
+                    Array.isArray(typeDropdowns.level2)
+                      ? typeDropdowns.level2.map(val => ({ value: val, label: val }))
+                      : (typeDropdowns.level2 ? [{ value: typeDropdowns.level2, label: typeDropdowns.level2 }] : [])
+                  }
+                  onChange={(selectedOptions) => {
+                    // react-select returns array of options for isMulti
+                    handleTypeChange(2, selectedOptions);
+                    setShowSearchHelper(true);
                   }}
                   options={getTypeOptions(2, typeDropdowns.level1)}
                   isClearable
@@ -1801,6 +2005,7 @@ const StoryDashboard = () => {
                   onChange={(selectedOption) => {
                     const value = selectedOption ? selectedOption.value : '';
                     handleTypeChange(3, value);
+                    setShowSearchHelper(true);
                   }}
                   options={getTypeOptions(3, typeDropdowns.level2)}
                   isClearable
@@ -1832,40 +2037,75 @@ const StoryDashboard = () => {
           </div>
         </div>
 
-        {/* Clear Filters Button */}
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={() => setFilters({
-              projectName: '',
-              sprint: '',
-              assignee: '',
-              createdBy: '',
-              status: 'all',
-              type: '',
-              createdDate: '',
-              release: ''
-            })}
-            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center space-x-2 cursor-pointer"
-          >
-            <FiFilter size={16} />
-            <span>Clear Filters</span>
-          </button>
+        <div className={`mt-4 flex ${showSearchHelper ? 'justify-between' : 'justify-end'} items-center`}>
+          {showSearchHelper && <h1 className='text-sm font-semibold text-yellow-600 bg-yellow-100 px-2 py-2 rounded'>Filters changed — search to apply</h1>}
+          {/* Clear Filters Button */}
+          <div className="flex justify-end items-center">
+            <button
+              onClick={() => setFilters({
+                projectName: '',
+                sprint: '',
+                assignee: '',
+                createdBy: '',
+                status: 'all',
+                type: '',
+                createdDate: '',
+                release: ''
+              })}
+              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center space-x-2 cursor-pointer"
+            >
+              <FiFilter size={16} />
+              <span>Clear Filters</span>
+            </button>
+            <button
+              onClick={() => { setShowSearchHelper(false); setSearchTrigger(prev => prev + 1) }}
+              className={`ml-2 px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2 cursor-pointer ${showSearchHelper ? 'search-btn-storydashboard' : ''}`}
+            >
+              <FiFilter size={16} />
+              <span>Search</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Search Bar and View Controls */}
       <div className="mb-6 flex justify-between items-center">
-        {/* Search Bar */}
-        <div className="flex items-center">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search stories..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-            />
-            <FiFilter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        {/* Breadcrumb Navigation and Search Bar */}
+        <div className="flex items-center space-x-4 flex-1">
+          {/* Breadcrumb Navigation */}
+          {getBreadcrumbPath().length > 0 && (
+            <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+              <span className="text-xs font-medium text-gray-500">You are at:</span>
+              <div className="flex items-center space-x-1">
+                {getBreadcrumbPath().map((item, index) => (
+                  <React.Fragment key={index}>
+                    {index > 0 && (
+                      <FiChevronRight size={14} className="text-gray-400 mx-1" />
+                    )}
+                    <span
+                      className="text-sm font-semibold text-green-600 px-2 py-1 bg-white rounded border border-green-200 hover:bg-green-50 hover:border-green-300 cursor-default transition-colors duration-200"
+                      title={`Current filter: ${getBreadcrumbPath().slice(0, index + 1).join(' > ')}`}
+                    >
+                      {item}
+                    </span>
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Search Bar */}
+          <div className="flex items-center">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by project name, ID, assignee, summary, or any field..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+              />
+              <FiFilter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
           </div>
         </div>
 
@@ -1878,20 +2118,20 @@ const StoryDashboard = () => {
               <button
                 onClick={() => setViewMode('dashboard')}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${viewMode === 'dashboard'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
                   }`}
               >
-                Dashboard View
+                Table View
               </button>
               <button
                 onClick={() => setViewMode('table')}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors duration-200 cursor-pointer ${viewMode === 'table'
-                    ? 'bg-white text-green-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-800'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
                   }`}
               >
-                Table View
+                Dashboard View
               </button>
             </div>
             <div className="flex items-center space-x-3">
@@ -2502,40 +2742,64 @@ const StoryDashboard = () => {
                         <div className="space-y-3">
                           {filteredStories
                             .filter(story => story.status === 'not-ready')
-                            .map((story) => (
-                              <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                                <div className="flex items-start justify-between mb-2">
-                                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                    <button
-                                      onClick={() => openViewModal(story)}
-                                      className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                            .map((story) => {
+                              const storyContentText = `${story.asA || ''} ${story.iWantTo || ''} ${story.soThat || ''}`.trim();
+                              const assigneeText = story.assignee || '';
+                              return (
+                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4
+                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+                                      title={story.summary}
                                     >
-                                      <FiEye size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => openEditModal(story)}
-                                      className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      {story.summary}
+                                    </h4>
+                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 z-10">
+                                      <button
+                                        onClick={() => openViewModal(story)}
+                                        className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEye size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (story.taskId) openEditTaskModal(story);
+                                          else if (story.ssId) openEditSolutionModal(story);
+                                          else openEditModal(story);
+                                        }}
+                                        className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEdit size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteStory(story.id)}
+                                        className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiTrash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {storyContentText && (
+                                    <p
+                                      className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                                      title={storyContentText}
                                     >
-                                      <FiEdit size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteStory(story.id)}
-                                      className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
-                                    >
-                                      <FiTrash2 size={14} />
-                                    </button>
+                                      {storyContentText}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center justify-between text-xs gap-2">
+                                    {assigneeText && (
+                                      <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
+                                        {assigneeText}
+                                      </span>
+                                    )}
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
+                                      {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                    </span>
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-gray-500">{story.assignee}</span>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                    {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           {/* Add Story Button for Not Ready */}
                           <div className="group">
                             <button
@@ -2556,40 +2820,64 @@ const StoryDashboard = () => {
                         <div className="space-y-3">
                           {filteredStories
                             .filter(story => story.status === 'ready')
-                            .map((story) => (
-                              <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                                <div className="flex items-start justify-between mb-2">
-                                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                    <button
-                                      onClick={() => openViewModal(story)}
-                                      className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                            .map((story) => {
+                              const storyContentText = `${story.asA || ''} ${story.iWantTo || ''} ${story.soThat || ''}`.trim();
+                              const assigneeText = story.assignee || '';
+                              return (
+                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4
+                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+                                      title={story.summary}
                                     >
-                                      <FiEye size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => openEditModal(story)}
-                                      className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      {story.summary}
+                                    </h4>
+                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 z-10">
+                                      <button
+                                        onClick={() => openViewModal(story)}
+                                        className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEye size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (story.taskId) openEditTaskModal(story);
+                                          else if (story.ssId) openEditSolutionModal(story);
+                                          else openEditModal(story);
+                                        }}
+                                        className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEdit size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteStory(story.id)}
+                                        className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiTrash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {storyContentText && (
+                                    <p
+                                      className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                                      title={storyContentText}
                                     >
-                                      <FiEdit size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteStory(story.id)}
-                                      className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
-                                    >
-                                      <FiTrash2 size={14} />
-                                    </button>
+                                      {storyContentText}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center justify-between text-xs gap-2">
+                                    {assigneeText && (
+                                      <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
+                                        {assigneeText}
+                                      </span>
+                                    )}
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
+                                      {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                    </span>
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-gray-500">{story.assignee}</span>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                    {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           {/* Add Story Button for Ready */}
                           <div className="group">
                             <button
@@ -2687,6 +2975,15 @@ const StoryDashboard = () => {
         open={showViewTaskModal}
         onClose={() => setShowViewTaskModal(false)}
         taskData={selectedStory}
+        onEdit={openEditTaskModal}
+      />
+
+      {/* View Solution Story Modal */}
+      <ViewSolutionStoryModal
+        open={showViewSolutionModal}
+        onClose={() => setShowViewSolutionModal(false)}
+        storyData={selectedStory}
+        onEdit={openEditSolutionModal}
       />
 
       {/* View Story Modal */}
@@ -2694,6 +2991,12 @@ const StoryDashboard = () => {
         open={showViewModal}
         onClose={() => setShowViewModal(false)}
         storyData={selectedStory}
+        onEdit={(story) => {
+          // decide which edit modal to open based on available ids
+          if (story?.taskId) openEditTaskModal(story);
+          else if (story?.ssId) openEditSolutionModal(story);
+          else openEditModal(story);
+        }}
       />
 
     </div>

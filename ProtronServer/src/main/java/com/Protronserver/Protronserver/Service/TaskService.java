@@ -212,8 +212,6 @@ public class TaskService {
 
         if (timeSpentChanged) {
 
-            Long existingId = timesheetTaskRepository.findByTaskRefAndEndTimestampIsNull(oldTask.getId()).getTaskId();
-
             TimesheetTaskRequestDTO timesheetDto = new TimesheetTaskRequestDTO();
             timesheetDto.setTaskType(taskDto.getTaskType());
             timesheetDto.setDate(java.sql.Date.valueOf(taskDto.getDate())); // convert LocalDate → Date
@@ -226,8 +224,17 @@ public class TaskService {
             timesheetDto.setProjectId(taskDto.getProjectId());
             timesheetDto.setAttachments(null);
 
-            // 🧩 Update timesheet entry
-            timesheetTaskService.updateTask(existingId, timesheetDto, savedTask.getId());
+            // Check if timesheet entry exists
+            TimesheetTask existingTimesheetTask = timesheetTaskRepository.findByTaskRefAndEndTimestampIsNull(oldTask.getId());
+            
+            if (existingTimesheetTask != null) {
+                // Update existing timesheet entry
+                Long existingId = existingTimesheetTask.getTaskId();
+                timesheetTaskService.updateTask(existingId, timesheetDto, savedTask.getId());
+            } else {
+                // Create new timesheet entry if it doesn't exist
+                timesheetTaskService.addTask(timesheetDto, savedTask.getId());
+            }
         }
 
         return savedTask;

@@ -138,8 +138,8 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
             priority: storyData.priority || 2,
             storyPoints: storyData.storyPoints || 0,
             assignee: storyData.assignee || "",
-            sprint: storyData.sprint || "",
-            release: storyData.release || "",
+            sprint: storyData.sprint != null ? String(storyData.sprint) : "",
+            release: storyData.release != null ? String(storyData.release) : "",
             system: storyData.system || "",
             createdBy: storyData.createdBy || ""
           });
@@ -147,9 +147,11 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
           // Fetch attachments
           fetchStoryAttachments(storyId);
 
-          // Fetch users for the story's project (project-scoped)
+          // Fetch sprints/releases for the story's project so we can resolve names
           if (storyData.projectId) {
-            fetchProjectUsers(storyData.projectId);
+            await handleProjectChange(storyData.projectId);
+            // Fetch project-scoped users as well
+            await fetchProjectUsers(storyData.projectId);
           }
 
         } catch (error) {
@@ -639,7 +641,8 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       </div>
     );
   }
-
+  console.log(sprintList)
+  console.log(releaseList)
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
       {/* thin black overlay behind the modal (no blur) */}
