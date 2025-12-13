@@ -75,6 +75,7 @@ const StoryDashboard = () => {
   const [users, setUsers] = useState([]); // List of users/employees
   const [statusFlags, setStatusFlags] = useState([]); // List of status flags
   const [searchTrigger, setSearchTrigger] = useState(0); // Trigger for API calls
+  const [showSearchHelper, setShowSearchHelper] = useState(false);
 
   // Cascading dropdown states
   const [typeDropdowns, setTypeDropdowns] = useState({
@@ -498,7 +499,7 @@ const StoryDashboard = () => {
     if (!searchTerm) return stories;
 
     const searchLower = searchTerm.toLowerCase().trim();
-    
+
     return stories.filter(story => {
       // Search in User Story fields
       const matchesSummary = story.summary?.toLowerCase().includes(searchLower);
@@ -506,30 +507,30 @@ const StoryDashboard = () => {
       const matchesIWantTo = story.iWantTo?.toLowerCase().includes(searchLower);
       const matchesSoThat = story.soThat?.toLowerCase().includes(searchLower);
       const matchesAcceptanceCriteria = story.acceptanceCriteria?.toLowerCase().includes(searchLower);
-      
+
       // Search in Task fields
       const matchesTaskTopic = story.taskTopic?.toLowerCase().includes(searchLower);
       const matchesTaskDescription = story.taskDescription?.toLowerCase().includes(searchLower);
-      const matchesTaskId = story.taskId?.toLowerCase().includes(searchLower) || 
-                           story.taskId?.toString().includes(searchTerm);
-      
+      const matchesTaskId = story.taskId?.toLowerCase().includes(searchLower) ||
+        story.taskId?.toString().includes(searchTerm);
+
       // Search in Solution Story fields
-      const matchesSsId = story.ssId?.toLowerCase().includes(searchLower) || 
-                         story.ssId?.toString().includes(searchTerm);
-      
+      const matchesSsId = story.ssId?.toLowerCase().includes(searchLower) ||
+        story.ssId?.toString().includes(searchTerm);
+
       // Search in User Story ID fields
-      const matchesUsId = story.usId?.toLowerCase().includes(searchLower) || 
-                         story.usId?.toString().includes(searchTerm);
+      const matchesUsId = story.usId?.toLowerCase().includes(searchLower) ||
+        story.usId?.toString().includes(searchTerm);
       const matchesId = story.id?.toString().includes(searchTerm);
-      
+
       // Search in common fields
       const matchesAssignee = story.assignee?.toLowerCase().includes(searchLower);
       const matchesCreatedBy = story.createdBy?.toLowerCase().includes(searchLower);
       const matchesSystem = story.system?.toLowerCase().includes(searchLower);
-      
+
       // Search in project ID
       const matchesProjectId = story.projectId?.toString().includes(searchTerm);
-      
+
       // Search in project name by looking up from projectList
       let matchesProjectName = false;
       if (story.projectId && projectList.length > 0) {
@@ -538,14 +539,14 @@ const StoryDashboard = () => {
           matchesProjectName = project.projectName.toLowerCase().includes(searchLower);
         }
       }
-      
+
       // Search in sprint and release
       const matchesSprint = story.sprint?.toString().includes(searchTerm);
       const matchesRelease = story.release?.toString().includes(searchTerm);
-      
+
       // Search in status
       const matchesStatus = story.status?.toLowerCase().includes(searchLower);
-      
+
       // Return true if any field matches
       return matchesSummary ||
         matchesTaskTopic ||
@@ -754,11 +755,11 @@ const StoryDashboard = () => {
   // Generate breadcrumb path based on type dropdowns
   const getBreadcrumbPath = () => {
     const path = [];
-    
+
     if (typeDropdowns.level1) {
       path.push(typeDropdowns.level1);
     }
-    
+
     if (typeDropdowns.level2 && typeDropdowns.level2.length > 0) {
       // Handle array (multi-select) or single value
       if (Array.isArray(typeDropdowns.level2)) {
@@ -771,11 +772,11 @@ const StoryDashboard = () => {
         path.push(typeDropdowns.level2);
       }
     }
-    
+
     if (typeDropdowns.level3) {
       path.push(typeDropdowns.level3);
     }
-    
+
     return path;
   };
 
@@ -1569,7 +1570,7 @@ const StoryDashboard = () => {
       <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
         <div className="flex items-start justify-between mb-2">
           {/* Title section - different for each type */}
-          <h4 
+          <h4
             className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
             title={titleText}
           >
@@ -1628,7 +1629,7 @@ const StoryDashboard = () => {
               )}
             </div>
             {taskDescriptionText && (
-              <p 
+              <p
                 className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
                 title={taskDescriptionText}
               >
@@ -1664,7 +1665,7 @@ const StoryDashboard = () => {
           <>
             {/* User Story/Solution Story content */}
             {storyContentText && (
-              <p 
+              <p
                 className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
                 title={storyContentText}
               >
@@ -1724,6 +1725,7 @@ const StoryDashboard = () => {
                 const projectId = e.target.value;
                 setFilters({ ...filters, projectName: projectId, sprint: '', release: '' });
                 handleProjectChange(projectId);
+                setShowSearchHelper(true);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
@@ -1751,6 +1753,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, sprint: value });
+                setShowSearchHelper(true);
               }}
               options={Array.isArray(sprintList) ? sprintList.map(sprint => ({
                 value: sprint.sprintId.toString(),
@@ -1790,6 +1793,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, assignee: value });
+                setShowSearchHelper(true);
               }}
               options={users.map(user => ({
                 value: user.name,
@@ -1828,6 +1832,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, createdBy: value });
+                setShowSearchHelper(true);
               }}
               options={users.map(user => ({
                 value: user.name,
@@ -1863,7 +1868,7 @@ const StoryDashboard = () => {
             <label className="block text-sm font-medium text-gray-700">Status</label>
             <select
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setShowSearchHelper(true); }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
@@ -1882,7 +1887,7 @@ const StoryDashboard = () => {
             <input
               type="date"
               value={filters.createdDate}
-              onChange={(e) => setFilters({ ...filters, createdDate: e.target.value })}
+              onChange={(e) => { setFilters({ ...filters, createdDate: e.target.value }); setShowSearchHelper(true); }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
@@ -1898,6 +1903,7 @@ const StoryDashboard = () => {
               onChange={(selectedOption) => {
                 const value = selectedOption ? selectedOption.value : '';
                 setFilters({ ...filters, release: value });
+                setShowSearchHelper(true);
               }}
               options={Array.isArray(releaseList) ? releaseList.map(release => ({
                 value: release.releaseId.toString(),
@@ -1943,6 +1949,7 @@ const StoryDashboard = () => {
                 onChange={(selectedOption) => {
                   const value = selectedOption ? selectedOption.value : '';
                   handleTypeChange(1, value);
+                  setShowSearchHelper(true);
                 }}
                 options={getTypeOptions(1)}
                 placeholder={filters.projectName ? "Select type..." : "Select project first"}
@@ -1983,6 +1990,7 @@ const StoryDashboard = () => {
                   onChange={(selectedOptions) => {
                     // react-select returns array of options for isMulti
                     handleTypeChange(2, selectedOptions);
+                    setShowSearchHelper(true);
                   }}
                   options={getTypeOptions(2, typeDropdowns.level1)}
                   isClearable
@@ -2019,6 +2027,7 @@ const StoryDashboard = () => {
                   onChange={(selectedOption) => {
                     const value = selectedOption ? selectedOption.value : '';
                     handleTypeChange(3, value);
+                    setShowSearchHelper(true);
                   }}
                   options={getTypeOptions(3, typeDropdowns.level2)}
                   isClearable
@@ -2050,31 +2059,34 @@ const StoryDashboard = () => {
           </div>
         </div>
 
-        {/* Clear Filters Button */}
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={() => setFilters({
-              projectName: '',
-              sprint: '',
-              assignee: '',
-              createdBy: '',
-              status: 'all',
-              type: '',
-              createdDate: '',
-              release: ''
-            })}
-            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center space-x-2 cursor-pointer"
-          >
-            <FiFilter size={16} />
-            <span>Clear Filters</span>
-          </button>
-          <button
-            onClick={() => setSearchTrigger(prev => prev + 1)}
-            className="ml-2 px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2 cursor-pointer"
-          >
-            <FiFilter size={16} />
-            <span>Search</span>
-          </button>
+        <div className={`mt-4 flex ${showSearchHelper ? 'justify-between' : 'justify-end'} items-center`}>
+          {showSearchHelper && <h1 className='text-sm font-semibold text-yellow-600 bg-yellow-100 px-2 py-2 rounded'>Filters changed — search to apply</h1>}
+          {/* Clear Filters Button */}
+          <div className="flex justify-end items-center">
+            <button
+              onClick={() => setFilters({
+                projectName: '',
+                sprint: '',
+                assignee: '',
+                createdBy: '',
+                status: 'all',
+                type: '',
+                createdDate: '',
+                release: ''
+              })}
+              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center space-x-2 cursor-pointer"
+            >
+              <FiFilter size={16} />
+              <span>Clear Filters</span>
+            </button>
+            <button
+              onClick={() => { setShowSearchHelper(false); setSearchTrigger(prev => prev + 1) }}
+              className={`ml-2 px-4 py-2 text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2 cursor-pointer ${showSearchHelper ? 'search-btn-storydashboard' : ''}`}
+            >
+              <FiFilter size={16} />
+              <span>Search</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2092,7 +2104,7 @@ const StoryDashboard = () => {
                     {index > 0 && (
                       <FiChevronRight size={14} className="text-gray-400 mx-1" />
                     )}
-                    <span 
+                    <span
                       className="text-sm font-semibold text-green-600 px-2 py-1 bg-white rounded border border-green-200 hover:bg-green-50 hover:border-green-300 cursor-default transition-colors duration-200"
                       title={`Current filter: ${getBreadcrumbPath().slice(0, index + 1).join(' > ')}`}
                     >
@@ -2103,7 +2115,7 @@ const StoryDashboard = () => {
               </div>
             </div>
           )}
-          
+
           {/* Search Bar */}
           <div className="flex items-center">
             <div className="relative">
@@ -2766,7 +2778,7 @@ const StoryDashboard = () => {
                               return (
                                 <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
                                   <div className="flex items-start justify-between mb-2">
-                                    <h4 
+                                    <h4
                                       className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
                                       title={story.summary}
                                     >
@@ -2798,7 +2810,7 @@ const StoryDashboard = () => {
                                     </div>
                                   </div>
                                   {storyContentText && (
-                                    <p 
+                                    <p
                                       className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
                                       title={storyContentText}
                                     >
@@ -2844,7 +2856,7 @@ const StoryDashboard = () => {
                               return (
                                 <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
                                   <div className="flex items-start justify-between mb-2">
-                                    <h4 
+                                    <h4
                                       className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
                                       title={story.summary}
                                     >
@@ -2876,7 +2888,7 @@ const StoryDashboard = () => {
                                     </div>
                                   </div>
                                   {storyContentText && (
-                                    <p 
+                                    <p
                                       className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
                                       title={storyContentText}
                                     >
