@@ -1145,7 +1145,9 @@ const StoryDashboard = () => {
         valueGetter: (params) => params.data.usId || params.data.ssId || params.data.taskId,
         width: 100,
         filter: 'agTextColumnFilter',
-        cellStyle: { fontWeight: '500' }
+        cellStyle: { fontWeight: '500' },
+        cellClass: 'ag-cell-truncate',
+        tooltipValueGetter: (params) => params.value || 'N/A'
       },
       {
         headerName: 'Project',
@@ -1153,6 +1155,12 @@ const StoryDashboard = () => {
         width: 200,
         filter: 'agTextColumnFilter',
         cellStyle: { fontWeight: '500' },
+        cellClass: 'ag-cell-truncate',
+        tooltipValueGetter: (params) => {
+          const projectId = params.data.projectId;
+          const project = projectList.find(p => p.projectId == projectId);
+          return project ? project.projectName : projectId;
+        },
         valueGetter: (params) => {
           const projectId = params.data.projectId;
           const project = projectList.find(p => p.projectId == projectId);
@@ -1185,7 +1193,9 @@ const StoryDashboard = () => {
           flex: 1,
           minWidth: 200,
           filter: 'agTextColumnFilter',
-          cellStyle: { fontWeight: '500' }
+          cellStyle: { fontWeight: '500' },
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'As A',
@@ -1259,14 +1269,16 @@ const StoryDashboard = () => {
           field: 'assignee',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'System',
           field: 'system',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -1287,7 +1299,9 @@ const StoryDashboard = () => {
           flex: 1,
           minWidth: 200,
           filter: 'agTextColumnFilter',
-          cellStyle: { fontWeight: '500' }
+          cellStyle: { fontWeight: '500' },
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Description',
@@ -1334,14 +1348,16 @@ const StoryDashboard = () => {
           field: 'assignee',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'System',
           field: 'system',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -1361,7 +1377,8 @@ const StoryDashboard = () => {
           field: 'taskType',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Task Topic',
@@ -1426,7 +1443,8 @@ const StoryDashboard = () => {
           field: 'createdBy',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -1448,7 +1466,9 @@ const StoryDashboard = () => {
           flex: 1,
           minWidth: 200,
           filter: 'agTextColumnFilter',
-          cellStyle: { fontWeight: '500' }
+          cellStyle: { fontWeight: '500' },
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Status',
@@ -1479,14 +1499,16 @@ const StoryDashboard = () => {
           field: 'assignee',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'System',
           field: 'system',
           width: 120,
           filter: 'agTextColumnFilter',
-          cellClass: 'ag-cell-truncate'
+          cellClass: 'ag-cell-truncate',
+          tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
           headerName: 'Actions',
@@ -2153,6 +2175,14 @@ const StoryDashboard = () => {
           <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
             <style jsx>{`
             .ag-cell-truncate {
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              max-width: 100%;
+              min-width: 0;
+            }
+            
+            .ag-cell-truncate .ag-cell-value {
               white-space: nowrap;
               overflow: hidden;
               text-overflow: ellipsis;
