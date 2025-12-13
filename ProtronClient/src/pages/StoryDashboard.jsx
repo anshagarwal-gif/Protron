@@ -737,7 +737,16 @@ const StoryDashboard = () => {
   const getAddButtonLabel = () => {
     if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') return 'Add Task';
     const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    // Handle level2 which can be an array (multi-select) or a string
+    let level2IsSS = false;
+    if (typeDropdowns.level2) {
+      if (Array.isArray(typeDropdowns.level2)) {
+        // Check if any value in the array is 'solution story'
+        level2IsSS = typeDropdowns.level2.some(val => val && val.toLowerCase() === 'solution story');
+      } else {
+        level2IsSS = typeDropdowns.level2.toLowerCase() === 'solution story';
+      }
+    }
     if (level1IsSS || level2IsSS) return 'Add Solution Story';
     return 'Add User Story';
   };

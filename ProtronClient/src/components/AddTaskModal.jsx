@@ -232,6 +232,11 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
       setLoading(true);
       const token = sessionStorage.getItem('token');
       
+      // Format estTime from hours and minutes
+      const estHours = parseInt(formData.estTimeHours) || 0;
+      const estMinutes = parseInt(formData.estTimeMinutes) || 0;
+      const estTime = estHours > 0 || estMinutes > 0 ? `${estHours}h ${estMinutes}m` : '';
+
       const taskData = {
         projectId: parseInt(formData.projectId),
         parentId: formData.parentId,
@@ -322,7 +327,8 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
       taskType: '',
       taskTopic: '',
       taskDescription: '',
-      estTime: '',
+      estTimeHours: 0,
+      estTimeMinutes: 0,
       timeSpentHours: 0,
       timeSpentMinutes: 0,
       timeRemainingHours: 0,
@@ -527,15 +533,93 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Est. Time
                   </label>
-                  <input
-                    type="text"
-                    value={formData.estTime || ''}
-                    onChange={handleInputChange('estTime')}
-                    placeholder="e.g., 2h 30m"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    style={{ height: fieldHeight }}
-                  />
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-600 mb-1">Hours</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg
+                            className="h-5 w-5 text-green-600"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4s8 3.59 8 8-3.59 8-8 8Z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="number"
+                          placeholder="HH"
+                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.estTimeHours !== '' && (parseInt(formData.estTimeHours) < 0 || parseInt(formData.estTimeHours) > 24)
+                            ? 'border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:ring-green-500'
+                            }`}
+                          value={formData.estTimeHours}
+                          onChange={handleInputChange('estTimeHours')}
+                          onKeyDown={(e) => {
+                            if (
+                              !/[0-9]/.test(e.key) &&
+                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
+                          min="0"
+                          max="24"
+                          style={{ height: fieldHeight }}
+                        />
+                        {formData.estTimeHours !== '' &&
+                          (parseInt(formData.estTimeHours) < 0 || parseInt(formData.estTimeHours) > 24) && (
+                            <p className="text-xs text-red-600 mt-1">0–24</p>
+                          )}
+                      </div>
+                    </div>
+                    <div className="text-gray-500 font-semibold text-xl self-end pb-2">:</div>
+                    <div className="flex-1">
+                      <label className="block text-xs text-gray-600 mb-1">Minutes</label>
+                      <input
+                        type="number"
+                        placeholder="MM"
+                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.estTimeMinutes !== "" &&
+                          (parseInt(formData.estTimeMinutes) < 0 || parseInt(formData.estTimeMinutes) > 59)
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-gray-300 focus:ring-green-500"
+                          }`}
+                        value={formData.estTimeMinutes}
+                        onChange={(e) => {
+                          let value = e.target.value;
+
+                        // Allow empty (user clears input)
+                        if (value === "") {
+                          handleInputChange("estTimeMinutes")({ target: { value: "" } });
+                          return;
+                        }
+
+                        const num = parseInt(value, 10);
+
+                        // Accept only numbers between 0–59
+                        if (num >= 0 && num <= 59) {
+                          handleInputChange("estTimeMinutes")(e);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (
+                          !/[0-9]/.test(e.key) &&
+                          !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key)
+                        ) {
+                          e.preventDefault();
+                        }
+                      }}
+                      min="0"
+                      max="59"
+                      style={{ height: fieldHeight }}
+                    />
+                    {formData.estTimeMinutes !== "" &&
+                      (parseInt(formData.estTimeMinutes) < 0 || parseInt(formData.estTimeMinutes) > 59) && (
+                        <p className="text-xs text-red-600 mt-1">0–59</p>
+                      )}
+                  </div>
                 </div>
+              </div>
 
                 <div className="w-full">
                   <div className="flex items-center gap-2">
