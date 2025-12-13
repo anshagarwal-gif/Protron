@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload, FiGitBranch, FiCheckSquare } from 'react-icons/fi';
+import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload, FiGitBranch, FiCheckSquare, FiChevronRight } from 'react-icons/fi';
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AgGridReact } from 'ag-grid-react';
@@ -494,21 +494,80 @@ const StoryDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTrigger, gridApi]);
 
-  const filteredStories = useMemo(() => stories.filter(story => {
-    return !searchTerm ||
-      story.summary?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.taskTopic?.toLowerCase().includes(searchTerm.toLowerCase()) || // Added taskTopic check
-      story.asA?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.iWantTo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.soThat?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.acceptanceCriteria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.assignee?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.system?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.createdBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      story.projectId?.toString().includes(searchTerm) ||
-      story.sprint?.toString().includes(searchTerm) ||
-      story.release?.toString().includes(searchTerm);
-  }), [stories, searchTerm]);
+  const filteredStories = useMemo(() => {
+    if (!searchTerm) return stories;
+
+    const searchLower = searchTerm.toLowerCase().trim();
+    
+    return stories.filter(story => {
+      // Search in User Story fields
+      const matchesSummary = story.summary?.toLowerCase().includes(searchLower);
+      const matchesAsA = story.asA?.toLowerCase().includes(searchLower);
+      const matchesIWantTo = story.iWantTo?.toLowerCase().includes(searchLower);
+      const matchesSoThat = story.soThat?.toLowerCase().includes(searchLower);
+      const matchesAcceptanceCriteria = story.acceptanceCriteria?.toLowerCase().includes(searchLower);
+      
+      // Search in Task fields
+      const matchesTaskTopic = story.taskTopic?.toLowerCase().includes(searchLower);
+      const matchesTaskDescription = story.taskDescription?.toLowerCase().includes(searchLower);
+      const matchesTaskId = story.taskId?.toLowerCase().includes(searchLower) || 
+                           story.taskId?.toString().includes(searchTerm);
+      
+      // Search in Solution Story fields
+      const matchesSsId = story.ssId?.toLowerCase().includes(searchLower) || 
+                         story.ssId?.toString().includes(searchTerm);
+      
+      // Search in User Story ID fields
+      const matchesUsId = story.usId?.toLowerCase().includes(searchLower) || 
+                         story.usId?.toString().includes(searchTerm);
+      const matchesId = story.id?.toString().includes(searchTerm);
+      
+      // Search in common fields
+      const matchesAssignee = story.assignee?.toLowerCase().includes(searchLower);
+      const matchesCreatedBy = story.createdBy?.toLowerCase().includes(searchLower);
+      const matchesSystem = story.system?.toLowerCase().includes(searchLower);
+      
+      // Search in project ID
+      const matchesProjectId = story.projectId?.toString().includes(searchTerm);
+      
+      // Search in project name by looking up from projectList
+      let matchesProjectName = false;
+      if (story.projectId && projectList.length > 0) {
+        const project = projectList.find(p => p.projectId == story.projectId);
+        if (project?.projectName) {
+          matchesProjectName = project.projectName.toLowerCase().includes(searchLower);
+        }
+      }
+      
+      // Search in sprint and release
+      const matchesSprint = story.sprint?.toString().includes(searchTerm);
+      const matchesRelease = story.release?.toString().includes(searchTerm);
+      
+      // Search in status
+      const matchesStatus = story.status?.toLowerCase().includes(searchLower);
+      
+      // Return true if any field matches
+      return matchesSummary ||
+        matchesTaskTopic ||
+        matchesTaskDescription ||
+        matchesAsA ||
+        matchesIWantTo ||
+        matchesSoThat ||
+        matchesAcceptanceCriteria ||
+        matchesAssignee ||
+        matchesCreatedBy ||
+        matchesSystem ||
+        matchesProjectId ||
+        matchesProjectName ||
+        matchesTaskId ||
+        matchesSsId ||
+        matchesUsId ||
+        matchesId ||
+        matchesSprint ||
+        matchesRelease ||
+        matchesStatus;
+    });
+  }, [stories, searchTerm, projectList]);
 
   // Debug: log when filteredStories changes
   useEffect(() => {
@@ -664,7 +723,9 @@ const StoryDashboard = () => {
 
     // If level1 or level2 is Solution Story, open Add Solution Story
     const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    const level2IsSS = Array.isArray(typeDropdowns.level2) 
+      ? typeDropdowns.level2.some(val => val && val.toLowerCase() === 'solution story')
+      : typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
     if (level1IsSS || level2IsSS) {
       setShowAddSolutionModal(true);
       return;
@@ -678,9 +739,39 @@ const StoryDashboard = () => {
   const getAddButtonLabel = () => {
     if (typeDropdowns.level3 && typeDropdowns.level3.toLowerCase() === 'task') return 'Add Task';
     const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    const level2IsSS = Array.isArray(typeDropdowns.level2) 
+      ? typeDropdowns.level2.some(val => val && val.toLowerCase() === 'solution story')
+      : typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
     if (level1IsSS || level2IsSS) return 'Add Solution Story';
     return 'Add User Story';
+  };
+
+  // Generate breadcrumb path based on type dropdowns
+  const getBreadcrumbPath = () => {
+    const path = [];
+    
+    if (typeDropdowns.level1) {
+      path.push(typeDropdowns.level1);
+    }
+    
+    if (typeDropdowns.level2 && typeDropdowns.level2.length > 0) {
+      // Handle array (multi-select) or single value
+      if (Array.isArray(typeDropdowns.level2)) {
+        // For multi-select, show all selected values
+        const level2Values = typeDropdowns.level2.filter(val => val);
+        if (level2Values.length > 0) {
+          path.push(level2Values.join(', '));
+        }
+      } else if (typeDropdowns.level2) {
+        path.push(typeDropdowns.level2);
+      }
+    }
+    
+    if (typeDropdowns.level3) {
+      path.push(typeDropdowns.level3);
+    }
+    
+    return path;
   };
 
   const handleUpdateStory = async () => {
@@ -909,21 +1000,41 @@ const StoryDashboard = () => {
     const story = params.data;
     const storyId = story.id || story.ssId || story.taskId;
 
-    // Prefer the currently selected type filter (last entity) to determine which actions to show.
-    const selectedType = filters.type || '';
+    // PRIORITIZE story object fields (taskId, ssId, id) to determine actual type
+    // This ensures correct actions when both Solution Story and Task are selected in filters
     let storyType = null;
-    if (selectedType) {
-      const parts = selectedType.split(' > ');
-      const last = parts[parts.length - 1];
-      if (last === 'User Story') storyType = 'userstory';
-      else if (last === 'Solution Story') storyType = 'solutionstory';
-      else if (last === 'Task') storyType = 'task';
+    if (story.taskId) {
+      storyType = 'task';
+    } else if (story.ssId) {
+      storyType = 'solutionstory';
+    } else if (story.id) {
+      storyType = 'userstory';
     }
 
-    // Fallback: infer from object fields when no explicit filter is selected
+    // Fallback: use filter selection only if object fields don't identify the type
     if (!storyType) {
-      storyType = story.id ? 'userstory' : story.ssId ? 'solutionstory' : story.taskId ? 'task' : null;
+      const selectedType = filters.type || '';
+      if (selectedType) {
+        const parts = selectedType.split(' > ');
+        const last = parts[parts.length - 1];
+        if (last === 'User Story') storyType = 'userstory';
+        else if (last === 'Solution Story') storyType = 'solutionstory';
+        else if (last === 'Task') storyType = 'task';
+      }
     }
+
+    // Determine button labels based on actual story type
+    const getViewLabel = () => {
+      if (storyType === 'task') return 'View Task';
+      if (storyType === 'solutionstory') return 'View Solution Story';
+      return 'View User Story';
+    };
+
+    const getEditLabel = () => {
+      if (storyType === 'task') return 'Edit Task';
+      if (storyType === 'solutionstory') return 'Edit Solution Story';
+      return 'Edit User Story';
+    };
 
     // Render different action sets based on the item type
     return (
@@ -936,7 +1047,7 @@ const StoryDashboard = () => {
             else openViewModal(story);
           }}
           className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-          title={`View ${storyType || 'item'}`}
+          title={getViewLabel()}
         >
           <FiEye size={16} />
         </button>
@@ -949,7 +1060,7 @@ const StoryDashboard = () => {
             else openEditModal(story);
           }}
           className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-          title={`Edit ${storyType || 'item'}`}
+          title={getEditLabel()}
         >
           <FiEdit size={16} />
         </button>
@@ -1297,7 +1408,7 @@ const StoryDashboard = () => {
           }
         },
         {
-          headerName: 'Date',
+          headerName: 'Created Date',
           field: 'date',
           width: 100,
           filter: 'agDateColumnFilter',
@@ -1420,16 +1531,26 @@ const StoryDashboard = () => {
     // Check if it's a solution story (you might need to adjust this condition)
     const isSolutionStory = 'ssId' in item;
 
+    // Prepare text content for tooltips
+    const titleText = isTask ? item.taskTopic : item.summary;
+    const taskDescriptionText = item.taskDescription || '';
+    const storyContentText = `${item.asA || ''} ${item.iWantTo || ''} ${item.soThat || ''}`.trim();
+    const assigneeText = item.assignee || '';
+    const createdByText = item.createdBy || '';
+
     return (
-      <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+      <div key={item.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
         <div className="flex items-start justify-between mb-2">
           {/* Title section - different for each type */}
-          <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">
-            {isTask ? item.taskTopic : item.summary}
+          <h4 
+            className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+            title={titleText}
+          >
+            {titleText}
           </h4>
 
           {/* Action buttons - different handlers for each type */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 z-10">
             <button
               onClick={() => {
                 if (isTask) openViewTaskModal(item);
@@ -1467,39 +1588,69 @@ const StoryDashboard = () => {
         {isTask ? (
           <>
             {/* Task-specific content */}
-            <div className="mb-2">
-              <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full mr-2">
-                {item.taskType}
-              </span>
-              <span className="text-xs text-gray-500">
-                Est: {item.estTime}
-              </span>
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              {item.taskType && (
+                <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-full truncate max-w-full" title={item.taskType}>
+                  {item.taskType}
+                </span>
+              )}
+              {item.estTime && (
+                <span className="text-xs text-gray-500 truncate" title={`Est: ${item.estTime}`}>
+                  Est: {item.estTime}
+                </span>
+              )}
             </div>
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2">{item.taskDescription}</p>
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-500">{item.createdBy}</span>
-                <span className="text-gray-400">·</span>
-                <span className="text-gray-500">
-                  {new Date(item.dateCreated).toLocaleDateString()}
-                </span>
+            {taskDescriptionText && (
+              <p 
+                className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                title={taskDescriptionText}
+              >
+                {taskDescriptionText}
+              </p>
+            )}
+            <div className="flex items-center justify-between text-xs gap-2">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
+                {createdByText && (
+                  <span className="text-gray-500 truncate" title={createdByText}>
+                    {createdByText}
+                  </span>
+                )}
+                {createdByText && item.dateCreated && (
+                  <span className="text-gray-400 flex-shrink-0">·</span>
+                )}
+                {item.dateCreated && (
+                  <span className="text-gray-500 truncate flex-shrink-0" title={new Date(item.dateCreated).toLocaleDateString()}>
+                    {new Date(item.dateCreated).toLocaleDateString()}
+                  </span>
+                )}
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-gray-500">
-                  {item.timeSpentHours}h {item.timeSpentMinutes}m
-                </span>
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                {(item.timeSpentHours || item.timeSpentMinutes) && (
+                  <span className="text-gray-500 truncate" title={`${item.timeSpentHours || 0}h ${item.timeSpentMinutes || 0}m`}>
+                    {item.timeSpentHours || 0}h {item.timeSpentMinutes || 0}m
+                  </span>
+                )}
               </div>
             </div>
           </>
         ) : (
           <>
             {/* User Story/Solution Story content */}
-            <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-              {item.asA} {item.iWantTo} {item.soThat}
-            </p>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">{item.assignee}</span>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
+            {storyContentText && (
+              <p 
+                className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                title={storyContentText}
+              >
+                {storyContentText}
+              </p>
+            )}
+            <div className="flex items-center justify-between text-xs gap-2">
+              {assigneeText && (
+                <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
+                  {assigneeText}
+                </span>
+              )}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(item.priority)}`}>
                 {item.priority === 1 ? 'HIGH' : item.priority === 2 ? 'MEDIUM' : 'LOW'}
               </span>
             </div>
@@ -1902,17 +2053,42 @@ const StoryDashboard = () => {
 
       {/* Search Bar and View Controls */}
       <div className="mb-6 flex justify-between items-center">
-        {/* Search Bar */}
-        <div className="flex items-center">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search stories..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-            />
-            <FiFilter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        {/* Breadcrumb Navigation and Search Bar */}
+        <div className="flex items-center space-x-4 flex-1">
+          {/* Breadcrumb Navigation */}
+          {getBreadcrumbPath().length > 0 && (
+            <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+              <span className="text-xs font-medium text-gray-500">You are at:</span>
+              <div className="flex items-center space-x-1">
+                {getBreadcrumbPath().map((item, index) => (
+                  <React.Fragment key={index}>
+                    {index > 0 && (
+                      <FiChevronRight size={14} className="text-gray-400 mx-1" />
+                    )}
+                    <span 
+                      className="text-sm font-semibold text-green-600 px-2 py-1 bg-white rounded border border-green-200 hover:bg-green-50 hover:border-green-300 cursor-default transition-colors duration-200"
+                      title={`Current filter: ${getBreadcrumbPath().slice(0, index + 1).join(' > ')}`}
+                    >
+                      {item}
+                    </span>
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Search Bar */}
+          <div className="flex items-center">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by project name, ID, assignee, summary, or any field..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+              />
+              <FiFilter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
           </div>
         </div>
 
@@ -2549,44 +2725,64 @@ const StoryDashboard = () => {
                         <div className="space-y-3">
                           {filteredStories
                             .filter(story => story.status === 'not-ready')
-                            .map((story) => (
-                              <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                                <div className="flex items-start justify-between mb-2">
-                                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                    <button
-                                      onClick={() => openViewModal(story)}
-                                      className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                            .map((story) => {
+                              const storyContentText = `${story.asA || ''} ${story.iWantTo || ''} ${story.soThat || ''}`.trim();
+                              const assigneeText = story.assignee || '';
+                              return (
+                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4 
+                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+                                      title={story.summary}
                                     >
-                                      <FiEye size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        if (story.taskId) openEditTaskModal(story);
-                                        else if (story.ssId) openEditSolutionModal(story);
-                                        else openEditModal(story);
-                                      }}
-                                      className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      {story.summary}
+                                    </h4>
+                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 z-10">
+                                      <button
+                                        onClick={() => openViewModal(story)}
+                                        className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEye size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (story.taskId) openEditTaskModal(story);
+                                          else if (story.ssId) openEditSolutionModal(story);
+                                          else openEditModal(story);
+                                        }}
+                                        className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEdit size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteStory(story.id)}
+                                        className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiTrash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {storyContentText && (
+                                    <p 
+                                      className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                                      title={storyContentText}
                                     >
-                                      <FiEdit size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteStory(story.id)}
-                                      className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
-                                    >
-                                      <FiTrash2 size={14} />
-                                    </button>
+                                      {storyContentText}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center justify-between text-xs gap-2">
+                                    {assigneeText && (
+                                      <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
+                                        {assigneeText}
+                                      </span>
+                                    )}
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
+                                      {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                    </span>
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-gray-500">{story.assignee}</span>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                    {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           {/* Add Story Button for Not Ready */}
                           <div className="group">
                             <button
@@ -2607,44 +2803,64 @@ const StoryDashboard = () => {
                         <div className="space-y-3">
                           {filteredStories
                             .filter(story => story.status === 'ready')
-                            .map((story) => (
-                              <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-                                <div className="flex items-start justify-between mb-2">
-                                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8">{story.summary}</h4>
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
-                                    <button
-                                      onClick={() => openViewModal(story)}
-                                      className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                            .map((story) => {
+                              const storyContentText = `${story.asA || ''} ${story.iWantTo || ''} ${story.soThat || ''}`.trim();
+                              const assigneeText = story.assignee || '';
+                              return (
+                                <div key={story.id} className="group relative bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4 
+                                      className="text-sm font-semibold text-gray-900 line-clamp-2 pr-8 break-words"
+                                      title={story.summary}
                                     >
-                                      <FiEye size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        if (story.taskId) openEditTaskModal(story);
-                                        else if (story.ssId) openEditSolutionModal(story);
-                                        else openEditModal(story);
-                                      }}
-                                      className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      {story.summary}
+                                    </h4>
+                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1 z-10">
+                                      <button
+                                        onClick={() => openViewModal(story)}
+                                        className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEye size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (story.taskId) openEditTaskModal(story);
+                                          else if (story.ssId) openEditSolutionModal(story);
+                                          else openEditModal(story);
+                                        }}
+                                        className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiEdit size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteStory(story.id)}
+                                        className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
+                                      >
+                                        <FiTrash2 size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {storyContentText && (
+                                    <p 
+                                      className="text-xs text-gray-600 mb-2 line-clamp-2 break-words"
+                                      title={storyContentText}
                                     >
-                                      <FiEdit size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteStory(story.id)}
-                                      className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
-                                    >
-                                      <FiTrash2 size={14} />
-                                    </button>
+                                      {storyContentText}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center justify-between text-xs gap-2">
+                                    {assigneeText && (
+                                      <span className="text-gray-500 truncate min-w-0 flex-1" title={assigneeText}>
+                                        {assigneeText}
+                                      </span>
+                                    )}
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${getPriorityColor(story.priority)}`}>
+                                      {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
+                                    </span>
                                   </div>
                                 </div>
-                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{story.asA} {story.iWantTo} {story.soThat}</p>
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-gray-500">{story.assignee}</span>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(story.priority)}`}>
-                                    {story.priority === 1 ? 'HIGH' : story.priority === 2 ? 'MEDIUM' : 'LOW'}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           {/* Add Story Button for Ready */}
                           <div className="group">
                             <button
