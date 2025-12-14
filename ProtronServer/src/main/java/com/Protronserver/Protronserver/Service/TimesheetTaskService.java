@@ -16,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -97,7 +100,7 @@ public class TimesheetTaskService {
         return timesheetTaskRepository.save(task);
     }
 
-    public List<TimesheetTaskDTO> getTasksBetweenDates(Date startDate, Date endDate) {
+    public List<TimesheetTaskDTO> getTasksBetweenDates(LocalDate startDate, LocalDate endDate) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         User user;
@@ -107,7 +110,18 @@ public class TimesheetTaskService {
             throw new RuntimeException("Unauthorized access");
         }
 
-        List<TimesheetTaskDTO> dtos = timesheetTaskRepository.findTaskDTOsBetweenDates(startDate, endDate, user.getUserId());
+        ZoneId systemZone = ZoneId.systemDefault();
+
+        Instant startDateTime =
+                startDate.atStartOfDay(systemZone).toInstant();
+
+        Instant endDateTime =
+                endDate.plusDays(1).atStartOfDay(systemZone).toInstant();
+
+        Date startDateParam = Date.from(startDateTime);
+        Date endDateParam   = Date.from(endDateTime);
+
+        List<TimesheetTaskDTO> dtos = timesheetTaskRepository.findTaskDTOsBetweenDates(startDateParam, endDateParam, user.getUserId());
         for(TimesheetTaskDTO dto : dtos){
             List<TimesheetTaskAttachmentDTO> attachmentDTOS = timesheetTaskAttachmentRepository.findByTimesheetTaskId(dto.getTaskId());
             dto.setAttachments(attachmentDTOS);
@@ -116,10 +130,19 @@ public class TimesheetTaskService {
         return dtos;
     }
 
-    public List<TimesheetTaskDTO> getTasksBetweenDatesForUser(Date startDate, Date endDate, Long userId) {
+    public List<TimesheetTaskDTO> getTasksBetweenDatesForUser(LocalDate startDate, LocalDate endDate, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        List<TimesheetTaskDTO> dtos = timesheetTaskRepository.findTaskDTOsBetweenDates(startDate, endDate, user.getUserId());
+        ZoneId systemZone = ZoneId.systemDefault();
+        Instant startDateTime =
+                startDate.atStartOfDay(systemZone).toInstant();
+
+        Instant endDateTime =
+                endDate.plusDays(1).atStartOfDay(systemZone).toInstant();
+        Date startDateParam = Date.from(startDateTime);
+        Date endDateParam   = Date.from(endDateTime);
+
+        List<TimesheetTaskDTO> dtos = timesheetTaskRepository.findTaskDTOsBetweenDates(startDateParam, endDateParam, user.getUserId());
         for(TimesheetTaskDTO dto : dtos){
             List<TimesheetTaskAttachmentDTO> attachmentDTOS = timesheetTaskAttachmentRepository.findByTimesheetTaskId(dto.getTaskId());
             dto.setAttachments(attachmentDTOS);
