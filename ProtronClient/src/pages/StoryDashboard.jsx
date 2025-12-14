@@ -722,13 +722,20 @@ const StoryDashboard = () => {
       return;
     }
 
+    if (typeDropdowns.level2 && String(typeDropdowns.level2).toLowerCase() === 'task') {
+      setShowAddTaskModal(true);
+      return;
+    }
+
     // If level1 or level2 is Solution Story, open Add Solution Story
-    const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    const level1IsSS = typeDropdowns.level1 && String(typeDropdowns.level1).toLowerCase() === 'solution story';
+    const level2IsSS = typeDropdowns.level2 && String(typeDropdowns.level2).toLowerCase() === 'solution story';
     if (level1IsSS || level2IsSS) {
       setShowAddSolutionModal(true);
       return;
     }
+
+
 
     // Default to Add Story
     setShowAddModal(true);
@@ -2720,7 +2727,7 @@ const StoryDashboard = () => {
                         {/* Add Story Button for TO-DO */}
                         <div className="group">
                           <button
-                            onClick={() => openAddBasedOnType()}
+                            onClick={() => { setSelectedStory({ status: 'todo' }); openAddBasedOnType('todo') }}
                             className="w-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg p-4 text-gray-500 hover:text-gray-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
@@ -2739,7 +2746,7 @@ const StoryDashboard = () => {
                         {/* Add Story Button for WIP */}
                         <div className="group">
                           <button
-                            onClick={() => openAddBasedOnType()}
+                            onClick={() => { setSelectedStory({ status: 'wip' }); openAddBasedOnType('wip') }}
                             className="w-full bg-blue-100 hover:bg-blue-200 border-2 border-dashed border-blue-300 hover:border-blue-400 rounded-lg p-4 text-blue-500 hover:text-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
@@ -2758,7 +2765,7 @@ const StoryDashboard = () => {
                         {/* Add Story Button for Done */}
                         <div className="group">
                           <button
-                            onClick={() => openAddBasedOnType()}
+                            onClick={() => { setSelectedStory({ status: 'done' }); openAddBasedOnType('done') }}
                             className="w-full bg-green-100 hover:bg-green-200 border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-4 text-green-500 hover:text-green-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
@@ -2837,7 +2844,7 @@ const StoryDashboard = () => {
                           {/* Add Story Button for Not Ready */}
                           <div className="group">
                             <button
-                              onClick={() => openAddBasedOnType()}
+                              onClick={() => { setSelectedStory({ status: 'not-ready' }); openAddBasedOnType('not-ready') }}
                               className="w-full bg-red-100 hover:bg-red-200 border-2 border-dashed border-red-300 hover:border-red-400 rounded-lg p-4 text-red-500 hover:text-red-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                             >
                               <FiPlus size={16} />
@@ -2917,7 +2924,7 @@ const StoryDashboard = () => {
                           {/* Add Story Button for Ready */}
                           <div className="group">
                             <button
-                              onClick={() => openAddBasedOnType()}
+                              onClick={() => { setSelectedStory({ status: 'ready' }); openAddBasedOnType('ready') }}
                               className="w-full bg-purple-100 hover:bg-purple-200 border-2 border-dashed border-purple-300 hover:border-purple-400 rounded-lg p-4 text-purple-500 hover:text-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                             >
                               <FiPlus size={16} />
@@ -2959,6 +2966,7 @@ const StoryDashboard = () => {
         }}
         parentStory={null}
         initialProjectId={initialProjectForAdd}
+        initialStatus={selectedStory?.status}
       />
 
       {/* Add Task Modal (context-aware) */}
@@ -2971,6 +2979,7 @@ const StoryDashboard = () => {
         }}
         parentStory={null}
         initialProjectId={initialProjectForAdd}
+        initialStatus={selectedStory?.status}
       />
 
       {/* Edit Story Modal */}

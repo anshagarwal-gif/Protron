@@ -18,11 +18,11 @@ const truncateText = (text, maxLength = 20) => {
   return text.substring(0, maxLength) + "...";
 };
 
-const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId }) => {
+const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, initialStatus }) => {
   const [formData, setFormData] = useState({
     projectId: '',
     parentId: '',
-    status: 'todo',
+    status: initialStatus || 'todo',
     priority: 2,
     summary: '',
     description: '',
@@ -50,19 +50,48 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
   });
   const [fieldErrors, setFieldErrors] = useState({});
   const { sessionData } = useSession();
-  
+  const [statusFlags, setStatusFlags] = useState([]);
+
   // Green theme colors
   const greenPrimary = '#15803d';
   const greenHover = '#047857';
   const fieldHeight = '40px';
   console.log(parentStory);
+
+  const fetchStatusFlags = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/status-flags/type/story`, {
+        headers: { Authorization: token }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStatusFlags(Array.isArray(data) ? data : []);
+      } else {
+        console.warn('Failed to fetch status flags:', response.status, response.statusText);
+        setStatusFlags([]);
+      }
+    } catch (error) {
+      console.error('Error fetching status flags:', error);
+      setStatusFlags([]);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (open) {
+        // Update status from props even if no parentStory (e.g. from Dashboard + button)
+        setFormData(prev => ({
+          ...prev,
+          status: initialStatus || prev.status || 'todo'
+        }));
+
         // Set initial form data from parent story
         if (parentStory) {
           setFormData(prev => ({
             ...prev,
+            status: initialStatus || parentStory.status,
             projectId: parentStory.projectId,
             parentId: parentStory.usId,
             releaseId: parentStory.releaseId ? String(parentStory.releaseId) : '',
@@ -119,7 +148,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
         }
 
         // Fetch Releases and Sprints scoped to the project if we have a projectId
-  const projectIdToUse = parentStory?.projectId || initialProjectId || formData.projectId || null;
+        const projectIdToUse = parentStory?.projectId || initialProjectId || formData.projectId || null;
         if (projectIdToUse) {
           try {
             const releasesResponse = await axios.get(`${API_BASE_URL}/api/releases/project/${projectIdToUse}`, {
@@ -148,7 +177,8 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
     };
 
     fetchData();
-  }, [open, parentStory, sessionData.tenantId, initialProjectId]);
+    fetchStatusFlags();
+  }, [open, parentStory, sessionData.tenantId, initialProjectId, initialStatus]);
 
   const showSnackbar = (message, severity = 'info') => {
     setSnackbar({
@@ -228,13 +258,13 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
+
       // Compute parentId to satisfy backend validation: must be null or start with PRJ- or US-
       let computedParentId = null;
       if (formData.parentId && formData.parentId.toString().trim() !== '') {
@@ -281,14 +311,14 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
       if (formData.attachments.length > 0) {
         console.log('Uploading attachments for solution story:', newSolutionStoryId);
         console.log('Solution story response data type:', typeof newSolutionStoryId);
-        
+
         // Validate that we have a valid ID
         let finalSolutionStoryId = newSolutionStoryId;
         if (typeof finalSolutionStoryId === 'object' && finalSolutionStoryId !== null) {
           finalSolutionStoryId = finalSolutionStoryId.ssId || finalSolutionStoryId.id || finalSolutionStoryId.toString();
           console.log('Processed solution story ID:', finalSolutionStoryId);
         }
-        
+
         if (!finalSolutionStoryId || typeof finalSolutionStoryId !== 'string') {
           console.error('Invalid solution story ID after processing:', finalSolutionStoryId);
           showSnackbar("Solution Story created but attachment upload failed due to invalid ID", 'warning');
@@ -297,23 +327,23 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
           const uploadErrors = [];
 
           for (const file of formData.attachments) {
-          try {
-            const formData_upload = new FormData();
-            formData_upload.append('file', file);
+            try {
+              const formData_upload = new FormData();
+              formData_upload.append('file', file);
 
-            const uploadUrl = `${API_BASE_URL}/api/solutionstory/${finalSolutionStoryId}`;
-            console.log('Upload URL:', uploadUrl);
-            await axios.post(uploadUrl, formData_upload, {
-              headers: {
-                'Authorization': token
-              },
-              timeout: 30000 // 30 seconds timeout
-            });
-            attachmentUploadCount++;
-          } catch (uploadError) {
-            console.error('Failed to upload attachment:', uploadError);
-            uploadErrors.push(file.name);
-          }
+              const uploadUrl = `${API_BASE_URL}/api/solutionstory/${finalSolutionStoryId}`;
+              console.log('Upload URL:', uploadUrl);
+              await axios.post(uploadUrl, formData_upload, {
+                headers: {
+                  'Authorization': token
+                },
+                timeout: 30000 // 30 seconds timeout
+              });
+              attachmentUploadCount++;
+            } catch (uploadError) {
+              console.error('Failed to upload attachment:', uploadError);
+              uploadErrors.push(file.name);
+            }
           }
 
           if (uploadErrors.length > 0) {
@@ -344,7 +374,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
     setFormData({
       projectId: parentStory?.projectId || '',
       parentId: parentStory?.usId || '',
-      status: 'todo',
+      status: initialStatus || 'todo',
       priority: 2,
       summary: '',
       description: '',
@@ -417,295 +447,296 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
 
             {/* Form Content */}
             <div className="p-4 sm:p-6 space-y-4">
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-              <div className="w-full flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Project <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 4h12v2H4V4zm0 4h12v10H4V8zm2 2v6h8v-6H6z" />
-                    </svg>
-                  </div>
-                  <select
-                    value={formData.projectId || ''}
-                    onChange={handleInputChange("projectId")}
-                    className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${initialProjectId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                    required
-                    disabled={!!initialProjectId}
-                  >
-                    <option value="">Select from list</option>
-                    {projects.map((project) => (
-                      <option key={project.projectId} value={project.projectId} title={project.projectName}>
-                        {truncateText(project.projectName, 35)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {!formData.projectId && (
-                  <p className="mt-1 text-sm text-red-600">Project is required</p>
-                )}
-              </div>
-
-              <div className="w-full flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5"
-                      fill={greenPrimary}
-                      viewBox="0 0 24 24"
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
+                <div className="w-full flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Project <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 4h12v2H4V4zm0 4h12v10H4V8zm2 2v6h8v-6H6z" />
+                      </svg>
+                    </div>
+                    <select
+                      value={formData.projectId || ''}
+                      onChange={handleInputChange("projectId")}
+                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${initialProjectId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                      required
+                      disabled={!!initialProjectId}
                     >
-                      <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
-                    </svg>
+                      <option value="">Select from list</option>
+                      {projects.map((project) => (
+                        <option key={project.projectId} value={project.projectId} title={project.projectName}>
+                          {truncateText(project.projectName, 35)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    value={formData.status || ''}
-                    onChange={handleInputChange('status')}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    style={{ height: fieldHeight }}
-                  >
-                    <option value="todo">To Do</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="blocked">Blocked</option>
-                  </select>
+                  {!formData.projectId && (
+                    <p className="mt-1 text-sm text-red-600">Project is required</p>
+                  )}
                 </div>
-              </div>
 
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Priority
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5"
-                      fill={greenPrimary}
-                      viewBox="0 0 24 24"
+                <div className="w-full flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5"
+                        fill={greenPrimary}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
+                      </svg>
+                    </div>
+                    <select
+                      value={formData.status || ''}
+                      onChange={handleInputChange('status')}
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      style={{ height: fieldHeight }}
                     >
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
+                      {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
+                        <option key={statusFlag.statusId} value={statusFlag.statusValue} title={`${statusFlag.statusName} - ${statusFlag.remarks || 'No description available'}`}>
+                          {statusFlag.statusName}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    value={formData.priority || ''}
-                    onChange={handleInputChange('priority')}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    style={{ height: fieldHeight }}
-                  >
-                    <option value="1">High</option>
-                    <option value="2">Medium</option>
-                    <option value="3">Low</option>
-                  </select>
+                </div>
+
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Priority
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5"
+                        fill={greenPrimary}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                      </svg>
+                    </div>
+                    <select
+                      value={formData.priority || ''}
+                      onChange={handleInputChange('priority')}
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      style={{ height: fieldHeight }}
+                    >
+                      <option value="1">High</option>
+                      <option value="2">Medium</option>
+                      <option value="3">Low</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Row 2: Summary, System, Story Points */}
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-              
+              {/* Row 2: Summary, System, Story Points */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
 
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  System
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                    </svg>
+
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    System
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.system || ''}
+                      onChange={(e) => { if (!systemFixed) handleInputChange('system')(e); }}
+                      placeholder="Enter system name"
+                      className={`w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${systemFixed ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
+                      style={{ height: fieldHeight }}
+                      disabled={systemFixed}
+                    />
                   </div>
+                </div>
+
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Story Points
+                  </label>
                   <input
-                    type="text"
-                    value={formData.system || ''}
-                    onChange={(e) => { if (!systemFixed) handleInputChange('system')(e); }}
-                    placeholder="Enter system name"
-                    className={`w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${systemFixed ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
+                    type="number"
+                    value={formData.storyPoints || ''}
+                    onChange={handleInputChange('storyPoints')}
+                    placeholder="0"
+                    min="0"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                     style={{ height: fieldHeight }}
-                    disabled={systemFixed}
                   />
                 </div>
               </div>
 
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Story Points
-                </label>
-                <input
-                  type="number"
-                  value={formData.storyPoints || ''}
-                  onChange={handleInputChange('storyPoints')}
-                  placeholder="0"
-                  min="0"
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                  style={{ height: fieldHeight }}
-                />
-              </div>
-            </div>
+              {/* Row 3: Assignee, Release, Sprint */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Assignee
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <CreatableSelect
+                      value={formData.assignee ? { value: formData.assignee, label: formData.assignee } : null}
+                      onChange={(selectedOption) => {
+                        if (assigneeFixed) return; // prevent change when fixed
+                        const value = selectedOption ? selectedOption.value : '';
+                        setFormData(prev => ({ ...prev, assignee: value }));
+                      }}
+                      options={users.map(user => ({
+                        value: user.name,
+                        label: user.name
+                      }))}
+                      isClearable={!assigneeFixed}
+                      placeholder="Select or type assignee..."
+                      isDisabled={loading || assigneeFixed}
+                      className={`text-sm ${assigneeFixed ? 'opacity-60 bg-gray-100' : ''}`}
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          minHeight: '40px',
+                          borderColor: '#d1d5db',
+                          fontSize: '14px',
+                          '&:hover': {
+                            borderColor: '#10b981'
+                          }
+                        }),
+                        menu: (provided) => ({
+                          ...provided,
+                          zIndex: 9999
+                        }),
+                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                        input: (provided) => ({ ...provided, marginLeft: 0 }),
+                        placeholder: (provided) => ({ ...provided, marginLeft: 0 })
+                      }}
+                    />
+                  </div>
+                </div>
 
-            {/* Row 3: Assignee, Release, Sprint */}
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assignee
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Release
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <CreatableSelect
+                      value={formData.releaseId ? (() => {
+                        const selectedRelease = releases.find(r => r.releaseId.toString() === formData.releaseId.toString());
+                        return selectedRelease ? { value: formData.releaseId, label: selectedRelease.releaseName } : { value: formData.releaseId, label: formData.releaseId };
+                      })() : null}
+                      onChange={(selectedOption) => {
+                        if (releaseFixed) return; // prevent change when fixed
+                        const value = selectedOption ? selectedOption.value : '';
+                        setFormData(prev => ({ ...prev, releaseId: value }));
+                      }}
+                      options={releases.map(release => ({ value: release.releaseId.toString(), label: release.releaseName }))}
+                      isClearable={!releaseFixed}
+                      placeholder="Select release"
+                      isDisabled={loading || releaseFixed}
+                      className={`text-sm ${releaseFixed ? 'opacity-60 bg-gray-100' : ''}`}
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          minHeight: '40px',
+                          borderColor: '#d1d5db',
+                          fontSize: '14px',
+                          '&:hover': {
+                            borderColor: '#10b981'
+                          }
+                        }),
+                        menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                        input: (provided) => ({ ...provided, marginLeft: 0 }),
+                        placeholder: (provided) => ({ ...provided, marginLeft: 0 })
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Sprint
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <CreatableSelect
+                      value={formData.sprintId ? (() => {
+                        const selectedSprint = sprints.find(s => s.sprintId.toString() === formData.sprintId.toString());
+                        return selectedSprint ? { value: formData.sprintId, label: selectedSprint.sprintName } : { value: formData.sprintId, label: formData.sprintId };
+                      })() : null}
+                      onChange={(selectedOption) => {
+                        if (sprintFixed) return; // prevent change when fixed
+                        const value = selectedOption ? selectedOption.value : '';
+                        setFormData(prev => ({ ...prev, sprintId: value }));
+                      }}
+                      options={sprints.map(sprint => ({ value: sprint.sprintId.toString(), label: sprint.sprintName }))}
+                      isClearable={!sprintFixed}
+                      placeholder="Select sprint"
+                      isDisabled={loading || sprintFixed}
+                      className={`text-sm ${sprintFixed ? 'opacity-60 bg-gray-100' : ''}`}
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          minHeight: '40px',
+                          borderColor: '#d1d5db',
+                          fontSize: '14px',
+                          '&:hover': { borderColor: '#10b981' }
+                        }),
+                        menu: (provided) => ({ ...provided, zIndex: 9999 }),
+                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                        input: (provided) => ({ ...provided, marginLeft: 0 }),
+                        placeholder: (provided) => ({ ...provided, marginLeft: 0 })
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="w-full mb-4">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <CreatableSelect
-                    value={formData.assignee ? { value: formData.assignee, label: formData.assignee } : null}
-                    onChange={(selectedOption) => {
-                      if (assigneeFixed) return; // prevent change when fixed
-                      const value = selectedOption ? selectedOption.value : '';
-                      setFormData(prev => ({ ...prev, assignee: value }));
-                    }}
-                    options={users.map(user => ({
-                      value: user.name,
-                      label: user.name
-                    }))}
-                    isClearable={!assigneeFixed}
-                    placeholder="Select or type assignee..."
-                    isDisabled={loading || assigneeFixed}
-                    className={`text-sm ${assigneeFixed ? 'opacity-60 bg-gray-100' : ''}`}
-                    styles={{
-                      control: (provided) => ({
-                        ...provided,
-                        minHeight: '40px',
-                        borderColor: '#d1d5db',
-                        fontSize: '14px',
-                        '&:hover': {
-                          borderColor: '#10b981'
-                        }
-                      }),
-                      menu: (provided) => ({
-                        ...provided,
-                        zIndex: 9999
-                      }),
-                      valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
-                      singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
-                      input: (provided) => ({ ...provided, marginLeft: 0 }),
-                      placeholder: (provided) => ({ ...provided, marginLeft: 0 })
-                    }}
-                  />
+                  <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Enter detailed description here..."
+                    value={formData.description}
+                    onChange={handleInputChange('description')}
+                    rows={4}
+                    maxLength={500}
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                  ></textarea>
+                </div>
+                <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
+                  {formData.description.length} / 500
                 </div>
               </div>
-
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Release
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <CreatableSelect
-                    value={formData.releaseId ? (() => {
-                      const selectedRelease = releases.find(r => r.releaseId.toString() === formData.releaseId.toString());
-                      return selectedRelease ? { value: formData.releaseId, label: selectedRelease.releaseName } : { value: formData.releaseId, label: formData.releaseId };
-                    })() : null}
-                    onChange={(selectedOption) => {
-                      if (releaseFixed) return; // prevent change when fixed
-                      const value = selectedOption ? selectedOption.value : '';
-                      setFormData(prev => ({ ...prev, releaseId: value }));
-                    }}
-                    options={releases.map(release => ({ value: release.releaseId.toString(), label: release.releaseName }))}
-                    isClearable={!releaseFixed}
-                    placeholder="Select release"
-                    isDisabled={loading || releaseFixed}
-                    className={`text-sm ${releaseFixed ? 'opacity-60 bg-gray-100' : ''}`}
-                    styles={{
-                      control: (provided) => ({
-                        ...provided,
-                        minHeight: '40px',
-                        borderColor: '#d1d5db',
-                        fontSize: '14px',
-                        '&:hover': {
-                          borderColor: '#10b981'
-                        }
-                      }),
-                      menu: (provided) => ({ ...provided, zIndex: 9999 }),
-                      valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
-                      singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
-                      input: (provided) => ({ ...provided, marginLeft: 0 }),
-                      placeholder: (provided) => ({ ...provided, marginLeft: 0 })
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="w-full">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sprint
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <CreatableSelect
-                    value={formData.sprintId ? (() => {
-                      const selectedSprint = sprints.find(s => s.sprintId.toString() === formData.sprintId.toString());
-                      return selectedSprint ? { value: formData.sprintId, label: selectedSprint.sprintName } : { value: formData.sprintId, label: formData.sprintId };
-                    })() : null}
-                    onChange={(selectedOption) => {
-                      if (sprintFixed) return; // prevent change when fixed
-                      const value = selectedOption ? selectedOption.value : '';
-                      setFormData(prev => ({ ...prev, sprintId: value }));
-                    }}
-                    options={sprints.map(sprint => ({ value: sprint.sprintId.toString(), label: sprint.sprintName }))}
-                    isClearable={!sprintFixed}
-                    placeholder="Select sprint"
-                    isDisabled={loading || sprintFixed}
-                    className={`text-sm ${sprintFixed ? 'opacity-60 bg-gray-100' : ''}`}
-                    styles={{
-                      control: (provided) => ({
-                        ...provided,
-                        minHeight: '40px',
-                        borderColor: '#d1d5db',
-                        fontSize: '14px',
-                        '&:hover': { borderColor: '#10b981' }
-                      }),
-                      menu: (provided) => ({ ...provided, zIndex: 9999 }),
-                      valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
-                      singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
-                      input: (provided) => ({ ...provided, marginLeft: 0 }),
-                      placeholder: (provided) => ({ ...provided, marginLeft: 0 })
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="w-full mb-4">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <div className="relative">
-                <textarea
-                  id="description"
-                  name="description"
-                  placeholder="Enter detailed description here..."
-                  value={formData.description}
-                  onChange={handleInputChange('description')}
-                  rows={4}
-                  maxLength={500}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
-                ></textarea>
-              </div>
-              <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
-                {formData.description.length} / 500
-              </div>
-            </div>
               <div className="w-full md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Summary <span className="text-red-500">*</span>
@@ -727,93 +758,93 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId })
                 </div>
               </div>
 
-            {/* Attachments Section */}
-            <div className="w-full mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Attachments
-              </label>
-              <div className="space-y-2">
-                <div className="flex items-center gap-4 mb-2">
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileChange}
-                      disabled={formData.attachments.length >= 4}
-                      className="hidden"
-                    />
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <svg
-                        className="w-5 h-5 text-green-600"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z" />
-                      </svg>
-                      <span className="text-green-600 font-medium">
-                        {formData.attachments.length >= 4 ? "Max files reached" : "Attach Files"}
-                      </span>
-                      {formData.attachments.length < 4 && (
-                        <span className="text-gray-500 text-xs">(max 4 files)</span>
-                      )}
-                    </div>
-                  </label>
-                </div>
-
-                {/* Selected Files List */}
-                {formData.attachments.length > 0 && (
-                  <div className="space-y-1">
-                    {formData.attachments.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm"
-                      >
-                        <span className="text-gray-700 flex items-center gap-2">
-                          <span className="truncate">{file.name}</span>
-                          <span className="text-gray-500 text-xs">({formatFileSize(file.size)})</span>
-                        </span>
-                        <button
-                          onClick={() => handleRemoveAttachment(index)}
-                          type="button"
-                          className="ml-2 text-sm text-gray-500 hover:text-red-500"
+              {/* Attachments Section */}
+              <div className="w-full mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Attachments
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-4 mb-2">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileChange}
+                        disabled={formData.attachments.length >= 4}
+                        className="hidden"
+                      />
+                      <div className="flex items-center gap-2 text-sm text-gray-700">
+                        <svg
+                          className="w-5 h-5 text-green-600"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          ✕
-                        </button>
+                          <path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z" />
+                        </svg>
+                        <span className="text-green-600 font-medium">
+                          {formData.attachments.length >= 4 ? "Max files reached" : "Attach Files"}
+                        </span>
+                        {formData.attachments.length < 4 && (
+                          <span className="text-gray-500 text-xs">(max 4 files)</span>
+                        )}
                       </div>
-                    ))}
+                    </label>
                   </div>
-                )}
+
+                  {/* Selected Files List */}
+                  {formData.attachments.length > 0 && (
+                    <div className="space-y-1">
+                      {formData.attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm"
+                        >
+                          <span className="text-gray-700 flex items-center gap-2">
+                            <span className="truncate">{file.name}</span>
+                            <span className="text-gray-500 text-xs">({formatFileSize(file.size)})</span>
+                          </span>
+                          <button
+                            onClick={() => handleRemoveAttachment(index)}
+                            type="button"
+                            className="ml-2 text-sm text-gray-500 hover:text-red-500"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center mt-2">
-              <button
-                onClick={resetForm}
-                disabled={loading}
-                className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}
-              >
-                Reset
-              </button>
-
-              <div className="flex gap-4">
+              {/* Action Buttons */}
+              <div className="flex justify-between items-center mt-2">
                 <button
-                  onClick={handleClose}
+                  onClick={resetForm}
                   disabled={loading}
-                  className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
+                  className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}
                 >
-                  Cancel
+                  Reset
                 </button>
 
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
-                >
-                  {loading ? "Creating..." : "Add Solution Story"}
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleClose}
+                    disabled={loading}
+                    className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
+                  >
+                    {loading ? "Creating..." : "Add Solution Story"}
+                  </button>
+                </div>
               </div>
-            </div>
             </div>
           </Box>
         </DialogContent>

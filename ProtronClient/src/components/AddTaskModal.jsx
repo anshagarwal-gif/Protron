@@ -24,7 +24,7 @@ const getLocalDateString = () => {
   return localDate.toISOString().split('T')[0];
 };
 
-const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
+const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialStatus }) => {
   if (!open) return null;
   console.log(parentStory);
 
@@ -44,7 +44,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
     timeRemainingHours: 0,
     timeRemainingMinutes: 0,
     attachments: [],
-    status: 'todo'  // Adding status field with default value
+    status: initialStatus || 'todo'  // Adding status field with default value
   });
 
   const [projects, setProjects] = useState([]);
@@ -91,6 +91,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
         if (parentStory) {
           setFormData(prev => ({
             ...prev,
+            status: initialStatus || parentStory.status || 'todo',
             projectId: parentStory.projectId,
             parentId: parentStory.usId || parentStory.ssId, // Can be from UserStory or SolutionStory
             date: getLocalDateString()
@@ -343,7 +344,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
       timeRemainingHours: 0,
       timeRemainingMinutes: 0,
       attachments: [],
-      status: 'todo'
+      status: initialStatus || 'todo'
     });
     setFieldErrors({});
     setError({});
