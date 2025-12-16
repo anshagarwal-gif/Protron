@@ -156,6 +156,16 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
     return `PRJ-${asString}`;
   };
 
+  const getProjectNameDisplay = (projId) => {
+    if (!projId) return '—';
+    const asString = String(projId);
+    // try to find matching project by projectId or projectName
+    const found = projectList.find(p => String(p.projectId) === asString || p.projectName === asString || p.projectCode === asString);
+    if (found) return found.projectName;
+    // fallback
+    return '—';
+  };
+
   // Fetch projects and users on modal open
   useEffect(() => {
     const fetchProjectsAndUsers = async () => {
@@ -529,6 +539,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
               Add New User Story
             </h2>
             <p className="mt-1 text-sm text-gray-600">Parent ID: {getParentIdDisplay(formData.projectId)}</p>
+            <p className="mt-1 text-sm text-gray-600">Project Name: {getProjectNameDisplay(formData.projectId)}</p>
             {errors.submit && (
               <p className="mt-1 text-red-600" style={{ fontSize: '10px' }}>
                 {errors.submit}

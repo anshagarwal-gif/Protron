@@ -13,6 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.util.Map;
 
 import java.util.Date;
@@ -34,8 +36,8 @@ public class TimesheetTaskController {
 
     @GetMapping("/between")
     public ResponseEntity<List<TimesheetTaskDTO>> getTasksBetweenDates(
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end) {
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
         List<TimesheetTaskDTO> tasks = timesheetTaskService.getTasksBetweenDates(start, end);
 
         return ResponseEntity.ok(tasks);
@@ -43,8 +45,8 @@ public class TimesheetTaskController {
 
     @GetMapping("/admin-between")
     public ResponseEntity<List<TimesheetTaskDTO>> getTasksForUserBetweenDates(
-            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date end,
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
             @RequestParam("userId") Long userId) {
         List<TimesheetTaskDTO> tasks = timesheetTaskService.getTasksBetweenDatesForUser(start, end, userId);
         return ResponseEntity.ok(tasks);

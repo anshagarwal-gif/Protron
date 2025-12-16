@@ -10,21 +10,30 @@ import { useSession } from '../Context/SessionContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// Truncate function for project names
 const truncateText = (text, maxLength = 20) => {
   if (!text) return "";
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + "...";
 };
 
-const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
+// Helper function to get local date string YYYY-MM-DD
+const getLocalDateString = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const localDate = new Date(now.getTime() - (offset * 60 * 1000));
+  return localDate.toISOString().split('T')[0];
+};
+
+const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialStatus }) => {
   if (!open) return null;
   console.log(parentStory);
 
   const [formData, setFormData] = useState({
     projectId: '',
     parentId: '',
-    date: '',
+    projectId: '',
+    parentId: '',
+    date: getLocalDateString(),
     taskType: '',
     taskTopic: '',
     taskDescription: '',
@@ -35,7 +44,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
     timeRemainingHours: 0,
     timeRemainingMinutes: 0,
     attachments: [],
-    status: 'todo'  // Adding status field with default value
+    status: initialStatus || 'todo'  // Adding status field with default value
   });
 
   const [projects, setProjects] = useState([]);
@@ -54,6 +63,12 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
   const greenPrimary = '#15803d';
   const greenHover = '#047857';
   const fieldHeight = '40px';
+
+  const getProjectName = (projectId) => {
+    if (!projectId) return '—';
+    const project = projects.find(p => String(p.projectId) === String(projectId));
+    return project ? project.projectName : '—';
+  };
 
   const fetchStatusFlags = async () => {
     try {
@@ -82,9 +97,10 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
         if (parentStory) {
           setFormData(prev => ({
             ...prev,
+            status: initialStatus || parentStory.status || 'todo',
             projectId: parentStory.projectId,
             parentId: parentStory.usId || parentStory.ssId, // Can be from UserStory or SolutionStory
-            date: new Date().toISOString().split('T')[0]
+            date: getLocalDateString()
           }));
         }
 
@@ -231,7 +247,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
     try {
       setLoading(true);
       const token = sessionStorage.getItem('token');
-      
+
       // Format estTime from hours and minutes
       const estHours = parseInt(formData.estTimeHours) || 0;
       const estMinutes = parseInt(formData.estTimeMinutes) || 0;
@@ -323,7 +339,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
     setFormData({
       projectId: parentStory?.projectId || '',
       parentId: parentStory?.usId || parentStory?.ssId || '',
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateString(),
       taskType: '',
       taskTopic: '',
       taskDescription: '',
@@ -334,7 +350,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
       timeRemainingHours: 0,
       timeRemainingMinutes: 0,
       attachments: [],
-      status: 'todo'
+      status: initialStatus || 'todo'
     });
     setFieldErrors({});
     setError({});
@@ -376,18 +392,21 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                 <div>
                   <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add Task</h2>
                   {parentStory && (
-                    <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
-                      {parentStory.ssId ? (
-                        <>
-                          Parent Story: {parentStory.ssId}
-                          {parentStory.parentId && parentStory.parentId.startsWith('US-') && (
-                            <> | User Story: {parentStory.parentId}</>
-                          )}
-                        </>
-                      ) : (
-                        <>Parent Story: {parentStory.usId}</>
-                      )}
-                    </p>
+                    <>
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
+                        {parentStory.ssId ? (
+                          <>
+                            Parent Story: {parentStory.ssId}
+                            {parentStory.parentId && parentStory.parentId.startsWith('US-') && (
+                              <> | User Story: {parentStory.parentId}</>
+                            )}
+                          </>
+                        ) : (
+                          <>Parent Story: {parentStory.usId}</>
+                        )}
+                      </p>
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Project Name: {getProjectName(formData.projectId)}</p>
+                    </>
                   )}
                 </div>
               </div>
@@ -405,37 +424,8 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, p: 3 }}>
 
 
-            {/* Row 1: Project and Task Type */}
+            {/* Row 1: Task Type, Task Topic, Status */}
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-              <div className="w-full flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Project <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 4h12v2H4V4zm0 4h12v10H4V8zm2 2v6h8v-6H6z" />
-                    </svg>
-                  </div>
-                  <select
-                    value={formData.projectId || ''}
-                    onChange={handleInputChange("projectId")}
-                    className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${initialProjectId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                    required
-                    disabled={!!parentStory || !!initialProjectId}
-                  >
-                    <option value="">Select from list</option>
-                    {projects.map((project) => (
-                      <option key={project.projectId} value={project.projectId}>
-                        {truncateText(project.projectName, 35)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {!formData.projectId && (
-                  <p className="mt-1 text-sm text-red-600">Project is required</p>
-                )}
-              </div>
               <div className="w-full flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Task Type
@@ -469,6 +459,34 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
               </div>
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg
+                      className="h-5 w-5"
+                      fill={greenPrimary}
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                  </div>
+                  <select
+                    value={formData.status}
+                    onChange={handleInputChange('status')}
+                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    style={{ height: fieldHeight }}
+                  >
+                    {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
+                      <option key={statusFlag.statusId} value={statusFlag.statusValue} title={`${statusFlag.statusName} - ${statusFlag.remarks || 'No description available'}`}>
+                        {statusFlag.statusName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Task Topic
                 </label>
                 <div className="relative">
@@ -495,108 +513,70 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                   {formData.taskTopic?.length || 0} / 100
                 </p>
               </div>
+              
             </div>
 
-            {/* Status */}
-            <div className="w-full mt-3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5"
-                    fill={greenPrimary}
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                  </svg>
-                </div>
-                <select
-                  value={formData.status}
-                  onChange={handleInputChange('status')}
-                  className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                  style={{ height: fieldHeight }}
-                >
-                  {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
-                    <option key={statusFlag.statusId} value={statusFlag.statusValue} title={`${statusFlag.statusName} - ${statusFlag.remarks || 'No description available'}`}>
-                      {statusFlag.statusName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-              {/* Row 2: Time Fields */}
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-                <div className="w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Est. Time
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <label className="block text-xs text-gray-600 mb-1">Hours</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg
-                            className="h-5 w-5 text-green-600"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4s8 3.59 8 8-3.59 8-8 8Z" />
-                          </svg>
-                        </div>
-                        <input
-                          type="number"
-                          placeholder="HH"
-                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.estTimeHours !== '' && (parseInt(formData.estTimeHours) < 0 || parseInt(formData.estTimeHours) > 24)
-                            ? 'border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:ring-green-500'
-                            }`}
-                          value={formData.estTimeHours}
-                          onChange={handleInputChange('estTimeHours')}
-                          onKeyDown={(e) => {
-                            if (
-                              !/[0-9]/.test(e.key) &&
-                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                          min="0"
-                          max="24"
-                          style={{ height: fieldHeight }}
-                        />
-                        {formData.estTimeHours !== '' &&
-                          (parseInt(formData.estTimeHours) < 0 || parseInt(formData.estTimeHours) > 24) && (
-                            <p className="text-xs text-red-600 mt-1">0–24</p>
-                          )}
+            {/* Row 2: Time Fields */}
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Est. Time
+                </label>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-600 mb-1">Hours</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg
+                          className="h-5 w-5 text-green-600"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4s8 3.59 8 8-3.59 8-8 8Z" />
+                        </svg>
                       </div>
-                    </div>
-                    <div className="text-gray-500 font-semibold text-xl self-end pb-2">:</div>
-                    <div className="flex-1">
-                      <label className="block text-xs text-gray-600 mb-1">Minutes</label>
                       <input
                         type="number"
-                        placeholder="MM"
-                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.estTimeMinutes !== "" &&
-                          (parseInt(formData.estTimeMinutes) < 0 || parseInt(formData.estTimeMinutes) > 59)
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-green-500"
+                        placeholder="0"
+                        className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.estTimeHours !== '' && (parseInt(formData.estTimeHours) < 0 || parseInt(formData.estTimeHours) > 24)
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'border-gray-300 focus:ring-green-500'
                           }`}
-                        value={formData.estTimeMinutes}
-                        onChange={(e) => {
-                          let value = e.target.value;
-
-                        // Allow empty (user clears input)
+                        value={formData.estTimeHours}
+                        onChange={handleInputChange('estTimeHours')}
+                        onKeyDown={(e) => {
+                          if (
+                            !/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        min="0"
+                        max="24"
+                        style={{ height: fieldHeight }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-gray-500 font-semibold text-xl pb-2">:</div>
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-600 mb-1">Minutes</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.estTimeMinutes !== "" &&
+                        (parseInt(formData.estTimeMinutes) < 0 || parseInt(formData.estTimeMinutes) > 59)
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                        }`}
+                      value={formData.estTimeMinutes}
+                      onChange={(e) => {
+                        let value = e.target.value;
                         if (value === "") {
                           handleInputChange("estTimeMinutes")({ target: { value: "" } });
                           return;
                         }
-
                         const num = parseInt(value, 10);
-
-                        // Accept only numbers between 0–59
                         if (num >= 0 && num <= 59) {
                           handleInputChange("estTimeMinutes")(e);
                         }
@@ -613,79 +593,69 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                       max="59"
                       style={{ height: fieldHeight }}
                     />
-                    {formData.estTimeMinutes !== "" &&
-                      (parseInt(formData.estTimeMinutes) < 0 || parseInt(formData.estTimeMinutes) > 59) && (
-                        <p className="text-xs text-red-600 mt-1">0–59</p>
-                      )}
                   </div>
                 </div>
               </div>
 
-                <div className="w-full">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Spent Hours</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg
-                            className="h-5 w-5 text-green-600"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4s8 3.59 8 8-3.59 8-8 8Z" />
-                          </svg>
-                        </div>
-                        <input
-                          type="number"
-                          placeholder="HH"
-                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.timeSpentHours !== '' && (parseInt(formData.timeSpentHours) < 0 || parseInt(formData.timeSpentHours) > 24)
-                            ? 'border-red-500 focus:ring-red-500'
-                            : 'border-gray-300 focus:ring-green-500'
-                            }`}
-                          value={formData.timeSpentHours}
-                          onChange={handleInputChange('timeSpentHours')}
-                          onKeyDown={(e) => {
-                            if (
-                              !/[0-9]/.test(e.key) &&
-                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                          min="0"
-                          max="24"
-                          style={{ height: fieldHeight }}
-                        />
-                        {formData.timeSpentHours !== '' &&
-                          (parseInt(formData.timeSpentHours) < 0 || parseInt(formData.timeSpentHours) > 24) && (
-                            <p className="text-xs text-red-600 mt-1">0–24</p>
-                          )}
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Spent Hours
+                </label>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-600 mb-1">Hours</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg
+                          className="h-5 w-5 text-green-600"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4s8 3.59 8 8-3.59 8-8 8Z" />
+                        </svg>
                       </div>
-                    </div>
-                    <div className="text-gray-500 font-semibold text-xl">:</div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Minutes</label>
                       <input
                         type="number"
-                        placeholder="MM"
-                        className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.timeSpentMinutes !== "" &&
-                          (parseInt(formData.timeSpentMinutes) < 0 || parseInt(formData.timeSpentMinutes) > 59)
-                          ? "border-red-500 focus:ring-red-500"
-                          : "border-gray-300 focus:ring-green-500"
+                        placeholder="0"
+                        className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.timeSpentHours !== '' && (parseInt(formData.timeSpentHours) < 0 || parseInt(formData.timeSpentHours) > 24)
+                          ? 'border-red-500 focus:ring-red-500'
+                          : 'border-gray-300 focus:ring-green-500'
                           }`}
-                        value={formData.timeSpentMinutes}
-                        onChange={(e) => {
-                          let value = e.target.value;
-
-                        // Allow empty (user clears input)
+                        value={formData.timeSpentHours}
+                        onChange={handleInputChange('timeSpentHours')}
+                        onKeyDown={(e) => {
+                          if (
+                            !/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        min="0"
+                        max="24"
+                        style={{ height: fieldHeight }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-gray-500 font-semibold text-xl pb-2">:</div>
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-600 mb-1">Minutes</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${formData.timeSpentMinutes !== "" &&
+                        (parseInt(formData.timeSpentMinutes) < 0 || parseInt(formData.timeSpentMinutes) > 59)
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-gray-300 focus:ring-green-500"
+                        }`}
+                      value={formData.timeSpentMinutes}
+                      onChange={(e) => {
+                        let value = e.target.value;
                         if (value === "") {
                           handleInputChange("timeSpentMinutes")({ target: { value: "" } });
                           return;
                         }
-
                         const num = parseInt(value, 10);
-
-                        // Accept only numbers between 0–59
                         if (num >= 0 && num <= 59) {
                           handleInputChange("timeSpentMinutes")(e);
                         }
@@ -702,66 +672,61 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId }) => {
                       max="59"
                       style={{ height: fieldHeight }}
                     />
-                    {formData.timeSpentMinutes !== '' &&
-                      (parseInt(formData.timeSpentMinutes) < 0 || parseInt(formData.timeSpentMinutes) >= 60) && (
-                        <p className="text-xs text-red-600 mt-1">0–59</p>
-                      )}
                   </div>
                 </div>
               </div>
 
-                <div className="w-full">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Remaining Hours</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg
-                            className="h-5 w-5 text-green-600"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4s8 3.59 8 8-3.59 8-8 8Z" />
-                          </svg>
-                        </div>
-                        <input
-                          type="number"
-                          placeholder="HH"
-                          value={formData.timeRemainingHours}
-                          onChange={handleInputChange('timeRemainingHours')}
-                          onKeyDown={(e) => {
-                            if (
-                              !/[0-9]/.test(e.key) &&
-                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                          min="0"
-                          max="24"
-                          className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:ring-green-500"
-                          style={{ height: fieldHeight }}
-                        />
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Remaining Hours
+                </label>
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-600 mb-1">Hours</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg
+                          className="h-5 w-5 text-green-600"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M12 8V13H16V11H14V8H12ZM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12S7.59 4 12 4s8 3.59 8 8-3.59 8-8 8Z" />
+                        </svg>
                       </div>
-                    </div>
-                    <div className="text-gray-500 font-semibold text-xl">:</div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Minutes</label>
                       <input
                         type="number"
-                        placeholder="MM"
-                        value={formData.timeRemainingMinutes}
-                        onChange={(e) => {
-                          let value = e.target.value;
-
-                        // Prevent invalid input
+                        placeholder="0"
+                        value={formData.timeRemainingHours}
+                        onChange={handleInputChange('timeRemainingHours')}
+                        onKeyDown={(e) => {
+                          if (
+                            !/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        min="0"
+                        max="24"
+                        className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:ring-green-500"
+                        style={{ height: fieldHeight }}
+                      />
+                    </div>
+                  </div>
+                  <div className="text-gray-500 font-semibold text-xl pb-2">:</div>
+                  <div className="flex-1">
+                    <label className="block text-xs text-gray-600 mb-1">Minutes</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={formData.timeRemainingMinutes}
+                      onChange={(e) => {
+                        let value = e.target.value;
                         if (value === "") {
                           handleInputChange("timeRemainingMinutes")({ target: { value: "" } });
                           return;
                         }
-
                         const num = parseInt(value, 10);
-
                         if (num >= 0 && num <= 59) {
                           handleInputChange("timeRemainingMinutes")(e);
                         }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
@@ -19,10 +20,13 @@ public interface TimesheetTaskRepository extends JpaRepository<TimesheetTask, Lo
             "t.taskId, t.taskType, t.date, p.projectName, p.projectId, t.hoursSpent, t.minutesSpent, t.remainingHours, t.remainingMinutes, t.taskTopic, t.description, t.isSubmitted) " +
             "FROM TimesheetTask t " +
             "JOIN t.project p " +
-            "WHERE t.date BETWEEN :startDate AND :endDate AND t.user.userId = :userId AND t.endTimestamp IS NULL")
+            "WHERE t.date >= :startDateTime\n" +
+            "  AND t.date < :endDateTime\n" +
+            "  AND t.user.userId = :userId\n" +
+            "  AND t.endTimestamp IS NULL")
     List<TimesheetTaskDTO> findTaskDTOsBetweenDates(
-            @Param("startDate") Date startDate,
-            @Param("endDate") Date endDate,
+            @Param("startDateTime") Date startDateTime,
+            @Param("endDateTime") Date endDateTime,
             @Param("userId") Long userId
     );
 

@@ -382,7 +382,7 @@ const StoryDashboard = () => {
             const data = await response.json();
             // Merge tasks and solution stories into a single list
             const mergedStories = [...(data.tasks || []), ...(data.solutionStories || [])];
-            setStories(mergedStories);
+            setStories(sortStoriesByNewest(mergedStories));
           } else {
             throw new Error('Failed to fetch cumulative stories');
           }
@@ -434,8 +434,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(usPayload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch user stories');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch user stories');
 
           } else if (lastEntityType === 'Solution Story') {
             apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/filter`;
@@ -450,8 +452,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(ssPayload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch solution stories');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch solution stories');
 
           } else if (lastEntityType === 'Task') {
             apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks/filter`;
@@ -460,8 +464,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch tasks');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch tasks');
 
           } else {
             // Default
@@ -477,8 +483,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(usPayload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch default stories');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch default stories');
           }
         }
       } catch (error) {
@@ -689,6 +697,33 @@ const StoryDashboard = () => {
   };
 
 
+  // Helper function to sort stories by ID (newest first - highest ID at top)
+  const sortStoriesByNewest = (storiesArray) => {
+    if (!Array.isArray(storiesArray) || storiesArray.length === 0) {
+      return storiesArray;
+    }
+    return [...storiesArray].sort((a, b) => {
+      // Get the ID from different possible fields (id, usId, ssId, taskId)
+      const getId = (story) => {
+        return story.id || story.usId || story.ssId || story.taskId || 0;
+      };
+      const getIdValue = (story) => {
+        const id = getId(story);
+        if (typeof id === 'number') return id;
+        if (typeof id === 'string') {
+          // Extract numeric part from strings like "US-123" or "SS-456"
+          const match = id.match(/\d+/);
+          return match ? parseInt(match[0], 10) : 0;
+        }
+        return 0;
+      };
+      const idA = getIdValue(a);
+      const idB = getIdValue(b);
+      // Sort in descending order (newest/highest ID first)
+      return idB - idA;
+    });
+  };
+
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 1: return 'bg-red-100 text-red-800';
@@ -722,13 +757,20 @@ const StoryDashboard = () => {
       return;
     }
 
+    if (typeDropdowns.level2 && String(typeDropdowns.level2).toLowerCase() === 'task') {
+      setShowAddTaskModal(true);
+      return;
+    }
+
     // If level1 or level2 is Solution Story, open Add Solution Story
-    const level1IsSS = typeDropdowns.level1 && typeDropdowns.level1.toLowerCase() === 'solution story';
-    const level2IsSS = typeDropdowns.level2 && typeDropdowns.level2.toLowerCase() === 'solution story';
+    const level1IsSS = typeDropdowns.level1 && String(typeDropdowns.level1).toLowerCase() === 'solution story';
+    const level2IsSS = typeDropdowns.level2 && String(typeDropdowns.level2).toLowerCase() === 'solution story';
     if (level1IsSS || level2IsSS) {
       setShowAddSolutionModal(true);
       return;
     }
+
+
 
     // Default to Add Story
     setShowAddModal(true);
@@ -1716,6 +1758,7 @@ const StoryDashboard = () => {
 
       {/* Story Board Filters */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Story Filters</h2>
         {/* Filter Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Project ID */}
@@ -2720,7 +2763,7 @@ const StoryDashboard = () => {
                         {/* Add Story Button for TO-DO */}
                         <div className="group">
                           <button
-                            onClick={() => openAddBasedOnType()}
+                            onClick={() => { setSelectedStory({ status: 'todo' }); openAddBasedOnType('todo') }}
                             className="w-full bg-gray-100 hover:bg-gray-200 border-2 border-dashed border-gray-300 hover:border-gray-400 rounded-lg p-4 text-gray-500 hover:text-gray-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
@@ -2739,7 +2782,7 @@ const StoryDashboard = () => {
                         {/* Add Story Button for WIP */}
                         <div className="group">
                           <button
-                            onClick={() => openAddBasedOnType()}
+                            onClick={() => { setSelectedStory({ status: 'wip' }); openAddBasedOnType('wip') }}
                             className="w-full bg-blue-100 hover:bg-blue-200 border-2 border-dashed border-blue-300 hover:border-blue-400 rounded-lg p-4 text-blue-500 hover:text-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
@@ -2758,7 +2801,7 @@ const StoryDashboard = () => {
                         {/* Add Story Button for Done */}
                         <div className="group">
                           <button
-                            onClick={() => openAddBasedOnType()}
+                            onClick={() => { setSelectedStory({ status: 'done' }); openAddBasedOnType('done') }}
                             className="w-full bg-green-100 hover:bg-green-200 border-2 border-dashed border-green-300 hover:border-green-400 rounded-lg p-4 text-green-500 hover:text-green-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                           >
                             <FiPlus size={16} />
@@ -2837,7 +2880,7 @@ const StoryDashboard = () => {
                           {/* Add Story Button for Not Ready */}
                           <div className="group">
                             <button
-                              onClick={() => openAddBasedOnType()}
+                              onClick={() => { setSelectedStory({ status: 'not-ready' }); openAddBasedOnType('not-ready') }}
                               className="w-full bg-red-100 hover:bg-red-200 border-2 border-dashed border-red-300 hover:border-red-400 rounded-lg p-4 text-red-500 hover:text-red-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                             >
                               <FiPlus size={16} />
@@ -2917,7 +2960,7 @@ const StoryDashboard = () => {
                           {/* Add Story Button for Ready */}
                           <div className="group">
                             <button
-                              onClick={() => openAddBasedOnType()}
+                              onClick={() => { setSelectedStory({ status: 'ready' }); openAddBasedOnType('ready') }}
                               className="w-full bg-purple-100 hover:bg-purple-200 border-2 border-dashed border-purple-300 hover:border-purple-400 rounded-lg p-4 text-purple-500 hover:text-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 opacity-0 group-hover:opacity-100 cursor-pointer"
                             >
                               <FiPlus size={16} />
@@ -2959,6 +3002,7 @@ const StoryDashboard = () => {
         }}
         parentStory={null}
         initialProjectId={initialProjectForAdd}
+        initialStatus={selectedStory?.status}
       />
 
       {/* Add Task Modal (context-aware) */}
@@ -2971,6 +3015,7 @@ const StoryDashboard = () => {
         }}
         parentStory={null}
         initialProjectId={initialProjectForAdd}
+        initialStatus={selectedStory?.status}
       />
 
       {/* Edit Story Modal */}
