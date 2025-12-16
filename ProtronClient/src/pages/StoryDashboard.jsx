@@ -382,7 +382,7 @@ const StoryDashboard = () => {
             const data = await response.json();
             // Merge tasks and solution stories into a single list
             const mergedStories = [...(data.tasks || []), ...(data.solutionStories || [])];
-            setStories(mergedStories);
+            setStories(sortStoriesByNewest(mergedStories));
           } else {
             throw new Error('Failed to fetch cumulative stories');
           }
@@ -434,8 +434,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(usPayload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch user stories');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch user stories');
 
           } else if (lastEntityType === 'Solution Story') {
             apiUrl = `${import.meta.env.VITE_API_URL}/api/solutionstory/filter`;
@@ -450,8 +452,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(ssPayload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch solution stories');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch solution stories');
 
           } else if (lastEntityType === 'Task') {
             apiUrl = `${import.meta.env.VITE_API_URL}/api/tasks/filter`;
@@ -460,8 +464,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch tasks');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch tasks');
 
           } else {
             // Default
@@ -477,8 +483,10 @@ const StoryDashboard = () => {
               headers: { 'Authorization': token, 'Content-Type': 'application/json' },
               body: JSON.stringify(usPayload)
             });
-            if (response.ok) setStories(await response.json());
-            else throw new Error('Failed to fetch default stories');
+            if (response.ok) {
+              const storiesData = await response.json();
+              setStories(sortStoriesByNewest(storiesData));
+            } else throw new Error('Failed to fetch default stories');
           }
         }
       } catch (error) {
@@ -688,6 +696,33 @@ const StoryDashboard = () => {
     setFilters(prev => ({ ...prev, type: '' }));
   };
 
+
+  // Helper function to sort stories by ID (newest first - highest ID at top)
+  const sortStoriesByNewest = (storiesArray) => {
+    if (!Array.isArray(storiesArray) || storiesArray.length === 0) {
+      return storiesArray;
+    }
+    return [...storiesArray].sort((a, b) => {
+      // Get the ID from different possible fields (id, usId, ssId, taskId)
+      const getId = (story) => {
+        return story.id || story.usId || story.ssId || story.taskId || 0;
+      };
+      const getIdValue = (story) => {
+        const id = getId(story);
+        if (typeof id === 'number') return id;
+        if (typeof id === 'string') {
+          // Extract numeric part from strings like "US-123" or "SS-456"
+          const match = id.match(/\d+/);
+          return match ? parseInt(match[0], 10) : 0;
+        }
+        return 0;
+      };
+      const idA = getIdValue(a);
+      const idB = getIdValue(b);
+      // Sort in descending order (newest/highest ID first)
+      return idB - idA;
+    });
+  };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
