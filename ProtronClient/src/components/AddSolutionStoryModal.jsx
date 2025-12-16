@@ -58,6 +58,12 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
   const fieldHeight = '40px';
   console.log(parentStory);
 
+  const getProjectName = (projectId) => {
+    if (!projectId) return '—';
+    const project = projects.find(p => String(p.projectId) === String(projectId));
+    return project ? project.projectName : '—';
+  };
+
   const fetchStatusFlags = async () => {
     try {
       const token = sessionStorage.getItem('token');
@@ -430,7 +436,10 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                   <div>
                     <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add Solution Story</h2>
                     {parentStory && (
-                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.usId}</p>
+                      <>
+                        <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.usId}</p>
+                        <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Project Name: {getProjectName(formData.projectId)}</p>
+                      </>
                     )}
                   </div>
                 </div>
@@ -447,37 +456,8 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
 
             {/* Form Content */}
             <div className="p-4 sm:p-6 space-y-4">
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-                <div className="w-full flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Project <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M4 4h12v2H4V4zm0 4h12v10H4V8zm2 2v6h8v-6H6z" />
-                      </svg>
-                    </div>
-                    <select
-                      value={formData.projectId || ''}
-                      onChange={handleInputChange("projectId")}
-                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${initialProjectId ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                      required
-                      disabled={!!initialProjectId}
-                    >
-                      <option value="">Select from list</option>
-                      {projects.map((project) => (
-                        <option key={project.projectId} value={project.projectId} title={project.projectName}>
-                          {truncateText(project.projectName, 35)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  {!formData.projectId && (
-                    <p className="mt-1 text-sm text-red-600">Project is required</p>
-                  )}
-                </div>
-
+              {/* Row 1: Status, Priority, Story Points, System */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
                 <div className="w-full flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Status
@@ -533,11 +513,21 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     </select>
                   </div>
                 </div>
-              </div>
 
-              {/* Row 2: Summary, System, Story Points */}
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
-
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Story Points
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.storyPoints || ''}
+                    onChange={handleInputChange('storyPoints')}
+                    placeholder="0"
+                    min="0"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    style={{ height: fieldHeight }}
+                  />
+                </div>
 
                 <div className="w-full">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -560,25 +550,10 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     />
                   </div>
                 </div>
-
-                <div className="w-full">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Story Points
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.storyPoints || ''}
-                    onChange={handleInputChange('storyPoints')}
-                    placeholder="0"
-                    min="0"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                    style={{ height: fieldHeight }}
-                  />
-                </div>
               </div>
 
-              {/* Row 3: Assignee, Release, Sprint */}
-              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
+              {/* Row 2: Assignee, Release, Sprint */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
                 <div className="w-full">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Assignee
