@@ -10,6 +10,7 @@ import com.Protronserver.Protronserver.Repository.POMilestoneRepository;
 import com.Protronserver.Protronserver.Repository.PORepository;
 import com.Protronserver.Protronserver.Repository.SRNRepository;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
+import com.Protronserver.Protronserver.Utils.SRNLinkedPayments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,9 +51,15 @@ public class SRNService {
 
         // 2. --- VALIDATION START ---
 
+        if (srnRepository.existsActiveSrnByPoIdAndName(dto.getPoId(), dto.getSrnName(), currentTenantId)) {
+            throw new IllegalArgumentException(
+                    "Payment name already exists for this PO"
+            );
+        }
+
         // Currency Check: Ensure the SRN currency matches the PO currency
         if (!poDetail.getPoCurrency().equalsIgnoreCase(dto.getSrnCurrency())) {
-            throw new IllegalArgumentException("SRN currency (" + dto.getSrnCurrency() +
+            throw new IllegalArgumentException("Payment currency (" + dto.getSrnCurrency() +
                     ") does not match PO currency (" + poDetail.getPoCurrency() + ").");
         }
 
@@ -74,28 +81,28 @@ public class SRNService {
 
                 BigDecimal remaining = milestoneAmount.subtract(paidAmount);
                 if (newSrnAmount.compareTo(remaining) > 0) {
-                    throw new IllegalArgumentException("Partial SRN exceeds remaining milestone balance: " + remaining);
+                    throw new IllegalArgumentException("Partial Payment exceeds remaining milestone balance: " + remaining);
 
             }
         } else {
             // PO-level SRN
             if (costDetailsService.getRemainingMilestones(poDetail.getPoId()).size() > 0) {
-                throw new IllegalArgumentException("PO has milestones. SRN must be against a milestone.");
+                throw new IllegalArgumentException("PO has milestones. Payment must be against a milestone.");
             }
 
             BigDecimal totalPaidForPO = srnRepository.sumSrnAmountsByPoId(poDetail.getPoId(), currentTenantId);
 
             if (srnType.equals("full")) {
                 if (totalPaidForPO.compareTo(BigDecimal.ZERO) > 0) {
-                    throw new IllegalArgumentException("Full SRN not allowed: PO already has SRNs.");
+                    throw new IllegalArgumentException("Full Payment not allowed: PO already has Payments.");
                 }
                 if (newSrnAmount.compareTo(poDetail.getPoAmount()) != 0) {
-                    throw new IllegalArgumentException("SRN amount must match PO amount for full SRN.");
+                    throw new IllegalArgumentException("Payment amount must match PO amount for full Payment.");
                 }
             } else {
                 BigDecimal poBalance = poDetail.getPoAmount().subtract(totalPaidForPO);
                 if (newSrnAmount.compareTo(poBalance) > 0) {
-                    throw new IllegalArgumentException("Partial SRN exceeds remaining PO balance: " + poBalance);
+                    throw new IllegalArgumentException("Partial Payment exceeds remaining PO balance: " + poBalance);
                 }
             }
         }
@@ -135,7 +142,7 @@ public class SRNService {
         Long currentTenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
 
         SRNDetails existingSRN = srnRepository.findById(srnId)
-                .orElseThrow(() -> new RuntimeException("SRN not found with ID: " + srnId));
+                .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + srnId));
 
         BigDecimal originalSrnAmount = new BigDecimal(existingSRN.getSrnAmount());
         PODetails poDetail = existingSRN.getPoDetail();
@@ -147,7 +154,7 @@ public class SRNService {
         // --- VALIDATION START ---
 
         if (dto.getSrnCurrency() != null && !poDetail.getPoCurrency().equalsIgnoreCase(dto.getSrnCurrency())) {
-            throw new IllegalArgumentException("SRN currency (" + dto.getSrnCurrency() +
+            throw new IllegalArgumentException("Payment currency (" + dto.getSrnCurrency() +
                     ") does not match PO currency (" + poDetail.getPoCurrency() + ").");
         }
 
@@ -173,22 +180,22 @@ public class SRNService {
                 List<SRNDetails> srns = srnRepository.findByPoIdAndMsId(poDetail.getPoId(), milestoneId,
                         currentTenantId);
                 if (srns.size() > 1 || (srns.size() == 1 && !srns.get(0).getSrnId().equals(existingSRN.getSrnId()))) {
-                    throw new IllegalArgumentException("Full SRN not allowed: milestone already has other SRNs.");
+                    throw new IllegalArgumentException("Full Payment not allowed: milestone already has other Payments.");
                 }
                 if (newSrnAmount.compareTo(milestoneAmount) != 0) {
-                    throw new IllegalArgumentException("Full SRN must equal milestone amount.");
+                    throw new IllegalArgumentException("Full Payment must equal milestone amount.");
                 }
             } else {
                 if (newSrnAmount.compareTo(availableBalance) > 0) {
                     throw new IllegalArgumentException(
-                            "Partial SRN exceeds remaining milestone balance: " + availableBalance);
+                            "Partial Payment exceeds remaining milestone balance: " + availableBalance);
                 }
             }
 
         } else {
             // PO-level update
             if (poMilestoneRepository.countByPoId(poDetail.getPoId(), currentTenantId) > 0) {
-                throw new IllegalArgumentException("PO has milestones. SRN must be against a milestone.");
+                throw new IllegalArgumentException("PO has milestones. Payment must be against a milestone.");
             }
 
             BigDecimal totalPaidForPO = srnRepository.sumSrnAmountsByPoId(poDetail.getPoId(), currentTenantId);
@@ -198,14 +205,14 @@ public class SRNService {
                 // Ensure this is the ONLY SRN for the PO
                 List<SRNDetails> srns = srnRepository.findByPoIdWithoutMs(poDetail.getPoId(), currentTenantId);
                 if (srns.size() > 1 || (srns.size() == 1 && !srns.get(0).getSrnId().equals(existingSRN.getSrnId()))) {
-                    throw new IllegalArgumentException("Full SRN not allowed: PO already has other SRNs.");
+                    throw new IllegalArgumentException("Full Payment not allowed: PO already has other Payments.");
                 }
                 if (newSrnAmount.compareTo(poDetail.getPoAmount()) != 0) {
-                    throw new IllegalArgumentException("Full SRN must equal PO amount.");
+                    throw new IllegalArgumentException("Full Payment must equal PO amount.");
                 }
             } else {
                 if (newSrnAmount.compareTo(availableBalance) > 0) {
-                    throw new IllegalArgumentException("Partial SRN exceeds remaining PO balance: " + availableBalance);
+                    throw new IllegalArgumentException("Partial Payment exceeds remaining PO balance: " + availableBalance);
                 }
             }
         }
@@ -255,7 +262,7 @@ public class SRNService {
 
     public SRNDetails getSRNById(Long srnId) {
         return srnRepository.findById(srnId)
-                .orElseThrow(() -> new RuntimeException("SRN not found with ID: " + srnId));
+                .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + srnId));
     }
 
     public List<SRNDetails> getAllSRNs() {
@@ -277,7 +284,7 @@ public class SRNService {
 
     public void deleteSRN(Long srnId) {
         SRNDetails srn = srnRepository.findById(srnId)
-                .orElseThrow(() -> new RuntimeException("SRN not found with ID: " + srnId));
+                .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + srnId));
 
         srn.setLastUpdateTimestamp(LocalDateTime.now());
         srn.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
@@ -321,4 +328,20 @@ public class SRNService {
                     loggedInUserUtils.getLoggedInUser().getTenant().getTenantId());
         }
     }
+
+    public SRNLinkedPayments getLinkedAmountsForSrn(Long srnId) {
+        Long tenantId = loggedInUserUtils.getLoggedInUser()
+                .getTenant()
+                .getTenantId();
+
+        SRNLinkedPayments result =
+                srnRepository.findLinkedPoAndMilestoneAmountBySrnId(srnId, tenantId);
+
+        if (result == null) {
+            throw new RuntimeException("Payment not found or inactive: " + srnId);
+        }
+
+        return result;
+    }
+
 }

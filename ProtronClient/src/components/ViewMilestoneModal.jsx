@@ -3,7 +3,7 @@ import { X, Calendar, DollarSign, FileText, Hash, Clock } from 'lucide-react';
 import axios from 'axios';
 import { useSession } from '../Context/SessionContext';
 
-const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
+const ViewMilestoneModal = ({ open, onClose, milestoneData, openEditMilestoneModal }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -43,13 +43,13 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
 
   // Format date
   const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${monthStr}-${year}`;
+    if (!dateString) return 'N/A';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   // Field component for consistent styling (matching SRN modal)
@@ -77,12 +77,19 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
                 <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">{milestoneData.milestoneName || milestoneData.msName || 'N/A'}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
+
+            <div className='flex justify-center items-center space-x-2'>
+              <button onClick={() => {
+                openEditMilestoneModal(milestoneData.msId);
+              }} className="p-2 bg-green-700 rounded-md transition-colors cursor-pointer">Edit Milestone</button>
+
+              <button
+                onClick={onClose}
+                className="p-2 bg-green-700 rounded-md transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -117,7 +124,7 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData }) => {
                 label="Duration (Days)"
                 value={milestoneData.duration ?? milestoneData.msDuration}
               />
-            
+
             </div>
           </div>
 

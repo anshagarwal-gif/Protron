@@ -47,7 +47,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
 
     const downloadMilestoneExcel = () => {
         try {
-            const headers = ['#','Milestone Name','Milestone Description','Currency','Amount','Date','Duration (Days)','Remark'];
+            const headers = ['#', 'Milestone Name', 'Milestone Description', 'Currency', 'Amount', 'Date', 'Duration (Days)', 'Remark'];
             const rows = (milestones || []).map((m, idx) => ([
                 idx + 1,
                 m.msName || m.milestoneName || '',
@@ -85,10 +85,16 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         setSelectedMilestoneId(milestones[index].msId);
         setIsEditMilestoneModalOpen(true);
     };
-    const handleViewMilestone = (index) =>{
+    const handleViewMilestone = (index) => {
         setViewMilestoneModalOpen(true);
         console.log(milestones[index].msId);
         setSelectedMilestone(milestones[index]);
+    }
+
+    const handleCloseViewAndOpenEdit = (msId) => {
+        setViewMilestoneModalOpen(false);
+        setSelectedMilestoneId(msId);
+        setIsEditMilestoneModalOpen(true);
     }
 
     const handleMilestoneSubmit = (milestoneData) => {
@@ -267,7 +273,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
 
     return (
         <>
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
                 <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                     <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                         <h2 className="text-xl font-semibold text-green-900">Milestones Management</h2>
@@ -312,7 +318,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                                     headerHeight={48}
                                     noRowsOverlayComponent={() => (
                                         <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-3">
-                                        
+
                                             <div className="text-center">
                                                 <p className="text-lg font-medium">No milestones added yet</p>
                                                 <p className="text-sm">Click "Add Milestone" above to get started</p>
@@ -352,6 +358,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                         open={viewMilestoneModalOpen}
                         onClose={() => setViewMilestoneModalOpen(false)}
                         milestoneData={selectedMilestone}
+                        openEditMilestoneModal={handleCloseViewAndOpenEdit}
                     />
                 </div>
             </div>

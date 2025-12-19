@@ -175,7 +175,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
         if (name === 'srnName' && value.length > 100) {
             setErrors(prev => ({
                 ...prev,
-                [name]: "SRN Name cannot exceed 100 characters"
+                [name]: "Payment Name cannot exceed 100 characters"
             }));
             return;
         }
@@ -183,7 +183,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
             if (value.length > 500) {
                 setErrors(prev => ({
                     ...prev,
-                    [name]: "SRN Description cannot exceed 500 characters"
+                    [name]: "Payment Description cannot exceed 500 characters"
                 }));
                 return;
             }
@@ -193,7 +193,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
             if (value.length > 500) {
                 setErrors(prev => ({
                     ...prev,
-                    [name]: "SRN Remarks cannot exceed 500 characters"
+                    [name]: "Payment Remarks cannot exceed 500 characters"
                 }));
                 return;
             }
@@ -228,7 +228,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                 if (hasExistingSRNs) {
                     setErrors(prev => ({
                         ...prev,
-                        srnType: 'This milestone already has SRNs. Full SRN is not allowed.'
+                        srnType: 'This milestone already has Payments. Full Payment is not allowed.'
                     }));
                     return;
                 }
@@ -246,7 +246,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                 if (hasExistingSRNs) {
                     setErrors(prev => ({
                         ...prev,
-                        srnType: 'This PO already has SRNs. Full SRN is not allowed.'
+                        srnType: 'This PO already has Payments. Full Payment is not allowed.'
                     }));
                     return;
                 }
@@ -347,23 +347,23 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
         }
 
         if (!formData.srnName.trim()) {
-            newErrors.srnName = "SRN name is required";
+            newErrors.srnName = "Payment name is required";
         }
         if (!formData.srnAmount || formData.srnAmount <= 0) {
-            newErrors.srnAmount = "Valid SRN amount is required";
+            newErrors.srnAmount = "Valid Payment amount is required";
         }
 
         if (milestoneList.length === 0) {
             // No milestones available, check against PO balance
             if (formData.srnAmount && poBalance !== null && Number(formData.srnAmount) > Number(poBalance)) {
-                newErrors.srnAmount = `SRN amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
+                newErrors.srnAmount = `Payment amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
             }
         } else {
             // Milestones exist
             if (!formData.msId) {
                 newErrors.msId = "Please select a milestone for this PO";
             } else if (formData.srnAmount && milestoneBalance !== null && Number(formData.srnAmount) > Number(milestoneBalance)) {
-                newErrors.srnAmount = `SRN amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
+                newErrors.srnAmount = `Payment amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
             }
         }
 
@@ -445,14 +445,14 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                         }
                     }
                 }
-                setSnackbar({ open: true, message: 'SRN created successfully!', severity: 'success' });
+                setSnackbar({ open: true, message: 'Payment created successfully!', severity: 'success' });
                 setErrors({})
                 handleClose();
             } else {
                 const errorData = await response.text();
                 console.error('SRN Creation Error:', errorData);
                 setErrors({
-                    submit: 'Failed to create SRN.'
+                    submit: 'Failed to create Payment.'
                 });
             }
         } catch (error) {
@@ -499,7 +499,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 <Receipt className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Create New SRN</h2>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Create New Payment</h2>
                             </div>
                         </div>
                         <button
@@ -562,7 +562,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    SRN Name *
+                                    Payment Name *
                                     <span className="float-right text-sm text-gray-500">
                                         {formData.srnName.length}/100 characters
                                     </span>
@@ -621,7 +621,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
 
                             <div className="lg:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    SRN Type *
+                                    Payment Type *
                                 </label>
                                 <select
                                     name="srnType"
@@ -650,7 +650,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
 
                             <div className="lg:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    SRN Amount *
+                                    Payment Amount *
                                 </label>
 
                                 <div className="relative">
@@ -695,7 +695,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             </div>
 
                             <div className="lg:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Date</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
                                 <div
                                     onClick={() => handleDateInputClick('srnDate')}
                                     className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
@@ -722,7 +722,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                         {/* Row 3: SRN Description */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                SRN Description
+                                Payment Description
                                 <span className="float-right text-sm text-gray-500">
                                     {descCharCount}/500 characters
                                 </span>
@@ -749,7 +749,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                         {/* Row 4: SRN Remarks */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                SRN Remarks
+                                Payment Remarks
                                 <span className="float-right text-sm text-gray-500">
                                     {remarksCharCount}/500 characters
                                 </span>
@@ -776,7 +776,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
 
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachments (Max 4)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Attachments (Max 4)</label>
                                 <div className="relative">
                                     <input
                                         type="file"
@@ -848,7 +848,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                         ) : (
                             <>
                                 <Receipt size={16} className="mr-2" />
-                                Create SRN
+                                Create Payment
                             </>
                         )}
                     </button>

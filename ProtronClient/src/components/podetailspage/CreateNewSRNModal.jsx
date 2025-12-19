@@ -29,23 +29,23 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
         message: '',
         severity: ''
     })
-const getCurrencySymbol = (currency) => {
-    const currencySymbols = {
-        'INR': '₹',
-        'USD': '$',
-        'EUR': '€',
-        'GBP': '£',
-        'JPY': '¥',
-        'AUD': 'A$',
-        'CAD': 'C$',
-        'CHF': 'CHF',
-        'CNY': '¥',
-        'SEK': 'kr',
-        'NZD': 'NZ$'
+    const getCurrencySymbol = (currency) => {
+        const currencySymbols = {
+            'INR': '₹',
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥',
+            'AUD': 'A$',
+            'CAD': 'C$',
+            'CHF': 'CHF',
+            'CNY': '¥',
+            'SEK': 'kr',
+            'NZD': 'NZ$'
+        };
+
+        return currencySymbols[currency] || currency;
     };
-    
-    return currencySymbols[currency] || currency;
-};
     const fetchPODetails = async () => {
         try {
             const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/po/${poId}`, {
@@ -57,7 +57,7 @@ const getCurrencySymbol = (currency) => {
             setPo(res.data)
             setErrors({})
         } catch (error) {
-            setErrors({submit:"Error fetching PO details. Please try again."})
+            setErrors({ submit: "Error fetching PO details. Please try again." })
             console.log(error)
         }
     }
@@ -73,7 +73,7 @@ const getCurrencySymbol = (currency) => {
             setMilestones(res.data)
             setErrors({})
         } catch (error) {
-            setErrors({submit:"Error fetching PO milestones. Please try again."})
+            setErrors({ submit: "Error fetching PO milestones. Please try again." })
             console.log(error)
         }
     }
@@ -84,7 +84,7 @@ const getCurrencySymbol = (currency) => {
             fetchPOMilestones()
         }
     }, [poId])
-    
+
     useEffect(() => {
         const fetchPOBalance = async (poId) => {
             if (poId) {
@@ -99,7 +99,7 @@ const getCurrencySymbol = (currency) => {
                     setPOBalance(response.data);
                     setErrors({})
                 } catch (error) {
-                    setErrors({submit:"Error fetching PO balance. Please try again."})
+                    setErrors({ submit: "Error fetching PO balance. Please try again." })
                     console.error("Error fetching PO balance:", error);
                 }
             }
@@ -117,7 +117,7 @@ const getCurrencySymbol = (currency) => {
                     setMilestoneBalance(response.data);
                     setErrors({})
                 } catch (error) {
-                    setErrors({submit:"Error fetching milestone balance. Please try again."})
+                    setErrors({ submit: "Error fetching milestone balance. Please try again." })
                     console.error("Error fetching milestone balance:", error);
                 }
             }
@@ -179,12 +179,12 @@ const getCurrencySymbol = (currency) => {
                 setSrnFiles((prev) => prev.filter((_, i) => i !== index));
                 setErrors({})
             } else {
-                setErrors({submit:"Error deleting attachment. Please try again."})  
+                setErrors({ submit: "Error deleting attachment. Please try again." })
                 console.error(`Failed to delete attachment: ${fileToDelete.name}`);
             }
             setSrnFiles((prev) => prev.filter((_, i) => i !== index));
         } catch (error) {
-            setErrors({submit:"Error deleting attachment. Please try again."})  
+            setErrors({ submit: "Error deleting attachment. Please try again." })
             console.error(`Error deleting attachment: ${fileToDelete.name}`, error);
         }
     };
@@ -244,38 +244,38 @@ const getCurrencySymbol = (currency) => {
     };
 
     const validateForm = () => {
-    const newErrors = {}
+        const newErrors = {}
 
-    if (!formData.srnName.trim()) {
-        newErrors.srnName = 'SRN Name is required'
-    }
-
-    if(milestones.length > 0 && !formData.msId) {
-        newErrors.msId = 'Milestone is required'
-    }
-
-    if (!formData.srnAmount || formData.srnAmount <= 0) {
-        newErrors.srnAmount = 'SRN Amount must be greater than 0'
-    } else {
-        // Check balance validation
-        const enteredAmount = parseFloat(formData.srnAmount);
-        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
-        
-        if (availableBalance !== null && enteredAmount > availableBalance) {
-            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
-            const currencySymbol = getCurrencySymbol(formData.srnCurrency);
-            
-            newErrors.srnAmount = `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+        if (!formData.srnName.trim()) {
+            newErrors.srnName = 'Payment Name is required'
         }
-    }
 
-    if (!formData.srnType) {
-        newErrors.srnType = 'SRN Type is required'
-    }
+        if (milestones.length > 0 && !formData.msId) {
+            newErrors.msId = 'Milestone is required'
+        }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-}
+        if (!formData.srnAmount || formData.srnAmount <= 0) {
+            newErrors.srnAmount = 'Payment Amount must be greater than 0'
+        } else {
+            // Check balance validation
+            const enteredAmount = parseFloat(formData.srnAmount);
+            const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+
+            if (availableBalance !== null && enteredAmount > availableBalance) {
+                const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+                const currencySymbol = getCurrencySymbol(formData.srnCurrency);
+
+                newErrors.srnAmount = `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+            }
+        }
+
+        if (!formData.srnType) {
+            newErrors.srnType = 'Payment Type is required'
+        }
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
 
     const resetForm = () => {
         setFormData({
@@ -314,38 +314,38 @@ const getCurrencySymbol = (currency) => {
             ...prev,
             srnType: newType,
             // Clear amount when switching to partial, auto-fill when switching to full
-            srnAmount: newType === 'full' ? 
-                (milestoneBalance !== null ? milestoneBalance.toString() : 
-                 poBalance !== null ? poBalance.toString() : '') : ''
+            srnAmount: newType === 'full' ?
+                (milestoneBalance !== null ? milestoneBalance.toString() :
+                    poBalance !== null ? poBalance.toString() : '') : ''
         }));
-    };const handleAmountChange = (e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, srnAmount: value });
-    
-    // Clear previous amount error
-    if (errors.srnAmount) {
-        setErrors(prev => ({
-            ...prev,
-            srnAmount: ""
-        }));
-    }
-    
-    // Real-time validation
-    if (value && parseFloat(value) > 0) {
-        const enteredAmount = parseFloat(value);
-        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
-        
-        if (availableBalance !== null && enteredAmount > availableBalance) {
-            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
-            const currencySymbol = getCurrencySymbol(formData.srnCurrency);
-            
+    }; const handleAmountChange = (e) => {
+        const value = e.target.value;
+        setFormData({ ...formData, srnAmount: value });
+
+        // Clear previous amount error
+        if (errors.srnAmount) {
             setErrors(prev => ({
                 ...prev,
-                srnAmount: `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}`
+                srnAmount: ""
             }));
         }
-    }
-};
+
+        // Real-time validation
+        if (value && parseFloat(value) > 0) {
+            const enteredAmount = parseFloat(value);
+            const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+
+            if (availableBalance !== null && enteredAmount > availableBalance) {
+                const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+                const currencySymbol = getCurrencySymbol(formData.srnCurrency);
+
+                setErrors(prev => ({
+                    ...prev,
+                    srnAmount: `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}`
+                }));
+            }
+        }
+    };
 
     const handleMilestoneChange = (e) => {
         const newMsId = e.target.value;
@@ -353,7 +353,7 @@ const getCurrencySymbol = (currency) => {
             ...prev,
             msId: newMsId
         }));
-        
+
         // If type is "full", the useEffect will handle the amount auto-fill
         // when milestoneBalance updates
     };
@@ -402,7 +402,7 @@ const getCurrencySymbol = (currency) => {
                 console.log('SRN Created:', data);
                 setSnackbar({
                     open: true,
-                    message: "SRN Created Successfully",
+                    message: "Payment Created Successfully",
                     severity: "success",
                 });
                 setErrors({})
@@ -457,11 +457,11 @@ const getCurrencySymbol = (currency) => {
                 const errorData = await response.text();
                 console.error('SRN Creation Error:', errorData);
                 setErrors({
-                    submit: 'Failed to create SRN. Please check the console for details.',
+                    submit: 'Failed to create Payment. Please check the console for details.',
                 });
                 setSnackbar({
                     open: true,
-                    message: "Failed to create SRN. Please check the console for details.",
+                    message: "Failed to create Payment. Please check the console for details.",
                     severity: "error",
                 });
 
@@ -482,7 +482,7 @@ const getCurrencySymbol = (currency) => {
             dateInput.showPicker();
         }
     };
-    
+
     useEffect(() => {
         if (po.poCurrency) {
             setFormData(prev => ({ ...prev, srnCurrency: po.poCurrency }));
@@ -497,13 +497,13 @@ const getCurrencySymbol = (currency) => {
     }, [open, poId]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
             <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                     <div>
                         <h2 className="text-xl font-semibold text-green-900 flex items-center">
                             <Receipt size={20} className="mr-2 text-green-600" />
-                            Create New SRN
+                            Create New Payment
                         </h2>
                     </div>
                     <button
@@ -537,10 +537,10 @@ const getCurrencySymbol = (currency) => {
 
                             <div>
                                 <label htmlFor="srnName" className="block text-sm font-medium text-gray-700 mb-2">
-                                    SRN Name*
+                                    Payment Name*
                                     <span className="float-right text-xs text-gray-500">
-                      {formData.srnName.length}/100 characters
-                    </span>
+                                        {formData.srnName.length}/100 characters
+                                    </span>
                                 </label>
                                 <input
                                     type="text"
@@ -580,7 +580,7 @@ const getCurrencySymbol = (currency) => {
                             </div>
 
                             <div>
-                                <label className='block text-sm font-medium text-gray-700 mb-2'>SRN Type*</label>
+                                <label className='block text-sm font-medium text-gray-700 mb-2'>Payment Type*</label>
                                 <select
                                     name="srnType"
                                     value={formData.srnType}
@@ -609,18 +609,18 @@ const getCurrencySymbol = (currency) => {
 
                             <div>
                                 <div className='flex justify-between items-center'>
-                                    <label className='block text-sm font-medium text-gray-700 mb-2'>SRN Amount*</label>
+                                    <label className='block text-sm font-medium text-gray-700 mb-2'>Payment Amount*</label>
                                     <label className='block text-[10px] font-medium text-gray-700 mb-2'>
-    {milestoneBalance !== null ? (
-        <span className="text-green-600">
-            Milestone Balance: {getCurrencySymbol(formData.srnCurrency)}{milestoneBalance.toLocaleString()}
-        </span>
-    ) : (
-        <span className="text-green-600">
-            PO Balance: {getCurrencySymbol(formData.srnCurrency)}{poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}
-        </span>
-    )}
-</label>
+                                        {milestoneBalance !== null ? (
+                                            <span className="text-green-600">
+                                                Milestone Balance: {getCurrencySymbol(formData.srnCurrency)}{milestoneBalance.toLocaleString()}
+                                            </span>
+                                        ) : (
+                                            <span className="text-green-600">
+                                                PO Balance: {getCurrencySymbol(formData.srnCurrency)}{poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}
+                                            </span>
+                                        )}
+                                    </label>
                                 </div>
                                 <input
                                     type="number"
@@ -628,12 +628,13 @@ const getCurrencySymbol = (currency) => {
                                     value={formData.srnAmount}
                                     onChange={(e) => {
                                         let value = e.target.value.replace(/[^0-9.]/g, '');
-                const parts = value.split('.');
-                if (parts.length > 2) value = parts[0] + '.' + parts[1];
-                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
-                if (parts[1]) parts[1] = parts[1].slice(0, 2);
-                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
-                                        setFormData({ ...formData, srnAmount: value })}}
+                                        const parts = value.split('.');
+                                        if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                        if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                        if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                        value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                        setFormData({ ...formData, srnAmount: value })
+                                    }}
                                     className={`w-full h-10 px-4 border rounded-md ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'} ${formData.srnType === 'full' ? 'bg-gray-100' : ''}`}
                                     placeholder="Enter here"
                                     disabled={loading}
@@ -649,7 +650,7 @@ const getCurrencySymbol = (currency) => {
                             </div>
 
                             <div className="lg:col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Date</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
                                 <div
                                     onClick={() => handleDateInputClick('srnDate')}
                                     className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
@@ -670,10 +671,10 @@ const getCurrencySymbol = (currency) => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div>
                             <label htmlFor="srnDsc" className="block text-sm font-medium text-gray-700 mb-2">
-                                SRN Description
+                                Payment Description
                                 <span className="float-right text-xs text-gray-500">
                                     {formData.srnDsc.length}/500 characters
                                 </span>
@@ -692,7 +693,7 @@ const getCurrencySymbol = (currency) => {
 
                         <div>
                             <label htmlFor="srnRemarks" className='block text-sm font-medium text-gray-700 mb-2'>
-                                SRN Remarks
+                                Payment Remarks
                                 <span className="float-right text-xs text-gray-500">
                                     {formData.srnRemarks.length}/500 characters
                                 </span>
@@ -710,7 +711,7 @@ const getCurrencySymbol = (currency) => {
                         </div>
                         <div className="grid grid-cols-6 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachments (Max 4)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Attachments (Max 4)</label>
                                 <div className="relative">
                                     <input
                                         type="file"
@@ -734,26 +735,26 @@ const getCurrencySymbol = (currency) => {
                                 </div>
 
                                 {/* List of selected files */}
-                                
+
                             </div>
                         </div>
                         <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
-                                    {srnFiles.map((file, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                                        >
-                                            <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSRNAttachment(index)}
-                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                            >
-                                                Delete
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
+                            {srnFiles.map((file, index) => (
+                                <li
+                                    key={index}
+                                    className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                >
+                                    <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeSRNAttachment(index)}
+                                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                    >
+                                        Delete
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
 
                         <div className='flex justify-end space-x-4'>
                             <button

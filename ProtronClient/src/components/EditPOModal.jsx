@@ -128,17 +128,17 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 } else {
                     const errorData = await response.json();
                     setErrors({
-                        submit:`Error updating PO : ${errorData.message}`
+                        submit: `Error updating PO : ${errorData.message}`
                     })
                     console.error('PO Update Error:', errorData);
-                    
+
                 }
             } catch (error) {
                 setErrors({
-                    submit:`Error updating PO : ${error.message}`
+                    submit: `Error updating PO : ${error.message}`
                 })
                 console.error('Error updating PO:', error);
-                
+
             }
         }
     };
@@ -146,7 +146,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const [initialFormData, setInitialFormData] = useState({});
     const [users, setUsers] = useState([]);
     const [projects, setProjects] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const startDateRef = useRef(null);
     const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
@@ -173,7 +173,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             setUsers(data);
         } catch (error) {
             console.log({ message: error });
-            
+
         }
     };
 
@@ -188,7 +188,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             setProjects(data);
         } catch (error) {
             console.log({ message: error });
-           
+
         }
     };
 
@@ -254,7 +254,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
         } catch (error) {
             console.error('Error fetching PO data:', error);
-           
+
         } finally {
             setLoading(false);
         }
@@ -275,7 +275,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             }
         } catch (err) {
             console.error("Error fetching PO attachments:", err);
-           
+
         }
     };
 
@@ -683,596 +683,603 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     </div>
                 </div>
 
-                <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
-                    {currentStep === 1 && (
-                        <div className="space-y-6">
-                            {/* PO Details Form Fields */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
-                                {/* PO Number, Type, Currency, Amount, Dates */}
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Number">
-                                        PO Number <span className="text-red-500">*</span>
-                                        <span className="float-right text-xs text-gray-500">
-                                            {formData.poNumber.length}/100 characters
-                                        </span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.poNumber}
-                                        onChange={e => {
-                                            let value = e.target.value;
-                                            if (value.length > 100) value = value.slice(0, 100);
-                                            setFormData(prev => ({ ...prev, poNumber: value }));
-                                        }}
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md truncate"
-                                        title={formData.poNumber || "Enter PO Number"}
-                                        placeholder="Enter PO Number"
-                                        maxLength={100}
-                                        required
-                                    />
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Type">
-                                        PO Type <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        value={formData.poType}
-                                        onChange={handleChange('poType')}
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md truncate"
-                                        title={formData.poType || "Select PO Type"}
-                                        required
-                                    >
-                                        <option value="">Select</option>
-                                        <option value="FIXED">Fixed</option>
-                                        <option value="T_AND_M">T & M</option>
-                                        <option value="MIXED">Mixed</option>
-                                    </select>
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">PO Country</label>
-                                    <select
-                                        value={formData.poCountry}
-                                        onChange={handleChange('poCountry')}
-                                        title={formData.poCountry || 'Select from list'} // Tooltip on hover
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
-                                    >
-                                        <option value="">Select from list</option>
-                                        {countries.map((country) => (
-                                            <option key={country.code} value={country.name}>
-                                                {country.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className='lg:col-span-1'>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Currency">
-                                        Currency <span className="text-red-500">*</span>
-                                    </label>
-                                    <select
-                                        value={formData.poCurrency}
-                                        onChange={handleChange('poCurrency')}
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md truncate"
-                                        title={formData.poCurrency || "Currency"}
-                                        required
-                                    >
-                                        <option value="USD">USD</option>
-                                        <option value="INR">INR</option>
-                                        <option value="EUR">EUR</option>
-                                        <option value="GBP">GBP</option>
-                                        <option value="JPY">JPY</option>
-                                    </select>
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Amount">
-                                        PO Amount <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
-                                            {currencySymbols[formData.poCurrency] || '$'}
-                                        </span>
+                {loading ? (
+                    <div className="flex justify-center items-center">
+                        <div className="h-8 w-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                ) : (
+                    <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
+                        {currentStep === 1 && (
+                            <div className="space-y-6">
+                                {/* PO Details Form Fields */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 items-end">
+                                    {/* PO Number, Type, Currency, Amount, Dates */}
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Number">
+                                            PO Number <span className="text-red-500">*</span>
+                                            <span className="float-right text-xs text-gray-500">
+                                                {formData.poNumber.length}/100 characters
+                                            </span>
+                                        </label>
                                         <input
                                             type="text"
-                                            value={formData.poAmount}
+                                            value={formData.poNumber}
                                             onChange={e => {
-                                                let value = e.target.value.replace(/[^0-9.]/g, '');
-                                                const parts = value.split('.');
-                                                if (parts.length > 2) value = parts[0] + '.' + parts[1];
-                                                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
-                                                if (parts[1]) parts[1] = parts[1].slice(0, 2);
-                                                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
-                                                setFormData(prev => ({ ...prev, poAmount: value }));
+                                                let value = e.target.value;
+                                                if (value.length > 100) value = value.slice(0, 100);
+                                                setFormData(prev => ({ ...prev, poNumber: value }));
                                             }}
-                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
-                                            title={formData.poAmount || "Enter PO Amount"}
-                                            placeholder="Enter Amount"
-                                            maxLength={16}
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md truncate"
+                                            title={formData.poNumber || "Enter PO Number"}
+                                            placeholder="Enter PO Number"
+                                            maxLength={100}
                                             required
                                         />
                                     </div>
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Start Date">
-                                        PO Start Date <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center">
-                                        <Calendar className="absolute left-3 text-green-600" size={20} />
-                                        <input
-                                            ref={startDateRef}
-                                            type="date"
-                                            value={formData.poStartDate}
-                                            onChange={handleChange('poStartDate')}
-                                            className="w-full h-full bg-transparent outline-none cursor-pointer pl-10 truncate"
-                                            title={formData.poStartDate || "Select Start Date"}
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Type">
+                                            PO Type <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={formData.poType}
+                                            onChange={handleChange('poType')}
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md truncate"
+                                            title={formData.poType || "Select PO Type"}
                                             required
-                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="End Date">
-                                        PO End Date <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center">
-                                        <Calendar className="absolute left-3 text-green-600" size={20} />
-                                        <input
-                                            ref={endDateRef}
-                                            type="date"
-                                            value={formData.poEndDate}
-                                            onChange={handleChange('poEndDate')}
-                                            className="w-full h-full bg-transparent outline-none cursor-pointer pl-10 truncate"
-                                            title={formData.poEndDate || "Select End Date"}
-                                            required
-                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label
-                                        htmlFor="poSpoc"
-                                        className="block text-sm font-medium text-gray-700 mb-2"
-                                        title="Select an existing project or type a new one to create"
-                                    >
-                                        PM/SPOC Name
-                                    </label>
-                                    <div className="relative w-full">
-                                        <Folder
-                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11"
-                                            size={20}
-                                            title="Select or create project"
-                                        />
-                                        <CreatableSelect
-                                            inputId="poSpoc"
-                                            options={userOptions}
-                                            value={
-                                                formData.poSpoc
-                                                    ? { label: formData.poSpoc, value: formData.poSpoc }
-                                                    : null
-                                            }
-                                            onChange={(selectedOption) => {
-                                                let value = selectedOption?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({ ...prev, poSpoc: value }));
-                                            }}
-                                            className="react-select-container z-10"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select PM/SPOC"
-                                            isSearchable
-                                            isClearable
-                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px',
-                                                    borderColor: '#d1d5db',
-                                                }),
-                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Name">
-                                        Project Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative w-full">
-                                        <Folder className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11" size={20} />
-                                        <CreatableSelect
-                                            options={projectOptions}
-                                            value={formData.projectName ? { label: formData.projectName, value: formData.projectName } : null}
-                                            onChange={(opt) => {
-                                                let value = opt?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({ ...prev, projectName: value }));
-                                            }}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px'
-                                                }),
-                                                singleValue: (base) => ({
-                                                    ...base,
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden'
-                                                })
-                                            }}
-                                            className="react-select-container z-10"
-                                            placeholder="Select or create project"
-                                            title={formData.projectName || "Select or create project"}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Customer Name">
-                                        Customer Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <OrganizationSelect
-                                        value={formData.customer || ''}
-                                        onChange={(value) => {
-                                            let finalValue = value;
-                                            if (value && value.length > 255) finalValue = value.slice(0, 255);
-                                            setFormData(prev => ({ ...prev, customer: finalValue }));
-                                        }}
-                                        
-                                        placeholder="Type customer name"
-                                        orgType="CUSTOMER"
-                                        className="w-full"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Supplier Name">
-                                        Supplier Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <OrganizationSelect
-                                        value={formData.supplier || ''}
-                                        onChange={(value) => {
-                                            let finalValue = value;
-                                            if (value && value.length > 255) finalValue = value.slice(0, 255);
-                                            setFormData(prev => ({ ...prev, supplier: finalValue }));
-                                        }}
-                                        placeholder="Search for supplier or type new..."
-                                        orgType="SUPPLIER"
-                                        className="w-full"
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        htmlFor="sponsorName"
-                                        className="block text-sm font-medium text-gray-700 mb-2"
-                                        title="Select an existing project or type a new one to create"
-                                    >
-                                        Sponsor Name
-                                    </label>
-                                    <div className="relative w-full">
-                                        <UserCheck
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
-                                            size={20}
-                                            title="Select or create sponsor"
-                                        />
-                                        <CreatableSelect
-                                            inputId="sponsorName"
-                                            options={userOptions}
-                                            value={
-                                                formData.sponsorName
-                                                    ? { label: formData.sponsorName, value: formData.sponsorName }
-                                                    : null
-                                            }
-                                            onChange={(selectedOption) => {
-                                                let value = selectedOption?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({ ...prev, sponsorName: value }));
-                                            }}
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select Sponsor"
-                                            isSearchable
-                                            isClearable
-                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px',
-                                                    borderColor: '#d1d5db',
-                                                }),
-                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label
-                                        htmlFor="sponsorLob"
-                                        className="block text-sm font-medium text-gray-700 mb-2"
-                                        title="Select an existing project or type a new one to create"
-                                    >
-                                        Sponsor LOB
-                                    </label>
-                                    <div className="relative w-full">
-                                        <UserCheck
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
-                                            size={20}
-                                            title="Select or create project"
-                                        />
-                                        <CreatableSelect
-                                            inputId="sponsorLob"
-                                            options={userOptions}
-                                            value={
-                                                formData.sponsorLob
-                                                    ? { label: formData.sponsorLob, value: formData.sponsorLob }
-                                                    : null
-                                            }
-                                            onChange={(selectedOption) => {
-                                                let value = selectedOption?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({ ...prev, sponsorLob: value }));
-                                            }}
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select Sponsor LOB"
-                                            isSearchable
-                                            isClearable
-                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px',
-                                                    borderColor: '#d1d5db',
-                                                }),
-                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label
-                                        htmlFor="budgetLineItem"
-                                        className="block text-sm font-medium text-gray-700 mb-2"
-                                        title="Select an existing project or type a new one to create"
-                                    >
-                                        Budget Line Item
-                                    </label>
-                                    <div className="relative w-full">
-                                        <UserCheck
-                                            className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
-                                            size={20}
-                                            title="Select or create project"
-                                        />
-                                        <CreatableSelect
-                                            inputId="budgetLineItem"
-                                            options={userOptions}
-                                            value={
-                                                formData.budgetLineItem
-                                                    ? { label: formData.budgetLineItem, value: formData.budgetLineItem }
-                                                    : null
-                                            }
-                                            onChange={(selectedOption) => {
-                                                let value = selectedOption?.value || '';
-                                                if (value.length > 255) value = value.slice(0, 255);
-                                                setFormData(prev => ({ ...prev, budgetLineItem: value }));
-                                            }}
-                                            className="react-select-container"
-                                            classNamePrefix="react-select"
-                                            placeholder="Select Budget Line"
-                                            isSearchable
-                                            isClearable
-                                            formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                            styles={{
-                                                control: (base) => ({
-                                                    ...base,
-                                                    height: '40px',
-                                                    paddingLeft: '28px',
-                                                    borderColor: '#d1d5db',
-                                                }),
-                                                valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Amount">
-                                        Budget Line Amount <span className="text-red-500">*</span>
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
-                                            {currencySymbols[formData.poCurrency] || '$'}
-                                        </span>
-                                        <input
-                                            type="text"
-                                            value={formData.budgetLineAmount}
-                                            onChange={e => {
-                                                let value = e.target.value.replace(/[^0-9.]/g, '');
-                                                const parts = value.split('.');
-                                                if (parts.length > 2) value = parts[0] + '.' + parts[1];
-                                                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
-                                                if (parts[1]) parts[1] = parts[1].slice(0, 2);
-                                                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
-                                                setFormData(prev => ({ ...prev, budgetLineAmount: value }));
-                                            }}
-                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
-                                            title={formData.budgetLineAmount || "Enter Budget Line Amount"}
-                                            placeholder="Enter Amount"
-                                            maxLength={16}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="lg:col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Business Value Amount">
-                                        Business Value Amount
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
-                                            {currencySymbols[formData.poCurrency] || '$'}
-                                        </span>
-                                        <input
-                                            type="text"
-                                            value={formData.businessValueAmount}
-                                            onChange={e => {
-                                                let value = e.target.value.replace(/[^0-9.]/g, '');
-                                                const parts = value.split('.');
-                                                if (parts.length > 2) value = parts[0] + '.' + parts[1];
-                                                if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
-                                                if (parts[1]) parts[1] = parts[1].slice(0, 2);
-                                                value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
-                                                setFormData(prev => ({ ...prev, businessValueAmount: value }));
-                                            }}
-                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
-                                            title={formData.businessValueAmount || "Enter Business Value Amount"}
-                                            placeholder="Enter Amount"
-                                            maxLength={16}
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="lg:col-span-1">
-    <label className="block text-sm font-medium text-gray-700 mb-2">Business Value Type</label>
-    <select
-        value={formData.businessValueType}
-        onChange={handleChange('businessValueType')}
-        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
-    >
-        <option value="">Select Type</option>
-        <option value="One Time">One Time</option>
-        <option value="Yearly">Yearly</option>
-    </select>
-</div>
-
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-                                {/* SPOC, Project, Customer, Supplier, Attachments */}
-
-
-
-
-
-                            </div>
-                            
-                            <div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
-                                        Project Description
-                                        <span className="float-right text-xs text-gray-500">
-                                            {formData.poDesc?.length || 0}/500 characters
-                                        </span>
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.poDesc}
-                                        onChange={e => {
-                                            let value = e.target.value;
-                                            if (value.length > 500) value = value.slice(0, 500);
-                                            setFormData(prev => ({ ...prev, poDesc: value }));
-                                        }}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                        title={formData.poDesc || "Enter Project Description"}
-                                        placeholder="Enter Project Description"
-                                        maxLength={500}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
-                                        Budget Line Remarks
-                                        <span className="float-right text-xs text-gray-500">
-                                            {formData.budgetLineRemarks?.length || 0}/500 characters
-                                        </span>
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.budgetLineRemarks}
-                                        onChange={e => {
-                                            let value = e.target.value;
-                                            if (value.length > 500) value = value.slice(0, 500);
-                                            setFormData(prev => ({ ...prev, budgetLineRemarks: value }));
-                                        }}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                        title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
-                                        placeholder="Enter Budget Line Remarks"
-                                        maxLength={500}
-                                    />
-                                </div>
-                                <div className="lg:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="po-attachment-input"
-                                        multiple
-                                        onChange={handleFileChange}
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                        className="hidden"
-                                    />
-                                    <label
-                                        htmlFor="po-attachment-input"
-                                        className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
-                                    >
-                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                        <span className="text-gray-500 truncate">
-                                            {poAttachments.length > 0 ? `${poAttachments.length} file(s) selected` : 'Click to select files'}
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
-                                    {poAttachments.map((file, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex max-w-[150px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
                                         >
-                                            <span className="truncate max-w-[220px]" title={file.name}>{file.name}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeAttachment(index)}
-                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                            <option value="">Select</option>
+                                            <option value="FIXED">Fixed</option>
+                                            <option value="T_AND_M">T & M</option>
+                                            <option value="MIXED">Mixed</option>
+                                        </select>
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO Country</label>
+                                        <select
+                                            value={formData.poCountry}
+                                            onChange={handleChange('poCountry')}
+                                            title={formData.poCountry || 'Select from list'} // Tooltip on hover
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        >
+                                            <option value="">Select from list</option>
+                                            {countries.map((country) => (
+                                                <option key={country.code} value={country.name}>
+                                                    {country.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className='lg:col-span-1'>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Currency">
+                                            Currency <span className="text-red-500">*</span>
+                                        </label>
+                                        <select
+                                            value={formData.poCurrency}
+                                            onChange={handleChange('poCurrency')}
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md truncate"
+                                            title={formData.poCurrency || "Currency"}
+                                            required
+                                        >
+                                            <option value="USD">USD</option>
+                                            <option value="INR">INR</option>
+                                            <option value="EUR">EUR</option>
+                                            <option value="GBP">GBP</option>
+                                            <option value="JPY">JPY</option>
+                                        </select>
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="PO Amount">
+                                            PO Amount <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
+                                                {currencySymbols[formData.poCurrency] || '$'}
+                                            </span>
+                                            <input
+                                                type="text"
+                                                value={formData.poAmount}
+                                                onChange={e => {
+                                                    let value = e.target.value.replace(/[^0-9.]/g, '');
+                                                    const parts = value.split('.');
+                                                    if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                                    if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                                    if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                                    value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                                    setFormData(prev => ({ ...prev, poAmount: value }));
+                                                }}
+                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
+                                                title={formData.poAmount || "Enter PO Amount"}
+                                                placeholder="Enter Amount"
+                                                maxLength={16}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Start Date">
+                                            PO Start Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center">
+                                            <Calendar className="absolute left-3 text-green-600" size={20} />
+                                            <input
+                                                ref={startDateRef}
+                                                type="date"
+                                                value={formData.poStartDate}
+                                                onChange={handleChange('poStartDate')}
+                                                className="w-full h-full bg-transparent outline-none cursor-pointer pl-10 truncate"
+                                                title={formData.poStartDate || "Select Start Date"}
+                                                required
+                                                onFocus={e => e.target.showPicker && e.target.showPicker()}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="End Date">
+                                            PO End Date <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative w-full h-10 border border-gray-300 rounded-md flex items-center">
+                                            <Calendar className="absolute left-3 text-green-600" size={20} />
+                                            <input
+                                                ref={endDateRef}
+                                                type="date"
+                                                value={formData.poEndDate}
+                                                onChange={handleChange('poEndDate')}
+                                                className="w-full h-full bg-transparent outline-none cursor-pointer pl-10 truncate"
+                                                title={formData.poEndDate || "Select End Date"}
+                                                required
+                                                onFocus={e => e.target.showPicker && e.target.showPicker()}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label
+                                            htmlFor="poSpoc"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            PM/SPOC Name
+                                        </label>
+                                        <div className="relative w-full">
+                                            <Folder
+                                                className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11"
+                                                size={20}
+                                                title="Select or create project"
+                                            />
+                                            <CreatableSelect
+                                                inputId="poSpoc"
+                                                options={userOptions}
+                                                value={
+                                                    formData.poSpoc
+                                                        ? { label: formData.poSpoc, value: formData.poSpoc }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    let value = selectedOption?.value || '';
+                                                    if (value.length > 255) value = value.slice(0, 255);
+                                                    setFormData(prev => ({ ...prev, poSpoc: value }));
+                                                }}
+                                                className="react-select-container z-10"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select PM/SPOC"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Name">
+                                            Project Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative w-full">
+                                            <Folder className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11" size={20} />
+                                            <CreatableSelect
+                                                options={projectOptions}
+                                                value={formData.projectName ? { label: formData.projectName, value: formData.projectName } : null}
+                                                onChange={(opt) => {
+                                                    let value = opt?.value || '';
+                                                    if (value.length > 255) value = value.slice(0, 255);
+                                                    setFormData(prev => ({ ...prev, projectName: value }));
+                                                }}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px'
+                                                    }),
+                                                    singleValue: (base) => ({
+                                                        ...base,
+                                                        textOverflow: 'ellipsis',
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden'
+                                                    })
+                                                }}
+                                                className="react-select-container z-10"
+                                                placeholder="Select or create project"
+                                                title={formData.projectName || "Select or create project"}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Customer Name">
+                                            Customer Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <OrganizationSelect
+                                            value={formData.customer || ''}
+                                            onChange={(value) => {
+                                                let finalValue = value;
+                                                if (value && value.length > 255) finalValue = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, customer: finalValue }));
+                                            }}
+
+                                            placeholder="Type customer name"
+                                            orgType="CUSTOMER"
+                                            className="w-full"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Supplier Name">
+                                            Supplier Name <span className="text-red-500">*</span>
+                                        </label>
+                                        <OrganizationSelect
+                                            value={formData.supplier || ''}
+                                            onChange={(value) => {
+                                                let finalValue = value;
+                                                if (value && value.length > 255) finalValue = value.slice(0, 255);
+                                                setFormData(prev => ({ ...prev, supplier: finalValue }));
+                                            }}
+                                            placeholder="Search for supplier or type new..."
+                                            orgType="SUPPLIER"
+                                            className="w-full"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label
+                                            htmlFor="sponsorName"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            Sponsor Name
+                                        </label>
+                                        <div className="relative w-full">
+                                            <UserCheck
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-10"
+                                                size={20}
+                                                title="Select or create sponsor"
+                                            />
+                                            <CreatableSelect
+                                                inputId="sponsorName"
+                                                options={userOptions}
+                                                value={
+                                                    formData.sponsorName
+                                                        ? { label: formData.sponsorName, value: formData.sponsorName }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    let value = selectedOption?.value || '';
+                                                    if (value.length > 255) value = value.slice(0, 255);
+                                                    setFormData(prev => ({ ...prev, sponsorName: value }));
+                                                }}
+                                                className="react-select-container"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Sponsor"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="sponsorLob"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            Sponsor LOB
+                                        </label>
+                                        <div className="relative w-full">
+                                            <UserCheck
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
+                                                size={20}
+                                                title="Select or create project"
+                                            />
+                                            <CreatableSelect
+                                                inputId="sponsorLob"
+                                                options={userOptions}
+                                                value={
+                                                    formData.sponsorLob
+                                                        ? { label: formData.sponsorLob, value: formData.sponsorLob }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    let value = selectedOption?.value || '';
+                                                    if (value.length > 255) value = value.slice(0, 255);
+                                                    setFormData(prev => ({ ...prev, sponsorLob: value }));
+                                                }}
+                                                className="react-select-container"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Sponsor LOB"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            htmlFor="budgetLineItem"
+                                            className="block text-sm font-medium text-gray-700 mb-2"
+                                            title="Select an existing project or type a new one to create"
+                                        >
+                                            Budget Line Item
+                                        </label>
+                                        <div className="relative w-full">
+                                            <UserCheck
+                                                className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
+                                                size={20}
+                                                title="Select or create project"
+                                            />
+                                            <CreatableSelect
+                                                inputId="budgetLineItem"
+                                                options={userOptions}
+                                                value={
+                                                    formData.budgetLineItem
+                                                        ? { label: formData.budgetLineItem, value: formData.budgetLineItem }
+                                                        : null
+                                                }
+                                                onChange={(selectedOption) => {
+                                                    let value = selectedOption?.value || '';
+                                                    if (value.length > 255) value = value.slice(0, 255);
+                                                    setFormData(prev => ({ ...prev, budgetLineItem: value }));
+                                                }}
+                                                className="react-select-container"
+                                                classNamePrefix="react-select"
+                                                placeholder="Select Budget Line"
+                                                isSearchable
+                                                isClearable
+                                                formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                                styles={{
+                                                    control: (base) => ({
+                                                        ...base,
+                                                        height: '40px',
+                                                        paddingLeft: '28px',
+                                                        borderColor: '#d1d5db',
+                                                    }),
+                                                    valueContainer: (base) => ({ ...base, padding: '0 6px' }),
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Amount">
+                                            Budget Line Amount <span className="text-red-500">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
+                                                {currencySymbols[formData.poCurrency] || '$'}
+                                            </span>
+                                            <input
+                                                type="text"
+                                                value={formData.budgetLineAmount}
+                                                onChange={e => {
+                                                    let value = e.target.value.replace(/[^0-9.]/g, '');
+                                                    const parts = value.split('.');
+                                                    if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                                    if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                                    if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                                    value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                                    setFormData(prev => ({ ...prev, budgetLineAmount: value }));
+                                                }}
+                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
+                                                title={formData.budgetLineAmount || "Enter Budget Line Amount"}
+                                                placeholder="Enter Amount"
+                                                maxLength={16}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Business Value Amount">
+                                            Business Value Amount
+                                        </label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 font-semibold">
+                                                {currencySymbols[formData.poCurrency] || '$'}
+                                            </span>
+                                            <input
+                                                type="text"
+                                                value={formData.businessValueAmount}
+                                                onChange={e => {
+                                                    let value = e.target.value.replace(/[^0-9.]/g, '');
+                                                    const parts = value.split('.');
+                                                    if (parts.length > 2) value = parts[0] + '.' + parts[1];
+                                                    if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
+                                                    if (parts[1]) parts[1] = parts[1].slice(0, 2);
+                                                    value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
+                                                    setFormData(prev => ({ ...prev, businessValueAmount: value }));
+                                                }}
+                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
+                                                title={formData.businessValueAmount || "Enter Business Value Amount"}
+                                                placeholder="Enter Amount"
+                                                maxLength={16}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:col-span-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Business Value Type</label>
+                                        <select
+                                            value={formData.businessValueType}
+                                            onChange={handleChange('businessValueType')}
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        >
+                                            <option value="">Select Type</option>
+                                            <option value="One Time">One Time</option>
+                                            <option value="Yearly">Yearly</option>
+                                        </select>
+                                    </div>
+
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+                                    {/* SPOC, Project, Customer, Supplier, Attachments */}
+
+
+
+
+
+                                </div>
+
+                                <div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
+                                            Project Description
+                                            <span className="float-right text-xs text-gray-500">
+                                                {formData.poDesc?.length || 0}/500 characters
+                                            </span>
+                                        </label>
+                                        <textarea
+                                            rows={3}
+                                            value={formData.poDesc}
+                                            onChange={e => {
+                                                let value = e.target.value;
+                                                if (value.length > 500) value = value.slice(0, 500);
+                                                setFormData(prev => ({ ...prev, poDesc: value }));
+                                            }}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
+                                            title={formData.poDesc || "Enter Project Description"}
+                                            placeholder="Enter Project Description"
+                                            maxLength={500}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
+                                            Budget Line Remarks
+                                            <span className="float-right text-xs text-gray-500">
+                                                {formData.budgetLineRemarks?.length || 0}/500 characters
+                                            </span>
+                                        </label>
+                                        <textarea
+                                            rows={3}
+                                            value={formData.budgetLineRemarks}
+                                            onChange={e => {
+                                                let value = e.target.value;
+                                                if (value.length > 500) value = value.slice(0, 500);
+                                                setFormData(prev => ({ ...prev, budgetLineRemarks: value }));
+                                            }}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
+                                            title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
+                                            placeholder="Enter Budget Line Remarks"
+                                            maxLength={500}
+                                        />
+                                    </div>
+                                    <div className="lg:col-span-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="po-attachment-input"
+                                                multiple
+                                                onChange={handleFileChange}
+                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                                className="hidden"
+                                            />
+                                            <label
+                                                htmlFor="po-attachment-input"
+                                                className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
                                             >
-                                                Delete
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            </div>
+                                                <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
+                                                <span className="text-gray-500 truncate">
+                                                    {poAttachments.length > 0 ? `${poAttachments.length} file(s) selected` : 'Click to select files'}
+                                                </span>
+                                            </label>
+                                        </div>
 
-                        </div>
-                    )}
+                                        <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
+                                            {poAttachments.map((file, index) => (
+                                                <li
+                                                    key={index}
+                                                    className="flex max-w-[150px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                                >
+                                                    <span className="truncate max-w-[220px]" title={file.name}>{file.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeAttachment(index)}
+                                                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
 
-                    {currentStep === 2 && (
-                        <div className="space-y-6">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-lg font-semibold text-green-900 truncate" title="Milestones Details">
-                                    Milestones Details
-                                </h3>
                             </div>
-                            <div className="h-96 w-full border border-gray-200 rounded-md">
-                                <div className="ag-theme-alpine h-full w-full">
-                                    <AgGridReact
-                                        key={formData.milestones.length}
-                                        columnDefs={milestoneColumnDefs}
-                                        rowData={formData.milestones}
-                                        defaultColDef={defaultColDef}
-                                        rowHeight={48}
-                                        headerHeight={48}
-                                        components={{ AttachmentRenderer }}
-                                    />
+                        )}
+
+                        {currentStep === 2 && (
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-lg font-semibold text-green-900 truncate" title="Milestones Details">
+                                        Milestones Details
+                                    </h3>
+                                </div>
+                                <div className="h-96 w-full border border-gray-200 rounded-md">
+                                    <div className="ag-theme-alpine h-full w-full">
+                                        <AgGridReact
+                                            key={formData.milestones.length}
+                                            columnDefs={milestoneColumnDefs}
+                                            rowData={formData.milestones}
+                                            defaultColDef={defaultColDef}
+                                            rowHeight={48}
+                                            headerHeight={48}
+                                            components={{ AttachmentRenderer }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
                     {currentStep === 1 ? (
                         <button
                             onClick={handleNextStep}
+                            disabled={loading}
                             className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
                         >
                             Submit
@@ -1280,6 +1287,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     ) : (
                         <button
                             onClick={handleSubmitMilestones}
+                            disabled={loading}
                             className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
                         >
                             Submit

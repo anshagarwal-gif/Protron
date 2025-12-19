@@ -181,8 +181,8 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
         type="button"
         onClick={onChange}
         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${color === "green" ? "focus:ring-green-500" :
-            color === "yellow" ? "focus:ring-yellow-400" :
-              "focus:ring-red-400"
+          color === "yellow" ? "focus:ring-yellow-400" :
+            "focus:ring-red-400"
           } ${colorClasses[color]}`}
       >
         <span
@@ -196,7 +196,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
       <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
@@ -298,24 +298,24 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                         </div>
 
                         {moduleName !== generateInvoiceModule && (
-                        <>
-                          <div className="flex justify-center">
-                            <Toggle
-                              checked={permissions[`${moduleName}_canEdit`] || false}
-                              onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
-                              color="yellow"
-                            />
-                          </div>
+                          <>
+                            <div className="flex justify-center">
+                              <Toggle
+                                checked={permissions[`${moduleName}_canEdit`] || false}
+                                onChange={() => handlePermissionToggle(`${moduleName}_canEdit`)}
+                                color="yellow"
+                              />
+                            </div>
 
-                          <div className="flex justify-center">
-                            <Toggle
-                              checked={permissions[`${moduleName}_canDelete`] || false}
-                              onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
-                              color="red"
-                            />
-                          </div>
-                        </>
-                      )}
+                            <div className="flex justify-center">
+                              <Toggle
+                                checked={permissions[`${moduleName}_canDelete`] || false}
+                                onChange={() => handlePermissionToggle(`${moduleName}_canDelete`)}
+                                color="red"
+                              />
+                            </div>
+                          </>
+                        )}
                       </div>
                     );
                   })}

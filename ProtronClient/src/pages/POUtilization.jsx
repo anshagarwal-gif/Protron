@@ -1,5 +1,5 @@
 // POConsumptionManagement.js
-import { useState, useEffect, useMemo, forwardRef, useImperativeHandle} from "react";
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import { useNavigate } from "react-router-dom";
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
@@ -103,13 +103,13 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
 
   // Format date (matching PO modal)
   const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${monthStr}-${year}`;
+    if (!dateString) return 'N/A';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   // Get consumption type tag styling
@@ -140,7 +140,7 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
   const getFileIcon = (fileName) => {
     if (!fileName) return <File size={16} />;
     const extension = fileName.split('.').pop()?.toLowerCase();
-    
+
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension)) {
       return <Image size={16} className="text-green-600" />;
     } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
@@ -151,7 +151,7 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50 p-2 sm:p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-t-lg">
@@ -241,32 +241,32 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
                 />
               </div>
               {consumption.milestone.msDesc && (
-                  <div className="mt-3 sm:mt-4">
-                    <Field
-                      label="Milestone Description"
-                      value={
-                        <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
-                          <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
-                            {consumption.milestone.msDesc}
-                          </p>
-                        </div>
-                      }
-                    />
-                  </div>
+                <div className="mt-3 sm:mt-4">
+                  <Field
+                    label="Milestone Description"
+                    value={
+                      <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
+                        <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                          {consumption.milestone.msDesc}
+                        </p>
+                      </div>
+                    }
+                  />
+                </div>
               )}
               {consumption.milestone.msRemarks && (
-                  <div className="mt-3 sm:mt-4">
-                    <Field
-                      label="Milestone Remarks"
-                      value={
-                        <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
-                          <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
-                            {consumption.milestone.msRemarks}
-                          </p>
-                        </div>
-                      }
-                    />
-                  </div>
+                <div className="mt-3 sm:mt-4">
+                  <Field
+                    label="Milestone Remarks"
+                    value={
+                      <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
+                        <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+                          {consumption.milestone.msRemarks}
+                        </p>
+                      </div>
+                    }
+                  />
+                </div>
               )}
             </div>
           )}
@@ -478,7 +478,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       'VUV': 'VT',
       'WST': 'WS$'
     };
-    
+
     return currencySymbols[currencyCode] || currencyCode || '$';
   };
 
@@ -486,10 +486,10 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   const truncateWithTooltip = (text, maxLength = 15) => {
     if (!text || text === 'N/A') return text;
     if (text.length <= maxLength) return text;
-    
+
     return (
-      <span 
-        title={text} 
+      <span
+        title={text}
         className="cursor-help truncate block"
         style={{ maxWidth: '100%' }}
       >
@@ -539,7 +539,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   // Filter PO Consumption data based on search
   const filteredConsumptionData = consumptionList.filter(consumption => {
     if (!searchQuery || searchQuery === "") return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
     return (
       consumption.poNumber?.toLowerCase().includes(searchLower) ||
@@ -695,276 +695,276 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   };
 
   // AG Grid column definitions
-const columnDefs = useMemo(() => [
-  {
-    headerName: "#",
-    valueGetter: "node.rowIndex + 1",
-    width: 60,
-    pinned: "left",
-    sortable: false,
-    filter: false,
-    suppressMenu: true,
-    cellStyle: { textAlign: 'center' },
-    cellRenderer: params => (
-      <span title={`Row ${params.value}`} className="cursor-help">
-        {params.value}
-      </span>
-    )
-  },
-  {
-    headerName: "PO Number",
-    field: "poNumber",
-    valueGetter: params => params.data.poNumber || 'N/A',
-    width: 120,
-    minWidth: 120,
-    sortable: true,
-    filter: true,
-    cellStyle: { fontWeight: 'bold', color: '#1f2937' },
-    cellRenderer: params => {
-      const poNumber = params.value;
-      const consumption = params.data;
-      if (poNumber && poNumber !== 'N/A') {
-        return (
-          <button
-            onClick={() => handlePONumberClick(consumption)}
-            className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left truncate block w-full"
-            title={`View PO details for ${poNumber}`}
-          >
-            {truncateWithTooltip(poNumber, 12)}
-          </button>
-        );
-      }
-      return <span className="text-gray-500" title={poNumber}>{truncateWithTooltip(poNumber, 12)}</span>;
-    }
-  },
-  {
-    headerName: "Milestone",
-    field: "milestone.msName",
-    valueGetter: params => params.data.milestone?.msName || 'N/A',
-    width: 120,
-    minWidth: 120,
-    filter: true,
-    cellRenderer: params => {
-      const msName = params.value;
-      return (
-        <span title={msName} className="cursor-help truncate block w-full">
-          {truncateWithTooltip(msName, 15)}
+  const columnDefs = useMemo(() => [
+    {
+      headerName: "#",
+      valueGetter: "node.rowIndex + 1",
+      width: 60,
+      pinned: "left",
+      sortable: false,
+      filter: false,
+      suppressMenu: true,
+      cellStyle: { textAlign: 'center' },
+      cellRenderer: params => (
+        <span title={`Row ${params.value}`} className="cursor-help">
+          {params.value}
         </span>
-      );
-    }
-  },
-  {
-    headerName: "Type",
-    field: "utilizationType",
-    valueGetter: params => params.data.utilizationType || 'N/A',
-    width: 80,
-    sortable: true,
-    filter: true,
-    cellRenderer: params => {
-      const type = params.value;
-      if (type && type !== 'N/A') {
-        const badgeClass = getUtilizationTypeBadge(type);
+      )
+    },
+    {
+      headerName: "PO Number",
+      field: "poNumber",
+      valueGetter: params => params.data.poNumber || 'N/A',
+      width: 120,
+      minWidth: 120,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#1f2937' },
+      cellRenderer: params => {
+        const poNumber = params.value;
+        const consumption = params.data;
+        if (poNumber && poNumber !== 'N/A') {
+          return (
+            <button
+              onClick={() => handlePONumberClick(consumption)}
+              className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left truncate block w-full"
+              title={`View PO details for ${poNumber}`}
+            >
+              {truncateWithTooltip(poNumber, 12)}
+            </button>
+          );
+        }
+        return <span className="text-gray-500" title={poNumber}>{truncateWithTooltip(poNumber, 12)}</span>;
+      }
+    },
+    {
+      headerName: "Milestone",
+      field: "milestone.msName",
+      valueGetter: params => params.data.milestone?.msName || 'N/A',
+      width: 120,
+      minWidth: 120,
+      filter: true,
+      cellRenderer: params => {
+        const msName = params.value;
         return (
-          <span 
-            className={`px-2 py-1 rounded-full text-xs font-medium ${badgeClass} truncate block`}
-            title={type}
-          >
-            {truncateWithTooltip(type, 8)}
+          <span title={msName} className="cursor-help truncate block w-full">
+            {truncateWithTooltip(msName, 15)}
           </span>
         );
       }
-      return <span className="text-gray-500" title={type}>{truncateWithTooltip(type, 8)}</span>;
-    }
-  },
-  {
-    headerName: "Project",
-    field: "project",
-    valueGetter: params => params.data?.project || 'N/A',
-    width: 120,
-    minWidth: 120,
-    sortable: true,
-    filter: true,
-    cellStyle: { fontWeight: '500' },
-    cellRenderer: params => {
-      const project = params.value;
-      return (
-        <span title={project} className="cursor-help truncate block w-full font-medium">
-          {truncateWithTooltip(project, 15)}
-        </span>
-      );
-    }
-  },
-  {
-    headerName: "Work Description",
-    field: "workDesc",
-    valueGetter: params => params.data.workDesc || 'N/A',
-    flex: 1,
-    minWidth: 180,
-    sortable: true,
-    filter: true,
-    cellRenderer: params => {
-      const description = params.value;
-      return (
-        <span title={description} className="cursor-help truncate block w-full">
-          {truncateWithTooltip(description, 35)}
-        </span>
-      );
-    }
-  },
-  {
-    headerName: "Amount",
-    field: "amount",
-    valueGetter: params => {
-      const amount = params.data.amount;
-      const currency = params.data.currency;
-      if (!amount) return 'N/A';
-      const symbol = getCurrencySymbol(currency);
-      return `${symbol}${amount.toLocaleString()}`;
     },
-    width: 110,
-    sortable: true,
-    filter: true,
-    cellStyle: { fontWeight: 'bold', color: '#059669' },
-    cellRenderer: params => {
-      const amount = params.value;
-      return (
-        <span title={amount} className="cursor-help truncate block w-full font-bold text-green-600">
-          {truncateWithTooltip(amount, 12)}
-        </span>
-      );
-    }
-  },
- 
-  {
-    headerName: "Assigned",
-    field: "workAssignDate",
-    valueGetter: params => {
-      const dateString = params.data.workAssignDate;
-      if (!dateString) return 'N/A';
-      const d = new Date(dateString);
-      const day = String(d.getDate()).padStart(2, '0');
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const monthStr = monthNames[d.getMonth()];
-      const year = d.getFullYear();
-      return `${day}-${monthStr}-${year}`;
-    },
-    width: 100,
-    sortable: true,
-    filter: true,
-    cellStyle: { color: '#374151', fontSize: '13px' },
-    cellRenderer: params => {
-      const date = params.value;
-      return (
-        <span title={date} className="cursor-help truncate block w-full text-gray-700 text-sm">
-          {truncateWithTooltip(date, 10)}
-        </span>
-      );
-    }
-  },
-  {
-    headerName: "Completed",
-    field: "workCompletionDate",
-    valueGetter: params => {
-      const dateString = params.data.workCompletionDate;
-      if (!dateString) return 'N/A';
-      const d = new Date(dateString);
-      const day = String(d.getDate()).padStart(2, '0');
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const monthStr = monthNames[d.getMonth()];
-      const year = d.getFullYear();
-      return `${day}-${monthStr}-${year}`;
-    },
-    width: 100,
-    sortable: true,
-    filter: true,
-    cellStyle: { color: '#374151', fontSize: '13px' },
-    cellRenderer: params => {
-      const date = params.value;
-      return (
-        <span title={date} className="cursor-help truncate block w-full text-gray-700 text-sm">
-          {truncateWithTooltip(date, 10)}
-        </span>
-      );
-    }
-  },
-  {
-    headerName: "Remarks",
-    field: "remarks",
-    valueGetter: params => params.data.remarks || 'N/A',
-    width: 120,
-    minWidth: 120,
-    sortable: true,
-    filter: true,
-    cellRenderer: params => {
-      const remarks = params.value;
-      return (
-        <span title={remarks} className="cursor-help truncate block w-full">
-          {truncateWithTooltip(remarks, 15)}
-        </span>
-      );
-    }
-  },
-  {
-    headerName: "System",
-    field: "systemName",
-    valueGetter: params => params.data.systemName || 'N/A',
-    width: 90,
-    sortable: true,
-    filter: true,
-    cellStyle: { color: '#6b7280', fontSize: '13px' },
-    cellRenderer: params => {
-      const system = params.value;
-      return (
-        <span title={system} className="cursor-help truncate block w-full text-gray-500 text-sm">
-          {truncateWithTooltip(system, 10)}
-        </span>
-      );
-    }
-  },
-  {
-    headerName: "Actions",
-    field: "actions",
-    width: 120,
-    sortable: false,
-    filter: false,
-    suppressMenu: true,
-    cellRenderer: params => {
-      const consumption = params.data;
-      return (
-        <div className="flex gap-2">
-          {/* View Button */}
-          <button
-            onClick={() => handleViewConsumption(consumption)}
-            className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
-            title="View Details"
-          >
-            <Eye size={16} />
-          </button>
-          {/* Edit Button */}
-          {hasAccess('budget', 'edit') && (
-            <button
-              onClick={() => handleEditConsumption(consumption)}
-              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
-              title="Edit Consumption"
+    {
+      headerName: "Type",
+      field: "utilizationType",
+      valueGetter: params => params.data.utilizationType || 'N/A',
+      width: 80,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const type = params.value;
+        if (type && type !== 'N/A') {
+          const badgeClass = getUtilizationTypeBadge(type);
+          return (
+            <span
+              className={`px-2 py-1 rounded-full text-xs font-medium ${badgeClass} truncate block`}
+              title={type}
             >
-              <Edit size={16} />
-            </button>
-          )}
-          {/* Delete Button */}
-          {hasAccess('budget', 'delete') && (
+              {truncateWithTooltip(type, 8)}
+            </span>
+          );
+        }
+        return <span className="text-gray-500" title={type}>{truncateWithTooltip(type, 8)}</span>;
+      }
+    },
+    {
+      headerName: "Project",
+      field: "project",
+      valueGetter: params => params.data?.project || 'N/A',
+      width: 120,
+      minWidth: 120,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: '500' },
+      cellRenderer: params => {
+        const project = params.value;
+        return (
+          <span title={project} className="cursor-help truncate block w-full font-medium">
+            {truncateWithTooltip(project, 15)}
+          </span>
+        );
+      }
+    },
+    {
+      headerName: "Work Description",
+      field: "workDesc",
+      valueGetter: params => params.data.workDesc || 'N/A',
+      flex: 1,
+      minWidth: 180,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const description = params.value;
+        return (
+          <span title={description} className="cursor-help truncate block w-full">
+            {truncateWithTooltip(description, 35)}
+          </span>
+        );
+      }
+    },
+    {
+      headerName: "Amount",
+      field: "amount",
+      valueGetter: params => {
+        const amount = params.data.amount;
+        const currency = params.data.currency;
+        if (!amount) return 'N/A';
+        const symbol = getCurrencySymbol(currency);
+        return `${symbol}${amount.toLocaleString()}`;
+      },
+      width: 110,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#059669' },
+      cellRenderer: params => {
+        const amount = params.value;
+        return (
+          <span title={amount} className="cursor-help truncate block w-full font-bold text-green-600">
+            {truncateWithTooltip(amount, 12)}
+          </span>
+        );
+      }
+    },
+
+    {
+      headerName: "Assigned",
+      field: "workAssignDate",
+      valueGetter: params => {
+        const dateString = params.data.workAssignDate;
+        if (!dateString) return 'N/A';
+        const d = new Date(dateString);
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthStr = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        return `${day}-${monthStr}-${year}`;
+      },
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellStyle: { color: '#374151', fontSize: '13px' },
+      cellRenderer: params => {
+        const date = params.value;
+        return (
+          <span title={date} className="cursor-help truncate block w-full text-gray-700 text-sm">
+            {truncateWithTooltip(date, 10)}
+          </span>
+        );
+      }
+    },
+    {
+      headerName: "Completed",
+      field: "workCompletionDate",
+      valueGetter: params => {
+        const dateString = params.data.workCompletionDate;
+        if (!dateString) return 'N/A';
+        const d = new Date(dateString);
+        const day = String(d.getDate()).padStart(2, '0');
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthStr = monthNames[d.getMonth()];
+        const year = d.getFullYear();
+        return `${day}-${monthStr}-${year}`;
+      },
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellStyle: { color: '#374151', fontSize: '13px' },
+      cellRenderer: params => {
+        const date = params.value;
+        return (
+          <span title={date} className="cursor-help truncate block w-full text-gray-700 text-sm">
+            {truncateWithTooltip(date, 10)}
+          </span>
+        );
+      }
+    },
+    {
+      headerName: "Remarks",
+      field: "remarks",
+      valueGetter: params => params.data.remarks || 'N/A',
+      width: 120,
+      minWidth: 120,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const remarks = params.value;
+        return (
+          <span title={remarks} className="cursor-help truncate block w-full">
+            {truncateWithTooltip(remarks, 15)}
+          </span>
+        );
+      }
+    },
+    {
+      headerName: "System",
+      field: "systemName",
+      valueGetter: params => params.data.systemName || 'N/A',
+      width: 90,
+      sortable: true,
+      filter: true,
+      cellStyle: { color: '#6b7280', fontSize: '13px' },
+      cellRenderer: params => {
+        const system = params.value;
+        return (
+          <span title={system} className="cursor-help truncate block w-full text-gray-500 text-sm">
+            {truncateWithTooltip(system, 10)}
+          </span>
+        );
+      }
+    },
+    {
+      headerName: "Actions",
+      field: "actions",
+      width: 120,
+      sortable: false,
+      filter: false,
+      suppressMenu: true,
+      cellRenderer: params => {
+        const consumption = params.data;
+        return (
+          <div className="flex gap-2">
+            {/* View Button */}
             <button
-              onClick={() => handleDeleteConsumption(consumption.utilizationId)}
-              className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer"
-              title="Delete Consumption"
+              onClick={() => handleViewConsumption(consumption)}
+              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
+              title="View Details"
             >
-              <Trash2 size={16} />
+              <Eye size={16} />
             </button>
-          )}
-        </div>
-      );
+            {/* Edit Button */}
+            {hasAccess('budget', 'edit') && (
+              <button
+                onClick={() => handleEditConsumption(consumption)}
+                className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
+                title="Edit Consumption"
+              >
+                <Edit size={16} />
+              </button>
+            )}
+            {/* Delete Button */}
+            {hasAccess('budget', 'delete') && (
+              <button
+                onClick={() => handleDeleteConsumption(consumption.utilizationId)}
+                className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer"
+                title="Delete Consumption"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+          </div>
+        );
+      }
     }
-  }
-], [hasAccess]);
+  ], [hasAccess]);
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -1335,15 +1335,15 @@ const columnDefs = useMemo(() => [
 
       {/* Add PO Consumption Modal */}
       {hasAccess('budget', 'edit') && (
-        <AddPOConsumptionModal 
+        <AddPOConsumptionModal
           open={isAddModalOpen}
-          onClose={() =>{ fetchConsumptionData() ;setIsAddModalOpen(false)}}
+          onClose={() => { fetchConsumptionData(); setIsAddModalOpen(false) }}
         />
       )}
 
       {/* Edit PO Consumption Modal */}
       {hasAccess('budget', 'edit') && (
-        <EditPOConsumptionModal 
+        <EditPOConsumptionModal
           open={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);

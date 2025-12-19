@@ -51,4 +51,11 @@ public class POController {
     @GetMapping("/pobalance-con/{id}")
     public BigDecimal getPoBalanceForConsumptions(@PathVariable Long id) { return costDetailsService.getPOBalanceBasedOnConsumption(id); }
 
+    @GetMapping("/{poId}/milestone-balance")
+    public ResponseEntity<BigDecimal> getPoBalanceForMilestoneCreation(
+            @PathVariable Long poId) {
+        return ResponseEntity.ok(
+                costDetailsService.getPoBalanceForMilestoneCreation(poId)
+        );
+    }
 }

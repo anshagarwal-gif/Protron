@@ -275,7 +275,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                 'deliveryLeader',
                 'businessUnitFundedBy',
                 'businessUnitDeliveredTo'
-            ].forEach(function(field) {
+            ].forEach(function (field) {
                 if (formData[field] && typeof formData[field] === 'object' && formData[field].name) {
                     submitData[field] = formData[field].name;
                 } else if (formData[field] && typeof formData[field] === 'string') {
@@ -303,7 +303,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     return (
         <>
             {/* Modal */}
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-[#00000059] bg-opacity-50 z-50 flex items-center justify-center p-4">
                 <div className={`bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto shadow-xl ${isSubmitting ? 'pointer-events-none' : ''}`}>
                     {/* Header */}
                     <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
@@ -587,62 +587,62 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                 />
                             </div>
-                             <div className="flex-1">
-                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
-                                 <CreatableSelect
-                                     options={businessUnitOptions}
-                                     value={formData.businessUnitFundedBy ? businessUnitOptions.find(u => u.label.toLowerCase() === formData.businessUnitFundedBy.toLowerCase() || u.value.toLowerCase() === formData.businessUnitFundedBy.toLowerCase()) || { value: formData.businessUnitFundedBy, label: formData.businessUnitFundedBy } : null}
-                                     onChange={(selected) => handleChange('businessUnitFundedBy', selected ? selected.label : '')}
-                                     placeholder="Select or type name..."
-                                     isClearable
-                                     styles={{
-                                         menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                         menu: base => ({ 
-                                             ...base, 
-                                             zIndex: 9999,
-                                             maxHeight: 200,
-                                             overflow: 'hidden'
-                                         }),
-                                         menuList: base => ({
-                                             ...base,
-                                             maxHeight: 200,
-                                             overflowY: 'auto',
-                                             overflowX: 'hidden'
-                                         })
-                                     }}
-                                     formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                     menuPortalTarget={document.body}
-                                     menuPosition="fixed"
-                                 />
-                             </div>
-                             <div className="flex-1">
-                                 <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
-                                 <CreatableSelect
-                                     options={businessUnitOptions}
-                                     value={formData.businessUnitDeliveredTo ? businessUnitOptions.find(u => u.label.toLowerCase() === formData.businessUnitDeliveredTo.toLowerCase() || u.value.toLowerCase() === formData.businessUnitDeliveredTo.toLowerCase()) || { value: formData.businessUnitDeliveredTo, label: formData.businessUnitDeliveredTo } : null}
-                                     onChange={(selected) => handleChange('businessUnitDeliveredTo', selected ? selected.label : '')}
-                                     placeholder="Select or type name..."
-                                     isClearable
-                                     styles={{
-                                         menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                         menu: base => ({ 
-                                             ...base, 
-                                             zIndex: 9999,
-                                             maxHeight: 200,
-                                             overflow: 'hidden'
-                                         }),
-                                         menuList: base => ({
-                                             ...base,
-                                             maxHeight: 200,
-                                             overflowY: 'auto',
-                                             overflowX: 'hidden'
-                                         })
-                                     }}
-                                     formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                     menuPortalTarget={document.body}
-                                     menuPosition="fixed"
-                                 />
-                             </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Funded By</label>
+                                <CreatableSelect
+                                    options={businessUnitOptions}
+                                    value={formData.businessUnitFundedBy ? businessUnitOptions.find(u => u.label.toLowerCase() === formData.businessUnitFundedBy.toLowerCase() || u.value.toLowerCase() === formData.businessUnitFundedBy.toLowerCase()) || { value: formData.businessUnitFundedBy, label: formData.businessUnitFundedBy } : null}
+                                    onChange={(selected) => handleChange('businessUnitFundedBy', selected ? selected.label : '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({
+                                            ...base,
+                                            zIndex: 9999,
+                                            maxHeight: 200,
+                                            overflow: 'hidden'
+                                        }),
+                                        menuList: base => ({
+                                            ...base,
+                                            maxHeight: 200,
+                                            overflowY: 'auto',
+                                            overflowX: 'hidden'
+                                        })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Unit Delivered To</label>
+                                <CreatableSelect
+                                    options={businessUnitOptions}
+                                    value={formData.businessUnitDeliveredTo ? businessUnitOptions.find(u => u.label.toLowerCase() === formData.businessUnitDeliveredTo.toLowerCase() || u.value.toLowerCase() === formData.businessUnitDeliveredTo.toLowerCase()) || { value: formData.businessUnitDeliveredTo, label: formData.businessUnitDeliveredTo } : null}
+                                    onChange={(selected) => handleChange('businessUnitDeliveredTo', selected ? selected.label : '')}
+                                    placeholder="Select or type name..."
+                                    isClearable
+                                    styles={{
+                                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                                        menu: base => ({
+                                            ...base,
+                                            zIndex: 9999,
+                                            maxHeight: 200,
+                                            overflow: 'hidden'
+                                        }),
+                                        menuList: base => ({
+                                            ...base,
+                                            maxHeight: 200,
+                                            overflowY: 'auto',
+                                            overflowX: 'hidden'
+                                        })
+                                    }}
+                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
+                                    menuPortalTarget={document.body}
+                                    menuPosition="fixed"
+                                />
+                            </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Priority (1-10)</label>
                                 <select
@@ -859,7 +859,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
             {/* Full Screen Overlay Loader */}
             {isSubmitting && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 z-[60] flex items-center justify-center">
+                <div className="fixed inset-0 bg-[#00000059] bg-opacity-60 z-[60] flex items-center justify-center">
                     <div className="bg-white rounded-lg p-8 shadow-2xl flex flex-col items-center">
                         <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-2">Creating Project</h3>

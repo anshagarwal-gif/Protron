@@ -48,14 +48,14 @@ const PODetailsPage = () => {
   const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
   const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
   const [selectedMilestone, setSelectedMilestone] = useState(null);
-const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
-
+  const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
+  const [poBalance, setPOBalance] = useState(0);
 
   useEffect(() => {
-  if (selectedMilestone) {
-    setIsViewMilestoneModalOpen(true);
-  }
-}, [selectedMilestone]);
+    if (selectedMilestone) {
+      setIsViewMilestoneModalOpen(true);
+    }
+  }, [selectedMilestone]);
 
   // Global snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -171,10 +171,32 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
     }
   };
 
+  const fetchPOBalance = async () => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        throw new Error("Missing authentication credentials");
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/po/${poId}/milestone-balance`,
+        {
+          headers: { Authorization: `${token}` }
+        }
+      );
+
+      setPOBalance(response.data);
+    } catch (error) {
+      console.error("Error fetching PO balance:", error);
+      showSnackbar("Failed to fetch PO balance", "error");
+    }
+  };
+
   useEffect(() => {
     if (poId) {
       fetchPODetails();
       fetchMilestones();
+      fetchPOBalance();
     }
   }, [poId]);
 
@@ -192,13 +214,13 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
   });
 
   const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${monthStr}-${year}`;
+    if (!dateString) return 'N/A';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   // Download milestones Excel
@@ -324,35 +346,35 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
       cellRenderer: TruncatedCellRenderer,
       tooltipField: "milestoneName"
     },
-   {
-  headerName: 'Amount',
-  field: 'milestoneAmount',
-  flex: 1,
-  maxWidth: 130,
-  sortable: true,
-  filter: 'agNumberColumnFilter',
-  valueFormatter: (params) => {
-    if (params.value) {
-      // Get the milestone currency from the data, fallback to PO currency
-      const currency = params.data.milestoneCurrency || poDetails?.poCurrency || 'USD';
-      const currencySymbol = getCurrencySymbol(currency);
-      
-      // Format the amount with proper currency symbol
-      return `${currencySymbol}${params.value.toLocaleString()}`;
-    }
-    return '';
-  },
-  tooltipValueGetter: (params) => {
-    if (params.value) {
-      const currency = params.data.milestoneCurrency || poDetails?.poCurrency || 'USD';
-      const currencySymbol = getCurrencySymbol(currency);
-      return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
-    }
-    return 'No amount specified';
-  },
-  cellClass: 'truncate-cell',
-   // Green color for amounts
-  },
+    {
+      headerName: 'Amount',
+      field: 'milestoneAmount',
+      flex: 1,
+      maxWidth: 130,
+      sortable: true,
+      filter: 'agNumberColumnFilter',
+      valueFormatter: (params) => {
+        if (params.value) {
+          // Get the milestone currency from the data, fallback to PO currency
+          const currency = params.data.milestoneCurrency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+
+          // Format the amount with proper currency symbol
+          return `${currencySymbol}${params.value.toLocaleString()}`;
+        }
+        return '';
+      },
+      tooltipValueGetter: (params) => {
+        if (params.value) {
+          const currency = params.data.milestoneCurrency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+          return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+        }
+        return 'No amount specified';
+      },
+      cellClass: 'truncate-cell',
+      // Green color for amounts
+    },
     {
       headerName: "Milestone Date",
       field: "startDate",
@@ -398,7 +420,7 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
       cellRenderer: TruncatedCellRenderer,
       tooltipField: "remark"
     },
-    
+
     {
       headerName: "Actions",
       field: "actions",
@@ -411,12 +433,12 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
         return (
           <div className="flex justify-center gap-2 h-full items-center">
             <button
-            onClick={() => setSelectedMilestone(milestone)}
-            className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
-            title="View Milestone"
-          >
-            <Eye size={16} className="text-blue-600" />
-          </button>
+              onClick={() => { setSelectedMilestone(milestone); setIsViewMilestoneModalOpen(true) }}
+              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
+              title="View Milestone"
+            >
+              <Eye size={16} className="text-blue-600" />
+            </button>
             <button
               onClick={() => handleEditMilestone(milestone)}
               className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
@@ -424,12 +446,18 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
             >
               <Edit size={16} className="text-blue-600" />
             </button>
-            
+
           </div>
         );
       }
     }
   ], [poDetails]);
+
+  const closeDetailsAndOpenEdit = (msId) => {
+    setIsViewMilestoneModalOpen(false);
+    setSelectedMilestoneId(msId)
+    setIsEditMilestoneModalOpen(true);
+  }
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -614,14 +642,24 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
               Download Excel
             </button>
 
-            {/* Add Milestone Button */}
-            <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-              onClick={handleAddMilestone}
-            >
-              <Plus size={18} className="mr-2" />
-              Add Milestone
-            </button>
+            <div className="relative group inline-block">
+              <button
+                className={`flex items-center px-4 py-2 rounded-md transition-colors
+      ${parseInt(poBalance) === 0
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-green-700 hover:bg-green-800 cursor-pointer text-white"
+                  }`}
+                onClick={handleAddMilestone}
+                disabled={parseInt(poBalance) === 0}
+                title={parseInt(poBalance) === 0 ? "PO Balance = 0" : "Add Milestone"}
+              >
+                <Plus size={18} className="mr-2" />
+                Add Milestone
+              </button>
+
+
+            </div>
+
           </div>
         </div>
 
@@ -720,13 +758,14 @@ const [isViewMilestoneModalOpen, setIsViewMilestoneModalOpen] = useState(false);
       />
 
       <ViewMilestoneModal
-  open={isViewMilestoneModalOpen}
-  onClose={() => {
-    setIsViewMilestoneModalOpen(false);
-    setSelectedMilestone(null);
-  }}
-  milestoneData={selectedMilestone}
-/>
+        open={isViewMilestoneModalOpen}
+        onClose={() => {
+          setIsViewMilestoneModalOpen(false);
+          setSelectedMilestone(null);
+        }}
+        milestoneData={selectedMilestone}
+        openEditMilestoneModal={closeDetailsAndOpenEdit}
+      />
     </div>
   );
 };

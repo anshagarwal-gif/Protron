@@ -87,12 +87,12 @@ const POManagement = () => {
     setIsViewModalOpen(true);
   };
   const tabs = [
-  { id: "approval", label: "Approved Budget Tracker", short: "ABT", fullForm: "Approved Budget Tracker" },
-  { id: "details", label: "Purchase Order Details", short: "POD", fullForm: "Purchase Order Details" },
-  { id: "utilization", label: "Purchase Order – Consumption Details", short: "PO-CD", fullForm: "Purchase Order – Consumption Details" },
-  { id: "srn", label: "Service Release Tracker", short: "SRT", fullForm: "Service Release Tracker" },
-  { id: "invoice", label: "Invoice Tracker", short: "IT", fullForm: "Invoice Tracker" },
-];
+    { id: "approval", label: "Approved Budget Tracker", short: "ABT", fullForm: "Approved Budget Tracker" },
+    { id: "details", label: "Purchase Order Details", short: "POD", fullForm: "Purchase Order Details" },
+    { id: "utilization", label: "Purchase Order – Consumption Details", short: "PO-CD", fullForm: "Purchase Order – Consumption Details" },
+    { id: "srn", label: "Payments Tracker", short: "PT", fullForm: "Payments Tracker" },
+    { id: "invoice", label: "Invoice Tracker", short: "IT", fullForm: "Invoice Tracker" },
+  ];
   useEffect(() => {
     const el = tabRefs.current[activeTab];
     if (el) {
@@ -507,12 +507,18 @@ const POManagement = () => {
                 <Edit size={16} className="text-blue-600" />
               </button>
             )}
-            
+
           </div>
         );
       }
     }
   ], []);
+
+  const handleViewCloseAndEditOpen = (poId) => {
+    setIsViewModalOpen(false);
+    setSelectedPOId(poId);
+    setIsEditModalOpen(true);
+  }
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -635,9 +641,8 @@ const POManagement = () => {
                 <button
                   key={tab.id}
                   ref={(el) => (tabRefs.current[tab.id] = el)}
-                  className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap cursor-pointer ${
-                    activeTab === tab.id ? "text-green-600" : "text-gray-600"
-                  }`}
+                  className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap cursor-pointer ${activeTab === tab.id ? "text-green-600" : "text-gray-600"
+                    }`}
                   onClick={() => setActiveTab(tab.id)}
                 >
                   {activeTab === tab.id ? tab.label : tab.short}
@@ -645,7 +650,7 @@ const POManagement = () => {
               );
             })}
           </div>
-          
+
           {/* Current Tab Full Form Display */}
           <div className="flex items-center">
             <h1 className="text-2xl font-bold text-green-600 whitespace-nowrap">
@@ -665,7 +670,7 @@ const POManagement = () => {
                 activeTab === "approval" ? "Search Budget Lines..." :
                   activeTab === "details" ? "Search POs..." :
                     activeTab === "utilization" ? "Search PO Consumptions..." :
-                      activeTab === "srn" ? "Search SRNs..." :
+                      activeTab === "srn" ? "Search Payments..." :
                         "Search Invoices..."
               }
               value={searchQuery}
@@ -707,7 +712,7 @@ const POManagement = () => {
               {activeTab === "approval" ? "Add Budget Line" :
                 activeTab === "details" ? "Add PO" :
                   activeTab === "utilization" ? "Add Consumption" :
-                    activeTab === "srn" ? "Add SRN" :
+                    activeTab === "srn" ? "Add Payment" :
                       "Add Invoice"}
             </button>
           )}
@@ -729,6 +734,7 @@ const POManagement = () => {
         open={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         poData={selectedPO}
+        handleViewCloseAndEditOpen={handleViewCloseAndEditOpen}
       />
       <AddPOModal
         open={isAddModalOpen}

@@ -6,17 +6,17 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [formData, setFormData] = useState({
-  name: '',
-  email: '',
-  employeeCode: '',
-  taskType: '',
-  unit: '',
-  cost: 0,
-  releaseDate: '',
-  onBoardingDate: '',
-  tasktype: '',
-  systemImpacted: '',
-  pricingType: 'hourly'
+    name: '',
+    email: '',
+    employeeCode: '',
+    taskType: '',
+    unit: '',
+    cost: 0,
+    releaseDate: '',
+    onBoardingDate: '',
+    tasktype: '',
+    systemImpacted: '',
+    pricingType: 'hourly'
   });
   const dateInputRef = useRef(null);
 
@@ -126,14 +126,14 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
     GBP: '£',
     JPY: '¥'
   };
-  const handleDateInputClick = () =>{
+  const handleDateInputClick = () => {
     dateInputRef.current.showPicker?.(); // Safe call in case browser doesn't support it
   }
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-[#00000059] bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-2xl w-[90vw] max-w-6xl max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
@@ -149,40 +149,40 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
             {/* First Row: Email, Name, Employee Code */}
             <div className="flex gap-4">
               <div className="flex-1 relative">
-  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-  <div className="relative">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <svg className="h-5 w-5 text-green-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-      </svg>
-    </div>
-    <input
-      type="email"
-      name="email"
-      value={formData.email}
-      onFocus={() => setShowUserDropdown(true)} // Show dropdown on focus
-      onChange={(e) => handleEmailSearch(e.target.value)} // Filter users as user types
-      placeholder="Search for an email..."
-      className={`w-full pl-10 pr-3 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${error ? 'border-red-500' : 'border-gray-300'
-        }`}
-    />
-    {showUserDropdown && filteredUsers.length > 0 && (
-      <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
-        {filteredUsers.map((user, index) => (
-          <div
-            key={index}
-            onClick={() => selectUser(user)} // Select user on click
-            className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-          >
-            <div className="font-medium">{user.email}</div>
-            <div className="text-sm text-gray-600">{user.name}</div>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-  {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-</div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-green-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onFocus={() => setShowUserDropdown(true)} // Show dropdown on focus
+                    onChange={(e) => handleEmailSearch(e.target.value)} // Filter users as user types
+                    placeholder="Search for an email..."
+                    className={`w-full pl-10 pr-3 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${error ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                  />
+                  {showUserDropdown && filteredUsers.length > 0 && (
+                    <div className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto mt-1">
+                      {filteredUsers.map((user, index) => (
+                        <div
+                          key={index}
+                          onClick={() => selectUser(user)} // Select user on click
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium">{user.email}</div>
+                          <div className="text-sm text-gray-600">{user.name}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+              </div>
 
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
@@ -284,7 +284,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Type</label>
                 <div className="relative">
-                  
+
                   <input
                     type="text"
                     name="pricingType"
@@ -372,11 +372,11 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                   />
                 </div>
               </div>
-              
+
             </div>
 
             {/* Third Row: Pricing and Release Date */}
-            
+
             {/* Action Buttons */}
             <div className="flex justify-end gap-4 mt-4 pt-4 border-t border-gray-200">
               <button

@@ -97,20 +97,20 @@ const ProjectManagement = () => {
   };
 
   const handleOpenDodModal = async (project) => {
-  setDodProject(project);
-  setDodModalOpen(true);
-  setDodLoading(true);
-  try {
-    const res = await axios.get(`${API_BASE_URL}/api/projects/${project.projectId}/define-done`, {
-      headers: { Authorization: `${sessionStorage.getItem('token')}` }
-    });
-    setDodValue(res.data.defineDone || '');
-  } catch (e) {
-    setDodValue('');
-    console.error(e);
-  }
-  setDodLoading(false);
-};
+    setDodProject(project);
+    setDodModalOpen(true);
+    setDodLoading(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/projects/${project.projectId}/define-done`, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` }
+      });
+      setDodValue(res.data.defineDone || '');
+    } catch (e) {
+      setDodValue('');
+      console.error(e);
+    }
+    setDodLoading(false);
+  };
 
   const handleCloseDodModal = () => {
     setDodModalOpen(false);
@@ -118,30 +118,30 @@ const ProjectManagement = () => {
     setDodValue('');
   };
 
-const handleDodUpdate = async () => {
-  if (!dodProject) return;
-  setDodLoading(true);
-  try {
-    await axios.put(`${API_BASE_URL}/api/projects/${dodProject.projectId}/define-done`, { defineDone: dodValue }, {
-      headers: { Authorization: `${sessionStorage.getItem('token')}` }
-    });
-    setSnackbar({
-      open: true,
-      message: 'Define of Done updated!',
-      severity: 'success',
-    });
-    handleCloseDodModal();
-    fetchProjects();
-  } catch (e) {
-    setSnackbar({
-      open: true,
-      message: 'Failed to update DoD.',
-      severity: 'error',
-    });
-    console.error(e);
-  }
-  setDodLoading(false);
-};
+  const handleDodUpdate = async () => {
+    if (!dodProject) return;
+    setDodLoading(true);
+    try {
+      await axios.put(`${API_BASE_URL}/api/projects/${dodProject.projectId}/define-done`, { defineDone: dodValue }, {
+        headers: { Authorization: `${sessionStorage.getItem('token')}` }
+      });
+      setSnackbar({
+        open: true,
+        message: 'Define of Done updated!',
+        severity: 'success',
+      });
+      handleCloseDodModal();
+      fetchProjects();
+    } catch (e) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to update DoD.',
+        severity: 'error',
+      });
+      console.error(e);
+    }
+    setDodLoading(false);
+  };
 
   // Custom cell renderers for AgGrid
   const ProjectNameRenderer = (params) => {
@@ -423,12 +423,12 @@ const handleDodUpdate = async () => {
         projectCost: dto.projectCost,
         projectTeam: Array(dto.projectTeamCount).fill({}), // Placeholder for team members
       }))
-      .sort((a, b) => {
-        // Convert ISO strings to Date objects for comparison
-        const dateA = a.startTimestamp ? new Date(a.startTimestamp) : new Date(0);
-        const dateB = b.startTimestamp ? new Date(b.startTimestamp) : new Date(0);
-        return dateB - dateA;
-      });
+        .sort((a, b) => {
+          // Convert ISO strings to Date objects for comparison
+          const dateA = a.startTimestamp ? new Date(a.startTimestamp) : new Date(0);
+          const dateB = b.startTimestamp ? new Date(b.startTimestamp) : new Date(0);
+          return dateB - dateA;
+        });
 
       setProjects(mappedProjects);
       setFilteredProjects(mappedProjects);
@@ -1329,7 +1329,7 @@ const handleDodUpdate = async () => {
             )}
           </div>
           {dodModalOpen && dodProject && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-30">
               <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
                 <h2 className="text-xl font-bold mb-2 text-green-800 truncate w-full" title={dodProject.projectName}>
                   {dodProject.projectName}

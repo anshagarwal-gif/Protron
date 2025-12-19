@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, User, Building, FileText, Hash, Clock, MapPin, Target, CreditCard, Users } from 'lucide-react';
+import { X, Calendar, DollarSign, User, Building, FileText, Hash, Clock, MapPin, Target, CreditCard, Users, Edit } from 'lucide-react';
 import axios from 'axios';
 import { useSession } from '../Context/SessionContext';
 
-const ViewPOModal = ({ open, onClose, poData }) => {
+const ViewPOModal = ({ open, onClose, poData, handleViewCloseAndEditOpen }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -104,12 +104,15 @@ const ViewPOModal = ({ open, onClose, poData }) => {
                 <p className="text-green-100 text-xs sm:text-sm">PO #{poData.poNumber || 'N/A'}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-lg transition-colors"
-            >
-              <X size={20} />
-            </button>
+            <div className='flex items-center space-x-2 sm:space-x-3'>
+              <button onClick={() => handleViewCloseAndEditOpen(poData.poId)} className="p-2 cursor-pointer hover:bg-green-700 text-white rounded-lg transition-colors"><Edit size={20} /></button>
+              <button
+                onClick={onClose}
+                className="p-2 cursor-pointer hover:bg-green-700 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
         </div>
 
