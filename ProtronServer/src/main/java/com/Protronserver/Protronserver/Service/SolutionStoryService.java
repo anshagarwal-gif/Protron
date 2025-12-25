@@ -262,7 +262,7 @@ public class SolutionStoryService {
         return solutionStoryRepository.findByTenantIdAndParentIdAndEndTimestampIsNull(tenantId, parentId);
     }
 
-    public List<SolutionStory> getFilteredStories(SolutionStoryFilterDTO filter) {
+    public List<SolutionStory> getFilteredStories(SolutionStoryFilterDTO filter, Integer page, Integer size) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<SolutionStory> cq = cb.createQuery(SolutionStory.class);
         Root<SolutionStory> root = cq.from(SolutionStory.class);
@@ -310,8 +310,75 @@ public class SolutionStoryService {
         }
 
         cq.where(predicates.toArray(new Predicate[0]));
+        // Order by latest created date for consistency
+        cq.orderBy(cb.desc(root.get("dateCreated")));
 
         TypedQuery<SolutionStory> query = entityManager.createQuery(cq);
+        
+        // Add Pagination
+        if (page != null && size != null) {
+            query.setFirstResult(page * size);
+            query.setMaxResults(size);
+        }
+
+        return query.getResultList();
+    }
+
+    public List<SolutionStory> getNonPaginatedFilteredStories(SolutionStoryFilterDTO filter) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<SolutionStory> cq = cb.createQuery(SolutionStory.class);
+        Root<SolutionStory> root = cq.from(SolutionStory.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Always fetch only active (not soft-deleted)
+        predicates.add(cb.isNull(root.get("endTimestamp")));
+        predicates.add(cb.equal(root.get("tenantId"), loggedInUserUtils.getLoggedInUser().getTenant().getTenantId()));
+
+        if (filter.getProjectId() != null) {
+            predicates.add(cb.equal(root.get("projectId"), filter.getProjectId()));
+
+            if (filter.getSprint() != null) {
+                predicates.add(cb.equal(root.get("sprint"), filter.getSprint()));
+            }
+
+            if (filter.getReleaseId() != null) {
+                predicates.add(cb.equal(root.get("releaseId"), filter.getReleaseId()));
+            }
+        }
+
+        if (filter.getParentId() != null) {
+            predicates.add(cb.like(root.get("parentId"), filter.getParentId() + "%"));
+        }
+
+        if (filter.getStatus() != null) {
+            predicates.add(cb.equal(root.get("status"), filter.getStatus()));
+        }
+
+        if (filter.getAssignee() != null) {
+            predicates.add(cb.equal(root.get("assignee"), filter.getAssignee()));
+        }
+
+        if (filter.getCreatedBy() != null) {
+            predicates.add(cb.equal(root.get("createdBy"), filter.getCreatedBy()));
+        }
+
+        if (filter.getCreatedDate() != null) {
+            LocalDate createdDate = filter.getCreatedDate().toLocalDate();
+            LocalDateTime startOfDay = createdDate.atStartOfDay();
+            LocalDateTime endOfDay = createdDate.atTime(LocalTime.MAX);
+
+            predicates.add(cb.between(root.get("dateCreated"), startOfDay, endOfDay));
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+        // Order by latest created date for consistency
+        cq.orderBy(cb.desc(root.get("dateCreated")));
+
+        TypedQuery<SolutionStory> query = entityManager.createQuery(cq);
+
+
+
         return query.getResultList();
     }
 

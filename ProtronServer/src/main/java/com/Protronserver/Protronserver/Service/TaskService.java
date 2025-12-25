@@ -344,7 +344,7 @@ public class TaskService {
         return taskRepository.findByTenantIdAndParentIdAndEndTimestampIsNull(tenantId, parentId);
     }
 
-    public List<Task> getFilteredTasks(TaskFilterDTO filter) {
+    public List<Task> getFilteredTasks(TaskFilterDTO filter, Integer page, Integer size) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Task> cq = cb.createQuery(Task.class);
         Root<Task> root = cq.from(Task.class);
@@ -367,6 +367,10 @@ public class TaskService {
             predicates.add(cb.equal(root.get("createdBy"), filter.getCreatedBy()));
         }
 
+        if (filter.getStatus() != null) {
+            predicates.add(cb.equal(root.get("status"), filter.getStatus()));
+        }
+
         if (filter.getCreatedDate() != null) {
             LocalDate createdDate = filter.getCreatedDate().toLocalDate();
             LocalDateTime startOfDay = createdDate.atStartOfDay();
@@ -376,8 +380,61 @@ public class TaskService {
         }
 
         cq.where(predicates.toArray(new Predicate[0]));
+        // Order by latest created date for consistency
+        cq.orderBy(cb.desc(root.get("dateCreated")));
 
         TypedQuery<Task> query = entityManager.createQuery(cq);
+        
+        // Add Pagination
+        if (page != null && size != null) {
+            query.setFirstResult(page * size);
+            query.setMaxResults(size);
+        }
+
+        return query.getResultList();
+    }
+
+    public List<Task> getNonPaginatedFilteredTasks(TaskFilterDTO filter) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Task> cq = cb.createQuery(Task.class);
+        Root<Task> root = cq.from(Task.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Always fetch only active (not soft-deleted)
+        predicates.add(cb.isNull(root.get("endTimestamp")));
+        predicates.add(cb.equal(root.get("tenantId"), loggedInUserUtils.getLoggedInUser().getTenant().getTenantId()));
+
+        if (filter.getProjectId() != null) {
+            predicates.add(cb.equal(root.get("projectId"), filter.getProjectId()));
+        }
+
+        if (filter.getParentId() != null) {
+            predicates.add(cb.like(root.get("parentId"), filter.getParentId() + "%"));
+        }
+
+        if (filter.getCreatedBy() != null) {
+            predicates.add(cb.equal(root.get("createdBy"), filter.getCreatedBy()));
+        }
+
+        if (filter.getStatus() != null) {
+            predicates.add(cb.equal(root.get("status"), filter.getStatus()));
+        }
+
+        if (filter.getCreatedDate() != null) {
+            LocalDate createdDate = filter.getCreatedDate().toLocalDate();
+            LocalDateTime startOfDay = createdDate.atStartOfDay();
+            LocalDateTime endOfDay = createdDate.atTime(LocalTime.MAX);
+
+            predicates.add(cb.between(root.get("dateCreated"), startOfDay, endOfDay));
+        }
+
+        cq.where(predicates.toArray(new Predicate[0]));
+        // Order by latest created date for consistency
+        cq.orderBy(cb.desc(root.get("dateCreated")));
+
+        TypedQuery<Task> query = entityManager.createQuery(cq);
+
         return query.getResultList();
     }
 

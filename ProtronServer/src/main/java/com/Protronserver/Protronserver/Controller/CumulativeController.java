@@ -30,14 +30,18 @@ public class CumulativeController {
 
     @PostMapping("/filter")
     public ResponseEntity<CumulativeFilterResponse> filterCumulative(@RequestBody CumulativeFilterRequest request) {
+        // Use defaults if not provided (though DTO initializes them)
+        int page = request.getPage() != null ? request.getPage() : 0;
+        int size = request.getSize() != null ? request.getSize() : 20;
+
         List<Task> tasks = null;
         if (request.getTaskFilter() != null) {
-            tasks = taskService.getFilteredTasks(request.getTaskFilter());
+            tasks = taskService.getFilteredTasks(request.getTaskFilter(), page, size);
         }
 
         List<SolutionStory> solutionStories = null;
         if (request.getSolutionStoryFilter() != null) {
-            solutionStories = solutionStoryService.getFilteredStories(request.getSolutionStoryFilter());
+            solutionStories = solutionStoryService.getFilteredStories(request.getSolutionStoryFilter(), page, size);
         }
 
         return ResponseEntity.ok(new CumulativeFilterResponse(tasks, solutionStories));

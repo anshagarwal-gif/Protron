@@ -118,6 +118,6 @@ public class SolutionStoryController {
 
     @PostMapping("/filter")
     public List<SolutionStory> filterSolutionStories(@RequestBody SolutionStoryFilterDTO filter) {
-        return solutionStoryService.getFilteredStories(filter);
+        return solutionStoryService.getFilteredStories(filter, filter.getPage(), filter.getSize());
     }
 }

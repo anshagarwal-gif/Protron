@@ -114,6 +114,6 @@ public class TaskController {
 
     @PostMapping("/filter")
     public List<Task> filterTasks(@RequestBody TaskFilterDTO filter) {
-        return taskService.getFilteredTasks(filter);
+        return taskService.getFilteredTasks(filter, filter.getPage(), filter.getSize());
     }
 }
