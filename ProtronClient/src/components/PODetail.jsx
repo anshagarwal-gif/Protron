@@ -599,7 +599,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-teal-600 mb-1">Project Name</p>
+            <p className="text-sm font-medium text-teal-600 mb-1">Initiative name</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.projectName || 'N/A'}

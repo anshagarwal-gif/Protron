@@ -87,34 +87,71 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
   useEffect(() => {
     const fetchData = async () => {
       if (open) {
-        // Update status from props even if no parentStory (e.g. from Dashboard + button)
-        setFormData(prev => ({
-          ...prev,
-          status: initialStatus || prev.status || 'todo'
-        }));
+        // Reset form data first
+        const baseFormData = {
+          projectId: '',
+          parentId: '',
+          status: initialStatus || 'todo',
+          priority: 2,
+          summary: '',
+          description: '',
+          system: '',
+          storyPoints: 0,
+          assignee: '',
+          releaseId: '',
+          sprintId: '',
+          attachments: []
+        };
 
-        // Set initial form data from parent story
+        // Set initial form data from parent story or duplicate data
         if (parentStory) {
-          setFormData(prev => ({
-            ...prev,
-            status: initialStatus || parentStory.status,
-            projectId: parentStory.projectId,
-            parentId: parentStory.usId,
-            releaseId: parentStory.releaseId ? String(parentStory.releaseId) : '',
-            sprintId: parentStory.sprint ? String(parentStory.sprint) : '',
-            system: parentStory.system || prev.system || '',
-            assignee: parentStory.assignee || prev.assignee || ''
-          }));
-          // Mark release/sprint/system/assignee as fixed (uneditable) when provided by parentStory
-          if (parentStory.releaseId) setReleaseFixed(true);
-          if (parentStory.sprint) setSprintFixed(true);
-          if (parentStory.system) setSystemFixed(true);
-          if (parentStory.assignee) setAssigneeFixed(true);
-        }
-
-        // If initialProjectId is provided (from dashboard context), pre-fill projectId
-        if (!parentStory && initialProjectId) {
-          setFormData(prev => ({ ...prev, projectId: initialProjectId }));
+          // Check if this is duplicate data (has _isDuplicate flag)
+          const isDuplicate = parentStory._isDuplicate === true;
+          
+          if (isDuplicate) {
+            // For duplicates, set fresh form data from the duplicate data
+            // Preserve the parent user story ID (usId) if available, otherwise clear parentId
+            const parentIdForDuplicate = parentStory.usId || parentStory.parentId || '';
+            const duplicateFormData = {
+              ...baseFormData,
+              status: initialStatus || parentStory.status || 'todo',
+              projectId: parentStory.projectId ? String(parentStory.projectId) : '',
+              parentId: parentIdForDuplicate, // Preserve parent user story ID for duplicates
+              summary: parentStory.summary || '',
+              description: parentStory.description || '',
+              releaseId: parentStory.releaseId ? String(parentStory.releaseId) : (parentStory.release ? String(parentStory.release) : ''),
+              sprintId: parentStory.sprintId ? String(parentStory.sprintId) : (parentStory.sprint ? String(parentStory.sprint) : ''),
+              system: parentStory.system || parentStory.systemName || '',
+              assignee: parentStory.assignee || '',
+              priority: parentStory.priority !== undefined ? parentStory.priority : 2,
+              storyPoints: parentStory.storyPoints !== undefined ? parentStory.storyPoints : 0
+            };
+            console.log('Setting duplicate form data:', duplicateFormData);
+            setFormData(duplicateFormData);
+          } else {
+            // For regular parent story (adding child), merge with previous state
+            setFormData(prev => ({
+              ...prev,
+              status: initialStatus || parentStory.status || prev.status || 'todo',
+              projectId: parentStory.projectId ? String(parentStory.projectId) : prev.projectId,
+              parentId: parentStory.usId || parentStory.parentId || prev.parentId || '',
+              releaseId: parentStory.releaseId ? String(parentStory.releaseId) : (parentStory.release ? String(parentStory.release) : ''),
+              sprintId: parentStory.sprintId ? String(parentStory.sprintId) : (parentStory.sprint ? String(parentStory.sprint) : ''),
+              system: parentStory.system || parentStory.systemName || prev.system || '',
+              assignee: parentStory.assignee || prev.assignee || ''
+            }));
+            // Mark release/sprint/system/assignee as fixed (uneditable) when provided by parentStory
+            if (parentStory.releaseId || parentStory.release) setReleaseFixed(true);
+            if (parentStory.sprintId || parentStory.sprint) setSprintFixed(true);
+            if (parentStory.system || parentStory.systemName) setSystemFixed(true);
+            if (parentStory.assignee) setAssigneeFixed(true);
+          }
+        } else if (initialProjectId) {
+          // If initialProjectId is provided (from dashboard context), pre-fill projectId
+          setFormData({ ...baseFormData, projectId: String(initialProjectId) });
+        } else {
+          // Reset to base form data
+          setFormData(baseFormData);
         }
 
         const token = sessionStorage.getItem('token');
@@ -149,12 +186,14 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
             setUsers([]);
           }
         };
-        if (parentStory?.projectId) {
-          await fetchProjectUsers(parentStory.projectId);
+        // Determine projectId from parentStory (could be duplicate data) or initialProjectId
+        const projectIdToUse = parentStory?.projectId || initialProjectId || null;
+        
+        if (projectIdToUse) {
+          await fetchProjectUsers(projectIdToUse);
         }
 
         // Fetch Releases and Sprints scoped to the project if we have a projectId
-        const projectIdToUse = parentStory?.projectId || initialProjectId || formData.projectId || null;
         if (projectIdToUse) {
           try {
             const releasesResponse = await axios.get(`${API_BASE_URL}/api/releases/project/${projectIdToUse}`, {
@@ -184,7 +223,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
 
     fetchData();
     fetchStatusFlags();
-  }, [open, parentStory, sessionData.tenantId, initialProjectId, initialStatus]);
+  }, [open, parentStory, sessionData?.tenantId, initialProjectId, initialStatus]);
 
   const showSnackbar = (message, severity = 'info') => {
     setSnackbar({
@@ -245,7 +284,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
 
   const validateForm = () => {
     if (!formData.projectId) {
-      showSnackbar("Please select a project", 'error');
+      showSnackbar("Please select an initiative", 'error');
       return false;
     }
 
@@ -438,7 +477,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     {parentStory && (
                       <>
                         <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Parent Story: {parentStory.usId}</p>
-                        <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Project Name: {getProjectName(formData.projectId)}</p>
+                        <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Initiative name: {getProjectName(formData.projectId)}</p>
                       </>
                     )}
                   </div>

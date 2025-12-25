@@ -235,11 +235,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
     const handleSubmit = async () => {
         // Validate required fields
         const newErrors = {};
-        if (!formData.projectName || String(formData.projectName).trim() === '') newErrors.projectName = 'Project name is required';
+        if (!formData.projectName || String(formData.projectName).trim() === '') newErrors.projectName = 'Initiative name is required';
         if (!formData.startDate) newErrors.startDate = 'Start date is required';
         if (!formData.endDate) newErrors.endDate = 'End date is required';
         if (!formData.currency) newErrors.currency = 'Currency is required';
-        if (formData.cost === '' || formData.cost === undefined || formData.cost === null) newErrors.cost = 'Project cost is required';
+        if (formData.cost === '' || formData.cost === undefined || formData.cost === null) newErrors.cost = 'Initiative cost is required';
 
         setErrors(newErrors);
         if (Object.keys(newErrors).length > 0) {
@@ -248,9 +248,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
         setIsSubmitting(true);
         try {
-            // Only Project Manager and Sponsor send userId, all others send name
+            // Only Initiative Manager and Sponsor send userId, all others send name
             const submitData = { ...formData, projectCode };
-            // Project Manager
+            // Initiative Manager
             if (formData.manager && typeof formData.manager === 'object' && formData.manager.userId) {
                 submitData.manager = formData.manager.userId;
             } else if (formData.manager && typeof formData.manager === 'string') {
@@ -307,7 +307,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                 <div className={`bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto shadow-xl ${isSubmitting ? 'pointer-events-none' : ''}`}>
                     {/* Header */}
                     <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
-                        <h1 className="text-xl font-semibold text-green-600">Add New Project</h1>
+                        <h1 className="text-xl font-semibold text-green-600">Add New Initiative</h1>
                     </div>
 
                     {/* Content */}
@@ -321,26 +321,26 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         )}
                         <div className="grid grid-cols-4 gap-4">
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Code</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Initiative Code</label>
                                 <input
                                     type="text"
                                     value={projectCode}
                                     disabled
                                     className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
-                                    title={projectCode || 'Auto-generated Project Code'}
+                                    title={projectCode || 'Auto-generated Initiative Code'}
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Initiative name</label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Enter a descriptive project name"
+                                        placeholder="Enter a descriptive initiative name"
                                         value={formData.projectName || ''}
                                         onChange={(e) => handleChange('projectName', e.target.value)}
                                         disabled={isSubmitting}
                                         className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title={formData.projectName || 'Enter Project Name'}
+                                        title={formData.projectName || 'Enter Initiative name'}
                                     />
                                     <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
                                 </div>
@@ -369,11 +369,11 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             </div>
                         </div>
 
-                        {/* Row 2: Project Manager, Sponsor, Currency, and Cost */}
+                        {/* Row 2: Initiative Manager, Sponsor, Currency, and Cost */}
                         <div className="grid grid-cols-4 gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Project Manager
+                                    Initiative Manager
                                 </label>
                                 <CreatableSelect
                                     options={userOptions}
@@ -401,7 +401,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Project Sponsor
+                                    Initiative Sponsor
                                 </label>
                                 <CreatableSelect
                                     options={userOptions}
@@ -447,7 +447,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             </div>
 
                             <div className="flex-none w-full">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Initiative Cost *</label>
                                 <div className="relative">
                                     <input
                                         type="number"
@@ -464,7 +464,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         }}
                                         disabled={isSubmitting}
                                         className={`w-full h-10 px-3 py-2 pl-8 border rounded-md focus:ring-2 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.cost ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-green-500 focus:border-green-500'}`}
-                                        title={formData.cost || 'Enter Project Cost'}
+                                        title={formData.cost || 'Enter Initiative Cost'}
                                         step="0.01"
                                     />
                                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -849,7 +849,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         Creating...
                                     </>
                                 ) : (
-                                    'Create Project'
+                                    'Create Initiative'
                                 )}
                             </button>
                         </div>
@@ -862,8 +862,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                 <div className="fixed inset-0 bg-[#00000059] bg-opacity-60 z-[60] flex items-center justify-center">
                     <div className="bg-white rounded-lg p-8 shadow-2xl flex flex-col items-center">
                         <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Creating Project</h3>
-                        <p className="text-gray-600 text-center">Please wait while we create your project...</p>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Creating Initiative</h3>
+                        <p className="text-gray-600 text-center">Please wait while we create your initiative...</p>
                     </div>
                 </div>
             )}

@@ -3,6 +3,7 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { FiFileText, FiPlus, FiSearch, FiEdit, FiDownload, FiLoader, FiEye, FiTrash2 } from 'react-icons/fi';
+import { Copy } from 'lucide-react';
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddTaskModal from "../components/AddTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
@@ -20,6 +21,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [parentStory, setParentStory] = useState(null);
+  const [duplicatingTask, setDuplicatingTask] = useState(null);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -60,7 +62,19 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       
       if (response.ok) {
         const data = await response.json();
-        setTasks(data);
+        // Sort by ID in descending order (newest first) or by taskId if available
+        const sortedData = Array.isArray(data) ? [...data].sort((a, b) => {
+          // Try to sort by numeric ID first
+          if (a.id && b.id) {
+            return b.id - a.id; // Descending order (newest first)
+          }
+          // Fallback to taskId string comparison
+          if (a.taskId && b.taskId) {
+            return b.taskId.localeCompare(a.taskId);
+          }
+          return 0;
+        }) : data;
+        setTasks(sortedData);
       } else {
         throw new Error('Failed to fetch tasks');
       }
@@ -151,6 +165,27 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     }
   }, [showSnackbar, fetchTasks, parentStory?.usId, parentStory?.ssId]);
 
+  const handleDuplicate = useCallback((task) => {
+    // Prepare duplicate data: copy all fields except id
+    // Preserve the parent story ID (usId or ssId) from the original parentStory if available
+    const parentIdToUse = parentStory?.usId || parentStory?.ssId || 
+                          (task.parentId && (task.parentId.startsWith('US-') || task.parentId.startsWith('SS-')) ? task.parentId : '');
+    const duplicateData = { 
+      ...task,
+      _isDuplicate: true,
+      _originalTaskId: task.taskId, // Keep original for reference
+      // Preserve parent story ID for linking the duplicate task
+      parentId: parentIdToUse,
+      // Preserve usId/ssId for display in modal header
+      usId: parentStory?.usId || (task.parentId && task.parentId.startsWith('US-') ? task.parentId : null) || null,
+      ssId: parentStory?.ssId || (task.parentId && task.parentId.startsWith('SS-') ? task.parentId : null) || null
+    };
+    delete duplicateData.taskId;
+    delete duplicateData.id;
+    setDuplicatingTask(duplicateData);
+    setIsAddModalOpen(true);
+  }, [parentStory]);
+
   const ActionsRenderer = useCallback((params) => {
     const task = params.data;
     
@@ -171,6 +206,14 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           >
             <FiEdit size={16} />
           </button>
+
+          <button
+            onClick={() => handleDuplicate(task)}
+            className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Copy Task"
+          >
+            <Copy size={16} />
+          </button>
        
        
           <button
@@ -183,7 +226,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         
       </div>
     );
-  }, [handleView, handleEdit, handleDelete]);
+  }, [handleView, handleEdit, handleDelete, handleDuplicate]);
 
   const columnDefs = [
     {
@@ -461,11 +504,19 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         <AddTaskModal
           open={isAddModalOpen}
           onClose={() => {
+            setDuplicatingTask(null);
             const parentId = parentStory?.usId || parentStory?.ssId;
             fetchTasks(parentId);
             setIsAddModalOpen(false);
           }}
-          parentStory={parentStory}
+          parentStory={duplicatingTask ? {
+            ...duplicatingTask,
+            // Preserve the original parent story info for display
+            // If we have parentStory state, use its usId/ssId and summary for the parent context
+            usId: parentStory?.usId || duplicatingTask.usId || (duplicatingTask.parentId && duplicatingTask.parentId.startsWith('US-') ? duplicatingTask.parentId : null),
+            ssId: parentStory?.ssId || duplicatingTask.ssId || (duplicatingTask.parentId && duplicatingTask.parentId.startsWith('SS-') ? duplicatingTask.parentId : null),
+            summary: parentStory?.summary || duplicatingTask.summary
+          } : parentStory}
         />
     
 

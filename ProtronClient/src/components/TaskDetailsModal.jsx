@@ -426,14 +426,14 @@ const TaskDetailsModal = ({
 
                   {/* Project */}
                   <div className="bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl p-3 sm:p-4 border border-teal-100/50 shadow-sm">
-                    <label className="text-xs font-semibold text-teal-700 uppercase tracking-wider">Project</label>
+                    <label className="text-xs font-semibold text-teal-700 uppercase tracking-wider">Initiative</label>
                     <div className="flex items-center gap-2 mt-2">
                       <Folder className="h-3 w-3 sm:h-4 sm:w-4 text-teal-600 flex-shrink-0" />
                       <span
                         className="text-gray-800 text-sm font-semibold cursor-help hover:text-teal-700 transition-colors truncate"
-                        title={taskDetail.project?.projectName || "No project assigned"}
+                        title={taskDetail.project?.projectName || "No initiative assigned"}
                       >
-                        {taskDetail.project?.projectName || "No project"}
+                        {taskDetail.project?.projectName || "No initiative"}
                       </span>
                     </div>
                   </div>

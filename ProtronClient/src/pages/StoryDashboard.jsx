@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { FiBookOpen, FiPlus, FiEdit, FiTrash2, FiEye, FiFilter, FiDownload, FiGitBranch, FiCheckSquare, FiChevronRight } from 'react-icons/fi';
+import { Copy } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { AgGridReact } from 'ag-grid-react';
@@ -65,6 +66,9 @@ const StoryDashboard = () => {
   const [showViewTaskModal, setShowViewTaskModal] = useState(false);
   const [showViewSolutionModal, setShowViewSolutionModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
+  const [duplicatingStory, setDuplicatingStory] = useState(null);
+  const [duplicatingSolutionStory, setDuplicatingSolutionStory] = useState(null);
+  const [duplicatingTask, setDuplicatingTask] = useState(null);
   const [viewMode, setViewMode] = useState('dashboard'); // 'dashboard' or 'table'
   const [gridApi, setGridApi] = useState(null);
   const [showBacklog, setShowBacklog] = useState(false); // Show backlog columns
@@ -894,6 +898,55 @@ const StoryDashboard = () => {
     setShowViewTaskModal(true);
   }, []);
 
+  const handleDuplicateStory = useCallback((story) => {
+    // Prepare duplicate data: copy all fields except id
+    const duplicateData = { ...story };
+    delete duplicateData.id;
+    delete duplicateData.usId;
+    // Map releaseId to release for form compatibility
+    if (duplicateData.releaseId && !duplicateData.release) {
+      duplicateData.release = duplicateData.releaseId;
+    }
+    // Map sprint to sprintId for consistency (form uses sprint field)
+    if (duplicateData.sprint && !duplicateData.sprintId) {
+      duplicateData.sprintId = duplicateData.sprint;
+    }
+    setDuplicatingStory(duplicateData);
+    setShowAddModal(true);
+  }, []);
+
+  const handleDuplicateSolutionStory = useCallback((story) => {
+    // Prepare duplicate data: copy all fields except id
+    // Keep ssId for reference but mark as duplicate
+    const duplicateData = { 
+      ...story,
+      _isDuplicate: true,
+      _originalSsId: story.ssId // Keep original for reference
+    };
+    // Don't delete ssId - we'll use _isDuplicate flag to detect
+    delete duplicateData.id;
+    setDuplicatingSolutionStory(duplicateData);
+    setShowAddSolutionModal(true);
+  }, []);
+
+  const handleDuplicateTask = useCallback((task) => {
+    // Prepare duplicate data: copy all fields except id
+    // Preserve the parent story ID (usId or ssId) from the task
+    const duplicateData = { 
+      ...task,
+      _isDuplicate: true,
+      _originalTaskId: task.taskId, // Keep original for reference
+      // Preserve parent story ID - use task.parentId if it's a US- or SS- ID
+      parentId: task.parentId && (task.parentId.startsWith('US-') || task.parentId.startsWith('SS-')) ? task.parentId : '',
+      usId: task.parentId && task.parentId.startsWith('US-') ? task.parentId : null,
+      ssId: task.parentId && task.parentId.startsWith('SS-') ? task.parentId : null
+    };
+    delete duplicateData.taskId;
+    delete duplicateData.id;
+    setDuplicatingTask(duplicateData);
+    setShowAddTaskModal(true);
+  }, []);
+
   const handleDeleteSolutionStory = useCallback(async (ssId) => {
     if (!window.confirm('Are you sure you want to delete this solution story?')) return;
     try {
@@ -1141,6 +1194,33 @@ const StoryDashboard = () => {
           </button>
         )}
 
+        {/* Copy/Duplicate: call type-specific duplicate handlers */}
+        {storyType === 'solutionstory' ? (
+          <button
+            onClick={() => handleDuplicateSolutionStory(story)}
+            className="text-gray-400 hover:text-indigo-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Duplicate Solution Story"
+          >
+            <Copy size={16} />
+          </button>
+        ) : storyType === 'task' ? (
+          <button
+            onClick={() => handleDuplicateTask(story)}
+            className="text-gray-400 hover:text-indigo-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Duplicate Task"
+          >
+            <Copy size={16} />
+          </button>
+        ) : (
+          <button
+            onClick={() => handleDuplicateStory(story)}
+            className="text-gray-400 hover:text-indigo-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Duplicate User Story"
+          >
+            <Copy size={16} />
+          </button>
+        )}
+
         {/* Delete: call type-specific delete handlers where applicable */}
         {storyType === 'solutionstory' ? (
           <button
@@ -1169,7 +1249,7 @@ const StoryDashboard = () => {
         )}
       </div>
     );
-  }, [openViewModal, openEditModal, handleDeleteStory, handleDeleteSolutionStory, handleDeleteTask, filters.type]);
+  }, [openViewModal, openEditModal, handleDeleteStory, handleDeleteSolutionStory, handleDeleteTask, handleDuplicateStory, handleDuplicateSolutionStory, handleDuplicateTask, filters.type]);
 
   // AgGrid column definitions - Dynamic based on type filter
   const columnDefs = useMemo(() => {
@@ -1643,6 +1723,17 @@ const StoryDashboard = () => {
             </button>
             <button
               onClick={() => {
+                if (isTask) handleDuplicateTask(item);
+                else if (isSolutionStory) handleDuplicateSolutionStory(item);
+                else handleDuplicateStory(item);
+              }}
+              className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
+              title={isTask ? "Copy Task" : isSolutionStory ? "Copy Solution Story" : "Copy User Story"}
+            >
+              <Copy size={14} />
+            </button>
+            <button
+              onClick={() => {
                 if (isTask) handleDeleteTask(item.taskId);
                 else if (isSolutionStory) handleDeleteSolutionStory(item.ssId);
                 else handleDeleteStory(item.id);
@@ -1731,7 +1822,8 @@ const StoryDashboard = () => {
       </div>
     );
   }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal,
-    handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, getPriorityColor]);
+    handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, handleDuplicateStory, 
+    handleDuplicateSolutionStory, handleDuplicateTask, getPriorityColor]);
 
   if (initialLoading) {
     return (
@@ -1774,7 +1866,7 @@ const StoryDashboard = () => {
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
-              <option value="" disabled>Select a project</option>
+              <option value="" disabled>Select an initiative</option>
               {projectList.map(project => (
                 <option
                   key={project.projectId}
@@ -1997,7 +2089,7 @@ const StoryDashboard = () => {
                   setShowSearchHelper(true);
                 }}
                 options={getTypeOptions(1)}
-                placeholder={filters.projectName ? "Select type..." : "Select project first"}
+                placeholder={filters.projectName ? "Select type..." : "Select initiative first"}
                 isDisabled={!filters.projectName}
                 className="text-sm"
                 styles={{
@@ -2166,7 +2258,7 @@ const StoryDashboard = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search by project name, ID, assignee, summary, or any field..."
+                placeholder="Search by initiative name, ID, assignee, summary, or any field..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
@@ -2986,10 +3078,11 @@ const StoryDashboard = () => {
         onClose={() => {
           setShowAddModal(false);
           setSelectedStory(null);
+          setDuplicatingStory(null);
         }}
         onSubmit={handleAddStory}
         initialStatus={selectedStory?.status}
-        initialValues={filters}
+        initialValues={duplicatingStory || filters}
       />
 
       {/* Add Solution Story Modal (context-aware) */}
@@ -2998,9 +3091,10 @@ const StoryDashboard = () => {
         onClose={() => {
           setShowAddSolutionModal(false);
           setSelectedStory(null);
+          setDuplicatingSolutionStory(null);
           refreshStories();
         }}
-        parentStory={null}
+        parentStory={duplicatingSolutionStory || null}
         initialProjectId={initialProjectForAdd}
         initialStatus={selectedStory?.status}
       />
@@ -3011,9 +3105,10 @@ const StoryDashboard = () => {
         onClose={() => {
           setShowAddTaskModal(false);
           setSelectedStory(null);
+          setDuplicatingTask(null);
           refreshStories();
         }}
-        parentStory={null}
+        parentStory={duplicatingTask || null}
         initialProjectId={initialProjectForAdd}
         initialStatus={selectedStory?.status}
       />

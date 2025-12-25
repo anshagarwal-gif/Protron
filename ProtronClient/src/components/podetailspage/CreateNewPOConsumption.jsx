@@ -657,8 +657,8 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 <CreatableSelect
                                     isClearable
                                     isDisabled={loading}
-                                    placeholder="Select or type a project"
-                                    title={formData.project ? `Project: ${formData.project}` : "Select or type a project"}
+                                    placeholder="Select or type an initiative"
+                                    title={formData.project ? `Initiative: ${formData.project}` : "Select or type an initiative"}
                                     onChange={(selectedOption) =>
                                         setFormData({ ...formData, project: selectedOption ? selectedOption.value : '' })
                                     }

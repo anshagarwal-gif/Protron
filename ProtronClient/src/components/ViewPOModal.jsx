@@ -141,7 +141,7 @@ const ViewPOModal = ({ open, onClose, poData, handleViewCloseAndEditOpen }) => {
                 value={poData.poCurrency}
               />
               <Field
-                label="Project Name"
+                label="Initiative name"
                 value={poData.projectName}
               />
               <Field

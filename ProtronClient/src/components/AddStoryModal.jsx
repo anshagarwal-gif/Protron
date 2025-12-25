@@ -121,27 +121,67 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
 
   useEffect(() => {
     if (open) {
+      // Check if initialValues contains story data (for duplication) or filter data
+      const isDuplicateData = initialValues?.summary !== undefined || initialValues?.asA !== undefined;
+      
+      // Get sprint and release IDs - handle both numeric IDs and string IDs
+      const sprintId = isDuplicateData ? 
+        (initialValues?.sprintId ? String(initialValues.sprintId) : 
+         initialValues?.sprint ? String(initialValues.sprint) : "") : 
+        (initialValues?.sprint ? String(initialValues.sprint) : "");
+      
+      const releaseId = isDuplicateData ? 
+        (initialValues?.releaseId ? String(initialValues.releaseId) : 
+         initialValues?.release ? String(initialValues.release) : "") : 
+        (initialValues?.release ? String(initialValues.release) : "");
+      
       setFormData({
-        projectId: initialValues?.projectName || "",
-        summary: "",
-        asA: "",
-        iWantTo: "",
-        soThat: "",
-        acceptanceCriteria: "",
-        status: initialStatus || (initialValues?.status !== 'all' ? initialValues?.status : 'todo') || "todo",
-        priority: 2,
-        storyPoints: 0,
-        assignee: initialValues?.assignee || "",
-        sprint: initialValues?.sprint || "",
-        release: initialValues?.release || "",
-        system: "",
-        createdBy: initialValues?.createdBy || ""
+        projectId: isDuplicateData ? (initialValues?.projectId || "") : (initialValues?.projectName || ""),
+        summary: isDuplicateData ? (initialValues?.summary || "") : "",
+        asA: isDuplicateData ? (initialValues?.asA || "") : "",
+        iWantTo: isDuplicateData ? (initialValues?.iWantTo || "") : "",
+        soThat: isDuplicateData ? (initialValues?.soThat || "") : "",
+        acceptanceCriteria: isDuplicateData ? (initialValues?.acceptanceCriteria || "") : "",
+        status: initialStatus || (isDuplicateData ? (initialValues?.status || "todo") : (initialValues?.status !== 'all' ? initialValues?.status : 'todo')) || "todo",
+        priority: isDuplicateData ? (initialValues?.priority || 2) : 2,
+        storyPoints: isDuplicateData ? (initialValues?.storyPoints || 0) : 0,
+        assignee: isDuplicateData ? (initialValues?.assignee || "") : (initialValues?.assignee || ""),
+        sprint: sprintId,
+        release: releaseId,
+        system: isDuplicateData ? (initialValues?.system || initialValues?.systemName || "") : "",
+        createdBy: isDuplicateData ? (initialValues?.createdBy || "") : (initialValues?.createdBy || "")
       });
-      if (initialValues?.projectName) {
-        handleProjectChange(initialValues.projectName);
+      
+      const projectIdToUse = isDuplicateData ? initialValues?.projectId : initialValues?.projectName;
+      if (projectIdToUse) {
+        handleProjectChange(projectIdToUse);
       }
     }
   }, [open, initialValues, initialStatus, handleProjectChange]);
+
+  // Ensure sprint and release IDs are set correctly after lists are populated (for duplicate data)
+  useEffect(() => {
+    if (open && initialValues && (initialValues?.summary !== undefined || initialValues?.asA !== undefined)) {
+      // This is duplicate data - ensure sprint and release IDs are strings matching the list format
+      const sprintId = initialValues?.sprintId ? String(initialValues.sprintId) : 
+                      (initialValues?.sprint ? String(initialValues.sprint) : "");
+      const releaseId = initialValues?.releaseId ? String(initialValues.releaseId) : 
+                        (initialValues?.release ? String(initialValues.release) : "");
+      
+      // Update formData only if IDs don't match current values (to avoid unnecessary updates)
+      setFormData(prev => {
+        const needsUpdate = (sprintId && prev.sprint !== sprintId) || (releaseId && prev.release !== releaseId);
+        if (needsUpdate) {
+          return {
+            ...prev,
+            sprint: sprintId || prev.sprint,
+            release: releaseId || prev.release
+          };
+        }
+        return prev;
+      });
+    }
+  }, [open, sprintList.length, releaseList.length, initialValues]);
 
   const getParentIdDisplay = (projId) => {
     if (!projId) return '—';
@@ -369,7 +409,8 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
     const newErrors = {};
 
     // Validate required fields
-    if (!formData.projectId?.trim()) {
+    const projectIdStr = formData.projectId ? String(formData.projectId).trim() : '';
+    if (!projectIdStr) {
       newErrors.projectId = "Project ID is required";
     }
 
@@ -539,7 +580,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
               Add New User Story
             </h2>
             <p className="mt-1 text-sm text-gray-600">Parent ID: {getParentIdDisplay(formData.projectId)}</p>
-            <p className="mt-1 text-sm text-gray-600">Project Name: {getProjectNameDisplay(formData.projectId)}</p>
+            <p className="mt-1 text-sm text-gray-600">Initiative name: {getProjectNameDisplay(formData.projectId)}</p>
             {errors.submit && (
               <p className="mt-1 text-red-600" style={{ fontSize: '10px' }}>
                 {errors.submit}
@@ -584,9 +625,9 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.projectId ? 'border-red-500' : 'border-gray-300'
                     }`}
                   disabled={loading || !!initialValues?.projectName}
-                  title={formData.projectId ? `Selected Project ID: ${formData.projectId}` : "Select a Project ID"}
+                  title={formData.projectId ? `Selected Initiative ID: ${formData.projectId}` : "Select an Initiative ID"}
                 >
-                  <option value="" title="No project selected">Select Project</option>
+                  <option value="" title="No initiative selected">Select Initiative</option>
                   {projectList.map(project => (
                     <option
                       key={project.projectId}

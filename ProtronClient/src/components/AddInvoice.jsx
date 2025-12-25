@@ -1043,7 +1043,7 @@ const AddInvoiceModal = ({
                                     onCreateOption={(inputValue) => {
                                         setFormData(prev => ({ ...prev, projectName: inputValue }));
                                     }}
-                                    placeholder="Select or create project..."
+                                    placeholder="Select or create Initiative..."
                                     className="w-full"
                                     isClearable
                                     isSearchable

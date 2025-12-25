@@ -835,7 +835,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <label
                                             htmlFor="poSpoc"
                                             className="block text-sm font-medium text-gray-700 mb-2"
-                                            title="Select an existing project or type a new one to create"
+                                            title="Select an existing initiative or type a new one to create"
                                         >
                                             PM/SPOC Name
                                         </label>
@@ -843,7 +843,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             <Folder
                                                 className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11"
                                                 size={20}
-                                                title="Select or create project"
+                                                title="Select or create initiative"
                                             />
                                             <CreatableSelect
                                                 inputId="poSpoc"
@@ -877,8 +877,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Name">
-                                            Project Name <span className="text-red-500">*</span>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Initiative name">
+                                            Initiative name <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative w-full">
                                             <Folder className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11" size={20} />
@@ -904,8 +904,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     })
                                                 }}
                                                 className="react-select-container z-10"
-                                                placeholder="Select or create project"
-                                                title={formData.projectName || "Select or create project"}
+                                                placeholder="Select or create initiative"
+                                                title={formData.projectName || "Select or create initiative"}
                                                 required
                                             />
                                         </div>
@@ -947,7 +947,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <label
                                             htmlFor="sponsorName"
                                             className="block text-sm font-medium text-gray-700 mb-2"
-                                            title="Select an existing project or type a new one to create"
+                                            title="Select an existing initiative or type a new one to create"
                                         >
                                             Sponsor Name
                                         </label>
@@ -993,7 +993,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <label
                                             htmlFor="sponsorLob"
                                             className="block text-sm font-medium text-gray-700 mb-2"
-                                            title="Select an existing project or type a new one to create"
+                                            title="Select an existing initiative or type a new one to create"
                                         >
                                             Sponsor LOB
                                         </label>
@@ -1001,7 +1001,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             <UserCheck
                                                 className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
                                                 size={20}
-                                                title="Select or create project"
+                                                title="Select or create initiative"
                                             />
                                             <CreatableSelect
                                                 inputId="sponsorLob"
@@ -1039,7 +1039,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <label
                                             htmlFor="budgetLineItem"
                                             className="block text-sm font-medium text-gray-700 mb-2"
-                                            title="Select an existing project or type a new one to create"
+                                            title="Select an existing initiative or type a new one to create"
                                         >
                                             Budget Line Item
                                         </label>
@@ -1047,7 +1047,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             <UserCheck
                                                 className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-9"
                                                 size={20}
-                                                title="Select or create project"
+                                                title="Select or create initiative"
                                             />
                                             <CreatableSelect
                                                 inputId="budgetLineItem"

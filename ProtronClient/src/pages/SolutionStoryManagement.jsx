@@ -3,6 +3,7 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { FiFileText, FiCheckSquare, FiSearch, FiGitBranch, FiDownload, FiLoader, FiEye, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { Copy } from 'lucide-react';
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSolutionStoryModal from "../components/AddSolutionStoryModal";
 import AddTaskModal from "../components/AddTaskModal";
@@ -23,6 +24,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   const [parentStory, setParentStory] = useState(null);
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
   const [addTaskParentStory, setAddTaskParentStory] = useState(null);
+  const [duplicatingSolutionStory, setDuplicatingSolutionStory] = useState(null);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -63,7 +65,19 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       
       if (response.ok) {
         const data = await response.json();
-        setSolutionStories(data);
+        // Sort by ID in descending order (newest first) or by ssId if available
+        const sortedData = Array.isArray(data) ? [...data].sort((a, b) => {
+          // Try to sort by numeric ID first
+          if (a.id && b.id) {
+            return b.id - a.id; // Descending order (newest first)
+          }
+          // Fallback to ssId string comparison (SS-123 format)
+          if (a.ssId && b.ssId) {
+            return b.ssId.localeCompare(a.ssId);
+          }
+          return 0;
+        }) : data;
+        setSolutionStories(sortedData);
       } else {
         throw new Error('Failed to fetch solution stories');
       }
@@ -157,6 +171,24 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     }
   }, [showSnackbar, fetchSolutionStories, parentStory?.usId]);
 
+  const handleDuplicate = useCallback((story) => {
+    // Prepare duplicate data: copy all fields except id
+    // Preserve the parent user story ID (usId) from the original parentStory if available
+    const duplicateData = { 
+      ...story,
+      _isDuplicate: true,
+      _originalSsId: story.ssId, // Keep original for reference
+      // Preserve parent user story ID - use parentStory.usId if available (from SolutionStoryManagement context)
+      // or use story.parentId if it's a US- ID, otherwise use parentStory state
+      parentId: parentStory?.usId || (story.parentId && story.parentId.startsWith('US-') ? story.parentId : null) || '',
+      usId: parentStory?.usId || (story.parentId && story.parentId.startsWith('US-') ? story.parentId : null) || null
+    };
+    // Don't delete ssId - we'll use _isDuplicate flag to detect
+    delete duplicateData.id;
+    setDuplicatingSolutionStory(duplicateData);
+    setIsAddModalOpen(true);
+  }, [parentStory]);
+
   const ActionsRenderer = useCallback((params) => {
     const story = params.data;
     
@@ -177,6 +209,14 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
           >
             <FiEdit2 size={16} />
           </button>
+
+          <button
+            onClick={() => handleDuplicate(story)}
+            className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
+            title="Copy Solution Story"
+          >
+            <Copy size={16} />
+          </button>
       
         <button
           onClick={() => handleAddTask(story)}
@@ -196,7 +236,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
        
       </div>
     );
-  }, [handleView, handleEdit, handleDelete, handleAddTask]);
+  }, [handleView, handleEdit, handleDelete, handleAddTask, handleDuplicate]);
 
   const columnDefs = [
     {
@@ -483,10 +523,17 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         <AddSolutionStoryModal
           open={isAddModalOpen}
           onClose={() => {
+            setDuplicatingSolutionStory(null);
             fetchSolutionStories(parentStory?.usId);
             setIsAddModalOpen(false);
           }}
-          parentStory={parentStory}
+          parentStory={duplicatingSolutionStory ? {
+            ...duplicatingSolutionStory,
+            // Preserve the original parent user story info for display
+            // If we have parentStory state, use its usId and summary for the parent context
+            usId: parentStory?.usId || duplicatingSolutionStory.usId || duplicatingSolutionStory.parentId,
+            summary: parentStory?.summary || duplicatingSolutionStory.summary
+          } : parentStory}
         />
       
 

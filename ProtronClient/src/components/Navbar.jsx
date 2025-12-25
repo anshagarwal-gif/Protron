@@ -191,7 +191,7 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
 
   const modules = [
     { key: "dashboard", label: "Dashboard", path: "/dashboard", moduleName: "dashboard", icon: FiHome },
-    { key: "projects", label: "Projects", path: "/projects", moduleName: "projects", icon: FiFolder },
+    { key: "projects", label: "Initiatives", path: "/projects", moduleName: "projects", icon: FiFolder },
     { key: "stories", label: " Story ", path: "/stories", moduleName: "projects", icon: FiBookOpen },
     // { key: "team", label: "Team", path: "/team", moduleName: "teams", icon: FiUserCheck },
     { key: "timesheet", label: "Timesheet", path: "/timesheet", moduleName: "timesheet", icon: FiClock },

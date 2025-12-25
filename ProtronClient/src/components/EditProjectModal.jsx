@@ -386,7 +386,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         } catch (error) {
             console.error('Error updating project:', error);
             setErrors({
-                submit: `Failed to update project`
+                submit: `Failed to update initiative`
             });
         } finally {
             setIsLoading(false);
@@ -422,7 +422,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
             <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-auto shadow-xl">
                 {/* Header */}
                 <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
-                    <h1 className="text-xl font-semibold text-green-800">Edit Project</h1>
+                    <h1 className="text-xl font-semibold text-green-800">Edit Initiative</h1>
                 </div>
 
                 {/* Content */}
@@ -430,7 +430,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                     {isLoading && (
                         <div className="flex items-center justify-center py-8">
                             <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                            <span className="ml-3 text-gray-600">Loading project data...</span>
+                            <span className="ml-3 text-gray-600">Loading initiative data...</span>
                         </div>
                     )}
 
@@ -440,7 +440,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             <div className="grid grid-cols-4 gap-6">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Project Name
+                                        Initiative name
                                         <span className="float-right text-xs text-gray-500">{localFormData.projectName?.length || 0}/100 characters</span>
                                     </label>
                                     <input
@@ -449,7 +449,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                         onChange={e => handleChange('projectName', e.target.value.slice(0, 100))}
                                         maxLength={100}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
-                                        placeholder="Enter project name"
+                                        placeholder="Enter initiative name"
                                         required
                                     />
                                 </div>
@@ -524,13 +524,13 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 </div>
                             </div>
 
-                            {/* Row 3: Project Manager and Sponsor */}
+                            {/* Row 3: Initiative Manager and Sponsor */}
                             <div className="grid grid-cols-4 gap-6">
                                 <Dropdown
                                     options={users}
                                     value={localFormData.projectManager}
                                     onChange={(user) => handleChange('projectManager', user)}
-                                    label="Project Manager"
+                                    label="Initiative Manager"
                                     placeholder="Search for a manager..."
                                     icon={User}
                                     getOptionLabel={(option) => option?.name || ''}
@@ -541,7 +541,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     options={users}
                                     value={localFormData.sponsor}
                                     onChange={(user) => handleChange('sponsor', user)}
-                                    label="Project Sponsor"
+                                    label="Initiative Sponsor"
                                     placeholder="Search for a sponsor..."
                                     icon={User}
                                     getOptionLabel={(option) => option?.name || ''}
@@ -564,7 +564,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     </select>
                                 </div>
                                 <div className="w-full">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Project Cost</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Initiative Cost</label>
                                     <div className="relative">
                                         <input
                                             type="number"
@@ -826,7 +826,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     {isLoading ? (
                                         <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                     ) : (
-                                        'Update Project'
+                                        'Update Initiative'
                                     )}
                                 </button>
                             </div>

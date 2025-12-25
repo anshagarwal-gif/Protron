@@ -70,7 +70,7 @@ const ViewSprintModal = ({ open, onClose, sprintData, projectName }) => {
           <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               <Field label="Sprint Name" value={sprintData.sprintName} />
-              <Field label="Project Name" value={projectName} />
+              <Field label="Initiative name" value={projectName} />
               <Field label="Start Date" value={formatDate(sprintData.startDate)} />
               <Field label="End Date" value={formatDate(sprintData.endDate)} />
               <Field label="Created On" value={formatDate(sprintData.createdOn)} />

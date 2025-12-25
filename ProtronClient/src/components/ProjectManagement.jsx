@@ -195,7 +195,7 @@ const ProjectManagement = () => {
   const ActionsRenderer = (params) => {
     return (
       <div className="flex justify-center gap-2">
-        {/* View Project Button */}
+        {/* View Initiative Button */}
         <button
           onClick={() => handleView(params.data.projectId)}
           className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
@@ -264,7 +264,7 @@ const ProjectManagement = () => {
       filter: false,
     },
     {
-      headerName: 'Project Code',
+      headerName: 'Initiative Code',
       field: 'projectCode',
       cellRenderer: ProjectCodeRenderer,
       minWidth: 200,
@@ -273,7 +273,7 @@ const ProjectManagement = () => {
       cellStyle: { fontWeight: '500' }
     },
     {
-      headerName: 'Project Name',
+      headerName: 'Initiative name',
       field: 'projectName',
       cellRenderer: ProjectNameRenderer,
       flex: 1,
@@ -299,7 +299,7 @@ const ProjectManagement = () => {
       }
     },
     {
-      headerName: 'PM Name',
+      headerName: 'Initiative Manager',
       valueGetter: (params) => {
         const pm = params.data.projectManager;
         return pm ? `${pm.firstName} ${pm.lastName}` : '';
@@ -319,7 +319,7 @@ const ProjectManagement = () => {
       cellStyle: { textAlign: 'center' }
     },
     {
-      headerName: 'Project Cost',
+      headerName: 'Initiative Cost',
       field: 'projectCost',
       valueFormatter: (params) => params.value ? `${params.value}` : '-',
       minWidth: 150,
@@ -327,7 +327,7 @@ const ProjectManagement = () => {
       cellStyle: { textAlign: 'right', fontWeight: '500' }
     },
     {
-      headerName: 'Sponsor',
+      headerName: 'Initiative Sponsor',
       valueGetter: (params) => {
         const sponsor = params.data.sponsor;
         return sponsor ? `${sponsor.firstName} ${sponsor.lastName}` : '';
@@ -399,7 +399,7 @@ const ProjectManagement = () => {
   const LoadingSpinner = () => (
     <div className="flex flex-col items-center justify-center h-64 bg-white">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
-      <p className="text-gray-600 text-lg">Loading projects...</p>
+      <p className="text-gray-600 text-lg">Loading initiatives...</p>
     </div>
   );
 
@@ -447,14 +447,14 @@ const ProjectManagement = () => {
   useEffect(() => {
     let filtered = [...projects];
 
-    // Apply search filter for project name, PM name, and sponsor
+    // Apply search filter for initiative name, initiative manager name, and sponsor
     if (searchTerm.trim() !== '') {
       const searchTermLower = searchTerm.toLowerCase();
       filtered = filtered.filter(project => {
         // Search in project name
         const projectNameMatch = project.projectName.toLowerCase().includes(searchTermLower);
 
-        // Search in PM name (first name or last name)
+        // Search in initiative manager name (first name or last name)
         const pmFirstName = project.projectManager?.firstName?.toLowerCase() || '';
         const pmLastName = project.projectManager?.lastName?.toLowerCase() || '';
         const pmFullName = `${pmFirstName} ${pmLastName}`.trim();
@@ -574,14 +574,14 @@ const ProjectManagement = () => {
 
       setSnackbar({
         open: true,
-        message: 'Project added successfully!',
+        message: 'Initiative added successfully!',
         severity: 'success',
       });
     } catch (error) {
       console.error('Error adding project:', error);
       setSnackbar({
         open: true,
-        message: 'Failed to add project. Please try again.',
+        message: 'Failed to add initiative. Please try again.',
         severity: 'error',
       });
     }
@@ -618,13 +618,13 @@ const ProjectManagement = () => {
       // Match current main table columns and order
       const excelData = filteredProjects.map((project, index) => ({
         '#': index + 1,
-        'Project Code': project.projectCode || 'N/A',
-        'Project Name': project.projectName || 'N/A',
+        'Initiative Code': project.projectCode || 'N/A',
+        'Initiative name': project.projectName || 'N/A',
         'Start Date': project.startDate ? formatDate(project.startDate) : 'N/A',
-        'PM Name': project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'N/A',
+        'Initiative Manager': project.projectManager ? `${project.projectManager.firstName} ${project.projectManager.lastName}` : 'N/A',
         'Cost Currency': project.unit || 'N/A',
-        'Project Cost': project.projectCost != null ? `${project.projectCost}` : 'N/A',
-        'Sponsor': project.sponsor ? `${project.sponsor.firstName} ${project.sponsor.lastName}` : 'N/A',
+        'Initiative Cost': project.projectCost != null ? `${project.projectCost}` : 'N/A',
+        'Initiative Sponsor': project.sponsor ? `${project.sponsor.firstName} ${project.sponsor.lastName}` : 'N/A',
       }));
 
       // Create worksheet from data
@@ -632,10 +632,10 @@ const ProjectManagement = () => {
 
       // Create workbook and add the worksheet
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Projects');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Initiatives');
 
       // Generate Excel file and trigger download
-      XLSX.writeFile(workbook, `Projects_${new Date().toISOString().split('T')[0]}.xlsx`);
+      XLSX.writeFile(workbook, `Initiatives_${new Date().toISOString().split('T')[0]}.xlsx`);
 
       setSnackbar({
         open: true,
@@ -691,14 +691,14 @@ const ProjectManagement = () => {
 
 
           <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mt-5">
-            <h1 className="text-2xl font-bold text-green-800">Project Management</h1>
+            <h1 className="text-2xl font-bold text-green-800">Initiative Management</h1>
 
             <div className="flex flex-col sm:flex-row gap-3">
               {/* Search Input */}
               <div className="relative w-full sm:w-64">
                 <input
                   type="text"
-                  placeholder="Search projects..."
+                  placeholder="Search initiatives..."
                   value={searchTerm}
                   onChange={handleSearchChange}
                   className="border rounded px-3 py-2 pl-9 w-full"
@@ -722,7 +722,7 @@ const ProjectManagement = () => {
                     className="border px-3 py-2 rounded bg-green-800 text-white hover:bg-green-700 flex items-center justify-center flex-1 sm:flex-none cursor-pointer"
                     onClick={() => setShowAddModal(true)}
                   >
-                    <span className="hidden sm:inline mr-1">+</span> Add Project
+                    <span className="hidden sm:inline mr-1">+</span> Add Initiative
                   </button>)}
               </div>
             </div>
@@ -1168,7 +1168,7 @@ const ProjectManagement = () => {
                           <div className="text-gray-500">Start Date:</div>
                           <div>{project.startDate ? formatDate(project.startDate) : 'N/A'}</div>
 
-                          <div className="text-gray-500">PM:</div>
+                          <div className="text-gray-500">Initiative Manager:</div>
                           <div>{project.projectManager?.firstName} {project.projectManager?.lastName}</div>
 
                           <div className="text-gray-500">Team Size:</div>
@@ -1183,10 +1183,10 @@ const ProjectManagement = () => {
                           <div className="text-gray-500">Cost Currency:</div>
                           <div>{project.unit || '-'}</div>
 
-                          <div className="text-gray-500">Project Cost:</div>
+                          <div className="text-gray-500">Initiative Cost:</div>
                           <div>{project.projectCost ? `₹${project.projectCost}` : '-'}</div>
 
-                          <div className="text-gray-500">Sponsor:</div>
+                          <div className="text-gray-500">Initiative Sponsor:</div>
                           <div>{project.sponsor?.firstName && project.sponsor?.lastName ? `${project.sponsor.firstName} ${project.sponsor.lastName}` : '-'}</div>
                         </div>
 
@@ -1199,7 +1199,7 @@ const ProjectManagement = () => {
                             <FiEye size={20} className="text-green-700" />
                           </button>
 
-                          {/* Edit Project Button */}
+                          {/* Edit Initiative Button */}
                           {hasAccess('projects', 'edit') && (
                             <button
                               onClick={() => setSelectedEditProjectId(project.projectId)}
@@ -1222,7 +1222,7 @@ const ProjectManagement = () => {
                     ))
                   ) : (
                     <div className="py-6 text-center text-gray-500">
-                      No projects found
+                      No initiatives found
                     </div>
                   )}
                 </div>

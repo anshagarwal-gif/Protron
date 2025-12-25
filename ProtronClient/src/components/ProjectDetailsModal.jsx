@@ -31,7 +31,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
       fetchProjects();
       onClose();
     } catch (error) {
-      alert("Failed to delete project.");
+      alert("Failed to delete initiative.");
       console.error("Error deleting project:", error);
     }
   };
@@ -102,7 +102,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                 <button
                   onClick={() => setShowEditModal(true)}
                   className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-                  title="Edit Project"
+                  title="Edit Initiative"
                   disabled={!projectDetails}
                 >
                   <Pencil size={20} className="text-white" />
@@ -113,7 +113,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                 <button
                 onClick={handleDeleteProject}
                 className="p-2 hover:bg-red-700 rounded-full transition-colors cursor-pointer"
-                title="Delete Project"
+                title="Delete Initiative"
                 disabled={!projectDetails}
               >
                 <Trash2 size={20} className="text-red-200" />
@@ -134,7 +134,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
             <div className="text-center py-8 sm:py-12">
               <div className="text-gray-600 text-sm flex items-center justify-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
-                Loading project details...
+                Loading initiative details...
               </div>
             </div>
           ) : projectDetails ? (
@@ -147,7 +147,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                   <Field
-                    label="Project Name"
+                    label="Initiative name"
                     value={projectDetails.projectName}
                   />
                   <Field
@@ -163,7 +163,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                     value={formatDate(projectDetails.endDate)}
                   />
                   <Field
-                    label="Project Cost"
+                    label="Initiative Cost"
                     value={projectDetails.unit + " " + projectDetails.projectCost}
                   />
                 </div>
@@ -177,11 +177,11 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                   <Field
-                    label="Project Manager"
+                    label="Initiative Manager"
                     value={projectDetails.managerName || "Not assigned"}
                   />
                   <Field
-                    label="Project Sponsor"
+                    label="Initiative Sponsor"
                     value={projectDetails.sponsorName || "Not assigned"}
                   />
                   <Field
@@ -317,7 +317,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
           )}
         </div>
 
-        {/* Edit Project Modal */}
+        {/* Edit Initiative Modal */}
         {showEditModal && (
           <EditProjectModal
             open={showEditModal}

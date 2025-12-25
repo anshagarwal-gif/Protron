@@ -773,26 +773,26 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   Project
                 </label>
                 <select
-                  name="project"
+                  name=" Initiatives"
                   value={formData.project}
                   onChange={handleInputChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading}
-                  title={formData.project ? `Selected Project: ${formData.project}` : "Select a project"}
+                  title={formData.project ? `Selected Initiative: ${formData.project}` : "Select an Initiative"}
                 >
-                  <option value="" title="No project selected">Select project</option>
+                  <option value="" title="No  Initiatives selected">Select  Initiatives</option>
                   {projectList.map((project, index) => (
                     <option
                       key={project.projectId || index}
                       value={project.projectName}
-                      title={`Project: ${project.projectName}${project.projectDescription ? ` | Description: ${project.projectDescription}` : ''}`}
+                      title={` Initiatives: ${project.projectName}${project.projectDescription ? ` | Description: ${project.projectDescription}` : ''}`}
                     >
                       {project.projectName.length > 25 ? `${project.projectName.substring(0, 25)}...` : project.projectName}
                     </option>
                   ))}
                 </select>
                 {projectList.length === 0 && (
-                  <p className="mt-1 text-xs text-gray-500" title="Loading projects from server...">Loading projects...</p>
+                  <p className="mt-1 text-xs text-gray-500" title="Loading  Initiatives from server...">Loading  Initiatives...</p>
                 )}
               </div>
 
@@ -1388,11 +1388,11 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
                   disabled={loading}
 
-                  title={formData.project ? `Selected Project: ${formData.project}` : "Select a project"}
+                  title={formData.project ? `Selected Initiative: ${formData.project}` : "Select an Initiative"}
 
                 >
 
-                  <option value="" title="No project selected">Select project</option>
+                  <option value="" title="No initiative selected">Select initiative</option>
 
                   {projectList.map((project, index) => (
 
@@ -1416,7 +1416,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
                 {projectList.length === 0 && (
 
-                  <p className="mt-1 text-xs text-gray-500" title="Loading projects from server...">Loading projects...</p>
+                  <p className="mt-1 text-xs text-gray-500" title="Loading initiatives from server...">Loading initiatives...</p>
 
                 )}
 
