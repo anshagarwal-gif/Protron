@@ -13,7 +13,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [systemsImpacted, setSystemsImpacted] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const {hasAccess} = useAccess();
+  const { hasAccess } = useAccess();
 
   const handleProjectEdit = (projectId) => {
     setShowEditModal(false);
@@ -36,22 +36,22 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
     }
   };
 
- const fetchProjectDetails = async (projectId) => {
-      setIsLoading(true);
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/projects/${projectId}`, {
-          headers: { Authorization: `${sessionStorage.getItem("token")}` },
-        });
-        const { project, teamMembers, systemsImpacted } = response.data;
-        setProjectDetails(project);
-        setTeamMembers(teamMembers);
-        setSystemsImpacted(systemsImpacted);
-      } catch (error) {
-        console.error("Error fetching project details:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchProjectDetails = async (projectId) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/projects/${projectId}`, {
+        headers: { Authorization: `${sessionStorage.getItem("token")}` },
+      });
+      const { project, teamMembers, systemsImpacted } = response.data;
+      setProjectDetails(project);
+      setTeamMembers(teamMembers);
+      setSystemsImpacted(systemsImpacted);
+    } catch (error) {
+      console.error("Error fetching project details:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
 
@@ -92,7 +92,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Building size={20} className="text-white sm:w-6 sm:h-6" />
               <div>
-                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Project Details</h2>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Initiative Details</h2>
                 <p className="text-green-100 text-xs sm:text-sm">ID: {projectDetails?.projectCode || 'Loading...'}</p>
               </div>
             </div>
@@ -108,17 +108,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                   <Pencil size={20} className="text-white" />
                 </button>
               )}
-              {/* Delete button in header */}
-              {hasAccess("projects", "delete") && (
-                <button
-                onClick={handleDeleteProject}
-                className="p-2 hover:bg-red-700 rounded-full transition-colors cursor-pointer"
-                title="Delete Initiative"
-                disabled={!projectDetails}
-              >
-                <Trash2 size={20} className="text-red-200" />
-              </button>
-              )}
+
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
@@ -266,44 +256,44 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
                 </div>
 
                 {/* Systems Impacted */}
-                        <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-                          <Settings className="mr-2 text-green-600" size={18} />
-                          Systems Impacted ({systemsImpacted.length})
-                          </h3>
-                          <div className="bg-white rounded p-2 sm:p-3 border min-h-[150px] sm:min-h-[200px]">
-                          {systemsImpacted.length > 0 ? (
-                            <div className="space-y-2">
-                            {systemsImpacted.map((system, index) => (
-                              <div key={index} className="flex items-center text-xs sm:text-sm p-2 border rounded bg-gray-50">
-                              <Settings size={14} className="sm:w-4 sm:h-4 text-gray-600 mr-2 flex-shrink-0" />
-                              <span className="text-gray-900 font-medium min-w-0 flex-1 break-words overflow-wrap-anywhere">
-                                {system.systemName}
-                              </span>
-                              </div>
-                            ))}
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-gray-500">
-                            <div className="text-center">
-                              <Settings size={32} className="sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-4 text-gray-300" />
-                              <p className="text-xs sm:text-sm">No systems impacted</p>
-                            </div>
-                            </div>
-                          )}
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                    <Settings className="mr-2 text-green-600" size={18} />
+                    Systems Impacted ({systemsImpacted.length})
+                  </h3>
+                  <div className="bg-white rounded p-2 sm:p-3 border min-h-[150px] sm:min-h-[200px]">
+                    {systemsImpacted.length > 0 ? (
+                      <div className="space-y-2">
+                        {systemsImpacted.map((system, index) => (
+                          <div key={index} className="flex items-center text-xs sm:text-sm p-2 border rounded bg-gray-50">
+                            <Settings size={14} className="sm:w-4 sm:h-4 text-gray-600 mr-2 flex-shrink-0" />
+                            <span className="text-gray-900 font-medium min-w-0 flex-1 break-words overflow-wrap-anywhere">
+                              {system.systemName}
+                            </span>
                           </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        <div className="text-center">
+                          <Settings size={32} className="sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-4 text-gray-300" />
+                          <p className="text-xs sm:text-sm">No systems impacted</p>
                         </div>
-                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
 
-                        <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-                        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-                          <CheckCircle className="mr-2 text-green-600" size={18} />
-                          Definition of Done
-                        </h3>
-                        <div className="bg-white rounded p-2 sm:p-3 border min-h-[60px] text-gray-900 text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap">
-                          {projectDetails.defineDone ? projectDetails.defineDone : <span className="text-gray-500">No DoD defined for this project.</span>}
-                        </div>
-                        </div>
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                  <CheckCircle className="mr-2 text-green-600" size={18} />
+                  Definition of Done
+                </h3>
+                <div className="bg-white rounded p-2 sm:p-3 border min-h-[60px] text-gray-900 text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                  {projectDetails.defineDone ? projectDetails.defineDone : <span className="text-gray-500">No DoD defined for this project.</span>}
+                </div>
+              </div>
 
 
 
@@ -312,7 +302,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
           ) : (
             <div className="text-center py-8 sm:py-12">
               <Building size={48} className="sm:w-16 sm:h-16 mx-auto mb-4 text-gray-300" />
-              <p className="text-gray-600 text-base sm:text-lg">No project details available</p>
+              <p className="text-gray-600 text-base sm:text-lg">No initiative details available</p>
             </div>
           )}
         </div>
@@ -324,7 +314,7 @@ const ProjectDetailsModal = ({ projectId, onClose, fetchProjects }) => {
             onClose={() => setShowEditModal(false)}
             projectId={projectId}
             onSubmit={handleProjectEdit}
-            // You may need to pass additional props for formData, setFormData, onSubmit, etc.
+          // You may need to pass additional props for formData, setFormData, onSubmit, etc.
           />
         )}
         {/* Footer */}

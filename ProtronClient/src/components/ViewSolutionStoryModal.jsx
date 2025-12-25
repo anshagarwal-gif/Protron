@@ -187,20 +187,50 @@ const ViewSolutionStoryModal = ({ open, onClose, storyData, onEdit }) => {
     </div>
   );
 
+  // Truncate text helper
+  const truncateText = (text, maxLength) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
         <div className="px-4 sm:px-6 py-4 bg-green-600 text-white rounded-t-lg">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <BookOpen size={20} className="text-white sm:w-6 sm:h-6" />
-              <div>
-                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Solution Story Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm">Story ID: {storyData.ssId}</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+            <div className="flex items-start space-x-3 w-full pr-4 overflow-hidden">
+              <BookOpen size={24} className="text-white flex-shrink-0 mt-1" />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold mb-1">Solution Story Details</h2>
+
+                {/* Solution Story Details */}
+                <div className="flex items-center flex-wrap gap-x-2" title={storyData.description}>
+                  <span className="text-sm font-bold text-green-100 whitespace-nowrap">
+                    ID: {storyData.ssId}
+                  </span>
+                  {storyData.description && (
+                    <span className="text-sm font-medium text-white/90 truncate max-w-full">
+                      - {truncateText(storyData.description, 100)}
+                    </span>
+                  )}
+                </div>
+
+                {/* Parent Story Details */}
+                {storyData.parentId && (
+                  <div className="flex items-center flex-wrap gap-x-2 mt-1" title={parentStorySummary}>
+                    <span className="text-xs font-semibold text-green-100 whitespace-nowrap bg-green-700/30 px-1.5 py-0.5 rounded">
+                      Parent: {storyData.parentId}
+                    </span>
+                    <span className="text-xs text-green-50 truncate max-w-full">
+                      - {truncateText(parentStorySummary, 100)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+
+            <div className="flex items-center space-x-2 flex-shrink-0 self-start sm:self-center">
               {onEdit && (
                 <button
                   onClick={() => {
@@ -332,7 +362,7 @@ const ViewSolutionStoryModal = ({ open, onClose, storyData, onEdit }) => {
                           link.setAttribute('download', attachment.fileName);
                           document.body.appendChild(link);
                           link.click();
-                          
+
                           // Cleanup
                           link.parentNode.removeChild(link);
                           window.URL.revokeObjectURL(url);

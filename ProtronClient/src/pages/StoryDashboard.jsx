@@ -918,7 +918,7 @@ const StoryDashboard = () => {
   const handleDuplicateSolutionStory = useCallback((story) => {
     // Prepare duplicate data: copy all fields except id
     // Keep ssId for reference but mark as duplicate
-    const duplicateData = { 
+    const duplicateData = {
       ...story,
       _isDuplicate: true,
       _originalSsId: story.ssId // Keep original for reference
@@ -932,7 +932,7 @@ const StoryDashboard = () => {
   const handleDuplicateTask = useCallback((task) => {
     // Prepare duplicate data: copy all fields except id
     // Preserve the parent story ID (usId or ssId) from the task
-    const duplicateData = { 
+    const duplicateData = {
       ...task,
       _isDuplicate: true,
       _originalTaskId: task.taskId, // Keep original for reference
@@ -1222,31 +1222,7 @@ const StoryDashboard = () => {
         )}
 
         {/* Delete: call type-specific delete handlers where applicable */}
-        {storyType === 'solutionstory' ? (
-          <button
-            onClick={() => handleDeleteSolutionStory(story.ssId)}
-            className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Delete Solution Story"
-          >
-            <FiTrash2 size={16} />
-          </button>
-        ) : storyType === 'task' ? (
-          <button
-            onClick={() => handleDeleteTask(story.taskId)}
-            className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Delete Task"
-          >
-            <FiTrash2 size={16} />
-          </button>
-        ) : (
-          <button
-            onClick={() => handleDeleteStory(story.id)}
-            className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Delete Story"
-          >
-            <FiTrash2 size={16} />
-          </button>
-        )}
+
       </div>
     );
   }, [openViewModal, openEditModal, handleDeleteStory, handleDeleteSolutionStory, handleDeleteTask, handleDuplicateStory, handleDuplicateSolutionStory, handleDuplicateTask, filters.type]);
@@ -1732,7 +1708,7 @@ const StoryDashboard = () => {
             >
               <Copy size={14} />
             </button>
-            <button
+            {/* <button
               onClick={() => {
                 if (isTask) handleDeleteTask(item.taskId);
                 else if (isSolutionStory) handleDeleteSolutionStory(item.ssId);
@@ -1741,7 +1717,7 @@ const StoryDashboard = () => {
               className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
             >
               <FiTrash2 size={14} />
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -1822,7 +1798,7 @@ const StoryDashboard = () => {
       </div>
     );
   }, [openViewModal, openViewTaskModal, openEditModal, openEditTaskModal, openEditSolutionModal,
-    handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, handleDuplicateStory, 
+    handleDeleteStory, handleDeleteTask, handleDeleteSolutionStory, handleDuplicateStory,
     handleDuplicateSolutionStory, handleDuplicateTask, getPriorityColor]);
 
   if (initialLoading) {
@@ -2938,12 +2914,12 @@ const StoryDashboard = () => {
                                       >
                                         <FiEdit size={14} />
                                       </button>
-                                      <button
+                                      {/* <button
                                         onClick={() => handleDeleteStory(story.id)}
                                         className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
                                       >
                                         <FiTrash2 size={14} />
-                                      </button>
+                                      </button> */}
                                     </div>
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -3018,12 +2994,12 @@ const StoryDashboard = () => {
                                       >
                                         <FiEdit size={14} />
                                       </button>
-                                      <button
+                                      {/* <button
                                         onClick={() => handleDeleteStory(story.id)}
                                         className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1"
                                       >
                                         <FiTrash2 size={14} />
-                                      </button>
+                                      </button> */}
                                     </div>
                                   </div>
                                   <div className="flex-1 flex flex-col justify-between min-h-0">
