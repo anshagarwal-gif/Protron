@@ -1980,7 +1980,7 @@ const StoryDashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Project ID */}
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Project ID</label>
+            <label className="block text-sm font-medium text-gray-700">Initiative ID</label>
             <select
               value={filters.projectName}
               onChange={(e) => {

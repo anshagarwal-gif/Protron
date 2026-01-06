@@ -35,6 +35,7 @@ const currencySymbols = {
 const AddPOModal = ({ open, onClose, onSubmit }) => {
     if (!open) return null;
     const [poId, setPoId] = useState(null); // Store the created PO ID
+    const [loading, setLoading] = useState(false); // Loading state for PO creation
     const [formData, setFormData] = useState({
         poNumber: '',
         poType: '',
@@ -86,7 +87,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         } catch (error) {
             console.error('Error fetching users:', error);
             setError({
-                submit:"Error fetching users"
+                submit: "Error fetching users"
             })
         }
     };
@@ -102,7 +103,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         } catch (error) {
             console.error('Error fetching projects:', error);
             setError({
-                submit:"Error fetching projects"
+                submit: "Error fetching projects"
             })
         }
     };
@@ -138,7 +139,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         } catch (error) {
             console.error("Failed to fetch countries:", error);
             setError({
-                submit:"Failed to fetch countries"
+                submit: "Failed to fetch countries"
             })
         }
     };
@@ -206,7 +207,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
     };
 
 
-    
+
 
 
     const handleMilestoneSubmit = (milestoneData) => {
@@ -261,7 +262,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         } catch (error) {
             console.error('Error deleting milestone:', error);
             setError({
-                submit:"Error deleting milestone"
+                submit: "Error deleting milestone"
             })
         }
     };
@@ -286,6 +287,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             setSnackbar({ open: true, message: 'Please fill all required fields.', severity: 'error' });
             return;
         }
+        setLoading(true);
         try {
             const poPayload = {
                 poNumber: formData.poNumber,
@@ -341,7 +343,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                     severity: "error"
                 });
                 setError({
-                    submit:"You can attach a maximum of 4 files at once."
+                    submit: "You can attach a maximum of 4 files at once."
                 })
                 return;
             }
@@ -351,7 +353,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
                 if (file.size > 10 * 1024 * 1024) {
                     setError({
-                        submit:`File "${file.name}" exceeds 10MB limit and will be skipped.`
+                        submit: `File "${file.name}" exceeds 10MB limit and will be skipped.`
                     })
                     continue;
                 }
@@ -383,14 +385,16 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
             }
             setPoFiles([]);
             handleReset();
-            onSubmit();
             setError({})
+            setLoading(false);
+            onSubmit();
 
         } catch (error) {
             console.error('Error creating PO:', error);
             setError({
-                submit:"Network error, please try again"
+                submit: "Network error, please try again"
             })
+            setLoading(false);
         }
     };
 
@@ -558,7 +562,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 </div>
 
 
-                    
+
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO Amount <span className='text-red-500'>*</span></label>
                                     <div className="relative">
@@ -926,17 +930,17 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 </div>
 
                                 <div className="lg:col-span-1">
-    <label className="block text-sm font-medium text-gray-700 mb-2">Business Value Type</label>
-    <select
-        value={formData.businessValueType}
-        onChange={handleChange('businessValueType')}
-        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
-    >
-        <option value="">Select Type</option>
-        <option value="One Time">One Time</option>
-        <option value="Yearly">Yearly</option>
-    </select>
-</div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Value Type</label>
+                                    <select
+                                        value={formData.businessValueType}
+                                        onChange={handleChange('businessValueType')}
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                    >
+                                        <option value="">Select Type</option>
+                                        <option value="One Time">One Time</option>
+                                        <option value="Yearly">Yearly</option>
+                                    </select>
+                                </div>
 
 
                             </div>
@@ -946,12 +950,12 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                             <div>
 
                                 <div>
-<label className="block text-sm font-medium text-gray-700 mb-2">
-        Project Description
-        <span className="float-right text-xs text-gray-500">
-            {formData.projectDescription.length}/500 characters
-        </span>
-    </label>                                    <textarea
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Project Description
+                                        <span className="float-right text-xs text-gray-500">
+                                            {formData.projectDescription.length}/500 characters
+                                        </span>
+                                    </label>                                    <textarea
                                         placeholder="Enter here"
                                         rows={3}
                                         value={formData.projectDescription}
@@ -969,12 +973,12 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     />
                                 </div>
                                 <div>
-<label className="block text-sm font-medium text-gray-700 mb-2">
-        Budget Line Remarks
-        <span className="float-right text-xs text-gray-500">
-            {formData.budgetLineRemarks.length}/500 characters
-        </span>
-    </label>                                    <textarea
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Budget Line Remarks
+                                        <span className="float-right text-xs text-gray-500">
+                                            {formData.budgetLineRemarks.length}/500 characters
+                                        </span>
+                                    </label>                                    <textarea
                                         placeholder="Enter here"
                                         rows={3}
                                         value={formData.budgetLineRemarks}
@@ -1042,57 +1046,68 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
 
 
-                    </div>
+                        </div>
 
 
-                    <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+                        <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
 
-                        <button
-                            onClick={() => {
-                                onClose();
-                                setFormData({
-                                    poNumber: '',
-                                    poType: '',
-                                    poAmount: '',
-                                    currency: 'USD',
-                                    customerName: '',
-                                    sponsorName: '',
-                                    sponsorLob: '',
-                                    budgetLineItem: '',
-                                    budgetLineAmount: '',
-                                    budgetLineRemarks: '',
-                                    businessValueAmount: '',
-                                    businessValueType: '',
-                                    poCountry: '',
-                                    supplierName: sessionStorage.getItem('tenantName') || '',
-                                    projectName: '',
-                                    spocName: '',
-                                    startDate: '',
-                                    endDate: '',
-                                    projectDescription: '',
-                                    milestones: []
-                                });
-                            }}
-                            className="px-6 py-2 bg-white border-2 border-green-700 cursor-pointer text-green-700 rounded-md hover:bg-green-700 hover:text-white transition-colors font-semibold"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleCreatePO}
-                            className="cursor-pointer px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold"
-                        >
-                            Save
-                        </button>
+                            <button
+                                onClick={() => {
+                                    onClose();
+                                    setFormData({
+                                        poNumber: '',
+                                        poType: '',
+                                        poAmount: '',
+                                        currency: 'USD',
+                                        customerName: '',
+                                        sponsorName: '',
+                                        sponsorLob: '',
+                                        budgetLineItem: '',
+                                        budgetLineAmount: '',
+                                        budgetLineRemarks: '',
+                                        businessValueAmount: '',
+                                        businessValueType: '',
+                                        poCountry: '',
+                                        supplierName: sessionStorage.getItem('tenantName') || '',
+                                        projectName: '',
+                                        spocName: '',
+                                        startDate: '',
+                                        endDate: '',
+                                        projectDescription: '',
+                                        milestones: []
+                                    });
+                                }}
+                                className="px-6 py-2 bg-white border-2 border-green-700 cursor-pointer text-green-700 rounded-md hover:bg-green-700 hover:text-white transition-colors font-semibold"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreatePO}
+                                disabled={loading}
+                                className={`cursor-pointer px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {loading ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                        Saving...
+                                    </>
+                                ) : (
+                                    'Save'
+                                )}
+                            </button>
 
+                        </div>
                     </div>
                 </div>
-            </div>
-            <GlobalSnackbar
-                open={snackbar.open}
-                message={snackbar.message}
-                severity={snackbar.severity}
-                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-            />
+                <GlobalSnackbar
+                    open={snackbar.open}
+                    message={snackbar.message}
+                    severity={snackbar.severity}
+                    onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+                />
             </div>
         </>
     );

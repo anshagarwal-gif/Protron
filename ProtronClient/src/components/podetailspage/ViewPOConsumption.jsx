@@ -43,13 +43,13 @@ const ViewPOConsumptionModal = ({ open, onClose, consumptionData }) => {
 
   // Format date
   const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${monthStr}-${year}`;
+    if (!dateString) return 'N/A';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   // Get utilization type display name and tag styling
@@ -140,8 +140,8 @@ const ViewPOConsumptionModal = ({ open, onClose, consumptionData }) => {
               <Field
                 label="Milestone"
                 value={
-                  consumptionData.milestone?.msName || 
-                  consumptionData.msName || 
+                  consumptionData.milestone?.msName ||
+                  consumptionData.msName ||
                   consumptionData.milestoneName ||
                   (consumptionData.msId ? `Milestone ID: ${consumptionData.msId}` : "No specific milestone")
                 }
@@ -151,7 +151,7 @@ const ViewPOConsumptionModal = ({ open, onClose, consumptionData }) => {
                 value={consumptionData.resource}
               />
               <Field
-                label="Project"
+                label="Initiative"
                 value={consumptionData.project}
               />
               <Field

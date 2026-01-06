@@ -19,16 +19,16 @@ const LoadingOverlay = () => (
     </div>
   </div>
 );
-  // Currency symbol mapping
-  const getCurrencySymbol = (currencyCode) => {
-    const currencySymbols = {
-      'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
-      'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'SEK': 'kr',
-      'NOK': 'kr', 'MXN': '$', 'NZD': 'NZ$', 'SGD': 'S$', 'HKD': 'HK$',
-      'ZAR': 'R', 'BRL': 'R$', 'RUB': '₽', 'KRW': '₩', 'TRY': '₺'
-    };
-    return currencySymbols[currencyCode] || currencyCode || '$';
+// Currency symbol mapping
+const getCurrencySymbol = (currencyCode) => {
+  const currencySymbols = {
+    'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
+    'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'SEK': 'kr',
+    'NOK': 'kr', 'MXN': '$', 'NZD': 'NZ$', 'SGD': 'S$', 'HKD': 'HK$',
+    'ZAR': 'R', 'BRL': 'R$', 'RUB': '₽', 'KRW': '₩', 'TRY': '₺'
   };
+  return currencySymbols[currencyCode] || currencyCode || '$';
+};
 const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
   const [consumptions, setConsumptions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -37,7 +37,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
   const [isAddConsumptionOpen, setIsAddConsumptionOpen] = useState(false)
   const [selectedConsumption, setSelectedConsumption] = useState(null)
   const [editConsumptionModalOpen, setEditConsumptionModalOpen] = useState(false)
-  
+
   // State for View Modal
   const [isViewConsumptionModalOpen, setIsViewConsumptionModalOpen] = useState(false)
   const [viewConsumptionData, setViewConsumptionData] = useState(null)
@@ -66,7 +66,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
   const handleViewConsumption = (consumption) => {
     setViewConsumptionData(consumption)
     setIsViewConsumptionModalOpen(true)
-    
+
     // Also call the parent onViewConsumption if provided
     if (onViewConsumption) {
       onViewConsumption(consumption)
@@ -136,7 +136,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       consumption.utilizationType?.toLowerCase().includes(searchLower)
     );
   });
-  
+
   useEffect(() => {
     if (isAddConsumptionOpen) {
       document.body.classList.add('overflow-hidden')
@@ -190,7 +190,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
           // Get the consumption currency from the data, fallback to PO currency
           const currency = params.data.currency || poDetails?.poCurrency || 'USD';
           const currencySymbol = getCurrencySymbol(currency);
-          
+
           // Format the amount with proper currency symbol
           return `${currencySymbol}${params.value.toLocaleString()}`;
         }
@@ -236,7 +236,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       cellClass: 'truncate-cell',
     },
     {
-      headerName: 'Project',
+      headerName: 'Initiative',
       field: 'project',
       flex: 1,
       minWidth: 120,
@@ -272,17 +272,17 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       maxWidth: 150,
       sortable: true,
       filter: 'agDateColumnFilter',
-        valueFormatter: (params) => {
-          if (params.value) {
-            const d = new Date(params.value);
-            const day = String(d.getDate()).padStart(2, '0');
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthStr = monthNames[d.getMonth()];
-            const year = d.getFullYear();
-            return `${day}-${monthStr}-${year}`;
-          }
-          return '';
-        },
+      valueFormatter: (params) => {
+        if (params.value) {
+          const d = new Date(params.value);
+          const day = String(d.getDate()).padStart(2, '0');
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthStr = monthNames[d.getMonth()];
+          const year = d.getFullYear();
+          return `${day}-${monthStr}-${year}`;
+        }
+        return '';
+      },
       tooltipField: 'workAssignDate',
       cellClass: 'truncate-cell',
     },
@@ -293,17 +293,17 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       maxWidth: 170,
       sortable: true,
       filter: 'agDateColumnFilter',
-        valueFormatter: (params) => {
-          if (params.value) {
-            const d = new Date(params.value);
-            const day = String(d.getDate()).padStart(2, '0');
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthStr = monthNames[d.getMonth()];
-            const year = d.getFullYear();
-            return `${day}-${monthStr}-${year}`;
-          }
-          return '';
-        },
+      valueFormatter: (params) => {
+        if (params.value) {
+          const d = new Date(params.value);
+          const day = String(d.getDate()).padStart(2, '0');
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthStr = monthNames[d.getMonth()];
+          const year = d.getFullYear();
+          return `${day}-${monthStr}-${year}`;
+        }
+        return '';
+      },
       tooltipField: 'workCompletionDate',
       cellClass: 'truncate-cell',
     },
@@ -314,17 +314,17 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       maxWidth: 150,
       sortable: true,
       filter: true,
-        valueFormatter: (params) => {
-          if (params.value) {
-            const d = new Date(params.value);
-            const day = String(d.getDate()).padStart(2, '0');
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthStr = monthNames[d.getMonth()];
-            const year = d.getFullYear();
-            return `${day}-${monthStr}-${year}`;
-          }
-          return '';
-        },
+      valueFormatter: (params) => {
+        if (params.value) {
+          const d = new Date(params.value);
+          const day = String(d.getDate()).padStart(2, '0');
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const monthStr = monthNames[d.getMonth()];
+          const year = d.getFullYear();
+          return `${day}-${monthStr}-${year}`;
+        }
+        return '';
+      },
       valueFormatter: (params) => {
         if (params.value) {
           return new Date(params.value).toLocaleString('en-IN', {
@@ -560,7 +560,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       />
 
       {/* View PO Consumption Modal */}
-      <ViewPOConsumptionModal 
+      <ViewPOConsumptionModal
         open={isViewConsumptionModalOpen}
         onClose={() => {
           setIsViewConsumptionModalOpen(false)

@@ -197,7 +197,7 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
                 value={formatCurrency(consumption.amount, consumption.currency)}
               />
               <Field
-                label="Resource/Project"
+                label="Resource/Initiative"
                 value={consumption.project}
               />
               <Field
@@ -777,7 +777,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       }
     },
     {
-      headerName: "Project",
+      headerName: "Initiative",
       field: "project",
       valueGetter: params => params.data?.project || 'N/A',
       width: 120,

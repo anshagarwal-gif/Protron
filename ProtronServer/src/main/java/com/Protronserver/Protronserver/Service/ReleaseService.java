@@ -12,6 +12,10 @@ import com.Protronserver.Protronserver.Repository.UserStoryRepository;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authorization.method.AuthorizeReturnObject;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,6 +57,20 @@ public class ReleaseService {
 
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
 
+        boolean exists =
+                releaseRepository
+                        .existsByTenantIdAndProjectIdAndReleaseNameAndEndTimestampIsNull(
+                                tenantId,
+                                release.getProjectId(),
+                                release.getReleaseName()
+                        );
+
+        if (exists) {
+            throw new RuntimeException(
+                    "A release with this name already exists in this project"
+            );
+        }
+
         release.setTenantId(tenantId);
         release.setCreatedOn(LocalDateTime.now());
         release.setStartTimestamp(LocalDateTime.now());
@@ -65,6 +83,19 @@ public class ReleaseService {
     public Release editRelease(Release updatedRelease, Long releaseId) {
         Release oldRelease = releaseRepository.findById(releaseId)
                 .orElseThrow(() -> new RuntimeException("Release not found"));
+
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+
+        boolean exists =
+                releaseRepository.existsByTenantIdAndProjectIdAndReleaseNameAndEndTimestampIsNull(
+                        tenantId,
+                        oldRelease.getProjectId(),
+                        updatedRelease.getReleaseName()
+                );
+
+        if (exists && !oldRelease.getReleaseName().equals(updatedRelease.getReleaseName())) {
+            throw new RuntimeException("Release name already exists in this project");
+        }
 
         String loggedInUserEmail = loggedInUserUtils.getLoggedInUser().getEmail();
 
@@ -188,5 +219,28 @@ public class ReleaseService {
             copy.setReleaseId(targetReleaseId);
             releaseAttachmentRepository.save(copy);
         }
+    }
+
+    public Page<Release> getReleasesByProjectPaginated(
+            Long projectId,
+            int page,
+            int size
+    ) {
+        Long tenantId = loggedInUserUtils.getLoggedInUser()
+                .getTenant()
+                .getTenantId();
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "createdOn")
+        );
+
+        return releaseRepository
+                .findAllByTenantIdAndProjectIdAndEndTimestampIsNull(
+                        tenantId,
+                        projectId,
+                        pageable
+                );
     }
 }

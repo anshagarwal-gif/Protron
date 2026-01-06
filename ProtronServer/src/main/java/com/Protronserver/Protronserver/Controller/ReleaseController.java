@@ -5,6 +5,7 @@ import com.Protronserver.Protronserver.Entities.ReleaseAttachment;
 import com.Protronserver.Protronserver.Service.ReleaseService;
 import com.Protronserver.Protronserver.DTOs.ReleaseAttachementDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +19,17 @@ public class ReleaseController {
 
     @Autowired
     private ReleaseService releaseService;
+
+    @GetMapping("/paginated/{projectId}")
+    public ResponseEntity<Page<Release>> getReleases(
+            @PathVariable Long projectId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(
+                releaseService.getReleasesByProjectPaginated(projectId, page, size)
+        );
+    }
 
     // --- Release CRUD ---
     @GetMapping
