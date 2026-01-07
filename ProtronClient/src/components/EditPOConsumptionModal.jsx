@@ -1,6 +1,6 @@
 // EditPOConsumptionModal.js
-import { useState, useEffect } from "react";
-import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip, File } from "lucide-react";
 import axios from "axios";
 
 const getCurrencySymbol = (currencyCode) => {
@@ -22,6 +22,17 @@ const getCurrencySymbol = (currencyCode) => {
 };
 
 const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
+  const fileInputRef = useRef(null);
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
   const [formData, setFormData] = useState({
     poNumber: "",
     msId: "",
@@ -50,6 +61,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const [milestoneBalance, setMilestoneBalance] = useState(null);
   const [users, setUsers] = useState([]);
   const [originalAmount, setOriginalAmount] = useState(0);
+  const [milestoneName, setMilestoneName] = useState('');
 
   // Truncate text utility function
   const truncateText = (text, maxLength = 50) => {
@@ -97,6 +109,10 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
       if (res.ok) {
         const data = await res.json();
+        console.log('PO Consumption Attachments fetched:', data);
+        if (data && data.length > 0) {
+          console.log('First attachment structure:', data[0]);
+        }
         setPoConsumptionFiles(data);
       } else {
         console.error("Failed to fetch PO Consumption attachments");
@@ -122,9 +138,15 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           );
 
           const consumption = consumptionResponse.data;
+          console.log('Fetched consumption data:', consumption);
 
           // Store original amount for balance calculations
           setOriginalAmount(parseFloat(consumption.amount) || 0);
+
+          // Store milestone name if it exists
+          if (consumption.milestone?.msName) {
+            setMilestoneName(consumption.milestone.msName);
+          }
 
           // Format dates for input fields
           const formatDate = (dateString) => {
@@ -158,7 +180,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     };
 
     fetchConsumptionData();
-    fetchPOConsumptionAttachments(consumptionId);
+    if (consumptionId) {
+      fetchPOConsumptionAttachments(consumptionId);
+    }
   }, [open, consumptionId]);
 
   // Fetch PO list and projects when modal opens
@@ -167,6 +191,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       if (open) {
         try {
           const token = sessionStorage.getItem('token');
+          const tenantId = sessionStorage.getItem('tenantId');
 
           // Fetch PO list
           const poResponse = await axios.get(
@@ -177,9 +202,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           );
           setPOList(poResponse.data);
 
-          // Fetch projects list
+          // Fetch projects list (tenant-specific)
           const projectResponse = await axios.get(
-            `${import.meta.env.VITE_API_URL}/api/projects`,
+            `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/projects`,
             {
               headers: { Authorization: `${token}` }
             }
@@ -447,12 +472,14 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
+    if (!files.length) return;
+
     const maxFiles = 4;
 
     // Check if adding these files exceeds the limit
     if (poConsumptionFiles.length + files.length > maxFiles) {
-      setErrors(prev => ({ ...prev, attachment: `Max ${maxFiles} attachments allowed.` }));
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed.` }));
       return;
     }
 
@@ -470,22 +497,47 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       'text/plain'
     ];
 
-    const validFiles = files.filter(file => {
-      if (file.size > maxSize) {
-        setErrors(prev => ({ ...prev, attachment: `File ${file.name} must be under 10MB.` }));
-        return false;
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      // Check if it's a new File object or existing document
+      if (file instanceof File || (file && !file.id)) {
+        if (file.size > maxSize) {
+          error = `File "${file.name}" exceeds 10MB limit.`;
+          break;
+        }
+        if (!allowedTypes.includes(file.type)) {
+          error = `Unsupported file type for "${file.name}".`;
+          break;
+        }
+        validFiles.push(file);
+      } else {
+        // It's an existing document, add it as is
+        validFiles.push(file);
       }
-      if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({ ...prev, attachment: `Unsupported file type for ${file.name}.` }));
-        return false;
-      }
-      return true;
-    });
+    }
+
+    if (error) {
+      setErrors(prev => ({ ...prev, attachment: error }));
+      return;
+    }
 
     // Add valid files to state
     setPoConsumptionFiles(prev => [...prev, ...validFiles]);
     setErrors(prev => ({ ...prev, attachment: "" }));
-    e.target.value = null; // Reset file input
+    if (e.target) e.target.value = null; // Reset file input
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleFileChange(e);
   };
 
   const removePOConsumptionFile = async (index) => {
@@ -516,6 +568,30 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
 
     // Update state to remove the file
     setPoConsumptionFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeAllAttachments = async () => {
+    // Delete all existing files from server
+    const existingFiles = poConsumptionFiles.filter(file => file.id);
+    
+    for (const file of existingFiles) {
+      try {
+        const token = sessionStorage.getItem("token");
+        await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${file.id}`, {
+          method: "DELETE",
+          headers: { Authorization: token },
+        });
+        console.log(`File with ID: ${file.id} deleted successfully`);
+      } catch (error) {
+        console.error(`Error deleting file with ID: ${file.id}`, error);
+      }
+    }
+    
+    // Clear all files from state
+    setPoConsumptionFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Function to handle date input clicks
@@ -732,11 +808,11 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 </label>
                 <input
                   type="text"
-                  name="msId"
-                  value={milestoneList.find(ms => ms.msId === formData.msId)?.msName || ''}
+                  name="milestone"
+                  value={milestoneName || milestoneList.find(ms => ms.msId === formData.msId)?.msName || (formData.msId ? 'Loading...' : '')}
                   readOnly
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-gray-100"
-                  title={formData.msId}
+                  title={milestoneName || formData.msId}
                 />
               </div>
 
@@ -975,48 +1051,114 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 <p className="mt-1 text-xs text-red-600">{errors.remarks}</p>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-              <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Paperclip size={14} className="inline mr-1" />
-                  PO Consumption Attachments (Max 4)
-                </label>
 
+            {/* Attachments Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Paperclip size={16} className="inline mr-1" />
+                Attachments (Max 4 files, 10MB each)
+              </label>
+              
+              {/* Drag and Drop Zone */}
+              <div
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50"
+              >
+                <File size={32} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600 mb-1">
+                  Drag and drop files here, or click to browse
+                </p>
+                <p className="text-xs text-gray-500">
+                  Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT
+                </p>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   name="poConsumptionAttachment"
                   onChange={handleFileChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  className="hidden"
                   disabled={loading || initialLoading}
                   multiple
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  title="Upload document or image file (max 10MB)"
                 />
-
-                {/* Display existing and newly added attachments */}
-
-                {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
-                )}
               </div>
-            </div>
-                <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-                  {poConsumptionFiles.map((file, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                    >
-                      <span className="truncate max-w-[150px]" title={file.fileName || file.name}>{file.fileName || file.name}</span>
+
+              {errors.attachment && (
+                <p className="mt-2 text-xs text-red-600 flex items-center">
+                  <AlertCircle size={12} className="mr-1" />
+                  {errors.attachment}
+                </p>
+              )}
+
+              {/* Selected Files List */}
+              {poConsumptionFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-700">
+                      Attachments ({poConsumptionFiles.length}/4)
+                    </span>
+                    {poConsumptionFiles.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => removePOConsumptionFile(index)}
-                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                        onClick={removeAllAttachments}
+                        className="text-xs text-red-600 hover:text-red-800 font-medium"
+                        disabled={loading || initialLoading}
                       >
-                        Delete
+                        Remove All
                       </button>
-                    </li>
-                  ))}
-                </ul>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {poConsumptionFiles.map((file, index) => {
+                      const isExisting = file.id;
+                      const fileName = file.fileName || file.name;
+                      const fileSize = file.size || file.fileSize || file.fileSizeInBytes || 0;
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`flex items-center justify-between p-2 border rounded-md transition-colors ${
+                            isExisting
+                              ? 'bg-blue-50 border-blue-200 hover:border-blue-300'
+                              : 'bg-white border-gray-200 hover:border-green-300'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2 flex-1 min-w-0">
+                            <File size={16} className={isExisting ? 'text-blue-600' : 'text-green-600'} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2">
+                                <p className="text-xs font-medium text-gray-700 truncate" title={fileName}>
+                                  {fileName}
+                                </p>
+                                {isExisting && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 flex-shrink-0">
+                                    Existing
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500">
+                                {formatFileSize(fileSize)}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removePOConsumptionFile(index)}
+                            className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                            disabled={loading || initialLoading}
+                            title={isExisting ? "Delete existing file from server" : "Remove file"}
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Form Actions */}

@@ -17,7 +17,9 @@ import {
     Upload,
     FileText,
     UserCheck,
-    Edit2
+    Edit2,
+    Paperclip,
+    File
 } from 'lucide-react';
 import axios from 'axios';
 import OrganizationSelect from './OrganizationSelect'; // Import OrganizationSelect
@@ -98,7 +100,8 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
                     // Upload attachments
                     for (let file of poAttachments) {
-                        if (file instanceof File) {
+                        // Only upload new files (File objects), skip existing documents that have an 'id' property
+                        if (file instanceof File || (file && !file.id)) {
 
                             const attachmentFormData = new FormData();
                             attachmentFormData.append('file', file);
@@ -148,9 +151,10 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(false);
     const startDateRef = useRef(null);
+    const endDateRef = useRef(null);
+    const fileInputRef = useRef(null);
     const [isEditMilestoneModalOpen, setIsEditMilestoneModalOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
-    const endDateRef = useRef(null);
     const projectOptions = projects.map((project) => ({
         value: project.projectName,
         label: project.projectName,
@@ -269,6 +273,11 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
             if (res.ok) {
                 const data = await res.json();
+                console.log('PO Attachments fetched:', data);
+                // Log first item to see structure
+                if (data && data.length > 0) {
+                    console.log('First attachment structure:', data[0]);
+                }
                 setPoAttachments(data); // Set this in your component state
             } else {
                 console.error("Failed to fetch PO attachments");
@@ -297,22 +306,63 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         }));
     };
 
-    const handleFileChange = (e) => {
-        const selectedFiles = Array.from(e.target.files);
-        if (selectedFiles.length === 0) return;
+    const handleFileChange = (event) => {
+        const files = Array.from(event.target.files || event.dataTransfer?.files || []);
+        
+        if (files.length === 0) {
+            return;
+        }
 
-        setPoAttachments((prevFiles) => {
-            const totalFiles = prevFiles.length + selectedFiles.length;
+        // Count existing documents (not File objects) and new files
+        const existingDocCount = poAttachments.filter(doc => doc.id).length;
+        const newFileCount = poAttachments.filter(doc => !doc.id).length;
+        const totalCurrentCount = existingDocCount + newFileCount;
 
-            if (totalFiles > 4) {
-                alert(`Maximum 4 attachments allowed. You already selected ${prevFiles.length}.`);
-                return prevFiles;
+        // Check if adding these files would exceed the 4 document limit
+        if (totalCurrentCount + files.length > 4) {
+            alert(`Maximum 4 documents allowed. You have ${totalCurrentCount} documents and trying to add ${files.length} more. Please remove some documents first.`);
+            return;
+        }
+
+        // Validate each file
+        const validFiles = [];
+        for (const file of files) {
+            // Validate file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                alert(`File ${file.name} exceeds 10MB limit. Please choose a smaller file.`);
+                continue;
             }
 
-            return [...prevFiles, ...selectedFiles];
-        });
+            // Validate file type
+            const allowedTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'text/plain',
+                'image/jpeg',
+                'image/jpg',
+                'image/png',
+                'image/gif'
+            ];
 
-        e.target.value = null; // Reset file input
+            if (!allowedTypes.includes(file.type)) {
+                alert(`File ${file.name} has unsupported format. Please upload PDF, DOC, DOCX, XLS, XLSX, TXT, or image files.`);
+                continue;
+            }
+
+            validFiles.push(file);
+        }
+
+        if (validFiles.length > 0) {
+            setPoAttachments(prev => [...prev, ...validFiles]);
+        }
+
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     const removeAttachment = async (indexToRemove) => {
@@ -343,6 +393,46 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
         // Update state to remove the attachment
         setPoAttachments((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
+    };
+
+    const removeAllAttachments = async () => {
+        // Delete all existing documents from server first
+        const existingDocs = poAttachments.filter(doc => doc.id);
+        
+        if (existingDocs.length > 0) {
+            try {
+                const token = sessionStorage.getItem("token");
+                const deletePromises = existingDocs.map(doc => 
+                    fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${doc.id}`, {
+                        method: "DELETE",
+                        headers: {
+                            Authorization: token,
+                        },
+                    })
+                );
+                
+                await Promise.all(deletePromises);
+                console.log('All existing documents deleted from server');
+            } catch (error) {
+                console.error('Error deleting existing documents:', error);
+                alert('Failed to delete some existing documents. Please try again.');
+                return; // Don't clear if server deletion failed
+            }
+        }
+        
+        // Clear local state
+        setPoAttachments([]);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
     const handleMilestoneFileChange = (milestoneIndex, e) => {
@@ -1201,45 +1291,151 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     />
                                 </div>
                                 <div className="lg:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="po-attachment-input"
-                                        multiple
-                                        onChange={handleFileChange}
-                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                        className="hidden"
-                                    />
-                                    <label
-                                        htmlFor="po-attachment-input"
-                                        className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
-                                    >
-                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                        <span className="text-gray-500 truncate">
-                                            {poAttachments.length > 0 ? `${poAttachments.length} file(s) selected` : 'Click to select files'}
-                                        </span>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                        <Paperclip className="mr-2 text-green-600" size={16} />
+                                        Documents (Optional - Max 4 files)
                                     </label>
-                                </div>
 
-                                <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
-                                    {poAttachments.map((file, index) => (
-                                        <li
-                                            key={index}
-                                            className="flex max-w-[150px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                    {/* File Input */}
+                                    <div className="mb-4">
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            multiple
+                                            onChange={handleFileChange}
+                                            className="hidden"
+                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                                        />
+                                        
+                                        {/* Drag & Drop Zone */}
+                                        <div
+                                            className={`w-full px-4 py-8 border-2 border-dashed rounded-lg transition-colors flex flex-col items-center justify-center space-y-2 ${
+                                                (() => {
+                                                    const existingDocCount = poAttachments.filter(doc => doc.id).length;
+                                                    const newFileCount = poAttachments.filter(doc => !doc.id).length;
+                                                    return existingDocCount + newFileCount >= 4;
+                                                })()
+                                                    ? 'border-gray-200 bg-gray-50 cursor-not-allowed' 
+                                                    : 'border-gray-300 hover:border-green-500 hover:bg-green-50 cursor-pointer'
+                                            }`}
+                                            onClick={() => {
+                                                const existingDocCount = poAttachments.filter(doc => doc.id).length;
+                                                const newFileCount = poAttachments.filter(doc => !doc.id).length;
+                                                const totalCount = existingDocCount + newFileCount;
+                                                
+                                                if (totalCount < 4) {
+                                                    if (fileInputRef.current) {
+                                                        fileInputRef.current.click();
+                                                    }
+                                                }
+                                            }}
+                                            onDragOver={(e) => {
+                                                e.preventDefault();
+                                                const existingDocCount = poAttachments.filter(doc => doc.id).length;
+                                                const newFileCount = poAttachments.filter(doc => !doc.id).length;
+                                                if (existingDocCount + newFileCount < 4) {
+                                                    e.currentTarget.classList.add('border-green-500', 'bg-green-50');
+                                                }
+                                            }}
+                                            onDragLeave={(e) => {
+                                                e.preventDefault();
+                                                e.currentTarget.classList.remove('border-green-500', 'bg-green-50');
+                                            }}
+                                            onDrop={(e) => {
+                                                e.preventDefault();
+                                                e.currentTarget.classList.remove('border-green-500', 'bg-green-50');
+                                                
+                                                const files = Array.from(e.dataTransfer.files);
+                                                handleFileChange({ target: { files } });
+                                            }}
                                         >
-                                            <span className="truncate max-w-[220px]" title={file.name}>{file.name}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeAttachment(index)}
-                                                className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                            >
-                                                Delete
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                                            <Paperclip size={24} className="text-gray-400" />
+                                            <span className="text-sm font-medium text-gray-600">
+                                                {(() => {
+                                                    const existingDocCount = poAttachments.filter(doc => doc.id).length;
+                                                    const newFileCount = poAttachments.filter(doc => !doc.id).length;
+                                                    const totalCount = existingDocCount + newFileCount;
+                                                    return totalCount >= 4 ? 'Maximum files reached' : 'Drop files here or click to browse';
+                                                })()}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                                {(() => {
+                                                    const existingDocCount = poAttachments.filter(doc => doc.id).length;
+                                                    const newFileCount = poAttachments.filter(doc => !doc.id).length;
+                                                    const totalCount = existingDocCount + newFileCount;
+                                                    return `${totalCount}/4 files selected`;
+                                                })()}
+                                            </span>
+                                        </div>
+                                        
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT (Max 10MB each)
+                                        </p>
+                                    </div>
+
+                                    {/* Selected Files Display */}
+                                    {poAttachments.length > 0 ? (
+                                        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h4 className="text-sm font-medium text-gray-700 flex items-center">
+                                                    <File className="mr-1" size={16} />
+                                                    Selected Files ({poAttachments.length})
+                                                </h4>
+                                                <button
+                                                    type="button"
+                                                    onClick={removeAllAttachments}
+                                                    className="text-red-500 hover:text-red-700 text-xs font-medium"
+                                                >
+                                                    Remove All
+                                                </button>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {poAttachments.map((doc, index) => (
+                                                    <div key={index} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
+                                                        <div className="flex items-center space-x-3">
+                                                            <div className="flex-shrink-0">
+                                                                <File size={16} className={doc.id ? "text-blue-600" : "text-green-600"} />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-sm text-gray-900 truncate" title={doc.name || doc.fileName}>
+                                                                    {doc.name || doc.fileName}
+                                                                </p>
+                                                                <div className="flex items-center space-x-2">
+                                                                    <p className="text-xs text-gray-500">
+                                                                        {formatFileSize(doc.size || doc.fileSize || doc.fileSizeInBytes || 0)}
+                                                                    </p>
+                                                                    {doc.id && (
+                                                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                                            Existing
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeAttachment(index)}
+                                                            className="text-red-500 hover:text-red-700 p-1"
+                                                            title={doc.id ? "Delete document" : "Remove file"}
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 text-center">
+                                            <p className="text-sm text-gray-500">
+                                                No existing documents found for this PO.
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                You can add new documents using the upload area above.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                         </div>

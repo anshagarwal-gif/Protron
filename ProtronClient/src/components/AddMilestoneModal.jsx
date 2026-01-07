@@ -1,11 +1,22 @@
 // AddMilestoneModal.js
-import { useState, useEffect } from "react";
-import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock, Upload } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Clock, Upload, File, Paperclip } from "lucide-react";
 import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 
 
 const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
+  const fileInputRef = useRef(null);
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
   const [formData, setFormData] = useState({
     msName: "",
     msDesc: "",
@@ -143,7 +154,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
   };
 
   const handleMSFileChange = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
     if (!files.length) return;
 
     // Check max limit of 4 files
@@ -156,12 +167,68 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       return;
     }
 
-    setMilestoneFiles(prev => [...prev, ...files]);
-    e.target.value = null;
+    // Validate file size (10MB max per file)
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        error = `File "${file.name}" exceeds 10MB limit.`;
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setSnackbar({
+        open: true,
+        message: error,
+        severity: "error"
+      });
+      return;
+    }
+
+    setMilestoneFiles(prev => [...prev, ...validFiles]);
+    if (e.target) e.target.value = null;
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleMSFileChange(e);
   };
 
   const removeMilestoneAttachment = (index) => {
     setMilestoneFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeAllAttachments = () => {
+    setMilestoneFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const validateForm = () => {
@@ -541,51 +608,89 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                 <p className="mt-1 text-xs text-red-600">{errors.msRemarks}</p>
               )}
             </div>
-            <div className="max-w-[300px]">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                <FileText size={14} className="inline mr-1" />
-                Milestone Attachments (Max 4)
-              </label>
 
-              <div className="relative">
+            {/* Attachments Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Paperclip size={16} className="inline mr-1" />
+                Milestone Attachments (Max 4 files, 10MB each)
+              </label>
+              
+              {/* Drag and Drop Zone */}
+              <div
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50"
+              >
+                <File size={32} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600 mb-1">
+                  Drag and drop files here, or click to browse
+                </p>
+                <p className="text-xs text-gray-500">
+                  Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT
+                </p>
                 <input
+                  ref={fileInputRef}
                   type="file"
                   multiple
-                  id="ms-attachment-input"
                   onChange={handleMSFileChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
                   className="hidden"
                   disabled={loading}
                 />
-                <label
-                  htmlFor="ms-attachment-input"
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 flex items-center justify-between cursor-pointer"
-                >
-                  <span className="text-gray-600">
-                    {milestoneFiles.length > 0 ? `${milestoneFiles.length} file(s) selected` : 'Click to select files'}
-                  </span>
-                  <Upload size={16} className="text-green-600" />
-                </label>
               </div>
 
+              {/* Selected Files List */}
+              {milestoneFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-gray-700">
+                      Selected Files ({milestoneFiles.length}/4)
+                    </span>
+                    {milestoneFiles.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={removeAllAttachments}
+                        className="text-xs text-red-600 hover:text-red-800 font-medium"
+                        disabled={loading}
+                      >
+                        Remove All
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {milestoneFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-md hover:border-green-300 transition-colors"
+                      >
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <File size={16} className="text-green-600 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-700 truncate" title={file.name}>
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(file.size)}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeMilestoneAttachment(index)}
+                          className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                          disabled={loading}
+                          title="Remove file"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-              {milestoneFiles.map((file, index) => (
-                <li
-                  key={index}
-                  className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                >
-                  <span className="truncate max-w-[100px]" title={file.name}>{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => removeMilestoneAttachment(index)}
-                    className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
           </div>
 
           {/* Form Actions */}

@@ -36,12 +36,17 @@ public class SRNController {
      * Update an existing SRN
      */
     @PutMapping("/edit/{id}")
-    public ResponseEntity<SRNDetails> updateSRN(@PathVariable Long id, @RequestBody SRNDTO dto) {
+    public ResponseEntity<?> updateSRN(@PathVariable Long id, @RequestBody SRNDTO dto) {
         try {
             SRNDetails updatedSRN = srnService.updateSRN(id, dto);
             return ResponseEntity.ok(updatedSRN);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Validation error updating SRN with ID " + id + ": " + e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            System.err.println("Error updating SRN with ID " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body("Failed to update SRN: " + e.getMessage());
         }
     }
 

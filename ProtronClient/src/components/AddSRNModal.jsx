@@ -1,5 +1,5 @@
 // AddSRNModal.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import {
     X,
@@ -14,7 +14,9 @@ import {
     MessageSquare,
     Upload,
     AlertCircle,
-    Activity
+    Activity,
+    Paperclip,
+    File as FileIcon
 } from 'lucide-react';
 import GlobalSnackbar from './GlobalSnackbar';
 
@@ -34,6 +36,17 @@ const currencySymbols = {
 };
 
 const AddSRNModal = ({ open, onClose, poNumber }) => {
+    const fileInputRef = useRef(null);
+
+    // Helper function to format file size
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    };
+
     const [formData, setFormData] = useState({
         poId: '',
         msId: '',
@@ -284,18 +297,19 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
     };
 
     const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
+        const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
         if (!files.length) return;
 
         // Combine existing and new files
         const totalFiles = srnFiles.length + files.length;
         if (totalFiles > 4) {
-            setSrnErrors("You can upload a maximum of 4 attachments.");
-            e.target.value = null;
+            setSrnErrors("Maximum 4 attachments allowed.");
+            if (e.target) e.target.value = null;
             return;
         }
 
         // Validate each file
+        const maxSize = 10 * 1024 * 1024;
         const allowedTypes = [
             'application/pdf',
             'application/msword',
@@ -308,26 +322,52 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
             'text/plain'
         ];
 
+        let error = "";
+        const validFiles = [];
+
         for (const file of files) {
-            if (file.size > 10 * 1024 * 1024) {
-                setSrnErrors("File size must be less than 10MB.");
-                e.target.value = null;
-                return;
+            if (file.size > maxSize) {
+                error = `File "${file.name}" exceeds 10MB limit.`;
+                break;
             }
             if (!allowedTypes.includes(file.type)) {
-                setSrnErrors("Unsupported file type.");
-                e.target.value = null;
-                return;
+                error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+                break;
             }
+            validFiles.push(file);
         }
 
-        setSrnFiles(prev => [...prev, ...files]);
+        if (error) {
+            setSrnErrors(error);
+            if (e.target) e.target.value = null;
+            return;
+        }
+
+        setSrnFiles(prev => [...prev, ...validFiles]);
         setSrnErrors(""); // clear error
-        e.target.value = null; // reset input
+        if (e.target) e.target.value = null; // reset input
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleFileChange(e);
     };
 
     const removeSRNAttachment = (index) => {
         setSrnFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeAllAttachments = () => {
+        setSrnFiles([]);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
 
@@ -772,57 +812,96 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 </p>
                             )}
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
 
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Attachments (Max 4)</label>
-                                <div className="relative">
-                                    <input
-                                        type="file"
-                                        id="srn-attachment-input"
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                        disabled={loading}
-                                        multiple
-                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                                    />
-                                    <label
-                                        htmlFor="srn-attachment-input"
-                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
-                                    >
-                                        <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                        <span className="text-gray-500 truncate">
-                                            {srnFiles.length > 0 ? `${srnFiles.length} file(s) selected` : 'Click to select files'}
-                                        </span>
-                                    </label>
-                                </div>
-
-                                {/* List of selected files */}
-                                {srnErrors && (
-                                    <p className="mt-1 text-sm text-red-600">{srnErrors}</p>
-                                )}
+                        {/* Attachments Section */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <Paperclip size={16} className="inline mr-1" />
+                                SRN Attachments (Max 4 files, 10MB each)
+                            </label>
+                            
+                            {/* Drag and Drop Zone */}
+                            <div
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                onClick={() => fileInputRef.current?.click()}
+                                className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50"
+                            >
+                                <FileIcon size={32} className="mx-auto text-gray-400 mb-2" />
+                                <p className="text-sm text-gray-600 mb-1">
+                                    Drag and drop files here, or click to browse
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                    Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT
+                                </p>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                    disabled={loading}
+                                    multiple
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                                />
                             </div>
+
+                            {srnErrors && (
+                                <p className="mt-2 text-xs text-red-600 flex items-center">
+                                    <AlertCircle size={12} className="mr-1" />
+                                    {srnErrors}
+                                </p>
+                            )}
+
+                            {/* Selected Files List */}
+                            {srnFiles.length > 0 && (
+                                <div className="mt-3 space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs font-medium text-gray-700">
+                                            Selected Files ({srnFiles.length}/4)
+                                        </span>
+                                        {srnFiles.length > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={removeAllAttachments}
+                                                className="text-xs text-red-600 hover:text-red-800 font-medium"
+                                                disabled={loading}
+                                            >
+                                                Remove All
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        {srnFiles.map((file, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-md hover:border-green-300 transition-colors"
+                                            >
+                                                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                                    <FileIcon size={16} className="text-green-600 flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-medium text-gray-700 truncate" title={file.name}>
+                                                            {file.name}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {formatFileSize(file.size)}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeSRNAttachment(index)}
+                                                    className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                                                    disabled={loading}
+                                                    title="Remove file"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
-                            {srnFiles.map((file, index) => (
-                                <li
-                                    key={index}
-                                    className="inline-flex items-center bg-gray-100 px-3 py-1 rounded"
-                                >
-                                    <span className="truncate max-w-[100px]" title={file.name}>
-                                        {file.name}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeSRNAttachment(index)}
-                                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                    >
-                                        Delete
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
                     </form>
                 </div>
 

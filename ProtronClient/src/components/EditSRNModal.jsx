@@ -1,10 +1,22 @@
 // EditSRNModal.js
-import { useState, useEffect } from "react";
-import { X, Receipt, DollarSign, FileText, AlertCircle, Activity, Paperclip, Calendar, Upload } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Receipt, DollarSign, FileText, AlertCircle, Activity, Paperclip, Calendar, Upload, File as FileIcon } from "lucide-react";
 import axios from "axios";
+import GlobalSnackbar from "./GlobalSnackbar";
 
 
 const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
+  const fileInputRef = useRef(null);
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
   const [formData, setFormData] = useState({
     poNumber: "",
     msId: "",
@@ -28,6 +40,11 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   const [poBalance, setPOBalance] = useState(null);
   const [poId, setPoId] = useState("");
   const [milestoneBalance, setMilestoneBalance] = useState(null);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info"
+  });
 
   // Truncate text utility function
   const truncateText = (text, maxLength = 50) => {
@@ -97,6 +114,8 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   useEffect(() => {
     const fetchSRNData = async () => {
       if (open && srnId) {
+        console.log('=== Fetching SRN Data ===');
+        console.log('SRN ID:', srnId);
         setInitialLoading(true);
         try {
           const token = sessionStorage.getItem('token');
@@ -110,7 +129,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           );
 
           const srn = srnResponse.data;
-          console.log('SRN response:', srn);
+          console.log('✅ SRN response:', srn);
           setFormData({
             poNumber: srn.poNumber || "",
             msId: srn.milestone?.msId || "",
@@ -120,14 +139,21 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnCurrency: srn.srnCurrency || "USD",
             srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
-            srnDate:srn.srnDate || "",
+            srnDate: srn.srnDate || "",
           });
           setPoId(srn.poDetail.poId || "");
-          console.log('Fetched SRN data:', srn);
+          console.log('Form data set:', {
+            poNumber: srn.poNumber,
+            msId: srn.milestone?.msId,
+            srnName: srn.srnName,
+            srnType: srn.srnType,
+            srnAmount: srn.srnAmount
+          });
           console.log('SRN Type from response:', srn.srnType);
 
         } catch (error) {
-          console.error("Error fetching SRN data:", error);
+          console.error("❌ Error fetching SRN data:", error);
+          console.error("Error details:", error.response?.data || error.message);
           setErrors({ submit: "Failed to load SRN data" });
         } finally {
           setInitialLoading(false);
@@ -136,7 +162,9 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     };
 
     fetchSRNData();
-    fetchSRNAttachments(srnId);
+    if (srnId) {
+      fetchSRNAttachments(srnId);
+    }
   }, [open, srnId]);
 
   useEffect(() => {
@@ -319,12 +347,16 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
+    if (!files.length) return;
+
     const maxFiles = 4;
+    const totalFiles = srnAttachments.length + files.length;
 
     // Check if adding these files exceeds the limit
-    if (srnAttachments.length + files.length > maxFiles) {
-      setErrors(prev => ({ ...prev, attachment: `Max ${maxFiles} attachments allowed.` }));
+    if (totalFiles > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed.` }));
+      if (e.target) e.target.value = null;
       return;
     }
 
@@ -342,22 +374,42 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       'text/plain'
     ];
 
-    const validFiles = files.filter(file => {
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
       if (file.size > maxSize) {
-        setErrors(prev => ({ ...prev, attachment: `File ${file.name} must be under 10MB.` }));
-        return false;
+        error = `File "${file.name}" exceeds 10MB limit.`;
+        break;
       }
       if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({ ...prev, attachment: `Unsupported file type for ${file.name}.` }));
-        return false;
+        error = `Unsupported file type for "${file.name}". Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.`;
+        break;
       }
-      return true;
-    });
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setErrors(prev => ({ ...prev, attachment: error }));
+      if (e.target) e.target.value = null;
+      return;
+    }
 
     // Add valid files to state
     setSrnAttachments(prev => [...prev, ...validFiles]);
     setErrors(prev => ({ ...prev, attachment: "" }));
-    e.target.value = null; // Reset file input
+    if (e.target) e.target.value = null; // Reset file input
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleFileChange(e);
   };
 
   const removeAttachment = async (index) => {
@@ -389,6 +441,32 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   // Update state to remove the attachment
   setSrnAttachments((prev) => prev.filter((_, i) => i !== index));
 };
+
+  const removeAllAttachments = async () => {
+    // Delete all existing attachments from server
+    const existingAttachments = srnAttachments.filter(att => att.id);
+    const token = sessionStorage.getItem("token");
+    
+    for (const attachment of existingAttachments) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachment.id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        });
+        console.log(`Attachment with ID: ${attachment.id} deleted successfully`);
+      } catch (error) {
+        console.error(`Error deleting attachment with ID: ${attachment.id}`, error);
+      }
+    }
+
+    // Clear all attachments from state
+    setSrnAttachments([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const validateBasicForm = () => {
     const newErrors = {};
@@ -432,8 +510,13 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log('=== Edit SRN Submit Started ===');
+    console.log('Form Data:', formData);
+    console.log('SRN ID:', srnId);
+
     // Validate basic form fields
     if (!validateBasicForm()) {
+      console.log('Validation failed');
       return;
     }
 
@@ -445,18 +528,21 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         throw new Error("Missing authentication credentials");
       }
 
-      // Prepare the update data
+      // Prepare the update data - matching the format used in AddSRNModal
       const updateData = {
-        poNumber: formData.poNumber,
-        msId: formData.msId || null,
-        srnName: formData.srnName,
-        srnDsc: formData.srnDsc || '',
+        poId: parseInt(poId),
+        msId: formData.msId ? parseInt(formData.msId) : null,
+        srnName: formData.srnName.trim(),
+        srnDsc: formData.srnDsc.trim() || '',
         srnAmount: parseInt(formData.srnAmount) || 0,
         srnCurrency: formData.srnCurrency,
         srnType: formData.srnType,
-        srnRemarks: formData.srnRemarks || '',
-        srnDate: formData.srnDate || ''
+        srnRemarks: formData.srnRemarks.trim() || '',
+        srnDate: formData.srnDate || null  // Send null instead of empty string
       };
+
+      console.log('Update Data:', JSON.stringify(updateData, null, 2));
+      console.log('Submitting to:', `${import.meta.env.VITE_API_URL}/api/srn/edit/${srnId}`);
 
       // Submit SRN data
       const response = await axios.put(
@@ -470,15 +556,20 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
         }
       );
 
-      // Upload attachments
-      if (srnAttachments.length > 0) {
-        for (const file of srnAttachments) {
-          if (file instanceof File) { // Only upload new files
-            const fileData = new FormData();
-            fileData.append("file", file);
-            fileData.append("level", "SRN");
-            fileData.append("referenceId", response.data.srnId);
+      console.log('✅ SRN updated successfully:', response.data);
 
+      // Upload attachments - use srnId directly instead of response.data.srnId
+      const newFiles = srnAttachments.filter(file => file instanceof File);
+      if (newFiles.length > 0) {
+        console.log(`Uploading ${newFiles.length} new attachment(s)...`);
+        for (const file of newFiles) {
+          const fileData = new FormData();
+          fileData.append("file", file);
+          fileData.append("level", "SRN");
+          fileData.append("referenceId", srnId); // Use the existing srnId
+          fileData.append("referenceNumber", formData.srnName || "");
+
+          try {
             const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
               method: "POST",
               headers: {
@@ -487,20 +578,54 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
               body: fileData
             });
 
-            if (!uploadRes.ok) {
-              console.error(`Attachment upload failed for ${file.name}`);
+            if (uploadRes.ok) {
+              console.log(`✅ Attachment uploaded successfully: ${file.name}`);
+            } else {
+              console.error(`❌ Attachment upload failed for ${file.name}:`, uploadRes.status);
             }
+          } catch (uploadError) {
+            console.error(`❌ Attachment upload error for ${file.name}:`, uploadError);
           }
         }
       }
 
+      console.log('Calling onSubmit callback with response data');
       onSubmit(response.data);
-      handleClose();
+      
+      // Show success snackbar
+      setSnackbar({
+        open: true,
+        message: 'SRN updated successfully!',
+        severity: 'success'
+      });
+      
+      // Close modal after a short delay to show the success message
+      setTimeout(() => {
+        console.log('Closing modal');
+        handleClose();
+      }, 1500);
+      
     } catch (error) {
-      console.error("Error updating SRN:", error);
-      setErrors({ submit: "Failed to update SRN" });
+      console.error("❌ Error updating SRN:", error);
+      console.error("Error response data:", error.response?.data);
+      console.error("Error details:", error.response?.data || error.message);
+      
+      // Display the actual error message from the server
+      const errorMessage = typeof error.response?.data === 'string' 
+        ? error.response.data 
+        : error.response?.data?.message || error.message || "Failed to update SRN";
+      
+      setErrors({ submit: errorMessage });
+      
+      // Show error in snackbar
+      setSnackbar({
+        open: true,
+        message: errorMessage,
+        severity: "error"
+      });
     } finally {
       setLoading(false);
+      console.log('=== Edit SRN Submit Ended ===');
     }
   };
 
@@ -782,47 +907,113 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             </div>
             <div className="grid grid-cols-6  gap-4">
 
-              <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Paperclip size={14} className="inline mr-1" />
-                  SRN Attachments (Max 4)
+              {/* Attachments Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Paperclip size={16} className="inline mr-1" />
+                  SRN Attachments (Max 4 files, 10MB each)
                 </label>
 
-                <input
-                  type="file"
-                  name="srnAttachment"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-                  disabled={loading || initialLoading}
-                  multiple
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  title="Upload document or image file (max 10MB)"
-                />
-
-                {/* Display existing and newly added attachments */}
+                {/* Drag and Drop Zone */}
+                <div
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50"
+                >
+                  <FileIcon size={32} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600 mb-1">
+                    Drag and drop files here, or click to browse
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    name="srnAttachment"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    disabled={loading || initialLoading}
+                    multiple
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  />
+                </div>
 
                 {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
+                  <p className="mt-2 text-xs text-red-600 flex items-center">
+                    <AlertCircle size={12} className="mr-1" />
+                    {errors.attachment}
+                  </p>
+                )}
+
+                {/* Selected Files List */}
+                {srnAttachments.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-medium text-gray-700">
+                        Selected Files ({srnAttachments.length}/4)
+                      </span>
+                      {srnAttachments.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={removeAllAttachments}
+                          className="text-xs text-red-600 hover:text-red-800 font-medium"
+                          disabled={loading || initialLoading}
+                        >
+                          Remove All
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {srnAttachments.map((file, index) => {
+                        const isExisting = file.id; // Existing files have an id
+                        const fileName = file.fileName || file.name;
+                        const fileSize = file.size || file.fileSize || file.fileSizeInBytes || 0;
+                        
+                        return (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-md hover:border-green-300 transition-colors"
+                          >
+                            <div className="flex items-center space-x-2 flex-1 min-w-0">
+                              <FileIcon 
+                                size={16} 
+                                className={isExisting ? "text-blue-600" : "text-green-600"} 
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs font-medium text-gray-700 truncate" title={fileName}>
+                                    {fileName}
+                                  </p>
+                                  {isExisting && (
+                                    <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                                      Existing
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  {formatFileSize(fileSize)}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeAttachment(index)}
+                              className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                              disabled={loading || initialLoading}
+                              title="Remove file"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-                <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-                  {srnAttachments.map((file, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                    >
-                      <span className="truncate max-w-[100px]" title={file.fileName || file.name}>{file.fileName || file.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeAttachment(index)}
-                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                      >
-                        Delete
-                      </button>
-                    </li>
-                  ))}
-                </ul>
           </form>
         </div>
 
@@ -854,6 +1045,12 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           </button>
         </div>
       </div>
+      <GlobalSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

@@ -1350,7 +1350,7 @@ const columnDefs = useMemo(() => [
             setSelectedConsumptionId(null);
           }}
           onSubmit={handleEditModalSubmit}
-          utilizationId={selectedConsumptionId}
+          consumptionId={selectedConsumptionId}
         />
       )}
 

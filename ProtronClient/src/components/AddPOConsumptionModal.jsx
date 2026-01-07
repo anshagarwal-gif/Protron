@@ -1,6 +1,6 @@
 // AddPOConsumptionModal.js
-import { useState, useEffect } from "react";
-import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip, File } from "lucide-react";
 import CreatableSelect from 'react-select/creatable';
 import axios from "axios";
 import { useSession } from "../Context/SessionContext";
@@ -10,6 +10,17 @@ import GlobalSnackbar from "./GlobalSnackbar";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
+  const fileInputRef = useRef(null);
+
+  // Helper function to format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
   const [formData, setFormData] = useState({
     poNumber: "",
     msId: "",
@@ -221,12 +232,12 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || e.dataTransfer?.files || []);
     if (!files.length) return;
 
     // Limit to 4 files total
     if (poConsumptionFiles.length + files.length > 4) {
-      setErrors(prev => ({ ...prev, attachment: "Max 4 attachments allowed." }));
+      setErrors(prev => ({ ...prev, attachment: "Maximum 4 attachments allowed." }));
       return;
     }
 
@@ -248,7 +259,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
     for (const file of files) {
       if (file.size > maxSize) {
-        error = "File must be under 10MB.";
+        error = `File "${file.name}" exceeds 10MB limit.`;
         break;
       }
       if (!allowedTypes.includes(file.type)) {
@@ -265,11 +276,29 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
     setPoConsumptionFiles(prev => [...prev, ...validFiles]);
     setErrors(prev => ({ ...prev, attachment: "" }));
-    e.target.value = null;
+    if (e.target) e.target.value = null;
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleFileChange(e);
   };
 
   const removePOConsumptionFile = (index) => {
     setPoConsumptionFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeAllAttachments = () => {
+    setPoConsumptionFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Function to handle date input clicks
@@ -431,20 +460,25 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
         throw new Error("Missing authentication credentials");
       }
 
-      // Create FormData for file upload
-      const submitData = new FormData();
-      submitData.append('poNumber', formData.poNumber);
-      submitData.append('msId', formData.msId || '');
-      submitData.append('amount', parseInt(formData.amount) || 0);
-      submitData.append('currency', formData.currency);
-      submitData.append('utilizationType', formData.utilizationType);
-      submitData.append('resource', formData.resource || '');
-      submitData.append('project', formData.project || '');
-      submitData.append('workDesc', formData.workDesc || '');
-      submitData.append('workAssignDate', formData.workAssignDate || '');
-      submitData.append('workCompletionDate', formData.workCompletionDate || '');
-      submitData.append('remarks', formData.remarks || '');
-      submitData.append('systemName', formData.systemName || '');
+      console.log('Starting PO Consumption submission with data:', formData);
+
+      // Create JSON payload (not FormData since we're sending JSON)
+      const submitData = {
+        poNumber: formData.poNumber,
+        msId: formData.msId || '',
+        amount: parseFloat(formData.amount) || 0,
+        currency: formData.currency,
+        utilizationType: formData.utilizationType,
+        resource: formData.resource || '',
+        project: formData.project || '',
+        workDesc: formData.workDesc || '',
+        workAssignDate: formData.workAssignDate || '',
+        workCompletionDate: formData.workCompletionDate || '',
+        remarks: formData.remarks || '',
+        systemName: formData.systemName || ''
+      };
+
+      console.log('Submitting to API:', submitData);
 
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/po-consumption/add`,
@@ -456,17 +490,20 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
           }
         }
       );
-             console.log("PO Consumption added successfully:", response.data);
-      const consumptionId = response.data.utilizationId
-        ;
+      
+      console.log("✅ PO Consumption added successfully:", response.data);
+      console.log("✅ Consumption ID:", response.data.utilizationId);
+      
+      const consumptionId = response.data.utilizationId;
 
       if (poConsumptionFiles.length > 0) {
+        console.log(`Uploading ${poConsumptionFiles.length} attachment(s)...`);
         for (const file of poConsumptionFiles) {
-          const formData = new FormData();
-          formData.append("file", file);
-          formData.append("level", "CONSUMPTION");
-          formData.append("referenceId", consumptionId);
-          formData.append("referenceNumber", ""); // if applicable
+          const fileFormData = new FormData();
+          fileFormData.append("file", file);
+          fileFormData.append("level", "CONSUMPTION");
+          fileFormData.append("referenceId", consumptionId);
+          fileFormData.append("referenceNumber", "");
 
           try {
             const uploadRes = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/upload`, {
@@ -474,24 +511,39 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               headers: {
                 'Authorization': `${token}`
               },
-              body: formData
+              body: fileFormData
             });
-            console.log("Attachment upload response:", uploadRes);
-
-                         if (!uploadRes.ok) {
-               console.error(`Attachment upload failed for ${file.name}`);
-             }
-                     } catch (err) {
-             console.error("Attachment upload error:", err);
-           }
+            
+            if (uploadRes.ok) {
+              console.log(`✅ Attachment uploaded successfully: ${file.name}`);
+            } else {
+              console.error(`❌ Attachment upload failed for ${file.name}:`, uploadRes.status, uploadRes.statusText);
+            }
+          } catch (err) {
+            console.error(`❌ Attachment upload error for ${file.name}:`, err);
+          }
         }
       }
 
+      // Show success message
+      setSnackbar({
+        open: true,
+        message: 'PO Consumption added successfully!',
+        severity: 'success'
+      });
 
-      // onSubmit(response.data);
-      handleClose();
-         } catch (error) {
-       console.error("Error adding PO consumption:", error);
+      // Notify parent component
+      if (onSubmit) {
+        onSubmit(response.data);
+      }
+
+      // Close modal after short delay to show success message
+      setTimeout(() => {
+        handleClose();
+      }, 1500);
+    } catch (error) {
+      console.error("❌ Error adding PO consumption:", error);
+      console.error("❌ Error details:", error.response?.data || error.message);
 
       // Enhanced error message handling
       let errorMessage = "Failed to add PO consumption";
@@ -536,6 +588,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
     setPOList([]);
     setMilestoneList([]);
     setProjectList([]);
+    setPoConsumptionFiles([]);
     onClose();
   };
 
@@ -924,50 +977,97 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-5 gap-4">
 
-
-              <div className="">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  <Paperclip size={14} className="inline mr-1" />
-                  PO Consumption Attachments (Max 4)
-                </label>
-
-                <input
-                  type="file"
-                  name="poConsumptionAttachment"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
-                  disabled={loading}
-                  multiple
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  title="Upload document or image file (max 10MB)"
-                />
-
-                {/* Selected Files List */}
-
-                {errors.attachment && (
-                  <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
-                )}
-              </div>
+          {/* Attachments Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Paperclip size={16} className="inline mr-1" />
+              Attachments (Max 4 files, 10MB each)
+            </label>
+            
+            {/* Drag and Drop Zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50"
+            >
+              <File size={32} className="mx-auto text-gray-400 mb-2" />
+              <p className="text-sm text-gray-600 mb-1">
+                Drag and drop files here, or click to browse
+              </p>
+              <p className="text-xs text-gray-500">
+                Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT
+              </p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                name="poConsumptionAttachment"
+                onChange={handleFileChange}
+                className="hidden"
+                disabled={loading}
+                multiple
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+              />
             </div>
-                <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-                  {poConsumptionFiles.map((file, index) => (
-                    <li
-                      key={index}
-                      className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+
+            {errors.attachment && (
+              <p className="mt-2 text-xs text-red-600 flex items-center">
+                <AlertCircle size={12} className="mr-1" />
+                {errors.attachment}
+              </p>
+            )}
+
+            {/* Selected Files List */}
+            {poConsumptionFiles.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-gray-700">
+                    Selected Files ({poConsumptionFiles.length}/4)
+                  </span>
+                  {poConsumptionFiles.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={removeAllAttachments}
+                      className="text-xs text-red-600 hover:text-red-800 font-medium"
+                      disabled={loading}
                     >
-                      <span className="truncate max-w-[150px]" title={file.name}>{file.name}</span>
+                      Remove All
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {poConsumptionFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-md hover:border-green-300 transition-colors"
+                    >
+                      <div className="flex items-center space-x-2 flex-1 min-w-0">
+                        <File size={16} className="text-green-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-700 truncate" title={file.name}>
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatFileSize(file.size)}
+                          </p>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         onClick={() => removePOConsumptionFile(index)}
-                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                        className="ml-2 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors flex-shrink-0"
+                        disabled={loading}
+                        title="Remove file"
                       >
-                        Delete
+                        <X size={14} />
                       </button>
-                    </li>
+                    </div>
                   ))}
-                </ul>
+                </div>
+              </div>
+            )}
+          </div>
 
 
           {/* Form Actions */}
