@@ -3,6 +3,7 @@ package com.Protronserver.Protronserver.Controller;
 import com.Protronserver.Protronserver.DTOs.SRNDTO;
 import com.Protronserver.Protronserver.Entities.SRNDetails;
 import com.Protronserver.Protronserver.Service.SRNService;
+import com.Protronserver.Protronserver.Utils.SRNLinkedPayments;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -167,5 +168,16 @@ public class SRNController {
         }
     }
 
+    /**
+     * Get PO amount and linked milestone amount for a given SRN
+     */
+    @GetMapping("/{srnId}/linked-amounts")
+    public ResponseEntity<SRNLinkedPayments> getLinkedAmountsForSrn(
+            @PathVariable Long srnId
+    ) {
+        return ResponseEntity.ok(
+                srnService.getLinkedAmountsForSrn(srnId)
+        );
+    }
 
 }

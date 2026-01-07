@@ -41,24 +41,24 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [selectedSRNId, setSelectedSRNId] = useState(null);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
+  const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
 
   const handleViewSRNDetails = async (srn) => {
-  try {
-    const token = sessionStorage.getItem('token');
-    const response = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/srn/${srn.srnId}`,
-      {
-        headers: { Authorization: `${token}` }
-      }
-    );
-    setSelectedSRNDetails(response.data);
-    setIsDetailsModalOpen(true);
-  } catch (error) {
-    console.error("Error fetching SRN details:", error);
-    showSnackbar("Failed to fetch SRN details", "error");
-  }
-};
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/srn/${srn.srnId}`,
+        {
+          headers: { Authorization: `${token}` }
+        }
+      );
+      setSelectedSRNDetails(response.data);
+      setIsDetailsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching SRN details:", error);
+      showSnackbar("Failed to fetch SRN details", "error");
+    }
+  };
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -158,7 +158,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
       'VUV': 'VT',
       'WST': 'WS$'
     };
-    
+
     return currencySymbols[currencyCode] || currencyCode || '$';
   };
 
@@ -202,7 +202,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
   // Filter SRN data based on search
   const filteredSRNData = srnList.filter(srn => {
     if (!searchQuery || searchQuery === "") return true;
-    
+
     const searchLower = searchQuery.toLowerCase();
     return (
       srn.poNumber?.toLowerCase().includes(searchLower) ||
@@ -222,14 +222,14 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
       const excelData = filteredSRNData.map((srn, index) => ({
         'S.No': index + 1,
         'PO Number': srn.poNumber || 'N/A',
-        'SRN ID': srn.srnId || 'N/A',
+        'Payment ID': srn.srnId || 'N/A',
         'Milestone Name': srn.milestone?.msName || 'N/A',
-        'SRN Name': srn.srnName || 'N/A',
-        'SRN Description': srn.srnDsc || 'N/A',
+        'Payment Name': srn.srnName || 'N/A',
+        'Payment Description': srn.srnDsc || 'N/A',
         'Currency': srn.srnCurrency || 'N/A',
-        'SRN Amount': srn.srnAmount ? `${getCurrencySymbol(srn.srnCurrency)}${srn.srnAmount.toLocaleString()}` : 'N/A',
-        'SRN Remarks': srn.srnRemarks || 'N/A',
-        'SRN DATE':srn.srnDate || 'N/A',
+        'Payment Amount': srn.srnAmount ? `${getCurrencySymbol(srn.srnCurrency)}${srn.srnAmount.toLocaleString()}` : 'N/A',
+        'Payment Remarks': srn.srnRemarks || 'N/A',
+        'Payment DATE': srn.srnDate || 'N/A',
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -320,14 +320,20 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
     showSnackbar(`Viewing attachments for SRN ${srn.srnId}`, "info");
   };
 
-  const handleEditModalSubmit = async (data) => {
-    
+  const handleCloseViewAndOpenEdit = (id) => {
+    setIsDetailsModalOpen(false);
+    setSelectedSRNId(id);
+    setIsEditModalOpen(true);
+  }
 
-      showSnackbar("SRN updated successfully!", "success");
-      fetchSRNData(); // Refresh the table
-      setIsEditModalOpen(false);
-      setSelectedSRNId(null);
-    
+  const handleEditModalSubmit = async (data) => {
+
+
+    showSnackbar("SRN updated successfully!", "success");
+    fetchSRNData(); // Refresh the table
+    setIsEditModalOpen(false);
+    setSelectedSRNId(null);
+
   };
 
   // Format currency with dynamic symbol
@@ -350,177 +356,177 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
       cellStyle: { textAlign: 'center' }
     },
     {
-        headerName: "PO Number",
-        field: "poNumber",
-        valueGetter: params => params.data.poNumber || 'N/A',
-        flex: 1,
-        minWidth: 150,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const poNumber = params.value;
-            if (poNumber && poNumber !== 'N/A') {
-                return (
-                    <span title={poNumber} className="cursor-pointer text-blue-600 font-bold underline" onClick={() => handlePONumberClick(params.data)}>
-                        {poNumber.length > 20 ? `${poNumber.substring(0, 20)}...` : poNumber}
-                    </span>
-                );
-            }
-            return poNumber;
+      headerName: "PO Number",
+      field: "poNumber",
+      valueGetter: params => params.data.poNumber || 'N/A',
+      flex: 1,
+      minWidth: 150,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const poNumber = params.value;
+        if (poNumber && poNumber !== 'N/A') {
+          return (
+            <span title={poNumber} className="cursor-pointer text-blue-600 font-bold underline" onClick={() => handlePONumberClick(params.data)}>
+              {poNumber.length > 20 ? `${poNumber.substring(0, 20)}...` : poNumber}
+            </span>
+          );
         }
+        return poNumber;
+      }
     },
     {
-        headerName: "SRN ID",
-        field: "srnId",
-        valueGetter: params => params.data.srnId || 'N/A',
-        width: 100,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const srnId = params.value;
-            return (
-                <span title={srnId} className="cursor-help">
-                    {srnId}
-                </span>
-            );
-        }
+      headerName: "Payment ID",
+      field: "srnId",
+      valueGetter: params => params.data.srnId || 'N/A',
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const srnId = params.value;
+        return (
+          <span title={srnId} className="cursor-help">
+            {srnId}
+          </span>
+        );
+      }
     },
     {
-        headerName: "Milestone Name",
-        field: "milestone.msName",
-        valueGetter: params => params.data.milestone?.msName || 'N/A',
-        flex: 1,
-        minWidth: 150,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const milestoneName = params.value;
-            if (milestoneName && milestoneName !== 'N/A') {
-                return (
-                    <span title={milestoneName} className="cursor-help">
-                        {milestoneName.length > 30 ? `${milestoneName.substring(0, 30)}...` : milestoneName}
-                    </span>
-                );
-            }
-            return milestoneName;
+      headerName: "Milestone Name",
+      field: "milestone.msName",
+      valueGetter: params => params.data.milestone?.msName || 'N/A',
+      flex: 1,
+      minWidth: 150,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const milestoneName = params.value;
+        if (milestoneName && milestoneName !== 'N/A') {
+          return (
+            <span title={milestoneName} className="cursor-help">
+              {milestoneName.length > 30 ? `${milestoneName.substring(0, 30)}...` : milestoneName}
+            </span>
+          );
         }
+        return milestoneName;
+      }
     },
     {
-    headerName: "SRN Type",
-    field: "srnType",
-    valueGetter: params => params.data.srnType || 'N/A',
-    width: 120,
-    sortable: true,
-    filter: true,
-    cellStyle: { fontWeight: 'bold', color: '#374151' },
-    cellRenderer: params => {
+      headerName: "Payment Type",
+      field: "srnType",
+      valueGetter: params => params.data.srnType || 'N/A',
+      width: 120,
+      sortable: true,
+      filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#374151' },
+      cellRenderer: params => {
         const srnType = params.value;
         return (
-            <span title={srnType} className="cursor-help">
-                {srnType || 'N/A'}
-            </span>
+          <span title={srnType} className="cursor-help">
+            {srnType || 'N/A'}
+          </span>
         );
-    }
-  },
-    {
-        headerName: "SRN Name",
-        field: "srnName",
-        valueGetter: params => params.data.srnName || 'N/A',
-        flex: 1,
-        minWidth: 180,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const srnName = params.value;
-            if (srnName && srnName !== 'N/A') {
-                return (
-                    <span title={srnName} className="cursor-help">
-                        {srnName.length > 30 ? `${srnName.substring(0, 30)}...` : srnName}
-                    </span>
-                );
-            }
-            return srnName;
-        }
+      }
     },
     {
-        headerName: "SRN Description",
-        field: "srnDsc",
-        valueGetter: params => params.data.srnDsc || 'N/A',
-        flex: 2,
-        minWidth: 200,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const description = params.value;
-            if (description && description !== 'N/A') {
-                return (
-                    <span title={description} className="cursor-help">
-                        {description.length > 50 ? `${description.substring(0, 50)}...` : description}
-                    </span>
-                );
-            }
-            return description;
+      headerName: "Payment Name",
+      field: "srnName",
+      valueGetter: params => params.data.srnName || 'N/A',
+      flex: 1,
+      minWidth: 180,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const srnName = params.value;
+        if (srnName && srnName !== 'N/A') {
+          return (
+            <span title={srnName} className="cursor-help">
+              {srnName.length > 30 ? `${srnName.substring(0, 30)}...` : srnName}
+            </span>
+          );
         }
+        return srnName;
+      }
     },
     {
-        headerName: "SRN Remarks",
-        field: "srnRemarks",
-        valueGetter: params => params.data.srnRemarks || 'N/A',
-        flex: 1,
-        minWidth: 180,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const remarks = params.value;
-            if (remarks && remarks !== 'N/A') {
-                return (
-                    <span title={remarks} className="cursor-help">
-                        {remarks.length > 40 ? `${remarks.substring(0, 40)}...` : remarks}
-                    </span>
-                );
-            }
-            return remarks;
+      headerName: "Payment Description",
+      field: "srnDsc",
+      valueGetter: params => params.data.srnDsc || 'N/A',
+      flex: 2,
+      minWidth: 200,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const description = params.value;
+        if (description && description !== 'N/A') {
+          return (
+            <span title={description} className="cursor-help">
+              {description.length > 50 ? `${description.substring(0, 50)}...` : description}
+            </span>
+          );
         }
+        return description;
+      }
     },
     {
-        headerName: "Currency",
-        field: "srnCurrency",
-        valueGetter: params => params.data.srnCurrency || 'N/A',
-        width: 100,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const currency = params.value;
-            return (
-                <span title={currency} className="cursor-help">
-                    {currency}
-                </span>
-            );
+      headerName: "Payment Remarks",
+      field: "srnRemarks",
+      valueGetter: params => params.data.srnRemarks || 'N/A',
+      flex: 1,
+      minWidth: 180,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const remarks = params.value;
+        if (remarks && remarks !== 'N/A') {
+          return (
+            <span title={remarks} className="cursor-help">
+              {remarks.length > 40 ? `${remarks.substring(0, 40)}...` : remarks}
+            </span>
+          );
         }
+        return remarks;
+      }
     },
     {
-        headerName: "SRN Amount",
-        field: "srnAmount",
-        valueGetter: params => {
-            const amount = params.data.srnAmount;
-            const currency = params.data.srnCurrency;
-            if (!amount) return 'N/A';
-            const symbol = getCurrencySymbol(currency);
-            return `${symbol}${amount.toLocaleString()}`;
-        },
-        width: 140,
-        sortable: true,
-        filter: true,
-        cellRenderer: params => {
-            const amount = params.value;
-            return (
-                <span title={amount} className="cursor-help">
-                    {amount}
-                </span>
-            );
-        }
+      headerName: "Currency",
+      field: "srnCurrency",
+      valueGetter: params => params.data.srnCurrency || 'N/A',
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const currency = params.value;
+        return (
+          <span title={currency} className="cursor-help">
+            {currency}
+          </span>
+        );
+      }
     },
-  
+    {
+      headerName: "Amount Paid",
+      field: "srnAmount",
+      valueGetter: params => {
+        const amount = params.data.srnAmount;
+        const currency = params.data.srnCurrency;
+        if (!amount) return 'N/A';
+        const symbol = getCurrencySymbol(currency);
+        return `${symbol}${amount.toLocaleString()}`;
+      },
+      width: 140,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const amount = params.value;
+        return (
+          <span title={amount} className="cursor-help">
+            {amount}
+          </span>
+        );
+      }
+    },
+
     {
       headerName: "Actions",
       field: "actions",
@@ -880,8 +886,8 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
               <div className="flex items-center justify-center h-full">
                 <div className="text-gray-500 text-center">
                   <Receipt size={48} className="mx-auto mb-2 text-gray-300" />
-                  <p className="text-lg font-medium">No SRNs found</p>
-                  <p className="text-sm">Try adjusting your search or add a new SRN</p>
+                  <p className="text-lg font-medium">No Payments found</p>
+                  <p className="text-sm">Try adjusting your search or add a new Payment</p>
                 </div>
               </div>
             )}
@@ -909,15 +915,15 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
 
       {/* Add SRN Modal */}
       {hasAccess('budget', 'edit') && (
-        <AddSRNModal 
+        <AddSRNModal
           open={isAddModalOpen}
-          onClose={() =>{ fetchSRNData() ;setIsAddModalOpen(false)}}
+          onClose={() => { fetchSRNData(); setIsAddModalOpen(false) }}
         />
       )}
 
       {/* Edit SRN Modal - Uncomment when modal components are available */}
       {hasAccess('budget', 'edit') && (
-        <EditSRNModal 
+        <EditSRNModal
           open={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false);
@@ -927,7 +933,7 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
           srnId={selectedSRNId}
         />
       )}
-     
+
 
       {/* Global Snackbar */}
       <GlobalSnackbar
@@ -938,10 +944,11 @@ const [selectedSRNDetails, setSelectedSRNDetails] = useState(null);
       />
 
       <SRNDetailsModal
-  open={isDetailsModalOpen}
-  onClose={() => setIsDetailsModalOpen(false)}
-  srnDetails={selectedSRNDetails}
-/>
+        open={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        srnDetails={selectedSRNDetails}
+        handleEdit={handleCloseViewAndOpenEdit}
+      />
     </div>
   );
 });

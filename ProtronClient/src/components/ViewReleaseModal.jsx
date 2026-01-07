@@ -78,7 +78,7 @@ const ViewReleaseModal = ({ open, onClose, releaseData }) => {
           <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
               <Field label="Release Name" value={releaseData.releaseName} />
-              <Field label="Project Name" value={truncate(releaseData.projectName)} />
+              <Field label="Initiative name" value={truncate(releaseData.projectName)} />
               <Field label="Start Date" value={formatDate(releaseData.startDate)} />
               <Field label="Start Time" value={formatTime(releaseData.startTime)} />
               <Field label="End Date" value={formatDate(releaseData.endDate)} />

@@ -138,4 +138,28 @@ public class CostDetailsService {
         return poAmount.subtract(totalMilestoneAmount).subtract(srnAmountWithoutMilestone);
     }
 
+    /**
+     * Returns PO balance that is still available for creating new milestones.
+     * Calculation:
+     * PO Amount - Sum of all milestone amounts
+     * (No SRN or consumption considered)
+     */
+    public BigDecimal getPoBalanceForMilestoneCreation(Long poId) {
+        Long tenantId = loggedInUserUtils.getLoggedInUser()
+                .getTenant()
+                .getTenantId();
+
+        // 1. Fetch PO amount
+        BigDecimal poAmount = poRepository.findPoAmountById(poId, tenantId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("PO not found with id: " + poId));
+
+        // 2. Fetch total milestone amount (if no milestones, repository should return 0)
+        BigDecimal totalMilestoneAmount =
+                poMilestoneRepository.sumMilestoneAmountsByPoId(poId, tenantId);
+
+        // 3. Remaining amount for milestone creation
+        return poAmount.subtract(totalMilestoneAmount);
+    }
+
 }

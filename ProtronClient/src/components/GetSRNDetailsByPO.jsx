@@ -19,16 +19,16 @@ const LoadingOverlay = () => (
     </div>
   </div>
 );
-  // Currency symbol mapping
-  const getCurrencySymbol = (currencyCode) => {
-    const currencySymbols = {
-      'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
-      'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'SEK': 'kr',
-      'NOK': 'kr', 'MXN': '$', 'NZD': 'NZ$', 'SGD': 'S$', 'HKD': 'HK$',
-      'ZAR': 'R', 'BRL': 'R$', 'RUB': '₽', 'KRW': '₩', 'TRY': '₺'
-    };
-    return currencySymbols[currencyCode] || currencyCode || '$';
+// Currency symbol mapping
+const getCurrencySymbol = (currencyCode) => {
+  const currencySymbols = {
+    'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'INR': '₹',
+    'CAD': 'C$', 'AUD': 'A$', 'CHF': 'CHF', 'CNY': '¥', 'SEK': 'kr',
+    'NOK': 'kr', 'MXN': '$', 'NZD': 'NZ$', 'SGD': 'S$', 'HKD': 'HK$',
+    'ZAR': 'R', 'BRL': 'R$', 'RUB': '₽', 'KRW': '₩', 'TRY': '₺'
   };
+  return currencySymbols[currencyCode] || currencyCode || '$';
+};
 const GetSRNDetailsByPO = ({ poId }) => {
   const [srnDetails, setSrnDetails] = useState([])
   const [loading, setLoading] = useState(true)
@@ -37,7 +37,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
   const [isAddSRNOpen, setIsAddSRNOpen] = useState(false)
   const [selectedSRN, setSelectedSRN] = useState(null)
   const [editSRNModalOpen, setEditSRNModalOpen] = useState(false)
-  
+
   // State for View Modal
   const [isViewSRNModalOpen, setIsViewSRNModalOpen] = useState(false)
   const [viewSRNData, setViewSRNData] = useState(null)
@@ -45,18 +45,18 @@ const GetSRNDetailsByPO = ({ poId }) => {
   const handleOpenSRNModal = () => {
     setIsAddSRNOpen(true)
   }
-  
+
   const handleCloseSRNModal = () => {
     setIsAddSRNOpen(false)
     fetchSRNDetails()
   }
-  
+
   const handleEditSRN = (srn) => {
     console.log(srn.srnId)
     setSelectedSRN(srn.srnId)
     setEditSRNModalOpen(true)
   }
-  
+
   const handleCloseSRNEdit = () => {
     setEditSRNModalOpen(false)
   }
@@ -66,13 +66,13 @@ const GetSRNDetailsByPO = ({ poId }) => {
     setViewSRNData(srn)
     setIsViewSRNModalOpen(true)
   }
-  
+
   const downloadSRNExcel = () => {
     try {
       const excelData = srnDetails.map((srn, index) => ({
         'S.No': index + 1,
-        'SRN ID': srn.srnId || 'N/A',
-        'SRN Name': srn.srnName || 'N/A',
+        'Payment ID': srn.srnId || 'N/A',
+        'Payment Name': srn.srnName || 'N/A',
         'PO Number': srn.poNumber || 'N/A',
         'Milestone': srn.milestone?.msName || 'N/A',
         'Amount': srn.srnAmount ? srn.srnAmount.toLocaleString() : 'N/A',
@@ -80,10 +80,10 @@ const GetSRNDetailsByPO = ({ poId }) => {
         'Type': srn.srnType || 'N/A',
         'Description': srn.srnDsc || 'N/A',
         'Remarks': srn.srnRemarks || 'N/A',
-        'SRN Date': srn.srnDate ? new Date(srn.srnDate).toLocaleDateString() : 'N/A',
+        'Payment Date': srn.srnDate ? new Date(srn.srnDate).toLocaleDateString() : 'N/A',
         'Created Date': srn.createdTimestamp ? new Date(srn.createdTimestamp).toLocaleDateString() : 'N/A',
       }));
-      
+
       const headers = Object.keys(excelData[0] || {});
       const csvContent = [
         headers.join(','),
@@ -96,7 +96,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
           }).join(',')
         )
       ].join('\n');
-      
+
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       if (link.download !== undefined) {
@@ -113,7 +113,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
       // showSnackbar('Failed to download Excel file. Please try again.', 'error');
     }
   }
-  
+
   useEffect(() => {
     if (isAddSRNOpen) {
       document.body.classList.add('overflow-hidden')
@@ -121,7 +121,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
       document.body.classList.remove('overflow-hidden')
     }
   })
-  
+
   const filteredSRNDetails = srnDetails.filter(srnDetails => {
     if (searchQuery === "") return true;
 
@@ -134,11 +134,11 @@ const GetSRNDetailsByPO = ({ poId }) => {
       srnDetails.milestone?.msName?.toLowerCase().includes(searchLower)
     );
   });
-  
+
   // Column definitions for AG Grid
   const columnDefs = [
     {
-      headerName: 'SRN ID',
+      headerName: 'Payment ID',
       field: 'srnId',
       flex: 1,
       maxWidth: 70,
@@ -148,7 +148,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
       cellClass: 'truncate-cell',
     },
     {
-      headerName: 'SRN Name',
+      headerName: 'Payment Name',
       field: 'srnName',
       flex: 1,
       maxWidth: 150,
@@ -177,10 +177,9 @@ const GetSRNDetailsByPO = ({ poId }) => {
       valueFormatter: (params) => params.value || 'N/A',
       tooltipField: 'milestone.msName',
       cellClass: 'truncate-cell',
-    },
-       {
-      headerName: 'Amount',
-      field: 'srnAmount',
+    }, {
+      headerName: 'Milestone Amount',
+      field: 'milestone.msAmount',
       flex: 1,
       maxWidth: 130,
       sortable: true,
@@ -190,7 +189,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
           // Get the SRN currency from the data, fallback to PO currency
           const currency = params.data.srnCurrency || poDetails?.poCurrency || 'USD';
           const currencySymbol = getCurrencySymbol(currency);
-          
+
           // Format the amount with proper currency symbol
           return `${currencySymbol}${params.value.toLocaleString()}`;
         }
@@ -208,7 +207,36 @@ const GetSRNDetailsByPO = ({ poId }) => {
       cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
     },
     {
-      headerName: 'Type',
+      headerName: 'Amount Paid',
+      field: 'srnAmount',
+      flex: 1,
+      maxWidth: 130,
+      sortable: true,
+      filter: 'agNumberColumnFilter',
+      valueFormatter: (params) => {
+        if (params.value) {
+          // Get the SRN currency from the data, fallback to PO currency
+          const currency = params.data.srnCurrency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+
+          // Format the amount with proper currency symbol
+          return `${currencySymbol}${params.value.toLocaleString()}`;
+        }
+        return '';
+      },
+      tooltipValueGetter: (params) => {
+        if (params.value) {
+          const currency = params.data.srnCurrency || poDetails?.poCurrency || 'USD';
+          const currencySymbol = getCurrencySymbol(currency);
+          return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+        }
+        return 'No amount specified';
+      },
+      cellClass: 'truncate-cell',
+      cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
+    },
+    {
+      headerName: 'Payment Type',
       field: 'srnType',
       flex: 1,
       maxWidth: 100,
@@ -337,7 +365,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
       setLoading(false)
     }
   }
-  
+
   useEffect(() => {
     fetchSRNDetails()
   }, [poId])
@@ -352,11 +380,17 @@ const GetSRNDetailsByPO = ({ poId }) => {
     }
   };
 
+  const handleViewCloseAndEditOpen = (srn) => {
+    setIsViewSRNModalOpen(false);
+    setSelectedSRN(srn);
+    setEditSRNModalOpen(true);
+  };
+
   // Loading state
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-lg">Loading SRN details...</div>
+        <div className="text-lg">Loading Payment details...</div>
       </div>
     )
   }
@@ -376,13 +410,13 @@ const GetSRNDetailsByPO = ({ poId }) => {
       <div className="flex p-6 justify-between">
         <h2 className="text-xl font-bold text-gray-900 flex items-center">
           <Banknote size={20} className="mr-2 text-green-600" />
-          SRN Details ({filteredSRNDetails.length})
+          Payment Details ({filteredSRNDetails.length})
         </h2>
         <div className='flex gap-4 items-center'>
           <div className="relative w-64">
             <input
               type="text"
-              placeholder="Search SRN..."
+              placeholder="Search Payment..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -402,7 +436,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
             onClick={handleOpenSRNModal}
           >
             <Plus size={18} className="mr-2" />
-            Add SRN
+            Add Payment
           </button>
         </div>
       </div>
@@ -448,9 +482,9 @@ const GetSRNDetailsByPO = ({ poId }) => {
             <div className="flex items-center justify-center h-full">
               <div className="text-gray-500 text-center">
                 <Banknote size={48} className="mx-auto mb-2 text-gray-300" />
-                <p className="text-lg font-medium">No SRN Details found</p>
+                <p className="text-lg font-medium">No Payment Details found</p>
                 <p className="text-sm">
-                  {searchQuery ? 'Try adjusting your search or' : ''} Add a new SRN to get started
+                  {searchQuery ? 'Try adjusting your search or' : ''} Add a new Payment to get started
                 </p>
               </div>
             </div>
@@ -471,7 +505,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
       </div>
 
       {/* Create New SRN Modal */}
-      <CreateNewSRNModal 
+      <CreateNewSRNModal
         poId={poId}
         open={isAddSRNOpen}
         onClose={handleCloseSRNModal}
@@ -486,13 +520,14 @@ const GetSRNDetailsByPO = ({ poId }) => {
       />
 
       {/* View SRN Modal */}
-      <ViewSRNModal 
+      <ViewSRNModal
         open={isViewSRNModalOpen}
         onClose={() => {
           setIsViewSRNModalOpen(false)
           setViewSRNData(null)
         }}
         srnData={viewSRNData}
+        handleEdit={handleViewCloseAndEditOpen}
       />
     </div>
   )

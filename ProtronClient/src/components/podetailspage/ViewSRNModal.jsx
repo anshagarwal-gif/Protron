@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, FileText, Hash, Receipt, Target, CreditCard } from 'lucide-react';
+import { X, Calendar, DollarSign, FileText, Hash, Receipt, Target, CreditCard, Edit } from 'lucide-react';
 import axios from 'axios';
 import { useSession } from '../../Context/SessionContext'
 
-const ViewSRNModal = ({ open, onClose, srnData }) => {
+const ViewSRNModal = ({ open, onClose, srnData, handleEdit }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
   const { sessionData } = useSession();
+  const [srnLinkedPayments, setSrnLinkedPayments] = useState({});
 
   useEffect(() => {
     if (open && srnData?.srnId) {
+      fetchSRNLinkedPayments(srnData.srnId);
       setLoadingAttachments(true);
       axios
         .get(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=SRN&referenceId=${srnData.srnId}`, {
@@ -32,6 +34,24 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
 
   if (!open || !srnData) return null;
 
+  const fetchSRNLinkedPayments = async (srnId) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/srn/${srnId}/linked-amounts`,
+        {
+          headers: {
+            Authorization: sessionData?.token
+          }
+        }
+      );
+
+      setSrnLinkedPayments(response.data);
+    } catch (error) {
+      console.error('Error fetching SRN linked payments:', error);
+    }
+  };
+
+
   // Format currency
   const formatCurrency = (amount, currency = 'USD') => {
     if (!amount) return 'N/A';
@@ -43,13 +63,13 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
 
   // Format date
   const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${monthStr}-${year}`;
+    if (!dateString) return 'N/A';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   // Get SRN type display name and tag styling
@@ -88,7 +108,7 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
@@ -96,16 +116,18 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
             <div className="flex items-center space-x-3">
               <Receipt size={24} />
               <div>
-                <h2 className="text-xl font-bold">SRN Details</h2>
+                <h2 className="text-xl font-bold">Payment Details</h2>
                 <p className="text-green-100 text-sm">{srnData.srnName || 'N/A'}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-lg transition-colors"
-            >
-              <X size={20} />
-            </button>
+            <div className="flex items-center space-x-3">
+              <button className="cursor-pointer p-2 hover:bg-green-700 rounded-lg transition-colors" onClick={() => {
+                handleEdit(srnData.srnId)
+              }}><Edit size={20} /></button>
+              <button className="cursor-pointer p-2 hover:bg-green-700 rounded-lg transition-colors" onClick={onClose}>
+                <X size={20} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -118,7 +140,7 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Field
-                label="SRN ID"
+                label="Payment ID"
                 value={srnData.srnId}
               />
               <Field
@@ -126,7 +148,15 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
                 value={srnData.poNumber}
               />
               <Field
-                label="Amount"
+                label="PO Amount"
+                value={formatCurrency(srnLinkedPayments?.poAmount, srnData.srnCurrency)}
+              />
+              <Field
+                label="Milestone Amount"
+                value={formatCurrency(srnLinkedPayments?.milestoneAmount, srnData.srnCurrency)}
+              />
+              <Field
+                label="Amount Paid"
                 value={formatCurrency(srnData.srnAmount, srnData.srnCurrency)}
               />
               <Field
@@ -134,20 +164,20 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
                 value={srnData.srnCurrency}
               />
               <Field
-                label="Type"
+                label="Payment Type"
                 value={<span className={getSRNTypeTag(srnData.srnType)}>{getSRNTypeDisplay(srnData.srnType)}</span>}
               />
               <Field
                 label="Milestone"
                 value={
-                  srnData.milestone?.msName || 
-                  srnData.msName || 
+                  srnData.milestone?.msName ||
+                  srnData.msName ||
                   srnData.milestoneName ||
                   (srnData.msId ? `Milestone ID: ${srnData.msId}` : "No specific milestone")
                 }
               />
               <Field
-                label="SRN Date"
+                label="Payment Date"
                 value={formatDate(srnData.srnDate)}
               />
               <Field
@@ -247,17 +277,7 @@ const ViewSRNModal = ({ open, onClose, srnData }) => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t rounded-b-lg">
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+
       </div>
     </div>
   );

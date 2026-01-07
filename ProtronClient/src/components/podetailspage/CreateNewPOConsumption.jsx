@@ -19,7 +19,7 @@ const getCurrencySymbol = (currency) => {
         'SEK': 'kr',
         'NZD': 'NZ$'
     };
-    
+
     return currencySymbols[currency] || currency;
 };
 const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
@@ -84,7 +84,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         value: user.name,
         label: user.name.length > 25 ? `${user.name.substring(0, 25)}...` : user.name,
     }));
-    
+
     const projectOptions = projectList.map((project) => ({
         value: project.projectName,
         label: project.projectName
@@ -106,7 +106,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             }));
             setErrors({})
         } catch (error) {
-            setErrors({submit:"Error fetching PO details. Please try again."})
+            setErrors({ submit: "Error fetching PO details. Please try again." })
             console.log(error)
         }
     }
@@ -125,7 +125,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             setErrors({})
         }
         catch (error) {
-            setErrors({submit:"Error fetching milestones. Please try again."})
+            setErrors({ submit: "Error fetching milestones. Please try again." })
             console.log(error)
         }
     }
@@ -141,7 +141,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             setUsers(data);
             setErrors({})
         } catch (error) {
-            setErrors({submit:"Error fetching users. Please try again."})
+            setErrors({ submit: "Error fetching users. Please try again." })
             console.error('Error fetching users:', error);
         }
     };
@@ -161,7 +161,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
             setErrors({})
         }
         catch (err) {
-            setErrors({submit:"Error fetching projects. Please try again."})
+            setErrors({ submit: "Error fetching projects. Please try again." })
             console.log(err)
         }
     }
@@ -178,7 +178,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                     setPOBalance(response.data);
                     setErrors({})
                 } catch (error) {
-                    setErrors({submit:"Error fetching PO balance. Please try again."})
+                    setErrors({ submit: "Error fetching PO balance. Please try again." })
                     console.error("Error fetching PO balance:", error);
                 }
             }
@@ -195,7 +195,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                     setMilestoneBalance(response.data);
                     setErrors({})
                 } catch (error) {
-                    setErrors({submit:"Error fetching milestone balance. Please try again."})
+                    setErrors({ submit: "Error fetching milestone balance. Please try again." })
                     console.error("Error fetching milestone balance:", error);
                 }
             } else {
@@ -226,61 +226,61 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
 
     // Enhanced validation function with balance check
     const validateForm = () => {
-    const newErrors = {}
+        const newErrors = {}
 
-    if (!formData.amount || formData.amount <= 0) {
-        newErrors.amount = 'Amount must be greater than 0'
-    } else {
-        // Check balance validation
-        const enteredAmount = parseFloat(formData.amount);
-        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
-        
-        if (availableBalance !== null && enteredAmount > availableBalance) {
-            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
-            const currencySymbol = getCurrencySymbol(formData.currency);
-            
-            newErrors.amount = `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+        if (!formData.amount || formData.amount <= 0) {
+            newErrors.amount = 'Amount must be greater than 0'
+        } else {
+            // Check balance validation
+            const enteredAmount = parseFloat(formData.amount);
+            const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+
+            if (availableBalance !== null && enteredAmount > availableBalance) {
+                const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+                const currencySymbol = getCurrencySymbol(formData.currency);
+
+                newErrors.amount = `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+            }
         }
-    }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-}
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
     // Real-time amount validation
     // Updated handleAmountChange function
-const handleAmountChange = (e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, amount: value });
-    
-    // Clear previous amount error
-    if (errors.amount) {
-        setErrors(prev => ({
-            ...prev,
-            amount: ""
-        }));
-    }
-    
-    // Real-time validation
-    if (value && parseFloat(value) > 0) {
-        const enteredAmount = parseFloat(value);
-        const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
-        
-        if (availableBalance !== null && enteredAmount > availableBalance) {
-            const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
-            const currencySymbol = getCurrencySymbol(formData.currency);
-            
+    const handleAmountChange = (e) => {
+        const value = e.target.value;
+        setFormData({ ...formData, amount: value });
+
+        // Clear previous amount error
+        if (errors.amount) {
             setErrors(prev => ({
                 ...prev,
-                amount: `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}`
+                amount: ""
             }));
         }
-    }
-};
+
+        // Real-time validation
+        if (value && parseFloat(value) > 0) {
+            const enteredAmount = parseFloat(value);
+            const availableBalance = milestoneBalance !== null ? milestoneBalance : poBalance;
+
+            if (availableBalance !== null && enteredAmount > availableBalance) {
+                const balanceType = milestoneBalance !== null ? 'milestone' : 'PO';
+                const currencySymbol = getCurrencySymbol(formData.currency);
+
+                setErrors(prev => ({
+                    ...prev,
+                    amount: `Amount exceeds available ${balanceType} balance of ${currencySymbol}${availableBalance.toLocaleString()}`
+                }));
+            }
+        }
+    };
 
     // Handle milestone change with error clearing
     const handleMilestoneChange = (e) => {
         setFormData({ ...formData, msId: e.target.value });
-        
+
         // Clear amount error when changing milestone
         if (errors.amount) {
             setErrors(prev => ({
@@ -473,7 +473,7 @@ const handleAmountChange = (e) => {
     }, [open, poId]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
             <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
                 <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
                     <div>
@@ -551,18 +551,18 @@ const handleAmountChange = (e) => {
                                     <label htmlFor="amount" className='block text-sm font-medium text-gray-700 mb-2'>
                                         Amount*
                                     </label>
-                                 
-<label className='text-right text-[10px]'>
-    {formData.msId && milestoneBalance !== null ? (
-        <span className="text-green-600">
-            Milestone Balance: {getCurrencySymbol(formData.currency)}{milestoneBalance.toLocaleString()}
-        </span>
-    ) : (
-        <span className="text-green-600">
-            PO Balance: {getCurrencySymbol(formData.currency)}{poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}
-        </span>
-    )}
-</label>
+
+                                    <label className='text-right text-[10px]'>
+                                        {formData.msId && milestoneBalance !== null ? (
+                                            <span className="text-green-600">
+                                                Milestone Balance: {getCurrencySymbol(formData.currency)}{milestoneBalance.toLocaleString()}
+                                            </span>
+                                        ) : (
+                                            <span className="text-green-600">
+                                                PO Balance: {getCurrencySymbol(formData.currency)}{poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}
+                                            </span>
+                                        )}
+                                    </label>
                                 </div>
 
                                 <input
@@ -580,7 +580,7 @@ const handleAmountChange = (e) => {
                                         handleAmountChange(e);
                                     }}
                                     onInput={e => {
-                                        
+
                                     }}
                                     className={`w-full h-10 px-4 border rounded-md ${errors.amount ? 'border-red-500' : 'border-gray-300'}`}
                                     placeholder='Enter Amount'
@@ -657,8 +657,8 @@ const handleAmountChange = (e) => {
                                 <CreatableSelect
                                     isClearable
                                     isDisabled={loading}
-                                    placeholder="Select or type a project"
-                                    title={formData.project ? `Project: ${formData.project}` : "Select or type a project"}
+                                    placeholder="Select or type an initiative"
+                                    title={formData.project ? `Initiative: ${formData.project}` : "Select or type an initiative"}
                                     onChange={(selectedOption) =>
                                         setFormData({ ...formData, project: selectedOption ? selectedOption.value : '' })
                                     }
@@ -720,7 +720,7 @@ const handleAmountChange = (e) => {
                             </div>
                         </div>
 
-                        
+
 
                         <div>
                             <label htmlFor="description" className='block text-sm font-medium text-gray-700 mb-2'>
@@ -772,27 +772,27 @@ const handleAmountChange = (e) => {
                             />
 
                             {/* Selected Files List */}
-                        
+
                         </div>
                         <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-                                {poConsumptionFiles.map((file, index) => (
-                                    <li
-                                        key={index}
-                                        className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                            {poConsumptionFiles.map((file, index) => (
+                                <li
+                                    key={index}
+                                    className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                >
+                                    <span className="truncate max-w-[200px]" title={file.name}>
+                                        {file.name}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removePOConsumptionFile(index)}
+                                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
                                     >
-                                        <span className="truncate max-w-[200px]" title={file.name}>
-                                            {file.name}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => removePOConsumptionFile(index)}
-                                            className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                        >
-                                            Delete
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                                        Delete
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
 
                         <div className='flex justify-end space-x-4'>
                             <button
@@ -820,7 +820,7 @@ const handleAmountChange = (e) => {
                 severity={snackbar.severity}
                 onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
             />
-            
+
         </div>
     )
 }

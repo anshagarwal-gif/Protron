@@ -7,7 +7,35 @@ public class TaskFilterDTO {
     private Long projectId;
     private String parentId;
     private String createdBy;
+    private String status;
     private LocalDateTime createdDate;
+
+    private Integer page = 0;
+    private Integer size = 20;
+
+    public Integer getPage() {
+        return page;
+    }
+
+    public void setPage(Integer page) {
+        this.page = page;
+    }
+
+    public Integer getSize() {
+        return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public Long getTenantId() {
         return tenantId;

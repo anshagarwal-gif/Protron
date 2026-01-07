@@ -700,9 +700,9 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.projectId ? 'border-red-500' : 'border-gray-300'
                     }`}
                   disabled={loading}
-                  title={formData.projectId ? `Selected Project ID: ${formData.projectId}` : "Select a Project ID"}
+                  title={formData.projectId ? `Selected Initiative ID: ${formData.projectId}` : "Select an Initiative ID"}
                 >
-                  <option value="" title="No project selected">Select Project</option>
+                  <option value="" title="No initiative selected">Select Initiative</option>
                   {projectList.map(project => (
                     <option
                       key={project.projectId}

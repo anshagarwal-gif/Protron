@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { 
-  X, 
-  Paperclip, 
-  Image, 
-  Archive, 
-  File, 
-  Download, 
-  FileText, 
-  Target, 
-  Calendar 
+import {
+  X,
+  Paperclip,
+  Image,
+  Archive,
+  File,
+  Download,
+  FileText,
+  Target,
+  Calendar,
+  Edit
 } from "lucide-react";
 
-const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
+const SRNDetailsModal = ({ open, onClose, srnDetails, handleEdit }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
@@ -71,7 +72,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
   const getFileIcon = (fileName) => {
     if (!fileName) return <File size={16} />;
     const extension = fileName.split('.').pop()?.toLowerCase();
-    
+
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'].includes(extension)) {
       return <Image size={16} className="text-green-600" />;
     } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
@@ -96,13 +97,13 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
 
   // Format date (matching other modals)
   const formatDate = (dateString) => {
-  if (!dateString) return 'N/A';
-  const d = new Date(dateString);
-  const day = String(d.getDate()).padStart(2, '0');
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const monthStr = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-  return `${day}-${monthStr}-${year}`;
+    if (!dateString) return 'N/A';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthStr = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day}-${monthStr}-${year}`;
   };
 
   // Function to get tag styling for SRN Type
@@ -144,7 +145,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-2 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50 p-2 sm:p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 bg-green-600 text-white rounded-t-lg">
@@ -152,16 +153,22 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
             <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
               <FileText size={20} className="sm:w-6 sm:h-6 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <h2 className="text-lg sm:text-xl font-bold truncate">SRN Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm truncate">SRN: {srnDetails.srnName || 'N/A'}</p>
+                <h2 className="text-lg sm:text-xl font-bold truncate">Payment Details</h2>
+                <p className="text-green-100 text-xs sm:text-sm truncate">Payment: {srnDetails.srnName || 'N/A'}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
-            >
-              <X size={18} className="sm:w-5 sm:h-5" />
-            </button>
+            <div className="flex items-center space-x-3">
+              <button className="cursor-pointer p-2 hover:bg-green-700 rounded-lg transition-colors" onClick={() => {
+                handleEdit(srnDetails.srnId)
+              }}><Edit size={20} /></button>
+              <button
+                onClick={onClose}
+                className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
+              >
+                <X size={18} className="sm:w-5 sm:h-5" />
+              </button>
+            </div>
+
           </div>
         </div>
 
@@ -174,15 +181,15 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <Field
-                label="SRN Name"
+                label="Payment Name"
                 value={srnDetails.srnName}
               />
               <Field
-                label="SRN Amount"
+                label="Payment Amount"
                 value={formatCurrency(srnDetails.srnAmount, srnDetails.srnCurrency)}
               />
               <Field
-                label="SRN Type"
+                label="Payment Type"
                 value={<span className={getSrnTypeTag(srnDetails.srnType)}>{srnDetails.srnType}</span>}
               />
               <Field
@@ -190,7 +197,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
                 value={srnDetails.srnCurrency}
               />
               <Field
-                label="SRN Remarks"
+                label="Payment Remarks"
                 value={
                   srnDetails.srnRemarks ? (
                     <div className="bg-white rounded p-2 sm:p-3 border max-h-24 sm:max-h-32 overflow-y-auto">
@@ -242,7 +249,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <Field
-                  label="Project Name"
+                  label="Initiative name"
                   value={poDetail.projectName}
                 />
                 <Field
@@ -273,7 +280,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
               <FileText className="mr-2 text-green-600" size={20} />
-              SRN Description
+              Payment Description
             </h3>
             <div className="bg-white rounded p-2 sm:p-3 border max-h-32 sm:max-h-40 overflow-y-auto">
               <p className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
@@ -330,17 +337,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails }) => {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t rounded-b-lg">
-          <div className="flex justify-end">
-            <button
-              onClick={onClose}
-              className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm sm:text-base"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+
       </div>
     </div>
   );

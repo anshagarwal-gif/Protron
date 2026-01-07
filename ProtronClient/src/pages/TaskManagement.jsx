@@ -3,13 +3,14 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { FiFileText, FiPlus, FiSearch, FiEdit, FiDownload, FiLoader, FiEye, FiTrash2 } from 'react-icons/fi';
+import { Copy } from 'lucide-react';
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddTaskModal from "../components/AddTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
 import ViewTaskModal from "../components/ViewTaskModal";
 
 const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
-  
+
   // State management
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
   const [parentStory, setParentStory] = useState(null);
+  const [duplicatingTask, setDuplicatingTask] = useState(null);
 
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -49,7 +51,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
   const fetchTasks = useCallback(async (parentId) => {
     if (!parentId) return;
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -57,10 +59,22 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tasks/tasks/${parentId}`, {
         headers: { Authorization: token }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        setTasks(data);
+        // Sort by ID in descending order (newest first) or by taskId if available
+        const sortedData = Array.isArray(data) ? [...data].sort((a, b) => {
+          // Try to sort by numeric ID first
+          if (a.id && b.id) {
+            return b.id - a.id; // Descending order (newest first)
+          }
+          // Fallback to taskId string comparison
+          if (a.taskId && b.taskId) {
+            return b.taskId.localeCompare(a.taskId);
+          }
+          return 0;
+        }) : data;
+        setTasks(sortedData);
       } else {
         throw new Error('Failed to fetch tasks');
       }
@@ -77,7 +91,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     // Get parent story info from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const parentStoryData = urlParams.get('parentStory');
-    
+
     if (parentStoryData) {
       try {
         const parsed = JSON.parse(decodeURIComponent(parentStoryData));
@@ -96,7 +110,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const LoadingOverlay = () => (
     <div className="flex items-center justify-center h-full">
       <div className="text-center">
-  <FiLoader className="mx-auto h-8 w-8 animate-spin text-purple-600" />
+        <FiLoader className="mx-auto h-8 w-8 animate-spin text-purple-600" />
         <p className="mt-2 text-sm text-gray-600">Loading tasks...</p>
       </div>
     </div>
@@ -151,9 +165,30 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     }
   }, [showSnackbar, fetchTasks, parentStory?.usId, parentStory?.ssId]);
 
+  const handleDuplicate = useCallback((task) => {
+    // Prepare duplicate data: copy all fields except id
+    // Preserve the parent story ID (usId or ssId) from the original parentStory if available
+    const parentIdToUse = parentStory?.usId || parentStory?.ssId ||
+      (task.parentId && (task.parentId.startsWith('US-') || task.parentId.startsWith('SS-')) ? task.parentId : '');
+    const duplicateData = {
+      ...task,
+      _isDuplicate: true,
+      _originalTaskId: task.taskId, // Keep original for reference
+      // Preserve parent story ID for linking the duplicate task
+      parentId: parentIdToUse,
+      // Preserve usId/ssId for display in modal header
+      usId: parentStory?.usId || (task.parentId && task.parentId.startsWith('US-') ? task.parentId : null) || null,
+      ssId: parentStory?.ssId || (task.parentId && task.parentId.startsWith('SS-') ? task.parentId : null) || null
+    };
+    delete duplicateData.taskId;
+    delete duplicateData.id;
+    setDuplicatingTask(duplicateData);
+    setIsAddModalOpen(true);
+  }, [parentStory]);
+
   const ActionsRenderer = useCallback((params) => {
     const task = params.data;
-    
+
     return (
       <div className="flex items-center space-x-2">
         <button
@@ -163,27 +198,29 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         >
           <FiEye size={16} />
         </button>
-      
-          <button
-            onClick={() => handleEdit(task)}
-            className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Edit Task"
-          >
-            <FiEdit size={16} />
-          </button>
-       
-       
-          <button
-            onClick={() => handleDelete(task.taskId)}
-            className="text-gray-400 hover:text-red-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Delete Task"
-          >
-            <FiTrash2 size={16} />
-          </button>
-        
+
+        <button
+          onClick={() => handleEdit(task)}
+          className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
+          title="Edit Task"
+        >
+          <FiEdit size={16} />
+        </button>
+
+        <button
+          onClick={() => handleDuplicate(task)}
+          className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
+          title="Copy Task"
+        >
+          <Copy size={16} />
+        </button>
+
+
+
+
       </div>
     );
-  }, [handleView, handleEdit, handleDelete]);
+  }, [handleView, handleEdit, handleDelete, handleDuplicate]);
 
   const columnDefs = [
     {
@@ -322,9 +359,9 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   // Filter data based on search query
   const filteredTasks = useMemo(() => {
     if (!searchQuery) return tasks;
-    
+
     const query = searchQuery.toLowerCase();
-    return tasks.filter(task => 
+    return tasks.filter(task =>
       task.taskId?.toLowerCase().includes(query) ||
       task.taskTopic?.toLowerCase().includes(query) ||
       task.taskType?.toLowerCase().includes(query) ||
@@ -372,22 +409,22 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             <FiDownload size={16} className="mr-2" />
             Download Excel
           </button>
-         
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              <FiPlus size={16} className="mr-2" />
-              Add Task
-            </button>
-        
+
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            <FiPlus size={16} className="mr-2" />
+            Add Task
+          </button>
+
         </div>
       </div>
 
-       {/* AG Grid */}
-       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-         <div className="ag-theme-alpine" style={{ height: '76vh', width: '100%' }}>
-           <style jsx>{`
+      {/* AG Grid */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="ag-theme-alpine" style={{ height: '76vh', width: '100%' }}>
+          <style jsx>{`
              .ag-theme-alpine .ag-header {
                background-color: #15803d!important;
                color: white;
@@ -426,61 +463,69 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
                padding: 16px 20px;
              }
            `}</style>
-           <AgGridReact
-             columnDefs={columnDefs}
-             rowData={filteredTasks}
-             defaultColDef={defaultColDef}
-             pagination={true}
-             paginationPageSize={10}
-             paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
-             suppressMovableColumns={true}
-             suppressRowClickSelection={true}
-             enableBrowserTooltips={true}
-             loadingOverlayComponent={LoadingOverlay}
-             noRowsOverlayComponent={() => (
-               <div className="flex items-center justify-center h-full">
-                 <div className="text-gray-500 text-center">
-                   <FiFileText size={48} className="mx-auto mb-2 text-gray-300" />
-                   <p className="text-lg font-medium">No tasks found</p>
-                   <p className="text-sm">Try adjusting your search or add a new task</p>
-                 </div>
-               </div>
-             )}
-             loading={loading}
-             animateRows={true}
-             rowHeight={48}
-             headerHeight={48}
-             suppressCellFocus={true}
-             suppressRowHoverHighlight={false}
-           />
-         </div>
-       </div>
+          <AgGridReact
+            columnDefs={columnDefs}
+            rowData={filteredTasks}
+            defaultColDef={defaultColDef}
+            pagination={true}
+            paginationPageSize={10}
+            paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
+            suppressMovableColumns={true}
+            suppressRowClickSelection={true}
+            enableBrowserTooltips={true}
+            loadingOverlayComponent={LoadingOverlay}
+            noRowsOverlayComponent={() => (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-gray-500 text-center">
+                  <FiFileText size={48} className="mx-auto mb-2 text-gray-300" />
+                  <p className="text-lg font-medium">No tasks found</p>
+                  <p className="text-sm">Try adjusting your search or add a new task</p>
+                </div>
+              </div>
+            )}
+            loading={loading}
+            animateRows={true}
+            rowHeight={48}
+            headerHeight={48}
+            suppressCellFocus={true}
+            suppressRowHoverHighlight={false}
+          />
+        </div>
+      </div>
 
       {/* Modals */}
-    
-        <AddTaskModal
-          open={isAddModalOpen}
-          onClose={() => {
-            const parentId = parentStory?.usId || parentStory?.ssId;
-            fetchTasks(parentId);
-            setIsAddModalOpen(false);
-          }}
-          parentStory={parentStory}
-        />
-    
 
-     
-        <EditTaskModal
-          open={isEditModalOpen}
-          onClose={() => {
-            const parentId = parentStory?.usId || parentStory?.ssId;
-            fetchTasks(parentId);
-            setIsEditModalOpen(false);
-          }}
-          taskId={selectedTaskId}
-          taskData={selectedTask}
-        />
-     
+      <AddTaskModal
+        open={isAddModalOpen}
+        onClose={() => {
+          setDuplicatingTask(null);
+          const parentId = parentStory?.usId || parentStory?.ssId;
+          fetchTasks(parentId);
+          setIsAddModalOpen(false);
+        }}
+        parentStory={duplicatingTask ? {
+          ...duplicatingTask,
+          // Preserve the original parent story info for display
+          // If we have parentStory state, use its usId/ssId and summary for the parent context
+          usId: parentStory?.usId || duplicatingTask.usId || (duplicatingTask.parentId && duplicatingTask.parentId.startsWith('US-') ? duplicatingTask.parentId : null),
+          ssId: parentStory?.ssId || duplicatingTask.ssId || (duplicatingTask.parentId && duplicatingTask.parentId.startsWith('SS-') ? duplicatingTask.parentId : null),
+          summary: parentStory?.summary || duplicatingTask.summary
+        } : parentStory}
+      />
+
+
+
+      <EditTaskModal
+        open={isEditModalOpen}
+        onClose={() => {
+          const parentId = parentStory?.usId || parentStory?.ssId;
+          fetchTasks(parentId);
+          setIsEditModalOpen(false);
+        }}
+        taskId={selectedTaskId}
+        taskData={selectedTask}
+      />
+
 
       <ViewTaskModal
         open={isViewModalOpen}

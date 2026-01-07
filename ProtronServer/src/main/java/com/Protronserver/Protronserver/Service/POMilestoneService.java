@@ -35,10 +35,23 @@ public class POMilestoneService {
 
     public POMilestone addMilestone(POMilestoneAddDTO dto) {
         // 1. Fetch the parent PO
+
+        Long tenantId = loggedInUserUtils.getLoggedInUser()
+                .getTenant()
+                .getTenantId();
+
         PODetails poDetail = poRepository.findById(dto.getPoId())
                 .orElseThrow(() -> new RuntimeException("PO not found with ID: " + dto.getPoId()));
 
         // 2. --- VALIDATION START ---
+
+        if(poMilestoneRepository.existsActiveMilestoneByPoIdAndName(
+                dto.getPoId(),
+                dto.getMsName(),
+                tenantId
+        )){
+            throw new IllegalArgumentException("Milestone Name already exists");
+        }
 
         // Currency Check: Ensure the milestone currency matches the PO currency
         if (!poDetail.getPoCurrency().equalsIgnoreCase(dto.getMsCurrency())) {
@@ -102,7 +115,7 @@ public class POMilestoneService {
                 poDetail.getPoId(), existingMilestone.getMsId(), currentTenantId);
 
         if (newMilestoneAmount.compareTo(totalSrnPaid) < 0) {
-            throw new IllegalArgumentException("New milestone amount (" + newMilestoneAmount +
+            throw new IllegalArgumentException("Milestone amount (" + newMilestoneAmount +
                     ") cannot be less than the total SRN amount already paid (" + totalSrnPaid + ").");
         }
 
@@ -111,7 +124,7 @@ public class POMilestoneService {
         BigDecimal availableBudget = poAmount.subtract(currentTotalMilestoneSum).add(originalMilestoneAmount);
 
         if (newMilestoneAmount.compareTo(availableBudget) > 0) {
-            throw new IllegalArgumentException("Updated milestone amount exceeds PO budget. " +
+            throw new IllegalArgumentException("Milestone amount exceeds PO budget. " +
                     "Available budget for this milestone: " + availableBudget);
         }
         // --- VALIDATION END ---

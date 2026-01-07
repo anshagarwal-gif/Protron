@@ -26,6 +26,8 @@ import GlobalSnackbar from "../components/GlobalSnackbar";
 import UserEditForm from "../components/UserEditForm"; // Import your user edit form component
 import UserDetails from "../components/UserDetails";
 
+import UserDetailsModal from "../components/UserDetailsModal";
+
 const UserManagement = () => {
   const navigate = useNavigate();
 
@@ -39,6 +41,8 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [isUserDetailsModalOpen, setIsUserDetailsModalOpen] = useState(false);
+  const [selectedDetailUser, setSelectedDetailUser] = useState(null);
   const { hasAccess } = useAccess();
   const [tenants, setTenants] = useState([]);
   const [users, setUsers] = useState([]);
@@ -618,11 +622,9 @@ const UserManagement = () => {
   };
 
   const NameCellRenderer = ({ data }) => {
-    const navigate = useNavigate();
-
     const handleClick = () => {
-      // Pass whole user object in state
-      navigate(`/user/${data.userId}`, { state: { user: data } });
+      setSelectedDetailUser(data);
+      setIsUserDetailsModalOpen(true);
     };
 
     return (
@@ -1467,6 +1469,14 @@ const UserManagement = () => {
         />
 
       )}
+      <UserDetailsModal
+        isOpen={isUserDetailsModalOpen}
+        onClose={() => {
+          setIsUserDetailsModalOpen(false);
+          setSelectedDetailUser(null);
+        }}
+        user={selectedDetailUser}
+      />
     </div>
   );
 };

@@ -1,6 +1,8 @@
 package com.Protronserver.Protronserver.Repository;
 
 import com.Protronserver.Protronserver.Entities.Release;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,5 +19,17 @@ public interface ReleaseRepository extends JpaRepository<Release, Long> {
     void updateProjectForReleases(Long oldProjectId, Long newProjectId, String newProjectName);
 
     boolean existsByReleaseId(Long releaseId);
+
+    boolean existsByTenantIdAndProjectIdAndReleaseNameAndEndTimestampIsNull(
+            Long tenantId,
+            Long projectId,
+            String releaseName
+    );
+
+    Page<Release> findAllByTenantIdAndProjectIdAndEndTimestampIsNull(
+            Long tenantId,
+            Long projectId,
+            Pageable pageable
+    );
 }
 

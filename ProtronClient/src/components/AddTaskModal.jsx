@@ -93,15 +93,46 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
   useEffect(() => {
     const fetchData = async () => {
       if (open) {
-        // Set initial form data from parent story
+        // Set initial form data from parent story or duplicate data
         if (parentStory) {
-          setFormData(prev => ({
-            ...prev,
-            status: initialStatus || parentStory.status || 'todo',
-            projectId: parentStory.projectId,
-            parentId: parentStory.usId || parentStory.ssId, // Can be from UserStory or SolutionStory
-            date: getLocalDateString()
-          }));
+          // Check if this is duplicate data (has _isDuplicate flag)
+          const isDuplicate = parentStory._isDuplicate === true;
+          
+          if (isDuplicate) {
+            // For duplicates, set fresh form data from the duplicate data
+            // Preserve the parent story ID (usId or ssId) if available
+            const parentIdForDuplicate = parentStory.usId || parentStory.ssId || parentStory.parentId || '';
+            setFormData({
+              projectId: parentStory.projectId ? String(parentStory.projectId) : '',
+              parentId: parentIdForDuplicate, // Preserve parent story ID for duplicates
+              date: parentStory.date || getLocalDateString(),
+              taskType: parentStory.taskType || '',
+              taskTopic: parentStory.taskTopic || '',
+              taskDescription: parentStory.taskDescription || '',
+              estTimeHours: parentStory.estTimeHours !== undefined ? parentStory.estTimeHours : 0,
+              estTimeMinutes: parentStory.estTimeMinutes !== undefined ? parentStory.estTimeMinutes : 0,
+              timeSpentHours: 0,
+              timeSpentMinutes: 0,
+              timeRemainingHours: 0,
+              timeRemainingMinutes: 0,
+              attachments: [],
+              status: initialStatus || parentStory.status || 'todo'
+            });
+          } else {
+            // For regular parent story (adding child), merge with previous state
+            setFormData(prev => ({
+              ...prev,
+              status: initialStatus || parentStory.status || prev.status || 'todo',
+              projectId: parentStory.projectId ? String(parentStory.projectId) : prev.projectId,
+              parentId: parentStory.usId || parentStory.ssId || parentStory.parentId || prev.parentId || '',
+              date: getLocalDateString(),
+              taskType: prev.taskType || '',
+              taskTopic: prev.taskTopic || '',
+              taskDescription: prev.taskDescription || '',
+              estTimeHours: prev.estTimeHours || 0,
+              estTimeMinutes: prev.estTimeMinutes || 0
+            }));
+          }
         }
 
         // If no parentStory and an initialProjectId was passed from dashboard, pre-fill projectId
@@ -193,7 +224,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
 
   const validateForm = () => {
     if (!formData.projectId) {
-      showSnackbar("Please select a project", 'error');
+      showSnackbar("Please select an initiative", 'error');
       return false;
     }
 
@@ -405,7 +436,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
                           <>Parent Story: {parentStory.usId}</>
                         )}
                       </p>
-                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Project Name: {getProjectName(formData.projectId)}</p>
+                      <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Initiative name: {getProjectName(formData.projectId)}</p>
                     </>
                   )}
                 </div>

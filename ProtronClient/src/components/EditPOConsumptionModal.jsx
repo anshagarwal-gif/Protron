@@ -929,9 +929,9 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   disabled={loading || initialLoading}
-                  title={formData.project ? `Selected Project: ${formData.project}` : "Select a project"}
+                  title={formData.project ? `Selected Initiative: ${formData.project}` : "Select an Initiative"}
                 >
-                  <option value="" title="No project selected">Select project</option>
+                  <option value="" title="No initiative selected">Select initiative</option>
                   {projectList.map((project, index) => (
                     <option
                       key={project.projectId || index}
@@ -943,7 +943,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                   ))}
                 </select>
                 {projectList.length === 0 && (
-                  <p className="mt-1 text-xs text-gray-500" title="Loading projects from server...">Loading projects...</p>
+                  <p className="mt-1 text-xs text-gray-500" title="Loading initiatives from server...">Loading initiatives...</p>
                 )}
               </div>
 

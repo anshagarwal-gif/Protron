@@ -87,12 +87,12 @@ const POManagement = () => {
     setIsViewModalOpen(true);
   };
   const tabs = [
-  { id: "approval", label: "Approved Budget Tracker", short: "ABT", fullForm: "Approved Budget Tracker" },
-  { id: "details", label: "Purchase Order Details", short: "POD", fullForm: "Purchase Order Details" },
-  { id: "utilization", label: "Purchase Order – Consumption Details", short: "PO-CD", fullForm: "Purchase Order – Consumption Details" },
-  { id: "srn", label: "Service Release Tracker", short: "SRT", fullForm: "Service Release Tracker" },
-  { id: "invoice", label: "Invoice Tracker", short: "IT", fullForm: "Invoice Tracker" },
-];
+    { id: "approval", label: "Approved Budget", short: "Approved Budget", fullForm: "Approved Budget" },
+    { id: "details", label: "Purchase Order", short: "Purchase Order", fullForm: "Purchase Order" },
+    { id: "utilization", label: "Consumption Details", short: "Consumption Details", fullForm: "Consumption Details" },
+    { id: "srn", label: "Payment Details", short: "Payment Details", fullForm: "Payment Details" },
+    { id: "invoice", label: "Invoice", short: "Invoice", fullForm: "Invoice" },
+  ];
   useEffect(() => {
     const el = tabRefs.current[activeTab];
     if (el) {
@@ -192,7 +192,7 @@ const POManagement = () => {
         'PO Amount': po.poAmount ? `${po.poAmount.toLocaleString()}` : 'N/A',
         'Customer': po.customer || 'N/A',
         'Supplier': po.supplier || 'N/A',
-        'Project Name': po.projectName || 'N/A',
+        'Initiative name': po.projectName || 'N/A',
         'SPOC Name': po.poSpoc || 'N/A',
       }));
 
@@ -406,7 +406,7 @@ const POManagement = () => {
       )
     },
     {
-      headerName: "Project Name",
+      headerName: "Initiative name",
       field: "projectName",
       valueGetter: params => params.data.projectName || 'N/A',
       flex: 1,
@@ -507,12 +507,18 @@ const POManagement = () => {
                 <Edit size={16} className="text-blue-600" />
               </button>
             )}
-            
+
           </div>
         );
       }
     }
   ], []);
+
+  const handleViewCloseAndEditOpen = (poId) => {
+    setIsViewModalOpen(false);
+    setSelectedPOId(poId);
+    setIsEditModalOpen(true);
+  }
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -619,62 +625,53 @@ const POManagement = () => {
 
   return (
     <div className="w-full p-6 bg-white">
-      {/* Header with navigation, search and actions */}
-      <div className="flex justify-between items-center mb-6">
-        {/* Left side - 5-Slider toggle buttons and title */}
-        <div className="flex items-center gap-6">
-          <div className="relative bg-gray-200 p-1 rounded-full flex w-full">
-            {/* Capsule */}
-            <div
-              className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-              style={capsuleStyle}
-            />
+      {/* Navigation tabs - full size with full form as header, centered text */}
+      <div className="mb-6">
+        <div className="relative bg-gray-200 p-1 rounded-full flex w-full">
+          {/* Capsule */}
+          <div
+            className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+            style={capsuleStyle}
+          />
 
-            {tabs.map((tab) => {
-              return (
-                <button
-                  key={tab.id}
-                  ref={(el) => (tabRefs.current[tab.id] = el)}
-                  className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center whitespace-nowrap cursor-pointer ${
-                    activeTab === tab.id ? "text-green-600" : "text-gray-600"
+          {tabs.map((tab) => {
+            return (
+              <button
+                key={tab.id}
+                ref={(el) => (tabRefs.current[tab.id] = el)}
+                className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center justify-center whitespace-nowrap cursor-pointer flex-1 ${activeTab === tab.id ? "text-green-600 font-bold" : "text-gray-600"
                   }`}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  {activeTab === tab.id ? tab.label : tab.short}
-                </button>
-              );
-            })}
-          </div>
-          
-          {/* Current Tab Full Form Display */}
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold text-green-600 whitespace-nowrap">
-              {tabs.find(tab => tab.id === activeTab)?.fullForm}
-            </h1>
-          </div>
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.fullForm}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Search bar on left, download excel and add button on right side */}
+      <div className="flex items-center gap-4 mb-6 justify-between">
+        {/* Search input - left side, wider */}
+        <div className="relative flex-1 max-w-2xl">
+          <input
+            type="text"
+            placeholder={
+              activeTab === "approval" ? "Search Budget Lines..." :
+                activeTab === "details" ? "Search POs..." :
+                  activeTab === "utilization" ? "Search PO Consumptions..." :
+                    activeTab === "srn" ? "Search Payments..." :
+                      "Search Invoices..."
+            }
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
         </div>
 
-
-        {/* Right side - Search and action buttons */}
+        {/* Right side - Download Excel and Add Button */}
         <div className="flex items-center gap-4">
-          {/* Search input */}
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder={
-                activeTab === "approval" ? "Search Budget Lines..." :
-                  activeTab === "details" ? "Search POs..." :
-                    activeTab === "utilization" ? "Search PO Consumptions..." :
-                      activeTab === "srn" ? "Search SRNs..." :
-                        "Search Invoices..."
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
-          </div>
-
           {/* Download Excel Button */}
           <button
             className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
@@ -707,7 +704,7 @@ const POManagement = () => {
               {activeTab === "approval" ? "Add Budget Line" :
                 activeTab === "details" ? "Add PO" :
                   activeTab === "utilization" ? "Add Consumption" :
-                    activeTab === "srn" ? "Add SRN" :
+                    activeTab === "srn" ? "Add Payment" :
                       "Add Invoice"}
             </button>
           )}
@@ -729,6 +726,7 @@ const POManagement = () => {
         open={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         poData={selectedPO}
+        handleViewCloseAndEditOpen={handleViewCloseAndEditOpen}
       />
       <AddPOModal
         open={isAddModalOpen}

@@ -7,7 +7,7 @@ import { Pencil, Trash2, Eye, Download, Copy } from 'lucide-react';
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function ReleaseManagement({ projectId, open, onClose }) {
-  const [releases, setReleases] = useState([]);
+  const [gridApi, setGridApi] = useState(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState(null);
@@ -17,13 +17,27 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
   const [duplicatingRelease, setDuplicatingRelease] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [projectName, setProjectName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const searchTermRef = React.useRef(searchTerm);
+
+  useEffect(() => {
+    searchTermRef.current = searchTerm;
+  }, [searchTerm]);
 
   useEffect(() => {
     if (open && projectId) {
-      fetchReleases();
+      if (gridApi) {
+        gridApi.setGridOption('datasource', getDataSource());
+      }
       fetchProjectName();
     }
-  }, [open, projectId]);
+  }, [open, projectId, gridApi]);
+
+  useEffect(() => {
+    if (gridApi) {
+      gridApi.refreshInfiniteCache();
+    }
+  }, [searchTerm, gridApi]);
 
   const fetchProjectName = async () => {
     try {
@@ -40,18 +54,53 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     }
   };
 
-  const fetchReleases = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/releases/project/${projectId}`, {
-        method: 'GET',
-        headers: {
-          'authorization': `${sessionStorage.getItem('token')}`,
-        },
-      });
-      const data = await res.json();
-      setReleases(data);
-    } catch (e) {
-      setSnackbar({ open: true, message: 'Failed to fetch releases', severity: 'error' });
+  const getDataSource = () => {
+    return {
+      getRows: async (params) => {
+        try {
+          const { startRow, endRow } = params;
+          const pageSize = endRow - startRow;
+          const page = Math.floor(startRow / pageSize);
+
+          const res = await fetch(`${API_BASE_URL}/api/releases/paginated/${projectId}?page=${page}&size=${pageSize}`, {
+            method: 'GET',
+            headers: {
+              'authorization': `${sessionStorage.getItem('token')}`,
+            },
+          });
+
+          if (!res.ok) throw new Error('Failed to fetch');
+
+          const data = await res.json();
+          let content = data.content || [];
+
+          if (searchTermRef.current) {
+            const lowerTerm = searchTermRef.current.toLowerCase();
+            content = content.filter(r =>
+              (r.releaseName && r.releaseName.toLowerCase().includes(lowerTerm)) ||
+              (r.description && r.description.toLowerCase().includes(lowerTerm))
+            );
+          }
+
+          params.successCallback(content, searchTermRef.current ? content.length : data.totalElements);
+        } catch (e) {
+          console.error("Error fetching releases:", e);
+          params.failCallback();
+          setSnackbar({ open: true, message: 'Failed to fetch releases', severity: 'error' });
+        }
+      }
+    }
+  };
+
+  const onGridReady = (params) => {
+    setGridApi(params.api);
+    params.api.setGridOption('datasource', getDataSource());
+  };
+
+  // This function is now used to REFRESH the grid after actions
+  const fetchReleases = () => {
+    if (gridApi) {
+      gridApi.refreshInfiniteCache();
     }
   };
 
@@ -66,14 +115,25 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     return `${day}-${monthStr}-${year}`;
   };
 
-  const downloadReleaseExcel = () => {
+  const downloadReleaseExcel = async () => {
     try {
-      const headers = ['#', 'Release Name', 'Start Date', 'End Date', 'Description', 'Created On'];
-      const rows = (releases || []).map((r, idx) => ([
+      // Fetch ALL releases for export since we only have one page in grid
+      const res = await fetch(`${API_BASE_URL}/api/releases/project/${projectId}`, {
+        method: 'GET',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+      });
+      const allReleases = await res.json();
+
+      const headers = ['#', 'Release Name', 'Start Date', 'Start Time', 'End Date', 'End Time', 'Description', 'Created On'];
+      const rows = (allReleases || []).map((r, idx) => ([
         idx + 1,
         r.releaseName || '',
         formatDate(r.startDate),
+        r.startTime || '',
         formatDate(r.endDate),
+        r.endTime || '',
         r.description || '',
         formatDate(r.createdOn)
       ]));
@@ -99,23 +159,23 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     setAddModalOpen(true);
   };
 
-  const handleEditRelease = (rowIndex) => {
-    setEditingRelease(releases[rowIndex]);
+  const handleEditRelease = (data) => {
+    setEditingRelease(data);
     setEditModalOpen(true);
   };
 
-  const handleViewRelease = (rowIndex) => {
-    setViewingRelease(releases[rowIndex]);
+  const handleViewRelease = (data) => {
+    setViewingRelease(data);
     setViewModalOpen(true);
   };
 
-  const handleDuplicateRelease = (rowIndex) => {
-    setDuplicatingRelease(releases[rowIndex]);
+  const handleDuplicateRelease = (data) => {
+    setDuplicatingRelease(data);
     setDuplicateModalOpen(true);
   };
 
-  const handleDeleteRelease = async (rowIndex) => {
-    const releaseId = releases[rowIndex].releaseId;
+  const handleDeleteRelease = async (data) => {
+    const releaseId = data.releaseId;
     try {
       await fetch(`${API_BASE_URL}/api/releases/${releaseId}`, {
         method: 'DELETE', headers: {
@@ -129,25 +189,13 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     }
   };
 
-  const handleAddSubmit = async (formData) => {
-    try {
-      await fetch(`${API_BASE_URL}/api/releases`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'authorization': `${sessionStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ ...formData, projectId }),
-      });
-      setSnackbar({ open: true, message: 'Release added', severity: 'success' });
-      setAddModalOpen(false);
-      fetchReleases();
-    } catch (e) {
-      setSnackbar({ open: true, message: 'Add failed', severity: 'error' });
-    }
+  const handleAddSubmit = (data) => {
+    setSnackbar({ open: true, message: 'Release added', severity: 'success' });
+    setAddModalOpen(false);
+    fetchReleases();
   };
 
-  const handleEditSubmit = async (formData) => {
+  const handleEditSubmit = (data) => {
     setSnackbar({ open: true, message: 'Release updated', severity: 'success' });
     setEditModalOpen(false);
     fetchReleases();
@@ -190,7 +238,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
       width: 90,
       cellRenderer: (params) => params.value ? params.value : '',
     },
-    { headerName: 'Description', field: 'description', flex: 2 },
+    { headerName: 'Description', field: 'description', flex: 2, tooltipField: 'description' },
     {
       headerName: 'Created On',
       field: 'createdOn',
@@ -205,16 +253,16 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
       width: 120,
       cellRenderer: (params) => (
         <div className="flex gap-1">
-          <button onClick={() => handleViewRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700 cursor-pointer" title="View">
+          <button onClick={() => handleViewRelease(params.data)} className="p-1 rounded hover:bg-gray-100 text-gray-700 cursor-pointer" title="View">
             <Eye size={16} />
           </button>
-          <button onClick={() => handleEditRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
+          <button onClick={() => handleEditRelease(params.data)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
             <Pencil size={16} />
           </button>
-          <button onClick={() => handleDeleteRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
+          <button onClick={() => handleDeleteRelease(params.data)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
           </button>
-          <button onClick={() => handleDuplicateRelease(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
+          <button onClick={() => handleDuplicateRelease(params.data)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
             <Copy size={16} />
           </button>
         </div>
@@ -226,7 +274,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
         <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
           <div className="bg-gray-50 border-b px-6 py-4 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-green-900">Release Management | {projectName}</h2>
@@ -236,6 +284,13 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-green-900">Release List</h3>
               <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Search current page..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-64"
+                />
                 <button onClick={downloadReleaseExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer">
                   <Download size={16} className="mr-2" /> Download Excel
                 </button>
@@ -248,13 +303,28 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
               <div className="ag-theme-alpine h-full w-full">
                 <AgGridReact
                   columnDefs={columnDefs}
-                  rowData={releases}
-                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  rowModelType="infinite"
+                  pagination={true}
+                  paginationPageSize={10}
+                  cacheBlockSize={10}
+                  paginationPageSizeSelector={[5, 10, 20, 50]}
+                  defaultColDef={{ sortable: false, filter: false, resizable: true }} // Disabling sort/filter as api doesn't support it yet
                   suppressRowClickSelection={true}
                   animateRows={true}
                   rowHeight={48}
                   headerHeight={48}
+                  onGridReady={onGridReady}
                 />
+                <style>{`
+                  .ag-theme-alpine .ag-tooltip {
+                    background-color: white !important;
+                    border: 1px solid #babfc7 !important;
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.2) !important;
+                    padding: 8px !important;
+                    border-radius: 4px !important;
+                    opacity: 1 !important;
+                  }
+                `}</style>
               </div>
             </div>
           </div>
@@ -314,6 +384,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     if (initialData) {
@@ -337,6 +408,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
       setReleaseFiles([]);
       setExistingAttachments([]);
     }
+    setSubmitError('');
   }, [initialData, open, projectName]);
 
   const fetchAttachments = async (releaseId) => {
@@ -389,9 +461,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
     const errs = {};
     if (!formData.releaseName) errs.releaseName = 'Required';
     if (!formData.startDate) errs.startDate = 'Required';
-    if (!formData.startTime) errs.startTime = 'Required';
     if (!formData.endDate) errs.endDate = 'Required';
-    if (!formData.endTime) errs.endTime = 'Required';
     if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -422,6 +492,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     if (!validate()) return;
     setSubmitting(true);
     let releaseId = initialData?.releaseId;
@@ -439,6 +510,9 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
           body: JSON.stringify(formData),
         });
         const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to update release');
+        }
         releaseId = data.releaseId || data.id;
         // Update project for all existing attachments
         if (existingAttachments.length > 0) {
@@ -463,6 +537,9 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
           body: JSON.stringify({ ...formData, projectId }),
         });
         const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || 'Failed to create release');
+        }
         releaseId = data.releaseId || data.id;
         if (typeof onSubmit === 'function') onSubmit(data);
       }
@@ -473,6 +550,9 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
       // Close modal and update table
       if (typeof onClose === 'function') onClose();
       if (typeof window.fetchReleases === 'function') window.fetchReleases();
+    } catch (e) {
+      console.error("Release submit error:", e);
+      setSubmitError(e.message || "An error occurred");
     } finally {
       setSubmitting(false);
     }
@@ -495,6 +575,11 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
             <span className="text-gray-400">&#10005;</span>
           </button>
         </div>
+        {submitError && (
+          <div className="bg-red-50 text-red-600 px-6 py-3 text-sm border-b border-red-100">
+            {submitError}
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
@@ -529,7 +614,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 {errors.startDate && <span className="text-red-500 text-xs mt-1 block">{errors.startDate}</span>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time</label>
                 <input
                   type="time"
                   name="startTime"
@@ -538,7 +623,6 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                   onClick={e => e.target.showPicker && e.target.showPicker()}
                   step="1"
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.startTime ? 'border-red-500' : 'border-gray-300'}`}
-                  required
                 />
                 {errors.startTime && <span className="text-red-500 text-xs mt-1 block">{errors.startTime}</span>}
               </div>
@@ -556,7 +640,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 {errors.endDate && <span className="text-red-500 text-xs mt-1 block">{errors.endDate}</span>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">End Time *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Time</label>
                 <input
                   type="time"
                   name="endTime"
@@ -565,7 +649,6 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                   onClick={e => e.target.showPicker && e.target.showPicker()}
                   step="1"
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.endTime ? 'border-red-500' : 'border-gray-300'}`}
-                  required
                 />
                 {errors.endTime && <span className="text-red-500 text-xs mt-1 block">{errors.endTime}</span>}
               </div>
@@ -581,6 +664,9 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 placeholder="Enter release description..."
                 maxLength={500}
               />
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {formData.description.length}/500
+              </div>
               {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description}</span>}
             </div>
             {/* Attachments */}
@@ -691,6 +777,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     if (initialData) {
@@ -714,6 +801,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
     }
     setReleaseFiles([]);
     setErrors({});
+    setSubmitError('');
   }, [initialData, open, projectName]);
 
   const fetchAttachments = async (releaseId) => {
@@ -758,9 +846,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
     const errs = {};
     if (!formData.releaseName) errs.releaseName = 'Required';
     if (!formData.startDate) errs.startDate = 'Required';
-    if (!formData.startTime) errs.startTime = 'Required';
     if (!formData.endDate) errs.endDate = 'Required';
-    if (!formData.endTime) errs.endTime = 'Required';
     if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -793,6 +879,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
     if (!validate()) return;
     setSubmitting(true);
     const token = sessionStorage.getItem('token');
@@ -806,6 +893,9 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
         body: JSON.stringify({ ...formData, projectId }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to duplicate release');
+      }
       const releaseId = data.releaseId || data.id;
 
       // 1. Upload new files
@@ -828,6 +918,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
       if (typeof onClose === 'function') onClose();
     } catch (err) {
       console.error('Error duplicating Release:', err);
+      setSubmitError(err.message || 'Failed to duplicate release');
     } finally {
       setSubmitting(false);
     }
@@ -846,6 +937,11 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
             <span className="text-gray-400">&#10005;</span>
           </button>
         </div>
+        {submitError && (
+          <div className="bg-red-50 text-red-600 px-6 py-3 text-sm border-b border-red-100">
+            {submitError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div className="space-y-4">
@@ -879,7 +975,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                 {errors.startDate && <span className="text-red-500 text-xs mt-1 block">{errors.startDate}</span>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Start Time</label>
                 <input
                   type="time"
                   name="startTime"
@@ -888,7 +984,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                   onClick={e => e.target.showPicker && e.target.showPicker()}
                   step="1"
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.startTime ? 'border-red-500' : 'border-gray-300'}`}
-                  required
+
                 />
                 {errors.startTime && <span className="text-red-500 text-xs mt-1 block">{errors.startTime}</span>}
               </div>
@@ -906,7 +1002,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                 {errors.endDate && <span className="text-red-500 text-xs mt-1 block">{errors.endDate}</span>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">End Time *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">End Time</label>
                 <input
                   type="time"
                   name="endTime"
@@ -915,7 +1011,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                   onClick={e => e.target.showPicker && e.target.showPicker()}
                   step="1"
                   className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.endTime ? 'border-red-500' : 'border-gray-300'}`}
-                  required
+
                 />
                 {errors.endTime && <span className="text-red-500 text-xs mt-1 block">{errors.endTime}</span>}
               </div>
@@ -931,6 +1027,9 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                 placeholder="Enter release description..."
                 maxLength={500}
               />
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {formData.description.length}/500
+              </div>
               {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description}</span>}
             </div>
 

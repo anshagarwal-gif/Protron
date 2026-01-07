@@ -178,7 +178,7 @@ const UserDetails = () => {
           {projectsLoading ? (
             <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-green-50/30 rounded-xl border border-green-100">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-              <p className="text-gray-500 text-lg font-medium">Loading projects...</p>
+              <p className="text-gray-500 text-lg font-medium">Loading initiatives...</p>
             </div>
           ) : projects.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">

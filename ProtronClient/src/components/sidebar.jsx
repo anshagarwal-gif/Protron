@@ -74,7 +74,7 @@ const Sidebar = ({ activeSection, setActiveSection, handleLogout }) => {
             <ul>
               {[
                 { key: 'dashboard', label: 'Dashboard', icon: <FiHome className="mr-3" /> },
-                { key: 'projects', label: 'Manage Projects', icon: <FiFolder className="mr-3" /> },
+                { key: 'projects', label: 'Manage Initiatives', icon: <FiFolder className="mr-3" /> },
                 { key: 'team', label: 'Manage Team', icon: <FiUser className="mr-3" /> },
                 { key: 'timesheet', label: 'Manage Timesheet', icon: <FiClock className="mr-3" /> },
                 { key: 'users', label: 'User Management', icon: <FiUserCheck className="mr-3" /> },

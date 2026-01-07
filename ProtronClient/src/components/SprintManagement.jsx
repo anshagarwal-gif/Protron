@@ -219,7 +219,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
         <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
           <div className="bg-gray-50 border-b px-6 py-4 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-green-900">Sprint Management | {projectName}</h2>

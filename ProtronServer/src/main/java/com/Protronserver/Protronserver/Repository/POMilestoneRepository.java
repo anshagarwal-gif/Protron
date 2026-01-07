@@ -16,6 +16,20 @@ import java.util.Optional;
 @Repository
 public interface POMilestoneRepository extends JpaRepository<POMilestone, Long> {
 
+    @Query("""
+    SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END
+    FROM POMilestone m
+    WHERE m.poDetail.poId = :poId
+      AND LOWER(m.msName) = LOWER(:msName)
+      AND m.tenantId = :tenantId
+      AND m.endTimestamp IS NULL
+""")
+    boolean existsActiveMilestoneByPoIdAndName(
+            @Param("poId") Long poId,
+            @Param("msName") String msName,
+            @Param("tenantId") Long tenantId
+    );
+
     @Query("SELECT m FROM POMilestone m WHERE m.tenantId = :tenantId AND m.endTimestamp IS NULL")
     List<POMilestone> findAllActiveMilestones(@Param("tenantId") Long tenantId);
 

@@ -4,21 +4,21 @@ import { X, Target, DollarSign, Calendar, FileText, AlertCircle, Loader2, Clock 
 import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 const getCurrencySymbol = (currency) => {
-    const currencySymbols = {
-        'INR': '₹',
-        'USD': '$',
-        'EUR': '€',
-        'GBP': '£',
-        'JPY': '¥',
-        'AUD': 'A$',
-        'CAD': 'C$',
-        'CHF': 'CHF',
-        'CNY': '¥',
-        'SEK': 'kr',
-        'NZD': 'NZ$'
-    };
-    
-    return currencySymbols[currency] || currency;
+  const currencySymbols = {
+    'INR': '₹',
+    'USD': '$',
+    'EUR': '€',
+    'GBP': '£',
+    'JPY': '¥',
+    'AUD': 'A$',
+    'CAD': 'C$',
+    'CHF': 'CHF',
+    'CNY': '¥',
+    'SEK': 'kr',
+    'NZD': 'NZ$'
+  };
+
+  return currencySymbols[currency] || currency;
 };
 const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   const [formData, setFormData] = useState({
@@ -171,70 +171,70 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     }
   };
 
- const handleInputChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value, type, files } = e.target;
 
     if (type === 'file') {
-        setFormData(prev => ({
-            ...prev,
-            [name]: files[0] || null
-        }));
+      setFormData(prev => ({
+        ...prev,
+        [name]: files[0] || null
+      }));
     } else {
-        // Check word limit for description and remarks
-        if (name === 'msDesc') {
-            const wordCount = countWords(value);
-            if (wordCount > 500) {
-                setErrors(prev => ({
-                    ...prev,
-                    [name]: "Description cannot exceed 500 words"
-                }));
-                return; // Don't update if exceeding limit
-            }
-            setDescWordCount(wordCount);
-        } else if (name === 'msRemarks') {
-            const wordCount = countWords(value);
-            if (wordCount > 500) {
-                setErrors(prev => ({
-                    ...prev,
-                    [name]: "Remarks cannot exceed 500 words"
-                }));
-                return; // Don't update if exceeding limit
-            }
-            setRemarksWordCount(wordCount);
-        }
-
-        // Real-time amount validation
-        if (name === 'msAmount' && value) {
-            const enteredAmount = parseFloat(value);
-            if (poBalance !== null && enteredAmount > poBalance) {
-                const currencySymbol = getCurrencySymbol(formData.msCurrency);
-                setErrors(prev => ({
-                    ...prev,
-                    msAmount: `Amount exceeds available PO balance of ${currencySymbol}${poBalance.toLocaleString()}`
-                }));
-            }
-        }
-
-        setFormData(prev => ({
+      // Check word limit for description and remarks
+      if (name === 'msDesc') {
+        const wordCount = countWords(value);
+        if (wordCount > 500) {
+          setErrors(prev => ({
             ...prev,
-            [name]: value
-        }));
+            [name]: "Description cannot exceed 500 words"
+          }));
+          return; // Don't update if exceeding limit
+        }
+        setDescWordCount(wordCount);
+      } else if (name === 'msRemarks') {
+        const wordCount = countWords(value);
+        if (wordCount > 500) {
+          setErrors(prev => ({
+            ...prev,
+            [name]: "Remarks cannot exceed 500 words"
+          }));
+          return; // Don't update if exceeding limit
+        }
+        setRemarksWordCount(wordCount);
+      }
+
+      // Real-time amount validation
+      if (name === 'msAmount' && value) {
+        const enteredAmount = parseFloat(value);
+        if (poBalance !== null && enteredAmount > poBalance) {
+          const currencySymbol = getCurrencySymbol(formData.msCurrency);
+          setErrors(prev => ({
+            ...prev,
+            msAmount: `Amount exceeds available PO balance of ${currencySymbol}${poBalance.toLocaleString()}`
+          }));
+        }
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
 
     // Clear error when user starts typing (except for real-time validation)
     if (errors[name] && name !== 'msAmount') {
-        setErrors(prev => ({
-            ...prev,
-            [name]: ""
-        }));
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
     } else if (name === 'msAmount' && value && parseFloat(value) <= poBalance) {
-        // Clear amount error only when value is within balance
-        setErrors(prev => ({
-            ...prev,
-            [name]: ""
-        }));
+      // Clear amount error only when value is within balance
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
     }
-};
+  };
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const maxFiles = 4;
@@ -289,32 +289,32 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     const newErrors = {};
 
     if (!formData.msName?.trim()) {
-        newErrors.msName = "Milestone name is required";
+      newErrors.msName = "Milestone name is required";
     }
 
     if (!formData.msDesc?.trim()) {
-        newErrors.msDesc = "Description is required";
+      newErrors.msDesc = "Description is required";
     }
 
     if (!formData.msAmount || formData.msAmount <= 0) {
-        newErrors.msAmount = "Valid amount is required";
+      newErrors.msAmount = "Valid amount is required";
     } else {
-        // Check balance validation
-        const enteredAmount = parseFloat(formData.msAmount);
-        
-        if (poBalance !== null && enteredAmount > poBalance) {
-            const currencySymbol = getCurrencySymbol(formData.msCurrency);
-            newErrors.msAmount = `Amount exceeds available PO balance of ${currencySymbol}${poBalance.toLocaleString()}. Please enter an amount within the available balance.`;
-        }
+      // Check balance validation
+      const enteredAmount = parseFloat(formData.msAmount);
+
+      if (poBalance !== null && enteredAmount > poBalance) {
+        const currencySymbol = getCurrencySymbol(formData.msCurrency);
+        newErrors.msAmount = `Amount exceeds available PO balance of ${currencySymbol}${poBalance.toLocaleString()}. Please enter an amount within the available balance.`;
+      }
     }
 
     if (formData.msDuration && formData.msDuration < 0) {
-        newErrors.msDuration = "Duration cannot be negative";
+      newErrors.msDuration = "Duration cannot be negative";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-};
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -429,14 +429,17 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[#00000059] flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            <Target size={20} className="mr-2 text-green-600" />
-            Edit Milestone
-          </h2>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 flex items-center">
+              <Target size={20} className="mr-2 text-green-600" />
+              Edit Milestone
+            </h2>
+            <p className="text-xs text-gray-500">PO Number: <b>{formData?.poNumber}</b></p>
+          </div>
           <button
             onClick={handleClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -554,9 +557,9 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   {errors.msAmount && (
                     <p className="mt-1 text-xs text-red-600">{errors.msAmount}</p>
                   )}
-               <label className="text-xs text-green-600 mt-1">
-    PO Balance: {poBalance !== null ? `${getCurrencySymbol(formData.msCurrency)}${poBalance.toLocaleString()}` : 'Loading...'}
-</label>
+                  <label className="text-xs text-green-600 mt-1">
+                    PO Balance: {poBalance !== null ? `${getCurrencySymbol(formData.msCurrency)}${poBalance.toLocaleString()}` : 'Loading...'}
+                  </label>
                 </div>
 
                 <div className="col-span-1"></div> {/* Small spacer */}
@@ -601,7 +604,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   />
                 </div>
 
-                
+
               </div>
 
               {/* Row 3: Description (large box for extensive text) */}
@@ -652,36 +655,36 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                 )}
               </div>
               <div className="col-span-3 max-w-[300px]">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    <FileText size={14} className="inline mr-1" />
-                    Attachments (Max 4)
-                  </label>
-                  <input
-                    type="file"
-                    name="msAttachment"
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
-                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                    disabled={loading}
-                    multiple
-                  />
-                </div>
-                  <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
-                    {milestoneAttachments.map((file, index) => (
-                      <li key={index} className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded">
-                        <span className="truncate max-w-[100px]" title={file.fileName || file.name}>
-                          {file.fileName || file.name}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeAttachment(index)}
-                          className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                        >
-                          Delete
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <FileText size={14} className="inline mr-1" />
+                  Attachments (Max 4)
+                </label>
+                <input
+                  type="file"
+                  name="msAttachment"
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls"
+                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                  disabled={loading}
+                  multiple
+                />
+              </div>
+              <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+                {milestoneAttachments.map((file, index) => (
+                  <li key={index} className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded">
+                    <span className="truncate max-w-[100px]" title={file.fileName || file.name}>
+                      {file.fileName || file.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(index)}
+                      className="ml-2 text-red-600 hover:text-red-800 text-xs"
+                    >
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {/* Form Actions */}

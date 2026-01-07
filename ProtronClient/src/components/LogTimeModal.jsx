@@ -300,7 +300,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
   const validateForm = () => {
     // Project validation - required
     if (!formData.projectId) {
-      showSnackbar("Please select a project", 'error');
+      showSnackbar("Please select an initiative", 'error');
       return false;
     }
 

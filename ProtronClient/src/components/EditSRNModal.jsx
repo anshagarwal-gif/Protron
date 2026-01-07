@@ -26,7 +26,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     srnCurrency: "USD",
     srnType: "",
     srnRemarks: "",
-    srnDate:"",
+    srnDate: "",
   });
   const [srnAttachments, setSrnAttachments] = useState([]); // Holds both existing and new attachments
   const [loading, setLoading] = useState(false);
@@ -94,22 +94,22 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   };
 
   const fetchSRNAttachments = async (srnId) => {
-  try {
-    const token = sessionStorage.getItem("token");
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=SRN&referenceId=${srnId}`, {
-      headers: { Authorization: token }
-    });
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/meta/filter?level=SRN&referenceId=${srnId}`, {
+        headers: { Authorization: token }
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      setSrnAttachments(data); // Attach to edit modal state
-    } else {
-      console.error("Failed to fetch SRN attachments");
+      if (res.ok) {
+        const data = await res.json();
+        setSrnAttachments(data); // Attach to edit modal state
+      } else {
+        console.error("Failed to fetch SRN attachments");
+      }
+    } catch (err) {
+      console.error("Error fetching SRN attachments:", err);
     }
-  } catch (err) {
-    console.error("Error fetching SRN attachments:", err);
-  }
-};
+  };
 
   useEffect(() => {
     const fetchSRNData = async () => {
@@ -139,6 +139,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnCurrency: srn.srnCurrency || "USD",
             srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
+            srnDate: srn.srnDate || "",
             srnDate: srn.srnDate || "",
           });
           setPoId(srn.poDetail.poId || "");
@@ -307,7 +308,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       if (value.length > 100) {
         setErrors(prev => ({
           ...prev,
-          [name]: "SRN name cannot exceed 100 characters"
+          [name]: "Payment name cannot exceed 100 characters"
         }));
         return;
       }
@@ -316,7 +317,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       if (value.length > 500) {
         setErrors(prev => ({
           ...prev,
-          [name]: "SRN description cannot exceed 500 characters"
+          [name]: "Payment description cannot exceed 500 characters"
         }));
         return;
       }
@@ -413,30 +414,30 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
   };
 
   const removeAttachment = async (index) => {
-  const attachmentToRemove = srnAttachments[index];
+    const attachmentToRemove = srnAttachments[index];
 
-  // Check if the attachment has an ID (existing attachment)
-  if (attachmentToRemove.id) {
-    try {
-      const token = sessionStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachmentToRemove.id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: token,
-        },
-      });
+    // Check if the attachment has an ID (existing attachment)
+    if (attachmentToRemove.id) {
+      try {
+        const token = sessionStorage.getItem("token");
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachmentToRemove.id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: token,
+          },
+        });
 
-      if (!response.ok) {
-        console.error(`Failed to delete attachment with ID: ${attachmentToRemove.id}`);
+        if (!response.ok) {
+          console.error(`Failed to delete attachment with ID: ${attachmentToRemove.id}`);
+          return;
+        }
+
+        console.log(`Attachment with ID: ${attachmentToRemove.id} deleted successfully`);
+      } catch (error) {
+        console.error(`Error deleting attachment with ID: ${attachmentToRemove.id}`, error);
         return;
       }
-
-      console.log(`Attachment with ID: ${attachmentToRemove.id} deleted successfully`);
-    } catch (error) {
-      console.error(`Error deleting attachment with ID: ${attachmentToRemove.id}`, error);
-      return;
     }
-  }
 
   // Update state to remove the attachment
   setSrnAttachments((prev) => prev.filter((_, i) => i !== index));
@@ -477,28 +478,28 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     }
 
     if (!formData.srnName?.trim()) {
-      newErrors.srnName = "SRN Name is required";
+      newErrors.srnName = "Payment Name is required";
     }
 
     if (!formData.srnAmount || formData.srnAmount <= 0) {
-      newErrors.srnAmount = "Valid SRN amount is required";
+      newErrors.srnAmount = "Valid Payment amount is required";
     }
 
     if (!formData.srnType?.trim()) {
-      newErrors.srnType = "SRN Type is required";
+      newErrors.srnType = "Payment Type is required";
     }
 
     if (milestoneList.length === 0) {
       // No milestones available, check against PO balance
       if (formData.srnAmount && poBalance !== null && Number(formData.srnAmount) > Number(poBalance)) {
-        newErrors.srnAmount = `SRN amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
+        newErrors.srnAmount = `Payment amount cannot exceed PO balance (${poBalance} ${formData.srnCurrency})`;
       }
     } else {
       // Milestones exist
       if (!formData.msId) {
         newErrors.msId = "Please select a milestone for this PO";
       } else if (formData.srnAmount && milestoneBalance !== null && Number(formData.srnAmount) > Number(milestoneBalance)) {
-        newErrors.srnAmount = `SRN amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
+        newErrors.srnAmount = `Payment amount cannot exceed milestone balance (${milestoneBalance} ${formData.srnCurrency})`;
       }
     }
 
@@ -639,7 +640,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
       srnCurrency: "USD",
       srnType: "",
       srnRemarks: "",
-      srnDate:"",
+      srnDate: "",
     });
     setSrnAttachments([]);
     setErrors({});
@@ -664,7 +665,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 <Receipt className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Edit SRN</h2>
+                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Edit Payment</h2>
               </div>
             </div>
             <button
@@ -682,7 +683,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
             <div className="flex items-center space-x-2">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-              <span className="text-green-700 font-medium">Loading SRN data...</span>
+              <span className="text-green-700 font-medium">Loading Payment data...</span>
             </div>
           </div>
         )}
@@ -718,7 +719,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  SRN Name *
+                  Payment Name *
                   <span className="float-right text-sm text-gray-500">
                     {nameCharCount}/100 characters
                   </span>
@@ -758,7 +759,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
               </div>
 
               <div className="lg:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Type *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Type *</label>
                 <select
                   name="srnType"
                   value={formData.srnType}
@@ -828,7 +829,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 )}
               </div>
               <div className="lg:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">SRN Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
                 <div
                   onClick={() => handleDateInputClick('srnDate')}
                   className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
@@ -856,12 +857,12 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
 
 
             {/* Row 2: SRN Name and Attachment */}
-            
+
 
             {/* Row 3: SRN Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SRN Description
+                Payment Description
                 <span className="float-right text-sm text-gray-500">
                   {descCharCount}/500 characters
                 </span>
@@ -885,7 +886,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             {/* Row 4: SRN Remarks */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SRN Remarks
+                Payment Remarks
                 <span className="float-right text-sm text-gray-500">
                   {remarksCharCount}/500 characters
                 </span>
@@ -1039,7 +1040,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             ) : (
               <>
                 <Receipt size={16} className="mr-2" />
-                Update SRN
+                Update Payment
               </>
             )}
           </button>

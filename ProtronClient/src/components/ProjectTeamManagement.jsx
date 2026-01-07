@@ -399,8 +399,8 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
 
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Projects');
-      XLSX.writeFile(workbook, 'Project_Details.xlsx');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Initiatives');
+      XLSX.writeFile(workbook, 'Initiative_Details.xlsx');
 
       setSnackbar({
         open: true,
@@ -425,7 +425,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
           <div onClick={onClose} className="bg-[#328E6E] text-white p-2 rounded-full mr-2 hover:bg-green-600 cursor-pointer">
             <FiChevronLeft />
           </div>
-          <h1 className="text-green-900 text-lg font-bold ">Manage Projects</h1>
+          <h1 className="text-green-900 text-lg font-bold ">Manage Initiatives</h1>
         </div>
         {hasAccess('projects', 'edit') && (
           <button onClick={() => handleEditProject(projectId)} className="bg-green-900 text-white px-4 py-1 rounded text-sm hover:bg-green-600">
@@ -438,7 +438,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         <div className="grid grid-cols-3 gap-6 mb-8 bg-[#aee4be] p-4 rounded-lg">
           <div>
             <p className="text-gray-500 text-sm" title={projectDetails.project.projectName}>
-              Project Name:{" "}
+              Initiative name:{" "}
               <span className="font-medium text-gray-700">
                 {projectDetails.project.projectName.length > 45
                   ? projectDetails.project.projectName.slice(0, 45) + "..."
@@ -449,11 +449,11 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
             <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{formatDate(projectDetails.project.startDate)}</span></p>
           </div>
           <div>
-            <p className="text-gray-500  text-sm">PM Name: <span className="font-medium text-gray-700">{projectDetails.project.managerName}</span></p>
-            <p className="text-gray-500 text-sm mt-2">Sponsor: <span className="font-medium text-gray-700">{projectDetails.project.sponsorName}</span></p>
+            <p className="text-gray-500  text-sm">Initiative Manager: <span className="font-medium text-gray-700">{projectDetails.project.managerName}</span></p>
+            <p className="text-gray-500 text-sm mt-2">Initiative Sponsor: <span className="font-medium text-gray-700">{projectDetails.project.sponsorName}</span></p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Project Cost: <span className="font-medium text-gray-700">{projectDetails.project.projectCost} {projectDetails.project.unit}</span></p>
+            <p className="text-gray-500 text-sm">Initiative Cost: <span className="font-medium text-gray-700">{projectDetails.project.projectCost} {projectDetails.project.unit}</span></p>
             <p className="text-gray-500 text-sm mt-2">System Impacted: <span className="font-medium text-gray-700">{projectDetails.systemsImpacted?.map((sys, index) => {
               return sys.systemName + (index < projectDetails.systemsImpacted.length - 1 ? ', ' : '')
             })}</span></p>
@@ -947,7 +947,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         />
       )}
 
-      {/* Edit Project Modal */}
+      {/* Edit Initiative Modal */}
       {selectedProjectId && (
         <EditProjectModal
           open={true}

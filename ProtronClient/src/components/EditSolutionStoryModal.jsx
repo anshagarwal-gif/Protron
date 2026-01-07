@@ -64,6 +64,18 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
   const greenHover = '#047857';
   const fieldHeight = '40px';
 
+  // Normalize status values to match dropdown options
+  const normalizeStatus = (status) => {
+    if (!status) return 'todo';
+    const statusLower = status.toLowerCase();
+    // Map common variations to standard values
+    if (statusLower === 'in-progress' || statusLower === 'inprogress') return 'wip';
+    if (statusLower === 'completed' || statusLower === 'complete') return 'done';
+    // Return valid statuses as-is
+    const validStatuses = ['todo', 'wip', 'done', 'blocked', 'ready', 'not-ready'];
+    return validStatuses.includes(statusLower) ? statusLower : 'todo';
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (open && storyData) {
@@ -73,7 +85,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
           setFormData({
             projectId: storyData.projectId || '',
             parentId: storyData.parentId || '',
-            status: storyData.status || 'todo',
+            status: normalizeStatus(storyData.status),
             priority: storyData.priority || 2,
             summary: storyData.summary || '',
             description: storyData.description || '',
@@ -303,7 +315,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
 
   const validateForm = () => {
     if (!formData.projectId) {
-      showSnackbar("Please select a project", 'error');
+      showSnackbar("Please select an initiative", 'error');
       return false;
     }
 
@@ -412,7 +424,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
       setFormData({
         projectId: storyData.projectId || '',
         parentId: storyData.parentId || '',
-        status: storyData.status || 'todo',
+        status: normalizeStatus(storyData.status),
         priority: storyData.priority || 2,
         summary: storyData.summary || '',
         description: storyData.description || '',
@@ -562,8 +574,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       disabled={loading}
                     >
                       <option value="todo">To Do</option>
-                      <option value="in-progress">In Progress</option>
-                      <option value="completed">Completed</option>
+                      <option value="wip">WIP</option>
+                      <option value="done">Done</option>
                       <option value="blocked">Blocked</option>
                       <option value="ready">Ready</option>
                       <option value="not-ready">Not Ready</option>

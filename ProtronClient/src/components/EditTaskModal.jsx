@@ -241,7 +241,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
 
   const validateForm = () => {
     if (!formData.projectId) {
-      showSnackbar("Please select a project", 'error');
+      showSnackbar("Please select an initiative", 'error');
       return false;
     }
 

@@ -195,7 +195,7 @@ const Dashboard = () => {
             }
         ],
         title: {
-            text: 'Project Name with Project Value',
+            text: 'Initiative name with Initiative Value',
             fontSize: 18,
             fontWeight: 'bold'
         },

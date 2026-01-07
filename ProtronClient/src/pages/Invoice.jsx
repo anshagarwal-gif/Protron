@@ -165,7 +165,7 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
                 value={invoice.invoiceName}
               />
               <Field
-                label="Project Name"
+                label="Initiative name"
                 value={invoice.projectName}
               />
               <Field
@@ -561,7 +561,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         'S.No': index + 1,
         'Invoice ID': invoice.invoiceId || 'N/A',
         'Invoice Name': invoice.invoiceName || 'N/A',
-        'Project Name': invoice.projectName || 'N/A',
+        'Initiative name': invoice.projectName || 'N/A',
         'Customer Name': invoice.customerName || 'N/A',
         'Supplier Name': invoice.supplierName || 'N/A',
         'Employee Name': invoice.employeeName || 'N/A',
@@ -665,7 +665,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       )
     },
     {
-      headerName: "Project Name",
+      headerName: "Initiative name",
       field: "projectName",
       valueGetter: params => params.data.projectName || 'N/A',
       flex: 1,
