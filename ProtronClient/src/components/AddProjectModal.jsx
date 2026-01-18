@@ -306,8 +306,15 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             <div className="fixed inset-0 bg-[#00000059] bg-opacity-50 z-50 flex items-center justify-center p-4">
                 <div className={`bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto shadow-xl ${isSubmitting ? 'pointer-events-none' : ''}`}>
                     {/* Header */}
-                    <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
+                    <div className="bg-gray-50 border-b border-gray-200 py-4 px-6 flex justify-between items-center">
                         <h1 className="text-xl font-semibold text-green-600">Add New Initiative</h1>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-gray-200 rounded-full transition-colors cursor-pointer"
+                            disabled={isSubmitting}
+                        >
+                            <X className="w-5 h-5 text-gray-600" />
+                        </button>
                     </div>
 
                     {/* Content */}

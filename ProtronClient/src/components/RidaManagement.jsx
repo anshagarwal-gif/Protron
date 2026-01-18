@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit, FileText, X, Tag, Calendar, User, UserCheck, CheckCircle, Folder, MessageSquare, Pencil, Trash, Eye, Download, Copy } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, X, Tag, Calendar, User, UserCheck, CheckCircle, Folder, MessageSquare, Pencil, Trash, Eye, Download, Copy, Search } from 'lucide-react';
 import axios from 'axios';
 import ViewRidaModal from './ViewRidaModal';
 import GlobalSnackbar from './GlobalSnackbar';
@@ -36,7 +36,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
   const [duplicatingRida, setDuplicatingRida] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [projectName, setProjectName] = useState('');
+  const [projectName, setProjetName] = useState('');
 
 
   useEffect(() => {
@@ -211,7 +211,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
           <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
             <Trash2 size={16} />
           </button>
-          <button onClick={() => handleDuplicateRida(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
+          <button onClick={() => handleDuplicateRida(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Copy RIDA">
             <Copy size={16} />
           </button>
           {params.data.status !== 'Closed' && (
@@ -239,8 +239,18 @@ export default function RidaManagement({ projectId, open, onClose }) {
             <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full cursor-pointer">Close</button>
           </div>
           <div className="p-6 overflow-y-auto flex-grow">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-green-900">RIDA List</h3>
+            <div className="flex justify-between items-center mb-4 gap-4">
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-semibold text-green-900">RIDA List</h3>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search RIDAs..."
+                    className="pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-64"
+                  />
+                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <button onClick={downloadRidaExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer">
                   <Download size={16} className="mr-2" /> Download Excel
@@ -260,6 +270,9 @@ export default function RidaManagement({ projectId, open, onClose }) {
                   animateRows={true}
                   rowHeight={48}
                   headerHeight={48}
+                  pagination={true}
+                  paginationPageSize={30}
+                  paginationPageSizeSelector={[30, 50, 100]}
                 />
               </div>
             </div>
@@ -310,7 +323,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
   const [formData, setFormData] = useState({
     meetingReference: '',
     itemDescription: '',
-    type: '',
+    type: 'A',
     raisedBy: '',
     owner: '',
     status: '',
@@ -360,7 +373,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
       setFormData({
         meetingReference: '',
         itemDescription: '',
-        type: '',
+        type: 'A',
         raisedBy: '',
         owner: '',
         status: '',
@@ -507,17 +520,39 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
     <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4 lg:p-6">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center mb-2 sm:mb-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200 gap-2">
+          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 flex items-center">
             <FileText size={20} className="mr-2 text-green-600" />
             {initialData ? 'Edit RIDA' : 'Add RIDA'} | <span className="break-words overflow-wrap-anywhere">{projectName}</span>
           </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-          >
-            <X size={20} className="text-gray-400" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onClose}
+              type="button"
+              className="px-4 py-2 text-sm border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-md transition-colors flex items-center justify-center cursor-pointer"
+              disabled={uploading || submitting}
+            >
+              <X size={14} className="mr-2" />
+              Cancel
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                handleSubmit(e);
+              }}
+              type="button"
+              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center justify-center cursor-pointer"
+              disabled={uploading || submitting}
+            >
+              {submitting ? (
+                <svg className="animate-spin mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+              ) : <FileText size={14} className="mr-2" />}
+              {initialData ? 'Update RIDA' : 'Add RIDA'}
+            </button>
+          </div>
         </div>
 
         {/* Form */}

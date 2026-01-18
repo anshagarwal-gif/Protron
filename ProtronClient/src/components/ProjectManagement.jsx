@@ -264,7 +264,7 @@ const ProjectManagement = () => {
       filter: false,
     },
     {
-      headerName: 'Initiative Code',
+      headerName: 'Initiative Id',
       field: 'projectCode',
       cellRenderer: ProjectCodeRenderer,
       minWidth: 200,
