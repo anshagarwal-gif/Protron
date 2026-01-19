@@ -56,6 +56,8 @@ const AddInvoiceModal = ({
         supplierAddress: '',
         supplierInfo: '',
         employeeName: '',
+        employeeNames: [],
+        employeeIds: [],
         rate: '',
         currency: 'USD',
         fromDate: '',
@@ -107,10 +109,10 @@ const AddInvoiceModal = ({
             if (
                 formData.fromDate &&
                 formData.toDate &&
-                formData.employeeName &&
+                formData.employeeIds && formData.employeeIds.length === 1 &&
                 employees.length > 0
             ) {
-                const selectedEmployee = employees.find(emp => emp.userId === formData.employeeId);
+                const selectedEmployee = employees.find(emp => emp.userId === formData.employeeIds[0]);
                 if (!selectedEmployee || !selectedEmployee.userId) return;
 
                 // setFetchingTasks(true);
@@ -544,31 +546,56 @@ const AddInvoiceModal = ({
     };
 
     // Special handler for employee selection to auto-populate rate and currency
-    const handleEmployeeChange = (selectedOption) => {
-        if (selectedOption) {
-            const newCurrency = selectedOption.currency || 'USD';
-            const newRate = selectedOption.cost || '';
-
-            console.log('Selected employee:', selectedOption);
-            console.log('Currency from employee:', newCurrency);
-
-            setFormData(prev => ({
-                ...prev,
-                employeeId: selectedOption.userId || '',
-                employeeName: selectedOption.value,
-                rate: newRate,
-                currency: newCurrency
-            }));
-        } else {
+    const handleEmployeeChange = (selected) => {
+        // selected can be null, a single option, or an array when isMulti is enabled
+        if (!selected) {
             setFormData(prev => ({
                 ...prev,
                 employeeId: '',
                 employeeName: '',
+                employeeNames: [],
+                employeeIds: [],
                 rate: '',
                 currency: 'USD'
             }));
+            return;
         }
 
+        if (Array.isArray(selected)) {
+            const names = selected.map(s => s.value);
+            const ids = selected.map(s => s.userId);
+            // If multiple employees selected, clear timesheet attachment state
+            if (names.length > 1 && attachTimesheet) setAttachTimesheet(false);
+
+            // Keep rate/currency from the first selected employee if available
+            const first = selected[0];
+            const newCurrency = first.currency || 'USD';
+            const newRate = first.cost || '';
+
+            setFormData(prev => ({
+                ...prev,
+                employeeName: names.length === 1 ? names[0] : '',
+                employeeId: ids.length === 1 ? ids[0] : '',
+                employeeNames: names,
+                employeeIds: ids,
+                rate: newRate,
+                currency: newCurrency
+            }));
+            return;
+        }
+
+        // Single selection (object)
+        const newCurrency = selected.currency || 'USD';
+        const newRate = selected.cost || '';
+        setFormData(prev => ({
+            ...prev,
+            employeeId: selected.userId || '',
+            employeeName: selected.value,
+            employeeNames: [selected.value],
+            employeeIds: [selected.userId],
+            rate: newRate,
+            currency: newCurrency
+        }));
 
         if (errors.rate) {
             setErrors(prev => ({ ...prev, rate: '' }));
@@ -681,6 +708,7 @@ const AddInvoiceModal = ({
                 supplierAddress: formData.supplierAddress || "",
                 supplierInfo: formData.supplierInfo || "",
                 employeeName: formData.employeeName,
+                employeeNames: formData.employeeNames && formData.employeeNames.length ? formData.employeeNames : null,
                 rate: parseFloat(formData.rate),
                 currency: formData.currency,
                 fromDate: formData.fromDate,
@@ -689,8 +717,8 @@ const AddInvoiceModal = ({
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
                 remarks: formData.remarks || "",
                 projectName: formData.projectName || "",
-                // Include timesheet data if checkbox is checked
-                timesheetData: timesheetPreviewData ? prepareTimesheetData() : null
+                // Include timesheet data if checkbox is checked AND invoice is for a single employee
+                timesheetData: (attachTimesheet && formData.employeeNames && formData.employeeNames.length <= 1) ? prepareTimesheetData() : null
             };
 
             let response;
@@ -789,6 +817,7 @@ const AddInvoiceModal = ({
                 supplierAddress: formData.supplierAddress || "",
                 supplierInfo: formData.supplierInfo || "",
                 employeeName: formData.employeeName || "",
+                employeeNames: formData.employeeNames && formData.employeeNames.length ? formData.employeeNames : null,
                 rate: parseFloat(formData.rate) || 0,
                 currency: formData.currency || "",
                 fromDate: formData.fromDate || "",
@@ -797,8 +826,8 @@ const AddInvoiceModal = ({
                 totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
                 remarks: formData.remarks || "",
                 projectName: formData.projectName || "",
-                // Include timesheet data if checkbox is checked
-                timesheetData: attachTimesheet ? prepareTimesheetData() : null
+                // Include timesheet data if checkbox is checked AND invoice is for a single employee
+                timesheetData: (attachTimesheet && formData.employeeNames && formData.employeeNames.length <= 1) ? prepareTimesheetData() : null
             };
             const response = await axios.post(
                 `${API_BASE_URL}/api/invoices/preview`,
@@ -889,6 +918,8 @@ const AddInvoiceModal = ({
             supplierAddress: '',
             supplierInfo: '',
             employeeName: '',
+            employeeNames: [],
+            employeeIds: [],
             rate: '',
             currency: 'USD',
             fromDate: '',
@@ -915,6 +946,44 @@ const AddInvoiceModal = ({
             return `${symbol}${parseFloat(formData.totalAmount).toLocaleString()}`;
         }
         return `${currencySymbols[formData.currency] || '$'}0.00`;
+    };
+
+    const amountToWords = (amountValue, currency) => {
+        if (amountValue === null || amountValue === undefined || isNaN(amountValue)) return '';
+        const units = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+        const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+        const numberToWords = (n) => {
+            if (n === 0) return 'Zero';
+            if (n < 20) return units[n];
+            if (n < 100) return tens[Math.floor(n/10)] + (n%10 ? ' ' + units[n%10] : '');
+            if (n < 1000) return units[Math.floor(n/100)] + ' Hundred' + (n%100 ? ' ' + numberToWords(n%100) : '');
+            if (n < 1000000) return numberToWords(Math.floor(n/1000)) + ' Thousand' + (n%1000 ? ' ' + numberToWords(n%1000) : '');
+            if (n < 1000000000) return numberToWords(Math.floor(n/1000000)) + ' Million' + (n%1000000 ? ' ' + numberToWords(n%1000000) : '');
+            return numberToWords(Math.floor(n/1000000000)) + ' Billion' + (n%1000000000 ? ' ' + numberToWords(n%1000000000) : '');
+        };
+
+        const major = {
+            USD: ['Dollar','Cent'],
+            INR: ['Rupee','Paise'],
+            EUR: ['Euro','Cent'],
+            GBP: ['Pound','Pence'],
+            JPY: ['Yen','Sen'],
+            CAD: ['Dollar','Cent'],
+            AUD: ['Dollar','Cent']
+        };
+
+        const amt = parseFloat(amountValue) || 0;
+        const whole = Math.floor(Math.abs(amt));
+        const fraction = Math.round((Math.abs(amt) - whole) * 100);
+        const majorName = (major[currency] && major[currency][0]) || 'Currency';
+        const minorName = (major[currency] && major[currency][1]) || 'Cents';
+
+        let words = numberToWords(whole) + ' ' + (whole === 1 ? majorName : (majorName + 's'));
+        if (fraction > 0) {
+            words += ' and ' + numberToWords(fraction) + ' ' + (fraction === 1 ? minorName : (minorName));
+        }
+        return words;
     };
 
     const getTimesheetSummary = () => {
@@ -985,7 +1054,7 @@ const AddInvoiceModal = ({
                                 <span className="text-red-700 text-sm">{errors.submit}</span>
                             </div>
                         )}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Invoice ID *
@@ -1020,9 +1089,27 @@ const AddInvoiceModal = ({
                                 {errors.invoiceName && <p className="text-red-500 text-xs mt-1">{errors.invoiceName}</p>}
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Currency *
+                                </label>
+                                <select
+                                    value={formData.currency}
+                                    onChange={handleChange('currency')}
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                >
+                                    <option value="USD">USD ($)</option>
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                    <option value="CAD">CAD (C$)</option>
+                                    <option value="AUD">AUD (A$)</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                                     <Folder className="mr-2 text-green-600" size={16} />
-                                    Project Name
+                                    Initiative Name
                                 </label>
                                 <CreatableSelect
                                     options={projects.map(project => ({
@@ -1175,20 +1262,21 @@ const AddInvoiceModal = ({
                                     <User className="absolute left-3 top-3 text-green-600 z-10" size={16} />
                                     <CreatableSelect
                                         options={employees}
-                                        value={formData.employeeName ? employees.find(emp => emp.value === formData.employeeName) : null}
+                                        value={formData.employeeIds && formData.employeeIds.length > 0 ? employees.filter(emp => formData.employeeIds.includes(emp.userId)) : (formData.employeeName ? employees.find(emp => emp.value === formData.employeeName) : null)}
                                         onChange={handleEmployeeChange}
                                         className="react-select-container"
                                         classNamePrefix="react-select"
-                                        placeholder={loadingEmployees ? "Loading..." : "Select employee"}
+                                        placeholder={loadingEmployees ? "Loading..." : "Select employee(s)"}
                                         isSearchable
                                         isClearable
                                         isLoading={loadingEmployees}
                                         isDisabled={loadingEmployees}
+                                        isMulti
                                         formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                         styles={{
                                             control: (base, state) => ({
                                                 ...base,
-                                                height: '40px',
+                                                minHeight: '40px',
                                                 paddingLeft: '28px',
                                                 borderColor: state.isFocused ? '#10b981' : '#d1d5db',
                                                 boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
@@ -1199,25 +1287,7 @@ const AddInvoiceModal = ({
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Currency *
-                                    <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
-                                </label>
-                                <select
-                                    value={formData.currency}
-                                    onChange={handleChange('currency')}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                >
-                                    <option value="USD">USD ($)</option>
-                                    <option value="INR">INR (₹)</option>
-                                    <option value="EUR">EUR (€)</option>
-                                    <option value="GBP">GBP (£)</option>
-                                    <option value="JPY">JPY (¥)</option>
-                                    <option value="CAD">CAD (C$)</option>
-                                    <option value="AUD">AUD (A$)</option>
-                                </select>
-                            </div>
+                            
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1265,6 +1335,7 @@ const AddInvoiceModal = ({
                                     id="attachTimesheet"
                                     checked={attachTimesheet}
                                     onChange={(e) => setAttachTimesheet(e.target.checked)}
+                                    disabled={formData.employeeNames && formData.employeeNames.length > 1}
                                     className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 mt-0.5"
                                 />
                                 <div className="flex-1">
@@ -1281,6 +1352,9 @@ const AddInvoiceModal = ({
                                         <p className="text-xs text-green-500 mt-1">
                                             ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
                                         </p>
+                                    )}
+                                    {formData.employeeNames && formData.employeeNames.length > 1 && (
+                                        <p className="text-xs text-red-600 mt-1">Timesheet will not be included when multiple employees are selected</p>
                                     )}
                                 </div>
                             </div>
@@ -1465,6 +1539,10 @@ const AddInvoiceModal = ({
                                 <div className={`text-2xl font-bold ${isCalculating ? 'text-orange-600' : 'text-green-600'}`}>
                                     {getDisplayTotal()}
                                 </div>
+                            </div>
+                            {/** Amount in words */}
+                            <div className="mt-2">
+                                <p className="text-sm text-gray-700 italic">In words: {amountToWords(formData.totalAmount ? parseFloat(formData.totalAmount) : (formData.rate && formData.hoursSpent ? parseFloat(formData.rate) * parseFloat(formData.hoursSpent) : 0), formData.currency)}</p>
                             </div>
                             {formData.rate && formData.hoursSpent && (
                                 <p className="text-sm text-gray-600 mt-2">

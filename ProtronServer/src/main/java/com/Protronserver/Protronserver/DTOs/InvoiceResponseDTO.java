@@ -22,6 +22,7 @@ public class InvoiceResponseDTO {
     private String supplierName;
     private String supplierAddress;
     private String employeeName;
+    private java.util.List<String> employeeNames;
     private BigDecimal rate;
     private String currency;
 
@@ -111,6 +112,14 @@ public class InvoiceResponseDTO {
 
     public void setEmployeeName(String employeeName) {
         this.employeeName = employeeName;
+    }
+
+    public java.util.List<String> getEmployeeNames() {
+        return employeeNames;
+    }
+
+    public void setEmployeeNames(java.util.List<String> employeeNames) {
+        this.employeeNames = employeeNames;
     }
 
     public BigDecimal getRate() {

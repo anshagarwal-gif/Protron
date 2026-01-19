@@ -54,6 +54,9 @@ public class Invoice {
     @Column(nullable = false)
     private String employeeName;
 
+    @Column(columnDefinition = "TEXT")
+    private String employeeNames; // comma-separated employee names for multi-employee invoices
+
     @Column(nullable = false)
     private BigDecimal rate;
 
@@ -255,6 +258,14 @@ public class Invoice {
 
     public void setEmployeeName(String employeeName) {
         this.employeeName = employeeName;
+    }
+
+    public String getEmployeeNames() {
+        return employeeNames;
+    }
+
+    public void setEmployeeNames(String employeeNames) {
+        this.employeeNames = employeeNames;
     }
 
     public BigDecimal getRate() {

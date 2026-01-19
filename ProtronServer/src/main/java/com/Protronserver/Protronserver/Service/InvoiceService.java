@@ -108,7 +108,15 @@ public class InvoiceService {
             invoice.setCustomerAddress(requestDTO.getCustomerAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
             invoice.setSupplierAddress(requestDTO.getSupplierAddress());
-            invoice.setEmployeeName(requestDTO.getEmployeeName());
+            // Support multiple employees: prefer employeeNames list when provided
+            if (requestDTO.getEmployeeNames() != null && !requestDTO.getEmployeeNames().isEmpty()) {
+                // store comma-separated names in the single column for backward compatibility
+                invoice.setEmployeeName(String.join(", ", requestDTO.getEmployeeNames()));
+                invoice.setEmployeeNames(String.join(",", requestDTO.getEmployeeNames()));
+            } else {
+                invoice.setEmployeeName(requestDTO.getEmployeeName());
+                invoice.setEmployeeNames(requestDTO.getEmployeeName() != null ? requestDTO.getEmployeeName() : null);
+            }
             invoice.setRate(requestDTO.getRate());
             invoice.setCurrency(requestDTO.getCurrency());
             invoice.setFromDate(requestDTO.getFromDate());
@@ -120,7 +128,11 @@ public class InvoiceService {
             invoice.setCreatedAt(LocalDateTime.now());
 
             // Generate PDF
-            byte[] pdfBytes = generateInvoicePDF(invoice, requestDTO.getTimesheetData());
+            InvoiceRequestDTO.TimesheetDataDTO timesheetToUse = null;
+            if (requestDTO.getTimesheetData() != null && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
+                timesheetToUse = requestDTO.getTimesheetData();
+            }
+            byte[] pdfBytes = generateInvoicePDF(invoice, timesheetToUse);
             invoice.setPdfData(pdfBytes);
             invoice.setPdfFileName(customInvoiceId + ".pdf");
 
@@ -163,7 +175,13 @@ public class InvoiceService {
             invoice.setCustomerAddress(requestDTO.getCustomerAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
             invoice.setSupplierAddress(requestDTO.getSupplierAddress());
-            invoice.setEmployeeName(requestDTO.getEmployeeName());
+            if (requestDTO.getEmployeeNames() != null && !requestDTO.getEmployeeNames().isEmpty()) {
+                invoice.setEmployeeName(String.join(", ", requestDTO.getEmployeeNames()));
+                invoice.setEmployeeNames(String.join(",", requestDTO.getEmployeeNames()));
+            } else {
+                invoice.setEmployeeName(requestDTO.getEmployeeName());
+                invoice.setEmployeeNames(requestDTO.getEmployeeName() != null ? requestDTO.getEmployeeName() : null);
+            }
             invoice.setRate(requestDTO.getRate());
             invoice.setCurrency(requestDTO.getCurrency());
             invoice.setFromDate(requestDTO.getFromDate());
@@ -180,7 +198,11 @@ public class InvoiceService {
             }
 
             // Generate PDF
-            byte[] pdfBytes = generateInvoicePDF(invoice, requestDTO.getTimesheetData());
+            InvoiceRequestDTO.TimesheetDataDTO timesheetToUse = null;
+            if (requestDTO.getTimesheetData() != null && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
+                timesheetToUse = requestDTO.getTimesheetData();
+            }
+            byte[] pdfBytes = generateInvoicePDF(invoice, timesheetToUse);
             invoice.setPdfData(pdfBytes);
             invoice.setPdfFileName(customInvoiceId + ".pdf");
 
@@ -362,7 +384,7 @@ public class InvoiceService {
         Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
         Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
         Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
-        Font smallFont = new Font(Font.FontFamily.HELVETICA, 8);
+        Font smallFont = new Font(Font.FontFamily.HELVETICA, 9);
 
         // Add title
         Paragraph title = new Paragraph("INVOICE", titleFont);
@@ -508,6 +530,19 @@ public class InvoiceService {
         // --- ADD TO DOCUMENT ---
         document.add(remarksTable);
 
+        // Amount in words
+        try {
+            if (invoice.getTotalAmount() != null) {
+                String amountWords = convertAmountToWords(invoice.getTotalAmount(), invoice.getCurrency());
+                Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
+                amountWordsPara.setSpacingBefore(8);
+                document.add(amountWordsPara);
+                log.info("Added amount-in-words to PDF for invoice {}: {}", invoice.getInvoiceId(), amountWords);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to convert amount to words for invoice {}: {}", invoice.getInvoiceId(), e.getMessage());
+        }
+
         if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
             document.newPage();
             addTimesheetSection(document, timesheetData, headerFont, normalFont, smallFont);
@@ -528,7 +563,7 @@ public class InvoiceService {
         Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
         Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
         Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
-        Font smallFont = new Font(Font.FontFamily.HELVETICA, 8);
+        Font smallFont = new Font(Font.FontFamily.HELVETICA, 9);
 
         // Add title
         Paragraph title = new Paragraph("INVOICE", titleFont);
@@ -720,6 +755,26 @@ public class InvoiceService {
 
         // --- ADD TO DOCUMENT ---
         document.add(remarksTable);
+
+        // Amount in words for preview
+        try {
+            if (invoiceData.get("totalAmount") != null) {
+                java.math.BigDecimal amt = null;
+                try {
+                    amt = new java.math.BigDecimal(invoiceData.get("totalAmount").toString());
+                } catch (Exception ignored) {
+                }
+                if (amt != null) {
+                    String amountWords = convertAmountToWords(amt, currency);
+                    Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
+                    amountWordsPara.setSpacingBefore(8);
+                    document.add(amountWordsPara);
+                    log.info("Added amount-in-words to preview PDF: {}", amountWords);
+                }
+            }
+        } catch (Exception e) {
+            // ignore preview amount words errors
+        }
 
         // Handle timesheet data with null safety
         if (invoiceData.get("timesheetData") instanceof Map) {
@@ -1062,6 +1117,77 @@ public class InvoiceService {
         return day + daySuffix + " " + date.format(monthYearFormatter);
     }
 
+    // Convert a BigDecimal amount into words with simple currency handling
+    private String convertAmountToWords(java.math.BigDecimal amount, String currency) {
+        if (amount == null) return "";
+        java.math.BigDecimal abs = amount.abs();
+        long whole = abs.longValue();
+        int fraction = abs.subtract(new java.math.BigDecimal(whole)).movePointRight(2).setScale(0, java.math.RoundingMode.HALF_UP).intValue();
+
+        String majorName;
+        String minorName;
+        switch (currency == null ? "" : currency) {
+            case "INR":
+                majorName = "Rupee"; minorName = "Paise"; break;
+            case "EUR":
+                majorName = "Euro"; minorName = "Cent"; break;
+            case "GBP":
+                majorName = "Pound"; minorName = "Pence"; break;
+            case "JPY":
+                majorName = "Yen"; minorName = "Sen"; break;
+            case "CAD":
+            case "AUD":
+            case "USD":
+            default:
+                majorName = "Dollar"; minorName = "Cent"; break;
+        }
+
+        String words = numberToWords(whole) + " " + (whole == 1 ? majorName : (majorName + "s"));
+        if (fraction > 0) {
+            words += " and " + numberToWords(fraction) + " " + (fraction == 1 ? minorName : minorName);
+        }
+        return words;
+    }
+
+    private String numberToWords(long n) {
+        if (n == 0) return "Zero";
+        if (n < 0) return "Minus " + numberToWords(-n);
+
+        String[] units = {"","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"};
+        String[] tens = {"","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"};
+
+        StringBuilder sb = new StringBuilder();
+
+        if (n / 1000000000 > 0) {
+            sb.append(numberToWords(n / 1000000000)).append(" Billion");
+            n %= 1000000000;
+            if (n > 0) sb.append(" ");
+        }
+        if (n / 1000000 > 0) {
+            sb.append(numberToWords(n / 1000000)).append(" Million");
+            n %= 1000000;
+            if (n > 0) sb.append(" ");
+        }
+        if (n / 1000 > 0) {
+            sb.append(numberToWords(n / 1000)).append(" Thousand");
+            n %= 1000;
+            if (n > 0) sb.append(" ");
+        }
+        if (n / 100 > 0) {
+            sb.append(numberToWords(n / 100)).append(" Hundred");
+            n %= 100;
+            if (n > 0) sb.append(" ");
+        }
+        if (n > 0) {
+            if (n < 20) sb.append(units[(int)n]);
+            else {
+                sb.append(tens[(int)(n/10)]);
+                if (n%10 > 0) sb.append(" ").append(units[(int)(n%10)]);
+            }
+        }
+        return sb.toString();
+    }
+
     /**
      * Add a row to the timesheet table
      */
@@ -1137,6 +1263,16 @@ public class InvoiceService {
         dto.setSupplierName(invoice.getSupplierName());
         dto.setSupplierAddress(invoice.getSupplierAddress());
         dto.setEmployeeName(invoice.getEmployeeName());
+        // Populate employeeNames list if stored (comma-separated)
+        if (invoice.getEmployeeNames() != null && !invoice.getEmployeeNames().trim().isEmpty()) {
+            java.util.List<String> names = java.util.Arrays.stream(invoice.getEmployeeNames().split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toList());
+            dto.setEmployeeNames(names);
+        } else if (invoice.getEmployeeName() != null && !invoice.getEmployeeName().trim().isEmpty()) {
+            dto.setEmployeeNames(java.util.Collections.singletonList(invoice.getEmployeeName()));
+        }
         dto.setRate(invoice.getRate());
         dto.setCurrency(invoice.getCurrency());
         dto.setFromDate(invoice.getFromDate());

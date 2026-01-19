@@ -63,6 +63,8 @@ public class InvoiceRequestDTO {
     @Size(max = 200, message = "Project name must not exceed 200 characters")
     private String projectName;
 
+    private java.util.List<String> employeeNames;
+
     private TimesheetDataDTO timesheetData;
 
     @Data
@@ -383,6 +385,14 @@ public class InvoiceRequestDTO {
 
     public void setTimesheetData(TimesheetDataDTO timesheetData) {
         this.timesheetData = timesheetData;
+    }
+
+    public java.util.List<String> getEmployeeNames() {
+        return employeeNames;
+    }
+
+    public void setEmployeeNames(java.util.List<String> employeeNames) {
+        this.employeeNames = employeeNames;
     }
 
     // Helper method to check if timesheet data is included
