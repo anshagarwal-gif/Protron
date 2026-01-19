@@ -1184,8 +1184,10 @@ const AddInvoiceModal = ({
                                     {(formData.billToAddress || '').length}/500 characters
                                 </div>
                                 {errors.billToAddress && <p className="text-red-500 text-xs mt-1">{errors.billToAddress}</p>}
+                            </div>
 
-                                <label className="block text-sm font-medium text-gray-700 mb-2 mt-3">
+                            <div className="">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Ship To Address
                                 </label>
                                 <input
@@ -1201,7 +1203,8 @@ const AddInvoiceModal = ({
                                 </div>
                                 {errors.shipToAddress && <p className="text-red-500 text-xs mt-1">{errors.shipToAddress}</p>}
                             </div>
-                            <div className="">
+
+                            <div className="lg:col-start-1">
                                 <label className='block text-sm font-medium text-gray-700 mb-2'>
                                     Customer Info
                                 </label>
