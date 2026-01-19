@@ -19,6 +19,8 @@ public class InvoiceResponseDTO {
     private String invoiceName;
     private String customerName;
     private String customerAddress;
+    private String billToAddress;
+    private String shipToAddress;
     private String supplierName;
     private String supplierAddress;
     private String employeeName;
@@ -88,6 +90,22 @@ public class InvoiceResponseDTO {
 
     public void setCustomerAddress(String customerAddress) {
         this.customerAddress = customerAddress;
+    }
+
+    public String getBillToAddress() {
+        return billToAddress;
+    }
+
+    public void setBillToAddress(String billToAddress) {
+        this.billToAddress = billToAddress;
+    }
+
+    public String getShipToAddress() {
+        return shipToAddress;
+    }
+
+    public void setShipToAddress(String shipToAddress) {
+        this.shipToAddress = shipToAddress;
     }
 
     public String getSupplierName() {

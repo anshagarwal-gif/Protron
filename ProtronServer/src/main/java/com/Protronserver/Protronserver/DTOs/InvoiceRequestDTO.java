@@ -27,6 +27,8 @@ public class InvoiceRequestDTO {
     private String customerName;
 
     private String customerAddress;
+    private String billToAddress;
+    private String shipToAddress;
 
     @NotBlank(message = "Supplier name is required")
     @Size(max = 100, message = "Supplier name must not exceed 100 characters")
@@ -284,6 +286,22 @@ public class InvoiceRequestDTO {
 
     public void setCustomerAddress(String customerAddress) {
         this.customerAddress = customerAddress;
+    }
+
+    public String getBillToAddress() {
+        return billToAddress;
+    }
+
+    public void setBillToAddress(String billToAddress) {
+        this.billToAddress = billToAddress;
+    }
+
+    public String getShipToAddress() {
+        return shipToAddress;
+    }
+
+    public void setShipToAddress(String shipToAddress) {
+        this.shipToAddress = shipToAddress;
     }
 
     public @NotBlank(message = "Supplier name is required") @Size(max = 100, message = "Supplier name must not exceed 100 characters") String getSupplierName() {

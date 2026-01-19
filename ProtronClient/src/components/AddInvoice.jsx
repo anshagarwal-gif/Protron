@@ -50,7 +50,8 @@ const AddInvoiceModal = ({
     const [formData, setFormData] = useState({
         invoiceName: '',
         customerName: '',
-        customerAddress: '',
+        billToAddress: '',
+        shipToAddress: '',
         customerInfo: '',
         supplierName: sessionStorage.getItem('tenantName') || '',
         supplierAddress: '',
@@ -496,14 +497,16 @@ const AddInvoiceModal = ({
 
             setFormData(prev => ({
                 ...prev,
-                customerAddress: finalAddress,
+                billToAddress: finalAddress,
+                shipToAddress: finalAddress,
                 customerInfo: finalInfo
             }));
         } else {
             // Clear related fields when customer is cleared
             setFormData(prev => ({
                 ...prev,
-                customerAddress: '',
+                billToAddress: '',
+                shipToAddress: '',
                 customerInfo: ''
             }));
         }
@@ -675,8 +678,11 @@ const AddInvoiceModal = ({
         }
 
         // Validate character limits
-        if (formData.customerAddress && formData.customerAddress.length > 500) {
-            newErrors.customerAddress = 'Customer address cannot exceed 500 characters';
+        if (formData.billToAddress && formData.billToAddress.length > 500) {
+            newErrors.billToAddress = 'Bill To address cannot exceed 500 characters';
+        }
+        if (formData.shipToAddress && formData.shipToAddress.length > 500) {
+            newErrors.shipToAddress = 'Ship To address cannot exceed 500 characters';
         }
         if (formData.customerInfo && formData.customerInfo.length > 100) {
             newErrors.customerInfo = 'Customer info cannot exceed 100 characters';
@@ -702,7 +708,8 @@ const AddInvoiceModal = ({
             const invoiceData = {
                 invoiceName: formData.invoiceName,
                 customerName: formData.customerName,
-                customerAddress: formData.customerAddress || "",
+                billToAddress: formData.billToAddress || "",
+                shipToAddress: formData.shipToAddress || "",
                 customerInfo: formData.customerInfo || "",
                 supplierName: formData.supplierName,
                 supplierAddress: formData.supplierAddress || "",
@@ -811,7 +818,8 @@ const AddInvoiceModal = ({
             const invoiceData = {
                 invoiceName: formData.invoiceName || "",
                 customerName: formData.customerName || "",
-                customerAddress: formData.customerAddress || "",
+                billToAddress: formData.billToAddress || "",
+                shipToAddress: formData.shipToAddress || "",
                 customerInfo: formData.customerInfo || "",
                 supplierName: formData.supplierName || "",
                 supplierAddress: formData.supplierAddress || "",
@@ -912,7 +920,8 @@ const AddInvoiceModal = ({
         setFormData({
             invoiceName: '',
             customerName: '',
-            customerAddress: '',
+            billToAddress: '',
+            shipToAddress: '',
             customerInfo: '',
             supplierName: sessionStorage.getItem('tenantName') || '',
             supplierAddress: '',
@@ -1160,21 +1169,37 @@ const AddInvoiceModal = ({
 
                             <div className="">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Customer Address
+                                    Bill To Address
                                     <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
                                 </label>
                                 <input
                                     type="text"
-                                    placeholder="Customer address"
-                                    value={formData.customerAddress}
-                                    onChange={handleChange('customerAddress')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.customerAddress ? 'border-red-500' : 'border-gray-300'}`}
+                                    placeholder="Bill to address"
+                                    value={formData.billToAddress}
+                                    onChange={handleChange('billToAddress')}
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.billToAddress ? 'border-red-500' : 'border-gray-300'}`}
                                     maxLength={500}
                                 />
                                 <div className="text-right text-sm text-gray-500 mt-1">
-                                    {formData.customerAddress.length}/500 characters
+                                    {(formData.billToAddress || '').length}/500 characters
                                 </div>
-                                {errors.customerAddress && <p className="text-red-500 text-xs mt-1">{errors.customerAddress}</p>}
+                                {errors.billToAddress && <p className="text-red-500 text-xs mt-1">{errors.billToAddress}</p>}
+
+                                <label className="block text-sm font-medium text-gray-700 mb-2 mt-3">
+                                    Ship To Address
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Ship to address"
+                                    value={formData.shipToAddress}
+                                    onChange={handleChange('shipToAddress')}
+                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.shipToAddress ? 'border-red-500' : 'border-gray-300'}`}
+                                    maxLength={500}
+                                />
+                                <div className="text-right text-sm text-gray-500 mt-1">
+                                    {(formData.shipToAddress || '').length}/500 characters
+                                </div>
+                                {errors.shipToAddress && <p className="text-red-500 text-xs mt-1">{errors.shipToAddress}</p>}
                             </div>
                             <div className="">
                                 <label className='block text-sm font-medium text-gray-700 mb-2'>

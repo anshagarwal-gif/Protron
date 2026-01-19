@@ -45,6 +45,12 @@ public class Invoice {
     @Column(columnDefinition = "TEXT")
     private String customerAddress;
 
+    @Column(columnDefinition = "TEXT")
+    private String billToAddress;
+
+    @Column(columnDefinition = "TEXT")
+    private String shipToAddress;
+
     @Column(nullable = false)
     private String supplierName;
 
@@ -234,6 +240,22 @@ public class Invoice {
 
     public void setCustomerAddress(String customerAddress) {
         this.customerAddress = customerAddress;
+    }
+
+    public String getBillToAddress() {
+        return billToAddress;
+    }
+
+    public void setBillToAddress(String billToAddress) {
+        this.billToAddress = billToAddress;
+    }
+
+    public String getShipToAddress() {
+        return shipToAddress;
+    }
+
+    public void setShipToAddress(String shipToAddress) {
+        this.shipToAddress = shipToAddress;
     }
 
     public String getSupplierName() {

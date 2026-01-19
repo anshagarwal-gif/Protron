@@ -105,7 +105,10 @@ public class InvoiceService {
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
             invoice.setSupplierInfo(requestDTO.getSupplierInfo());
             invoice.setCustomerName(requestDTO.getCustomerName());
-            invoice.setCustomerAddress(requestDTO.getCustomerAddress());
+            // Map new billTo/shipTo fields; for backward compatibility populate customerAddress with billTo
+            invoice.setBillToAddress(requestDTO.getBillToAddress());
+            invoice.setShipToAddress(requestDTO.getShipToAddress());
+            invoice.setCustomerAddress(requestDTO.getBillToAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
             invoice.setSupplierAddress(requestDTO.getSupplierAddress());
             // Support multiple employees: prefer employeeNames list when provided
@@ -172,7 +175,10 @@ public class InvoiceService {
             invoice.setCustomerName(requestDTO.getCustomerName());
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
             invoice.setSupplierInfo(requestDTO.getSupplierInfo());
-            invoice.setCustomerAddress(requestDTO.getCustomerAddress());
+            // Map new billTo/shipTo fields; populate customerAddress for backward compatibility
+            invoice.setBillToAddress(requestDTO.getBillToAddress());
+            invoice.setShipToAddress(requestDTO.getShipToAddress());
+            invoice.setCustomerAddress(requestDTO.getBillToAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
             invoice.setSupplierAddress(requestDTO.getSupplierAddress());
             if (requestDTO.getEmployeeNames() != null && !requestDTO.getEmployeeNames().isEmpty()) {
@@ -404,22 +410,22 @@ public class InvoiceService {
         detailsTable.setWidthPercentage(100);
         detailsTable.setSpacingAfter(20);
 
-        // Customer details
+        // Customer details (Bill To / Ship To)
         detailsTable.addCell(new Phrase("Customer Name: " + invoice.getCustomerName(), normalFont));
         detailsTable.addCell(new Phrase("Supplier Name: " + invoice.getSupplierName(), normalFont));
         detailsTable.addCell(new Phrase(
-                "Customer Address: " + (invoice.getCustomerAddress() != null ? invoice.getCustomerAddress() : ""),
-                normalFont));
+            "Bill To Address: " + (invoice.getBillToAddress() != null ? invoice.getBillToAddress() : ""),
+            normalFont));
         detailsTable.addCell(new Phrase(
-                "Supplier Address: " + (invoice.getSupplierAddress() != null ? invoice.getSupplierAddress() : ""),
-                normalFont));
+            "Ship To Address: " + (invoice.getShipToAddress() != null ? invoice.getShipToAddress() : ""),
+            normalFont));
         // Additional info under addresses
         detailsTable.addCell(new Phrase(
-                "Customer Info: " + (invoice.getCustomerInfo() != null ? invoice.getCustomerInfo() : ""),
-                normalFont));
+            "Customer Info: " + (invoice.getCustomerInfo() != null ? invoice.getCustomerInfo() : ""),
+            normalFont));
         detailsTable.addCell(new Phrase(
-                "Supplier Info: " + (invoice.getSupplierInfo() != null ? invoice.getSupplierInfo() : ""),
-                normalFont));
+            "Supplier Info: " + (invoice.getSupplierInfo() != null ? invoice.getSupplierInfo() : ""),
+            normalFont));
 
         document.add(detailsTable);
 
@@ -584,19 +590,19 @@ public class InvoiceService {
         detailsTable.setWidthPercentage(100);
         detailsTable.setSpacingAfter(20);
 
-        // Customer details - Handle null values
+        // Customer details - Handle null values (Bill To / Ship To)
         detailsTable.addCell(new Phrase("Customer Name: " +
-                (invoiceData.get("customerName") != null ? invoiceData.get("customerName").toString() : ""),
-                normalFont));
+            (invoiceData.get("customerName") != null ? invoiceData.get("customerName").toString() : ""),
+            normalFont));
         detailsTable.addCell(new Phrase("Supplier Name: " +
-                (invoiceData.get("supplierName") != null ? invoiceData.get("supplierName").toString() : ""),
-                normalFont));
-        detailsTable.addCell(new Phrase("Customer Address: " +
-                (invoiceData.get("customerAddress") != null ? invoiceData.get("customerAddress").toString() : ""),
-                normalFont));
-        detailsTable.addCell(new Phrase("Supplier Address: " +
-                (invoiceData.get("supplierAddress") != null ? invoiceData.get("supplierAddress").toString() : ""),
-                normalFont));
+            (invoiceData.get("supplierName") != null ? invoiceData.get("supplierName").toString() : ""),
+            normalFont));
+        detailsTable.addCell(new Phrase("Bill To Address: " +
+            (invoiceData.get("billToAddress") != null ? invoiceData.get("billToAddress").toString() : ""),
+            normalFont));
+        detailsTable.addCell(new Phrase("Ship To Address: " +
+            (invoiceData.get("shipToAddress") != null ? invoiceData.get("shipToAddress").toString() : ""),
+            normalFont));
 
         // Additional info under addresses
         detailsTable.addCell(new Phrase("Customer Info: " +
@@ -1260,6 +1266,8 @@ public class InvoiceService {
         dto.setInvoiceName(invoice.getInvoiceName());
         dto.setCustomerName(invoice.getCustomerName());
         dto.setCustomerAddress(invoice.getCustomerAddress());
+        dto.setBillToAddress(invoice.getBillToAddress());
+        dto.setShipToAddress(invoice.getShipToAddress());
         dto.setSupplierName(invoice.getSupplierName());
         dto.setSupplierAddress(invoice.getSupplierAddress());
         dto.setEmployeeName(invoice.getEmployeeName());
