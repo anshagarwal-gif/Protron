@@ -19,7 +19,9 @@ import {
     UserCheck,
     Edit2,
     Paperclip,
-    File
+    File as FileIcon,
+    Eye,
+    Download
 } from 'lucide-react';
 import axios from 'axios';
 import OrganizationSelect from './OrganizationSelect'; // Import OrganizationSelect
@@ -433,6 +435,105 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const handleViewAttachment = async (attachment) => {
+        // Only for existing attachments with ID
+        if (!attachment.id) {
+            // For new files, create object URL
+            if (attachment instanceof File) {
+                const url = URL.createObjectURL(attachment);
+                window.open(url, '_blank');
+                return;
+            }
+            return;
+        }
+
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachment.id}/download`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch attachment');
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            
+            // Check if it's a PDF to open in new tab, otherwise download
+            const fileName = attachment.fileName || attachment.name || 'attachment';
+            const isPDF = fileName.toLowerCase().endsWith('.pdf') || blob.type === 'application/pdf';
+            
+            if (isPDF) {
+                window.open(url, '_blank');
+            } else {
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            // Clean up the URL after a delay
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+        } catch (error) {
+            console.error('Error viewing attachment:', error);
+            alert('Failed to view attachment. Please try again.');
+        }
+    };
+
+    const handleDownloadAttachment = async (attachment) => {
+        // For new files, download directly
+        if (attachment instanceof File && !attachment.id) {
+            const url = URL.createObjectURL(attachment);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = attachment.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            return;
+        }
+
+        // For existing attachments with ID
+        if (!attachment.id) return;
+
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/po-attachments/${attachment.id}/download`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to download attachment');
+            }
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const fileName = attachment.fileName || attachment.name || 'attachment';
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+        } catch (error) {
+            console.error('Error downloading attachment:', error);
+            alert('Failed to download attachment. Please try again.');
+        }
     };
 
     const handleMilestoneFileChange = (milestoneIndex, e) => {
@@ -968,7 +1069,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Initiative name">
-                                            Initiative name <span className="text-red-500">*</span>
+                                            Initiative name
                                         </label>
                                         <div className="relative w-full">
                                             <Folder className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 z-11" size={20} />
@@ -996,13 +1097,12 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                 className="react-select-container z-10"
                                                 placeholder="Select or create initiative"
                                                 title={formData.projectName || "Select or create initiative"}
-                                                required
                                             />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Customer Name">
-                                            Customer Name <span className="text-red-500">*</span>
+                                            Customer Name
                                         </label>
                                         <OrganizationSelect
                                             value={formData.customer || ''}
@@ -1019,7 +1119,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Supplier Name">
-                                            Supplier Name <span className="text-red-500">*</span>
+                                            Supplier Name
                                         </label>
                                         <OrganizationSelect
                                             value={formData.supplier || ''}
@@ -1251,50 +1351,6 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
                                 </div>
 
-                                <div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
-                                        Project Description
-                                        <span className="float-right text-xs text-gray-500">
-                                            {formData.poDesc?.length || 0}/500 characters
-                                        </span>
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.poDesc}
-                                        onChange={e => {
-                                            let value = e.target.value;
-                                            if (value.length > 500) value = value.slice(0, 500);
-                                            setFormData(prev => ({ ...prev, poDesc: value }));
-                                        }}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                        title={formData.poDesc || "Enter Project Description"}
-                                        placeholder="Enter Project Description"
-                                        maxLength={500}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
-                                        Budget Line Remarks
-                                        <span className="float-right text-xs text-gray-500">
-                                            {formData.budgetLineRemarks?.length || 0}/500 characters
-                                        </span>
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        value={formData.budgetLineRemarks}
-                                        onChange={e => {
-                                            let value = e.target.value;
-                                            if (value.length > 500) value = value.slice(0, 500);
-                                            setFormData(prev => ({ ...prev, budgetLineRemarks: value }));
-                                        }}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                        title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
-                                        placeholder="Enter Budget Line Remarks"
-                                        maxLength={500}
-                                    />
-                                </div>
                                 <div className="lg:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
                                         <Paperclip className="mr-2 text-green-600" size={16} />
@@ -1383,7 +1439,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                                             <div className="flex items-center justify-between mb-3">
                                                 <h4 className="text-sm font-medium text-gray-700 flex items-center">
-                                                    <File className="mr-1" size={16} />
+                                                    <FileIcon className="mr-1" size={16} />
                                                     Selected Files ({poAttachments.length})
                                                 </h4>
                                                 <button
@@ -1396,38 +1452,64 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             </div>
 
                                             <div className="space-y-2">
-                                                {poAttachments.map((doc, index) => (
-                                                    <div key={index} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
-                                                        <div className="flex items-center space-x-3">
-                                                            <div className="flex-shrink-0">
-                                                                <File size={16} className={doc.id ? "text-blue-600" : "text-green-600"} />
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-sm text-gray-900 truncate" title={doc.name || doc.fileName}>
-                                                                    {doc.name || doc.fileName}
-                                                                </p>
-                                                                <div className="flex items-center space-x-2">
-                                                                    <p className="text-xs text-gray-500">
-                                                                        {formatFileSize(doc.size || doc.fileSize || doc.fileSizeInBytes || 0)}
+                                                {poAttachments.map((doc, index) => {
+                                                    const fileName = doc.name || doc.fileName || '';
+                                                    const isPDF = fileName.toLowerCase().endsWith('.pdf') || doc.contentType === 'application/pdf';
+                                                    const canView = doc.id || (doc instanceof File && isPDF);
+                                                    
+                                                    return (
+                                                        <div key={index} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
+                                                            <div className="flex items-center space-x-3 flex-1 min-w-0">
+                                                                <div className="flex-shrink-0">
+                                                                    <FileIcon size={16} className={doc.id ? "text-blue-600" : "text-green-600"} />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm text-gray-900 truncate" title={fileName}>
+                                                                        {fileName}
                                                                     </p>
-                                                                    {doc.id && (
-                                                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                                                                            Existing
-                                                                        </span>
-                                                                    )}
+                                                                    <div className="flex items-center space-x-2">
+                                                                        <p className="text-xs text-gray-500">
+                                                                            {formatFileSize(doc.size || doc.fileSize || doc.fileSizeInBytes || 0)}
+                                                                        </p>
+                                                                        {doc.id && (
+                                                                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                                                Existing
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
+                                                            <div className="flex items-center space-x-2 flex-shrink-0">
+                                                                {canView && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleViewAttachment(doc)}
+                                                                        className="text-blue-500 hover:text-blue-700 p-1"
+                                                                        title="View file"
+                                                                    >
+                                                                        <Eye size={16} />
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleDownloadAttachment(doc)}
+                                                                    className="text-green-500 hover:text-green-700 p-1"
+                                                                    title="Download file"
+                                                                >
+                                                                    <Download size={16} />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeAttachment(index)}
+                                                                    className="text-red-500 hover:text-red-700 p-1"
+                                                                    title={doc.id ? "Delete document" : "Remove file"}
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeAttachment(index)}
-                                                            className="text-red-500 hover:text-red-700 p-1"
-                                                            title={doc.id ? "Delete document" : "Remove file"}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                ))}
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     ) : (
@@ -1441,90 +1523,53 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
-                                            Project Description
-                                            <span className="float-right text-xs text-gray-500">
-                                                {formData.poDesc?.length || 0}/500 characters
-                                            </span>
-                                        </label>
-                                        <textarea
-                                            rows={3}
-                                            value={formData.poDesc}
-                                            onChange={e => {
-                                                let value = e.target.value;
-                                                if (value.length > 500) value = value.slice(0, 500);
-                                                setFormData(prev => ({ ...prev, poDesc: value }));
-                                            }}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                            title={formData.poDesc || "Enter Project Description"}
-                                            placeholder="Enter Project Description"
-                                            maxLength={500}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
-                                            Budget Line Remarks
-                                            <span className="float-right text-xs text-gray-500">
-                                                {formData.budgetLineRemarks?.length || 0}/500 characters
-                                            </span>
-                                        </label>
-                                        <textarea
-                                            rows={3}
-                                            value={formData.budgetLineRemarks}
-                                            onChange={e => {
-                                                let value = e.target.value;
-                                                if (value.length > 500) value = value.slice(0, 500);
-                                                setFormData(prev => ({ ...prev, budgetLineRemarks: value }));
-                                            }}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
-                                            title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
-                                            placeholder="Enter Budget Line Remarks"
-                                            maxLength={500}
-                                        />
-                                    </div>
-                                    <div className="lg:col-span-2">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">PO Attachments (Max 4)</label>
-                                        <div className="relative">
-                                            <input
-                                                type="file"
-                                                id="po-attachment-input"
-                                                multiple
-                                                onChange={handleFileChange}
-                                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                                className="hidden"
-                                            />
-                                            <label
-                                                htmlFor="po-attachment-input"
-                                                className="w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md flex items-center cursor-pointer"
-                                            >
-                                                <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
-                                                <span className="text-gray-500 truncate">
-                                                    {poAttachments.length > 0 ? `${poAttachments.length} file(s) selected` : 'Click to select files'}
-                                                </span>
-                                            </label>
-                                        </div>
-
-                                        <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
-                                            {poAttachments.map((file, index) => (
-                                                <li
-                                                    key={index}
-                                                    className="flex max-w-[150px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
-                                                >
-                                                    <span className="truncate max-w-[220px]" title={file.name}>{file.name}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeAttachment(index)}
-                                                        className="ml-2 text-red-600 hover:text-red-800 text-xs"
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
+                            
+                            {/* Project Description and Budget Line Remarks */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Project Description">
+                                        Project Description
+                                        <span className="float-right text-xs text-gray-500">
+                                            {formData.poDesc?.length || 0}/500 characters
+                                        </span>
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={formData.poDesc}
+                                        onChange={e => {
+                                            let value = e.target.value;
+                                            if (value.length > 500) value = value.slice(0, 500);
+                                            setFormData(prev => ({ ...prev, poDesc: value }));
+                                        }}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
+                                        title={formData.poDesc || "Enter Project Description"}
+                                        placeholder="Enter Project Description"
+                                        maxLength={500}
+                                    />
                                 </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2 truncate" title="Budget Line Remarks">
+                                        Budget Line Remarks
+                                        <span className="float-right text-xs text-gray-500">
+                                            {formData.budgetLineRemarks?.length || 0}/500 characters
+                                        </span>
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={formData.budgetLineRemarks}
+                                        onChange={e => {
+                                            let value = e.target.value;
+                                            if (value.length > 500) value = value.slice(0, 500);
+                                            setFormData(prev => ({ ...prev, budgetLineRemarks: value }));
+                                        }}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md resize-none"
+                                        title={formData.budgetLineRemarks || "Enter Budget Line Remarks"}
+                                        placeholder="Enter Budget Line Remarks"
+                                        maxLength={500}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                         )}
 
                         {currentStep === 2 && (

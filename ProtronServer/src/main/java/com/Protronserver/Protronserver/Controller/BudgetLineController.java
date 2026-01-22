@@ -229,7 +229,15 @@ public class BudgetLineController {
                 }
             }
 
-            // 6. Return response for new version
+            // 6. Migrate documents from old budget line to new budget line
+            try {
+                budgetDocumentService.migrateDocuments(budgetId, newBudgetLine.getBudgetId());
+            } catch (Exception e) {
+                // Log error but don't fail the entire operation
+                System.err.println("Error migrating documents: " + e.getMessage());
+            }
+
+            // 7. Return response for new version
             BudgetLineResponse response = convertToResponse(newBudgetLine);
             return ResponseEntity.ok(response);
 

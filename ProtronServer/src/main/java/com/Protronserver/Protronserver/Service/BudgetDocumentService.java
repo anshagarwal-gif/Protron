@@ -220,6 +220,31 @@ public class BudgetDocumentService {
     }
 
     /**
+     * Migrate documents from old budget line to new budget line
+     */
+    public void migrateDocuments(Integer oldBudgetId, Integer newBudgetId) throws Exception {
+        List<BudgetDocument> oldDocuments = budgetDocumentRepository.findByBudgetLine_BudgetId(oldBudgetId);
+        
+        if (oldDocuments.isEmpty()) {
+            return; // No documents to migrate
+        }
+        
+        // Get new budget line
+        Optional<BudgetLine> newBudgetLineOpt = budgetLineRepository.findById(newBudgetId);
+        if (!newBudgetLineOpt.isPresent()) {
+            throw new IllegalArgumentException("New budget line not found with ID: " + newBudgetId);
+        }
+        
+        BudgetLine newBudgetLine = newBudgetLineOpt.get();
+        
+        // Migrate each document to the new budget line
+        for (BudgetDocument document : oldDocuments) {
+            document.setBudgetLine(newBudgetLine);
+            budgetDocumentRepository.save(document);
+        }
+    }
+
+    /**
      * Get file content for download
      */
     public byte[] getFileContent(Integer documentId, String tenantId) throws Exception {

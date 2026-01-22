@@ -700,6 +700,14 @@ const { hasAccess } = useAccess(); // Access context
   const handleModalSubmit = (data) => {
     console.log("Budget line operation completed successfully:", data);
     fetchBudgetLineData(); // Refresh the table
+    
+    // Update selectedBudgetLine if it was edited (even if budgetId changed, update with new data)
+    if (selectedBudgetLine && data) {
+      // When editing, backend creates a new budget line with new budgetId
+      // So we need to update selectedBudgetLine with the new data
+      setSelectedBudgetLine(data); // Update with fresh data including new budgetId
+    }
+    
     setIsAddModalOpen(false);
     setIsEditModalOpen(false);
   };

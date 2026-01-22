@@ -568,7 +568,6 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    <DollarSign size={14} className="inline mr-1" />
                     Amount * (Max 2 decimal places)
                   </label>
                   <input

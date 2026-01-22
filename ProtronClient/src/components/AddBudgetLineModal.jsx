@@ -58,6 +58,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
 
     // Multiple documents support (up to 4 files)
     const [documents, setDocuments] = useState([]);
+    const [originalDocuments, setOriginalDocuments] = useState([]); // Track original documents when editing
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -177,6 +178,9 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
             
             console.log('fetchExistingDocuments: Setting documents state with:', documentObjects);
             setDocuments(documentObjects);
+            // Deep copy to ensure originalDocuments is independent
+            setOriginalDocuments(JSON.parse(JSON.stringify(documentObjects)));
+            console.log('fetchExistingDocuments: Original documents stored, count:', documentObjects.length);
             console.log('fetchExistingDocuments: Documents state updated, count:', documentObjects.length);
             
         } catch (error) {
@@ -288,12 +292,14 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                 } else {
                     console.log('useEffect: Not in edit mode, resetting form');
                     handleReset();
+                    setOriginalDocuments([]);
                 }
             });
         } else {
             console.log('useEffect: Modal closed, resetting form');
             // Reset form when modal closes
             handleReset();
+            setOriginalDocuments([]);
         }
     }, [open, isEdit, budgetLine, fetchExistingDocuments, fetchDropdownData]);
 
@@ -451,62 +457,14 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
     const removeDocument = async (index) => {
         const documentToRemove = documents[index];
         
-        if (documentToRemove.isExistingDocument && documentToRemove.existingDocumentId) {
-            // If it's an existing document, delete it from the server
-            try {
-                const token = sessionStorage.getItem('token');
-                await axios.delete(
-                    `${API_BASE_URL}/api/budget-documents/${documentToRemove.existingDocumentId}`,
-                    {
-                        headers: { Authorization: token }
-                    }
-                );
-                console.log('Existing document deleted from server:', documentToRemove.name);
-            } catch (error) {
-                console.error('Error deleting existing document:', error);
-                setSnackbar({
-                    open: true,
-                    message: `Failed to delete document ${documentToRemove.name}. Please try again.`,
-                    severity: 'error'
-                });
-                return; // Don't remove from UI if server deletion failed
-            }
-        }
-        
-        // Remove from local state
+        // Just remove from local state - don't delete from server yet
+        // Deletion will happen on form submit
         setDocuments(prev => prev.filter((_, i) => i !== index));
     };
 
     const removeAllDocuments = async () => {
-        // Delete all existing documents from server first
-        const existingDocs = documents.filter(doc => doc.isExistingDocument && doc.existingDocumentId);
-        
-        if (existingDocs.length > 0) {
-            try {
-                const token = sessionStorage.getItem('token');
-                const deletePromises = existingDocs.map(doc => 
-                    axios.delete(
-                        `${API_BASE_URL}/api/budget-documents/${doc.existingDocumentId}`,
-                        {
-                            headers: { Authorization: token }
-                        }
-                    )
-                );
-                
-                await Promise.all(deletePromises);
-                console.log('All existing documents deleted from server');
-            } catch (error) {
-                console.error('Error deleting existing documents:', error);
-                setSnackbar({
-                    open: true,
-                    message: 'Failed to delete some existing documents. Please try again.',
-                    severity: 'error'
-                });
-                return; // Don't clear if server deletion failed
-            }
-        }
-        
-        // Clear local state
+        // Just clear local state - don't delete from server yet
+        // Deletion will happen on form submit
         setDocuments([]);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -531,24 +489,16 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
             newErrors.budgetName = 'Budget name cannot exceed 200 characters';
         }
 
-        if (!formData.budgetLineItem.trim()) {
-            newErrors.budgetLineItem = 'Budget line item is required';
-        } else if (formData.budgetLineItem.length > 100) {
+        if (formData.budgetLineItem && formData.budgetLineItem.length > 100) {
             newErrors.budgetLineItem = 'Budget line item cannot exceed 100 characters';
         }
 
-        if (!formData.budgetOwner.trim()) {
-            newErrors.budgetOwner = 'Budget owner is required';
-        } else if (formData.budgetOwner.length > 150) {
+        if (formData.budgetOwner && formData.budgetOwner.length > 150) {
             newErrors.budgetOwner = 'Budget owner cannot exceed 150 characters';
         }
 
         if (!formData.amountApproved || parseFloat(formData.amountApproved) <= 0) {
             newErrors.amountApproved = 'Valid approved amount is required';
-        }
-
-        if (!formData.budgetEndDate) {
-            newErrors.budgetEndDate = 'Budget end date is required';
         }
 
         // Length validations for optional fields
@@ -572,9 +522,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
             newErrors.remarks = 'Remarks cannot exceed 500 characters';
         }
 
-     
-
-        // Validate that budget end date is in the future
+        // Validate that budget end date is in the future (only if provided)
         if (formData.budgetEndDate && new Date(formData.budgetEndDate) <= new Date()) {
             newErrors.budgetEndDate = 'Budget end date must be in the future';
         }
@@ -662,21 +610,112 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
             }
 
             // Handle documents for create/update
-            if (documents && documents.length > 0) {
-                const budgetId = isEdit ? budgetLine.budgetId : response.data.budgetId;
+            if (isEdit) {
+                // In edit mode, handle document deletions and uploads
+                // IMPORTANT: Use the NEW budgetId from the response, not the old one
+                const newBudgetId = response.data.budgetId;
+                console.log('Edit mode: Using NEW budgetId for documents:', newBudgetId);
+                console.log('Old budgetId was:', budgetLine.budgetId);
+                
+                // Only proceed with document deletion if we have originalDocuments
+                // This prevents accidental deletion if originalDocuments wasn't set properly
+                if (originalDocuments.length > 0) {
+                    // Find documents that were removed (in original but not in current)
+                    const currentExistingDocIds = documents
+                        .filter(doc => doc.isExistingDocument && doc.existingDocumentId)
+                        .map(doc => doc.existingDocumentId);
+                    
+                    const removedDocuments = originalDocuments.filter(
+                        doc => doc.isExistingDocument && 
+                        doc.existingDocumentId && 
+                        !currentExistingDocIds.includes(doc.existingDocumentId)
+                    );
+                    
+                    console.log('Document deletion check:', {
+                        originalCount: originalDocuments.length,
+                        currentCount: documents.length,
+                        currentExistingCount: currentExistingDocIds.length,
+                        removedCount: removedDocuments.length,
+                        removedIds: removedDocuments.map(d => d.existingDocumentId)
+                    });
+                    
+                    // Safety check: Don't delete if it seems like all documents would be deleted unexpectedly
+                    // This prevents accidental mass deletion
+                    if (removedDocuments.length === originalDocuments.length && originalDocuments.length > 0 && documents.length === 0) {
+                        console.warn('Safety check: Preventing deletion of all documents. User may have accidentally cleared all documents.');
+                        setSnackbar({
+                            open: true,
+                            message: 'Cannot delete all documents at once. Please keep at least one document or add new ones before removing existing ones.',
+                            severity: 'warning'
+                        });
+                        // Don't proceed with deletion in this case
+                    } else if (removedDocuments.length > 0) {
+                        // Delete removed documents from server using NEW budgetId
+                        try {
+                            const token = sessionStorage.getItem('token');
+                            const deletePromises = removedDocuments.map(doc => 
+                                axios.delete(
+                                    `${API_BASE_URL}/api/budget-documents/${doc.existingDocumentId}`,
+                                    {
+                                        headers: { Authorization: token }
+                                    }
+                                )
+                            );
+                            await Promise.all(deletePromises);
+                            console.log('Removed documents deleted from server:', removedDocuments.length);
+                        } catch (error) {
+                            console.error('Error deleting removed documents:', error);
+                            setSnackbar({
+                                open: true,
+                                message: 'Budget line updated but some documents failed to delete. Please try again.',
+                                severity: 'warning'
+                            });
+                        }
+                    }
+                } else {
+                    console.log('Warning: originalDocuments is empty, skipping document deletion to prevent accidental data loss');
+                }
+                
+                // Upload new documents (not existing ones) using NEW budgetId
+                const newDocuments = documents.filter(doc => !doc.isExistingDocument);
+                if (newDocuments.length > 0) {
+                    try {
+                        for (const document of newDocuments) {
+                            const formData = new FormData();
+                            formData.append('file', document);
+                            formData.append('description', document.name || '');
+
+                            console.log('Uploading new document:', document.name, 'to NEW budgetId:', newBudgetId);
+                            const uploadResponse = await axios.post(
+                                `${API_BASE_URL}/api/budget-documents/upload/${newBudgetId}`,
+                                formData,
+                                {
+                                    headers: {
+                                        Authorization: sessionStorage.getItem("token"),
+                                        "Content-Type": "multipart/form-data"
+                                    }
+                                }
+                            );
+                            console.log('Document upload response:', uploadResponse.data);
+                        }
+                        console.log('All new documents uploaded successfully');
+                    } catch (uploadError) {
+                        console.error('Error uploading documents:', uploadError);
+                        setSnackbar({
+                            open: true,
+                            message: 'Budget line updated but some documents failed to upload. You can upload them later.',
+                            severity: 'warning'
+                        });
+                    }
+                }
+            } else if (documents && documents.length > 0) {
+                // Create mode - upload all documents
+                const budgetId = response.data.budgetId;
                 console.log('Documents to process:', documents.length);
                 console.log('Budget ID for documents:', budgetId);
                 
                 try {
                     for (const document of documents) {
-                        console.log('Processing document:', document.name, 'Size:', document.size, 'Is existing:', document.isExistingDocument);
-                        
-                        if (document.isExistingDocument) {
-                            // Skip existing documents - they're already uploaded
-                            console.log('Skipping existing document:', document.name);
-                            continue;
-                        }
-                        
                         // Upload new documents
                         const formData = new FormData();
                         formData.append('file', document);
@@ -698,12 +737,10 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                     console.log('All new documents uploaded successfully');
                 } catch (uploadError) {
                     console.error('Error uploading documents:', uploadError);
-                    console.error('Upload error response:', uploadError.response?.data);
-                    // Don't fail the entire operation if document upload fails
-            setSnackbar({
-                open: true,
-                        message: `${isEdit ? 'Budget line updated' : 'Budget line created'} but some documents failed to upload. You can upload them later.`,
-                        severity: "warning"
+                    setSnackbar({
+                        open: true,
+                        message: 'Budget line created but some documents failed to upload. You can upload them later.',
+                        severity: 'warning'
                     });
                 }
             } else {
@@ -768,6 +805,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
         });
         setErrors({});
         setDocuments([]);
+        setOriginalDocuments([]); // Reset original documents
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -864,7 +902,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Budget Line Item *
+                                    Budget Line Item
                                 </label>
                                 <input
                                     type="text"
@@ -881,7 +919,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Budget End Date *
+                                    Budget End Date
                                 </label>
                                 <div
                                     onClick={handleDateInputClick}
@@ -903,7 +941,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                             </div>
                             <div className="col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Budget Owner * 
+                                    Budget Owner 
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
                                 </label>
                                 <div className="relative">

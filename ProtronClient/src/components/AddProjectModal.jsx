@@ -308,13 +308,36 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                     {/* Header */}
                     <div className="bg-gray-50 border-b border-gray-200 py-4 px-6 flex justify-between items-center">
                         <h1 className="text-xl font-semibold text-green-600">Add New Initiative</h1>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-gray-200 rounded-full transition-colors cursor-pointer"
-                            disabled={isSubmitting}
-                        >
-                            <X className="w-5 h-5 text-gray-600" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={onClose}
+                                disabled={isSubmitting}
+                                className="px-4 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isSubmitting}
+                                className="px-6 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-semibold flex items-center justify-center min-w-[140px] cursor-pointer text-sm"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                                        Creating...
+                                    </>
+                                ) : (
+                                    'Create Initiative'
+                                )}
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="p-2 hover:bg-gray-200 rounded-full transition-colors cursor-pointer"
+                                disabled={isSubmitting}
+                            >
+                                <X className="w-5 h-5 text-gray-600" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Content */}
