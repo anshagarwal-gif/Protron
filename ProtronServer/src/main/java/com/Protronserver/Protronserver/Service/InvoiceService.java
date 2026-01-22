@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
+import com.Protronserver.Protronserver.Entities.Tenant;
+import com.Protronserver.Protronserver.Repository.TenantRepository;
 import java.util.HashMap;
 
 @Service
@@ -47,6 +49,9 @@ public class InvoiceService {
 
     @Autowired
     private LoggedInUserUtils loggedInUserUtils;
+
+    @Autowired
+    private TenantRepository tenantRepository;
 
     /**
      * Generates a custom invoice ID in format: INV-MMDDYYYY-100001
@@ -105,7 +110,8 @@ public class InvoiceService {
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
             invoice.setSupplierInfo(requestDTO.getSupplierInfo());
             invoice.setCustomerName(requestDTO.getCustomerName());
-            // Map new billTo/shipTo fields; for backward compatibility populate customerAddress with billTo
+            // Map new billTo/shipTo fields; for backward compatibility populate
+            // customerAddress with billTo
             invoice.setBillToAddress(requestDTO.getBillToAddress());
             invoice.setShipToAddress(requestDTO.getShipToAddress());
             invoice.setCustomerAddress(requestDTO.getBillToAddress());
@@ -132,7 +138,8 @@ public class InvoiceService {
 
             // Generate PDF
             InvoiceRequestDTO.TimesheetDataDTO timesheetToUse = null;
-            if (requestDTO.getTimesheetData() != null && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
+            if (requestDTO.getTimesheetData() != null
+                    && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
                 timesheetToUse = requestDTO.getTimesheetData();
             }
             byte[] pdfBytes = generateInvoicePDF(invoice, timesheetToUse);
@@ -175,7 +182,8 @@ public class InvoiceService {
             invoice.setCustomerName(requestDTO.getCustomerName());
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
             invoice.setSupplierInfo(requestDTO.getSupplierInfo());
-            // Map new billTo/shipTo fields; populate customerAddress for backward compatibility
+            // Map new billTo/shipTo fields; populate customerAddress for backward
+            // compatibility
             invoice.setBillToAddress(requestDTO.getBillToAddress());
             invoice.setShipToAddress(requestDTO.getShipToAddress());
             invoice.setCustomerAddress(requestDTO.getBillToAddress());
@@ -205,7 +213,8 @@ public class InvoiceService {
 
             // Generate PDF
             InvoiceRequestDTO.TimesheetDataDTO timesheetToUse = null;
-            if (requestDTO.getTimesheetData() != null && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
+            if (requestDTO.getTimesheetData() != null
+                    && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
                 timesheetToUse = requestDTO.getTimesheetData();
             }
             byte[] pdfBytes = generateInvoicePDF(invoice, timesheetToUse);
@@ -414,18 +423,18 @@ public class InvoiceService {
         detailsTable.addCell(new Phrase("Customer Name: " + invoice.getCustomerName(), normalFont));
         detailsTable.addCell(new Phrase("Supplier Name: " + invoice.getSupplierName(), normalFont));
         detailsTable.addCell(new Phrase(
-            "Bill To Address: " + (invoice.getBillToAddress() != null ? invoice.getBillToAddress() : ""),
-            normalFont));
+                "Bill To Address: " + (invoice.getBillToAddress() != null ? invoice.getBillToAddress() : ""),
+                normalFont));
         detailsTable.addCell(new Phrase(
-            "Ship To Address: " + (invoice.getShipToAddress() != null ? invoice.getShipToAddress() : ""),
-            normalFont));
+                "Ship To Address: " + (invoice.getShipToAddress() != null ? invoice.getShipToAddress() : ""),
+                normalFont));
         // Additional info under addresses
         detailsTable.addCell(new Phrase(
-            "Customer Info: " + (invoice.getCustomerInfo() != null ? invoice.getCustomerInfo() : ""),
-            normalFont));
+                "Customer Info: " + (invoice.getCustomerInfo() != null ? invoice.getCustomerInfo() : ""),
+                normalFont));
         detailsTable.addCell(new Phrase(
-            "Supplier Info: " + (invoice.getSupplierInfo() != null ? invoice.getSupplierInfo() : ""),
-            normalFont));
+                "Supplier Info: " + (invoice.getSupplierInfo() != null ? invoice.getSupplierInfo() : ""),
+                normalFont));
 
         document.add(detailsTable);
 
@@ -554,6 +563,9 @@ public class InvoiceService {
             addTimesheetSection(document, timesheetData, headerFont, normalFont, smallFont);
         }
 
+        // Add footer with contact information
+        addContactFooter(document, invoice.getTenantId(), smallFont);
+
         document.close();
         return baos.toByteArray();
     }
@@ -592,17 +604,17 @@ public class InvoiceService {
 
         // Customer details - Handle null values (Bill To / Ship To)
         detailsTable.addCell(new Phrase("Customer Name: " +
-            (invoiceData.get("customerName") != null ? invoiceData.get("customerName").toString() : ""),
-            normalFont));
+                (invoiceData.get("customerName") != null ? invoiceData.get("customerName").toString() : ""),
+                normalFont));
         detailsTable.addCell(new Phrase("Supplier Name: " +
-            (invoiceData.get("supplierName") != null ? invoiceData.get("supplierName").toString() : ""),
-            normalFont));
+                (invoiceData.get("supplierName") != null ? invoiceData.get("supplierName").toString() : ""),
+                normalFont));
         detailsTable.addCell(new Phrase("Bill To Address: " +
-            (invoiceData.get("billToAddress") != null ? invoiceData.get("billToAddress").toString() : ""),
-            normalFont));
+                (invoiceData.get("billToAddress") != null ? invoiceData.get("billToAddress").toString() : ""),
+                normalFont));
         detailsTable.addCell(new Phrase("Ship To Address: " +
-            (invoiceData.get("shipToAddress") != null ? invoiceData.get("shipToAddress").toString() : ""),
-            normalFont));
+                (invoiceData.get("shipToAddress") != null ? invoiceData.get("shipToAddress").toString() : ""),
+                normalFont));
 
         // Additional info under addresses
         detailsTable.addCell(new Phrase("Customer Info: " +
@@ -790,6 +802,14 @@ public class InvoiceService {
                 document.newPage();
                 addTimesheetSectionFromMap(document, tsData, headerFont, normalFont, smallFont);
             }
+        }
+
+        // Add footer with contact information
+        try {
+            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+            addContactFooter(document, tenantId, smallFont);
+        } catch (Exception e) {
+            log.warn("Failed to add contact footer to preview PDF: {}", e.getMessage());
         }
 
         document.close();
@@ -1125,27 +1145,39 @@ public class InvoiceService {
 
     // Convert a BigDecimal amount into words with simple currency handling
     private String convertAmountToWords(java.math.BigDecimal amount, String currency) {
-        if (amount == null) return "";
+        if (amount == null)
+            return "";
         java.math.BigDecimal abs = amount.abs();
         long whole = abs.longValue();
-        int fraction = abs.subtract(new java.math.BigDecimal(whole)).movePointRight(2).setScale(0, java.math.RoundingMode.HALF_UP).intValue();
+        int fraction = abs.subtract(new java.math.BigDecimal(whole)).movePointRight(2)
+                .setScale(0, java.math.RoundingMode.HALF_UP).intValue();
 
         String majorName;
         String minorName;
         switch (currency == null ? "" : currency) {
             case "INR":
-                majorName = "Rupee"; minorName = "Paise"; break;
+                majorName = "Rupee";
+                minorName = "Paise";
+                break;
             case "EUR":
-                majorName = "Euro"; minorName = "Cent"; break;
+                majorName = "Euro";
+                minorName = "Cent";
+                break;
             case "GBP":
-                majorName = "Pound"; minorName = "Pence"; break;
+                majorName = "Pound";
+                minorName = "Pence";
+                break;
             case "JPY":
-                majorName = "Yen"; minorName = "Sen"; break;
+                majorName = "Yen";
+                minorName = "Sen";
+                break;
             case "CAD":
             case "AUD":
             case "USD":
             default:
-                majorName = "Dollar"; minorName = "Cent"; break;
+                majorName = "Dollar";
+                minorName = "Cent";
+                break;
         }
 
         String words = numberToWords(whole) + " " + (whole == 1 ? majorName : (majorName + "s"));
@@ -1156,39 +1188,48 @@ public class InvoiceService {
     }
 
     private String numberToWords(long n) {
-        if (n == 0) return "Zero";
-        if (n < 0) return "Minus " + numberToWords(-n);
+        if (n == 0)
+            return "Zero";
+        if (n < 0)
+            return "Minus " + numberToWords(-n);
 
-        String[] units = {"","One","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Eleven","Twelve","Thirteen","Fourteen","Fifteen","Sixteen","Seventeen","Eighteen","Nineteen"};
-        String[] tens = {"","","Twenty","Thirty","Forty","Fifty","Sixty","Seventy","Eighty","Ninety"};
+        String[] units = { "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven",
+                "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen" };
+        String[] tens = { "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety" };
 
         StringBuilder sb = new StringBuilder();
 
         if (n / 1000000000 > 0) {
             sb.append(numberToWords(n / 1000000000)).append(" Billion");
             n %= 1000000000;
-            if (n > 0) sb.append(" ");
+            if (n > 0)
+                sb.append(" ");
         }
         if (n / 1000000 > 0) {
             sb.append(numberToWords(n / 1000000)).append(" Million");
             n %= 1000000;
-            if (n > 0) sb.append(" ");
+            if (n > 0)
+                sb.append(" ");
         }
         if (n / 1000 > 0) {
             sb.append(numberToWords(n / 1000)).append(" Thousand");
             n %= 1000;
-            if (n > 0) sb.append(" ");
+            if (n > 0)
+                sb.append(" ");
         }
         if (n / 100 > 0) {
             sb.append(numberToWords(n / 100)).append(" Hundred");
             n %= 100;
-            if (n > 0) sb.append(" ");
+            if (n > 0)
+                sb.append(" ");
         }
         if (n > 0) {
-            if (n < 20) sb.append(units[(int)n]);
+            if (n < 20)
+                sb.append(units[(int) n]);
             else {
-                sb.append(tens[(int)(n/10)]);
-                if (n%10 > 0) sb.append(" ").append(units[(int)(n%10)]);
+                sb.append(tens[(int) (n / 10)]);
+                if (n % 10 > 0)
+                    sb.append(" ").append(units[(int) (n % 10)]);
             }
         }
         return sb.toString();
@@ -1426,6 +1467,97 @@ public class InvoiceService {
         } catch (Exception e) {
             log.error("Error retrieving projects for invoice: {}", e.getMessage(), e);
             return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Add contact information footer to PDF document using real tenant data
+     */
+    private void addContactFooter(Document document, Long tenantId, Font font) throws DocumentException {
+        try {
+            if (tenantId == null) {
+                log.warn("Tenant ID is null, cannot add contact footer");
+                return;
+            }
+
+            // Fetch real tenant data from database
+            Optional<Tenant> tenantOpt = tenantRepository.findById(tenantId);
+            if (!tenantOpt.isPresent()) {
+                log.warn("Tenant not found for ID: {}, cannot add contact footer", tenantId);
+                return;
+            }
+
+            Tenant tenant = tenantOpt.get();
+            log.debug("Adding contact footer for tenant ID: {}, Name: {}", tenantId, tenant.getTenantName());
+            
+            // Build contact information from real tenant data
+            StringBuilder contactInfo = new StringBuilder();
+            
+            // Contact Name - from tenant_contact_name
+            if (tenant.getTenantContactName() != null && !tenant.getTenantContactName().trim().isEmpty()) {
+                contactInfo.append("Contact Name: ").append(tenant.getTenantContactName().trim());
+            }
+            
+            // Email - from tenant_contact_email
+            if (tenant.getTenantContactEmail() != null && !tenant.getTenantContactEmail().trim().isEmpty()) {
+                if (contactInfo.length() > 0) {
+                    contactInfo.append(" | ");
+                }
+                contactInfo.append("Email: ").append(tenant.getTenantContactEmail().trim());
+            }
+            
+            // Contact Number - from tenant_contact_phone
+            if (tenant.getTenantContactPhone() != null && !tenant.getTenantContactPhone().trim().isEmpty()) {
+                if (contactInfo.length() > 0) {
+                    contactInfo.append(" | ");
+                }
+                contactInfo.append("Contact Number: ").append(tenant.getTenantContactPhone().trim());
+            }
+            
+            // Mailing Address - from tenant_address_line1, line2, line3, and postal_code
+            StringBuilder address = new StringBuilder();
+            if (tenant.getTenantAddressLine1() != null && !tenant.getTenantAddressLine1().trim().isEmpty()) {
+                address.append(tenant.getTenantAddressLine1().trim());
+            }
+            if (tenant.getTenantAddressLine2() != null && !tenant.getTenantAddressLine2().trim().isEmpty()) {
+                if (address.length() > 0) {
+                    address.append(", ");
+                }
+                address.append(tenant.getTenantAddressLine2().trim());
+            }
+            if (tenant.getTenantAddressLine3() != null && !tenant.getTenantAddressLine3().trim().isEmpty()) {
+                if (address.length() > 0) {
+                    address.append(", ");
+                }
+                address.append(tenant.getTenantAddressLine3().trim());
+            }
+            if (tenant.getTenantAddressPostalCode() != null && !tenant.getTenantAddressPostalCode().trim().isEmpty()) {
+                if (address.length() > 0) {
+                    address.append(", ");
+                }
+                address.append(tenant.getTenantAddressPostalCode().trim());
+            }
+            
+            if (address.length() > 0) {
+                if (contactInfo.length() > 0) {
+                    contactInfo.append(" | ");
+                }
+                contactInfo.append("Mailing Address: ").append(address.toString());
+            }
+            
+            // Only add footer if there's real contact information from database
+            if (contactInfo.length() > 0) {
+                Paragraph footer = new Paragraph(contactInfo.toString(), font);
+                footer.setAlignment(Element.ALIGN_CENTER);
+                footer.setSpacingBefore(20);
+                document.add(footer);
+                log.debug("Contact footer added successfully with {} characters", contactInfo.length());
+            } else {
+                log.warn("No contact information found for tenant ID: {}, footer not added", tenantId);
+            }
+        } catch (Exception e) {
+            log.error("Failed to add contact footer for tenant ID {}: {}", tenantId, e.getMessage(), e);
+            // Don't throw exception, just log error - PDF generation should continue
         }
     }
 }
