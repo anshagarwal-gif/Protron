@@ -58,12 +58,6 @@ public class Invoice {
     private String supplierAddress;
 
     @Column(nullable = false)
-    private String employeeName;
-
-    @Column(columnDefinition = "TEXT")
-    private String employeeNames; // comma-separated employee names for multi-employee invoices
-
-    @Column(nullable = false)
     private BigDecimal rate;
 
     @Column(nullable = false)
@@ -95,6 +89,12 @@ public class Invoice {
     private boolean deleted = false;
     private LocalDateTime deletedAt;
 
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InvoiceItem> invoiceItems = new ArrayList<>();
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InvoiceEmployee> invoiceEmployees = new ArrayList<>();
+
     // Attachments - storing up to 4 attachments
     @Lob
     @Column(columnDefinition = "LONGBLOB")
@@ -103,6 +103,8 @@ public class Invoice {
     private String attachment1FileName;
 
     private String attachment1ContentType;
+
+    private String country;
 
     @Lob
     @Column(columnDefinition = "LONGBLOB")
@@ -176,6 +178,22 @@ public class Invoice {
         if (attachment4FileName != null)
             fileNames.add(attachment4FileName);
         return fileNames;
+    }
+
+    public List<InvoiceItem> getInvoiceItems() {
+        return invoiceItems;
+    }
+
+    public void setInvoiceItems(List<InvoiceItem> invoiceItems) {
+        this.invoiceItems = invoiceItems;
+    }
+
+    public List<InvoiceEmployee> getInvoiceEmployees() {
+        return invoiceEmployees;
+    }
+
+    public void setInvoiceEmployees(List<InvoiceEmployee> invoiceEmployees) {
+        this.invoiceEmployees = invoiceEmployees;
     }
 
     public Long getTenantId() {
@@ -272,22 +290,6 @@ public class Invoice {
 
     public void setSupplierAddress(String supplierAddress) {
         this.supplierAddress = supplierAddress;
-    }
-
-    public String getEmployeeName() {
-        return employeeName;
-    }
-
-    public void setEmployeeName(String employeeName) {
-        this.employeeName = employeeName;
-    }
-
-    public String getEmployeeNames() {
-        return employeeNames;
-    }
-
-    public void setEmployeeNames(String employeeNames) {
-        this.employeeNames = employeeNames;
     }
 
     public BigDecimal getRate() {

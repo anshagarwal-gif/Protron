@@ -1,5 +1,7 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
+import com.Protronserver.Protronserver.DTO.InvoiceItemDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -7,6 +9,7 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -36,9 +39,6 @@ public class InvoiceRequestDTO {
 
     private String supplierAddress;
 
-    @Size(max = 100, message = "Employee name must not exceed 100 characters")
-    private String employeeName;
-
     @NotNull(message = "Rate is required")
     @DecimalMin(value = "0.01", message = "Rate must be greater than 0")
     private BigDecimal rate;
@@ -65,9 +65,12 @@ public class InvoiceRequestDTO {
     @Size(max = 200, message = "Project name must not exceed 200 characters")
     private String projectName;
 
-    private java.util.List<String> employeeNames;
-
     private TimesheetDataDTO timesheetData;
+
+    private List<InvoiceItemDTO> items;
+    private List<InvoiceEmployeeDTO> employees;
+
+    private String country;
 
     @Data
     @NoArgsConstructor
@@ -280,6 +283,14 @@ public class InvoiceRequestDTO {
         this.customerName = customerName;
     }
 
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
     public String getCustomerAddress() {
         return customerAddress;
     }
@@ -319,14 +330,6 @@ public class InvoiceRequestDTO {
 
     public void setSupplierAddress(String supplierAddress) {
         this.supplierAddress = supplierAddress;
-    }
-
-    public String getEmployeeName() {
-        return employeeName;
-    }
-
-    public void setEmployeeName(String employeeName) {
-        this.employeeName = employeeName;
     }
 
     public @NotNull(message = "Rate is required") @DecimalMin(value = "0.01", message = "Rate must be greater than 0") BigDecimal getRate() {
@@ -405,17 +408,24 @@ public class InvoiceRequestDTO {
         this.timesheetData = timesheetData;
     }
 
-    public java.util.List<String> getEmployeeNames() {
-        return employeeNames;
-    }
-
-    public void setEmployeeNames(java.util.List<String> employeeNames) {
-        this.employeeNames = employeeNames;
-    }
-
     // Helper method to check if timesheet data is included
     public boolean hasTimesheetData() {
         return timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty();
     }
 
+    public List<InvoiceItemDTO> getItems() {
+        return items;
+    }
+
+    public void setItems(List<InvoiceItemDTO> items) {
+        this.items = items;
+    }
+
+    public List<InvoiceEmployeeDTO> getEmployees() {
+        return employees;
+    }
+
+    public void setEmployees(List<InvoiceEmployeeDTO> employees) {
+        this.employees = employees;
+    }
 }

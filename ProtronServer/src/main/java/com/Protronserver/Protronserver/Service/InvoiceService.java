@@ -1,7 +1,9 @@
 package com.Protronserver.Protronserver.Service;
 
+import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
+import com.Protronserver.Protronserver.DTO.InvoiceItemDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
-import com.Protronserver.Protronserver.Entities.Invoice;
+import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.InvoiceRepository;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
@@ -30,9 +32,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
-import com.Protronserver.Protronserver.Entities.Tenant;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
 import java.util.HashMap;
 
@@ -93,16 +93,14 @@ public class InvoiceService {
 
             Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
 
-            // Calculate total amount if not provided
             BigDecimal totalAmount = requestDTO.getTotalAmount();
             if (totalAmount == null) {
-                totalAmount = requestDTO.getRate().multiply(new BigDecimal(requestDTO.getHoursSpent()));
+                totalAmount = requestDTO.getRate()
+                        .multiply(BigDecimal.valueOf(requestDTO.getHoursSpent()));
             }
 
-            // Create invoice entity
             Invoice invoice = new Invoice();
 
-            // Generate custom invoice ID
             String customInvoiceId = generateInvoiceId();
             invoice.setInvoiceId(customInvoiceId);
             invoice.setTenantId(tenantId);
@@ -110,22 +108,11 @@ public class InvoiceService {
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
             invoice.setSupplierInfo(requestDTO.getSupplierInfo());
             invoice.setCustomerName(requestDTO.getCustomerName());
-            // Map new billTo/shipTo fields; for backward compatibility populate
-            // customerAddress with billTo
             invoice.setBillToAddress(requestDTO.getBillToAddress());
             invoice.setShipToAddress(requestDTO.getShipToAddress());
             invoice.setCustomerAddress(requestDTO.getBillToAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
             invoice.setSupplierAddress(requestDTO.getSupplierAddress());
-            // Support multiple employees: prefer employeeNames list when provided
-            if (requestDTO.getEmployeeNames() != null && !requestDTO.getEmployeeNames().isEmpty()) {
-                // store comma-separated names in the single column for backward compatibility
-                invoice.setEmployeeName(String.join(", ", requestDTO.getEmployeeNames()));
-                invoice.setEmployeeNames(String.join(",", requestDTO.getEmployeeNames()));
-            } else {
-                invoice.setEmployeeName(requestDTO.getEmployeeName());
-                invoice.setEmployeeNames(requestDTO.getEmployeeName() != null ? requestDTO.getEmployeeName() : null);
-            }
             invoice.setRate(requestDTO.getRate());
             invoice.setCurrency(requestDTO.getCurrency());
             invoice.setFromDate(requestDTO.getFromDate());
@@ -135,18 +122,60 @@ public class InvoiceService {
             invoice.setRemarks(requestDTO.getRemarks());
             invoice.setProjectName(requestDTO.getProjectName());
             invoice.setCreatedAt(LocalDateTime.now());
+            invoice.setCountry(requestDTO.getCountry());
+            // =========================
+            // MAP ITEMS
+            // =========================
+            if (requestDTO.getItems() != null && !requestDTO.getItems().isEmpty()) {
+                List<InvoiceItem> itemEntities = new ArrayList<>();
 
-            // Generate PDF
-            InvoiceRequestDTO.TimesheetDataDTO timesheetToUse = null;
-            if (requestDTO.getTimesheetData() != null
-                    && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
-                timesheetToUse = requestDTO.getTimesheetData();
+                for (InvoiceItemDTO itemDTO : requestDTO.getItems()) {
+                    InvoiceItem item = new InvoiceItem();
+                    item.setInvoice(invoice); // IMPORTANT
+                    item.setItemDesc(itemDTO.getItemDesc());
+                    item.setRate(itemDTO.getRate());
+                    item.setQuantity(itemDTO.getQuantity());
+                    item.setAmount(itemDTO.getAmount());
+                    item.setRemarks(itemDTO.getRemarks());
+                    item.setLastUpdatedDate(LocalDateTime.now());
+                    item.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
+
+                    itemEntities.add(item);
+                }
+
+                invoice.setInvoiceItems(itemEntities);
             }
-            byte[] pdfBytes = generateInvoicePDF(invoice, timesheetToUse);
+
+            // =========================
+            // MAP EMPLOYEES
+            // =========================
+            if (requestDTO.getEmployees() != null && !requestDTO.getEmployees().isEmpty()) {
+                List<InvoiceEmployee> employeeEntities = new ArrayList<>();
+
+                for (InvoiceEmployeeDTO empDTO : requestDTO.getEmployees()) {
+                    InvoiceEmployee emp = new InvoiceEmployee();
+                    emp.setInvoice(invoice); // IMPORTANT
+                    emp.setItemDesc(empDTO.getItemDesc());
+                    emp.setRate(empDTO.getRate());
+                    emp.setQuantity(empDTO.getQuantity());
+                    emp.setAmount(empDTO.getAmount());
+                    emp.setRemarks(empDTO.getRemarks());
+                    emp.setLastUpdatedDate(LocalDateTime.now());
+                    emp.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
+
+                    employeeEntities.add(emp);
+                }
+
+                invoice.setInvoiceEmployees(employeeEntities);
+            }
+
+            // =========================
+            // PDF
+            // =========================
+            byte[] pdfBytes = generateInvoicePDF(invoice, requestDTO.getTimesheetData());
             invoice.setPdfData(pdfBytes);
             invoice.setPdfFileName(customInvoiceId + ".pdf");
 
-            // Save to database
             Invoice savedInvoice = invoiceRepository.save(invoice);
 
             log.info("Invoice created successfully with ID: {}", savedInvoice.getInvoiceId());
@@ -182,6 +211,7 @@ public class InvoiceService {
             invoice.setCustomerName(requestDTO.getCustomerName());
             invoice.setCustomerInfo(requestDTO.getCustomerInfo());
             invoice.setSupplierInfo(requestDTO.getSupplierInfo());
+            invoice.setCountry(requestDTO.getCountry());
             // Map new billTo/shipTo fields; populate customerAddress for backward
             // compatibility
             invoice.setBillToAddress(requestDTO.getBillToAddress());
@@ -189,12 +219,50 @@ public class InvoiceService {
             invoice.setCustomerAddress(requestDTO.getBillToAddress());
             invoice.setSupplierName(requestDTO.getSupplierName());
             invoice.setSupplierAddress(requestDTO.getSupplierAddress());
-            if (requestDTO.getEmployeeNames() != null && !requestDTO.getEmployeeNames().isEmpty()) {
-                invoice.setEmployeeName(String.join(", ", requestDTO.getEmployeeNames()));
-                invoice.setEmployeeNames(String.join(",", requestDTO.getEmployeeNames()));
-            } else {
-                invoice.setEmployeeName(requestDTO.getEmployeeName());
-                invoice.setEmployeeNames(requestDTO.getEmployeeName() != null ? requestDTO.getEmployeeName() : null);
+            // =========================
+            // MAP ITEMS
+            // =========================
+            if (requestDTO.getItems() != null && !requestDTO.getItems().isEmpty()) {
+                List<InvoiceItem> itemEntities = new ArrayList<>();
+
+                for (InvoiceItemDTO itemDTO : requestDTO.getItems()) {
+                    InvoiceItem item = new InvoiceItem();
+                    item.setInvoice(invoice); // IMPORTANT
+                    item.setItemDesc(itemDTO.getItemDesc());
+                    item.setRate(itemDTO.getRate());
+                    item.setQuantity(itemDTO.getQuantity());
+                    item.setAmount(itemDTO.getAmount());
+                    item.setRemarks(itemDTO.getRemarks());
+                    item.setLastUpdatedDate(LocalDateTime.now());
+                    item.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
+
+                    itemEntities.add(item);
+                }
+
+                invoice.setInvoiceItems(itemEntities);
+            }
+
+            // =========================
+            // MAP EMPLOYEES
+            // =========================
+            if (requestDTO.getEmployees() != null && !requestDTO.getEmployees().isEmpty()) {
+                List<InvoiceEmployee> employeeEntities = new ArrayList<>();
+
+                for (InvoiceEmployeeDTO empDTO : requestDTO.getEmployees()) {
+                    InvoiceEmployee emp = new InvoiceEmployee();
+                    emp.setInvoice(invoice); // IMPORTANT
+                    emp.setItemDesc(empDTO.getItemDesc());
+                    emp.setRate(empDTO.getRate());
+                    emp.setQuantity(empDTO.getQuantity());
+                    emp.setAmount(empDTO.getAmount());
+                    emp.setRemarks(empDTO.getRemarks());
+                    emp.setLastUpdatedDate(LocalDateTime.now());
+                    emp.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
+
+                    employeeEntities.add(emp);
+                }
+
+                invoice.setInvoiceEmployees(employeeEntities);
             }
             invoice.setRate(requestDTO.getRate());
             invoice.setCurrency(requestDTO.getCurrency());
@@ -214,7 +282,7 @@ public class InvoiceService {
             // Generate PDF
             InvoiceRequestDTO.TimesheetDataDTO timesheetToUse = null;
             if (requestDTO.getTimesheetData() != null
-                    && (requestDTO.getEmployeeNames() == null || requestDTO.getEmployeeNames().size() <= 1)) {
+                    && (requestDTO.getEmployees() == null || requestDTO.getEmployees().size() <= 1)) {
                 timesheetToUse = requestDTO.getTimesheetData();
             }
             byte[] pdfBytes = generateInvoicePDF(invoice, timesheetToUse);
@@ -387,6 +455,15 @@ public class InvoiceService {
                 .collect(Collectors.toList());
     }
 
+    private void addHeaderCell(PdfPTable table, String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setPadding(8);
+        cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        table.addCell(cell);
+    }
+
     private byte[] generateInvoicePDF(Invoice invoice, InvoiceRequestDTO.TimesheetDataDTO timesheetData)
             throws DocumentException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -413,6 +490,10 @@ public class InvoiceService {
         String createdAtFormatted = formatLocalDateTimeWithSuffix(invoice.getCreatedAt());
         document.add(new Paragraph("Created At: " + createdAtFormatted, normalFont));
         document.add(new Paragraph(" "));
+        document.add(new Paragraph(
+                "Country: " + (invoice.getCountry() != null ? invoice.getCountry() : ""),
+                normalFont
+        ));
 
         // Customer and Supplier details table
         PdfPTable detailsTable = new PdfPTable(2);
@@ -438,112 +519,69 @@ public class InvoiceService {
 
         document.add(detailsTable);
 
-        // Work details table
-        PdfPTable workTable = new PdfPTable(2);
-        workTable.setWidthPercentage(100);
-        workTable.setSpacingAfter(20);
+        // ==================== ITEMS & EMPLOYEES TABLE ====================
+        PdfPTable table = new PdfPTable(5);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(20);
+        table.setWidths(new float[]{4f, 2f, 2f, 3f, 4f});
 
-        workTable.addCell(new Phrase("Employee Name:", normalFont));
-        workTable.addCell(new Phrase(invoice.getEmployeeName(), normalFont));
-        workTable.addCell(new Phrase("Rate:", normalFont));
-        workTable.addCell(new Phrase(invoice.getCurrency() + " " + invoice.getRate().toString(), normalFont));
-        workTable.addCell(new Phrase("From Date:", normalFont));
-        workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getFromDate()), normalFont));
-        workTable.addCell(new Phrase("To Date:", normalFont));
-        workTable.addCell(new Phrase(formatDateWithSuffix(invoice.getToDate()), normalFont));
-        workTable.addCell(new Phrase("Project Name:", normalFont));
-        workTable.addCell(new Phrase(invoice.getProjectName() != null ? invoice.getProjectName() : "N/A", normalFont));
+// Fonts already defined above
+// headerFont, normalFont
 
-        document.add(workTable);
+// -------- HEADER ROW --------
+        addHeaderCell(table, "Item Description", headerFont);
+        addHeaderCell(table, "Rate", headerFont);
+        addHeaderCell(table, "Quantity", headerFont);
+        addHeaderCell(table, "Amount (" + invoice.getCurrency() + ")", headerFont);
+        addHeaderCell(table, "Remarks", headerFont);
 
-        // Attachments info
-        // ==================== REMARKS TABLE ====================
-        PdfPTable remarksTable = new PdfPTable(2);
-        remarksTable.setWidthPercentage(100);
-        remarksTable.setWidths(new float[] { 8f, 2f });
-        remarksTable.setLockedWidth(false); // allow width to be % based
-        remarksTable.setSplitLate(false); // ensure footer stays on same page
-        remarksTable.setKeepTogether(true); // try to keep table together on one page
-
-        // --- HEADER ---
-        PdfPCell h1 = new PdfPCell(new Phrase("Item Description", headerFont));
-        h1.setHorizontalAlignment(Element.ALIGN_CENTER);
-        h1.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        h1.setPadding(8);
-        h1.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        h1.setBorder(Rectangle.BOX);
-        h1.setFixedHeight(35f); // Fixed header height
-        remarksTable.addCell(h1);
-
-        PdfPCell h2 = new PdfPCell(new Phrase("Amount", headerFont));
-        h2.setHorizontalAlignment(Element.ALIGN_CENTER);
-        h2.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        h2.setPadding(8);
-        h2.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        h2.setBorder(Rectangle.BOX);
-        h2.setFixedHeight(35f); // Fixed header height
-        remarksTable.addCell(h2);
-
-        // --- DATA ROW ---
-        String description = (invoice.getEmployeeName() != null ? invoice.getEmployeeName() : "");
-
-        if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
-            description += "\n" + invoice.getRemarks();
+// -------- DATA ROWS (ITEMS) --------
+        if (invoice.getInvoiceItems() != null) {
+            for (InvoiceItem item : invoice.getInvoiceItems()) {
+                table.addCell(new PdfPCell(new Phrase(item.getItemDesc(), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(String.valueOf(item.getRate()), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(String.valueOf(item.getQuantity()), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(invoice.getCurrency() + " " + item.getAmount(), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(
+                        item.getRemarks() != null ? item.getRemarks() : "", normalFont
+                )));
+            }
         }
 
-        PdfPCell c1 = new PdfPCell(new Phrase(description, normalFont));
-        c1.setPadding(8);
-        c1.setVerticalAlignment(Element.ALIGN_TOP);
-        c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-        // Set a reasonable fixed height instead of letting it expand
-        c1.setFixedHeight(80f); // Adjust this value based on your content
-        c1.setNoWrap(false); // Allow text wrapping
-        remarksTable.addCell(c1);
+// -------- DATA ROWS (EMPLOYEES) --------
+        if (invoice.getInvoiceEmployees() != null) {
+            for (InvoiceEmployee emp : invoice.getInvoiceEmployees()) {
+                table.addCell(new PdfPCell(new Phrase(emp.getItemDesc(), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(String.valueOf(emp.getRate()), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(String.valueOf(emp.getQuantity()), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(invoice.getCurrency() + " " + emp.getAmount(), normalFont)));
+                table.addCell(new PdfPCell(new Phrase(
+                        emp.getRemarks() != null ? emp.getRemarks() : "", normalFont
+                )));
+            }
+        }
 
-        PdfPCell c2 = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), normalFont));
-        c2.setPadding(8);
-        c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        c2.setVerticalAlignment(Element.ALIGN_TOP);
-        c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-        c2.setFixedHeight(80f); // Match the height of description cell
-        remarksTable.addCell(c2);
+// -------- GRAND TOTAL ROW --------
+        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total", headerFont));
+        totalLabel.setColspan(3);
+        totalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totalLabel.setPadding(8);
 
-        // --- FILLER ROW to occupy remaining height (reduced size) ---
-        PdfPCell filler1 = new PdfPCell(new Phrase(""));
-        filler1.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
-        // Reduced filler height to prevent page overflow
-        float fillerHeight = invoice.getAttachmentCount() >= 2 ? 200f : 200f;
-        filler1.setFixedHeight(fillerHeight);
-        remarksTable.addCell(filler1);
+        PdfPCell totalValue = new PdfPCell(
+                new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), headerFont)
+        );
+        totalValue.setColspan(2);
+        totalValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totalValue.setPadding(8);
 
-        PdfPCell filler2 = new PdfPCell(new Phrase(""));
-        filler2.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
-        filler2.setFixedHeight(fillerHeight); // Match filler1 height
-        remarksTable.addCell(filler2);
+        table.addCell(totalLabel);
+        table.addCell(totalValue);
 
-        // --- FOOTER ROW ---
-        PdfPCell footerLabel = new PdfPCell(new Phrase("Total", headerFont));
-        footerLabel.setPadding(8);
-        footerLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        footerLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        footerLabel.setBorder(Rectangle.TOP | Rectangle.LEFT | Rectangle.BOTTOM);
-        footerLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        footerLabel.setFixedHeight(40f); // Fixed footer height
+// -------- ADD TABLE TO DOCUMENT --------
+        document.add(table);
 
-        PdfPCell footerValue = new PdfPCell(
-                new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), headerFont));
-        footerValue.setPadding(8);
-        footerValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        footerValue.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        footerValue.setBorder(Rectangle.TOP | Rectangle.RIGHT | Rectangle.BOTTOM);
-        footerValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        footerValue.setFixedHeight(40f); // Fixed footer height
-
-        remarksTable.addCell(footerLabel);
-        remarksTable.addCell(footerValue);
-
-        // --- ADD TO DOCUMENT ---
-        document.add(remarksTable);
 
         // Amount in words
         try {
@@ -596,6 +634,10 @@ public class InvoiceService {
         String createdAtFormatted = formatLocalDateTimeWithSuffix(LocalDateTime.now());
         document.add(new Paragraph("Created At: " + createdAtFormatted, normalFont));
         document.add(new Paragraph(" "));
+        document.add(new Paragraph(
+                "Country: " + (invoiceData.get("country") != null ? invoiceData.get("country") : ""),
+                normalFont
+        ));
 
         // Customer and Supplier details table
         PdfPTable detailsTable = new PdfPTable(2);
@@ -626,153 +668,95 @@ public class InvoiceService {
 
         document.add(detailsTable);
 
-        // Work details table
-        PdfPTable workTable = new PdfPTable(2);
-        workTable.setWidthPercentage(100);
-        workTable.setSpacingAfter(20);
+        // ==================== ITEMS & EMPLOYEES TABLE ====================
+        PdfPTable table = new PdfPTable(5);
+        table.setWidthPercentage(100);
+        table.setSpacingAfter(20);
+        table.setWidths(new float[]{4f, 2f, 2f, 3f, 4f});
 
-        workTable.addCell(new Phrase("Employee Name:", headerFont));
-        workTable.addCell(new Phrase(
-                (invoiceData.get("employeeName") != null ? invoiceData.get("employeeName").toString() : ""),
-                normalFont));
+// -------- HEADER --------
+        addHeaderCell(table, "Item Description", headerFont);
+        addHeaderCell(table, "Rate", headerFont);
+        addHeaderCell(table, "Quantity", headerFont);
+        addHeaderCell(table, "Amount (" +
+                (invoiceData.get("currency") != null ? invoiceData.get("currency") : "") + ")", headerFont);
+        addHeaderCell(table, "Remarks", headerFont);
 
-        workTable.addCell(new Phrase("Rate:", normalFont));
-        String currency = invoiceData.get("currency") != null ? invoiceData.get("currency").toString() : "";
-        String rate = invoiceData.get("rate") != null ? invoiceData.get("rate").toString() : "";
-        workTable.addCell(new Phrase(currency + (currency.isEmpty() || rate.isEmpty() ? "" : " ") + rate, normalFont));
+// -------- ITEMS --------
+        Object itemsObj = invoiceData.get("items");
+        if (itemsObj instanceof List) {
+            List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
 
-        // Handle date parsing with null safety
-        LocalDate fromDate = null;
-        LocalDate toDate = null;
+            for (Map<String, Object> item : items) {
+                table.addCell(new PdfPCell(new Phrase(
+                        item.getOrDefault("itemDesc", "").toString(), normalFont)));
 
-        try {
-            fromDate = invoiceData.get("fromDate") != null
-                    ? LocalDate.parse(invoiceData.get("fromDate").toString())
-                    : null;
-        } catch (Exception e) {
-            // If parsing fails, fromDate remains null
-        }
+                table.addCell(new PdfPCell(new Phrase(
+                        item.getOrDefault("rate", "").toString(), normalFont)));
 
-        try {
-            toDate = invoiceData.get("toDate") != null
-                    ? LocalDate.parse(invoiceData.get("toDate").toString())
-                    : null;
-        } catch (Exception e) {
-            // If parsing fails, toDate remains null
-        }
+                table.addCell(new PdfPCell(new Phrase(
+                        item.getOrDefault("quantity", "").toString(), normalFont)));
 
-        workTable.addCell(new Phrase("From Date:", normalFont));
-        workTable.addCell(new Phrase(formatDateWithSuffix(fromDate), normalFont));
-        workTable.addCell(new Phrase("To Date:", normalFont));
-        workTable.addCell(new Phrase(formatDateWithSuffix(toDate), normalFont));
-        workTable.addCell(new Phrase("Project Name:", normalFont));
-        workTable.addCell(new Phrase(
-                (invoiceData.get("projectName") != null ? invoiceData.get("projectName").toString() : "N/A"),
-                normalFont));
-        document.add(workTable);
+                table.addCell(new PdfPCell(new Phrase(
+                        (invoiceData.get("currency") != null ? invoiceData.get("currency") + " " : "")
+                                + item.getOrDefault("amount", ""), normalFont)));
 
-        // ==================== REMARKS TABLE ====================
-        PdfPTable remarksTable = new PdfPTable(2);
-        remarksTable.setWidthPercentage(100);
-        remarksTable.setWidths(new float[] { 8f, 2f });
-        remarksTable.setLockedWidth(false); // allow width to be % based
-        remarksTable.setSplitLate(false); // ensure footer stays on same page
-        remarksTable.setKeepTogether(true); // try to keep table together on one page
-
-        // --- HEADER ---
-        PdfPCell h1 = new PdfPCell(new Phrase("Item Description", headerFont));
-        h1.setHorizontalAlignment(Element.ALIGN_CENTER);
-        h1.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        h1.setPadding(8);
-        h1.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        h1.setBorder(Rectangle.BOX);
-        h1.setFixedHeight(35f); // Fixed header height
-        remarksTable.addCell(h1);
-
-        PdfPCell h2 = new PdfPCell(new Phrase("Amount", headerFont));
-        h2.setHorizontalAlignment(Element.ALIGN_CENTER);
-        h2.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        h2.setPadding(8);
-        h2.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        h2.setBorder(Rectangle.BOX);
-        h2.setFixedHeight(35f); // Fixed header height
-        remarksTable.addCell(h2);
-
-        // --- DATA ROW ---
-        String description = "";
-
-        // Build description with null safety
-        if (invoiceData.get("employeeName") != null) {
-            description = invoiceData.get("employeeName").toString();
-        }
-
-        if (invoiceData.get("remarks") != null) {
-            String remarks = invoiceData.get("remarks").toString();
-            if (!remarks.trim().isEmpty()) {
-                if (!description.isEmpty()) {
-                    description += "\n";
-                }
-                description += remarks;
+                table.addCell(new PdfPCell(new Phrase(
+                        item.getOrDefault("remarks", "").toString(), normalFont)));
             }
         }
 
-        PdfPCell c1 = new PdfPCell(new Phrase(description, normalFont));
-        c1.setPadding(8);
-        c1.setVerticalAlignment(Element.ALIGN_TOP);
-        c1.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-        c1.setFixedHeight(80f); // Adjust this value based on your content
-        c1.setNoWrap(false); // Allow text wrapping
-        remarksTable.addCell(c1);
+// -------- EMPLOYEES --------
+        Object empObj = invoiceData.get("employees");
+        if (empObj instanceof List) {
+            List<Map<String, Object>> emps = (List<Map<String, Object>>) empObj;
 
-        // Handle amount with null safety
-        String currencyForAmount = invoiceData.get("currency") != null ? invoiceData.get("currency").toString() : "";
-        String totalAmount = invoiceData.get("totalAmount") != null ? invoiceData.get("totalAmount").toString() : "";
-        String amountDisplay = currencyForAmount + (currencyForAmount.isEmpty() || totalAmount.isEmpty() ? "" : " ")
-                + totalAmount;
+            for (Map<String, Object> emp : emps) {
+                table.addCell(new PdfPCell(new Phrase(
+                        emp.getOrDefault("itemDesc", "").toString(), normalFont)));
 
-        PdfPCell c2 = new PdfPCell(new Phrase(amountDisplay, normalFont));
-        c2.setPadding(8);
-        c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        c2.setVerticalAlignment(Element.ALIGN_TOP);
-        c2.setBorder(Rectangle.LEFT | Rectangle.RIGHT | Rectangle.TOP);
-        c2.setFixedHeight(80f); // Match the height of description cell
-        remarksTable.addCell(c2);
+                table.addCell(new PdfPCell(new Phrase(
+                        emp.getOrDefault("rate", "").toString(), normalFont)));
 
-        // --- FILLER ROW to occupy remaining height (reduced size) ---
-        PdfPCell filler1 = new PdfPCell(new Phrase(""));
-        filler1.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
-        float fillerHeight = 200f;
-        filler1.setFixedHeight(fillerHeight);
-        remarksTable.addCell(filler1);
+                table.addCell(new PdfPCell(new Phrase(
+                        emp.getOrDefault("quantity", "").toString(), normalFont)));
 
-        PdfPCell filler2 = new PdfPCell(new Phrase(""));
-        filler2.setBorder(Rectangle.LEFT | Rectangle.RIGHT);
-        filler2.setFixedHeight(fillerHeight); // Match filler1 height
-        remarksTable.addCell(filler2);
+                table.addCell(new PdfPCell(new Phrase(
+                        (invoiceData.get("currency") != null ? invoiceData.get("currency") + " " : "")
+                                + emp.getOrDefault("amount", ""), normalFont)));
 
-        // --- FOOTER ROW ---
-        PdfPCell footerLabel = new PdfPCell(new Phrase("Total", headerFont));
-        footerLabel.setPadding(8);
-        footerLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        footerLabel.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        footerLabel.setBorder(Rectangle.TOP | Rectangle.LEFT | Rectangle.BOTTOM);
-        footerLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        footerLabel.setFixedHeight(40f); // Fixed footer height
+                table.addCell(new PdfPCell(new Phrase(
+                        emp.getOrDefault("remarks", "").toString(), normalFont)));
+            }
+        }
 
-        // Use the same amount display for footer
-        PdfPCell footerValue = new PdfPCell(new Phrase(amountDisplay, headerFont));
-        footerValue.setPadding(8);
-        footerValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        footerValue.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        footerValue.setBorder(Rectangle.TOP | Rectangle.RIGHT | Rectangle.BOTTOM);
-        footerValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        footerValue.setFixedHeight(40f); // Fixed footer height
+// -------- GRAND TOTAL --------
+        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total", headerFont));
+        totalLabel.setColspan(3);
+        totalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totalLabel.setPadding(8);
 
-        remarksTable.addCell(footerLabel);
-        remarksTable.addCell(footerValue);
+        String totalAmountPreview = invoiceData.get("totalAmount") != null
+                ? invoiceData.get("totalAmount").toString()
+                : "";
 
-        // --- ADD TO DOCUMENT ---
-        document.add(remarksTable);
+        PdfPCell totalValue = new PdfPCell(new Phrase(
+                (invoiceData.get("currency") != null ? invoiceData.get("currency") + " " : "")
+                        + totalAmountPreview,
+                headerFont));
+
+        totalValue.setColspan(2);
+        totalValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totalValue.setPadding(8);
+
+        table.addCell(totalLabel);
+        table.addCell(totalValue);
+
+// -------- ADD TO DOCUMENT --------
+        document.add(table);
+
 
         // Amount in words for preview
         try {
@@ -783,7 +767,7 @@ public class InvoiceService {
                 } catch (Exception ignored) {
                 }
                 if (amt != null) {
-                    String amountWords = convertAmountToWords(amt, currency);
+                    String amountWords = convertAmountToWords(amt, invoiceData.get("currency").toString());
                     Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
                     amountWordsPara.setSpacingBefore(8);
                     document.add(amountWordsPara);
@@ -1302,6 +1286,7 @@ public class InvoiceService {
 
     private InvoiceResponseDTO convertToResponseDTO(Invoice invoice) {
         InvoiceResponseDTO dto = new InvoiceResponseDTO();
+
         dto.setId(invoice.getId());
         dto.setInvoiceId(invoice.getInvoiceId());
         dto.setInvoiceName(invoice.getInvoiceName());
@@ -1311,17 +1296,7 @@ public class InvoiceService {
         dto.setShipToAddress(invoice.getShipToAddress());
         dto.setSupplierName(invoice.getSupplierName());
         dto.setSupplierAddress(invoice.getSupplierAddress());
-        dto.setEmployeeName(invoice.getEmployeeName());
-        // Populate employeeNames list if stored (comma-separated)
-        if (invoice.getEmployeeNames() != null && !invoice.getEmployeeNames().trim().isEmpty()) {
-            java.util.List<String> names = java.util.Arrays.stream(invoice.getEmployeeNames().split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(java.util.stream.Collectors.toList());
-            dto.setEmployeeNames(names);
-        } else if (invoice.getEmployeeName() != null && !invoice.getEmployeeName().trim().isEmpty()) {
-            dto.setEmployeeNames(java.util.Collections.singletonList(invoice.getEmployeeName()));
-        }
+
         dto.setRate(invoice.getRate());
         dto.setCurrency(invoice.getCurrency());
         dto.setFromDate(invoice.getFromDate());
@@ -1333,9 +1308,53 @@ public class InvoiceService {
         dto.setPdfFileName(invoice.getPdfFileName());
         dto.setCreatedAt(invoice.getCreatedAt() != null ? invoice.getCreatedAt().toLocalDate() : null);
 
-        // Add attachment info
+        // Attachments
         dto.setAttachmentCount(invoice.getAttachmentCount());
         dto.setAttachmentFileNames(invoice.getAttachmentFileNames());
+
+        // ✅ Map Invoice Items
+        if (invoice.getInvoiceItems() != null) {
+            List<InvoiceItem> itemDTOs = invoice.getInvoiceItems()
+                    .stream()
+                    .map(item -> {
+                        InvoiceItem itemDTO = new InvoiceItem();
+                        itemDTO.setItemId(item.getItemId());
+                        itemDTO.setItemId(item.getInvoice().getId());
+                        itemDTO.setItemDesc(item.getItemDesc());
+                        itemDTO.setRate(item.getRate());
+                        itemDTO.setQuantity(item.getQuantity());
+                        itemDTO.setAmount(item.getAmount());
+                        itemDTO.setRemarks(item.getRemarks());
+                        itemDTO.setLastUpdatedDate(item.getLastUpdatedDate());
+                        itemDTO.setUpdatedBy(item.getUpdatedBy());
+                        return itemDTO;
+                    })
+                    .collect(Collectors.toList());
+
+            dto.setItems(itemDTOs);
+        }
+
+        // ✅ Map Invoice Employees
+        if (invoice.getInvoiceEmployees() != null) {
+            List<InvoiceEmployee> employeeDTOs = invoice.getInvoiceEmployees()
+                    .stream()
+                    .map(emp -> {
+                        InvoiceEmployee empDTO = new InvoiceEmployee();
+                        empDTO.setItemId(emp.getItemId());
+                        empDTO.setInvoice(emp.getInvoice());
+                        empDTO.setItemDesc(emp.getItemDesc());
+                        empDTO.setRate(emp.getRate());
+                        empDTO.setQuantity(emp.getQuantity());
+                        empDTO.setAmount(emp.getAmount());
+                        empDTO.setRemarks(emp.getRemarks());
+                        empDTO.setLastUpdatedDate(emp.getLastUpdatedDate());
+                        empDTO.setUpdatedBy(emp.getUpdatedBy());
+                        return empDTO;
+                    })
+                    .collect(Collectors.toList());
+
+            dto.setEmployees(employeeDTOs);
+        }
 
         return dto;
     }

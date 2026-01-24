@@ -1,5 +1,8 @@
 package com.Protronserver.Protronserver.DTOs;
 
+import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
+import com.Protronserver.Protronserver.Entities.InvoiceEmployee;
+import com.Protronserver.Protronserver.Entities.InvoiceItem;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -23,8 +26,9 @@ public class InvoiceResponseDTO {
     private String shipToAddress;
     private String supplierName;
     private String supplierAddress;
-    private String employeeName;
-    private java.util.List<String> employeeNames;
+    private String country;
+    List<InvoiceItem> items;
+    List<InvoiceEmployee> employees;
     private BigDecimal rate;
     private String currency;
 
@@ -50,6 +54,31 @@ public class InvoiceResponseDTO {
     // Helper method to check if invoice has attachments
     public boolean hasAttachments() {
         return attachmentCount != null && attachmentCount > 0;
+    }
+
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public List<InvoiceItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<InvoiceItem> items) {
+        this.items = items;
+    }
+
+    public List<InvoiceEmployee> getEmployees() {
+        return employees;
+    }
+
+    public void setEmployees(List<InvoiceEmployee> employees) {
+        this.employees = employees;
     }
 
     public Long getId() {
@@ -122,22 +151,6 @@ public class InvoiceResponseDTO {
 
     public void setSupplierAddress(String supplierAddress) {
         this.supplierAddress = supplierAddress;
-    }
-
-    public String getEmployeeName() {
-        return employeeName;
-    }
-
-    public void setEmployeeName(String employeeName) {
-        this.employeeName = employeeName;
-    }
-
-    public java.util.List<String> getEmployeeNames() {
-        return employeeNames;
-    }
-
-    public void setEmployeeNames(java.util.List<String> employeeNames) {
-        this.employeeNames = employeeNames;
     }
 
     public BigDecimal getRate() {
