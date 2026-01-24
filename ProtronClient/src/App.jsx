@@ -39,6 +39,9 @@ import ProjectMatricsLanding from './pages/LandingPage';
 import StoryDashboard from './pages/StoryDashboard';
 import SolutionStoryManagement from './pages/SolutionStoryManagement';
 import TaskManagement from './pages/TaskManagement';
+import Careers from './pages/Careers';
+import PublicInfoPage from './pages/PublicInfoPage';
+import About from './pages/About';
 // Memoized route components to prevent unnecessary re-renders
 const MemoizedUserManagement = memo(UserManagement);
 const MemoizedPOManagement = memo(POManagement);
@@ -118,6 +121,10 @@ const AppContent = () => {
             <>
               <Route path="/" element={<Navigate to="/landing" replace />} />
               <Route path="/landing" element={<ProjectMatricsLanding />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/products/:slug" element={<PublicInfoPage />} />
+              <Route path="/services/:slug" element={<PublicInfoPage />} />
               <Route
                 path="/login"
                 element={<Login setIsAuthenticated={handleLogin} />}
@@ -135,6 +142,10 @@ const AppContent = () => {
             <>
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/landing" element={<ProjectMatricsLanding />} />
+              <Route path="/careers" element={<Careers />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/products/:slug" element={<PublicInfoPage />} />
+              <Route path="/services/:slug" element={<PublicInfoPage />} />
               <Route path="/dashboard" element={<MemoizedDashboard />} />
               <Route path="/projects" element={<MemoizedProjectManagement />} />
               <Route path="/stories" element={<MemoizedStoryDashboard />} />
