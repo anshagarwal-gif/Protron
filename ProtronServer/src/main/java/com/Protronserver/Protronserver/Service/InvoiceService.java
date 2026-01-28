@@ -527,7 +527,7 @@ public class InvoiceService {
 
         // ---------------------- CUSTOMER DETAILS ----------------------
         PdfPTable customerTable;
-        if(invoice.getCountry().equalsIgnoreCase("india")){
+        if ("india".equalsIgnoreCase(invoice.getCountry())){
             customerTable = new PdfPTable(2);
             customerTable.setWidthPercentage(100);
             customerTable.setWidths(new float[]{5f, 5f});
@@ -542,14 +542,14 @@ public class InvoiceService {
         customerNameCell.setBorder(Rectangle.NO_BORDER);
         customerTable.addCell(customerNameCell);
 
-        if(invoice.getCountry().equalsIgnoreCase("india")){
+        if ("india".equalsIgnoreCase(invoice.getCountry())){
             // Empty right side to balance table
             PdfPCell emptyCell = new PdfPCell(new Phrase(""));
             emptyCell.setBorder(Rectangle.NO_BORDER);
             customerTable.addCell(emptyCell);
         }
 
-        if(invoice.getCountry().equalsIgnoreCase("india")){
+        if ("india".equalsIgnoreCase(invoice.getCountry())){
             // Addresses in one line: Bill To (left), Ship To (right)
             PdfPCell billToCell = new PdfPCell(new Phrase("Bill To: " + (invoice.getBillToAddress() != null ? invoice.getBillToAddress() : ""), normalFont));
             billToCell.setBorder(Rectangle.NO_BORDER);
@@ -627,7 +627,7 @@ public class InvoiceService {
         totalLabel.setPadding(8);
 
         PdfPCell totalValue = new PdfPCell(new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), headerFont));
-        totalValue.setColspan(2);
+        totalValue.setColspan(1);
         totalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
         totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
         totalValue.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
@@ -1376,7 +1376,6 @@ public class InvoiceService {
                     .map(item -> {
                         InvoiceItem itemDTO = new InvoiceItem();
                         itemDTO.setItemId(item.getItemId());
-                        itemDTO.setItemId(item.getInvoice().getId());
                         itemDTO.setItemDesc(item.getItemDesc());
                         itemDTO.setRate(item.getRate());
                         itemDTO.setQuantity(item.getQuantity());

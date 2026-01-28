@@ -49,6 +49,10 @@ const AddInvoiceModal = ({
 }) => {
     const [formData, setFormData] = useState({
         invoiceName: '',
+        invoiceType: 'DOMESTIC',
+        invoiceDate: '',
+        taxId: '',
+        billPeriod: '',
         customerName: '',
         billToAddress: '',
         shipToAddress: '',
@@ -56,6 +60,7 @@ const AddInvoiceModal = ({
         supplierName: sessionStorage.getItem('tenantName') || '',
         supplierAddress: '',
         supplierInfo: '',
+        country: '',
         employeeName: '',
         employeeNames: [],
         employeeIds: [],
@@ -70,6 +75,25 @@ const AddInvoiceModal = ({
         employeeId: ''
     });
 
+    // Table headers editable by user
+    const [tableHeaders, setTableHeaders] = useState({
+        col1: 'Item Description',
+        col2: 'Rate',
+        col3: 'Quantity',
+        col4: 'Amount (Currency)',
+        col5: 'Remarks'
+    });
+
+    // Invoice line items (max 5)
+    const [items, setItems] = useState([
+        { id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }
+    ]);
+
+    // Employee rows (max 5). Each row holds selected employee and line fields
+    const [invoiceEmployees, setInvoiceEmployees] = useState([
+        { id: 1, userId: '', rate: '', quantity: '', amount: '', remarks: '' }
+    ]);
+
     // const [customers, setCustomers] = useState([]);
     // const [suppliers, setSuppliers] = useState([]);
     const [employees, setEmployees] = useState([]);
@@ -80,18 +104,17 @@ const AddInvoiceModal = ({
     const [errors, setErrors] = useState({});
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [fetchedTasks, setFetchedTasks] = useState([]);
-    const [projects, setProjects] = useState([]);
+    // projects state not required in this component
     // Single attachment field that handles multiple files (up to 4)
     const [attachments, setAttachments] = useState([]);
     const [attachTimesheet, setAttachTimesheet] = useState(false);
+    // Bill period uses `formData.fromDate` and `formData.toDate`
+    const [timesheetRef, setTimesheetRef] = useState('');
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
         severity: 'success'
     })
-    const [timesheetPreviewData, setTimesheetPreviewData] = useState(null)
-    const fromDateInputRef = useRef(null);
-    const toDateInputRef = useRef(null);
     const fileInputRef = useRef(null);
 
     const getMonthDiff = (d1, d2) => {
@@ -106,14 +129,32 @@ const AddInvoiceModal = ({
 
     // ...existing code...
     useEffect(() => {
+        // Persist draft to sessionStorage so values aren't lost when switching tabs
+        try {
+            const draft = {
+                formData,
+                items,
+                invoiceEmployees,
+                attachments,
+                attachTimesheet,
+                fetchedTasks
+            };
+            sessionStorage.setItem('addInvoiceDraft', JSON.stringify(draft));
+        } catch {
+            /* ignore storage errors */
+        }
+    }, [formData, items, invoiceEmployees, attachments, attachTimesheet, fetchedTasks]);
+
+        useEffect(() => {
         const fetchTasksForRange = async () => {
+            const selectedRows = (invoiceEmployees || []).filter(e => e.userId);
             if (
                 formData.fromDate &&
                 formData.toDate &&
-                formData.employeeIds && formData.employeeIds.length === 1 &&
+                selectedRows.length === 1 &&
                 employees.length > 0
             ) {
-                const selectedEmployee = employees.find(emp => emp.userId === formData.employeeIds[0]);
+                const selectedEmployee = employees.find(emp => emp.userId === selectedRows[0].userId);
                 if (!selectedEmployee || !selectedEmployee.userId) return;
 
                 // setFetchingTasks(true);
@@ -162,7 +203,7 @@ const AddInvoiceModal = ({
         };
 
         fetchTasksForRange();
-    }, [formData.fromDate, formData.toDate, formData.employeeName, formData.employeeId, employees]);
+        }, [formData.fromDate, formData.toDate, employees, invoiceEmployees]);
 
 
     // ...existing code...
@@ -224,19 +265,6 @@ const AddInvoiceModal = ({
         let totalMinutes = 0;
         const timesheetEntries = fetchedTasks.map(task => {
             totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
-            setTimesheetPreviewData([{
-                date: task.date, // format as needed
-                dayOfWeek: new Date(task.date).toLocaleDateString("en-GB", { weekday: "short" }),
-                isWeekend: [0, 6].includes(new Date(task.date).getDay()),
-                taskType: task.taskType || '',
-                taskTopic: task.taskTopic || '',
-                hours: task.hoursSpent || 0,
-                minutes: task.minutesSpent || 0,
-                description: task.description || '',
-                project: task.projectName || '',
-                submitted: task.submitted || false
-            }
-            ])
             return {
                 date: task.date, // format as needed
                 dayOfWeek: new Date(task.date).toLocaleDateString("en-GB", { weekday: "short" }),
@@ -311,9 +339,7 @@ const AddInvoiceModal = ({
         return `INV-${month}${day}${year}-100001`;
     };
 
-    const getAttachedFilesCount = () => {
-        return attachments.filter(file => file !== null).length;
-    };
+    // attachments count helper not needed; compute inline where required
 
     const getTotalFileSize = () => {
         return attachments.reduce((total, file) => total + file.size, 0);
@@ -367,8 +393,7 @@ const AddInvoiceModal = ({
 
             setEmployees(employeeOptions);
 
-            // Fetch projects
-            await fetchProjects();
+            // projects not needed here
 
         } catch (error) {
             console.error('Error fetching dropdown data:', error);
@@ -386,25 +411,33 @@ const AddInvoiceModal = ({
     useEffect(() => {
         if (open) {
             fetchDropdownData();
-            // Auto-reset form when modal opens
-            handleReset();
+            // Restore draft if present, otherwise initialize
+            try {
+                const draft = sessionStorage.getItem('addInvoiceDraft');
+                if (draft) {
+                    const parsed = JSON.parse(draft);
+                    if (parsed) {
+                        setFormData(parsed.formData || {});
+                        setItems(parsed.items || [{ id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }]);
+                        setInvoiceEmployees(parsed.invoiceEmployees || [{ id: 1, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]);
+                        setAttachments(parsed.attachments || []);
+                        setAttachTimesheet(parsed.attachTimesheet || false);
+                        setFetchedTasks(parsed.fetchedTasks || []);
+                        // do not clear draft here
+                    } else {
+                        handleReset();
+                    }
+                } else {
+                    handleReset();
+                }
+            } catch (e) {
+                console.error('Failed to restore invoice draft:', e);
+                handleReset();
+            }
         }
     }, [open, fetchDropdownData]);
 
-    const fetchProjects = async () => {
-        try {
-            const token = sessionStorage.getItem("token");
-            const response = await axios.get(
-                `${API_BASE_URL}/api/invoices/projects`,
-                {
-                    headers: { Authorization: token }
-                }
-            );
-            setProjects(response.data);
-        } catch (error) {
-            console.error('Error fetching projects:', error);
-        }
-    };
+    // fetchProjects removed - not used in this component
 
     // Auto-calculate total amount when rate or hours change
     useEffect(() => {
@@ -448,6 +481,12 @@ const AddInvoiceModal = ({
                 ) {
                     updated.toDate = '';
                 }
+                // update billPeriod when both dates available
+                if (updated.fromDate && updated.toDate) {
+                    updated.billPeriod = `${updated.fromDate} - ${updated.toDate}`;
+                } else {
+                    updated.billPeriod = '';
+                }
             }
             if (field === 'toDate' && prev.fromDate) {
                 if (new Date(value) < new Date(prev.fromDate) ||
@@ -455,6 +494,12 @@ const AddInvoiceModal = ({
                     (getMonthDiff(prev.fromDate, value) === 1 && new Date(value).getDate() > new Date(prev.fromDate).getDate())
                 ) {
                     return prev;
+                }
+                // update billPeriod when both dates available
+                if (updated.fromDate && updated.toDate) {
+                    updated.billPeriod = `${updated.fromDate} - ${updated.toDate}`;
+                } else {
+                    updated.billPeriod = '';
                 }
             }
             return updated;
@@ -499,7 +544,8 @@ const AddInvoiceModal = ({
                 ...prev,
                 billToAddress: finalAddress,
                 shipToAddress: finalAddress,
-                customerInfo: finalInfo
+                customerInfo: finalInfo,
+                country: orgData.orgCountry || prev.country
             }));
         } else {
             // Clear related fields when customer is cleared
@@ -507,7 +553,8 @@ const AddInvoiceModal = ({
                 ...prev,
                 billToAddress: '',
                 shipToAddress: '',
-                customerInfo: ''
+                customerInfo: '',
+                country: ''
             }));
         }
     };
@@ -549,61 +596,7 @@ const AddInvoiceModal = ({
     };
 
     // Special handler for employee selection to auto-populate rate and currency
-    const handleEmployeeChange = (selected) => {
-        // selected can be null, a single option, or an array when isMulti is enabled
-        if (!selected) {
-            setFormData(prev => ({
-                ...prev,
-                employeeId: '',
-                employeeName: '',
-                employeeNames: [],
-                employeeIds: [],
-                rate: '',
-                currency: 'USD'
-            }));
-            return;
-        }
-
-        if (Array.isArray(selected)) {
-            const names = selected.map(s => s.value);
-            const ids = selected.map(s => s.userId);
-            // If multiple employees selected, clear timesheet attachment state
-            if (names.length > 1 && attachTimesheet) setAttachTimesheet(false);
-
-            // Keep rate/currency from the first selected employee if available
-            const first = selected[0];
-            const newCurrency = first.currency || 'USD';
-            const newRate = first.cost || '';
-
-            setFormData(prev => ({
-                ...prev,
-                employeeName: names.length === 1 ? names[0] : '',
-                employeeId: ids.length === 1 ? ids[0] : '',
-                employeeNames: names,
-                employeeIds: ids,
-                rate: newRate,
-                currency: newCurrency
-            }));
-            return;
-        }
-
-        // Single selection (object)
-        const newCurrency = selected.currency || 'USD';
-        const newRate = selected.cost || '';
-        setFormData(prev => ({
-            ...prev,
-            employeeId: selected.userId || '',
-            employeeName: selected.value,
-            employeeNames: [selected.value],
-            employeeIds: [selected.userId],
-            rate: newRate,
-            currency: newCurrency
-        }));
-
-        if (errors.rate) {
-            setErrors(prev => ({ ...prev, rate: '' }));
-        }
-    };
+    // Top-level employee select handler removed (employee rows in table are used)
 
     // Handle multiple file selection (up to 4 files)
     const handleFileChange = (event) => {
@@ -646,6 +639,74 @@ const AddInvoiceModal = ({
         setAttachments(validFiles);
     };
 
+    // ------- Table & Employee row handlers -------
+    const updateTableHeader = (key, value) => {
+        setTableHeaders(prev => ({ ...prev, [key]: value }));
+    };
+
+    const updateItemField = (id, field, value) => {
+        setItems(prev => prev.map(it => {
+            if (it.id !== id) return it;
+            const next = { ...it, [field]: value };
+            // recalc amount when rate or quantity change
+            const rate = parseFloat(next.rate) || 0;
+            const qty = parseFloat(next.quantity) || 0;
+            next.amount = (rate * qty).toFixed(2);
+            return next;
+        }));
+    };
+
+    const addItem = () => {
+        if (items.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 items allowed', severity: 'error' });
+        const nextId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
+        setItems(prev => ([...prev, { id: nextId, description: '', rate: '', quantity: '', amount: '', remarks: '' }]));
+    };
+
+    const removeItem = (id) => {
+        if (items.length <= 1) return; // keep at least one item
+        setItems(prev => prev.filter(i => i.id !== id));
+    };
+
+    const addEmployeeRow = () => {
+        if (invoiceEmployees.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 employees allowed', severity: 'error' });
+        const nextId = invoiceEmployees.length ? Math.max(...invoiceEmployees.map(i => i.id)) + 1 : 1;
+        setInvoiceEmployees(prev => ([...prev, { id: nextId, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]));
+    };
+
+    const removeEmployeeRow = (id) => {
+        if (invoiceEmployees.length <= 1) return; // keep at least one row
+        setInvoiceEmployees(prev => prev.filter(e => e.id !== id));
+    };
+
+    const updateEmployeeRow = (id, field, value) => {
+        setInvoiceEmployees(prev => {
+            const next = prev.map(e => e.id === id ? { ...e, [field]: value } : e);
+            const selectedCount = next.filter(e => e.userId).length;
+            if (selectedCount !== 1 && attachTimesheet) setAttachTimesheet(false);
+            // Recalculate amount for the updated row if rate/quantity changed
+            return next.map(e => {
+                if (e.id !== id) return e;
+                const rate = parseFloat(e.rate) || 0;
+                const qty = parseFloat(e.quantity) || 0;
+                return { ...e, amount: (rate * qty).toFixed(2) };
+            });
+        });
+    };
+
+    // Ensure timesheet checkbox is disabled when selected employees count is not exactly one
+    useEffect(() => {
+        const selectedCount = (invoiceEmployees || []).filter(e => e.userId).length;
+        if (selectedCount !== 1 && attachTimesheet) {
+            setAttachTimesheet(false);
+        }
+    }, [invoiceEmployees, attachTimesheet]);
+
+    const computeItemsTotal = () => {
+        const itemsTotal = items.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+        const empTotal = (invoiceEmployees || []).reduce((s, e) => s + (parseFloat(e.amount) || 0), 0);
+        return (itemsTotal + empTotal).toFixed(2);
+    };
+
     const removeAttachment = (index) => {
         const newAttachments = [...attachments];
         newAttachments.splice(index, 1);
@@ -665,14 +726,12 @@ const AddInvoiceModal = ({
         // Invoice name is now optional - no validation needed
         if (!formData.customerName.trim()) newErrors.customerName = 'Customer name is required';
         if (!formData.supplierName.trim()) newErrors.supplierName = 'Supplier name is required';
-        // Employee name is now optional - no validation needed
-        if (!formData.rate || parseFloat(formData.rate) <= 0) newErrors.rate = 'Valid rate is required';
-        if (!formData.fromDate) newErrors.fromDate = 'From date is required';
-        if (!formData.toDate) newErrors.toDate = 'To date is required';
-        if (!formData.hoursSpent || isNaN(parseFloat(formData.hoursSpent)) || parseFloat(formData.hoursSpent) <= 0) {
-            newErrors.hoursSpent = 'Valid hours are required';
-        }
+        // Allow empty items or employees tables, but require combined table total > 0
+        const combinedTotal = parseFloat(computeItemsTotal()) || 0;
+        if (combinedTotal <= 0) newErrors.items = 'At least one item or employee row must have a non-zero amount';
 
+        // Make fromDate, toDate and hours optional in the new form.
+        // Only validate date range when both dates are provided.
         if (formData.fromDate && formData.toDate && new Date(formData.toDate) < new Date(formData.fromDate)) {
             newErrors.toDate = 'To date must be after from date';
         }
@@ -699,14 +758,73 @@ const AddInvoiceModal = ({
     };
 
     const handleSubmit = async () => {
+        console.log('handleSubmit called');
         if (!validateForm()) {
+            console.log('validateForm failed', errors);
+            setSnackbar({ open: true, message: 'Please fix validation errors before submitting.', severity: 'error' });
             return;
         }
 
         setLoading(true);
         try {
+            
+
+            // Normalize numeric fields to avoid null/NaN being sent to backend
+            const parsedRate = parseFloat(formData.rate);
+            let rateValue = Number.isFinite(parsedRate) ? parsedRate : null;
+            const parsedHours = parseFloat(formData.hoursSpent);
+            let hoursValue = Number.isFinite(parsedHours) ? parsedHours : null;
+
+            const itemsToSend = (items || []).map(it => ({
+                ...it,
+                rate: Number.isFinite(parseFloat(it.rate)) ? parseFloat(it.rate) : 0,
+                quantity: Number.isFinite(parseFloat(it.quantity)) ? parseFloat(it.quantity) : 0,
+                amount: Number.isFinite(parseFloat(it.amount)) ? parseFloat(it.amount) : 0
+            }));
+
+            const invoiceEmpRows = (invoiceEmployees || []).filter(e => e.userId);
+            const employeesToSend = invoiceEmpRows.map(e => ({
+                ...e,
+                rate: Number.isFinite(parseFloat(e.rate)) ? parseFloat(e.rate) : 0,
+                quantity: Number.isFinite(parseFloat(e.quantity)) ? parseFloat(e.quantity) : 0,
+                amount: Number.isFinite(parseFloat(e.amount)) ? parseFloat(e.amount) : 0
+            }));
+
+            // Derive sensible fallbacks for rate and hours if missing
+            if ((!rateValue || rateValue <= 0) && employeesToSend.length === 1 && employeesToSend[0].rate > 0) {
+                rateValue = employeesToSend[0].rate;
+            }
+            if ((!rateValue || rateValue <= 0) && itemsToSend.length > 0 && itemsToSend[0].rate > 0) {
+                rateValue = itemsToSend[0].rate;
+            }
+            // If still missing, try compute from totalAmount/hours
+            const tableTotal = items && items.length ? parseFloat(computeItemsTotal()) : null;
+            if ((!rateValue || rateValue <= 0) && tableTotal && Number.isFinite(hoursValue) && hoursValue > 0) {
+                rateValue = tableTotal / hoursValue;
+            }
+            // Minimum fallback to satisfy backend DecimalMin
+            if (!rateValue || rateValue <= 0) {
+                rateValue = 0.01;
+            }
+
+            // Hours fallback: sum of employee quantities (treated as hours) or default 1
+            if ((!hoursValue || hoursValue <= 0) && employeesToSend.length > 0) {
+                const sumHours = employeesToSend.reduce((s, ee) => s + (Number.isFinite(parseFloat(ee.quantity)) ? parseFloat(ee.quantity) : 0), 0);
+                if (sumHours > 0) hoursValue = sumHours;
+            }
+            if (!hoursValue || hoursValue <= 0) {
+                hoursValue = 1;
+            }
+
+            // Compute top-level employeeName to satisfy DB non-null constraints
+            const topEmployeeName = formData.employeeName || (invoiceEmpRows.length === 1 ? (employees.find(emp => emp.userId === invoiceEmpRows[0].userId)?.name || '') : '');
+
             const invoiceData = {
                 invoiceName: formData.invoiceName,
+                invoiceType: formData.invoiceType,
+                invoiceDate: formData.invoiceDate,
+                taxId: formData.taxId,
+                billPeriod: formData.billPeriod,
                 customerName: formData.customerName,
                 billToAddress: formData.billToAddress || "",
                 shipToAddress: formData.shipToAddress || "",
@@ -714,19 +832,26 @@ const AddInvoiceModal = ({
                 supplierName: formData.supplierName,
                 supplierAddress: formData.supplierAddress || "",
                 supplierInfo: formData.supplierInfo || "",
-                employeeName: formData.employeeName,
+                items: itemsToSend,
+                employees: employeesToSend,
+                // ensure non-null employeeName for backend
+                employeeName: topEmployeeName,
                 employeeNames: formData.employeeNames && formData.employeeNames.length ? formData.employeeNames : null,
-                rate: parseFloat(formData.rate),
-                currency: formData.currency,
-                fromDate: formData.fromDate,
-                toDate: formData.toDate,
-                hoursSpent: parseFloat(formData.hoursSpent),
-                totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
+                currency: (formData.currency || "USD").toUpperCase(),
+                country: formData.country || null,
+                fromDate: formData.fromDate || new Date().toISOString().split('T')[0],
+                toDate: formData.toDate || (formData.fromDate || new Date().toISOString().split('T')[0]),
+                hoursSpent: hoursValue,
+                totalAmount: tableTotal !== null ? tableTotal : (formData.totalAmount ? parseFloat(formData.totalAmount) : (rateValue * hoursValue)),
                 remarks: formData.remarks || "",
                 projectName: formData.projectName || "",
-                // Include timesheet data if checkbox is checked AND invoice is for a single employee
-                timesheetData: (attachTimesheet && formData.employeeNames && formData.employeeNames.length <= 1) ? prepareTimesheetData() : null
+                // Include timesheet data if checkbox is checked AND invoice has a single employee selected
+                timesheetData: (attachTimesheet && (invoiceEmployees || []).filter(e => e.userId).length === 1) ? prepareTimesheetData() : null
             };
+            // Set top-level rate (required by backend)
+            invoiceData.rate = rateValue;
+            console.log('Submitting invoice data:', invoiceData);
+            setSnackbar({ open: true, message: 'Submitting invoice...', severity: 'info' });
 
             let response;
             if (attachments.length > 0) {
@@ -784,6 +909,8 @@ const AddInvoiceModal = ({
                 }, 500);
             }
 
+            // clear draft and reset
+            try { sessionStorage.removeItem('addInvoiceDraft'); } catch { /* ignore */ }
             handleReset();
             onClose();
 
@@ -815,8 +942,57 @@ const AddInvoiceModal = ({
     };
     const handleInvoicePreview = async () => {
         try {
+            // Build preview payload with same required fallbacks as submit
+            const parsedRate = parseFloat(formData.rate);
+            let rateValue = Number.isFinite(parsedRate) ? parsedRate : null;
+            const parsedHours = parseFloat(formData.hoursSpent);
+            let hoursValue = Number.isFinite(parsedHours) ? parsedHours : null;
+
+            const itemsToSend = (items || []).map(it => ({
+                ...it,
+                rate: Number.isFinite(parseFloat(it.rate)) ? parseFloat(it.rate) : 0,
+                quantity: Number.isFinite(parseFloat(it.quantity)) ? parseFloat(it.quantity) : 0,
+                amount: Number.isFinite(parseFloat(it.amount)) ? parseFloat(it.amount) : 0
+            }));
+
+            const invoiceEmpRows = (invoiceEmployees || []).filter(e => e.userId);
+            const employeesToSend = invoiceEmpRows.map(e => ({
+                ...e,
+                rate: Number.isFinite(parseFloat(e.rate)) ? parseFloat(e.rate) : 0,
+                quantity: Number.isFinite(parseFloat(e.quantity)) ? parseFloat(e.quantity) : 0,
+                amount: Number.isFinite(parseFloat(e.amount)) ? parseFloat(e.amount) : 0
+            }));
+
+            // derive rate/hours similar to submit
+            if ((!rateValue || rateValue <= 0) && employeesToSend.length === 1 && employeesToSend[0].rate > 0) {
+                rateValue = employeesToSend[0].rate;
+            }
+            if ((!rateValue || rateValue <= 0) && itemsToSend.length > 0 && itemsToSend[0].rate > 0) {
+                rateValue = itemsToSend[0].rate;
+            }
+            const computedTableTotal = items && items.length ? parseFloat(computeItemsTotal()) : null;
+            if ((!rateValue || rateValue <= 0) && computedTableTotal && Number.isFinite(hoursValue) && hoursValue > 0) {
+                rateValue = computedTableTotal / hoursValue;
+            }
+            if (!rateValue || rateValue <= 0) rateValue = 0.01;
+            if ((!hoursValue || hoursValue <= 0) && employeesToSend.length > 0) {
+                const sumHours = employeesToSend.reduce((s, ee) => s + (Number.isFinite(parseFloat(ee.quantity)) ? parseFloat(ee.quantity) : 0), 0);
+                if (sumHours > 0) hoursValue = sumHours;
+            }
+            if (!hoursValue || hoursValue <= 0) hoursValue = 1;
+
+            const today = new Date().toISOString().split('T')[0];
+            const fromDateToSend = formData.fromDate || today;
+            const toDateToSend = formData.toDate || fromDateToSend;
+
+            const topEmployeeName = formData.employeeName || (invoiceEmpRows.length === 1 ? (employees.find(emp => emp.userId === invoiceEmpRows[0].userId)?.name || '') : '');
+
             const invoiceData = {
                 invoiceName: formData.invoiceName || "",
+                invoiceType: formData.invoiceType,
+                invoiceDate: formData.invoiceDate || "",
+                taxId: formData.taxId || "",
+                billPeriod: formData.billPeriod || "",
                 customerName: formData.customerName || "",
                 billToAddress: formData.billToAddress || "",
                 shipToAddress: formData.shipToAddress || "",
@@ -824,18 +1000,20 @@ const AddInvoiceModal = ({
                 supplierName: formData.supplierName || "",
                 supplierAddress: formData.supplierAddress || "",
                 supplierInfo: formData.supplierInfo || "",
-                employeeName: formData.employeeName || "",
+                items: itemsToSend,
+                employees: employeesToSend,
+                employeeName: topEmployeeName || "",
                 employeeNames: formData.employeeNames && formData.employeeNames.length ? formData.employeeNames : null,
-                rate: parseFloat(formData.rate) || 0,
-                currency: formData.currency || "",
-                fromDate: formData.fromDate || "",
-                toDate: formData.toDate || "",
-                hoursSpent: parseFloat(formData.hoursSpent) || 0,
-                totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : null,
+                rate: rateValue,
+                currency: (formData.currency || "USD").toUpperCase(),
+                country: formData.country || null,
+                fromDate: fromDateToSend,
+                toDate: toDateToSend,
+                hoursSpent: hoursValue,
+                totalAmount: computedTableTotal !== null ? computedTableTotal : (formData.totalAmount ? parseFloat(formData.totalAmount) : (rateValue * hoursValue)),
                 remarks: formData.remarks || "",
                 projectName: formData.projectName || "",
-                // Include timesheet data if checkbox is checked AND invoice is for a single employee
-                timesheetData: (attachTimesheet && formData.employeeNames && formData.employeeNames.length <= 1) ? prepareTimesheetData() : null
+                timesheetData: (attachTimesheet && invoiceEmpRows.length === 1) ? prepareTimesheetData() : null
             };
             const response = await axios.post(
                 `${API_BASE_URL}/api/invoices/preview`,
@@ -946,10 +1124,18 @@ const AddInvoiceModal = ({
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
+        // clear saved draft
+        try { sessionStorage.removeItem('addInvoiceDraft'); } catch { /* ignore */ }
     };
 
     const getDisplayTotal = () => {
         if (isCalculating) return 'Calculating...';
+        // Prefer table total if items are present
+        if (items && items.length > 0) {
+            const total = computeItemsTotal();
+            const symbol = currencySymbols[formData.currency] || '$';
+            return `${symbol}${parseFloat(total || 0).toLocaleString()}`;
+        }
         if (formData.totalAmount) {
             const symbol = currencySymbols[formData.currency] || '$';
             return `${symbol}${parseFloat(formData.totalAmount).toLocaleString()}`;
@@ -1030,27 +1216,35 @@ const AddInvoiceModal = ({
                                 <FileText className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">
-                                    {isFromInvoiceManagement ? 'Add New Invoice' : 'Generate New Invoice'}
-                                </h2>
-                                {getAttachedFilesCount() > 0 && (
-                                    <span className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
-                                        {getAttachedFilesCount()} file{getAttachedFilesCount() > 1 ? 's' : ''} attached
-                                    </span>
-                                )}
-                                {attachTimesheet && (
-                                    <span className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">
-                                        Timesheet Included
-                                    </span>
-                                )}
+                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add New Invoice</h2>
                             </div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-                        >
-                            <X className="w-5 h-5 text-white" />
-                        </button>
+
+                        <div className="flex items-center space-x-3">
+                            {/* Tenant logo or initials on top-right */}
+                            <div className="flex items-center space-x-3">
+                                {(() => {
+                                    const logoUrl = sessionStorage.getItem('tenantLogoUrl');
+                                    const tenantName = sessionStorage.getItem('tenantName') || '';
+                                    if (logoUrl) {
+                                        return <img src={logoUrl} alt="tenant-logo" className="w-10 h-10 rounded-md object-cover" />
+                                    }
+                                    const initials = tenantName ? (tenantName.trim().charAt(0).toUpperCase() + tenantName.trim().slice(-1).toUpperCase()) : 'TN';
+                                    return (
+                                        <div className="w-10 h-10 bg-white text-green-700 font-bold rounded-md flex items-center justify-center border">
+                                            {initials}
+                                        </div>
+                                    )
+                                })()}
+                            </div>
+
+                            <button
+                                onClick={onClose}
+                                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                            >
+                                <X className="w-5 h-5 text-white" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1063,172 +1257,15 @@ const AddInvoiceModal = ({
                                 <span className="text-red-700 text-sm">{errors.submit}</span>
                             </div>
                         )}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Invoice ID *
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Auto-generated"
-                                    value={generatePreviewInvoiceId()}
-                                    disabled
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">
-                                    Format: INV-MMDDYYYY-XXXXXX (Auto-generated)
-                                </p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Invoice Name
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter invoice name (optional)"
-                                    value={formData.invoiceName}
-                                    onChange={handleChange('invoiceName')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.invoiceName ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    maxLength={100}
-                                />
-                                <div className="text-right text-sm text-gray-500 mt-1">
-                                    {formData.invoiceName.length}/100 characters
-                                </div>
-                                {errors.invoiceName && <p className="text-red-500 text-xs mt-1">{errors.invoiceName}</p>}
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Currency *
-                                </label>
-                                <select
-                                    value={formData.currency}
-                                    onChange={handleChange('currency')}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                >
-                                    <option value="USD">USD ($)</option>
-                                    <option value="INR">INR (₹)</option>
-                                    <option value="EUR">EUR (€)</option>
-                                    <option value="GBP">GBP (£)</option>
-                                    <option value="JPY">JPY (¥)</option>
-                                    <option value="CAD">CAD (C$)</option>
-                                    <option value="AUD">AUD (A$)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                                    <Folder className="mr-2 text-green-600" size={16} />
-                                    Initiative Name
-                                </label>
-                                <CreatableSelect
-                                    options={projects.map(project => ({
-                                        value: project.projectName,
-                                        label: `${project.projectCode} - ${project.projectName}`
-                                    }))}
-                                    value={formData.projectName ? {
-                                        value: formData.projectName,
-                                        label: formData.projectName
-                                    } : null}
-                                    onChange={(option) => {
-                                        if (option) {
-                                            setFormData(prev => ({ ...prev, projectName: option.value }));
-                                        } else {
-                                            setFormData(prev => ({ ...prev, projectName: '' }));
-                                        }
-                                    }}
-                                    onCreateOption={(inputValue) => {
-                                        setFormData(prev => ({ ...prev, projectName: inputValue }));
-                                    }}
-                                    placeholder="Select or create Initiative..."
-                                    className="w-full"
-                                    isClearable
-                                    isSearchable
-                                />
-                                {errors.projectName && <p className="text-red-500 text-xs mt-1">{errors.projectName}</p>}
-                            </div>
-                        </div>
-
-                        {/* 2nd Line: Customer Name and Customer Address */}
+                        {/* New layout per spec */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            <div className="col-span-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Customer Name *
-                                    {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
-                                </label>
-                                <OrganizationSelect
-                                    value={formData.customerName || ''}
-                                    onChange={(value) => setFormData(prev => ({ ...prev, customerName: value }))}
-                                    onOrgSelect={handleCustomerOrgSelect}
-                                    placeholder="Search for customer or type new..."
-                                    orgType="CUSTOMER"
-                                    isDisabled={loadingEmployees}
-                                    className="w-full"
-                                />
-                                {errors.customerName && <p className="text-red-500 text-xs mt-1">{errors.customerName}</p>}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Invoice ID</label>
+                                <input type="text" disabled value={generatePreviewInvoiceId()} className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-50 text-gray-500" />
                             </div>
 
-                            <div className="">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Bill To Address
-                                    <span className="text-xs text-gray-500 ml-1">(Auto-filled)</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Bill to address"
-                                    value={formData.billToAddress}
-                                    onChange={handleChange('billToAddress')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.billToAddress ? 'border-red-500' : 'border-gray-300'}`}
-                                    maxLength={500}
-                                />
-                                <div className="text-right text-sm text-gray-500 mt-1">
-                                    {(formData.billToAddress || '').length}/500 characters
-                                </div>
-                                {errors.billToAddress && <p className="text-red-500 text-xs mt-1">{errors.billToAddress}</p>}
-                            </div>
-
-                            <div className="">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Ship To Address
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Ship to address"
-                                    value={formData.shipToAddress}
-                                    onChange={handleChange('shipToAddress')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.shipToAddress ? 'border-red-500' : 'border-gray-300'}`}
-                                    maxLength={500}
-                                />
-                                <div className="text-right text-sm text-gray-500 mt-1">
-                                    {(formData.shipToAddress || '').length}/500 characters
-                                </div>
-                                {errors.shipToAddress && <p className="text-red-500 text-xs mt-1">{errors.shipToAddress}</p>}
-                            </div>
-
-                            <div className="lg:col-start-1">
-                                <label className='block text-sm font-medium text-gray-700 mb-2'>
-                                    Customer Info
-                                </label>
-                                <input
-                                    type='text'
-                                    placeholder='Enter customer info'
-                                    value={formData.customerInfo}
-                                    onChange={handleChange('customerInfo')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.customerInfo ? 'border-red-500' : 'border-gray-300'}`}
-                                    maxLength={200}
-                                />
-                                <div className="text-right text-sm text-gray-500 mt-1">
-                                    {formData.customerInfo.length}/200 characters
-                                </div>
-                                {errors.customerInfo && <p className="text-red-500 text-xs mt-1">{errors.customerInfo}</p>}
-                            </div>
-                        </div>
-
-                        {/* 3rd Line: Supplier Name and Supplier Address */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            <div className="">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Supplier Name *
-                                </label>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Name *</label>
                                 <OrganizationSelect
                                     value={formData.supplierName || ''}
                                     onChange={(value) => setFormData(prev => ({ ...prev, supplierName: value }))}
@@ -1238,326 +1275,324 @@ const AddInvoiceModal = ({
                                     isDisabled={loadingEmployees}
                                     className="w-full"
                                 />
-                                {errors.supplierName && <p className="text-red-500 text-xs mt-1">{errors.supplierName}</p>}
                             </div>
 
-                            <div className="">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Supplier Address
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter supplier address"
-                                    value={formData.supplierAddress}
-                                    onChange={handleChange('supplierAddress')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.supplierAddress ? 'border-red-500' : 'border-gray-500'}`}
-                                    maxLength={500}
-                                />
-                                <div className="text-right text-xs text-gray-500 mt-1">
-                                    {formData.supplierAddress.length}/500 characters
-                                </div>
-                                {errors.supplierAddress && <p className="text-red-500 text-xs mt-1">{errors.supplierAddress}</p>}
-                            </div>
-                            <div className="">
-                                <label className='block text-sm font-medium text-gray-700 mb-2'>
-                                    Supplier Info
-                                </label>
-                                <input
-                                    type='text'
-                                    placeholder='Enter supplier info'
-                                    value={formData.supplierInfo}
-                                    onChange={handleChange('supplierInfo')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.supplierInfo ? 'border-red-500' : 'border-gray-300'}`}
-                                    maxLength={200}
-                                />
-                                <div className="text-right text-sm text-gray-500 mt-1">
-                                    {formData.supplierInfo.length}/200 characters
-                                </div>
-                                {errors.supplierInfo && <p className="text-red-500 text-xs mt-1">{errors.supplierInfo}</p>}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Type</label>
+                                <select value={formData.invoiceType} onChange={handleChange('invoiceType')} className="w-full h-10 px-4 border border-gray-300 rounded-md">
+                                    <option value="DOMESTIC">Domestic</option>
+                                    <option value="INTERNATIONAL">International</option>
+                                </select>
                             </div>
                         </div>
 
+                        <div className="grid grid-cols-3  gap-3 sm:gap-4 mt-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Name</label>
+                                <input type="text" placeholder="Enter invoice name (optional)" value={formData.invoiceName} onChange={handleChange('invoiceName')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
+                            </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Address</label>
+                                <input type="text" placeholder="Enter supplier address" value={formData.supplierAddress} onChange={handleChange('supplierAddress')} className="w-full h-10 px-4 border rounded-md" />
+                            </div>
+                        </div>
 
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Date</label>
+                                <input type="date" value={formData.invoiceDate} onChange={handleChange('invoiceDate')} className="w-full h-10 px-4 border rounded-md" />
+                            </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID</label>
+                                <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className="w-full h-10 px-4 border rounded-md" />
+                            </div>
+                        </div>
+
+                                    <div className="mt-3">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Bill Period</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="text-xs text-gray-600">From</label>
+                                                <input type="date" value={formData.fromDate} onChange={handleChange('fromDate')} className="w-full h-10 px-4 border rounded-md" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-600">To</label>
+                                                <input type="date" value={formData.toDate} onChange={handleChange('toDate')} className="w-full h-10 px-4 border rounded-md" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                        {/* Currency select moved into the Invoice Items table header */}
+
+                        <div className="mt-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
+                            <OrganizationSelect
+                                value={formData.customerName || ''}
+                                onChange={(value) => setFormData(prev => ({ ...prev, customerName: value }))}
+                                onOrgSelect={handleCustomerOrgSelect}
+                                placeholder="Search for customer or type new..."
+                                orgType="CUSTOMER"
+                                isDisabled={loadingEmployees}
+                                className="w-full"
+                            />
+                        </div>
+
+                        {/* Customer address fields - vary by invoice type */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Employee Name
-                                    {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
-                                </label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-3 text-green-600 z-10" size={16} />
-                                    <CreatableSelect
-                                        options={employees}
-                                        value={formData.employeeIds && formData.employeeIds.length > 0 ? employees.filter(emp => formData.employeeIds.includes(emp.userId)) : (formData.employeeName ? employees.find(emp => emp.value === formData.employeeName) : null)}
-                                        onChange={handleEmployeeChange}
-                                        className="react-select-container"
-                                        classNamePrefix="react-select"
-                                        placeholder={loadingEmployees ? "Loading..." : "Select employee(s)"}
-                                        isSearchable
-                                        isClearable
-                                        isLoading={loadingEmployees}
-                                        isDisabled={loadingEmployees}
-                                        isMulti
-                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
-                                        styles={{
-                                            control: (base, state) => ({
-                                                ...base,
-                                                minHeight: '40px',
-                                                paddingLeft: '28px',
-                                                borderColor: state.isFocused ? '#10b981' : '#d1d5db',
-                                                boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
-                                            }),
-                                            valueContainer: (base) => ({ ...base, padding: '0 6px' }),
-                                        }}
-                                    />
-                                </div>
+                            <div className="col-span-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Bill To Address</label>
+                                {formData.invoiceType === 'DOMESTIC' ? (
+                                    <input type="text" placeholder="Bill to address" value={formData.billToAddress} onChange={handleChange('billToAddress')} className="w-full h-10 px-4 border rounded-md" />
+                                ) : (
+                                    <input type="text" placeholder="Customer address (international)" value={formData.customerInfo} onChange={handleChange('customerInfo')} className="w-full h-10 px-4 border rounded-md" />
+                                )}
                             </div>
 
-                            
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Rate *
-                                    <span className="text-xs text-gray-500 ml-1">(per hour)</span>
-                                </label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 font-semibold">
-                                        {currencySymbols[formData.currency] || '$'}
-
-                                    </span>
-                                    <input
-                                        type="number"
-                                        placeholder="0.00"
-                                        value={formData.rate}
-                                        onChange={(e) => {
-                                            let value = e.target.value.replace(/[^0-9.]/g, '');
-                                            const parts = value.split('.');
-                                            if (parts.length > 2) value = parts[0] + '.' + parts[1];
-                                            if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
-                                            if (parts[1]) parts[1] = parts[1].slice(0, 2);
-                                            value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
-                                            e.target.value = value;
-                                            handleChange('rate')(e);
-                                        }}
-                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.rate ? 'border-red-500' : 'border-gray-300'
-                                            }`}
-                                        step="0.01"
-                                        min="0.01"
-                                        pattern="^\d{1,13}(\.\d{0,2})?$"
-                                        inputMode="decimal"
-                                    />
-                                </div>
-                                {errors.rate && <p className="text-red-500 text-xs mt-1">{errors.rate}</p>}
-                            </div>
-
-
-                        </div>
-
-                        {/* 4th Line: Include Timesheet Reference Checkbox */}
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div className="flex items-start space-x-3">
-                                <input
-                                    type="checkbox"
-                                    id="attachTimesheet"
-                                    checked={attachTimesheet}
-                                    onChange={(e) => setAttachTimesheet(e.target.checked)}
-                                    disabled={formData.employeeNames && formData.employeeNames.length > 1}
-                                    className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 mt-0.5"
-                                />
-                                <div className="flex-1">
-                                    <label htmlFor="attachTimesheet" className="text-sm font-medium text-green-900 cursor-pointer">
-                                        Include Timesheet Reference in PDF
-                                    </label>
-                                    <p className="text-xs text-green-600 mt-1">
-                                        {viewMode === "Weekly"
-                                            ? "Include a detailed weekly timesheet table in the generated invoice PDF"
-                                            : "Include a detailed monthly timesheet table in the generated invoice PDF"
-                                        }
-                                    </p>
-                                    {timesheetData && (
-                                        <p className="text-xs text-green-500 mt-1">
-                                            ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
-                                        </p>
-                                    )}
-                                    {formData.employeeNames && formData.employeeNames.length > 1 && (
-                                        <p className="text-xs text-red-600 mt-1">Timesheet will not be included when multiple employees are selected</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Timesheet Summary (when timesheet is attached) */}
-                            {attachTimesheet && getTimesheetSummary() && (
-                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h3 className="text-sm font-semibold text-blue-900 flex items-center">
-                                            <Clock className="mr-2" size={16} />
-                                            Timesheet Summary ({getTimesheetSummary().period} View)
-                                        </h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Period:</span>
-                                            <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Total Hours:</span>
-                                            <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Tasks Logged:</span>
-                                            <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-blue-600 font-medium">Employee:</span>
-                                            <p className="text-blue-800">{employee?.name || formData.employeeName}</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-blue-600 mt-2">
-                                        ✓ Detailed timesheet table will be included in the generated PDF
-                                    </p>
+                            {formData.invoiceType === 'DOMESTIC' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Ship To Address</label>
+                                    <input type="text" placeholder="Ship to address" value={formData.shipToAddress} onChange={handleChange('shipToAddress')} className="w-full h-10 px-4 border rounded-md" />
                                 </div>
                             )}
+
                         </div>
+
+                        {/* 3rd Line: Supplier Name and Supplier Address */}
+                        
+
+                        
 
                         {/* 5th Line: Employee Name, Currency, Rate, Hours Spent */}
 
 
                         {/* 6th Line: From Date and To Date */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    From Date *
-                                </label>
-                                <div
-                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 flex items-center ${errors.fromDate ? "border-red-500" : "border-gray-300"
-                                        }`}
-                                >
-                                    <Calendar
-                                        onClick={() => fromDateInputRef.current?.showPicker?.()}
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 cursor-pointer"
-                                        size={16}
-                                    />
-                                    <input
-                                        ref={fromDateInputRef}
-                                        type="date"
-                                        value={formData.fromDate}
-                                        onChange={(e) => {
-                                            let value = e.target.value;
-
-                                            // ✅ Ensure year part is at most 4 digits
-                                            if (value) {
-                                                const [year, month, day] = value.split("-");
-                                                if (year && year.length > 4) {
-                                                    value = `${year.slice(0, 4)}-${month || "01"}-${day || "01"}`;
-                                                }
-                                            }
-
-                                            handleChange("fromDate")({ target: { value } });
-                                        }}
-                                        className="w-full bg-transparent outline-none"
-                                        max={formData.toDate || ""}
-                                    />
+                          {/* Total Amount Display */}
+                        {/* Editable Items / Employees Table */}
+                        <div className="border border-gray-200 rounded-md p-3 bg-white">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm font-semibold">Invoice Items</h3>
+                                <div className="flex items-center space-x-2">
+                                    <select value={formData.currency} onChange={handleChange('currency')} className="h-8 px-2 border rounded-md text-sm">
+                                        <option value="USD">USD ($)</option>
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="JPY">JPY (¥)</option>
+                                        <option value="CAD">CAD (C$)</option>
+                                        <option value="AUD">AUD (A$)</option>
+                                    </select>
+                                    <button type="button" onClick={() => {
+                                        // rename headers example placeholder (no-op)
+                                    }} className="text-xs text-gray-500">Edit headers</button>
                                 </div>
-                                {errors.fromDate && <p className="text-red-500 text-xs mt-1">{errors.fromDate}</p>}
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    To Date *
-                                </label>
-                                <div
-                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 flex items-center ${errors.toDate ? "border-red-500" : "border-gray-300"
-                                        }`}
-                                >
-                                    <Calendar
-                                        onClick={() => toDateInputRef.current?.showPicker?.()}
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 cursor-pointer"
-                                        size={16}
-                                    />
-                                    <input
-                                        ref={toDateInputRef}
-                                        type="date"
-                                        value={formData.toDate}
-                                        onChange={(e) => {
-                                            let value = e.target.value;
+                            {/* editable headers */}
+                            <div className="grid grid-cols-5 gap-0 mb-2">
+                                <input value={tableHeaders.col1} onChange={(e) => updateTableHeader('col1', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                <input value={tableHeaders.col2} onChange={(e) => updateTableHeader('col2', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                <input value={tableHeaders.col3} onChange={(e) => updateTableHeader('col3', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                <input value={tableHeaders.col4} onChange={(e) => updateTableHeader('col4', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                <input value={tableHeaders.col5} onChange={(e) => updateTableHeader('col5', e.target.value)} className="px-2 py-1 border rounded-none" />
+                            </div>
 
-                                            // ✅ Ensure year part is at most 4 digits
-                                            if (value) {
-                                                const [year, month, day] = value.split("-");
-                                                if (year && year.length > 4) {
-                                                    value = `${year.slice(0, 4)}-${month || "01"}-${day || "01"}`;
-                                                }
-                                            }
+                            {/* Items rows */}
+                            <div className="space-y-2">
+                                {items.map((it) => (
+                                    <div key={it.id} className="grid grid-cols-5 gap-0 items-center">
+                                        <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value.replace(/[^0-9.]/g, ''))} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value.replace(/[^0-9.]/g, ''))} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
+                                        <div className="flex items-center">
+                                            <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none flex-1" />
+                                            <button type="button" onClick={() => removeItem(it.id)} className="text-red-500 px-2" title="Delete item"><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
 
-                                            handleChange("toDate")({ target: { value } });
-                                        }}
-                                        className="w-full bg-transparent outline-none"
-                                        min={formData.fromDate}
-                                        max={
-                                            formData.fromDate
-                                                ? (() => {
-                                                    const d = new Date(formData.fromDate);
-                                                    d.setMonth(d.getMonth() + 2);
-                                                    return d.toISOString().split("T")[0];
-                                                })()
-                                                : ""
-                                        }
-                                    />
+                            <div className="flex gap-2 mt-2">
+                                <button type="button" onClick={addItem} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Item</button>
+                            </div>
+
+                            {/* Employee selection rows */}
+                            <div className="mt-4">
+                                <h4 className="text-sm font-medium mb-2">Employees</h4>
+                                <div className="space-y-2">
+                                    {invoiceEmployees.map((er) => (
+                                        <div key={er.id} className="grid grid-cols-5 gap-0 items-center">
+                                            <div>
+                                                <CreatableSelect
+                                                    options={employees}
+                                                    value={employees.find(emp => emp.userId === er.userId) || null}
+                                                    onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
+                                                    classNamePrefix="react-select"
+                                                    isClearable
+                                                />
+                                            </div>
+                                            <div>
+                                                <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value.replace(/[^0-9.]/g, ''))} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" />
+                                            </div>
+                                            <div>
+                                                <input value={er.quantity} onChange={(e) => updateEmployeeRow(er.id, 'quantity', e.target.value.replace(/[^0-9.]/g, ''))} placeholder="Qty" className="px-2 py-1 border rounded-none w-full" />
+                                            </div>
+                                            <div>
+                                                <input value={er.amount} readOnly placeholder="Amount" className="px-2 py-1 border rounded-none bg-gray-50 w-full" />
+                                            </div>
+                                            <div className="flex items-center">
+                                                <input value={er.remarks} onChange={(e) => updateEmployeeRow(er.id, 'remarks', e.target.value)} placeholder="Remarks" className="px-2 py-1 border rounded-none flex-1" />
+                                                <button type="button" onClick={() => removeEmployeeRow(er.id)} className="text-red-500 px-2" title="Delete employee"><Trash2 size={16} /></button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
+                                <div className="flex gap-2 mt-2">
+                                    <button type="button" onClick={addEmployeeRow} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Employee</button>
+                                </div>
+                            </div>
 
-                                {/* Existing required error */}
-                                {errors.toDate && (
-                                    <p className="text-red-500 text-xs mt-1">{errors.toDate}</p>
-                                )}
-
-                                {/* ✅ New Date Range Validation Error */}
-                                {formData.fromDate &&
-                                    formData.toDate &&
-                                    (new Date(formData.toDate) < new Date(formData.fromDate) ||
-                                        new Date(formData.toDate) >
-                                        (() => {
-                                            const d = new Date(formData.fromDate);
-                                            d.setMonth(d.getMonth() + 2);
-                                            return d;
-                                        })()) && (
-                                        <p className="text-red-500 text-xs mt-1">
-                                            To Date must be between From Date and 2 months after it.
+                            {/* Table totals and amount in words */}
+                            <div className="mt-4 text-right">
+                                <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
+                                <div className="text-sm italic mt-1">In words: {amountToWords(computeItemsTotal(), formData.currency)}</div>
+                            </div>
+                            {errors.items && (
+                                <div className="mt-2 text-sm text-red-600">{errors.items}</div>
+                            )}
+                            {/* Timesheet checkbox moved below table */}
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                                <div className="flex items-start space-x-3">
+                                    <input
+                                        type="checkbox"
+                                        id="attachTimesheet"
+                                        checked={attachTimesheet}
+                                        onChange={(e) => setAttachTimesheet(e.target.checked)}
+                                        disabled={(invoiceEmployees || []).filter(e => e.userId).length > 1}
+                                        className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 mt-0.5"
+                                    />
+                                    <div className="flex-1">
+                                        <label htmlFor="attachTimesheet" className="text-sm font-medium text-green-900 cursor-pointer">
+                                            Include Timesheet Reference in PDF
+                                        </label>
+                                        <p className="text-xs text-green-600 mt-1">
+                                            {viewMode === "Weekly"
+                                                ? "Include a detailed weekly timesheet table in the generated invoice PDF"
+                                                : "Include a detailed monthly timesheet table in the generated invoice PDF"
+                                            }
                                         </p>
-                                    )}
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Hours Spent *
-                                </label>
-                                <input
-                                    type="number"
-                                    placeholder="0"
-                                    value={formData.hoursSpent}
-                                    onChange={(e) => {
-                                        let value = e.target.value.replace(/[^0-9.]/g, '');
-                                        const parts = value.split('.');
-                                        if (parts.length > 2) value = parts[0] + '.' + parts[1];
-                                        if (parts[0].length > 13) parts[0] = parts[0].slice(0, 13);
-                                        if (parts[1]) parts[1] = parts[1].slice(0, 2);
-                                        value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
-                                        e.target.value = value;
-                                        handleChange('hoursSpent')(e);
-                                    }}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.hoursSpent ? 'border-red-500' : 'border-gray-300'
-                                        }`}
-                                    step="0.01"
-                                    min="0"
-                                    pattern="^\d{1,13}(\.\d{0,2})?$"
-                                    inputMode="decimal"
-                                />
-                                {errors.hoursSpent && <p className="text-red-500 text-xs mt-1">{errors.hoursSpent}</p>}
+                                        {timesheetData && (
+                                            <p className="text-xs text-green-500 mt-1">
+                                                ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
+                                            </p>
+                                        )}
+                                        {(invoiceEmployees || []).filter(e => e.userId).length > 1 && (
+                                            <p className="text-xs text-red-600 mt-1">Timesheet will not be included when multiple employees are selected</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Timesheet Summary (when timesheet is attached) */}
+                                {attachTimesheet && (
+                                    <div className="mt-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                                            <div>
+                                                <label className="text-xs text-gray-700">From</label>
+                                                <input type="date" value={formData.fromDate} onChange={handleChange('fromDate')} className="w-full h-8 px-2 border rounded-md" />
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-700">To</label>
+                                                <input type="date" value={formData.toDate} onChange={handleChange('toDate')} className="w-full h-8 px-2 border rounded-md" />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button type="button" onClick={async () => {
+                                                // fetch timesheet refs for selected single employee
+                                                const selectedRows = (invoiceEmployees || []).filter(e => e.userId);
+                                                if (!formData.fromDate || !formData.toDate) {
+                                                    setSnackbar({ open: true, message: 'Please select from and to dates in Bill Period', severity: 'error' });
+                                                    return;
+                                                }
+                                                if (selectedRows.length === 0) {
+                                                    setSnackbar({ open: true, message: 'Please select an employee row to fetch timesheet for', severity: 'error' });
+                                                    return;
+                                                }
+                                                if (selectedRows.length > 1) {
+                                                    setSnackbar({ open: true, message: 'Timesheet auto-fill only available for a single employee', severity: 'error' });
+                                                    return;
+                                                }
+                                                const empId = selectedRows[0].userId;
+                                                try {
+                                                    const res = await axios.get(`${API_BASE_URL}/api/timesheet-tasks/admin-between`, {
+                                                        params: {
+                                                            start: formData.fromDate,
+                                                            end: formData.toDate,
+                                                            userId: empId
+                                                        },
+                                                        headers: { Authorization: sessionStorage.getItem('token') }
+                                                    });
+                                                    const tasks = res.data || [];
+                                                    setFetchedTasks(tasks);
+                                                    // compute total minutes
+                                                    let totalMinutes = 0;
+                                                    tasks.forEach(task => {
+                                                        totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
+                                                    });
+                                                    const hours = Math.floor(totalMinutes / 60);
+                                                    const minutes = totalMinutes % 60;
+                                                    const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
+                                                    // set a simple timesheet ref
+                                                    const genRef = `TS-${empId}-${formData.fromDate.replace(/-/g,'')}-${formData.toDate.replace(/-/g,'')}`;
+                                                    setTimesheetRef(genRef);
+                                                    setSnackbar({ open: true, message: `Timesheet fetched (${tasks.length} entries). Ref: ${genRef}`, severity: 'success' });
+                                                    // auto-fill the single employee row's quantity and rate
+                                                    const empObj = employees.find(e => e.userId === empId);
+                                                    setInvoiceEmployees(prev => prev.map(e => e.userId === empId ? ({ ...e, quantity: decimalHours, rate: empObj ? (empObj.cost || empObj.cost === 0 ? empObj.cost : '') : e.rate }) : e));
+                                                } catch (err) {
+                                                    console.error('Error fetching timesheet tasks:', err);
+                                                    setSnackbar({ open: true, message: 'Failed to fetch timesheet data', severity: 'error' });
+                                                }
+                                            }} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Get Timesheet Ref</button>
+                                            {timesheetRef && <div className="text-sm text-gray-700">Ref: {timesheetRef}</div>}
+                                        </div>
+                                    </div>
+                                )}
+                                {attachTimesheet && getTimesheetSummary() && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="text-sm font-semibold text-blue-900 flex items-center">
+                                                <Clock className="mr-2" size={16} />
+                                                Timesheet Summary ({getTimesheetSummary().period} View)
+                                            </h3>
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                            <div>
+                                                <span className="text-blue-600 font-medium">Period:</span>
+                                                <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-blue-600 font-medium">Total Hours:</span>
+                                                <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-blue-600 font-medium">Tasks Logged:</span>
+                                                <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-blue-600 font-medium">Employee:</span>
+                                                <p className="text-blue-800">{employee?.name || ''}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-blue-600 mt-2">
+                                            ✓ Detailed timesheet table will be included in the generated PDF
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-
-                        {/* Total Amount Display */}
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center">
@@ -1729,6 +1764,18 @@ const AddInvoiceModal = ({
                         </div>
                     </div>
                 )}
+
+                {/* Visual footer details (tenant info for PDF footer preview) */}
+                <div className="px-6 pt-4 pb-2 border-t border-gray-100 bg-gray-50">
+                    <div className="flex items-center justify-between text-sm text-gray-700">
+                        <div>
+                            <div className="font-semibold">{sessionStorage.getItem('tenantName') || ''}</div>
+                            <div>{sessionStorage.getItem('tenantEmail') || ''} • {sessionStorage.getItem('tenantContact') || ''}</div>
+                            <div className="text-xs text-gray-500">{sessionStorage.getItem('tenantMailingAddress') || ''}</div>
+                        </div>
+                        <div className="text-right text-xs text-gray-500">Page 1 of 1</div>
+                    </div>
+                </div>
 
                 {/* Footer */}
                 <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
