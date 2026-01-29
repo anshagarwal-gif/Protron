@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import CreatableSelect from 'react-select/creatable';
+import Select from 'react-select';
 import OrganizationSelect from './OrganizationSelect'; // Import OrganizationSelect
 import axios from 'axios';
 import {
@@ -97,6 +98,11 @@ const AddInvoiceModal = ({
     // const [customers, setCustomers] = useState([]);
     // const [suppliers, setSuppliers] = useState([]);
     const [employees, setEmployees] = useState([]);
+    const [projects, setProjects] = useState([]);
+
+    const projectOptions = useMemo(() => {
+        return (projects || []).map(p => ({ value: p.projectName, label: p.projectName, projectId: p.projectId, projectCode: p.projectCode }));
+    }, [projects]);
     // const [customerAddresses, setCustomerAddresses] = useState([]);
     // const [supplierAddresses, setSupplierAddresses] = useState([]);
     const [isCalculating, setIsCalculating] = useState(false);
@@ -411,6 +417,7 @@ const AddInvoiceModal = ({
     useEffect(() => {
         if (open) {
             fetchDropdownData();
+            fetchProjects();
             // Restore draft if present, otherwise initialize
             try {
                 const draft = sessionStorage.getItem('addInvoiceDraft');
@@ -436,6 +443,22 @@ const AddInvoiceModal = ({
             }
         }
     }, [open, fetchDropdownData]);
+
+    const fetchProjects = async () => {
+        try {
+            const token = sessionStorage.getItem("token");
+            const response = await axios.get(
+                `${API_BASE_URL}/api/invoices/projects`,
+                {
+                    headers: { Authorization: token }
+                }
+            );
+            setProjects(response.data || []);
+        } catch (error) {
+            console.error('Error fetching projects:', error);
+            setProjects([]);
+        }
+    };
 
     // fetchProjects removed - not used in this component
 
@@ -707,6 +730,36 @@ const AddInvoiceModal = ({
         return (itemsTotal + empTotal).toFixed(2);
     };
 
+    // When timesheet is attached and a single employee row is selected, auto-populate
+    // that employee's quantity (hours) and amount based on fetchedTasks.
+    useEffect(() => {
+        try {
+            const selectedRows = (invoiceEmployees || []).filter(e => e.userId);
+            if (!attachTimesheet || !fetchedTasks || fetchedTasks.length === 0 || selectedRows.length !== 1) return;
+
+            // Calculate total minutes from fetched tasks
+            let totalMinutes = 0;
+            fetchedTasks.forEach(task => {
+                totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
+            });
+
+            const totalHoursDecimal = totalMinutes / 60;
+            const quantity = Math.floor(totalHoursDecimal); // use integer hours for quantity
+
+            setInvoiceEmployees(prev => prev.map(e => {
+                if (!e.userId) return e;
+                const rate = parseFloat(e.rate) || 0;
+                const amount = parseFloat((rate * quantity).toFixed(2));
+                return { ...e, quantity: quantity, amount: amount };
+            }));
+
+            // Also populate top-level hoursSpent so preview/submit use correct value
+            setFormData(prev => ({ ...prev, hoursSpent: totalHoursDecimal.toFixed(2) }));
+        } catch (err) {
+            console.error('Failed to auto-calc employee amount from timesheet:', err);
+        }
+    }, [attachTimesheet, fetchedTasks]);
+
     const removeAttachment = (index) => {
         const newAttachments = [...attachments];
         newAttachments.splice(index, 1);
@@ -776,18 +829,20 @@ const AddInvoiceModal = ({
             let hoursValue = Number.isFinite(parsedHours) ? parsedHours : null;
 
             const itemsToSend = (items || []).map(it => ({
-                ...it,
+                itemDesc: it.itemDesc || it.description || '',
                 rate: Number.isFinite(parseFloat(it.rate)) ? parseFloat(it.rate) : 0,
                 quantity: Number.isFinite(parseFloat(it.quantity)) ? parseFloat(it.quantity) : 0,
-                amount: Number.isFinite(parseFloat(it.amount)) ? parseFloat(it.amount) : 0
+                amount: Number.isFinite(parseFloat(it.amount)) ? parseFloat(it.amount) : 0,
+                remarks: it.remarks || ''
             }));
 
             const invoiceEmpRows = (invoiceEmployees || []).filter(e => e.userId);
             const employeesToSend = invoiceEmpRows.map(e => ({
-                ...e,
+                itemDesc: e.itemDesc || (employees.find(emp => emp.userId === e.userId)?.label) || '',
                 rate: Number.isFinite(parseFloat(e.rate)) ? parseFloat(e.rate) : 0,
                 quantity: Number.isFinite(parseFloat(e.quantity)) ? parseFloat(e.quantity) : 0,
-                amount: Number.isFinite(parseFloat(e.amount)) ? parseFloat(e.amount) : 0
+                amount: Number.isFinite(parseFloat(e.amount)) ? parseFloat(e.amount) : 0,
+                remarks: e.remarks || ''
             }));
 
             // Derive sensible fallbacks for rate and hours if missing
@@ -949,10 +1004,11 @@ const AddInvoiceModal = ({
             let hoursValue = Number.isFinite(parsedHours) ? parsedHours : null;
 
             const itemsToSend = (items || []).map(it => ({
-                ...it,
+                itemDesc: it.itemDesc || it.description || '',
                 rate: Number.isFinite(parseFloat(it.rate)) ? parseFloat(it.rate) : 0,
                 quantity: Number.isFinite(parseFloat(it.quantity)) ? parseFloat(it.quantity) : 0,
-                amount: Number.isFinite(parseFloat(it.amount)) ? parseFloat(it.amount) : 0
+                amount: Number.isFinite(parseFloat(it.amount)) ? parseFloat(it.amount) : 0,
+                remarks: it.remarks || ''
             }));
 
             const invoiceEmpRows = (invoiceEmployees || []).filter(e => e.userId);
@@ -1121,11 +1177,19 @@ const AddInvoiceModal = ({
         setAttachments([]);
         setAttachTimesheet(false);
         setFetchedTasks([]);
+        setItems([{ id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }]);
+        setInvoiceEmployees([{ id: 1, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
         // clear saved draft
         try { sessionStorage.removeItem('addInvoiceDraft'); } catch { /* ignore */ }
+    };
+
+    const handleCloseModal = () => {
+        try { sessionStorage.removeItem('addInvoiceDraft'); } catch { /* ignore */ }
+        handleReset();
+        if (onClose) onClose();
     };
 
     const getDisplayTotal = () => {
@@ -1144,7 +1208,10 @@ const AddInvoiceModal = ({
     };
 
     const amountToWords = (amountValue, currency) => {
-        if (amountValue === null || amountValue === undefined || isNaN(amountValue)) return '';
+        if (amountValue === null || amountValue === undefined) return '';
+        const cleaned = (typeof amountValue === 'string') ? amountValue.replace(/[^0-9.-]/g, '') : String(amountValue);
+        const parsed = parseFloat(cleaned);
+        if (isNaN(parsed)) return '';
         const units = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
         const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
 
@@ -1168,7 +1235,7 @@ const AddInvoiceModal = ({
             AUD: ['Dollar','Cent']
         };
 
-        const amt = parseFloat(amountValue) || 0;
+        const amt = parsed || 0;
         const whole = Math.floor(Math.abs(amt));
         const fraction = Math.round((Math.abs(amt) - whole) * 100);
         const majorName = (major[currency] && major[currency][0]) || 'Currency';
@@ -1239,7 +1306,7 @@ const AddInvoiceModal = ({
                             </div>
 
                             <button
-                                onClick={onClose}
+                                onClick={handleCloseModal}
                                 className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
                             >
                                 <X className="w-5 h-5 text-white" />
@@ -1286,10 +1353,23 @@ const AddInvoiceModal = ({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-3  gap-3 sm:gap-4 mt-3">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Name</label>
                                 <input type="text" placeholder="Enter invoice name (optional)" value={formData.invoiceName} onChange={handleChange('invoiceName')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Initiative name</label>
+                                <Select
+                                    options={projectOptions}
+                                    value={projectOptions.find(o => o.value === formData.projectName) || null}
+                                    onChange={(opt) => setFormData(prev => ({ ...prev, projectName: opt ? opt.value : '' }))}
+                                    isClearable
+                                    isSearchable
+                                    classNamePrefix="react-select"
+                                    menuPlacement="auto"
+                                />
                             </div>
 
                             <div>
@@ -1308,11 +1388,23 @@ const AddInvoiceModal = ({
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID</label>
                                 <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className="w-full h-10 px-4 border rounded-md" />
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
+                            <OrganizationSelect
+                                value={formData.customerName || ''}
+                                onChange={(value) => setFormData(prev => ({ ...prev, customerName: value }))}
+                                onOrgSelect={handleCustomerOrgSelect}
+                                placeholder="Search for customer or type new..."
+                                orgType="CUSTOMER"
+                                isDisabled={loadingEmployees}
+                                className="w-full"
+                            />
+                            </div>
                         </div>
 
                                     <div className="mt-3">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Bill Period</label>
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-3 gap-2">
                                             <div>
                                                 <label className="text-xs text-gray-600">From</label>
                                                 <input type="date" value={formData.fromDate} onChange={handleChange('fromDate')} className="w-full h-10 px-4 border rounded-md" />
@@ -1326,17 +1418,8 @@ const AddInvoiceModal = ({
 
                         {/* Currency select moved into the Invoice Items table header */}
 
-                        <div className="mt-3">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
-                            <OrganizationSelect
-                                value={formData.customerName || ''}
-                                onChange={(value) => setFormData(prev => ({ ...prev, customerName: value }))}
-                                onOrgSelect={handleCustomerOrgSelect}
-                                placeholder="Search for customer or type new..."
-                                orgType="CUSTOMER"
-                                isDisabled={loadingEmployees}
-                                className="w-full"
-                            />
+                        <div className="mt-3 grid grid-cols-1">
+                            
                         </div>
 
                         {/* Customer address fields - vary by invoice type */}
@@ -1456,9 +1539,9 @@ const AddInvoiceModal = ({
 
                             {/* Table totals and amount in words */}
                             <div className="mt-4 text-right">
-                                <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
-                                <div className="text-sm italic mt-1">In words: {amountToWords(computeItemsTotal(), formData.currency)}</div>
-                            </div>
+                                                    <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
+                                                    <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
+                                                </div>
                             {errors.items && (
                                 <div className="mt-2 text-sm text-red-600">{errors.items}</div>
                             )}
@@ -1555,7 +1638,12 @@ const AddInvoiceModal = ({
                                                     setSnackbar({ open: true, message: 'Failed to fetch timesheet data', severity: 'error' });
                                                 }
                                             }} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Get Timesheet Ref</button>
-                                            {timesheetRef && <div className="text-sm text-gray-700">Ref: {timesheetRef}</div>}
+                                            {timesheetRef && (
+                                                <div className="text-sm text-gray-700">
+                                                    <div>Ref: {timesheetRef}</div>
+                                                    <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -1605,7 +1693,7 @@ const AddInvoiceModal = ({
                             </div>
                             {/** Amount in words */}
                             <div className="mt-2">
-                                <p className="text-sm text-gray-700 italic">In words: {amountToWords(formData.totalAmount ? parseFloat(formData.totalAmount) : (formData.rate && formData.hoursSpent ? parseFloat(formData.rate) * parseFloat(formData.hoursSpent) : 0), formData.currency)}</p>
+                                <p className="text-sm text-gray-700 italic">In words: {amountToWords(parseFloat(computeItemsTotal() || formData.totalAmount || 0), formData.currency)}</p>
                             </div>
                             {formData.rate && formData.hoursSpent && (
                                 <p className="text-sm text-gray-600 mt-2">
@@ -1780,7 +1868,7 @@ const AddInvoiceModal = ({
                 {/* Footer */}
                 <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
                     <button
-                        onClick={onClose}
+                        onClick={handleCloseModal}
                         disabled={loading}
                         className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50"
                     >

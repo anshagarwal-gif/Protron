@@ -31,11 +31,56 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
 
   // Format currency (matching other modals)
   const formatCurrency = (amount, currency = 'USD') => {
-    if (!amount) return 'N/A';
+    if (amount === null || amount === undefined) return 'N/A';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
     }).format(parseFloat(amount));
+  };
+
+  const amountToWords = (amountValue, currency) => {
+    if (amountValue === null || amountValue === undefined) return '';
+    const cleaned = (typeof amountValue === 'string') ? amountValue.replace(/[^0-9.-]/g, '') : String(amountValue);
+    const parsed = parseFloat(cleaned);
+    if (isNaN(parsed)) return '';
+    const units = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+    const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+
+    const numberToWords = (n) => {
+      if (n === 0) return 'Zero';
+      if (n < 20) return units[n];
+      if (n < 100) return tens[Math.floor(n/10)] + (n%10 ? ' ' + units[n%10] : '');
+      if (n < 1000) return units[Math.floor(n/100)] + ' Hundred' + (n%100 ? ' ' + numberToWords(n%100) : '');
+      if (n < 1000000) return numberToWords(Math.floor(n/1000)) + ' Thousand' + (n%1000 ? ' ' + numberToWords(n%1000) : '');
+      if (n < 1000000000) return numberToWords(Math.floor(n/1000000)) + ' Million' + (n%1000000 ? ' ' + numberToWords(n%1000000) : '');
+      return numberToWords(Math.floor(n/1000000000)) + ' Billion' + (n%1000000000 ? ' ' + numberToWords(n%1000000000) : '');
+    };
+
+    const major = {
+      USD: ['Dollar','Cent'],
+      INR: ['Rupee','Paise'],
+      EUR: ['Euro','Cent'],
+      GBP: ['Pound','Pence'],
+      JPY: ['Yen','Sen'],
+      CAD: ['Dollar','Cent'],
+      AUD: ['Dollar','Cent']
+    };
+
+    const amt = (typeof parsed === 'number' && Number.isFinite(parsed)) ? parsed : 0;
+    const whole = Math.floor(Math.abs(amt));
+    const fraction = Math.round((Math.abs(amt) - whole) * 100);
+    const majorName = (major[currency] && major[currency][0]) || 'Currency';
+    const minorName = (major[currency] && major[currency][1]) || 'Cents';
+
+    let words = numberToWords(whole) + ' ' + (whole === 1 ? majorName : (majorName + 's'));
+    if (fraction > 0) {
+      words += ' and ' + numberToWords(fraction) + ' ' + (fraction === 1 ? minorName : (minorName + 's'));
+    }
+    // Debug: if formatted currency shows non-zero but words are Zero, log for investigation
+    if (whole === 0 && parseFloat(amountValue) && parseFloat(amountValue) !== 0) {
+      console.warn('amountToWords: numeric mismatch', { amountValue, parsed, amt, whole, words });
+    }
+    return words;
   };
 
   // Format date (matching other modals)
@@ -124,6 +169,12 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
     </div>
   );
 
+  // Combine rows from possible payload shapes (support `invoiceItems`/`items` and `invoiceEmployees`/`employees`)
+  const combinedRows = [
+    ...(invoice.invoiceItems || invoice.items || []),
+    ...(invoice.invoiceEmployees || invoice.employees || [])
+  ];
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
@@ -136,8 +187,9 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
               </div>
               <div>
                 <h2 className="text-base sm:text-lg lg:text-xl font-bold">Invoice Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm break-words overflow-wrap-anywhere">Invoice ID: {invoice.invoiceId || 'N/A'}</p>
               </div>
+
+            {/* Invoice Actions */}
             </div>
             <button
               onClick={onClose}
@@ -251,6 +303,51 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
                 label="Total Amount"
                 value={formatCurrency(invoice.totalAmount, invoice.currency)}
               />
+            </div>
+          </div>
+
+          {/* Items & Employees (combined table) */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <FileText className="mr-2 text-green-600" size={20} />
+              Items & Employees
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm table-auto border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="text-left p-2 border">Item Description</th>
+                    <th className="text-left p-2 border">Rate</th>
+                    <th className="text-left p-2 border">Quantity</th>
+                    <th className="text-left p-2 border">Amount ({invoice.currency})</th>
+                    <th className="text-left p-2 border">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {combinedRows.length === 0 && (
+                    <tr>
+                      <td className="p-2 border text-center text-gray-500" colSpan={5}>No items or employees found</td>
+                    </tr>
+                  )}
+                  {combinedRows.map((row, idx) => (
+                    <tr key={`row-${idx}`}>
+                      <td className="p-2 border">{row.itemDesc || row.description || ''}</td>
+                      <td className="p-2 border">{formatCurrency(row.rate, invoice.currency)}</td>
+                      <td className="p-2 border">{row.quantity}</td>
+                      <td className="p-2 border">{formatCurrency(row.amount, invoice.currency)}</td>
+                      <td className="p-2 border">{row.remarks || ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Grand total & amount in words (below items table) */}
+          <div className="bg-white rounded-lg p-4">
+            <div className="flex justify-end items-end space-y-1 flex-col">
+              <div className="text-lg font-semibold">Grand Total: {formatCurrency(invoice.totalAmount, invoice.currency)}</div>
+              <div className="text-sm italic mt-1">Amount (in words): {amountToWords(invoice.totalAmount, invoice.currency)}</div>
             </div>
           </div>
 

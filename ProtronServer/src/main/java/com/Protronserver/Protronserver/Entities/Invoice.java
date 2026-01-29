@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -90,9 +91,11 @@ public class Invoice {
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<InvoiceItem> invoiceItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<InvoiceEmployee> invoiceEmployees = new ArrayList<>();
 
     // Attachments - storing up to 4 attachments

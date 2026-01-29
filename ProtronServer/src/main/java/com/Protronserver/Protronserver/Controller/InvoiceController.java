@@ -34,6 +34,12 @@ public class InvoiceController {
     @PostMapping("/generate")
     public ResponseEntity<?> generateInvoice(@Valid @RequestBody InvoiceRequestDTO requestDTO) {
         try {
+            try {
+                String payload = objectMapper.writeValueAsString(requestDTO);
+                log.info("Received invoice payload (generate): {}", payload);
+            } catch (Exception e) {
+                log.warn("Failed to serialize invoice payload for logging: {}", e.getMessage());
+            }
             // Log timesheet data inclusion
             if (requestDTO.hasTimesheetData()) {
                 log.info("Invoice generation requested with timesheet data - View: {}, Employee: {}, Total entries: {}",
@@ -68,6 +74,13 @@ public class InvoiceController {
             @RequestPart("invoice") String invoiceJson,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
         try {
+            // Log raw invoice JSON part
+            try {
+                log.info("Received invoice payload (generate-with-attachments): {}", invoiceJson);
+            } catch (Exception e) {
+                log.warn("Failed to log raw invoice JSON: {}", e.getMessage());
+            }
+
             // Parse the JSON string to InvoiceRequestDTO
             InvoiceRequestDTO requestDTO = objectMapper.readValue(invoiceJson, InvoiceRequestDTO.class);
 
@@ -246,6 +259,12 @@ public class InvoiceController {
     @PostMapping("/preview")
     public ResponseEntity<byte[]> generatePreviewPDF(@RequestBody Map<String, Object> invoiceData) {
         try {
+            try {
+                String payload = objectMapper.writeValueAsString(invoiceData);
+                log.info("Received invoice payload (preview): {}", payload);
+            } catch (Exception e) {
+                log.warn("Failed to serialize preview payload for logging: {}", e.getMessage());
+            }
             // Generate PDF bytes from service
             byte[] pdfBytes = invoiceService.generatePreviewPDF(invoiceData);
 
