@@ -35,7 +35,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/users/signup").permitAll()
                                                 .requestMatchers("/api/users/*/photo").permitAll()
                                                 .requestMatchers("/api/auth/**").permitAll() // Allow all auth endpoints
-                                        .requestMatchers("/api/security/**").permitAll()
+                                                .requestMatchers("/api/security/**").permitAll()
+                                                .requestMatchers("/api/contact").permitAll() // Contact form (public)
+                                                .requestMatchers("/api/career").permitAll() // Career form (public)
                                                 .anyRequest().authenticated() // Others need authentication
                                 );
 

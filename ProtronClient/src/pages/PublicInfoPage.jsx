@@ -2,106 +2,93 @@ import React from "react"
 import { useLocation, useParams } from "react-router-dom"
 import PublicNavbar from "../components/PublicNavbar"
 import careersHero from "../assets/IMG-20250919-WA0005.jpg"
+import funnelImage from "../assets/Funnel.jpeg"
+import timesheetImage from "../assets/Timesheet and resources.jpeg"
+import invoicingBudgetImage from "../assets/Invoice and budget.jpeg"
+import budgetManagementImage from "../assets/budgetmanagement1.png"
+import salesOpportunityImage from "../assets/sales and oppurtuity.jpeg"
+import serviceManagementImage from "../assets/Service management.jpeg"
+import accessManagementImage from "../assets/Access management.png"
+import itConsultingImage from "../assets/IT Consulting – Technical & Program Management.jpeg"
+import staffAugmentationImage from "../assets/Staff augmentation.png"
+import scrumAgileImage from "../assets/Scrum Agile facility.jpeg"
 
 const PAGES = {
   products: {
-    "projects-program-management": {
-      title: "Projects/Program Management",
-      subtitle: "Plan, execute, and deliver with clarity and control.",
-      sections: [
-        {
-          heading: "Overview",
-          body: [
-            "End-to-end project and program management built for modern delivery teams.",
-            "Track requirements, manage resources, and stay on top of budgets — all in one place.",
-          ],
-        },
-        {
-          heading: "Capabilities",
-          body: [
-            "Requirements/Funnel Management",
-            "Timesheet/resource Management",
-            "Invoicing & Budget Management",
-            "Budget Management",
-          ],
-          asList: true,
-        },
-      ],
-    },
     "requirements-funnel-management": {
       title: "Requirements/Funnel Management",
-      subtitle: "Capture, prioritize, and track requirements from idea to delivery.",
+      subtitle: "Capture, prioritize, and track business needs from idea to delivery.",
+      bannerImage: funnelImage,
       sections: [
         {
           heading: "Overview",
           body: [
-            "Centralize demand intake and convert ideas into structured requirements.",
-            "Manage prioritization, visibility, and readiness across stakeholders and delivery teams.",
+            "We provide Requirements and Funnel Management services to help organizations capture, prioritize, and track business needs from idea to delivery. Our approach ensures clear visibility, structured decision-making, and alignment between business and technology teams.",
           ],
         },
       ],
     },
     "timesheet-resource-management": {
       title: "Timesheet/resource Management",
-      subtitle: "Track time and utilization with clear capacity visibility.",
+      subtitle: "Track effort, optimize utilization, and improve project visibility.",
+      bannerImage: timesheetImage,
       sections: [
         {
           heading: "Overview",
           body: [
-            "Accurate timesheets, approvals, and reporting for billable and non-billable work.",
-            "Resource allocation and utilization insights to balance workloads and improve delivery predictability.",
+            "We provide Timesheet and Resource Management services that help organizations track effort, optimize resource utilization, and improve project visibility. Our solutions ensure accurate time capture, better capacity planning, and informed decision-making.",
           ],
         },
       ],
     },
     "invoicing-budget-management": {
       title: "Invoicing & Budget Management",
-      subtitle: "Keep billing and budgets aligned with delivery.",
+      subtitle: "Track costs, manage budgets, and generate accurate invoices with confidence.",
+      bannerImage: invoicingBudgetImage,
       sections: [
         {
           heading: "Overview",
           body: [
-            "Generate invoices based on tracked effort and milestones.",
-            "Monitor budgets in real time to reduce leakage, improve forecasting, and ensure compliance.",
+            "We provide Invoicing and Budget Management services that help organizations track costs, manage budgets, and generate accurate invoices with confidence. Our solutions improve financial visibility, control spending, and support timely billing.",
           ],
         },
       ],
     },
     "budget-management": {
       title: "Budget Management",
-      subtitle: "Plan, track, and control budgets with confidence.",
+      subtitle: "Effective financial governance across projects and initiatives.",
+      bannerImage: budgetManagementImage,
       sections: [
         {
           heading: "Overview",
           body: [
-            "Track planned vs actual spend and keep stakeholders informed.",
-            "Spot overruns early with clear reporting and governance-friendly controls.",
+            "Our Budget Management services enable effective financial governance across projects and initiatives. We help you monitor spend, manage forecasts, and align budgets with business priorities.",
           ],
         },
       ],
     },
     "sales-opportunity": {
       title: "Sales & Opportunity",
-      subtitle: "Turn leads into wins with a streamlined opportunity pipeline.",
+      subtitle: "Manage leads, pipelines, and revenue opportunities effectively.",
+      bannerImage: salesOpportunityImage,
       sections: [
         {
-          heading: "What you get",
+          heading: "Overview",
           body: [
-            "Capture leads, qualify opportunities, and track deal progress from start to close.",
-            "Improve forecast accuracy with clear visibility into pipeline health and conversion stages.",
+            "We provide Sales and Opportunity Management services that help organizations effectively manage leads, pipelines, and revenue opportunities. Our solutions improve visibility, prioritize high-value deals, and support consistent sales growth.",
           ],
         },
       ],
     },
     "service-management": {
       title: "Service Management",
-      subtitle: "Deliver reliable services with SLAs, workflows, and accountability.",
+      subtitle: "Centralized control over service operations, requests, and performance.",
+      bannerImage: serviceManagementImage,
       sections: [
         {
-          heading: "What you get",
+          heading: "Overview",
           body: [
-            "Organize service requests, track work items, and enforce SLAs across teams.",
-            "Create repeatable workflows for faster resolution and better customer outcomes.",
+            "Our Service Management services enable centralized control over service operations, requests, and performance. We help businesses enforce processes, meet service-level commitments, and continuously improve service outcomes.",
           ],
         },
       ],
@@ -109,6 +96,7 @@ const PAGES = {
     "access-management": {
       title: "Access Management",
       subtitle: "Control access with roles, permissions, and secure governance.",
+      bannerImage: accessManagementImage,
       sections: [
         {
           heading: "Overview",
@@ -123,39 +111,39 @@ const PAGES = {
   services: {
     "it-consulting": {
       title: "IT Consulting – Technical & Program Management",
-      subtitle: "Expert guidance for technical execution and program governance.",
+      subtitle: "Technical leadership and program management for complex initiatives.",
+      bannerImage: itConsultingImage,
       sections: [
         {
-          heading: "How we help",
+          heading: "Overview",
           body: [
-            "Architecture, delivery planning, and execution support for complex programs.",
-            "Hands-on program management to keep timelines, scope, and stakeholders aligned.",
+            "We provide IT consulting services covering technical leadership and program management to help organizations deliver complex initiatives successfully. Our experts align technology, processes, and teams to ensure predictable execution and measurable outcomes.",
           ],
         },
       ],
     },
     "staff-augmentation": {
       title: "Staff Augmentation",
-      subtitle: "Add the right talent to your team—fast.",
+      subtitle: "Access qualified technical and functional talent when you need it most.",
+      bannerImage: staffAugmentationImage,
       sections: [
         {
-          heading: "How we help",
+          heading: "Overview",
           body: [
-            "Flexible staffing to scale up delivery without long hiring cycles.",
-            "Role-aligned professionals who integrate smoothly with your tools and process.",
+            "Our Staff Augmentation services give you access to qualified technical and functional talent when you need it most. We help you bridge skill gaps, manage workloads, and maintain momentum across critical initiatives.",
           ],
         },
       ],
     },
     "scrum-agile": {
       title: "Scrum-Agile",
-      subtitle: "Adopt Agile practices that improve delivery speed and quality.",
+      subtitle: "Deliver high-quality solutions faster and with greater flexibility.",
+      bannerImage: scrumAgileImage,
       sections: [
         {
-          heading: "How we help",
+          heading: "Overview",
           body: [
-            "Scrum/Agile coaching, ceremonies enablement, and delivery metrics.",
-            "Practical ways to improve predictability, collaboration, and continuous improvement.",
+            "We provide Scrum and Agile services to help organizations deliver high-quality solutions faster and with greater flexibility. Our experts support Agile adoption, Scrum execution, and continuous improvement across teams.",
           ],
         },
       ],
@@ -195,8 +183,8 @@ export default function PublicInfoPage() {
 
       {/* Banner */}
       <section className="relative">
-        <div className="relative h-[320px] sm:h-[380px] overflow-hidden">
-          <img src={careersHero} alt={page.title} className="absolute inset-0 w-full h-full object-cover" />
+        <div className="relative h-[480px] sm:h-[540px] md:h-[580px] overflow-hidden">
+          <img src={page.bannerImage || careersHero} alt={page.title} className="absolute inset-0 w-full h-full object-cover object-center blur-[2px]" />
           <div className="absolute inset-0 bg-black/45" />
           <div className="relative h-full flex items-center justify-center px-4">
             <div className="text-center">

@@ -7,7 +7,6 @@ import { Users, CheckCircle, Zap, ArrowRight, Shield, Globe, TrendingUp, Award, 
 import { useNavigate } from "react-router-dom"
 import PublicNavbar from "../components/PublicNavbar"
 import dstGlobalLogo from "../assets/DST Global logo.png"
-import heroPoster from "../assets/IMG-20250919-WA0005.jpg"
 
 export default function ProjectMatricsLanding() {
   const navigate = useNavigate()
@@ -40,7 +39,8 @@ export default function ProjectMatricsLanding() {
     setStatus("Sending...")
 
     try {
-      const response = await fetch("https://your-backend-api.com/contact", {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8282"
+      const response = await fetch(`${apiUrl}/api/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,11 +48,12 @@ export default function ProjectMatricsLanding() {
         body: JSON.stringify(formData),
       })
 
+      const result = await response.text()
       if (response.ok) {
         setStatus("Message sent successfully!")
         setFormData({ name: "", companyName: "", email: "", phone: "", message: "" })
       } else {
-        setStatus("Failed to send message. Please try again.")
+        setStatus(result || "Failed to send message. Please try again.")
       }
     } catch (error) {
       console.error(error)
@@ -64,21 +65,7 @@ export default function ProjectMatricsLanding() {
     <div className="min-h-screen bg-white">
       <PublicNavbar />
 
-      <section id="home" className="relative bg-black">
-        <div className="relative h-[calc(100vh-80px)] min-h-[520px] w-full overflow-hidden">
-          <video
-            className="absolute inset-0 w-full h-full object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster={heroPoster}
-          >
-            <source src="/landing-hero.mp4" type="video/mp4" />
-          </video>
-        </div>
-      </section>
+      <section id="home" className="relative h-[calc(100vh-80px)] min-h-[520px] w-full bg-gray-100" />
 
       {/* About Section */}
       <section id="about" className="py-24 bg-white">

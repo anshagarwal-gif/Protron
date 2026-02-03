@@ -85,10 +85,40 @@ export default function Careers() {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitStatus("Application submitted!")
-    // Frontend-only for now (no backend wired)
+    setSubmitStatus("Submitting...")
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8282"
+      const formDataToSend = new FormData()
+      formDataToSend.append("name", form.name)
+      formDataToSend.append("email", form.email)
+      formDataToSend.append("contactNo", form.contactNo)
+      formDataToSend.append("qualification", form.qualification)
+      formDataToSend.append("message", form.message || "")
+      formDataToSend.append("jobTitle", applyFor.title)
+      if (resumeFile) {
+        formDataToSend.append("resume", resumeFile)
+      }
+
+      const response = await fetch(`${apiUrl}/api/career`, {
+        method: "POST",
+        body: formDataToSend,
+      })
+
+      const result = await response.text()
+      if (response.ok) {
+        setSubmitStatus("Application submitted successfully!")
+        setForm(emptyForm)
+        setResumeFile(null)
+      } else {
+        setSubmitStatus(result || "Failed to submit. Please try again.")
+      }
+    } catch (error) {
+      console.error(error)
+      setSubmitStatus("An error occurred. Please try again.")
+    }
   }
 
   return (

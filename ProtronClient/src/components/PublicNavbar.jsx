@@ -6,7 +6,7 @@ import dstGlobalLogo from "../assets/DST Global logo.png"
 const productItems = [
   {
     label: "Projects/Program Management",
-    to: "/products/projects-program-management",
+    to: null,
     children: [
       { label: "Requirements/Funnel Management", to: "/products/requirements-funnel-management" },
       { label: "Timesheet/resource Management", to: "/products/timesheet-resource-management" },
@@ -53,6 +53,7 @@ export default function PublicNavbar() {
     setIsMenuOpen(false)
     setMobileProductsOpen(false)
     setMobileServicesOpen(false)
+    setMobileProjectsOpen(false)
     navigate(to)
   }
 
@@ -99,15 +100,13 @@ export default function PublicNavbar() {
                 <div className="w-[360px] bg-white rounded-2xl shadow-2xl border border-green-100 overflow-visible">
                   {productItems.map((item) =>
                     item.children ? (
-                      <div key={item.to} className="relative">
-                        <a
-                          href={item.to}
-                          onClick={goTo(item.to)}
-                          className="peer w-full flex items-center justify-between px-5 py-4 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors font-medium"
+                      <div key={item.label} className="relative">
+                        <span
+                          className="peer w-full flex items-center justify-between px-5 py-4 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors font-medium cursor-default"
                         >
                           <span>{item.label}</span>
                           <ChevronRight className="h-4 w-4" />
-                        </a>
+                        </span>
                         <div className="absolute top-0 left-full pl-2 z-50 opacity-0 pointer-events-none transition-opacity peer-hover:opacity-100 peer-hover:pointer-events-auto hover:opacity-100 hover:pointer-events-auto">
                           <div className="w-[360px] bg-white rounded-2xl shadow-2xl border border-green-100 overflow-hidden">
                             {item.children.map((child) => (
@@ -239,8 +238,8 @@ export default function PublicNavbar() {
             {mobileProductsOpen && (
               <div className="pl-4 space-y-1">
                 {productItems.map((item) =>
-                  item.children ? (
-                    <div key={item.to}>
+                    item.children ? (
+                    <div key={item.label}>
                       <button
                         type="button"
                         onClick={() => setMobileProjectsOpen((v) => !v)}
