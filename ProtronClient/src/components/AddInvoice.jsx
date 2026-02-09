@@ -123,6 +123,37 @@ const AddInvoiceModal = ({
     })
     const fileInputRef = useRef(null);
 
+    const fetchTenantInfo = async () => {
+        try {
+            const tenantId = sessionStorage.getItem("tenantId");
+            const token = sessionStorage.getItem("token");
+
+            if (!tenantId || !token) {
+                console.warn('Missing tenantId or token');
+                return;
+            }
+
+            const response = await axios.get(
+                `${API_BASE_URL}/api/tenants/${tenantId}/full-address`,
+                {
+                    headers: { Authorization: token }
+                }
+            );
+
+            if (response.data) {
+                const tenantAdd = response.data;
+
+                // Update formData with tenant address if supplier name matches
+                setFormData(prev => ({
+                    ...prev,
+                    supplierAddress: tenantAdd
+                }));
+            }
+        } catch (error) {
+            console.error('Error fetching tenant info:', error);
+        }
+    };
+
     const getMonthDiff = (d1, d2) => {
         const date1 = new Date(d1);
         const date2 = new Date(d2);
@@ -151,7 +182,7 @@ const AddInvoiceModal = ({
         }
     }, [formData, items, invoiceEmployees, attachments, attachTimesheet, fetchedTasks]);
 
-        useEffect(() => {
+    useEffect(() => {
         const fetchTasksForRange = async () => {
             const selectedRows = (invoiceEmployees || []).filter(e => e.userId);
             if (
@@ -209,7 +240,7 @@ const AddInvoiceModal = ({
         };
 
         fetchTasksForRange();
-        }, [formData.fromDate, formData.toDate, employees, invoiceEmployees]);
+    }, [formData.fromDate, formData.toDate, employees, invoiceEmployees]);
 
 
     // ...existing code...
@@ -418,6 +449,7 @@ const AddInvoiceModal = ({
         if (open) {
             fetchDropdownData();
             fetchProjects();
+            fetchTenantInfo();
             // Restore draft if present, otherwise initialize
             try {
                 const draft = sessionStorage.getItem('addInvoiceDraft');
@@ -760,6 +792,50 @@ const AddInvoiceModal = ({
         }
     }, [attachTimesheet, fetchedTasks]);
 
+    // Add this useEffect after the existing ones
+    useEffect(() => {
+        const fetchAndSetSupplierAddress = async () => {
+            const tenantName = sessionStorage.getItem('tenantName');
+            const tenantId = sessionStorage.getItem('tenantId');
+
+            // Only autopopulate if supplier name matches tenant name
+            if (formData.supplierName === tenantName && tenantId) {
+                try {
+                    const token = sessionStorage.getItem("token");
+                    const response = await axios.get(
+                        `${API_BASE_URL}/api/tenants/${tenantId}`,
+                        {
+                            headers: { Authorization: token }
+                        }
+                    );
+
+                    if (response.data) {
+                        const tenant = response.data;
+                        const addressParts = [
+                            tenant.tenantAddressLine1,
+                            tenant.tenantAddressLine2,
+                            tenant.tenantAddressLine3,
+                            tenant.tenantAddressPostalCode
+                        ].filter(part => part && part.trim() !== '');
+
+                        const fullAddress = addressParts.join(', ');
+
+                        setFormData(prev => ({
+                            ...prev,
+                            supplierAddress: fullAddress
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Error fetching tenant address:', error);
+                }
+            }
+        };
+
+        if (open && formData.supplierName) {
+            fetchAndSetSupplierAddress();
+        }
+    }, [open, formData.supplierName]);
+
     const removeAttachment = (index) => {
         const newAttachments = [...attachments];
         newAttachments.splice(index, 1);
@@ -812,7 +888,7 @@ const AddInvoiceModal = ({
 
     const handleSubmit = async () => {
         console.log('handleSubmit called');
-        
+
         // Run validation
         const newErrors = {};
         if (!formData.customerName?.trim()) newErrors.customerName = 'Customer name is required';
@@ -837,7 +913,7 @@ const AddInvoiceModal = ({
         if (formData.supplierInfo && formData.supplierInfo.length > 200) {
             newErrors.supplierInfo = 'Supplier info cannot exceed 200 characters';
         }
-        
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             // Build a more specific error message
@@ -846,13 +922,13 @@ const AddInvoiceModal = ({
             setSnackbar({ open: true, message: errorMessage, severity: 'error' });
             return;
         }
-        
+
         // Clear any previous errors
         setErrors({});
 
         setLoading(true);
         try {
-            
+
 
             // Normalize numeric fields to avoid null/NaN being sent to backend
             const parsedRate = parseFloat(formData.rate);
@@ -1245,27 +1321,27 @@ const AddInvoiceModal = ({
         const cleaned = (typeof amountValue === 'string') ? amountValue.replace(/[^0-9.-]/g, '') : String(amountValue);
         const parsed = parseFloat(cleaned);
         if (isNaN(parsed)) return '';
-        const units = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
-        const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+        const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
         const numberToWords = (n) => {
             if (n === 0) return 'Zero';
             if (n < 20) return units[n];
-            if (n < 100) return tens[Math.floor(n/10)] + (n%10 ? ' ' + units[n%10] : '');
-            if (n < 1000) return units[Math.floor(n/100)] + ' Hundred' + (n%100 ? ' ' + numberToWords(n%100) : '');
-            if (n < 1000000) return numberToWords(Math.floor(n/1000)) + ' Thousand' + (n%1000 ? ' ' + numberToWords(n%1000) : '');
-            if (n < 1000000000) return numberToWords(Math.floor(n/1000000)) + ' Million' + (n%1000000 ? ' ' + numberToWords(n%1000000) : '');
-            return numberToWords(Math.floor(n/1000000000)) + ' Billion' + (n%1000000000 ? ' ' + numberToWords(n%1000000000) : '');
+            if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + units[n % 10] : '');
+            if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + numberToWords(n % 100) : '');
+            if (n < 1000000) return numberToWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + numberToWords(n % 1000) : '');
+            if (n < 1000000000) return numberToWords(Math.floor(n / 1000000)) + ' Million' + (n % 1000000 ? ' ' + numberToWords(n % 1000000) : '');
+            return numberToWords(Math.floor(n / 1000000000)) + ' Billion' + (n % 1000000000 ? ' ' + numberToWords(n % 1000000000) : '');
         };
 
         const major = {
-            USD: ['Dollar','Cent'],
-            INR: ['Rupee','Paise'],
-            EUR: ['Euro','Cent'],
-            GBP: ['Pound','Pence'],
-            JPY: ['Yen','Sen'],
-            CAD: ['Dollar','Cent'],
-            AUD: ['Dollar','Cent']
+            USD: ['Dollar', 'Cent'],
+            INR: ['Rupee', 'Paise'],
+            EUR: ['Euro', 'Cent'],
+            GBP: ['Pound', 'Pence'],
+            JPY: ['Yen', 'Sen'],
+            CAD: ['Dollar', 'Cent'],
+            AUD: ['Dollar', 'Cent']
         };
 
         const amt = parsed || 0;
@@ -1423,36 +1499,36 @@ const AddInvoiceModal = ({
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
-                            <OrganizationSelect
-                                value={formData.customerName || ''}
-                                onChange={(value) => setFormData(prev => ({ ...prev, customerName: value }))}
-                                onOrgSelect={handleCustomerOrgSelect}
-                                placeholder="Search for customer or type new..."
-                                orgType="CUSTOMER"
-                                isDisabled={loadingEmployees}
-                                className="w-full"
-                            />
+                                <OrganizationSelect
+                                    value={formData.customerName || ''}
+                                    onChange={(value) => setFormData(prev => ({ ...prev, customerName: value }))}
+                                    onOrgSelect={handleCustomerOrgSelect}
+                                    placeholder="Search for customer or type new..."
+                                    orgType="CUSTOMER"
+                                    isDisabled={loadingEmployees}
+                                    className="w-full"
+                                />
                             </div>
                         </div>
 
-                                    <div className="mt-3">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Bill Period</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div>
-                                                <label className="text-xs text-gray-600">From</label>
-                                                <input type="date" value={formData.fromDate} onChange={handleChange('fromDate')} className="w-full h-10 px-4 border rounded-md" />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-600">To</label>
-                                                <input type="date" value={formData.toDate} onChange={handleChange('toDate')} className="w-full h-10 px-4 border rounded-md" />
-                                            </div>
-                                        </div>
-                                    </div>
+                        <div className="mt-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Bill Period</label>
+                            <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label className="text-xs text-gray-600">From</label>
+                                    <input type="date" value={formData.fromDate} onChange={handleChange('fromDate')} className="w-full h-10 px-4 border rounded-md" />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-600">To</label>
+                                    <input type="date" value={formData.toDate} onChange={handleChange('toDate')} className="w-full h-10 px-4 border rounded-md" />
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Currency select moved into the Invoice Items table header */}
 
                         <div className="mt-3 grid grid-cols-1">
-                            
+
                         </div>
 
                         {/* Customer address fields - vary by invoice type */}
@@ -1476,15 +1552,15 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* 3rd Line: Supplier Name and Supplier Address */}
-                        
 
-                        
+
+
 
                         {/* 5th Line: Employee Name, Currency, Rate, Hours Spent */}
 
 
                         {/* 6th Line: From Date and To Date */}
-                          {/* Total Amount Display */}
+                        {/* Total Amount Display */}
                         {/* Editable Items / Employees Table */}
                         <div className="border border-gray-200 rounded-md p-3 bg-white">
                             <div className="flex items-center justify-between mb-3">
@@ -1572,9 +1648,9 @@ const AddInvoiceModal = ({
 
                             {/* Table totals and amount in words */}
                             <div className="mt-4 text-right">
-                                                    <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
-                                                    <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
-                                                </div>
+                                <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
+                                <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
+                            </div>
                             {errors.items && (
                                 <div className="mt-2 text-sm text-red-600">{errors.items}</div>
                             )}
@@ -1660,7 +1736,7 @@ const AddInvoiceModal = ({
                                                     const minutes = totalMinutes % 60;
                                                     const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
                                                     // set a simple timesheet ref
-                                                    const genRef = `TS-${empId}-${formData.fromDate.replace(/-/g,'')}-${formData.toDate.replace(/-/g,'')}`;
+                                                    const genRef = `TS-${empId}-${formData.fromDate.replace(/-/g, '')}-${formData.toDate.replace(/-/g, '')}`;
                                                     setTimesheetRef(genRef);
                                                     setSnackbar({ open: true, message: `Timesheet fetched (${tasks.length} entries). Ref: ${genRef}`, severity: 'success' });
                                                     // auto-fill the single employee row's quantity and rate
@@ -1736,7 +1812,7 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* Project */}
-                       
+
                         {/* Remarks */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
@@ -1872,7 +1948,7 @@ const AddInvoiceModal = ({
                                 {isFromInvoiceManagement ? 'Saving Invoice...' : 'Generating Invoice...'}
                             </p>
                             <p className="text-sm text-gray-600">
-                                {isFromInvoiceManagement 
+                                {isFromInvoiceManagement
                                     ? 'Please wait while we save your invoice'
                                     : (attachTimesheet
                                         ? `Including ${viewMode?.toLowerCase() || ''} timesheet data...`
@@ -1907,7 +1983,7 @@ const AddInvoiceModal = ({
                     >
                         Cancel
                     </button>
-                    
+
                     {/* Show Preview and Generate Invoice buttons only when NOT from invoice management */}
                     {!isFromInvoiceManagement && (
                         <button

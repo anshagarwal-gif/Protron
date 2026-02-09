@@ -492,9 +492,39 @@ public class InvoiceService {
         titleCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         headerTable.addCell(titleCell);
 
-        PdfPCell logocell = new PdfPCell(new Phrase("LOGO", titleFont));
+        // Replace the existing logo cell code with this:
+        PdfPCell logocell;
+
+// Check if supplierName matches tenant name
+        if (invoice.getSupplierName() != null) {
+            Tenant tenant = loggedInUserUtils.getLoggedInUser().getTenant();
+
+            if (tenant != null &&
+                    tenant.getTenantName() != null &&
+                    invoice.getSupplierName().equalsIgnoreCase(tenant.getTenantName()) &&
+                    tenant.getTenantLogo() != null) {
+
+                // Tenant name matches supplier name AND logo exists - show logo
+                try {
+                    Image logo = Image.getInstance(tenant.getTenantLogo());
+                    logo.scaleToFit(100f, 50f); // Adjust size as needed
+                    logocell = new PdfPCell(logo);
+                } catch (Exception e) {
+                    log.warn("Failed to load tenant logo, using placeholder", e);
+                    logocell = new PdfPCell(new Phrase("LOGO", titleFont));
+                }
+            } else {
+                // Supplier name doesn't match OR no logo - no placeholder
+                logocell = new PdfPCell(new Phrase("", titleFont));
+            }
+        } else {
+            // No supplier name - no logo
+            logocell = new PdfPCell(new Phrase("", titleFont));
+        }
+
         logocell.setBorder(Rectangle.NO_BORDER);
         logocell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        logocell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         headerTable.addCell(logocell);
 
         document.add(headerTable);
@@ -708,10 +738,40 @@ public class InvoiceService {
         titleCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         headerTable.addCell(titleCell);
 
-        PdfPCell logoCell = new PdfPCell(new Phrase("LOGO", titleFont)); // replace with actual image if available
-        logoCell.setBorder(Rectangle.NO_BORDER);
-        logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        headerTable.addCell(logoCell);
+        // Replace the existing logo cell code with this:
+        PdfPCell logocell;
+
+// Check if supplierName matches tenant name
+        if (invoiceData.getOrDefault("supplierName", null) != null) {
+            Tenant tenant = loggedInUserUtils.getLoggedInUser().getTenant();
+
+            if (tenant != null &&
+                    tenant.getTenantName() != null &&
+                    invoiceData.getOrDefault("supplierName", "").toString().equalsIgnoreCase(tenant.getTenantName()) &&
+                    tenant.getTenantLogo() != null) {
+
+                // Tenant name matches supplier name AND logo exists - show logo
+                try {
+                    Image logo = Image.getInstance(tenant.getTenantLogo());
+                    logo.scaleToFit(100f, 50f); // Adjust size as needed
+                    logocell = new PdfPCell(logo);
+                } catch (Exception e) {
+                    log.warn("Failed to load tenant logo, using placeholder", e);
+                    logocell = new PdfPCell(new Phrase("LOGO", titleFont));
+                }
+            } else {
+                // Supplier name doesn't match OR no logo - no placeholder
+                logocell = new PdfPCell(new Phrase("", titleFont));
+            }
+        } else {
+            // No supplier name - no logo
+            logocell = new PdfPCell(new Phrase("", titleFont));
+        }
+
+        logocell.setBorder(Rectangle.NO_BORDER);
+        logocell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        logocell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        headerTable.addCell(logocell);
 
         document.add(headerTable);
 

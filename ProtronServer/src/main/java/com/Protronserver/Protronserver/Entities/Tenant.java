@@ -45,6 +45,20 @@ public class Tenant {
     @Column(name = "tenant_address_postal_code", length = 100)
     private String tenantAddressPostalCode;
 
+    // Add this field after tenantAddressPostalCode
+    @Lob
+    @Column(name = "tenant_logo", columnDefinition = "LONGBLOB")
+    private byte[] tenantLogo;
+
+    // Add getters and setters
+    public byte[] getTenantLogo() {
+        return tenantLogo;
+    }
+
+    public void setTenantLogo(byte[] tenantLogo) {
+        this.tenantLogo = tenantLogo;
+    }
+
     // Define relationships with other entities
     @OneToMany(mappedBy = "tenant")
     @JsonIgnoreProperties({"tenant", "projects", "projectTeams", "projectsManaged", "role"})

@@ -16,6 +16,15 @@ public class TenantRequestDTO {
     private String tenantAddressLine2;
     private String tenantAddressLine3;
     private String tenantAddressPostalCode;
+    private byte[] tenantLogo;
+
+    public byte[] getTenantLogo() {
+        return tenantLogo;
+    }
+
+    public void setTenantLogo(byte[] tenantLogo) {
+        this.tenantLogo = tenantLogo;
+    }
 
     public String getTenantName() {
         return tenantName;

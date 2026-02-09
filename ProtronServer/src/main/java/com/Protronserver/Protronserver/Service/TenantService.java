@@ -50,6 +50,7 @@ public class TenantService {
         tenant.setTenantAddressLine2(tenantRequestDTO.getTenantAddressLine2());
         tenant.setTenantAddressLine3(tenantRequestDTO.getTenantAddressLine3());
         tenant.setTenantAddressPostalCode(tenantRequestDTO.getTenantAddressPostalCode());
+        tenant.setTenantLogo(tenant.getTenantLogo());
 
         return tenantRepository.save(tenant);
     }
@@ -85,6 +86,10 @@ public class TenantService {
         if (tenantRequestDTO.getTenantAddressPostalCode() != null) {
             existingTenant.setTenantAddressPostalCode(tenantRequestDTO.getTenantAddressPostalCode());
         }
+        if (tenantRequestDTO.getTenantLogo() != null) {
+            existingTenant.setTenantLogo(tenantRequestDTO.getTenantLogo());
+        }
+
 
         return tenantRepository.save(existingTenant);
     }
@@ -154,6 +159,27 @@ public class TenantService {
 
     public List<ProjectTableDTO> getProjectsByTenantId(Long tenantId) {
         return tenantRepository.getProjectTableData(tenantId);
+    }
+
+    public String getFullAddressByTenantId(Long tenantId) {
+        Tenant tenant = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> new RuntimeException("Tenant not found"));
+
+        StringBuilder address = new StringBuilder();
+
+        if (tenant.getTenantAddressLine1() != null && !tenant.getTenantAddressLine1().isBlank())
+            address.append(tenant.getTenantAddressLine1());
+
+        if (tenant.getTenantAddressLine2() != null && !tenant.getTenantAddressLine2().isBlank())
+            address.append(", ").append(tenant.getTenantAddressLine2());
+
+        if (tenant.getTenantAddressLine3() != null && !tenant.getTenantAddressLine3().isBlank())
+            address.append(", ").append(tenant.getTenantAddressLine3());
+
+        if (tenant.getTenantAddressPostalCode() != null && !tenant.getTenantAddressPostalCode().isBlank())
+            address.append(", ").append(tenant.getTenantAddressPostalCode());
+
+        return address.toString();
     }
 
 }

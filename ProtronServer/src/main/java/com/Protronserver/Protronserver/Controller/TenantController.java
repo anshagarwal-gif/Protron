@@ -10,6 +10,7 @@ import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
 import com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO;
 import com.Protronserver.Protronserver.Service.TenantService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -75,6 +76,12 @@ public class TenantController {
     @GetMapping("/{tenantId}/projects")
     public List<ProjectTableDTO> getProjectsByTenant(@PathVariable Long tenantId) {
         return tenantService.getProjectsByTenantId(tenantId);
+    }
+
+    @GetMapping("/{tenantId}/full-address")
+    public ResponseEntity<String> getTenantFullAddress(@PathVariable Long tenantId) {
+        String address = tenantService.getFullAddressByTenantId(tenantId);
+        return ResponseEntity.ok(address);
     }
 
 }
