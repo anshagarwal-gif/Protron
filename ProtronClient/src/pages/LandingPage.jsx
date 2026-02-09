@@ -323,7 +323,7 @@ export default function ProjectMatricsLanding() {
                 <div className="space-y-3 text-gray-600">
                   <p className="flex items-center">
                     <span className="mr-3">📧</span>
-                    contact@deepspheretech.com
+                    dstglobalpvtl@gmail.com
                   </p>
                   <p className="flex items-center">
                     <span className="mr-3">📞</span>
@@ -353,7 +353,7 @@ export default function ProjectMatricsLanding() {
               </div>
               <p className="text-gray-400 mb-6 max-w-md leading-relaxed">DST Global Pvt Ltd</p>
               <div className="text-gray-400">
-                <p className="mb-2">📧 contact@deepspheretech.com</p>
+                <p className="mb-2">📧 dstglobalpvtl@gmail.com</p>
                 <p className="mb-2">📞 +91-9960 012 274</p>
                 <p>📍 Magarpatta City, Pune, Maharastra, India 411028</p>
               </div>

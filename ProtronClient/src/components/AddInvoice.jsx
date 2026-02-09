@@ -796,14 +796,14 @@ const AddInvoiceModal = ({
         if (formData.shipToAddress && formData.shipToAddress.length > 500) {
             newErrors.shipToAddress = 'Ship To address cannot exceed 500 characters';
         }
-        if (formData.customerInfo && formData.customerInfo.length > 100) {
-            newErrors.customerInfo = 'Customer info cannot exceed 100 characters';
+        if (formData.customerInfo && formData.customerInfo.length > 200) {
+            newErrors.customerInfo = 'Customer info cannot exceed 200 characters';
         }
         if (formData.supplierAddress && formData.supplierAddress.length > 500) {
             newErrors.supplierAddress = 'Supplier address cannot exceed 500 characters';
         }
-        if (formData.supplierInfo && formData.supplierInfo.length > 100) {
-            newErrors.supplierInfo = 'Supplier info cannot exceed 100 characters';
+        if (formData.supplierInfo && formData.supplierInfo.length > 200) {
+            newErrors.supplierInfo = 'Supplier info cannot exceed 200 characters';
         }
 
         setErrors(newErrors);
@@ -812,11 +812,43 @@ const AddInvoiceModal = ({
 
     const handleSubmit = async () => {
         console.log('handleSubmit called');
-        if (!validateForm()) {
-            console.log('validateForm failed', errors);
-            setSnackbar({ open: true, message: 'Please fix validation errors before submitting.', severity: 'error' });
+        
+        // Run validation
+        const newErrors = {};
+        if (!formData.customerName?.trim()) newErrors.customerName = 'Customer name is required';
+        if (!formData.supplierName?.trim()) newErrors.supplierName = 'Supplier name is required';
+        const combinedTotal = parseFloat(computeItemsTotal()) || 0;
+        if (combinedTotal <= 0) newErrors.items = 'At least one item or employee row must have a non-zero amount';
+        if (formData.fromDate && formData.toDate && new Date(formData.toDate) < new Date(formData.fromDate)) {
+            newErrors.toDate = 'To date must be after from date';
+        }
+        if (formData.billToAddress && formData.billToAddress.length > 500) {
+            newErrors.billToAddress = 'Bill To address cannot exceed 500 characters';
+        }
+        if (formData.shipToAddress && formData.shipToAddress.length > 500) {
+            newErrors.shipToAddress = 'Ship To address cannot exceed 500 characters';
+        }
+        if (formData.customerInfo && formData.customerInfo.length > 200) {
+            newErrors.customerInfo = 'Customer info cannot exceed 200 characters';
+        }
+        if (formData.supplierAddress && formData.supplierAddress.length > 500) {
+            newErrors.supplierAddress = 'Supplier address cannot exceed 500 characters';
+        }
+        if (formData.supplierInfo && formData.supplierInfo.length > 200) {
+            newErrors.supplierInfo = 'Supplier info cannot exceed 200 characters';
+        }
+        
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            // Build a more specific error message
+            const errorMessages = Object.values(newErrors);
+            const errorMessage = `Please fix the following errors:\n${errorMessages.join('\n')}`;
+            setSnackbar({ open: true, message: errorMessage, severity: 'error' });
             return;
         }
+        
+        // Clear any previous errors
+        setErrors({});
 
         setLoading(true);
         try {
@@ -1013,10 +1045,11 @@ const AddInvoiceModal = ({
 
             const invoiceEmpRows = (invoiceEmployees || []).filter(e => e.userId);
             const employeesToSend = invoiceEmpRows.map(e => ({
-                ...e,
+                itemDesc: e.itemDesc || (employees.find(emp => emp.userId === e.userId)?.label) || '',
                 rate: Number.isFinite(parseFloat(e.rate)) ? parseFloat(e.rate) : 0,
                 quantity: Number.isFinite(parseFloat(e.quantity)) ? parseFloat(e.quantity) : 0,
-                amount: Number.isFinite(parseFloat(e.amount)) ? parseFloat(e.amount) : 0
+                amount: Number.isFinite(parseFloat(e.amount)) ? parseFloat(e.amount) : 0,
+                remarks: e.remarks || ''
             }));
 
             // derive rate/hours similar to submit

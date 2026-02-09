@@ -19,6 +19,8 @@ public class InvoiceRequestDTO {
     @Size(max = 100, message = "Invoice name must not exceed 100 characters")
     private String invoiceName;
 
+    private String invoiceType; // DOMESTIC or INTERNATIONAL
+
     @Size(max = 200, message = "Customer info cannot exceed 200 characters")
     private String customerInfo;
 
@@ -251,6 +253,14 @@ public class InvoiceRequestDTO {
 
     public @Size(max = 100, message = "Invoice name must not exceed 100 characters") String getInvoiceName() {
         return invoiceName;
+    }
+
+    public String getInvoiceType() {
+        return invoiceType;
+    }
+
+    public void setInvoiceType(String invoiceType) {
+        this.invoiceType = invoiceType;
     }
 
     public String getCustomerInfo() {

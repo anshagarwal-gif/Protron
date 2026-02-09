@@ -23,6 +23,12 @@ export default function About() {
         <div className="w-full px-4 sm:px-6 lg:px-12">
           <div className="space-y-6 text-gray-700 text-lg leading-relaxed">
             <p>
+              We are a next-generation B2B technology company dedicated to delivering intelligent, reliable, and value-driven software solutions for modern enterprises. Our expertise spans custom software development, enterprise system integration, consulting, and AI-powered product innovation—helping businesses achieve greater efficiency, smarter project management, and seamless digital transformation.
+            </p>
+            <p>
+              Guided by strong values of integrity, transparency, and a customer-first approach, we build long-term partnerships by offering scalable, secure, and future-ready technologies. Combining modern innovation with professional discipline, bold problem-solving, minimalist design, and deep customer focus, we empower organizations to operate with clarity, speed, and a competitive edge in today's rapidly evolving digital landscape.
+            </p>
+            <p>
               DST Global is a technology-driven startup specializing in the design, development, customization,
               implementation, and lifecycle management of advanced software solutions and digital systems. We deliver
               end-to-end technology services across enterprise software, information technology infrastructure, digital

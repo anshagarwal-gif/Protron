@@ -191,9 +191,9 @@ export default function PublicNavbar() {
               </a>
               <button
                 onClick={handleStartedClick}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                className="text-gray-700 hover:text-green-600 px-6 py-3 rounded-xl font-semibold transition-all duration-300"
               >
-                Start Free Trial
+                Login
               </button>
             </div>
           </div>
@@ -333,10 +333,10 @@ export default function PublicNavbar() {
                 Get in touch
               </a>
               <button
-                className="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg"
+                className="w-full text-gray-700 hover:text-green-600 px-4 py-3 rounded-xl font-semibold transition-all duration-300"
                 onClick={handleStartedClick}
               >
-                Start Free Trial
+                Login
               </button>
             </div>
           </div>

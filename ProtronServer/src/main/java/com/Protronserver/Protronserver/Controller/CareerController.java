@@ -27,12 +27,12 @@ public class CareerController {
             @RequestParam String jobTitle,
             @RequestParam(required = false) MultipartFile resume) {
         try {
-            // Email 1: Send form details from user to contact@deepspheretech.com
+            // Email 1: Send form details from user to dstglobalpvtl@gmail.com
             MimeMessage adminMessage = mailSender.createMimeMessage();
             MimeMessageHelper adminHelper = new MimeMessageHelper(adminMessage, true, "UTF-8");
 
             adminHelper.setFrom(email);
-            adminHelper.setTo("contact@deepspheretech.com");
+            adminHelper.setTo("dstglobalpvtl@gmail.com");
             adminHelper.setSubject("Career Application: " + name + " - " + jobTitle);
 
             StringBuilder adminText = new StringBuilder();
@@ -56,7 +56,7 @@ public class CareerController {
             MimeMessage confirmationMessage = mailSender.createMimeMessage();
             MimeMessageHelper confirmationHelper = new MimeMessageHelper(confirmationMessage, true, "UTF-8");
 
-            confirmationHelper.setFrom("contact@deepspheretech.com");
+            confirmationHelper.setFrom("dstglobalpvtl@gmail.com");
             confirmationHelper.setTo(email);
             confirmationHelper.setSubject("Thank you for your application - DST Global");
 
@@ -74,7 +74,7 @@ public class CareerController {
             confirmationText.append("\nOur team will review your application and get back to you soon.\n\n");
             confirmationText.append("Best regards,\n");
             confirmationText.append("DST Global Team\n");
-            confirmationText.append("contact@deepspheretech.com");
+            confirmationText.append("dstglobalpvtl@gmail.com");
 
             confirmationHelper.setText(confirmationText.toString());
 

@@ -35,6 +35,10 @@ public class Invoice {
 
     @Column(columnDefinition = "TEXT")
     private String invoiceName;
+
+    @Column(length = 20)
+    private String invoiceType; // DOMESTIC or INTERNATIONAL
+
     @Column(columnDefinition = "TEXT")
     private String customerInfo;
     @Column(columnDefinition = "TEXT")
@@ -245,6 +249,14 @@ public class Invoice {
 
     public void setInvoiceName(String invoiceName) {
         this.invoiceName = invoiceName;
+    }
+
+    public String getInvoiceType() {
+        return invoiceType;
+    }
+
+    public void setInvoiceType(String invoiceType) {
+        this.invoiceType = invoiceType;
     }
 
     public String getCustomerName() {

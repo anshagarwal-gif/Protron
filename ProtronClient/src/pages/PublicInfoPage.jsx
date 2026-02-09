@@ -6,6 +6,7 @@ import funnelImage from "../assets/Funnel.jpeg"
 import timesheetImage from "../assets/Timesheet and resources.jpeg"
 import invoicingBudgetImage from "../assets/Invoice and budget.jpeg"
 import budgetManagementImage from "../assets/budgetmanagement1.png"
+import budgetManagementFeatureImage from "../assets/image.png"
 import salesOpportunityImage from "../assets/sales and oppurtuity.jpeg"
 import serviceManagementImage from "../assets/Service management.jpeg"
 import accessManagementImage from "../assets/Access management.png"
@@ -64,6 +65,8 @@ const PAGES = {
           body: [
             "Our Budget Management services enable effective financial governance across projects and initiatives. We help you monitor spend, manage forecasts, and align budgets with business priorities.",
           ],
+          image: budgetManagementFeatureImage,
+          imagePosition: "right",
         },
       ],
     },
@@ -101,8 +104,23 @@ const PAGES = {
         {
           heading: "Overview",
           body: [
-            "Define roles and permissions to ensure users only access what they need.",
-            "Support auditability and stronger security posture across teams and applications.",
+            "Our Access Management feature empowers organizations to maintain complete control over who can view, edit, and manage critical resources within the platform. Designed with both security and simplicity in mind, it ensures that the right people have the right level of access at the right time.",
+          ],
+        },
+        {
+          heading: "Key Features",
+          body: [
+            "Granular Permissions: Assign roles and permissions tailored to specific teams, projects, or individuals.",
+            "Centralized Control: Manage all user access from a single, intuitive dashboard.",
+            "Scalable Security: Whether you're a growing startup or a large enterprise, our system adapts to your needs without compromising safety.",
+            "Audit & Compliance: Track user activity with detailed logs to meet regulatory requirements and strengthen accountability.",
+          ],
+          asList: true,
+        },
+        {
+          heading: "Benefits",
+          body: [
+            "By combining robust security with ease of use, our Access Management feature helps safeguard sensitive data while enabling collaboration across your organization.",
           ],
         },
       ],
@@ -202,18 +220,47 @@ export default function PublicInfoPage() {
             {page.sections.map((section) => (
               <div key={section.heading} className="py-10">
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">{section.heading}</h2>
-                {section.asList ? (
-                  <ul className="list-disc pl-6 space-y-2 text-gray-700 text-lg">
-                    {section.body.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="space-y-3 text-gray-700 text-lg leading-relaxed">
-                    {section.body.map((p) => (
-                      <p key={p}>{p}</p>
-                    ))}
+                {section.image ? (
+                  <div className={`flex flex-col ${section.imagePosition === 'right' ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-8 items-center`}>
+                    <div className={`flex-1 ${section.imagePosition === 'right' ? 'lg:pr-8' : 'lg:pl-8'}`}>
+                      {section.asList ? (
+                        <ul className="list-disc pl-6 space-y-2 text-gray-700 text-lg">
+                          {section.body.map((item) => (
+                            <li key={item}>{item}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="space-y-3 text-gray-700 text-lg leading-relaxed">
+                          {section.body.map((p) => (
+                            <p key={p}>{p}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className={`flex-1 ${section.imagePosition === 'right' ? 'lg:pl-8' : 'lg:pr-8'} flex justify-center`}>
+                      <img 
+                        src={section.image} 
+                        alt={section.heading} 
+                        className="w-full max-w-md rounded-lg shadow-lg object-contain"
+                      />
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    {section.asList ? (
+                      <ul className="list-disc pl-6 space-y-2 text-gray-700 text-lg">
+                        {section.body.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="space-y-3 text-gray-700 text-lg leading-relaxed">
+                        {section.body.map((p) => (
+                          <p key={p}>{p}</p>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}
