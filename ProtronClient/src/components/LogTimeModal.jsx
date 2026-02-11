@@ -374,7 +374,9 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       'image/jpg',
       'image/png',
       'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
 
     for (const file of files) {
@@ -386,7 +388,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
       // Validate file type
       if (!allowedTypes.includes(file.type)) {
-        showSnackbar(`File ${file.name} has invalid type. Only PDF, JPG, PNG, XLS, and XLSX files are allowed`, 'error');
+        showSnackbar(`File ${file.name} has invalid type. Only PDF, JPG, PNG, XLS, XLSX, DOC, and DOCX files are allowed`, 'error');
         continue;
       }
 
@@ -1015,7 +1017,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     type="file"
                     id="file-upload"
                     multiple
-                    accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
+                    accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx,.doc,.docx"
                     onChange={handleFileChange}
                     disabled={formData.attachments.length >= 4}
                     className="hidden"

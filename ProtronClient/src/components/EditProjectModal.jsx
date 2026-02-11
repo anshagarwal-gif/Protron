@@ -336,6 +336,28 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         }));
     };
 
+    // Handle project icon upload
+    const handleImageUpload = (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result;
+            if (typeof result === 'string') {
+                setLocalFormData((prev) => ({
+                    ...prev,
+                    projectIcon: result,
+                }));
+            }
+        };
+
+        reader.readAsDataURL(file);
+
+        // Allow selecting the same file again if needed
+        event.target.value = '';
+    };
+
 
     const handleSubmit = async () => {
         setIsLoading(true);
