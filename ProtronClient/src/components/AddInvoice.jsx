@@ -91,9 +91,7 @@ const AddInvoiceModal = ({
     ]);
 
     // Employee rows (max 5). Each row holds selected employee and line fields
-    const [invoiceEmployees, setInvoiceEmployees] = useState([
-        { id: 1, userId: '', rate: '', quantity: '', amount: '', remarks: '' }
-    ]);
+    const [invoiceEmployees, setInvoiceEmployees] = useState([]);
 
     // const [customers, setCustomers] = useState([]);
     // const [suppliers, setSuppliers] = useState([]);
@@ -458,7 +456,7 @@ const AddInvoiceModal = ({
                     if (parsed) {
                         setFormData(parsed.formData || {});
                         setItems(parsed.items || [{ id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }]);
-                        setInvoiceEmployees(parsed.invoiceEmployees || [{ id: 1, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]);
+                        setInvoiceEmployees(parsed.invoiceEmployees || []);
                         setAttachments(parsed.attachments || []);
                         setAttachTimesheet(parsed.attachTimesheet || false);
                         setFetchedTasks(parsed.fetchedTasks || []);
@@ -695,6 +693,36 @@ const AddInvoiceModal = ({
     };
 
     // ------- Table & Employee row handlers -------
+    // Helper: enforce max digit count (excluding decimal point)
+    // rate: max 6 digits, decimal allowed; qty: max 5 digits, integer only
+    const enforceDigitLimit = (value, maxDigits, allowDecimal = false) => {
+        if (!value && value !== 0) return '';
+        let str = String(value);
+        if (!allowDecimal) {
+            str = str.replace(/[^0-9]/g, '');
+        } else {
+            str = str.replace(/[^0-9.]/g, '');
+            // prevent multiple decimals
+            const parts = str.split('.');
+            if (parts.length > 2) str = parts[0] + '.' + parts.slice(1).join('');
+        }
+        // count digits only (exclude decimal point)
+        const digitCount = str.replace(/\./g, '').length;
+        if (digitCount > maxDigits) {
+            // trim from the end to stay within limit
+            let kept = 0;
+            let trimmed = '';
+            for (const ch of str) {
+                if (ch === '.') { trimmed += ch; continue; }
+                if (kept >= maxDigits) break;
+                trimmed += ch;
+                kept++;
+            }
+            str = trimmed;
+        }
+        return str;
+    };
+
     const updateTableHeader = (key, value) => {
         setTableHeaders(prev => ({ ...prev, [key]: value }));
     };
@@ -702,11 +730,16 @@ const AddInvoiceModal = ({
     const updateItemField = (id, field, value) => {
         setItems(prev => prev.map(it => {
             if (it.id !== id) return it;
-            const next = { ...it, [field]: value };
+            let sanitized = value;
+            if (field === 'rate') sanitized = enforceDigitLimit(value, 6, true);
+            if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
+            const next = { ...it, [field]: sanitized };
             // recalc amount when rate or quantity change
             const rate = parseFloat(next.rate) || 0;
             const qty = parseFloat(next.quantity) || 0;
-            next.amount = (rate * qty).toFixed(2);
+            const amt = (rate * qty).toFixed(2);
+            // enforce 8-digit limit on amount display
+            next.amount = amt.replace('.', '').length > 8 ? amt.slice(0, 9) : amt;
             return next;
         }));
     };
@@ -718,7 +751,8 @@ const AddInvoiceModal = ({
     };
 
     const removeItem = (id) => {
-        if (items.length <= 1) return; // keep at least one item
+        // allow removal as long as at least 1 combined row (items + employees) remains
+        if (items.length + invoiceEmployees.length <= 1) return;
         setItems(prev => prev.filter(i => i.id !== id));
     };
 
@@ -729,13 +763,17 @@ const AddInvoiceModal = ({
     };
 
     const removeEmployeeRow = (id) => {
-        if (invoiceEmployees.length <= 1) return; // keep at least one row
+        // allow removal as long as at least 1 combined row (items + employees) remains
+        if (items.length + invoiceEmployees.length <= 1) return;
         setInvoiceEmployees(prev => prev.filter(e => e.id !== id));
     };
 
     const updateEmployeeRow = (id, field, value) => {
         setInvoiceEmployees(prev => {
-            const next = prev.map(e => e.id === id ? { ...e, [field]: value } : e);
+            let sanitized = value;
+            if (field === 'rate') sanitized = enforceDigitLimit(value, 6, true);
+            if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
+            const next = prev.map(e => e.id === id ? { ...e, [field]: sanitized } : e);
             const selectedCount = next.filter(e => e.userId).length;
             if (selectedCount !== 1 && attachTimesheet) setAttachTimesheet(false);
             // Recalculate amount for the updated row if rate/quantity changed
@@ -743,7 +781,8 @@ const AddInvoiceModal = ({
                 if (e.id !== id) return e;
                 const rate = parseFloat(e.rate) || 0;
                 const qty = parseFloat(e.quantity) || 0;
-                return { ...e, amount: (rate * qty).toFixed(2) };
+                const amt = (rate * qty).toFixed(2);
+                return { ...e, amount: amt.replace('.', '').length > 8 ? amt.slice(0, 9) : amt };
             });
         });
     };
@@ -994,7 +1033,9 @@ const AddInvoiceModal = ({
                 customerInfo: formData.customerInfo || "",
                 supplierName: formData.supplierName,
                 supplierAddress: formData.supplierAddress || "",
-                supplierInfo: formData.supplierInfo || "",
+                supplierInfo: formData.supplierInfo
+                    ? `${formData.supplierInfo} | Tax ID : ${formData.taxId || ''}`
+                    : (formData.taxId ? `Tax ID : ${formData.taxId}` : ""),
                 items: itemsToSend,
                 employees: employeesToSend,
                 // ensure non-null employeeName for backend
@@ -1164,7 +1205,9 @@ const AddInvoiceModal = ({
                 customerInfo: formData.customerInfo || "",
                 supplierName: formData.supplierName || "",
                 supplierAddress: formData.supplierAddress || "",
-                supplierInfo: formData.supplierInfo || "",
+                supplierInfo: formData.supplierInfo
+                    ? `${formData.supplierInfo} | Tax ID : ${formData.taxId || ''}`
+                    : (formData.taxId ? `Tax ID : ${formData.taxId}` : ""),
                 items: itemsToSend,
                 employees: employeesToSend,
                 employeeName: topEmployeeName || "",
@@ -1262,6 +1305,10 @@ const AddInvoiceModal = ({
     const handleReset = () => {
         setFormData({
             invoiceName: '',
+            invoiceType: 'DOMESTIC',
+            invoiceDate: '',
+            taxId: '',
+            billPeriod: '',
             customerName: '',
             billToAddress: '',
             shipToAddress: '',
@@ -1269,6 +1316,7 @@ const AddInvoiceModal = ({
             supplierName: sessionStorage.getItem('tenantName') || '',
             supplierAddress: '',
             supplierInfo: '',
+            country: '',
             employeeName: '',
             employeeNames: [],
             employeeIds: [],
@@ -1287,7 +1335,7 @@ const AddInvoiceModal = ({
         setAttachTimesheet(false);
         setFetchedTasks([]);
         setItems([{ id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }]);
-        setInvoiceEmployees([{ id: 1, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]);
+        setInvoiceEmployees([]);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -1450,6 +1498,7 @@ const AddInvoiceModal = ({
                                     orgType="SUPPLIER"
                                     isDisabled={loadingEmployees}
                                     className="w-full"
+                                    maxInputLength={100}
                                 />
                             </div>
 
@@ -1489,13 +1538,20 @@ const AddInvoiceModal = ({
 
                         <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Info</label>
+                                <input type="text" placeholder="Supplier info" value={formData.supplierInfo} onChange={handleChange('supplierInfo')} className="w-full h-10 px-4 border rounded-md" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-3">
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Date</label>
                                 <input type="date" value={formData.invoiceDate} onChange={handleChange('invoiceDate')} className="w-full h-10 px-4 border rounded-md" />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID</label>
-                                <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className="w-full h-10 px-4 border rounded-md" />
+                                <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className="w-full h-10 px-4 border rounded-md" maxLength={50} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
@@ -1507,6 +1563,7 @@ const AddInvoiceModal = ({
                                     orgType="CUSTOMER"
                                     isDisabled={loadingEmployees}
                                     className="w-full"
+                                    maxInputLength={100}
                                 />
                             </div>
                         </div>
@@ -1536,7 +1593,7 @@ const AddInvoiceModal = ({
                             <div className="col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Bill To Address</label>
                                 {formData.invoiceType === 'DOMESTIC' ? (
-                                    <input type="text" placeholder="Bill to address" value={formData.billToAddress} onChange={handleChange('billToAddress')} className="w-full h-10 px-4 border rounded-md" />
+                                    <input type="text" placeholder="Bill to address" value={formData.billToAddress} onChange={handleChange('billToAddress')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
                                 ) : (
                                     <input type="text" placeholder="Customer address (international)" value={formData.customerInfo} onChange={handleChange('customerInfo')} className="w-full h-10 px-4 border rounded-md" />
                                 )}
@@ -1545,7 +1602,7 @@ const AddInvoiceModal = ({
                             {formData.invoiceType === 'DOMESTIC' && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Ship To Address</label>
-                                    <input type="text" placeholder="Ship to address" value={formData.shipToAddress} onChange={handleChange('shipToAddress')} className="w-full h-10 px-4 border rounded-md" />
+                                    <input type="text" placeholder="Ship to address" value={formData.shipToAddress} onChange={handleChange('shipToAddress')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
                                 </div>
                             )}
 
@@ -1590,60 +1647,55 @@ const AddInvoiceModal = ({
                                 <input value={tableHeaders.col5} onChange={(e) => updateTableHeader('col5', e.target.value)} className="px-2 py-1 border rounded-none" />
                             </div>
 
-                            {/* Items rows */}
+                            {/* Unified rows — items then employees */}
                             <div className="space-y-2">
+                                {/* Item rows */}
                                 {items.map((it) => (
-                                    <div key={it.id} className="grid grid-cols-5 gap-0 items-center">
-                                        <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value.replace(/[^0-9.]/g, ''))} className="px-2 py-1 border rounded-none" />
-                                        <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value.replace(/[^0-9.]/g, ''))} className="px-2 py-1 border rounded-none" />
+                                    <div key={`item-${it.id}`} className="grid grid-cols-5 gap-0 items-center">
+                                        <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
+                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
                                         <div className="flex items-center">
-                                            <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none flex-1" />
+                                            <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none flex-1" maxLength={100} />
                                             <button type="button" onClick={() => removeItem(it.id)} className="text-red-500 px-2" title="Delete item"><Trash2 size={16} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {/* Employee rows */}
+                                {invoiceEmployees.map((er) => (
+                                    <div key={`emp-${er.id}`} className="grid grid-cols-5 gap-0 items-center">
+                                        <div>
+                                            <CreatableSelect
+                                                options={employees}
+                                                value={employees.find(emp => emp.userId === er.userId) || null}
+                                                onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
+                                                classNamePrefix="react-select"
+                                                isClearable
+                                                placeholder="Employee..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" />
+                                        </div>
+                                        <div>
+                                            <input value={er.quantity} onChange={(e) => updateEmployeeRow(er.id, 'quantity', e.target.value)} placeholder="Qty" className="px-2 py-1 border rounded-none w-full" />
+                                        </div>
+                                        <div>
+                                            <input value={er.amount} readOnly placeholder="Amount" className="px-2 py-1 border rounded-none bg-gray-50 w-full" />
+                                        </div>
+                                        <div className="flex items-center">
+                                            <input value={er.remarks} onChange={(e) => updateEmployeeRow(er.id, 'remarks', e.target.value)} placeholder="Remarks" className="px-2 py-1 border rounded-none flex-1" maxLength={100} />
+                                            <button type="button" onClick={() => removeEmployeeRow(er.id)} className="text-red-500 px-2" title="Delete employee"><Trash2 size={16} /></button>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
+                            {/* Add Item / Add Employee buttons side by side */}
                             <div className="flex gap-2 mt-2">
                                 <button type="button" onClick={addItem} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Item</button>
-                            </div>
-
-                            {/* Employee selection rows */}
-                            <div className="mt-4">
-                                <h4 className="text-sm font-medium mb-2">Employees</h4>
-                                <div className="space-y-2">
-                                    {invoiceEmployees.map((er) => (
-                                        <div key={er.id} className="grid grid-cols-5 gap-0 items-center">
-                                            <div>
-                                                <CreatableSelect
-                                                    options={employees}
-                                                    value={employees.find(emp => emp.userId === er.userId) || null}
-                                                    onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
-                                                    classNamePrefix="react-select"
-                                                    isClearable
-                                                />
-                                            </div>
-                                            <div>
-                                                <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value.replace(/[^0-9.]/g, ''))} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" />
-                                            </div>
-                                            <div>
-                                                <input value={er.quantity} onChange={(e) => updateEmployeeRow(er.id, 'quantity', e.target.value.replace(/[^0-9.]/g, ''))} placeholder="Qty" className="px-2 py-1 border rounded-none w-full" />
-                                            </div>
-                                            <div>
-                                                <input value={er.amount} readOnly placeholder="Amount" className="px-2 py-1 border rounded-none bg-gray-50 w-full" />
-                                            </div>
-                                            <div className="flex items-center">
-                                                <input value={er.remarks} onChange={(e) => updateEmployeeRow(er.id, 'remarks', e.target.value)} placeholder="Remarks" className="px-2 py-1 border rounded-none flex-1" />
-                                                <button type="button" onClick={() => removeEmployeeRow(er.id)} className="text-red-500 px-2" title="Delete employee"><Trash2 size={16} /></button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="flex gap-2 mt-2">
-                                    <button type="button" onClick={addEmployeeRow} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Employee</button>
-                                </div>
+                                <button type="button" onClick={addEmployeeRow} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Employee</button>
                             </div>
 
                             {/* Table totals and amount in words */}
@@ -1654,8 +1706,8 @@ const AddInvoiceModal = ({
                             {errors.items && (
                                 <div className="mt-2 text-sm text-red-600">{errors.items}</div>
                             )}
-                            {/* Timesheet checkbox moved below table */}
-                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+
+                            {/* <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
                                 <div className="flex items-start space-x-3">
                                     <input
                                         type="checkbox"
@@ -1686,7 +1738,6 @@ const AddInvoiceModal = ({
                                     </div>
                                 </div>
 
-                                {/* Timesheet Summary (when timesheet is attached) */}
                                 {attachTimesheet && (
                                     <div className="mt-3">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
@@ -1787,7 +1838,7 @@ const AddInvoiceModal = ({
                                         </p>
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
