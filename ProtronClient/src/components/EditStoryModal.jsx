@@ -1033,13 +1033,13 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               <p className="text-xs font-medium text-gray-600">Attachments:</p>
               <ul className="text-xs text-gray-700 flex flex-wrap gap-2">
                 {storyFiles.map((file, index) => (
-                  <li key={file.attachmentId} className="flex items-center justify-between bg-blue-50 px-3 py-1 rounded">
-                    <a href={`${API_BASE_URL}/api/userstory/attachment/${file.attachmentId}/download`} target="_blank" rel="noopener noreferrer" className="truncate max-w-[150px] text-blue-600 hover:underline" title={file.fileName}>
+                  <li key={file.id} className="flex items-center justify-between bg-blue-50 px-3 py-1 rounded">
+                    <a href={`${API_BASE_URL}/api/userstory/attachment/${file.id}/download`} target="_blank" rel="noopener noreferrer" className="truncate max-w-[150px] text-blue-600 hover:underline" title={file.fileName}>
                       {file.fileName}
                     </a>
                     <button
                       type="button"
-                      onClick={() => removeExistingFile(file.attachmentId, index)}
+                      onClick={() => removeExistingFile(file.id, index)}
                       className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
                       disabled={loading}
                     >
