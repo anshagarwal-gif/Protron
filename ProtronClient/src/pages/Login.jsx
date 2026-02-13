@@ -8,7 +8,7 @@ import ForgotPassword from './ForgotPassword'; // Import the new component
 import { useAccess } from '../Context/AccessContext';
 import { useSession } from '../Context/SessionContext';
 import { useNavigate } from 'react-router-dom';
- // Import your logo if needed
+import dstGlobalLogo from "../assets/DST Global logo.png";
 const Login = ({ setIsAuthenticated }) => {
     const { setAccessRights, setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
     const [snackbar, setSnackbar] = useState({
@@ -132,12 +132,9 @@ const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/log
                 {/* Logo Section */}
                 <div className="flex justify-center mb-8">
                     <div className="flex items-center space-x-2">
-                        {/* Replace this with your actual logo image */}
-                        <img src='./logo.png' alt="Company Logo" className="h-12 w-auto" />
-                        
-                        {/* Placeholder logo - replace with your actual logo */}
+                        <img src={dstGlobalLogo} alt="DST Global Logo" className="h-12 w-auto rounded" />
                         <div className="flex items-center space-x-2">
-                            <span className="text-2xl font-bold text-gray-800">Project Matrics</span>
+                            <span className="text-2xl font-bold text-gray-800">DST Global</span>
                         </div>
                     </div>
                 </div>

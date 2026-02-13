@@ -768,6 +768,17 @@ const AddInvoiceModal = ({
         setInvoiceEmployees(prev => prev.filter(e => e.id !== id));
     };
 
+    const deleteLastRow = () => {
+        // delete last employee row if any, otherwise last item row
+        if (invoiceEmployees.length > 0) {
+            const lastEmp = invoiceEmployees[invoiceEmployees.length - 1];
+            removeEmployeeRow(lastEmp.id);
+        } else if (items.length > 0) {
+            const lastItem = items[items.length - 1];
+            removeItem(lastItem.id);
+        }
+    };
+
     const updateEmployeeRow = (id, field, value) => {
         setInvoiceEmployees(prev => {
             let sanitized = value;
@@ -1623,7 +1634,12 @@ const AddInvoiceModal = ({
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm font-semibold">Invoice Items</h3>
                                 <div className="flex items-center space-x-2">
-                                    <select value={formData.currency} onChange={handleChange('currency')} className="h-8 px-2 border rounded-md text-sm">
+                                    <span className="text-xs text-gray-600">Select the currency</span>
+                                    <select
+                                        value={formData.currency}
+                                        onChange={handleChange('currency')}
+                                        className="h-8 px-2 border rounded-md text-sm"
+                                    >
                                         <option value="USD">USD ($)</option>
                                         <option value="INR">INR (₹)</option>
                                         <option value="EUR">EUR (€)</option>
@@ -1632,9 +1648,6 @@ const AddInvoiceModal = ({
                                         <option value="CAD">CAD (C$)</option>
                                         <option value="AUD">AUD (A$)</option>
                                     </select>
-                                    <button type="button" onClick={() => {
-                                        // rename headers example placeholder (no-op)
-                                    }} className="text-xs text-gray-500">Edit headers</button>
                                 </div>
                             </div>
 
@@ -1656,10 +1669,7 @@ const AddInvoiceModal = ({
                                         <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
-                                        <div className="flex items-center">
-                                            <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none flex-1" maxLength={100} />
-                                            <button type="button" onClick={() => removeItem(it.id)} className="text-red-500 px-2" title="Delete item"><Trash2 size={16} /></button>
-                                        </div>
+                                        <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
                                     </div>
                                 ))}
                                 {/* Employee rows */}
@@ -1684,18 +1694,38 @@ const AddInvoiceModal = ({
                                         <div>
                                             <input value={er.amount} readOnly placeholder="Amount" className="px-2 py-1 border rounded-none bg-gray-50 w-full" />
                                         </div>
-                                        <div className="flex items-center">
-                                            <input value={er.remarks} onChange={(e) => updateEmployeeRow(er.id, 'remarks', e.target.value)} placeholder="Remarks" className="px-2 py-1 border rounded-none flex-1" maxLength={100} />
-                                            <button type="button" onClick={() => removeEmployeeRow(er.id)} className="text-red-500 px-2" title="Delete employee"><Trash2 size={16} /></button>
+                                        <div>
+                                            <input value={er.remarks} onChange={(e) => updateEmployeeRow(er.id, 'remarks', e.target.value)} placeholder="Remarks" className="px-2 py-1 border rounded-none w-full" maxLength={100} />
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Add Item / Add Employee buttons side by side */}
-                            <div className="flex gap-2 mt-2">
-                                <button type="button" onClick={addItem} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Item</button>
-                                <button type="button" onClick={addEmployeeRow} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Add Employee</button>
+                            {/* Add / Delete row controls */}
+                            <div className="flex items-center gap-2 mt-2">
+                                <button
+                                    type="button"
+                                    onClick={addItem}
+                                    className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
+                                >
+                                    Add Item
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={addEmployeeRow}
+                                    className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
+                                >
+                                    Add Employee
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={deleteLastRow}
+                                    className="ml-2 px-3 py-1 bg-red-600 text-white rounded-md text-sm flex items-center gap-1"
+                                    title="Delete last row"
+                                >
+                                    <Trash2 size={14} />
+                                    Delete
+                                </button>
                             </div>
 
                             {/* Table totals and amount in words */}

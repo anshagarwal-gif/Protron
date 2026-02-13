@@ -890,7 +890,8 @@ public class InvoiceService {
         document.add(customerTable);
 
         // ---------------- ITEMS & EMPLOYEES TABLE ----------------
-        PdfPTable table = new PdfPTable(5);
+        // 6 columns: #, Item Description, Rate, QTY, Amount, Remarks
+        PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         table.setWidths(new float[] { 0.5f, 5f, 1.4f, 1.4f, 1.8f, 3.8f });
 
@@ -946,7 +947,7 @@ public class InvoiceService {
         // Fill empty rows to extend table to bottom
         int minRows = 20; // adjust based on page size
         for (int i = rowCount; i < minRows; i++) {
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < 6; j++) {
                 table.addCell(createBodyCell(" ", normalFont));
             }
         }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { FiHome, FiUser, FiUserCheck, FiFolder, FiClock, FiLogOut, FiMenu } from "react-icons/fi";
+import dstGlobalLogo from "../assets/DST Global logo.png";
 
 const Sidebar = ({ activeSection, setActiveSection, handleLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,8 +65,8 @@ const Sidebar = ({ activeSection, setActiveSection, handleLogout }) => {
         }`}
       >
         <div className="px-4 mb-6 flex justify-center items-center gap-5 text-center border-b border-blue-300 pb-6">
-          <img src="./logo.png" className="h-10 w-10" alt="Logo" />
-          <span className="text-2xl font-medium">ABC INC</span>
+          <img src={dstGlobalLogo} className="h-10 w-10 object-cover rounded-full" alt="DST Global logo" />
+          <span className="text-2xl font-medium">DST Global</span>
         </div>
 
         <nav className="flex-1">
