@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import GlobalSnackbar from './GlobalSnackbar';
 import ViewReleaseModal from './ViewReleaseModal';
@@ -7,7 +7,7 @@ import { Pencil, Trash2, Eye, Download, Copy } from 'lucide-react';
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function ReleaseManagement({ projectId, open, onClose }) {
-  const [gridApi, setGridApi] = useState(null);
+  const [releases, setReleases] = useState([]);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingRelease, setEditingRelease] = useState(null);
@@ -18,26 +18,23 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [projectName, setProjectName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const searchTermRef = React.useRef(searchTerm);
 
-  useEffect(() => {
-    searchTermRef.current = searchTerm;
-  }, [searchTerm]);
+  // Client-side search filtering
+  const filteredReleases = useMemo(() => {
+    if (!searchTerm) return releases;
+    const lowerTerm = searchTerm.toLowerCase();
+    return releases.filter(r =>
+      (r.releaseName && r.releaseName.toLowerCase().includes(lowerTerm)) ||
+      (r.description && r.description.toLowerCase().includes(lowerTerm))
+    );
+  }, [releases, searchTerm]);
 
   useEffect(() => {
     if (open && projectId) {
-      if (gridApi) {
-        gridApi.setGridOption('datasource', getDataSource());
-      }
+      fetchReleases();
       fetchProjectName();
     }
-  }, [open, projectId, gridApi]);
-
-  useEffect(() => {
-    if (gridApi) {
-      gridApi.refreshInfiniteCache();
-    }
-  }, [searchTerm, gridApi]);
+  }, [open, projectId]);
 
   const fetchProjectName = async () => {
     try {
@@ -54,53 +51,21 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     }
   };
 
-  const getDataSource = () => {
-    return {
-      getRows: async (params) => {
-        try {
-          const { startRow, endRow } = params;
-          const pageSize = endRow - startRow;
-          const page = Math.floor(startRow / pageSize);
-
-          const res = await fetch(`${API_BASE_URL}/api/releases/paginated/${projectId}?page=${page}&size=${pageSize}`, {
-            method: 'GET',
-            headers: {
-              'authorization': `${sessionStorage.getItem('token')}`,
-            },
-          });
-
-          if (!res.ok) throw new Error('Failed to fetch');
-
-          const data = await res.json();
-          let content = data.content || [];
-
-          if (searchTermRef.current) {
-            const lowerTerm = searchTermRef.current.toLowerCase();
-            content = content.filter(r =>
-              (r.releaseName && r.releaseName.toLowerCase().includes(lowerTerm)) ||
-              (r.description && r.description.toLowerCase().includes(lowerTerm))
-            );
-          }
-
-          params.successCallback(content, searchTermRef.current ? content.length : data.totalElements);
-        } catch (e) {
-          console.error("Error fetching releases:", e);
-          params.failCallback();
-          setSnackbar({ open: true, message: 'Failed to fetch releases', severity: 'error' });
-        }
-      }
-    }
-  };
-
-  const onGridReady = (params) => {
-    setGridApi(params.api);
-    params.api.setGridOption('datasource', getDataSource());
-  };
-
-  // This function is now used to REFRESH the grid after actions
-  const fetchReleases = () => {
-    if (gridApi) {
-      gridApi.refreshInfiniteCache();
+  const fetchReleases = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/releases/project/${projectId}`, {
+        method: 'GET',
+        headers: {
+          'authorization': `${sessionStorage.getItem('token')}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setReleases(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error("Error fetching releases:", e);
+      setReleases([]);
+      setSnackbar({ open: true, message: 'Failed to fetch releases', severity: 'error' });
     }
   };
 
@@ -286,7 +251,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
               <div className="flex items-center gap-2">
                 <input
                   type="text"
-                  placeholder="Search current page..."
+                  placeholder="Search releases..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-64"
@@ -303,17 +268,15 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
               <div className="ag-theme-alpine h-full w-full">
                 <AgGridReact
                   columnDefs={columnDefs}
-                  rowModelType="infinite"
+                  rowData={filteredReleases}
                   pagination={true}
                   paginationPageSize={10}
-                  cacheBlockSize={10}
                   paginationPageSizeSelector={[5, 10, 20, 50]}
-                  defaultColDef={{ sortable: false, filter: false, resizable: true }} // Disabling sort/filter as api doesn't support it yet
+                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
                   suppressRowClickSelection={true}
                   animateRows={true}
                   rowHeight={48}
                   headerHeight={48}
-                  onGridReady={onGridReady}
                 />
                 <style>{`
                   .ag-theme-alpine .ag-tooltip {
