@@ -618,7 +618,7 @@ public class InvoiceService {
 
         // Header row with top/bottom border
         String amountHeader = "Amount (" + (invoice.getCurrency() != null ? invoice.getCurrency() : "") + ")";
-        String[] headers = new String[] { "#", "Item Description", "Rate", "QTY", amountHeader, "Remarks" };
+        String[] headers = new String[] { "#", "Item Description", "Rate", "Quantity", amountHeader, "Remarks" };
         for (String header : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
             cell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
@@ -898,7 +898,7 @@ public class InvoiceService {
         // Header row: top/bottom border only
         String currency = invoiceData.getOrDefault("currency", "").toString();
         String amountHeader = "Amount (" + currency + ")";
-        String[] headersArr = new String[] { "#", "Item Description", "Rate", "QTY", amountHeader, "Remarks" };
+        String[] headersArr = new String[] { "#", "Item Description", "Rate", "Quantity", amountHeader, "Remarks" };
         for (String header : headersArr) {
             PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
             cell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
