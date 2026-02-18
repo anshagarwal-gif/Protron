@@ -598,17 +598,9 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
-          {/* Error Display */}
-          {errors.submit && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
-              <AlertCircle size={18} className="text-red-500 mr-2" />
-              <span className="text-red-700 text-sm">{errors.submit}</span>
-            </div>
-          )}
-
           <div className="space-y-4">
-            {/* Row 1: Project ID, Status, Priority, Story Points */}
-            <div className="grid grid-cols-5 gap-4">
+            {/* Row 1: Project ID, Status, Priority, Story Points, Assignee */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
@@ -758,8 +750,8 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
               </div>
             </div>
 
-            {/* Row 2: Sprint, Release, System, Created By */}
-            <div className="grid grid-cols-5 gap-4">
+            {/* Row 2: Sprint, Release, System */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
@@ -888,11 +880,8 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
                   className="text-sm"
                 />
               </div>
-
-              
             </div>
 
-            
             {/* Row 3: Summary */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">

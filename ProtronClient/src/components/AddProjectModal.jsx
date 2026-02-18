@@ -306,9 +306,9 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
             <div className="fixed inset-0 bg-[#00000059] bg-opacity-50 z-50 flex items-center justify-center p-4">
                 <div className={`bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-auto shadow-xl ${isSubmitting ? 'pointer-events-none' : ''}`}>
                     {/* Header */}
-                    <div className="bg-gray-50 border-b border-gray-200 py-4 px-6 flex justify-between items-center">
-                        <h1 className="text-xl font-semibold text-green-600">Add New Initiative</h1>
-                        <div className="flex items-center gap-3">
+                    <div className="bg-gray-50 border-b border-gray-200 py-4 px-4 sm:px-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                        <h1 className="text-lg sm:text-xl font-semibold text-green-600">Add New Initiative</h1>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                             <button
                                 onClick={onClose}
                                 disabled={isSubmitting}
@@ -349,7 +349,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 <span className="text-red-700 text-sm">{errors.submit}</span>
                             </div>
                         )}
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Initiative Code</label>
                                 <input
@@ -400,7 +400,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         </div>
 
                         {/* Row 2: Initiative Manager, Sponsor, Currency, and Cost */}
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Initiative Manager
@@ -539,7 +539,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
                                 <CreatableSelect
@@ -601,7 +601,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 />
                             </div>
                         </div>
-                        <div className="grid grid-cols-4 gap-4 mt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Leader</label>
                                 <CreatableSelect

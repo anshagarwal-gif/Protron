@@ -2355,51 +2355,53 @@ const StoryDashboard = () => {
       </div>
 
       {/* Search Bar and View Controls */}
-      <div className="mb-6 flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         {/* Breadcrumb Navigation and Search Bar */}
-        <div className="flex items-center space-x-4 flex-1">
-          {/* Breadcrumb Navigation */}
-          {getBreadcrumbPath().length > 0 && (
-            <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
-              <span className="text-xs font-medium text-gray-500">You are at:</span>
-              <div className="flex items-center space-x-1">
-                {getBreadcrumbPath().map((item, index) => (
-                  <React.Fragment key={index}>
-                    {index > 0 && (
-                      <FiChevronRight size={14} className="text-gray-400 mx-1" />
-                    )}
-                    <span
-                      className="text-sm font-semibold text-green-600 px-2 py-1 bg-white rounded border border-green-200 hover:bg-green-50 hover:border-green-300 cursor-default transition-colors duration-200"
-                      title={`Current filter: ${getBreadcrumbPath().slice(0, index + 1).join(' > ')}`}
-                    >
-                      {item}
-                    </span>
-                  </React.Fragment>
-                ))}
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {/* Breadcrumb Navigation and Search Container */}
+          <div className="flex items-center space-x-4 flex-1">
+            {/* Breadcrumb Navigation */}
+            {getBreadcrumbPath().length > 0 && (
+              <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                <span className="text-xs font-medium text-gray-500">You are at:</span>
+                <div className="flex items-center space-x-1">
+                  {getBreadcrumbPath().map((item, index) => (
+                    <React.Fragment key={index}>
+                      {index > 0 && (
+                        <FiChevronRight size={14} className="text-gray-400 mx-1" />
+                      )}
+                      <span
+                        className="text-sm font-semibold text-green-600 px-2 py-1 bg-white rounded border border-green-200 hover:bg-green-50 hover:border-green-300 cursor-default transition-colors duration-200"
+                        title={`Current filter: ${getBreadcrumbPath().slice(0, index + 1).join(' > ')}`}
+                      >
+                        {item}
+                      </span>
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Search Bar */}
-          <div className="flex items-center">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search by initiative name, ID, assignee, summary, or any field..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-              />
-              <FiFilter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            {/* Search Bar */}
+            <div className="flex items-center">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search by initiative name, ID, assignee, summary, or any field..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full sm:w-80 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                />
+                <FiFilter size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* View Toggle Buttons and Download Excel */}
-        <div className="flex items-center space-x-4">
+        {/* View Toggle Buttons, Add Button, and Download Excel */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
           {/* View Toggle Buttons */}
           <div className="flex items-center space-x-2">
-
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 type="button"
@@ -2422,29 +2424,31 @@ const StoryDashboard = () => {
                 Dashboard View
               </button>
             </div>
-            <div className="flex items-center space-x-3">
-              <button
-                type="button"
-                onClick={() => setShowAddModal(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 cursor-pointer"
-              >
-                <FiPlus size={20} />
-                <span>Add User Story</span>
-              </button>
-
-            </div>
           </div>
 
-          {/* Download Excel Button */}
-          <button
-            type="button"
-            onClick={downloadExcel}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium cursor-pointer"
-            title={`Download Excel for ${viewMode === 'dashboard' ? 'Dashboard View' : showBacklog ? 'Table View with Backlog' : 'Table View'}`}
-          >
-            <FiDownload size={16} className="mr-2" />
-            Download Excel
-          </button>
+          {/* Add User Story and Download Excel Buttons */}
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 cursor-pointer flex-1 sm:flex-none justify-center"
+            >
+              <FiPlus size={20} className="mr-2" />
+              <span className="hidden sm:inline">Add User Story</span>
+              <span className="sm:hidden">Add Story</span>
+            </button>
+
+            {/* Download Excel Button */}
+            <button
+              type="button"
+              onClick={downloadExcel}
+              className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium cursor-pointer flex-1 sm:flex-none"
+              title={`Download Excel for ${viewMode === 'dashboard' ? 'Dashboard View' : showBacklog ? 'Table View with Backlog' : 'Table View'}`}
+            >
+              <FiDownload size={16} className="mr-2" />
+              <span className="sm:inline">Download Excel</span>
+            </button>
+          </div>
         </div>
       </div>
 

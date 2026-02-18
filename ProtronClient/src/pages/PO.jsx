@@ -626,97 +626,116 @@ const POManagement = () => {
   return (
     <div className="w-full p-6 bg-white">
       {/* Navigation tabs - full size with full form as header, centered text */}
-      <div className="mb-6">
-        <div className="relative bg-gray-200 p-1 rounded-full flex w-full">
-          {/* Capsule */}
-          <div
-            className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-            style={capsuleStyle}
-          />
+      <div className="mb-4 sm:mb-6">
+  <div className="relative bg-gray-200 p-1 rounded-full w-full overflow-x-auto scrollbar-hide">
+    
+    {/* Inner flex container (prevents capsule break on scroll) */}
+    <div className="relative flex min-w-max sm:min-w-0">
+      
+      {/* Capsule */}
+      <div
+        className="absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+        style={capsuleStyle}
+      />
 
-          {tabs.map((tab) => {
-            return (
-              <button
-                key={tab.id}
-                ref={(el) => (tabRefs.current[tab.id] = el)}
-                className={`relative z-10 py-2 px-4 rounded-full transition-colors duration-300 text-sm font-medium flex items-center justify-center whitespace-nowrap cursor-pointer flex-1 ${activeTab === tab.id ? "text-green-600 font-bold" : "text-gray-600"
-                  }`}
-                onClick={() => setActiveTab(tab.id)}
-              >
-                {tab.fullForm}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {tabs.map((tab) => {
+        return (
+          <button
+            key={tab.id}
+            ref={(el) => (tabRefs.current[tab.id] = el)}
+            onClick={() => setActiveTab(tab.id)}
+            className={`
+              relative z-10 
+              px-3 sm:px-4 md:px-6 
+              py-2 
+              text-xs sm:text-sm md:text-base 
+              rounded-full 
+              transition-colors duration-300 
+              font-medium 
+              flex items-center justify-center 
+              whitespace-nowrap 
+              cursor-pointer
+              flex-shrink-0 sm:flex-1
+              ${
+                activeTab === tab.id
+                  ? "text-green-600 font-semibold sm:font-bold"
+                  : "text-gray-600"
+              }
+            `}
+          >
+            <span className="truncate max-w-[120px] sm:max-w-none">
+              {tab.fullForm}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  </div>
+</div>
 
-      {/* Search bar on left, download excel and add button on right side */}
-      <div className="flex items-center gap-4 mb-6 justify-between">
-        {/* Search input - left side, wider */}
-        <div className="relative flex-1 max-w-2xl">
-          <input
-            type="text"
-            placeholder={
-              activeTab === "approval" ? "Search Budget Lines..." :
+      {/* Search bar and action buttons */}
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+        {/* Search and action buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {/* Search input */}
+          <div className="relative w-full sm:w-64">
+            <input
+              type="text"
+              placeholder={activeTab === "approval" ? "Search Budget Lines..." :
                 activeTab === "details" ? "Search POs..." :
                   activeTab === "utilization" ? "Search PO Consumptions..." :
                     activeTab === "srn" ? "Search Payments..." :
                       "Search Invoices..."
-            }
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
-        </div>
+              }
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
+          </div>
 
-        {/* Right side - Download Excel and Add Button */}
-        <div className="flex items-center gap-4">
-          {/* Download Excel Button */}
-          <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-            onClick={
-              activeTab === "approval" ? downloadApprovalExcel :
+          <div className="flex gap-2 w-full sm:w-auto">
+            {/* Download Excel Button */}
+            <button
+              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer flex-1 sm:flex-none justify-center"
+              onClick={activeTab === "approval" ? downloadApprovalExcel :
                 activeTab === "details" ? downloadPOExcel :
                   activeTab === "utilization" ? downloadConsumptionExcel :
                     activeTab === "srn" ? downloadSRNExcel :
                       downloadInvoiceExcel
-            }
-          >
-            <Download size={18} className="mr-2" />
-            Download Excel
-          </button>
+              }
+            >
+              <Download size={18} className="mr-2" />
+              <span className="sm:inline">Download Excel</span>
+            </button>
 
-          {/* Add Button */}
-          {/* Add Button (edit access) */}
-          {hasAccess && hasAccess('budget', 'edit') && (
-            <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-              onClick={
-                activeTab === "approval" ? handleAddApproval :
+            {/* Add Button */}
+            {hasAccess && hasAccess('budget', 'edit') && (
+              <button
+                className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer flex-1 sm:flex-none justify-center"
+                onClick={activeTab === "approval" ? handleAddApproval :
                   activeTab === "details" ? handleAddPO :
                     activeTab === "utilization" ? handleAddConsumption :
                       activeTab === "srn" ? handleAddSRN :
                         handleAddInvoice
-              }
-            >
-              <Plus size={18} className="mr-2" />
-              {activeTab === "approval" ? "Add Budget Line" :
-                activeTab === "details" ? "Add PO" :
-                  activeTab === "utilization" ? "Add Consumption" :
-                    activeTab === "srn" ? "Add Payment" :
-                      "Add Invoice"}
-            </button>
-          )}
+                }
+              >
+                <Plus size={18} className="mr-2" />
+                <span className="hidden sm:inline mr-1">{activeTab === "approval" ? "Add Budget Line" :
+                  activeTab === "details" ? "Add PO" :
+                    activeTab === "utilization" ? "Add Consumption" :
+                      activeTab === "srn" ? "Add Payment" :
+                        "Add Invoice"}</span>
+                <span className="sm:hidden">{activeTab === "approval" ? "Add Budget" :
+                  activeTab === "details" ? "Add PO" :
+                    activeTab === "utilization" ? "Add Cons." :
+                      activeTab === "srn" ? "Add Pay." :
+                        "Add Inv."}</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Error display - only show on PO Details tab */}
-      {activeTab === "details" && error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
 
       {/* Content area */}
       {renderContent()}

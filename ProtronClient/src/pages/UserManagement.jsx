@@ -903,9 +903,9 @@ const UserManagement = () => {
   return (
     <div className="w-full p-6 bg-white">
       {/* Header with toggle and tenant selector */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         {/* Toggle buttons on left side */}
-        <div className="relative bg-gray-200 p-1 rounded-full flex">
+        <div className="relative bg-gray-200 p-1 rounded-full flex mb-4 md:mb-0">
           <div
             className={`absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out ${activeTab === "users" ? "left-1 right-1/2" : "left-1/2 right-1"
               }`}
@@ -933,9 +933,9 @@ const UserManagement = () => {
         </div>
 
         {/* Search and action buttons on right side */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           {/* Search input */}
-          <div className="relative w-64">
+          <div className="relative w-full sm:w-64">
             <input
               type="text"
               placeholder="Search..."
@@ -946,34 +946,38 @@ const UserManagement = () => {
             <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
           </div>
 
-          {/* Download Excel Button */}
-          <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-            onClick={activeTab === "users" ? downloadUsersExcel : downloadRolesExcel}
-          >
-            <Download size={18} className="mr-2" />
-            Download Excel
-          </button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            {/* Download Excel Button */}
+            <button
+              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer flex-1 sm:flex-none justify-center"
+              onClick={activeTab === "users" ? downloadUsersExcel : downloadRolesExcel}
+            >
+              <Download size={18} className="mr-2" />
+              <span className="sm:inline">Download Excel</span>
+            </button>
 
-          {/* Create User/Role Button */}
-          {(hasAccess('users', 'edit') && activeTab === "users") && (
-            <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-              onClick={() => navigate('/signup')}
-            >
-              <Plus size={18} className="mr-2" />
-              Create User
-            </button>
-          )}
-          {activeTab === "roles" && hasAccess('users', 'edit') && (
-            <button
-              className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-              onClick={() => setIsAddRoleModalOpen(true)}
-            >
-              <Plus size={18} className="mr-2" />
-              Add New Role
-            </button>
-          )}
+            {/* Create User/Role Button */}
+            {(hasAccess('users', 'edit') && activeTab === "users") && (
+              <button
+                className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer flex-1 sm:flex-none justify-center"
+                onClick={() => navigate('/signup')}
+              >
+                <Plus size={18} className="mr-2" />
+                <span className="hidden sm:inline mr-1">Create User</span>
+                <span className="sm:hidden">Create</span>
+              </button>
+            )}
+            {activeTab === "roles" && hasAccess('users', 'edit') && (
+              <button
+                className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer flex-1 sm:flex-none justify-center"
+                onClick={() => setIsAddRoleModalOpen(true)}
+              >
+                <Plus size={18} className="mr-2" />
+                <span className="hidden sm:inline mr-1">Add New Role</span>
+                <span className="sm:hidden">Add Role</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

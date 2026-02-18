@@ -566,114 +566,114 @@ const TimesheetManager = () => {
       <div className="rounded-lg">
         {/* Admin Timesheet View Header */}
         <div className="py-6 border-b border-gray-200">
-          <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:block`}>
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-              <div className='text-2xl font-bold text-green-800'>Admin Timesheet</div>
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div className='text-2xl font-bold text-green-800 mb-4 md:mb-0'>Admin Timesheet</div>
 
-              <div className='flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-6'>
-                {/* Week Navigation */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={goToPreviousWeek}
-                    className="p-2 hover:bg-gray-100 rounded cursor-pointer"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
+            <div className='flex flex-col sm:flex-row gap-3 w-full md:w-auto'>
+              {/* Week Navigation */}
+              <div className="flex items-center space-x-2 mb-2 sm:mb-0">
+                <button
+                  onClick={goToPreviousWeek}
+                  className="p-2 hover:bg-gray-100 rounded cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
 
-                  <span
-                    ref={spanRef}
-                    onClick={() => setIsOpen(true)}
-                    className="text-sm font-medium whitespace-nowrap cursor-pointer hover:underline"
-                    title="Click to select week"
-                  >
-                    {formatDate(weekStart)} to {formatDate(weekEnd)}
-                  </span>
+                <span
+                  ref={spanRef}
+                  onClick={() => setIsOpen(true)}
+                  className="text-sm font-medium whitespace-nowrap cursor-pointer hover:underline"
+                  title="Click to select week"
+                >
+                  {formatDate(weekStart)} to {formatDate(weekEnd)}
+                </span>
 
-                  <button
-                    onClick={goToNextWeek}
-                    className="p-2 hover:bg-gray-100 rounded cursor-pointer"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+                <button
+                  onClick={goToNextWeek}
+                  className="p-2 hover:bg-gray-100 rounded cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
 
-                {isOpen && (
-                  <DatePicker
-                    open
-                    onClose={() => setIsOpen(false)}
-                    value={dayjs(currentWeek)}
-                    onChange={(newDate) => {
-                      setCurrentWeek(newDate);
-                      setIsOpen(false);
-                    }}
-                    slotProps={{
-                      textField: {
-                        style: { display: 'none' }
-                      },
-                      popper: {
-                        placement: 'bottom-start',
-                        modifiers: [
-                          {
-                            name: 'offset',
-                            options: {
-                              offset: [0, 4], // Optional spacing
-                            },
+              {isOpen && (
+                <DatePicker
+                  open
+                  onClose={() => setIsOpen(false)}
+                  value={dayjs(currentWeek)}
+                  onChange={(newDate) => {
+                    setCurrentWeek(newDate);
+                    setIsOpen(false);
+                  }}
+                  slotProps={{
+                    textField: {
+                      style: { display: 'none' }
+                    },
+                    popper: {
+                      placement: 'bottom-start',
+                      modifiers: [
+                        {
+                          name: 'offset',
+                          options: {
+                            offset: [0, 4], // Optional spacing
                           },
-                        ],
-                        anchorEl: spanRef.current // 🎯 anchor to span
-                      }
-                    }}
-                  />
-                )}
+                        },
+                      ],
+                      anchorEl: spanRef.current // 🎯 anchor to span
+                    }
+                  }}
+                />
+              )}
 
-                {/* Search Bar */}
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search employees..."
-                    value={searchTerm}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 w-64 text-sm"
-                  />
-                  {searchTerm && (
-                    <button
-                      onClick={() => {
-                        setSearchTerm('');
-                        handleSearch('');
-                      }}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                    >
-                      <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                    </button>
-                  )}
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-64">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
                 </div>
+                <input
+                  type="text"
+                  placeholder="Search employees..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full text-sm"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      handleSearch('');
+                    }}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                  >
+                    <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+              </div>
 
+              <div className="flex gap-2 w-full sm:w-auto">
                 {/* Download Excel Button */}
                 <button
                   onClick={downloadExcel}
-                  className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 transition-colors duration-200 cursor-pointer"
+                  className="flex items-center justify-center space-x-2 px-4 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-800 transition-colors duration-200 cursor-pointer flex-1 sm:flex-none"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Download Excel</span>
+                  <span className="sm:inline">Download Excel</span>
                 </button>
               </div>
             </div>
-
-            {/* Search Results Info */}
-            {searchTerm && (
-              <div className="mt-4 text-sm text-gray-600">
-                Showing {filteredData.length} of {timesheetData.length} employees
-                {filteredData.length !== timesheetData.length && (
-                  <span className="ml-2">
-                    matching "{searchTerm}"
-                  </span>
-                )}
-              </div>
-            )}
           </div>
+
+          {/* Search Results Info */}
+          {searchTerm && (
+            <div className="mt-4 text-sm text-gray-600">
+              Showing {filteredData.length} of {timesheetData.length} employees
+              {filteredData.length !== timesheetData.length && (
+                <span className="ml-2">
+                  matching "{searchTerm}"
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Loading State */}

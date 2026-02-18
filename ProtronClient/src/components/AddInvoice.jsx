@@ -1465,11 +1465,11 @@ const AddInvoiceModal = ({
                                         return <img src={logoUrl} alt="tenant-logo" className="w-10 h-10 rounded-md object-cover" />
                                     }
                                     const initials = tenantName ? (tenantName.trim().charAt(0).toUpperCase() + tenantName.trim().slice(-1).toUpperCase()) : 'TN';
-                                    return (
-                                        <div className="w-10 h-10 bg-white text-green-700 font-bold rounded-md flex items-center justify-center border">
-                                            {initials}
-                                        </div>
-                                    )
+                                    // return (
+                                    //     <div className="w-10 h-10 bg-white text-green-700 font-bold rounded-md flex items-center justify-center border">
+                                    //         {initials}
+                                    //     </div>
+                                    // )
                                 })()}
                             </div>
 
