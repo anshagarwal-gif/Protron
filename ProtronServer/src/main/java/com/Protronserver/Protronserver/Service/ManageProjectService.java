@@ -57,6 +57,15 @@ public class ManageProjectService {
     @Autowired
     private SprintRepository sprintRepository;
 
+    @Autowired
+    private UserStoryRepository userStoryRepository;
+
+    @Autowired
+    private SolutionStoryRepository solutionStoryRepository;
+
+    @Autowired
+    private TaskRepository taskRepository;
+
     public Long addProject(ProjectRequestDTO request) {
         System.out.println(request.getProductOwner());
         Project project = new Project();
@@ -245,6 +254,10 @@ public class ManageProjectService {
         releaseRepository.updateProjectForReleases(existingProject.getProjectId(), updatedProject.getProjectId(), updatedProject.getProjectName());
         sprintRepository.updateProjectForSprints(existingProject.getProjectId(), updatedProject.getProjectId());
 
+
+        userStoryRepository.updateProjectForUserStories(existingProject.getProjectId(), updatedProject.getProjectId());
+        solutionStoryRepository.updateProjectForSolutionStories(existingProject.getProjectId(), updatedProject.getProjectId());
+        taskRepository.updateProjectForTasks(existingProject.getProjectId(), updatedProject.getProjectId());
 
         // Save new project
         return updatedProject;

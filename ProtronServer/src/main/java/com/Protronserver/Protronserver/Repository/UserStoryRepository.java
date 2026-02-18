@@ -1,8 +1,11 @@
 package com.Protronserver.Protronserver.Repository;
 
+import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.UserStory;
 import com.Protronserver.Protronserver.Entities.UserStoryAttachment;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
@@ -45,5 +48,9 @@ public interface UserStoryRepository extends JpaRepository<UserStory, Long> {
     List<UserStory> findByTenantIdAndReleaseIdAndEndTimestampIsNull(Long tenantId, Long releaseId);
 
     List<UserStory> findByTenantIdAndSprintAndEndTimestampIsNull(Long tenantId, Long sprint);
+
+    @Modifying
+    @Query("UPDATE UserStory u SET u.projectId = :newProjectId WHERE u.projectId = :oldProjectId")
+    void updateProjectForUserStories(Long oldProjectId, Long newProjectId);
 
 }
