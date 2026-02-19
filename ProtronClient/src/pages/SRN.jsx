@@ -534,6 +534,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const srn = params.data;
         return (

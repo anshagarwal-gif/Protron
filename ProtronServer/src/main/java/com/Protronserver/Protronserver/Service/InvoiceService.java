@@ -624,7 +624,12 @@ public class InvoiceService {
             cell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
             cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
             cell.setPadding(5);
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            // Align numeric headers to right, others to left
+            if (header.equals("Rate") || header.equals("Quantity") || header.equals(amountHeader)) {
+                cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            } else {
+                cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+            }
             table.addCell(cell);
         }
 
@@ -636,9 +641,9 @@ public class InvoiceService {
         if (invoice.getInvoiceItems() != null) {
             for (InvoiceItem item : invoice.getInvoiceItems()) {
                 // Sr. No
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
                 // Description (right-aligned per your request; if you prefer left, change to Element.ALIGN_LEFT)
-                table.addCell(createBodyCell(item.getItemDesc() != null ? item.getItemDesc() : "", normalFont, 0, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(item.getItemDesc() != null ? item.getItemDesc() : "", normalFont, 0, Element.ALIGN_LEFT));
                 // Rate: max 6 chars
                 table.addCell(createBodyCell(String.valueOf(item.getRate()), normalFont, 6, Element.ALIGN_RIGHT));
                 // Quantity: max 5 chars
@@ -646,7 +651,13 @@ public class InvoiceService {
                 // Amount: DO NOT prefix currency here (currency is in header). limit to 10 chars
                 table.addCell(createBodyCell(String.valueOf(item.getAmount()), normalFont, 10, Element.ALIGN_RIGHT));
                 // Remarks
-                table.addCell(createBodyCell(item.getRemarks() != null ? item.getRemarks() : "", normalFont, 0, Element.ALIGN_RIGHT));
+                PdfPCell remarksCell = new PdfPCell(new Phrase(item.getRemarks() != null ? item.getRemarks() : "", normalFont));
+                remarksCell.setPadding(5);
+                remarksCell.setBorder(Rectangle.NO_BORDER);
+                remarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                remarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                // Allow wrapping for long remarks
+                table.addCell(remarksCell);
                 srNo++;
                 rowCount++;
             }
@@ -655,12 +666,19 @@ public class InvoiceService {
         // ----------- Invoice Employees -----------
         if (invoice.getInvoiceEmployees() != null) {
             for (InvoiceEmployee emp : invoice.getInvoiceEmployees()) {
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(emp.getItemDesc() != null ? emp.getItemDesc() : "", normalFont, 0, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
+                table.addCell(createBodyCell(emp.getItemDesc() != null ? emp.getItemDesc() : "", normalFont, 0, Element.ALIGN_LEFT));
                 table.addCell(createBodyCell(String.valueOf(emp.getRate()), normalFont, 6, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(String.valueOf(emp.getQuantity()), normalFont, 5, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(String.valueOf(emp.getAmount()), normalFont, 10, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(emp.getRemarks() != null ? emp.getRemarks() : "", normalFont, 0, Element.ALIGN_RIGHT));
+                // Remarks
+                PdfPCell empRemarksCell = new PdfPCell(new Phrase(emp.getRemarks() != null ? emp.getRemarks() : "", normalFont));
+                empRemarksCell.setPadding(5);
+                empRemarksCell.setBorder(Rectangle.NO_BORDER);
+                empRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                empRemarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                // Allow wrapping for long remarks
+                table.addCell(empRemarksCell);
                 srNo++;
                 rowCount++;
             }
@@ -695,16 +713,37 @@ public class InvoiceService {
 
         document.add(table);
 
-        PdfPTable totalTable = new PdfPTable(1);
+        PdfPTable totalTable = new PdfPTable(6);
         totalTable.setWidthPercentage(100);
-        totalTable.setWidths(new float[] { 10f});
+        totalTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
 
-        PdfPCell totalValue = new PdfPCell(new Phrase("Total: " + String.valueOf(invoice.getTotalAmount() != null ? invoice.getTotalAmount() : ""), headerFont));
+        // Empty cells for first 3 columns
+        for (int i = 0; i < 3; i++) {
+            PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+            emptyCell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
+            emptyCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            totalTable.addCell(emptyCell);
+        }
+
+        // "Total" label under Quantity column (4th column)
+        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total - ", headerFont));
+        totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
+        totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalTable.addCell(totalLabel);
+
+        // Amount value under Amount column (5th column)
+        PdfPCell totalValue = new PdfPCell(new Phrase(String.valueOf(invoice.getTotalAmount() != null ? invoice.getTotalAmount() : ""), headerFont));
         totalValue.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-        totalValue.setPadding(8);
         totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        totalValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
         totalTable.addCell(totalValue);
+
+        // Empty cell for Remarks column (6th column)
+        PdfPCell remarksEmptyCell = new PdfPCell(new Phrase(""));
+        remarksEmptyCell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
+        remarksEmptyCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totalTable.addCell(remarksEmptyCell);
 
         document.add(totalTable);
 
@@ -719,6 +758,14 @@ public class InvoiceService {
             }
         } catch (Exception e) {
             log.warn("Failed to convert amount to words for invoice {}: {}", invoice.getInvoiceId(), e.getMessage());
+        }
+
+        // Invoice remarks
+        if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
+            Paragraph remarksPara = new Paragraph("Remarks: " + invoice.getRemarks(), normalFont);
+            remarksPara.setSpacingBefore(8);
+            document.add(remarksPara);
+            log.info("Added remarks to PDF for invoice {}: {}", invoice.getInvoiceId(), invoice.getRemarks());
         }
 
         // Timesheet section
@@ -904,7 +951,12 @@ public class InvoiceService {
             cell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
             cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
             cell.setPadding(5);
-            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            // Align numeric headers to right, others to left
+            if (header.equals("Rate") || header.equals("Quantity") || header.equals(amountHeader)) {
+                cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            } else {
+                cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+            }
             table.addCell(cell);
         }
 
@@ -916,13 +968,20 @@ public class InvoiceService {
         if (itemsObj instanceof List) {
             List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
             for (Map<String, Object> item : items) {
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(item.getOrDefault("itemDesc", "").toString(), normalFont, 0, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
+                table.addCell(createBodyCell(item.getOrDefault("itemDesc", "").toString(), normalFont, 0, Element.ALIGN_LEFT));
                 table.addCell(createBodyCell(item.getOrDefault("rate", "").toString(), normalFont, 6, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(item.getOrDefault("quantity", "").toString(), normalFont, 5, Element.ALIGN_RIGHT));
                 // Remove currency from rows:
                 table.addCell(createBodyCell(item.getOrDefault("amount", "").toString(), normalFont, 10, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(item.getOrDefault("remarks", "").toString(), normalFont, 0, Element.ALIGN_RIGHT));
+                // Remarks
+                PdfPCell previewRemarksCell = new PdfPCell(new Phrase(item.getOrDefault("remarks", "").toString(), normalFont));
+                previewRemarksCell.setPadding(5);
+                previewRemarksCell.setBorder(Rectangle.NO_BORDER);
+                previewRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                previewRemarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                // Allow wrapping for long remarks
+                table.addCell(previewRemarksCell);
                 srNo++;
                 rowCount++;
             }
@@ -933,12 +992,19 @@ public class InvoiceService {
         if (empObj instanceof List) {
             List<Map<String, Object>> emps = (List<Map<String, Object>>) empObj;
             for (Map<String, Object> emp : emps) {
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(emp.getOrDefault("itemDesc", "").toString(), normalFont, 0, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
+                table.addCell(createBodyCell(emp.getOrDefault("itemDesc", "").toString(), normalFont, 0, Element.ALIGN_LEFT));
                 table.addCell(createBodyCell(emp.getOrDefault("rate", "").toString(), normalFont, 6, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(emp.getOrDefault("quantity", "").toString(), normalFont, 5, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(emp.getOrDefault("amount", "").toString(), normalFont, 10, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(emp.getOrDefault("remarks", "").toString(), normalFont, 0, Element.ALIGN_RIGHT));
+                // Remarks
+                PdfPCell empPreviewRemarksCell = new PdfPCell(new Phrase(emp.getOrDefault("remarks", "").toString(), normalFont));
+                empPreviewRemarksCell.setPadding(5);
+                empPreviewRemarksCell.setBorder(Rectangle.NO_BORDER);
+                empPreviewRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                empPreviewRemarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                // Allow wrapping for long remarks
+                table.addCell(empPreviewRemarksCell);
                 srNo++;
                 rowCount++;
             }
@@ -974,16 +1040,37 @@ public class InvoiceService {
 
         document.add(table);
 
-        PdfPTable totals = new PdfPTable(1);
+        PdfPTable totals = new PdfPTable(6);
         totals.setWidthPercentage(100);
-        totals.setWidths(new float[] { 8f });
+        totals.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
 
-        PdfPCell totalValue = new PdfPCell(new Phrase("Total: " + invoiceData.getOrDefault("totalAmount", "").toString(), headerFont));
+        // Empty cells for first 3 columns
+        for (int i = 0; i < 3; i++) {
+            PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+            emptyCell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
+            emptyCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            totals.addCell(emptyCell);
+        }
+
+        // "Total" label under Quantity column (4th column)
+        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total - ", headerFont));
+        totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
+        totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totals.addCell(totalLabel);
+
+        // Amount value under Amount column (5th column)
+        PdfPCell totalValue = new PdfPCell(new Phrase(invoiceData.getOrDefault("totalAmount", "").toString(), headerFont));
         totalValue.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-        totalValue.setPadding(8);
         totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
-        totalValue.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
         totals.addCell(totalValue);
+
+        // Empty cell for Remarks column (6th column)
+        PdfPCell remarksEmptyCell = new PdfPCell(new Phrase(""));
+        remarksEmptyCell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
+        remarksEmptyCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        totals.addCell(remarksEmptyCell);
 
         document.add(totals);
 
@@ -997,6 +1084,13 @@ public class InvoiceService {
                 document.add(amountWordsPara);
             }
         } catch (Exception ignored) {
+        }
+
+        // Invoice remarks
+        if (invoiceData.get("remarks") != null && !invoiceData.get("remarks").toString().trim().isEmpty()) {
+            Paragraph remarksPara = new Paragraph("Remarks: " + invoiceData.get("remarks").toString(), normalFont);
+            remarksPara.setSpacingBefore(8);
+            document.add(remarksPara);
         }
 
         // Timesheet section

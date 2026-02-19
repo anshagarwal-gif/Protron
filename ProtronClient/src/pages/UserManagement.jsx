@@ -772,6 +772,7 @@ const UserManagement = () => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const user = params.data;
         return (
@@ -866,6 +867,7 @@ const UserManagement = () => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       // REPLACE YOUR ROLE ACTIONS CELL RENDERER WITH THIS:
 
       cellRenderer: params => {

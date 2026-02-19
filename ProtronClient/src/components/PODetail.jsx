@@ -428,6 +428,7 @@ const PODetailsPage = () => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const milestone = params.data;
         return (

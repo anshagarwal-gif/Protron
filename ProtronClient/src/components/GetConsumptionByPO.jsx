@@ -347,6 +347,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const consumption = params.data;
         return (

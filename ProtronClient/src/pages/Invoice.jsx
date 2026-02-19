@@ -565,6 +565,91 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     }
   };
 
+  // Handle invoice preview
+  const handleInvoicePreview = async (invoice) => {
+    try {
+      const token = sessionStorage.getItem("token");
+
+      // Prepare invoice data for preview (similar to AddInvoiceModal)
+      const invoiceData = {
+        invoiceId: invoice.invoiceId,
+        invoiceName: invoice.invoiceName || "",
+        invoiceType: invoice.invoiceType || 'DOMESTIC',
+        invoiceDate: invoice.invoiceDate || invoice.createdAt?.split('T')[0] || "",
+        taxId: invoice.taxId || "",
+        billPeriod: `${invoice.fromDate || ''} - ${invoice.toDate || ''}`,
+        customerName: invoice.customerName || "",
+        billToAddress: invoice.billToAddress || "",
+        shipToAddress: invoice.shipToAddress || "",
+        customerInfo: invoice.customerInfo || "",
+        supplierName: invoice.supplierName || "",
+        supplierAddress: invoice.supplierAddress || "",
+        supplierInfo: invoice.supplierInfo || "",
+        items: (invoice.invoiceItems || invoice.items || []).map(item => ({
+          itemDesc: item.itemDesc || item.description || '',
+          rate: Number.isFinite(parseFloat(item.rate)) ? parseFloat(item.rate) : 0,
+          quantity: Number.isFinite(parseFloat(item.quantity)) ? parseFloat(item.quantity) : 0,
+          amount: Number.isFinite(parseFloat(item.amount)) ? parseFloat(item.amount) : 0,
+          remarks: item.remarks || ''
+        })),
+        employees: (invoice.invoiceEmployees || invoice.employees || []).map(emp => ({
+          itemDesc: emp.itemDesc || emp.name || '',
+          rate: Number.isFinite(parseFloat(emp.rate)) ? parseFloat(emp.rate) : 0,
+          quantity: Number.isFinite(parseFloat(emp.quantity)) ? parseFloat(emp.quantity) : 0,
+          amount: Number.isFinite(parseFloat(emp.amount)) ? parseFloat(emp.amount) : 0,
+          remarks: emp.remarks || ''
+        })),
+        employeeName: invoice.employeeName || "",
+        employeeNames: invoice.employeeNames || [],
+        rate: Number.isFinite(parseFloat(invoice.rate)) ? parseFloat(invoice.rate) : 0,
+        currency: (invoice.currency || "USD").toUpperCase(),
+        country: invoice.country || null,
+        fromDate: invoice.fromDate || "",
+        toDate: invoice.toDate || "",
+        hoursSpent: Number.isFinite(parseFloat(invoice.hoursSpent)) ? parseFloat(invoice.hoursSpent) : 0,
+        totalAmount: Number.isFinite(parseFloat(invoice.totalAmount)) ? parseFloat(invoice.totalAmount) : 0,
+        remarks: invoice.remarks || "",
+        projectName: invoice.projectName || "",
+        timesheetData: null // Existing invoices may not have timesheet data
+      };
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/invoices/preview`,
+        invoiceData,
+        {
+          headers: {
+            Authorization: token,
+            "Content-Type": "application/json"
+          },
+          responseType: 'blob'
+        }
+      );
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+
+      // Download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice_preview_${invoice.invoiceId || 'preview'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Open in new tab
+      window.open(url, '_blank');
+
+      // Cleanup after a short delay
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 5000);
+
+    } catch (error) {
+      console.error("Failed to preview invoice:", error);
+      alert("Failed to preview invoice. Please try again.");
+    }
+  };
+
   // Handle attachment download
   const handleDownloadAttachment = async (invoiceId, attachmentNumber, fileName) => {
     try {
@@ -662,10 +747,10 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         'Customer Name': invoice.customerName || 'N/A',
         'Supplier Name': invoice.supplierName || 'N/A',
         'Employee Name': invoice.employeeName || 'N/A',
-        'Rate': invoice.rate ? formatCurrency(invoice.rate, invoice.currency) : 'N/A',
+        'Rate': invoice.rate ? parseFloat(invoice.rate) : 'N/A',
         'Currency': invoice.currency || 'N/A',
         'Hours Spent': invoice.hoursSpent || 'N/A',
-        'Total Amount': formatCurrency(invoice.totalAmount, invoice.currency),
+        'Total Amount': invoice.totalAmount ? parseFloat(invoice.totalAmount) : 'N/A',
         'From Date': formatDate(invoice.fromDate),
         'To Date': formatDate(invoice.toDate),
         'Created Date': formatDate(invoice.createdAt),
@@ -742,7 +827,16 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       minWidth: 150,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#1f2937' }
+      cellStyle: { fontWeight: 'bold', color: '#1f2937' },
+      cellRenderer: params => (
+        <button
+          onClick={() => handleInvoicePreview(params.data)}
+          className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left truncate block w-full"
+          title={params.value}
+        >
+          {params.value}
+        </button>
+      )
     },
     {
       headerName: "Invoice Name",
@@ -867,6 +961,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => (
         <div className="flex gap-2">
           {/* Edit Button */}
