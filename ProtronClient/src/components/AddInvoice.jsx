@@ -1530,14 +1530,20 @@ const AddInvoiceModal = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Currency *</label>
-                                <select value={formData.currency} onChange={handleChange('currency')} disabled={formData.invoiceType === 'DOMESTIC'} className="w-full h-10 px-4 border border-gray-300 rounded-md">
-                                    <option value="USD">USD ($)</option>
-                                    <option value="INR">INR (₹)</option>
-                                    <option value="EUR">EUR (€)</option>
-                                    <option value="GBP">GBP (£)</option>
-                                    <option value="JPY">JPY (¥)</option>
-                                    <option value="CAD">CAD (C$)</option>
-                                    <option value="AUD">AUD (A$)</option>
+                                <select value={formData.currency} onChange={handleChange('currency')} disabled={formData.invoiceType === 'DOMESTIC'} className={`w-full h-10 px-4 border border-gray-300 rounded-md ${formData.invoiceType === 'DOMESTIC' ? 'appearance-none bg-gray-50 cursor-not-allowed' : ''}`}>
+                                    {formData.invoiceType === 'DOMESTIC' ? (
+                                        <option value="INR">INR (₹)</option>
+                                    ) : (
+                                        <>
+                                            <option value="USD">USD ($)</option>
+                                            <option value="INR">INR (₹)</option>
+                                            <option value="EUR">EUR (€)</option>
+                                            <option value="GBP">GBP (£)</option>
+                                            <option value="JPY">JPY (¥)</option>
+                                            <option value="CAD">CAD (C$)</option>
+                                            <option value="AUD">AUD (A$)</option>
+                                        </>
+                                    )}
                                 </select>
                             </div>
                         </div>
@@ -1908,10 +1914,10 @@ const AddInvoiceModal = ({
                                 value={formData.remarks}
                                 onChange={handleChange('remarks')}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
-                                maxLength={500}
+                                maxLength={120}
                             />
                             <div className="text-right text-sm text-gray-500 mt-1">
-                                {formData.remarks.length}/500 characters
+                                {formData.remarks.length}/120 characters
                             </div>
                         </div>
 

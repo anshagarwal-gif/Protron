@@ -615,7 +615,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
             }
           }}
         >
-          <DialogContent sx={{ p: 3, overflow: 'visible' }}>
+          <DialogContent sx={{ p: { xs: 2, sm: 3 }, overflow: 'visible' }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               {/* Date Selector */}
               {!editingTask && (
@@ -709,7 +709,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
               </Popover>
 
               {/* Row 1: Project and Task Type */}
-              <div className='grid grid-cols-3 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>
                 <div className="w-full flex-1">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Project <span className="text-red-500">*</span>
@@ -804,7 +804,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
 
 
                 <div className="w-full">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-2">
                     {/* Hours Input */}
                     <div className="flex-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">Spend Hours</label>
@@ -1099,7 +1099,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
               </div>
 
               {/* Row 4: Action Buttons */}
-              <div className="flex justify-between items-center mt-2">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-2 mt-2">
                 <button
                   onClick={handleReset}
                   disabled={isSubmitting}
@@ -1111,7 +1111,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                   Reset
                 </button>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <button
                     onClick={() => {
                       onClose();

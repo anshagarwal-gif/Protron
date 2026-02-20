@@ -1886,7 +1886,7 @@ public class InvoiceService {
 
                 LineSeparator separator = new LineSeparator();
                 separator.setLineWidth(0.5f); // thin line
-                separator.setPercentage(80f); // length relative to page width
+                separator.setPercentage(100f); // full width horizontal line
                 document.add(new Chunk(separator));
                 // Slight spacing after the line
 

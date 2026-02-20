@@ -847,46 +847,51 @@ const IndividualTimesheet = () => {
 
       {/* Navigation and Controls */}
       <div className="bg-white border-b border-gray-200 flex-shrink-0">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className='flex justify-start items-center gap-5'>
-              <div className="bg-white flex justify-center items-center p-1 gap-3">
-                <div className="flex items-center space-x-4">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
+          {/* Mobile: Stack vertically, Desktop: Side by side */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-0">
+            {/* Employee Info and Back Button - Mobile: Full width, Desktop: Left side */}
+            <div className="flex justify-start items-center gap-3 sm:gap-5">
+              <div className="bg-white flex justify-center items-center p-1 gap-2 sm:gap-3">
+                <div className="flex items-center space-x-2 sm:space-x-4">
                   {/* Back Button */}
                   <button
                     onClick={() => navigate(-1)}
-                    className="text-blue-600 hover:text-blue-800 text-lg font-medium"
+                    className="text-blue-600 hover:text-blue-800 text-base sm:text-lg font-medium p-1"
                   >
                     <ChevronLeft />
                   </button>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{employee.name}</h3>
-                  <p className="text-sm text-gray-600">{employee.email}</p>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate max-w-[200px] sm:max-w-none">{employee.name}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 truncate max-w-[200px] sm:max-w-none">{employee.email}</p>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-500">Timesheet</div>
-              <div className="flex items-center space-x-4">
+            {/* Controls Section - Mobile: Full width, Desktop: Right side */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              {/* View Mode Toggle */}
+              <div className="text-xs sm:text-sm text-gray-500 self-center sm:self-auto">Timesheet</div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 {/* View Mode Toggle */}
-                <div className="relative bg-gray-200 p-1 rounded-full flex w-fit">
+                <div className="relative bg-gray-200 p-1 rounded-full flex w-fit self-center">
                   <div
                     className={`absolute top-1 bottom-1 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out ${viewMode === "Weekly" ? "left-1 right-1/2" : "left-1/2 right-1"
                       }`}
                   />
                   <button
                     onClick={() => setViewMode("Weekly")}
-                    className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 cursor-pointer ${viewMode === "Weekly" ? "text-green-600" : "text-gray-600"
+                    className={`relative z-10 px-4 sm:px-6 py-2 text-xs sm:text-sm font-medium rounded-full transition-colors duration-300 cursor-pointer ${viewMode === "Weekly" ? "text-green-600" : "text-gray-600"
                       }`}
                   >
                     Weekly
                   </button>
                   <button
                     onClick={() => setViewMode("Monthly")}
-                    className={`relative z-10 px-6 py-2 text-sm font-medium rounded-full transition-colors duration-300 cursor-pointer ${viewMode === "Monthly" ? "text-green-600" : "text-gray-600"
+                    className={`relative z-10 px-4 sm:px-6 py-2 text-xs sm:text-sm font-medium rounded-full transition-colors duration-300 cursor-pointer ${viewMode === "Monthly" ? "text-green-600" : "text-gray-600"
                       }`}
                   >
                     Monthly
@@ -894,7 +899,7 @@ const IndividualTimesheet = () => {
                 </div>
 
                 {/* Period Navigation */}
-                <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                <div className="flex items-center bg-gray-100 rounded-lg p-1 self-center">
                   <button
                     onClick={() => navigatePeriod("prev")}
                     className="p-2 hover:bg-white rounded-md transition-colors cursor-pointer"
@@ -905,7 +910,7 @@ const IndividualTimesheet = () => {
                     <button
 
                       onClick={() => { console.log(hiddenDateInputRef.current); hiddenDateInputRef.current?.showPicker() }}
-                      className="px-4 py-2 cursor-pointer text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[200px]"
+                      className="px-3 sm:px-4 py-2 cursor-pointer text-xs sm:text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[150px] sm:min-w-[200px]"
                     >
                       {getCurrentDateString()}
                     </button>
@@ -944,41 +949,53 @@ const IndividualTimesheet = () => {
                   </button>
                 </div>
               </div>
-              {/* Action Buttons */}
-              {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+
+              {/* Action Buttons - Mobile: Stack, Desktop: Row */}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
+                  <button
+                    className="flex items-center justify-center space-x-2 px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={handleCopyLastWeek}
+                  >
+                    <span>📋</span>
+                    <span className="hidden sm:inline">Copy Last Week</span>
+                    <span className="sm:hidden">Copy Last Week</span>
+                  </button>
+                )}
+
+                {(sessionData.email === employee.email) &&(
+                  <button
+                    onClick={() => {
+                      setSelectedCell({ date: new Date() }); // Ensure the current date is passed
+                      setShowLogTimeModal(true);
+                    }}
+                    className="flex items-center justify-center space-x-2 px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
+                  >
+                    <span className="hidden sm:inline">Add Timesheet Task</span>
+                    <span className="sm:hidden">Add Task</span>
+                  </button>
+                )}
+
+                {((sessionData.email !== employee.email) || hasAccess(import.meta.env.VITE_GENERATE_INVOICE_MODULE, "view")) && (
+                  <button
+                    onClick={handleGenerateInvoice}
+                    className="flex items-center justify-center space-x-2 px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span className="hidden sm:inline">Generate Invoice</span>
+                    <span className="sm:hidden">Invoice</span>
+                  </button>
+                )}
+
                 <button
-                  className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={handleCopyLastWeek}
+                  onClick={downloadExcel}
+                  className="flex items-center justify-center space-x-2 px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
                 >
-                  <span>📋</span>
-                  <span>Copy Last Week</span>
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Download Excel</span>
+                  <span className="sm:hidden">Download</span>
                 </button>
-              )}
-
-              {(sessionData.email === employee.email) &&(              <button
-                onClick={() => {
-                  setSelectedCell({ date: new Date() }); // Ensure the current date is passed
-                  setShowLogTimeModal(true);
-                }}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
-              >
-
-                <span>Add Timesheet Task</span>
-              </button>)}
-             {((sessionData.email !== employee.email) || hasAccess(import.meta.env.VITE_GENERATE_INVOICE_MODULE, "view")) && (<button
-                onClick={handleGenerateInvoice}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
-              >
-                <FileText className="h-4 w-4" />
-                <span>Generate Invoice</span>
-              </button>)}
-              <button
-                onClick={downloadExcel}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-700 text-white text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
-              >
-                <Download className="h-4 w-4" />
-                <span>Download Excel</span>
-              </button>
+              </div>
             </div>
           </div>
         </div>

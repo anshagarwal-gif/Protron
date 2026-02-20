@@ -899,8 +899,8 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                         </div>
 
                         {/* 2nd Line: Budget Line Item and Budget End Date */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                            <div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                            <div className="md:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget Line Item
                                 </label>
@@ -917,7 +917,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 {getCharacterCount(formData.budgetLineItem, 100)}
                                 {errors.budgetLineItem && <p className="text-red-500 text-xs mt-1">{errors.budgetLineItem}</p>}
                             </div>
-                            <div>
+                            <div className="sm:col-span-1 md:col-span-1 lg:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget End Date
                                 </label>
@@ -939,7 +939,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 </div>
                                 {errors.budgetEndDate && <p className="text-red-500 text-xs mt-1">{errors.budgetEndDate}</p>}
                             </div>
-                            <div className="col-span-2">
+                            <div className="sm:col-span-2 lg:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Budget Owner 
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
