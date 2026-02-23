@@ -210,9 +210,17 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     }
   }, [isOpen, editingTask]);
 
+  // Helper function to format date key using local components
+  const formatDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   useEffect(() => {
     if (selectedDate && timesheetData && projects) {
-      const dateKey = selectedDate.toISOString().split("T")[0];
+      const dateKey = formatDateKey(selectedDate);
       const entries = timesheetData[dateKey] || [];
       const totalMinutes = entries.reduce((total, entry) => {
         return total + (entry.hours || 0) * 60 + (entry.minutes || 0);
@@ -505,7 +513,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
       const payload = {
         taskType: formData.taskType,
         taskTopic: formData.taskTopic,
-        date: currentDate,
+        date: formatDateKey(currentDate),
         hoursSpent: parseInt(formData.hours, 10) || 0,
         minutesSpent: parseInt(formData.minutes, 10) || 0,
         remainingHours: parseInt(formData.remainingHours, 10) || 0,
