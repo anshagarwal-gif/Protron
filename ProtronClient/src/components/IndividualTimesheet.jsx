@@ -31,7 +31,13 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const formatDate = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
-const formatDateKey = (date) => date.toISOString().split("T")[0];
+// Use local date components to avoid timezone issues with toISOString()
+const formatDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 const formatDateDisplay = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
 
@@ -329,10 +335,11 @@ const IndividualTimesheet = () => {
         remainingMinutes: task.remainingMinutes || 0,
       }));
 
-      // Group tasks by date
+      // Group tasks by date - parse as Date and use local components to avoid timezone issues
       const grouped = {};
       mappedData.forEach((task) => {
-        const dateKey = task.date.split("T")[0];
+        const taskDate = new Date(task.date);
+        const dateKey = formatDateKey(taskDate);
         if (!grouped[dateKey]) grouped[dateKey] = [];
 
         grouped[dateKey].push({
@@ -411,12 +418,12 @@ const IndividualTimesheet = () => {
 
   const handleLogTimeSave = async (taskData) => {
     if (!taskData.date) {
-      taskData.date = selectedCell.date.toISOString().split("T")[0]; // Ensure the correct date is used
+      taskData.date = formatDateKey(selectedCell.date); // Use local date format to avoid timezone issues
     }
     if (editingTask) {
       console.log({
         ...taskData,
-        date: editingTask.date.toISOString().split("T")[0], // or use taskData.date if you allow editing date
+        date: formatDateKey(new Date(editingTask.date)), // or use taskData.date if you allow editing date
       })
       // Edit mode
       try {
@@ -432,7 +439,7 @@ const IndividualTimesheet = () => {
             description: taskData.description,
             projectId: taskData.projectId || null, // Ensure projectId is passed correctly
             attachments: taskData.attachments || null, // Handle optional attachment
-            date: new Date(editingTask.date), // or use taskData.date if you allow editing date
+            date: formatDateKey(new Date(editingTask.date)), // or use taskData.date if you allow editing date
           },
           {
             headers: {
@@ -441,7 +448,7 @@ const IndividualTimesheet = () => {
           }
         );
         // Update UI
-        const dateKey = editingTask.date.toISOString().split("T")[0];
+        const dateKey = formatDateKey(new Date(editingTask.date));
         setTimesheetData((prev) => ({
           ...prev,
           [dateKey]: prev[dateKey].map((entry) =>
@@ -580,8 +587,8 @@ const IndividualTimesheet = () => {
     const lastWeekEnd = new Date(currentWeekStart);
     lastWeekEnd.setDate(currentWeekStart.getDate() - 1);
 
-    const start = lastWeekStart.toISOString().split("T")[0];
-    const end = lastWeekEnd.toISOString().split("T")[0];
+    const start = formatDateKey(lastWeekStart);
+    const end = formatDateKey(lastWeekEnd);
 
     try {
       await axios.post(
