@@ -240,31 +240,33 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
-        <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-          <div className="bg-gray-50 border-b px-6 py-4 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-green-900">Release Management | {projectName}</h2>
+        <div className="bg-white rounded-lg shadow-xl max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
+          <div className="bg-gray-50 border-b px-4 sm:px-6 py-4 flex justify-between items-center">
+            <h2 className="text-lg sm:text-xl font-semibold text-green-900 whitespace-normal break-words min-w-0">Release Management | {projectName}</h2>
             <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full cursor-pointer">Close</button>
           </div>
-          <div className="p-6 overflow-y-auto flex-grow">
-            <div className="flex justify-between items-center mb-4">
+          <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
               <h3 className="text-lg font-semibold text-green-900">Release List</h3>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 <input
                   type="text"
                   placeholder="Search releases..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-64"
+                  className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-64"
                 />
-                <button onClick={downloadReleaseExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer">
-                  <Download size={16} className="mr-2" /> Download Excel
-                </button>
-                <button onClick={handleAddRelease} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 cursor-pointer">
-                  Add Release
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={downloadReleaseExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer whitespace-nowrap">
+                    <Download size={16} className="mr-2" /> <span className="hidden sm:inline">Download Excel</span>
+                  </button>
+                  <button onClick={handleAddRelease} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 cursor-pointer whitespace-nowrap">
+                    Add Release
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="h-96 w-full border rounded-md">
+            <div className="h-64 sm:h-80 md:h-96 w-full border rounded-md">
               <div className="ag-theme-alpine h-full w-full">
                 <AgGridReact
                   columnDefs={columnDefs}
