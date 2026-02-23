@@ -642,8 +642,13 @@ public class InvoiceService {
             for (InvoiceItem item : invoice.getInvoiceItems()) {
                 // Sr. No
                 table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
-                // Description (right-aligned per your request; if you prefer left, change to Element.ALIGN_LEFT)
-                table.addCell(createBodyCell(item.getItemDesc() != null ? item.getItemDesc() : "", normalFont, 0, Element.ALIGN_LEFT));
+                // Description
+                PdfPCell itemDescCell = new PdfPCell(new Phrase(item.getItemDesc() != null ? item.getItemDesc() : "", normalFont));
+                itemDescCell.setPadding(5);
+                itemDescCell.setBorder(Rectangle.NO_BORDER);
+                itemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                itemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(itemDescCell);
                 // Rate: max 6 chars
                 table.addCell(createBodyCell(String.valueOf(item.getRate()), normalFont, 6, Element.ALIGN_RIGHT));
                 // Quantity: max 5 chars
@@ -667,7 +672,12 @@ public class InvoiceService {
         if (invoice.getInvoiceEmployees() != null) {
             for (InvoiceEmployee emp : invoice.getInvoiceEmployees()) {
                 table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
-                table.addCell(createBodyCell(emp.getItemDesc() != null ? emp.getItemDesc() : "", normalFont, 0, Element.ALIGN_LEFT));
+                PdfPCell empDescCell = new PdfPCell(new Phrase(emp.getItemDesc() != null ? emp.getItemDesc() : "", normalFont));
+                empDescCell.setPadding(5);
+                empDescCell.setBorder(Rectangle.NO_BORDER);
+                empDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                empDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(empDescCell);
                 table.addCell(createBodyCell(String.valueOf(emp.getRate()), normalFont, 6, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(String.valueOf(emp.getQuantity()), normalFont, 5, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(String.valueOf(emp.getAmount()), normalFont, 10, Element.ALIGN_RIGHT));
@@ -969,7 +979,13 @@ public class InvoiceService {
             List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
             for (Map<String, Object> item : items) {
                 table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
-                table.addCell(createBodyCell(item.getOrDefault("itemDesc", "").toString(), normalFont, 0, Element.ALIGN_LEFT));
+                // Item Description
+                PdfPCell previewItemDescCell = new PdfPCell(new Phrase(item.getOrDefault("itemDesc", "").toString(), normalFont));
+                previewItemDescCell.setPadding(5);
+                previewItemDescCell.setBorder(Rectangle.NO_BORDER);
+                previewItemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                previewItemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(previewItemDescCell);
                 table.addCell(createBodyCell(item.getOrDefault("rate", "").toString(), normalFont, 6, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(item.getOrDefault("quantity", "").toString(), normalFont, 5, Element.ALIGN_RIGHT));
                 // Remove currency from rows:
@@ -993,7 +1009,13 @@ public class InvoiceService {
             List<Map<String, Object>> emps = (List<Map<String, Object>>) empObj;
             for (Map<String, Object> emp : emps) {
                 table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
-                table.addCell(createBodyCell(emp.getOrDefault("itemDesc", "").toString(), normalFont, 0, Element.ALIGN_LEFT));
+                // Employee Item Description
+                PdfPCell empItemDescCell = new PdfPCell(new Phrase(emp.getOrDefault("itemDesc", "").toString(), normalFont));
+                empItemDescCell.setPadding(5);
+                empItemDescCell.setBorder(Rectangle.NO_BORDER);
+                empItemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                empItemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(empItemDescCell);
                 table.addCell(createBodyCell(emp.getOrDefault("rate", "").toString(), normalFont, 6, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(emp.getOrDefault("quantity", "").toString(), normalFont, 5, Element.ALIGN_RIGHT));
                 table.addCell(createBodyCell(emp.getOrDefault("amount", "").toString(), normalFont, 10, Element.ALIGN_RIGHT));
