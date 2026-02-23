@@ -396,19 +396,36 @@ const BudgetAllocationModal = ({ open, onClose, budgetLineId, budgetLineName, cu
     <div className="fixed inset-0 bg-[#00000059] bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="budget-allocation-modal bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
-            <DollarSign size={20} className="mr-2 text-green-600" />
-            Budget Allocations - {budgetLineName}
-          </h2>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-            disabled={submitting}
-          >
-            <X size={20} className="text-gray-400" />
-          </button>
-        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between
+                p-3 sm:p-4 md:p-6
+                gap-3 sm:gap-4
+                border-b border-gray-200">
+
+  {/* Title Wrapper (IMPORTANT: min-w-0 prevents overflow in flex) */}
+  <div className="flex items-start sm:items-center min-w-0 flex-1">
+    
+    <DollarSign
+      size={20}
+      className="mr-2 text-green-600 shrink-0 mt-0.5 sm:mt-0"
+    />
+
+    <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900
+                   leading-tight
+                   break-words overflow-hidden">
+      Budget Allocations - {budgetLineName}
+    </h2>
+  </div>
+
+  {/* Close Button */}
+  <button
+    onClick={handleClose}
+    className="self-end sm:self-auto p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer shrink-0"
+    disabled={submitting}
+  >
+    <X size={20} className="text-gray-400" />
+  </button>
+
+</div>
 
         <div className="p-6 space-y-6">
           {/* Summary Section */}

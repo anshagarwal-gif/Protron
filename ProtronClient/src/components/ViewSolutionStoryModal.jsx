@@ -295,7 +295,7 @@ const ViewSolutionStoryModal = ({ open, onClose, storyData, onEdit }) => {
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">Description</label>
-                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border min-h-[100px]">
+                <div className="text-sm text-gray-900 font-medium bg-white p-3 rounded border min-h-[100px] break-words overflow-wrap-anywhere whitespace-pre-wrap">
                   {storyData.description || "N/A"}
                 </div>
               </div>

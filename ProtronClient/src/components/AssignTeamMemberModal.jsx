@@ -136,18 +136,18 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
     <div className="fixed inset-0 bg-[#00000059] bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-2xl w-[90vw] max-w-6xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
+        <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
           <h2 className="text-xl font-semibold text-green-900">
             Assign Team Member | {projectName}
           </h2>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
           <div onSubmit={handleSubmit} className="flex flex-col gap-6">
 
             {/* First Row: Email, Name, Employee Code */}
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div className="flex-1 relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <div className="relative">
@@ -250,7 +250,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
             </div>
 
             {/* Second Row: Task Type and System Impacted */}
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
 
 
               <div className="flex-1">
@@ -378,7 +378,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
             {/* Third Row: Pricing and Release Date */}
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-4 mt-4 pt-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 mt-4 pt-4 border-t border-gray-200">
               <button
                 type="button"
                 onClick={() => {

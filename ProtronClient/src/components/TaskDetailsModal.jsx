@@ -389,7 +389,7 @@ const TaskDetailsModal = ({
           </div>
 
           {/* Main Content - Responsive Layout */}
-          <div className="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-6 p-3 sm:p-6 min-h-0 overflow-hidden">
+          <div className="flex-1 flex flex-col lg:flex-row gap-3 sm:gap-6 p-3 sm:p-6 min-h-0 overflow-y-auto custom-scrollbar">
             
             {/* Left Section - Task Details */}
             <div className="flex-1 flex flex-col gap-3 sm:gap-6 min-w-0">

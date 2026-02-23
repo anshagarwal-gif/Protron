@@ -666,7 +666,7 @@ const IndividualTimesheet = () => {
 
 
           {/* Grid for Monthly View */}
-          <div className={`grid grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
+          <div className={`grid grid-cols-4 sm:grid-cols-7 lg:grid-cols-11 gap-0 p-3 bg-white rounded-lg shadow-sm border border-gray-200 h-full`}>
 
             {gridCells.map((date, index) => {
               if (!date) {
@@ -676,7 +676,7 @@ const IndividualTimesheet = () => {
                     key={index}
                     className="border border-gray-200 bg-gray-50"
                     style={{
-                      aspectRatio: "5/6",
+                      aspectRatio: window.innerWidth < 640 ? "1/1" : window.innerWidth < 1024 ? "3/2" : "5/6",
                     }}
                   ></div>
                 );
@@ -708,7 +708,7 @@ const IndividualTimesheet = () => {
                     }`
                     }`}
                   style={{
-                    aspectRatio: "5/6"
+                    aspectRatio: window.innerWidth < 640 ? "1/1" : window.innerWidth < 1024 ? "3/2" : "5/6"
                   }}
                   onMouseEnter={() => setHoveredCell(dateKey)}
                   onMouseLeave={() => setHoveredCell(null)}

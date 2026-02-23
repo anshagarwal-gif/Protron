@@ -234,19 +234,19 @@ export default function RidaManagement({ projectId, open, onClose }) {
     <>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
         <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-          <div className="bg-gray-50 border-b px-6 py-4 flex justify-between items-center">
+          <div className="bg-gray-50 border-b px-4 sm:px-6 py-4 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-green-900">RIDA Management | {projectName}</h2>
             <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full cursor-pointer">Close</button>
           </div>
-          <div className="p-6 overflow-y-auto flex-grow">
-            <div className="flex justify-between items-center mb-4 gap-4">
+          <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
               <div className="flex items-center gap-3">
                 <h3 className="text-lg font-semibold text-green-900">RIDA List</h3>
                 <div className="relative">
                   <input
                     type="text"
                     placeholder="Search RIDAs..."
-                    className="pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-64"
+                    className="pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full sm:w-64"
                   />
                   <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>

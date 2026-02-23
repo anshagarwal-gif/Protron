@@ -440,11 +440,41 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
 
         if (validFiles.length > 0) {
             console.log('Adding valid files to documents state:', validFiles);
-            setDocuments(prev => {
-                const newDocs = [...prev, ...validFiles];
-                console.log('New documents state:', newDocs);
-                return newDocs;
+
+            // de-dup by (name + size + lastModified) for new files
+            const deduped = validFiles.filter(file => {
+                return !documents.some(doc => {
+                    // Only check duplicates against File objects (new files), not existing documents
+                    if (doc.isExistingDocument) return false;
+                    return doc.name === file.name &&
+                           doc.size === file.size &&
+                           doc.lastModified === file.lastModified;
+                });
             });
+
+            const filesToAdd = deduped.slice(0, 4 - totalCurrentCount);
+
+            if (deduped.length > filesToAdd.length) {
+                setSnackbar({
+                    open: true,
+                    message: `Only ${filesToAdd.length} more document(s) can be added (max 4). Some duplicate files were skipped.`,
+                    severity: 'warning'
+                });
+            }
+
+            if (filesToAdd.length > 0) {
+                setDocuments(prev => {
+                    const newDocs = [...prev, ...filesToAdd];
+                    console.log('New documents state:', newDocs);
+                    return newDocs;
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: 'All selected files are duplicates and were skipped.',
+                    severity: 'info'
+                });
+            }
         }
 
         // Reset file input
@@ -1286,21 +1316,21 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
 
                                     <div className="space-y-2">
                                         {documents.map((doc, index) => (
-                                            <div key={index} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
-                                        <div className="flex items-center space-x-3">
+                                            <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white rounded-md p-2 sm:p-3 border border-gray-200 gap-2 sm:gap-0">
+                                        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                                             <div className="flex-shrink-0">
                                                 <File size={16} className={doc.isExistingDocument ? "text-blue-600" : "text-green-600"} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                        <p className="text-sm text-gray-900 truncate" title={doc.name}>
+                                                        <p className="text-sm text-gray-900 break-words sm:truncate" title={doc.name}>
                                                             {doc.name}
                                                 </p>
-                                                        <div className="flex items-center space-x-2">
+                                                        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
                                                 <p className="text-xs text-gray-500">
                                                                 {formatFileSize(doc.size)}
                                                             </p>
                                                             {doc.isExistingDocument && (
-                                                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                                                <span className="text-xs bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                                                                     Existing
                                                                 </span>
                                                             )}
@@ -1310,7 +1340,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                         <button
                                             type="button"
                                                     onClick={() => removeDocument(index)}
-                                            className="text-red-500 hover:text-red-700 p-1"
+                                            className="text-red-500 hover:text-red-700 p-1 flex-shrink-0 self-end sm:self-center"
                                             title={doc.isExistingDocument ? "Delete document" : "Remove file"}
                                         >
                                             <Trash2 size={16} />

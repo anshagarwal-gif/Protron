@@ -110,6 +110,7 @@ const AddInvoiceModal = ({
     const [fetchedTasks, setFetchedTasks] = useState([]);
     // projects state not required in this component
     // Single attachment field that handles multiple files (up to 4)
+    const MAX_ATTACHMENTS = 4;
     const [attachments, setAttachments] = useState([]);
     const [attachTimesheet, setAttachTimesheet] = useState(false);
     // Bill period uses `formData.fromDate` and `formData.toDate`
@@ -659,45 +660,67 @@ const AddInvoiceModal = ({
     // Top-level employee select handler removed (employee rows in table are used)
 
     // Handle multiple file selection (up to 4 files)
-    const handleFileChange = (event) => {
-        const files = Array.from(event.target.files);
+    const handleFileChange = event => {
+    const selected = Array.from(event.target.files || []);
+    if (!selected.length) return;
 
-        if (files.length > 4) {
-            alert('You can attach a maximum of 4 files at once.');
-            return;
-        }
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif'
+    ];
 
-        // Validate each file
-        const validFiles = [];
-        const allowedTypes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'text/plain',
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/gif'
-        ];
+    const remaining = MAX_ATTACHMENTS - attachments.length;
 
-        for (let file of files) {
-            // Validate file size (10MB limit)
-            if (file.size > 10 * 1024 * 1024) {
-                alert(`File "${file.name}" exceeds 10MB limit and will be skipped.`);
-                continue;
-            }
+    if (remaining <= 0) {
+      alert(`You can attach a maximum of ${MAX_ATTACHMENTS} files.`);
+      event.target.value = '';
+      return;
+    }
 
-            // Validate file type
-            if (!allowedTypes.includes(file.type)) {
-                alert(`File "${file.name}" has unsupported format and will be skipped. Please upload PDF, DOC, DOCX, TXT, or image files.`);
-                continue;
-            }
+    const validFiles = [];
 
-            validFiles.push(file);
-        }
+    for (let file of selected) {
+      if (file.size > 10 * 1024 * 1024) {
+        alert(`File "${file.name}" exceeds 10MB limit and will be skipped.`);
+        continue;
+      }
 
-        setAttachments(validFiles);
-    };
+      if (!allowedTypes.includes(file.type)) {
+        alert(
+          `File "${file.name}" has unsupported format and will be skipped. Please upload PDF, DOC, DOCX, TXT, or image files.`
+        );
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    // de-dup by (name + size + lastModified)
+    const deduped = validFiles.filter(file => {
+  return !attachments.some(a =>
+    a.name === file.name &&
+    a.size === file.size &&
+    a.lastModified === file.lastModified
+  );
+});
+
+    const filesToAdd = deduped.slice(0, remaining);
+
+    if (deduped.length > remaining) {
+      alert(`Only ${remaining} more file(s) can be added (max ${MAX_ATTACHMENTS}).`);
+    }
+
+    setAttachments(prev => [...prev, ...filesToAdd]);
+
+    // allow selecting same file again later
+    event.target.value = '';
+  };
 
     // ------- Table & Employee row handlers -------
     // Helper: enforce max digit count (excluding decimal point)

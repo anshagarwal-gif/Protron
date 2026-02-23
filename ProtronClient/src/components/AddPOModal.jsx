@@ -247,7 +247,34 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
         }
 
         if (validFiles.length > 0) {
-            setPoFiles(prev => [...prev, ...validFiles]);
+            // de-dup by (name + size + lastModified)
+            const deduped = validFiles.filter(file => {
+                return !poFiles.some(existingFile =>
+                    existingFile.name === file.name &&
+                    existingFile.size === file.size &&
+                    existingFile.lastModified === file.lastModified
+                );
+            });
+
+            const filesToAdd = deduped.slice(0, 4 - poFiles.length);
+
+            if (deduped.length > filesToAdd.length) {
+                setSnackbar({
+                    open: true,
+                    message: `Only ${filesToAdd.length} more document(s) can be added (max 4). Some duplicate files were skipped.`,
+                    severity: 'warning'
+                });
+            }
+
+            if (filesToAdd.length > 0) {
+                setPoFiles(prev => [...prev, ...filesToAdd]);
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: 'All selected files are duplicates and were skipped.',
+                    severity: 'info'
+                });
+            }
         }
 
         // Reset file input
@@ -1142,13 +1169,13 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
                                             <div className="space-y-2">
                                                 {poFiles.map((file, index) => (
-                                                    <div key={index} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
-                                                        <div className="flex items-center space-x-3">
+                                                    <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between bg-white rounded-md p-2 sm:p-3 border border-gray-200 gap-2 sm:gap-0">
+                                                        <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                                                             <div className="flex-shrink-0">
                                                                 <File size={16} className="text-green-600" />
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="text-sm text-gray-900 truncate" title={file.name}>
+                                                                <p className="text-sm text-gray-900 break-words sm:truncate" title={file.name}>
                                                                     {file.name}
                                                                 </p>
                                                                 <p className="text-xs text-gray-500">
@@ -1159,7 +1186,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                         <button
                                                             type="button"
                                                             onClick={() => removeAttachment(index)}
-                                                            className="text-red-500 hover:text-red-700 p-1"
+                                                            className="text-red-500 hover:text-red-700 p-1 flex-shrink-0 self-end sm:self-center"
                                                             title="Remove file"
                                                         >
                                                             <Trash2 size={16} />

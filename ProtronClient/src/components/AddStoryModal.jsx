@@ -338,113 +338,103 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
       setAcceptanceCharCount(value.length);
     }
 
-    setFormData(prev => ({
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+
+  // Clear error when user starts typing
+  if (errors[name]) {
+    setErrors(prev => ({
       ...prev,
-      [name]: value
+      [name]: ""
     }));
+  }
+};
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ""
-      }));
+const handleFileChange = (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  // Limit to 4 files total
+  if (storyFiles.length + files.length > 4) {
+    setErrors(prev => ({ ...prev, attachment: "Max 4 attachments allowed." }));
+    return;
+  }
+
+  const maxSize = 10 * 1024 * 1024;
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'text/plain'
+  ];
+
+  let error = "";
+  const validFiles = [];
+
+  for (const file of files) {
+    if (file.size > maxSize) {
+      error = "File must be under 10MB.";
+      break;
     }
-  };
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-
-    // Limit to 4 files total
-    if (storyFiles.length + files.length > 4) {
-      setErrors(prev => ({ ...prev, attachment: "Max 4 attachments allowed." }));
-      return;
+    if (!allowedTypes.includes(file.type)) {
+      error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+      break;
     }
+    validFiles.push(file);
+  }
 
-    const maxSize = 10 * 1024 * 1024;
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'text/plain'
-    ];
+  if (error) {
+    setErrors(prev => ({ ...prev, attachment: error }));
+    return;
+  }
 
-    let error = "";
-    const validFiles = [];
+  // de-dup by (name + size + lastModified)
+  const deduped = validFiles.filter(file => {
+    return !storyFiles.some(a =>
+      a.name === file.name &&
+      a.size === file.size &&
+      a.lastModified === file.lastModified
+    );
+  });
 
-    for (const file of files) {
-      if (file.size > maxSize) {
-        error = "File must be under 10MB.";
-        break;
-      }
-      if (!allowedTypes.includes(file.type)) {
-        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
-        break;
-      }
-      validFiles.push(file);
-    }
+  const filesToAdd = deduped.slice(0, 4 - storyFiles.length);
 
-    if (error) {
-      setErrors(prev => ({ ...prev, attachment: error }));
-      return;
-    }
+  if (deduped.length > filesToAdd.length) {
+    setSnackbar({
+      open: true,
+      message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+      severity: 'warning'
+    });
+  }
 
-    setStoryFiles(prev => [...prev, ...validFiles]);
+  if (filesToAdd.length > 0) {
+    setStoryFiles(prev => [...prev, ...filesToAdd]);
     setErrors(prev => ({ ...prev, attachment: "" }));
-    e.target.value = null;
-  };
+  } else {
+    setSnackbar({
+      open: true,
+      message: 'All selected files are duplicates and were skipped.',
+      severity: 'info'
+    });
+  }
+  e.target.value = null;
+};
 
-  const removeStoryFile = (index) => {
-    setStoryFiles(prev => prev.filter((_, i) => i !== index));
-  };
+const removeStoryFile = (index) => {
+  setStoryFiles(prev => prev.filter((_, i) => i !== index));
+};
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-  const validateForm = async () => {
-    const newErrors = {};
-
-    // Validate required fields
-    const projectIdStr = formData.projectId ? String(formData.projectId).trim() : '';
-    if (!projectIdStr) {
-      newErrors.projectId = "Project ID is required";
-    }
-
-    if (!formData.summary?.trim()) {
-      newErrors.summary = "Summary is required";
-    }
-
-    if (!formData.asA?.trim()) {
-      newErrors.asA = "As A is required";
-    }
-
-    if (!formData.iWantTo?.trim()) {
-      newErrors.iWantTo = "I Want To is required";
-    }
-
-    if (!formData.soThat?.trim()) {
-      newErrors.soThat = "So That is required";
-    }
-
-    if (!formData.status?.trim()) {
-      newErrors.status = "Status is required";
-    }
-
-    if (!formData.priority) {
-      newErrors.priority = "Priority is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  // ... (rest of the code remains the same)
     setLoading(true);
 
     try {

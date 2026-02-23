@@ -443,12 +443,12 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
         <div className="fixed inset-0 bg-[#00000059] bg-opacity-50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-auto shadow-xl">
                 {/* Header */}
-                <div className="bg-gray-50 border-b border-gray-200 py-4 px-6">
+                <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
                     <h1 className="text-xl font-semibold text-green-800">Edit Initiative</h1>
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-6">
                     {isLoading && (
                         <div className="flex items-center justify-center py-8">
                             <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
@@ -459,7 +459,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                     {!isLoading && (
                         <>
                             {/* Row 1: Project Name and Project Icon */}
-                            <div className="grid grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Initiative name
@@ -547,7 +547,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             </div>
 
                             {/* Row 3: Initiative Manager and Sponsor */}
-                            <div className="grid grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                                 <Dropdown
                                     options={users}
                                     value={localFormData.projectManager}
@@ -612,7 +612,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 </div>
 
                             </div>
-                            <div className="grid grid-cols-4 gap-4 mt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
                                     <CreatableSelect
@@ -678,7 +678,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-4 gap-4 mt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Leader</label>
                                     <CreatableSelect
@@ -825,7 +825,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
 
                             {/* Action Buttons */}
-                            <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                            <div className="flex flex-col sm:flex-row sm:justify-end gap-4 pt-4 border-t border-gray-200">
                                 <button
                                     onClick={onClose}
                                     disabled={isLoading}

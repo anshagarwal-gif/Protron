@@ -402,41 +402,42 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold text-gray-900">Solution Story Management</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Solution Story Management</h2>
           {parentStory && (
             <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words overflow-wrap-anywhere whitespace-pre-wrap">
               Parent Story: {parentStory.summary}
             </p>
           )}
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3 w-full sm:w-auto">
           {/* Search Bar */}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-initial">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
               placeholder="Search solution stories..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <button
-            onClick={downloadSolutionStoryExcel}
-            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            <FiDownload size={16} className="mr-2" />
-            Download Excel
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <button
+              onClick={downloadSolutionStoryExcel}
+              className="flex items-center justify-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-gray-700 transition-colors text-sm sm:text-base"
+            >
+              <FiDownload size={16} className="mr-2" />
+              Download Excel
+            </button>
 
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            <FiGitBranch size={16} className="mr-2" />
-            Add Solution Story
-          </button>
-
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm sm:text-base"
+            >
+              <FiGitBranch size={16} className="mr-2" />
+              Add Solution Story
+            </button>
+          </div>
         </div>
       </div>
 

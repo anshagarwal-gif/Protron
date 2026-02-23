@@ -649,7 +649,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       <div className="absolute inset-0 bg-black opacity-20" aria-hidden="true"></div>
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-xs sm:max-w-2xl md:max-w-4xl lg:max-w-6xl xl:max-w-7xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
           <div>
             <h2 className="text-xl font-bold text-gray-900 flex items-center">
               <BookOpen size={20} className="mr-2 text-green-600" />
@@ -672,7 +672,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {/* Error Display */}
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
@@ -683,7 +683,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
 
           <div className="space-y-4">
             {/* Row 1: Project ID, Status, Priority, Story Points */}
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
@@ -834,7 +834,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
             </div>
 
             {/* Row 2: Sprint, Release, System, Created By */}
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
@@ -1204,7 +1204,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-3 border-t border-gray-200">
             <button
               type="button"
               onClick={handleClose}
