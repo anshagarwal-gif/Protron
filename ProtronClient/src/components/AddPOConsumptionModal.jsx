@@ -677,7 +677,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
           <div className="space-y-4">
             {/* Row 1: PO Number, Milestone, Currency, and Amount */}
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div >
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
@@ -803,7 +803,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
             </div>
 
             {/* Row 2: Utilization Type, Resource/Project, System Name */}
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
               <div className="">
                 <label className="block text-xs font-medium text-gray-700 mb-1">

@@ -275,8 +275,8 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
                 <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-                    <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                        <h2 className="text-xl font-semibold text-green-900">Milestones Management</h2>
+                    <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+                        <h2 className="text-lg sm:text-xl font-semibold text-green-900">Milestones Management</h2>
                         <button
                             onClick={onClose}
                             className="p-2 hover:bg-gray-200 rounded-full transition-colors"
@@ -284,10 +284,10 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                             Close
                         </button>
                     </div>
-                    <div className="p-6 overflow-y-auto flex-grow">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold text-green-900">Milestones Details</h3>
-                            <div className="flex items-center gap-2">
+                    <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-2 mb-4">
+                            <h3 className="text-base sm:text-lg font-semibold text-green-900">Milestones Details</h3>
+                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
                                 <button
                                     onClick={downloadMilestoneExcel}
                                     className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 transition-colors cursor-pointer"

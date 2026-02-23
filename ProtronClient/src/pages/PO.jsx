@@ -475,6 +475,7 @@ const POManagement = () => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const po = params.data;
         return (

@@ -365,6 +365,13 @@ const AddInvoiceModal = ({
 
 
 
+    // Auto-set currency to INR when India (DOMESTIC) is selected
+    useEffect(() => {
+        if (formData.invoiceType === 'DOMESTIC') {
+            setFormData(prev => ({ ...prev, currency: 'INR' }));
+        }
+    }, [formData.invoiceType]);
+
     // Generate preview invoice ID for display
     const generatePreviewInvoiceId = () => {
         const today = new Date();
@@ -1493,7 +1500,7 @@ const AddInvoiceModal = ({
                             </div>
                         )}
                         {/* New layout per spec */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice ID</label>
                                 <input type="text" disabled value={generatePreviewInvoiceId()} className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-50 text-gray-500" />
@@ -1516,13 +1523,32 @@ const AddInvoiceModal = ({
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Type</label>
                                 <select value={formData.invoiceType} onChange={handleChange('invoiceType')} className="w-full h-10 px-4 border border-gray-300 rounded-md">
-                                    <option value="DOMESTIC">Domestic</option>
+                                    <option value="DOMESTIC">India</option>
                                     <option value="INTERNATIONAL">International</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Currency *</label>
+                                <select value={formData.currency} onChange={handleChange('currency')} disabled={formData.invoiceType === 'DOMESTIC'} className={`w-full h-10 px-4 border border-gray-300 rounded-md ${formData.invoiceType === 'DOMESTIC' ? 'appearance-none bg-gray-50 cursor-not-allowed' : ''}`}>
+                                    {formData.invoiceType === 'DOMESTIC' ? (
+                                        <option value="INR">INR (₹)</option>
+                                    ) : (
+                                        <>
+                                            <option value="USD">USD ($)</option>
+                                            <option value="INR">INR (₹)</option>
+                                            <option value="EUR">EUR (€)</option>
+                                            <option value="GBP">GBP (£)</option>
+                                            <option value="JPY">JPY (¥)</option>
+                                            <option value="CAD">CAD (C$)</option>
+                                            <option value="AUD">AUD (A$)</option>
+                                        </>
+                                    )}
                                 </select>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Name</label>
                                 <input type="text" placeholder="Enter invoice name (optional)" value={formData.invoiceName} onChange={handleChange('invoiceName')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
@@ -1547,14 +1573,14 @@ const AddInvoiceModal = ({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Info</label>
                                 <input type="text" placeholder="Supplier info" value={formData.supplierInfo} onChange={handleChange('supplierInfo')} className="w-full h-10 px-4 border rounded-md" />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Date</label>
                                 <input type="date" value={formData.invoiceDate} onChange={handleChange('invoiceDate')} className="w-full h-10 px-4 border rounded-md" />
@@ -1581,7 +1607,7 @@ const AddInvoiceModal = ({
 
                         <div className="mt-3">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Bill Period</label>
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
                                     <label className="text-xs text-gray-600">From</label>
                                     <input type="date" value={formData.fromDate} onChange={handleChange('fromDate')} className="w-full h-10 px-4 border rounded-md" />
@@ -1631,28 +1657,10 @@ const AddInvoiceModal = ({
                         {/* Total Amount Display */}
                         {/* Editable Items / Employees Table */}
                         <div className="border border-gray-200 rounded-md p-3 bg-white">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm font-semibold">Invoice Items</h3>
-                                <div className="flex items-center space-x-2">
-                                    <span className="text-xs text-gray-600">Select the currency</span>
-                                    <select
-                                        value={formData.currency}
-                                        onChange={handleChange('currency')}
-                                        className="h-8 px-2 border rounded-md text-sm"
-                                    >
-                                        <option value="USD">USD ($)</option>
-                                        <option value="INR">INR (₹)</option>
-                                        <option value="EUR">EUR (€)</option>
-                                        <option value="GBP">GBP (£)</option>
-                                        <option value="JPY">JPY (¥)</option>
-                                        <option value="CAD">CAD (C$)</option>
-                                        <option value="AUD">AUD (A$)</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <h3 className="text-sm font-semibold">Invoice Items</h3>
 
                             {/* editable headers */}
-                            <div className="grid grid-cols-5 gap-0 mb-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 mb-2">
                                 <input value={tableHeaders.col1} onChange={(e) => updateTableHeader('col1', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col2} onChange={(e) => updateTableHeader('col2', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col3} onChange={(e) => updateTableHeader('col3', e.target.value)} className="px-2 py-1 border rounded-none" />
@@ -1664,7 +1672,7 @@ const AddInvoiceModal = ({
                             <div className="space-y-2">
                                 {/* Item rows */}
                                 {items.map((it) => (
-                                    <div key={`item-${it.id}`} className="grid grid-cols-5 gap-0 items-center">
+                                    <div key={`item-${it.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
                                         <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
                                         <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
@@ -1674,7 +1682,7 @@ const AddInvoiceModal = ({
                                 ))}
                                 {/* Employee rows */}
                                 {invoiceEmployees.map((er) => (
-                                    <div key={`emp-${er.id}`} className="grid grid-cols-5 gap-0 items-center">
+                                    <div key={`emp-${er.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
                                         <div>
                                             <CreatableSelect
                                                 options={employees}
@@ -1845,7 +1853,7 @@ const AddInvoiceModal = ({
                                                 Timesheet Summary ({getTimesheetSummary().period} View)
                                             </h3>
                                         </div>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                             <div>
                                                 <span className="text-blue-600 font-medium">Period:</span>
                                                 <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
@@ -1906,10 +1914,10 @@ const AddInvoiceModal = ({
                                 value={formData.remarks}
                                 onChange={handleChange('remarks')}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
-                                maxLength={500}
+                                maxLength={120}
                             />
                             <div className="text-right text-sm text-gray-500 mt-1">
-                                {formData.remarks.length}/500 characters
+                                {formData.remarks.length}/120 characters
                             </div>
                         </div>
 

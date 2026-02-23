@@ -928,6 +928,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const consumption = params.data;
         return (

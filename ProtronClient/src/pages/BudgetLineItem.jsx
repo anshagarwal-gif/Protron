@@ -899,6 +899,7 @@ const { hasAccess } = useAccess(); // Access context
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const budgetLine = params.data;
         return (

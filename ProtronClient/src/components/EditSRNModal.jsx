@@ -779,7 +779,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             </div>
 
 
-            <div className="grid grid-cols-5 gap-15">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="lg:col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
                 <input type="text" value={formData.srnCurrency} readOnly className="w-full h-10 px-4 border border-gray-300 rounded-md bg-gray-100" />
@@ -906,7 +906,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 <p className="mt-1 text-sm text-red-600">{errors.srnRemarks}</p>
               )}
             </div>
-            <div className="grid grid-cols-6  gap-4">
+            <div className="grid grid-cols-1 gap-4">
 
               {/* Attachments Section */}
               <div>
@@ -1018,7 +1018,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           </form>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 px-4 sm:px-6 pb-4 sm:pb-6 border-t border-gray-200 bg-gray-50">
           <button
             type="button"
             onClick={handleClose}

@@ -302,6 +302,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      pinned: 'right',
       cellRenderer: params => {
         const srn = params.data;
         return (

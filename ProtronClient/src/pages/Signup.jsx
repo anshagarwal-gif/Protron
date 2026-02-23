@@ -452,8 +452,8 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           
-          <div className="flex justify-between items-center">
-            <div className="w-full mr-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div>
               <label htmlFor="role" className="block text-slate-700 font-medium mb-2 text-sm">
                 Role <span className="text-red-500">*</span>
               </label>
@@ -476,7 +476,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
             </div>
 
             {/* First Name */}
-            <div className="w-full mr-4">
+            <div>
               <label htmlFor="firstName" className="block text-slate-700 font-medium mb-2 text-sm">
                 First Name <span className="text-red-500">*</span>
               </label>
@@ -494,7 +494,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
             </div>
 
             {/* Middle Name */}
-            <div className="w-full mr-4">
+            <div>
               <label htmlFor="middleName" className="block text-slate-700 font-medium mb-2 text-sm">
                 Middle Name
               </label>
@@ -511,7 +511,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
             </div>
 
             {/* Last Name */}
-            <div className="w-full mr-4">
+            <div>
               <label htmlFor="lastName" className="block text-slate-700 font-medium mb-2 text-sm">
                 Last Name <span className="text-red-500">*</span>
               </label>
@@ -549,184 +549,189 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
             </div>
             </div>
 
-            {/* Display Name */}
-            <div className="flex justify-center items-center">
-            <div className="w-full mr-4">
-              <label htmlFor="email" className="block text-slate-700 font-medium mb-2 text-sm">
-                Email Address <span className="text-red-500">*</span>
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                 <Mail className="h-5 w-5 text-black group-focus-within:text-green-700" />
+            {/* Second Row: Email, Cost, Mobile Phone, Landline */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-slate-700 font-medium mb-2 text-sm">
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Mail className="h-5 w-5 text-black group-focus-within:text-green-700" />
+                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                  />
                 </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
               </div>
-            </div>
-            
 
-            {/* Cost */}
-            <div className="w-full mr-4">
-  <label htmlFor="cost" className="block text-slate-700 font-medium mb-2 text-sm">
-    Cost
-  </label>
-  <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
-    <select
-      id="unit"
-      name="unit"
-      className="w-16 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
-      value={formData.unit}
-      onChange={handleChange}
-      disabled={loading}
-    >
-      <option value="USD">USD</option>
-      <option value="EUR">EUR</option>
-      <option value="GBP">GBP</option>
-      <option value="INR">INR</option>
-      <option value="AUD">AUD</option>
-    </select>
-    <div className="relative flex">
-      <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-        <span className="text-green-100 font-medium text-sm">{getCurrentCurrencySymbol()}</span>
-      </div>
-      <input
-        id="cost"
-        name="cost"
-        type="number"
-        placeholder="0.00"
-        className="w-full pl-8 pr-2 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
-        value={formData.cost}
-        onChange={handleChange}
-        disabled={loading}
-      />
-      <input
-        id="cost_time"
-        name="cost_time"
-        type="text"
-        className="w-full px-3 py-2.5 text-sm border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
-        value="hourly"
-        disabled
-      />
-    </div>
-  </div>
-</div>
-            <div className="w-full mr-4">
-              <label htmlFor="mobileNumber" className="block text-slate-700 font-medium mb-2 text-sm">
-                Mobile Phone
-              </label>
-              <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
-                <select
-                  id="mobileCountryCode"
-                  name="mobileCountryCode"
-                  className="w-15 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white pr-2"
-                  value={formData.mobileCountryCode}
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  {countriesno.map((country, index) => (
-                    <option key={index} value={country.dialCode}>
-                      {country.dialCode}
-                    </option>
-                  ))}
-                </select>
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                    <PhoneIcon className="h-4 w-4 text-green-100" />
-                  </div>
-                  <input
-                    id="mobileNumber"
-                    name="mobileNumber"
-                    type="tel"
-                    placeholder="Mobile number"
-                    className="w-full pl-8 pr-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
-                    value={formData.mobileNumber}
-                    onChange={(e) => handleNumericInput(e, "mobileNumber")}
+              {/* Cost */}
+              <div>
+                <label htmlFor="cost" className="block text-slate-700 font-medium mb-2 text-sm">
+                  Cost
+                </label>
+                <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
+                  <select
+                    id="unit"
+                    name="unit"
+                    className="w-16 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                    value={formData.unit}
+                    onChange={handleChange}
                     disabled={loading}
-                    maxLength={10}
-                  />
-                </div>
-              </div>
-              
-            </div>
-            <div className="w-full mr-4">
-              <label htmlFor="landlineNumber" className="block text-slate-700 font-medium mb-2 text-sm">
-                Landline
-              </label>
-              <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
-                <select
-                  id="landlineCountryCode"
-                  name="landlineCountryCode"
-                  className="w-16 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
-                  value={formData.landlineCountryCode}
-                  onChange={handleChange}
-                  disabled={loading}
-                >
-                  {countriesno.map((country, index) => (
-                    <option key={index} value={country.dialCode}>
-                      {country.dialCode}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  id="landlineNumber"
-                  name="landlineNumber"
-                  type="tel"
-                  placeholder="Landline"
-                  className="w-full px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
-                  value={formData.landlineNumber}
-                  onChange={(e) => handleNumericInput(e, "landlineNumber")}
-                  disabled={loading}
-                  maxLength={15}
-                />
-              </div>
-            </div>
-            </div>
-            {/* Profile Picture */}
-            <div className="md:col-span-4">
-              <label className="block text-slate-700 font-medium mb-2 text-sm">Profile Picture</label>
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center overflow-hidden shadow-inner">
-                    {photoPreview ? (
-                      <img
-                        src={photoPreview || "/placeholder.svg"}
-                        alt="Profile preview"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <UserIcon className="h-8 w-8 text-green-100" />
-                    )}
-                  </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                    <UploadIcon className="h-2.5 w-2.5 text-white" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <input
-                    type="file"
-                    id="photo-upload"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    disabled={loading}
-                  />
-                  <label
-                    htmlFor="photo-upload"
-                    className={`inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-lg hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200 border border-blue-200 text-sm ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    <UploadIcon className="h-4 w-4 mr-2" />
-                    Upload Photo
-                  </label>
-                  {photo && <span className="text-xs text-slate-600 ml-3">{photo.name}</span>}
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="INR">INR</option>
+                    <option value="AUD">AUD</option>
+                  </select>
+                  <div className="relative flex">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                      <span className="text-green-100 font-medium text-sm">{getCurrentCurrencySymbol()}</span>
+                    </div>
+                    <input
+                      id="cost"
+                      name="cost"
+                      type="number"
+                      placeholder="0.00"
+                      className="w-full pl-8 pr-2 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
+                      value={formData.cost}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                    <input
+                      id="cost_time"
+                      name="cost_time"
+                      type="text"
+                      className="w-full px-3 py-2.5 text-sm border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                      value="hourly"
+                      disabled
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Phone */}
+              <div>
+                <label htmlFor="mobileNumber" className="block text-slate-700 font-medium mb-2 text-sm">
+                  Mobile Phone
+                </label>
+                <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
+                  <select
+                    id="mobileCountryCode"
+                    name="mobileCountryCode"
+                    className="w-15 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white pr-2"
+                    value={formData.mobileCountryCode}
+                    onChange={handleChange}
+                    disabled={loading}
+                  >
+                    {countriesno.map((country, index) => (
+                      <option key={index} value={country.dialCode}>
+                        {country.dialCode}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+                      <PhoneIcon className="h-4 w-4 text-green-100" />
+                    </div>
+                    <input
+                      id="mobileNumber"
+                      name="mobileNumber"
+                      type="tel"
+                      placeholder="Mobile number"
+                      className="w-full pl-8 pr-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
+                      value={formData.mobileNumber}
+                      onChange={(e) => handleNumericInput(e, "mobileNumber")}
+                      disabled={loading}
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Landline */}
+              <div>
+                <label htmlFor="landlineNumber" className="block text-slate-700 font-medium mb-2 text-sm">
+                  Landline
+                </label>
+                <div className="flex rounded-lg overflow-hidden border border-slate-200 bg-white/50 backdrop-blur-sm hover:border-slate-300 transition-all duration-200">
+                  <select
+                    id="landlineCountryCode"
+                    name="landlineCountryCode"
+                    className="w-16 text-xs border-0 bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white"
+                    value={formData.landlineCountryCode}
+                    onChange={handleChange}
+                    disabled={loading}
+                  >
+                    {countriesno.map((country, index) => (
+                      <option key={index} value={country.dialCode}>
+                        {country.dialCode}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    id="landlineNumber"
+                    name="landlineNumber"
+                    type="tel"
+                    placeholder="Landline"
+                    className="w-full px-3 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
+                    value={formData.landlineNumber}
+                    onChange={(e) => handleNumericInput(e, "landlineNumber")}
+                    disabled={loading}
+                    maxLength={15}
+                  />
+                </div>
+              </div>
+            </div>
+            {/* Profile Picture Row */}
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+              <div>
+                <label className="block text-slate-700 font-medium mb-2 text-sm">Profile Picture</label>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded-full flex items-center justify-center overflow-hidden shadow-inner">
+                      {photoPreview ? (
+                        <img
+                          src={photoPreview || "/placeholder.svg"}
+                          alt="Profile preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <UserIcon className="h-8 w-8 text-green-100" />
+                      )}
+                    </div>
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                      <UploadIcon className="h-2.5 w-2.5 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      id="photo-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      disabled={loading}
+                    />
+                    <label
+                      htmlFor="photo-upload"
+                      className={`inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-lg hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200 border border-blue-200 text-sm ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+                    >
+                      <UploadIcon className="h-4 w-4 mr-2" />
+                      Upload Photo
+                    </label>
+                    {photo && <span className="text-xs text-slate-600 ml-3">{photo.name}</span>}
+                  </div>
                 </div>
               </div>
             </div>
