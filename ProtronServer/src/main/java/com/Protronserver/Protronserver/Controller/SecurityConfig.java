@@ -1,5 +1,5 @@
 package com.Protronserver.Protronserver.Controller;
-
+ 
 import com.Protronserver.Protronserver.Utils.JwtFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,20 +10,20 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-
+ 
 @Configuration
 public class SecurityConfig {
-
+ 
         private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
-
+ 
         @Autowired
         private JwtFilter jwtFilter;
-
+ 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 logger.info("Configuring Security Filter Chain...");
                 http
-                                .cors(cors -> cors.and()) // Use WebConfig CORS configuration
+                                .cors(cors -> {}) // Use WebConfig CORS configuration
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                                                 .ignoringRequestMatchers("/api/**") // Disable CSRF for all API
@@ -40,9 +40,9 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/career").permitAll() // Career form (public)
                                                 .anyRequest().authenticated() // Others need authentication
                                 );
-
+ 
                 http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
+ 
                 return http.build();
         }
 }
