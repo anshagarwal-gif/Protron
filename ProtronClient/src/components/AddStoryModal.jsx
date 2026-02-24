@@ -431,24 +431,60 @@ const removeStoryFile = (index) => {
   setStoryFiles(prev => prev.filter((_, i) => i !== index));
 };
 
+const validateForm = () => {
+  let isValid = true;
+  const newErrors = {};
+
+  if (!formData.projectId.trim()) {
+    newErrors.projectId = "Project ID is required";
+    isValid = false;
+  }
+
+  if (!formData.status.trim()) {
+    newErrors.status = "Status is required";
+    isValid = false;
+  }
+
+  if (!formData.summary.trim()) {
+    newErrors.summary = "Summary is required";
+    isValid = false;
+  }
+
+  if (!formData.asA.trim()) {
+    newErrors.asA = "As A is required";
+    isValid = false;
+  }
+
+  if (!formData.iWantTo.trim()) {
+    newErrors.iWantTo = "I Want To is required";
+    isValid = false;
+  }
+
+  if (!formData.soThat.trim()) {
+    newErrors.soThat = "So That is required";
+    isValid = false;
+  }
+
+  setErrors(newErrors);
+  return Promise.resolve(isValid);
+};
+
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  // ... (rest of the code remains the same)
-    setLoading(true);
+  setLoading(true);
 
-    try {
-      const isValid = await validateForm();
-      if (!isValid) {
-        setLoading(false);
-        return;
-      }
+  // Clear previous submit error
+  setErrors(prev => ({ ...prev, submit: "" }));
 
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        throw new Error("Missing authentication credentials");
-      }
+  try {
+    const isValid = await validateForm();
+    if (!isValid) {
+      setLoading(false);
+      return;
+    }
       console.log(projectList.find(project => project.projectId === parseInt(formData.projectId)), formData.projectId)
+      const token = sessionStorage.getItem('token');
       // Create UserStoryDto object for the API
       const storyData = {
         projectId: parseInt(formData.projectId) || null,
