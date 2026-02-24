@@ -70,7 +70,7 @@ public class SRNDetails {
     @Column(name = "srn_currency")
     private String srnCurrency;
 
-    @Column(name = "srn_remarks")
+    @Column(name = "srn_remarks", length = 255)
     private String srnRemarks;
 
     @Column(name = "created_timestamp")
