@@ -18,31 +18,41 @@ public class SecurityConfig {
  
         @Autowired
         private JwtFilter jwtFilter;
- 
+
+        @Autowired
+        private OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+
+        @Autowired
+        private OAuth2LoginFailureHandler oauth2LoginFailureHandler;
+
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 logger.info("Configuring Security Filter Chain...");
                 http
-                                .cors(cors -> {}) // Use WebConfig CORS configuration
+                                .cors(cors -> {})
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                                .ignoringRequestMatchers("/api/**") // Disable CSRF for all API
-                                                                                    // endpoints since we use JWT
+                                                .ignoringRequestMatchers("/api/**", "/oauth2/**", "/login/oauth2/**")
                                 )
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/api/users/login").permitAll() // Auth endpoints are
-                                                                                                 // public
+                                                .requestMatchers("/api/users/login").permitAll()
                                                 .requestMatchers("/api/users/signup").permitAll()
                                                 .requestMatchers("/api/users/*/photo").permitAll()
-                                                .requestMatchers("/api/auth/**").permitAll() // Allow all auth endpoints
+                                                .requestMatchers("/api/auth/**").permitAll()
                                                 .requestMatchers("/api/security/**").permitAll()
-                                                .requestMatchers("/api/contact").permitAll() // Contact form (public)
-                                                .requestMatchers("/api/career").permitAll() // Career form (public)
-                                                .anyRequest().authenticated() // Others need authentication
+                                                .requestMatchers("/api/contact").permitAll()
+                                                .requestMatchers("/api/career").permitAll()
+                                                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                                                .requestMatchers("/", "/login", "/login.html").permitAll()
+                                                .anyRequest().authenticated()
+                                )
+                                .oauth2Login(oauth2 -> oauth2
+                                                .successHandler(oauth2LoginSuccessHandler)
+                                                .failureHandler(oauth2LoginFailureHandler)
                                 );
- 
+
                 http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
- 
+
                 return http.build();
         }
 }

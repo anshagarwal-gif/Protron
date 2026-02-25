@@ -4,36 +4,60 @@ import * as forge from 'node-forge';
 import { EyeIcon, EyeOffIcon, MailIcon } from 'lucide-react';
 import GlobalSnackbar from '../components/GlobalSnackbar';
 import axios from 'axios';
-import ForgotPassword from './ForgotPassword'; // Import the new component
+import ForgotPassword from './ForgotPassword';
 import { useAccess } from '../Context/AccessContext';
 import { useSession } from '../Context/SessionContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import dstGlobalLogo from "../assets/DST Global logo.png";
+
+const DEFAULT_API_URL = 'https://deepspheretech.com';
+const getApiBase = () => import.meta.env.VITE_API_URL || DEFAULT_API_URL;
+
 const Login = ({ setIsAuthenticated }) => {
-    const { setAccessRights, setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'info', // 'success' | 'error' | 'warning' | 'info'
-    });
+    const { setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showForgotPassword, setShowForgotPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false); // New state for loader
+    const [isLoading, setIsLoading] = useState(false);
     const { updateSession } = useSession();
     const [publicKey, setPublicKey] = useState(null);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const apiBase = getApiBase().replace(/\/$/, '');
+    const [oauthProviders, setOauthProviders] = useState([
+        { id: 'google', name: 'Google', authorizationUrl: `${apiBase}/oauth2/authorization/google` },
+        { id: 'azure', name: 'Microsoft (Outlook)', authorizationUrl: `${apiBase}/oauth2/authorization/azure` },
+    ]);
 
     useEffect(() => {
-    const fetchKey = async () => {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/security/public-key`);
-        const pem = "-----BEGIN PUBLIC KEY-----\n" + res.data.match(/.{1,64}/g).join("\n") + "\n-----END PUBLIC KEY-----";
-        setPublicKey(pem);
-    };
-    fetchKey();
-}, []);
+        const oauthError = searchParams.get('error');
+        if (oauthError) {
+            const msg = { user_not_registered: 'This account is not registered. Contact your administrator.', user_not_active: 'Your account is not active.', oauth_failed: 'Sign-in with provider failed. Try again.' }[oauthError] || 'Sign-in failed.';
+            setSnackbar({ open: true, message: msg, severity: 'error' });
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        const apiUrl = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
+        const fetchKey = async () => {
+            try {
+                const res = await axios.get(`${apiUrl}/api/security/public-key`);
+                const pem = "-----BEGIN PUBLIC KEY-----\n" + res.data.match(/.{1,64}/g).join("\n") + "\n-----END PUBLIC KEY-----";
+                setPublicKey(pem);
+            } catch (_) { /* keep default */ }
+        };
+        fetchKey();
+    }, []);
+
+    useEffect(() => {
+        const apiUrl = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
+        axios.get(`${apiUrl}/api/auth/oauth2/providers`).then((res) => {
+            if (Array.isArray(res.data) && res.data.length) setOauthProviders(res.data);
+        }).catch(() => { /* keep initial urls from apiBase */ });
+    }, []);
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -207,10 +231,25 @@ const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/log
                         type="submit"
                         className={`w-full bg-green-700 text-white py-3 rounded-md hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
-                        disabled={isLoading} // Disable button when loading
+                        disabled={isLoading}
                     >
                         {isLoading ? 'Signing in...' : 'Sign in'}
                     </button>
+
+                    <div className="mt-6">
+                        <p className="text-center text-gray-500 text-sm mb-3">Or sign in with</p>
+                        <div className="space-y-2">
+                            {oauthProviders.map((p) => (
+                                <a
+                                    key={p.id}
+                                    href={p.authorizationUrl}
+                                    className="flex items-center justify-center gap-2 w-full py-2.5 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 text-sm font-medium"
+                                >
+                                    {p.name}
+                                </a>
+                            ))}
+                        </div>
+                    </div>
                 </form>
             </div>
             <GlobalSnackbar

@@ -197,6 +197,80 @@ public class UserService {
         }
     }
 
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmailAndEndTimestampIsNull(email);
+    }
+
+    public Map<String, Object> processOAuth2Login(String email, String timezoneId) {
+        Optional<User> userOptional = userRepository.findByEmailAndEndTimestampIsNull(email);
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("USER_NOT_REGISTERED");
+        }
+        User user = userOptional.get();
+        if (!"active".equalsIgnoreCase(user.getStatus())) {
+            throw new RuntimeException("USER_NOT_ACTIVE");
+        }
+        String token = jwtUtil.generateToken(user.getEmail());
+        loginAuditService.recordLogin(user, user.getTenant(), timezoneId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("email", user.getEmail());
+        response.put("empCode", user.getEmpCode());
+        response.put("tenantId", user.getTenant().getTenantId());
+        response.put("userId", user.getUserId());
+        response.put("role", user.getRole().getRoleName());
+        response.put("tenantName", user.getTenant().getTenantName());
+        List<Map<String, Object>> accessRightsList = user.getRole().getRoleAccessRights().stream()
+                .map(ar -> {
+                    Map<String, Object> accessMap = new HashMap<>();
+                    accessMap.put("moduleName", ar.getAccessRight().getModuleName());
+                    accessMap.put("canView", ar.getAccessRight().isCanView());
+                    accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
+                    accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
+                    return accessMap;
+                }).toList();
+        response.put("roleAccessRights", accessRightsList);
+        List<Map<String, Object>> userAccessRightsList = user.getUserAccessRights().stream()
+                .map(ar -> {
+                    Map<String, Object> accessMap = new HashMap<>();
+                    accessMap.put("moduleName", ar.getAccessRight().getModuleName());
+                    accessMap.put("canView", ar.getAccessRight().isCanView());
+                    accessMap.put("canEdit", ar.getAccessRight().isCanEdit());
+                    accessMap.put("canDelete", ar.getAccessRight().isCanDelete());
+                    return accessMap;
+                }).toList();
+        response.put("userAccessRights", userAccessRightsList);
+        return response;
+    }
+
+    public Map<String, Object> buildSessionFromUser(User user) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("email", user.getEmail());
+        response.put("empCode", user.getEmpCode());
+        response.put("tenantId", user.getTenant().getTenantId());
+        response.put("userId", user.getUserId());
+        response.put("role", user.getRole().getRoleName());
+        response.put("tenantName", user.getTenant().getTenantName());
+        response.put("roleAccessRights", user.getRole().getRoleAccessRights().stream()
+                .map(ar -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("moduleName", ar.getAccessRight().getModuleName());
+                    m.put("canView", ar.getAccessRight().isCanView());
+                    m.put("canEdit", ar.getAccessRight().isCanEdit());
+                    m.put("canDelete", ar.getAccessRight().isCanDelete());
+                    return m;
+                }).toList());
+        response.put("userAccessRights", user.getUserAccessRights().stream()
+                .map(ar -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("moduleName", ar.getAccessRight().getModuleName());
+                    m.put("canView", ar.getAccessRight().isCanView());
+                    m.put("canEdit", ar.getAccessRight().isCanEdit());
+                    m.put("canDelete", ar.getAccessRight().isCanDelete());
+                    return m;
+                }).toList());
+        return response;
+    }
 
     public void logoutUser(User user) {
         loginAuditService.recordLogout(user);
