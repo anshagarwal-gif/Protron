@@ -17,7 +17,7 @@ public class OAuth2LoginFailureHandler extends SimpleUrlAuthenticationFailureHan
 
     private static final Logger logger = LoggerFactory.getLogger(OAuth2LoginFailureHandler.class);
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:https://www.deepspheretech.com}")
     private String frontendUrl;
 
     @Override

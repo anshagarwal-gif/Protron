@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAccess } from '../Context/AccessContext';
 import { useSession } from '../Context/SessionContext';
 
-const DEFAULT_API_URL = 'http://localhost:8282';
+const DEFAULT_API_URL = 'https://deepspheretech.com';
 
 const OAuthCallback = ({ onAuthenticated }) => {
   const [searchParams] = useSearchParams();

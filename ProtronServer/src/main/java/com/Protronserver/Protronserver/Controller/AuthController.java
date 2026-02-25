@@ -17,7 +17,7 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Value("${app.backend.url:http://localhost:8282}")
+    @Value("${app.backend.url:https://deepspheretech.com}")
     private String backendUrl;
 
     @Autowired

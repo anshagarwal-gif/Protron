@@ -21,7 +21,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private static final Logger logger = LoggerFactory.getLogger(OAuth2LoginSuccessHandler.class);
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:https://www.deepspheretech.com}")
     private String frontendUrl;
 
     private final UserService userService;

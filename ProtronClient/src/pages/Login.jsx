@@ -10,7 +10,7 @@ import { useSession } from '../Context/SessionContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import dstGlobalLogo from "../assets/DST Global logo.png";
 
-const DEFAULT_API_URL = 'http://localhost:8282';
+const DEFAULT_API_URL = 'https://deepspheretech.com';
 const getApiBase = () => import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 
 const Login = ({ setIsAuthenticated }) => {
