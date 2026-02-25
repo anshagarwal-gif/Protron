@@ -18,6 +18,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import OAuthCallback from './pages/OAuthCallback';
 import GlobalSnackbar from './components/GlobalSnackbar';
 import Navbar from './components/Navbar';
 import UserManagement from './pages/UserManagement';
