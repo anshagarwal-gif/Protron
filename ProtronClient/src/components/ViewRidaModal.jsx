@@ -69,7 +69,7 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
               <FileText size={20} className="text-white sm:w-6 sm:h-6" />
               <div>
                 <h2 className="text-base sm:text-lg lg:text-xl font-bold">RIDA Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm">ID: {ridaData.meetingReference || 'N/A'}</p>
+                <p className="text-green-100 text-xs sm:text-sm whitespace-normal break-all max-w-full">ID: {ridaData.meetingReference || 'N/A'}</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer">

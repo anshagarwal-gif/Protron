@@ -65,7 +65,9 @@ const ViewReleaseModal = ({ open, onClose, releaseData }) => {
               <FileText size={20} className="text-white sm:w-6 sm:h-6" />
               <div className="min-w-0 flex-1 overflow-hidden">
                 <h2 className="text-base sm:text-lg lg:text-xl font-bold">Release Details</h2>
-                <p className="text-green-100 text-xs sm:text-sm truncate">ID: {releaseData.releaseName || 'N/A'}</p>
+                <p className="text-green-100 text-xs sm:text-sm whitespace-normal break-all max-w-full">
+  ID: {releaseData.releaseName || 'N/A'}
+</p>
               </div>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer">
