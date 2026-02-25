@@ -486,7 +486,7 @@ const PODetailsPage = () => {
 
   if (loading) {
     return (
-      <div className="w-full p-6 bg-white">
+      <div className="w-full p-4 sm:p-6 bg-white">
         <div className="flex items-center justify-center h-64">
           <LoadingOverlay />
         </div>
@@ -496,7 +496,7 @@ const PODetailsPage = () => {
 
   if (error || !poDetails) {
     return (
-      <div className="w-full p-6 bg-white">
+      <div className="w-full p-4 sm:p-6 bg-white">
         <div className="text-center">
           <AlertCircle size={64} className="mx-auto mb-4 text-red-300" />
           <h3 className="text-xl font-medium text-gray-900 mb-2">Error Loading PO Details</h3>
@@ -513,9 +513,9 @@ const PODetailsPage = () => {
   }
 
   return (
-    <div className="w-full p-6 bg-gray-50 min-h-screen">
+    <div className="w-full p-4 sm:p-6 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/po')}
@@ -524,7 +524,7 @@ const PODetailsPage = () => {
           >
             <ArrowLeft size={20} className="text-gray-600" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 flex items-center whitespace-normal break-words min-w-0">
             <FileText size={24} className="mr-2 text-blue-600" />
             PO Details - {poDetails.poNumber}
           </h1>
@@ -532,8 +532,8 @@ const PODetailsPage = () => {
       </div>
 
       {/* PO Details Card - Compact 2-row layout without icons with truncation */}
-      <div className="bg-green-50 rounded-lg border border-green-200 shadow-sm p-5 mb-6">
-        <div className="grid grid-cols-7 gap-6">
+      <div className="bg-green-50 rounded-lg border border-green-200 shadow-sm p-4 sm:p-5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 sm:gap-6">
           {/* First Row */}
           <div>
             <p className="text-sm font-medium text-blue-600 mb-1">PO Number</p>
@@ -614,15 +614,15 @@ const PODetailsPage = () => {
       {/* Milestones Section */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         {/* Milestones Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900 flex items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-4 sm:p-6 border-b border-gray-200 gap-4">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
             <Target size={20} className="mr-2 text-green-600" />
             PO Milestones ({filteredMilestones.length})
           </h2>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             {/* Search input */}
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <input
                 type="text"
                 placeholder="Search milestones..."
@@ -633,17 +633,17 @@ const PODetailsPage = () => {
               <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
             </div>
 
-            {/* Download Excel Button */}
-            <button
-              className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-              onClick={downloadMilestonesExcel}
-              disabled={filteredMilestones.length === 0}
-            >
-              <Download size={18} className="mr-2" />
-              Download Excel
-            </button>
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
+                onClick={downloadMilestonesExcel}
+                disabled={filteredMilestones.length === 0}
+              >
+                <Download size={18} className="mr-2" />
+                Download Excel
+              </button>
 
-            <div className="relative group inline-block">
               <button
                 className={`flex items-center px-4 py-2 rounded-md transition-colors
       ${parseInt(poBalance) === 0
@@ -657,15 +657,13 @@ const PODetailsPage = () => {
                 <Plus size={18} className="mr-2" />
                 Add Milestone
               </button>
-
-
             </div>
 
           </div>
         </div>
 
         {/* Milestones Table */}
-        <div className="ag-theme-alpine" style={{ height: '60vh', width: '100%' }}>
+        <div className="ag-theme-alpine h-64 sm:h-80 md:h-96 lg:h-[60vh]" style={{ width: '100%' }}>
           <style jsx>{`
           .ag-theme-alpine {
   font-family: 'Segoe UI', 'Noto Sans', 'Roboto', 'Arial', sans-serif;
@@ -724,10 +722,10 @@ const PODetailsPage = () => {
           />
         </div>
       </div>
-      <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
+      <div className="bg-white rounded-lg border border-gray-200 mt-4 sm:mt-5 shadow-sm">
         <GetSRNDetailsByPO poId={poId} />
       </div>
-      <div className="bg-white rounded-lg border border-gray-200 mt-5 shadow-sm">
+      <div className="bg-white rounded-lg border border-gray-200 mt-4 sm:mt-5 shadow-sm">
         <GetConsumptionByPO poNumber={poDetails.poNumber} poId={poId} />
       </div>
 

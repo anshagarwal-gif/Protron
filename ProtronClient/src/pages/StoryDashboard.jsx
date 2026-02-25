@@ -1961,7 +1961,7 @@ const StoryDashboard = () => {
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Story Filters</h2>
         {/* Filter Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {/* Project ID */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Initiative ID</label>

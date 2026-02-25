@@ -853,7 +853,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
 
 
                         {/* Action Buttons */}
-                        <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                        <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t border-gray-200">
                             <button
                                 onClick={onClose}
                                 disabled={isSubmitting}
