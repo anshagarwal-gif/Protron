@@ -11,6 +11,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import dstGlobalLogo from "../assets/DST Global logo.png";
 
 const DEFAULT_API_URL = 'http://localhost:8282';
+const getApiBase = () => import.meta.env.VITE_API_URL || DEFAULT_API_URL;
 
 const Login = ({ setIsAuthenticated }) => {
     const { setRole, setRoleAccessRights, setUserAccessRights } = useAccess();
@@ -25,9 +26,10 @@ const Login = ({ setIsAuthenticated }) => {
     const [publicKey, setPublicKey] = useState(null);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const apiBase = getApiBase().replace(/\/$/, '');
     const [oauthProviders, setOauthProviders] = useState([
-        { id: 'google', name: 'Google', authorizationUrl: `${DEFAULT_API_URL}/oauth2/authorization/google` },
-        { id: 'azure', name: 'Microsoft (Outlook)', authorizationUrl: `${DEFAULT_API_URL}/oauth2/authorization/azure` },
+        { id: 'google', name: 'Google', authorizationUrl: `${apiBase}/oauth2/authorization/google` },
+        { id: 'azure', name: 'Microsoft (Outlook)', authorizationUrl: `${apiBase}/oauth2/authorization/azure` },
     ]);
 
     useEffect(() => {
@@ -54,7 +56,7 @@ const Login = ({ setIsAuthenticated }) => {
         const apiUrl = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
         axios.get(`${apiUrl}/api/auth/oauth2/providers`).then((res) => {
             if (Array.isArray(res.data) && res.data.length) setOauthProviders(res.data);
-        }).catch(() => { /* keep fallback urls */ });
+        }).catch(() => { /* keep initial urls from apiBase */ });
     }, []);
 
     const togglePasswordVisibility = () => {
