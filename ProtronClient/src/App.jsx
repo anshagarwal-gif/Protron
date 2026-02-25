@@ -125,6 +125,7 @@ const AppContent = () => {
               <Route path="/about" element={<About />} />
               <Route path="/products/:slug" element={<PublicInfoPage />} />
               <Route path="/services/:slug" element={<PublicInfoPage />} />
+              <Route path="/auth/callback" element={<OAuthCallback onAuthenticated={handleLogin} />} />
               <Route
                 path="/login"
                 element={<Login setIsAuthenticated={handleLogin} />}
