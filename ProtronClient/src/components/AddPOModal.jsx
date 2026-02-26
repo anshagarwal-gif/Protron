@@ -753,7 +753,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 if (value.length > 255) value = value.slice(0, 255);
                                                 handleChange('spocName')({ target: { value } });
                                             }}
-                                            className="react-select-container z-15"
+                                            className="react-select-container z-17"
                                             classNamePrefix="react-select"
                                             placeholder="Select PM/SPOC"
                                             isSearchable

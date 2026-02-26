@@ -297,56 +297,92 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
     };
 
     const handleFileChange = (e) => {
-        const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
-        if (!files.length) return;
+  const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
+  if (!files.length) return;
 
-        // Combine existing and new files
-        const totalFiles = srnFiles.length + files.length;
-        if (totalFiles > 4) {
-            setSrnErrors("Maximum 4 attachments allowed.");
-            if (e.target) e.target.value = null;
-            return;
-        }
+  // Remaining slots (max 4)
+  const remainingSlots = 4 - srnFiles.length;
+  if (remainingSlots <= 0) {
+    setSrnErrors("Maximum 4 attachments allowed. Please remove a file to add a new one.");
+    if (e.target) e.target.value = null;
+    return;
+  }
 
-        // Validate each file
-        const maxSize = 10 * 1024 * 1024;
-        const allowedTypes = [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'image/jpeg',
-            'image/png',
-            'image/gif',
-            'text/plain'
-        ];
+  // Validate each file
+  const maxSize = 10 * 1024 * 1024;
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "text/plain",
+  ];
 
-        let error = "";
-        const validFiles = [];
+  const validFiles = [];
+  for (const file of files) {
+    if (file.size > maxSize) {
+      setSrnErrors(`File "${file.name}" exceeds 10MB limit.`);
+      if (e.target) e.target.value = null;
+      return;
+    }
+    if (!allowedTypes.includes(file.type)) {
+      setSrnErrors(
+        "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT."
+      );
+      if (e.target) e.target.value = null;
+      return;
+    }
+    validFiles.push(file);
+  }
 
-        for (const file of files) {
-            if (file.size > maxSize) {
-                error = `File "${file.name}" exceeds 10MB limit.`;
-                break;
-            }
-            if (!allowedTypes.includes(file.type)) {
-                error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
-                break;
-            }
-            validFiles.push(file);
-        }
+  // ✅ De-dup (same logic as AddBudgetLineModal): (name + size + lastModified)
+  const deduped = validFiles.filter((file) => {
+    return !srnFiles.some(
+      (existing) =>
+        existing.name === file.name &&
+        existing.size === file.size &&
+        existing.lastModified === file.lastModified
+    );
+  });
 
-        if (error) {
-            setSrnErrors(error);
-            if (e.target) e.target.value = null;
-            return;
-        }
+  if (deduped.length === 0) {
+    setSrnErrors("");
+    setSnackbar({
+      open: true,
+      message: "All selected files are duplicates and were skipped.",
+      severity: "info",
+    });
+    if (e.target) e.target.value = null;
+    return;
+  }
 
-        setSrnFiles(prev => [...prev, ...validFiles]);
-        setSrnErrors(""); // clear error
-        if (e.target) e.target.value = null; // reset input
-    };
+  // Respect max 4 total files
+  const filesToAdd = deduped.slice(0, remainingSlots);
+
+  if (filesToAdd.length < deduped.length) {
+    setSnackbar({
+      open: true,
+      message: `Only ${filesToAdd.length} more attachment(s) can be added (max 4). Some files were skipped.`,
+      severity: "warning",
+    });
+  } else if (filesToAdd.length < validFiles.length) {
+    setSnackbar({
+      open: true,
+      message: "Some duplicate files were skipped.",
+      severity: "warning",
+    });
+  }
+
+  setSrnFiles((prev) => [...prev, ...filesToAdd]);
+  setSrnErrors("");
+
+  // Reset input so same file can be picked again later (after removal)
+  if (e.target) e.target.value = null;
+};
 
     const handleDragOver = (e) => {
         e.preventDefault();

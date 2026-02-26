@@ -906,9 +906,25 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       )
     },
     {
+      headerName: "Currency",
+      field: "currency",
+      valueGetter: params => params.data.currency || 'N/A',
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const currency = params.value;
+        return (
+          <span title={currency} className="cursor-help">
+            {currency}
+          </span>
+        );
+      }
+    },
+    {
       headerName: "Amount",
       field: "totalAmount",
-      valueGetter: params => formatCurrency(params.data.totalAmount, params.data.currency),
+      // valueGetter: params => formatCurrency(params.data.totalAmount, params.data.currency),
       width: 140,
       sortable: true,
       filter: true,

@@ -497,11 +497,11 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
     }, [open, poId]);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-                <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50 p-2 sm:p-4 md:p-6">
+            <div className="bg-white rounded-lg shadow-xl max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
+                <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
                     <div>
-                        <h2 className="text-xl font-semibold text-green-900 flex items-center">
+                        <h2 className="text-lg sm:text-xl font-semibold text-green-900 flex items-center">
                             <Receipt size={20} className="mr-2 text-green-600" />
                             Create New Payment
                         </h2>
@@ -515,16 +515,16 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto flex-grow">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
+                    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                         {errors.submit && (
-                            <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
+                            <div className="bg-red-50 border border-red-200 rounded-md p-3 sm:p-4 flex items-center">
                                 <AlertCircle size={18} className="text-red-500 mr-2" />
                                 <span className="text-red-700 text-sm">{errors.submit}</span>
                             </div>
                         )}
 
-                        <div className='grid grid-cols-5 gap-4'>
+                        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4'>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">PO Name*</label>
                                 <input
@@ -649,7 +649,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                 )}
                             </div>
 
-                            <div className="lg:col-span-1">
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
                                 <div
                                     onClick={() => handleDateInputClick('srnDate')}
@@ -709,7 +709,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                 title={formData.srnRemarks ? `SRN Remarks (${formData.srnRemarks.length}/500 chars): ${formData.srnRemarks}` : "Enter SRN remarks (optional)"}
                             />
                         </div>
-                        <div className="grid grid-cols-6 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Payment Attachments (Max 4)</label>
                                 <div className="relative">
@@ -742,9 +742,9 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                             {srnFiles.map((file, index) => (
                                 <li
                                     key={index}
-                                    className="flex max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                                    className="flex max-w-[200px] sm:max-w-[300px] items-center justify-between bg-gray-100 px-3 py-1 rounded"
                                 >
-                                    <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                                    <span className="truncate max-w-[150px] sm:max-w-[200px]" title={file.name}>{file.name}</span>
                                     <button
                                         type="button"
                                         onClick={() => removeSRNAttachment(index)}
@@ -756,18 +756,18 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                             ))}
                         </ul>
 
-                        <div className='flex justify-end space-x-4'>
+                        <div className='flex flex-col sm:flex-row sm:justify-end gap-3'>
                             <button
                                 type='button'
                                 onClick={handleClose}
-                                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="w-full sm:w-auto px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                                 disabled={loading}
                             >
                                 Cancel
                             </button>
                             <button
                                 type='submit'
-                                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                                className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
                                 disabled={loading}
                             >
                                 {loading ? 'Creating...' : 'Submit'}

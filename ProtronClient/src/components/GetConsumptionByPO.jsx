@@ -429,7 +429,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
+      <div className="flex items-center justify-center p-4 sm:p-8">
         <div className="text-lg">Loading consumption details...</div>
       </div>
     )
@@ -447,41 +447,54 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
 
   return (
     <div className="">
-      <div className="flex p-6 justify-between">
-        <h2 className="text-xl font-bold text-gray-900 flex items-center">
-          <TrendingUp size={20} className="mr-2 text-green-600" />
-          PO Consumption Details ({filteredConsumptions.length})
-        </h2>
-        <div className='flex gap-4 items-center'>
-          <div className="relative w-64">
-            <input
-              type="text"
-              placeholder="Search consumptions..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
-          </div>
-          <button
-            className="flex items-center bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-            onClick={downloadConsumptionExcel}
-            disabled={filteredConsumptions.length === 0}
-          >
-            <Download size={18} className="mr-2" />
-            Download Excel
-          </button>
-          <button
-            className="flex items-center bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
-            onClick={handleOpenConsumptionModal}
-          >
-            <Plus size={18} className="mr-2" />
-            Add Consumption
-          </button>
-        </div>
-      </div>
+      <div className="w-full flex flex-col sm:flex-row p-4 sm:p-6 sm:justify-between gap-4">
+  
+  {/* Heading */}
+  <h2 className="w-full sm:w-auto text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+    <TrendingUp size={20} className="mr-2 text-green-600" />
+    PO Consumption Details ({filteredConsumptions.length})
+  </h2>
 
-      <div className="ag-theme-alpine" style={{ height: '60vh', width: '100%' }}>
+  {/* Right Section */}
+  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto items-stretch sm:items-center">
+    
+    {/* Search Input */}
+    <div className="relative w-full sm:w-64">
+      <input
+        type="text"
+        placeholder="Search consumptions..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+      <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
+    </div>
+
+    {/* Buttons */}
+    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      
+      <button
+        className="w-full sm:w-auto flex items-center justify-start bg-green-900 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
+        onClick={downloadConsumptionExcel}
+        disabled={filteredConsumptions.length === 0}
+      >
+        <Download size={18} className="mr-2" />
+        Download Excel
+      </button>
+
+      <button
+        className="w-full sm:w-auto flex items-center justify-start bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md transition-colors cursor-pointer"
+        onClick={handleOpenConsumptionModal}
+      >
+        <Plus size={18} className="mr-2" />
+        Add Consumption
+      </button>
+
+    </div>
+  </div>
+</div>
+
+      <div className="ag-theme-alpine h-64 sm:h-80 md:h-96 lg:h-[60vh]" style={{ width: '100%' }}>
         <style jsx>{`
           .ag-theme-alpine .ag-header {
             background-color: #15803d !important;

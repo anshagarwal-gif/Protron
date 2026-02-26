@@ -212,11 +212,13 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
             {/* Logo - Left Side */}
             <div className="flex items-center gap-3 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <img
-                  src={dstGlobalLogo}
-                  className="h-10 w-10 rounded-full ring-2 ring-white/20 bg-white p-1.5 object-contain"
-                  alt="DST Global logo"
-                />
+                <div className="h-12 w-12 rounded-full ring-2 ring-white/20 bg-white p-1.5 flex items-center justify-center">
+                  <img
+                    src={dstGlobalLogo}
+                    alt="DST Global logo"
+                    className="max-h-full max-w-full object-contain"
+                  />
+                </div>
                 <span className="text-xl font-semibold tracking-tight hidden sm:block">
                   {profile && profile.tenantName ? (
                     profile.tenantName

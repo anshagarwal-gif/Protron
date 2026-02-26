@@ -232,52 +232,95 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
   };
 
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files || e.dataTransfer?.files || []);
-    if (!files.length) return;
+  const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
+  if (!files.length) return;
 
-    // Limit to 4 files total
-    if (poConsumptionFiles.length + files.length > 4) {
-      setErrors(prev => ({ ...prev, attachment: "Maximum 4 attachments allowed." }));
-      return;
-    }
-
-    const maxSize = 10 * 1024 * 1024;
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'text/plain'
-    ];
-
-    let error = "";
-    const validFiles = [];
-
-    for (const file of files) {
-      if (file.size > maxSize) {
-        error = `File "${file.name}" exceeds 10MB limit.`;
-        break;
-      }
-      if (!allowedTypes.includes(file.type)) {
-        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
-        break;
-      }
-      validFiles.push(file);
-    }
-
-    if (error) {
-      setErrors(prev => ({ ...prev, attachment: error }));
-      return;
-    }
-
-    setPoConsumptionFiles(prev => [...prev, ...validFiles]);
-    setErrors(prev => ({ ...prev, attachment: "" }));
+  const remainingSlots = 4 - poConsumptionFiles.length;
+  if (remainingSlots <= 0) {
+    setErrors((prev) => ({ ...prev, attachment: "Maximum 4 attachments allowed." }));
+    setSnackbar({
+      open: true,
+      message: "Maximum 4 attachments allowed. Remove a file to add a new one.",
+      severity: "warning",
+    });
     if (e.target) e.target.value = null;
-  };
+    return;
+  }
+
+  const maxSize = 10 * 1024 * 1024;
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "text/plain",
+  ];
+
+  // ✅ Validate files first
+  for (const file of files) {
+    if (file.size > maxSize) {
+      setErrors((prev) => ({ ...prev, attachment: `File "${file.name}" exceeds 10MB limit.` }));
+      if (e.target) e.target.value = null;
+      return;
+    }
+    if (!allowedTypes.includes(file.type)) {
+      setErrors((prev) => ({
+        ...prev,
+        attachment: "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.",
+      }));
+      if (e.target) e.target.value = null;
+      return;
+    }
+  }
+
+  // ✅ De-duplicate: same name + size + lastModified (like AddBudgetLineModal)
+  const deduped = files.filter((file) => {
+    return !poConsumptionFiles.some(
+      (existing) =>
+        existing.name === file.name &&
+        existing.size === file.size &&
+        existing.lastModified === file.lastModified
+    );
+  });
+
+  if (deduped.length === 0) {
+    setErrors((prev) => ({ ...prev, attachment: "" }));
+    setSnackbar({
+      open: true,
+      message: "All selected files are duplicates and were skipped.",
+      severity: "info",
+    });
+    if (e.target) e.target.value = null;
+    return;
+  }
+
+  // ✅ Respect max 4 total (add only what fits)
+  const filesToAdd = deduped.slice(0, remainingSlots);
+
+  if (filesToAdd.length < deduped.length) {
+    setSnackbar({
+      open: true,
+      message: `Only ${filesToAdd.length} attachment(s) added (max 4). Remaining files were skipped.`,
+      severity: "warning",
+    });
+  } else if (filesToAdd.length < files.length) {
+    setSnackbar({
+      open: true,
+      message: "Some duplicate files were skipped.",
+      severity: "warning",
+    });
+  }
+
+  setPoConsumptionFiles((prev) => [...prev, ...filesToAdd]);
+  setErrors((prev) => ({ ...prev, attachment: "" }));
+
+  // reset input so same file can be selected again after removal
+  if (e.target) e.target.value = null;
+};
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -1099,6 +1142,13 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
             </button>
           </div>
                  </form>
+
+          <GlobalSnackbar
+            open={snackbar.open}
+            message={snackbar.message}
+            severity={snackbar.severity}
+            onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          />
        </div>
      </div>
    );
