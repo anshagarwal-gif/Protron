@@ -5,13 +5,13 @@ import com.Protronserver.Protronserver.Entities.POMilestone;
 import com.Protronserver.Protronserver.ResultDTOs.EligibleMilestone;
 import com.Protronserver.Protronserver.Service.CostDetailsService;
 import com.Protronserver.Protronserver.Service.POMilestoneService;
+import com.Protronserver.Protronserver.Service.POService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/po-milestone")
@@ -22,6 +22,9 @@ public class POMilestoneController {
 
     @Autowired
     private CostDetailsService costDetailsService;
+
+    @Autowired
+    private POService poService;
 
     @PostMapping("/add")
     public ResponseEntity<POMilestone> addMilestone(@RequestBody POMilestoneAddDTO dto) {
@@ -43,8 +46,10 @@ public class POMilestoneController {
         return ResponseEntity.ok(poMilestoneService.getAllMilestones());
     }
 
-    @GetMapping("/po/{poId}")
-    public ResponseEntity<List<POMilestone>> getMilestonesByPoId(@PathVariable Long poId) {
+    /** Accepts either numeric id (e.g. 123) or PO number (e.g. PO0345). */
+    @GetMapping("/po/{idOrNumber}")
+    public ResponseEntity<List<POMilestone>> getMilestonesByPoId(@PathVariable String idOrNumber) {
+        Long poId = poService.resolvePoId(idOrNumber);
         return ResponseEntity.ok(poMilestoneService.getMilestonesByPoId(poId));
     }
 
@@ -58,14 +63,18 @@ public class POMilestoneController {
         return costDetailsService.getMilestoneBalanceBasedOnConsumption(id, Id);
     }
 
-    @GetMapping("/getMilestoneForPo/{id}")
-    public List<EligibleMilestone> getMilestoneForPo(@PathVariable Long id){
-        return costDetailsService.getRemainingMilestones(id);
+    /** Accepts either numeric id or PO number (e.g. PO0345). */
+    @GetMapping("/getMilestoneForPo/{idOrNumber}")
+    public List<EligibleMilestone> getMilestoneForPo(@PathVariable String idOrNumber) {
+        Long poId = poService.resolvePoId(idOrNumber);
+        return costDetailsService.getRemainingMilestones(poId);
     }
 
-    @GetMapping("/getMilestoneForPoForCon/{id}")
-    public List<EligibleMilestone> getMilestoneForPoForCon(@PathVariable Long id){
-        return costDetailsService.getRemainingMilestonesForCon(id);
+    /** Accepts either numeric id or PO number (e.g. PO0345). */
+    @GetMapping("/getMilestoneForPoForCon/{idOrNumber}")
+    public List<EligibleMilestone> getMilestoneForPoForCon(@PathVariable String idOrNumber) {
+        Long poId = poService.resolvePoId(idOrNumber);
+        return costDetailsService.getRemainingMilestonesForCon(poId);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -74,8 +83,10 @@ public class POMilestoneController {
         return ResponseEntity.ok("Milestone deleted successfully.");
     }
 
-    @GetMapping("getMilestoneBalanceForPO/{poId}")
-    public BigDecimal getMilestoneBalance(@PathVariable Long poId){
+    /** Accepts either numeric id or PO number (e.g. PO0345). */
+    @GetMapping("getMilestoneBalanceForPO/{idOrNumber}")
+    public BigDecimal getMilestoneBalance(@PathVariable String idOrNumber) {
+        Long poId = poService.resolvePoId(idOrNumber);
         return costDetailsService.getPoBalanceAfterMilestoneAndSrnWithoutMilestone(poId);
     }
 
