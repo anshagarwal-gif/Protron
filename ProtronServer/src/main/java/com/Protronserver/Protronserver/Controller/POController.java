@@ -38,22 +38,39 @@ public class POController {
         return ResponseEntity.ok(poService.getAllPOs());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PODetails> getPOById(@PathVariable Long id) {
-        return ResponseEntity.ok(poService.getPOById(id));
+    /** Accepts either numeric id (e.g. 123) or PO number string (e.g. PO0345). */
+    @GetMapping("/{idOrNumber}")
+    public ResponseEntity<PODetails> getPOByIdOrNumber(@PathVariable String idOrNumber) {
+        if (idOrNumber == null || idOrNumber.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            Long id = Long.parseLong(idOrNumber);
+            return ResponseEntity.ok(poService.getPOById(id));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.ok(poService.getPOByPoNumber(idOrNumber));
+        }
     }
 
-    @GetMapping("/pobalance/{id}")
-    public BigDecimal getPoBalance(@PathVariable Long id){
-        return costDetailsService.getPOBalance(id);
+    /** Accepts either numeric id or PO number (e.g. PO0345). */
+    @GetMapping("/pobalance/{idOrNumber}")
+    public BigDecimal getPoBalance(@PathVariable String idOrNumber) {
+        Long poId = poService.resolvePoId(idOrNumber);
+        return costDetailsService.getPOBalance(poId);
     }
 
-    @GetMapping("/pobalance-con/{id}")
-    public BigDecimal getPoBalanceForConsumptions(@PathVariable Long id) { return costDetailsService.getPOBalanceBasedOnConsumption(id); }
+    /** Accepts either numeric id or PO number (e.g. PO0345). */
+    @GetMapping("/pobalance-con/{idOrNumber}")
+    public BigDecimal getPoBalanceForConsumptions(@PathVariable String idOrNumber) {
+        Long poId = poService.resolvePoId(idOrNumber);
+        return costDetailsService.getPOBalanceBasedOnConsumption(poId);
+    }
 
-    @GetMapping("/{poId}/milestone-balance")
+    /** Accepts either numeric id (e.g. 123) or PO number (e.g. PO0345). */
+    @GetMapping("/{idOrNumber}/milestone-balance")
     public ResponseEntity<BigDecimal> getPoBalanceForMilestoneCreation(
-            @PathVariable Long poId) {
+            @PathVariable String idOrNumber) {
+        Long poId = poService.resolvePoId(idOrNumber);
         return ResponseEntity.ok(
                 costDetailsService.getPoBalanceForMilestoneCreation(poId)
         );

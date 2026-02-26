@@ -211,4 +211,24 @@ public class POService {
         return po;
     }
 
+    public PODetails getPOByPoNumber(String poNumber) {
+        Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+        return poRepository.findByPoNumberAndTenantId(poNumber, tenantId)
+                .orElseThrow(() -> new RuntimeException("PO not found with number: " + poNumber));
+    }
+
+    /** Resolve id or PO number (e.g. 123 or PO0345) to numeric poId for use in other services. */
+    public Long resolvePoId(String idOrNumber) {
+        if (idOrNumber == null || idOrNumber.isBlank()) {
+            throw new IllegalArgumentException("PO id or number is required");
+        }
+        try {
+            Long id = Long.parseLong(idOrNumber);
+            getPOById(id);
+            return id;
+        } catch (NumberFormatException e) {
+            return getPOByPoNumber(idOrNumber).getPoId();
+        }
+    }
+
 }

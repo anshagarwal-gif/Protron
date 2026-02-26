@@ -56,12 +56,15 @@ public interface PORepository extends JpaRepository<PODetails, Long> {
 
     // 5. Get all active POs for tenant
     @Query(value = """
-        SELECT * 
-        FROM po_detail 
-        WHERE tenant_id = :tenantId 
+        SELECT *
+        FROM po_detail
+        WHERE tenant_id = :tenantId
           AND end_timestamp IS NULL
     """, nativeQuery = true)
     List<PODetails> findAllActivePOs(@Param("tenantId") Long tenantId);
+
+    @Query("SELECT p FROM PODetails p WHERE p.poNumber = :poNumber AND p.tenantId = :tenantId AND p.endTimestamp IS NULL")
+    Optional<PODetails> findByPoNumberAndTenantId(@Param("poNumber") String poNumber, @Param("tenantId") Long tenantId);
 
     // 6. Get PO vs Invoice data for dashboard
     @Query(value = """

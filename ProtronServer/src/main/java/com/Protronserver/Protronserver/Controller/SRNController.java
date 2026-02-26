@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Controller;
 
 import com.Protronserver.Protronserver.DTOs.SRNDTO;
 import com.Protronserver.Protronserver.Entities.SRNDetails;
+import com.Protronserver.Protronserver.Service.POService;
 import com.Protronserver.Protronserver.Service.SRNService;
 import com.Protronserver.Protronserver.Utils.SRNLinkedPayments;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,9 @@ public class SRNController {
 
     @Autowired
     private SRNService srnService;
+
+    @Autowired
+    private POService poService;
 
     /**
      * Add a new SRN
@@ -77,12 +81,11 @@ public class SRNController {
         }
     }
 
-    /**
-     * Get SRNs by PO ID
-     */
-    @GetMapping("/po/{poId}")
-    public ResponseEntity<List<SRNDetails>> getSRNsByPoId(@PathVariable Long poId) {
+    /** Get SRNs by PO – accepts either numeric id (e.g. 123) or PO number (e.g. PO0345). */
+    @GetMapping("/po/{idOrNumber}")
+    public ResponseEntity<List<SRNDetails>> getSRNsByPoId(@PathVariable String idOrNumber) {
         try {
+            Long poId = poService.resolvePoId(idOrNumber);
             List<SRNDetails> srnList = srnService.getSRNsByPoId(poId);
             return ResponseEntity.ok(srnList);
         } catch (Exception e) {
@@ -129,12 +132,11 @@ public class SRNController {
         }
     }
 
-    /**
-     * Get total SRN amount by PO ID
-     */
-    @GetMapping("/total-amount/po/{poId}")
-    public ResponseEntity<Integer> getTotalSRNAmountByPoId(@PathVariable Long poId) {
+    /** Get total SRN amount by PO – accepts either numeric id or PO number (e.g. PO0345). */
+    @GetMapping("/total-amount/po/{idOrNumber}")
+    public ResponseEntity<Integer> getTotalSRNAmountByPoId(@PathVariable String idOrNumber) {
         try {
+            Long poId = poService.resolvePoId(idOrNumber);
             Integer totalAmount = srnService.getTotalSRNAmountByPoId(poId);
             return ResponseEntity.ok(totalAmount);
         } catch (Exception e) {
