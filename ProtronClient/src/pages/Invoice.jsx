@@ -865,7 +865,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       filter: true,
       cellRenderer: params => (
         <div className="flex items-center">
-          <Folder size={14} className="text-green-600 mr-2" />
+          {/* <Folder size={14} className="text-green-600 mr-2" /> */}
           <span 
             className="truncate max-w-full overflow-hidden whitespace-nowrap" 
             title={params.value}
@@ -885,7 +885,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       filter: true,
       cellRenderer: params => (
         <div className="flex items-center">
-          <Building size={14} className="text-blue-600 mr-2" />
+          {/* <Building size={14} className="text-blue-600 mr-2" /> */}
           <span className="truncate" title={params.value}>{params.value}</span>
         </div>
       )
@@ -929,7 +929,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="flex items-center font-bold text-green-600">
+        <div className="text-right font-bold text-green-600 w-full">
           {params.value}
         </div>
       )
@@ -947,7 +947,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       filter: false,
       cellRenderer: params => (
         <div className="flex items-center text-sm">
-          <Calendar size={14} className="text-blue-600 mr-2" />
+          {/* <Calendar size={14} className="text-blue-600 mr-2" /> */}
           <span className="truncate" title={params.value}>{params.value}</span>
         </div>
       )

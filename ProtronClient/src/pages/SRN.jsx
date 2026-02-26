@@ -507,20 +507,20 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "Amount Paid",
       field: "srnAmount",
-      valueGetter: params => {
-        const amount = params.data.srnAmount;
-        const currency = params.data.srnCurrency;
-        if (!amount) return 'N/A';
-        const symbol = getCurrencySymbol(currency);
-        return `${symbol}${amount.toLocaleString()}`;
-      },
+      // valueGetter: params => {
+      //   const amount = params.data.srnAmount;
+      //   const currency = params.data.srnCurrency;
+      //   if (!amount) return 'N/A';
+      //   const symbol = getCurrencySymbol(currency);
+      //   return `${symbol}${amount.toLocaleString()}`;
+      // },
       width: 140,
       sortable: true,
       filter: true,
       cellRenderer: params => {
         const amount = params.value;
         return (
-          <span title={amount} className="cursor-help">
+          <span title={amount} className="cursor-help block text-right w-full">
             {amount}
           </span>
         );

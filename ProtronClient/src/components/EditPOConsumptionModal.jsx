@@ -1,7 +1,8 @@
 // EditPOConsumptionModal.js
 import { useState, useEffect, useRef } from "react";
-import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip, File } from "lucide-react";
+import { X, Activity, DollarSign, Calendar, FileText, AlertCircle, Building, Paperclip, File as FileIcon } from "lucide-react";
 import axios from "axios";
+import GlobalSnackbar from "../components/GlobalSnackbar";
 
 const getCurrencySymbol = (currencyCode) => {
     const currencySymbols = {
@@ -51,6 +52,11 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
   const [poConsumptionFiles, setPoConsumptionFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: ""
+  });
   const [poList, setPOList] = useState([]);
   const [milestoneList, setMilestoneList] = useState([]);
   const [projectList, setProjectList] = useState([]);
@@ -475,11 +481,14 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
     const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
     if (!files.length) return;
 
+    // Clear previous attachment error
+    setErrors(prev => ({ ...prev, attachment: "" }));
+
     const maxFiles = 4;
 
     // Check if adding these files exceeds the limit
     if (poConsumptionFiles.length + files.length > maxFiles) {
-      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed.` }));
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${poConsumptionFiles.length} files and trying to add ${files.length} more.` }));
       return;
     }
 
@@ -504,11 +513,11 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       // Check if it's a new File object or existing document
       if (file instanceof File || (file && !file.id)) {
         if (file.size > maxSize) {
-          error = `File "${file.name}" exceeds 10MB limit.`;
+          error = "File must be under 10MB.";
           break;
         }
         if (!allowedTypes.includes(file.type)) {
-          error = `Unsupported file type for "${file.name}".`;
+          error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
           break;
         }
         validFiles.push(file);
@@ -523,9 +532,36 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
       return;
     }
 
-    // Add valid files to state
-    setPoConsumptionFiles(prev => [...prev, ...validFiles]);
-    setErrors(prev => ({ ...prev, attachment: "" }));
+    // de-dup by (name + size + lastModified) against existing File objects
+    const existingFiles = poConsumptionFiles.filter(doc => !doc.id); // only new File objects
+    const deduped = validFiles.filter(file => {
+      return !existingFiles.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, maxFiles - poConsumptionFiles.length);
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
+    }
+
+    if (filesToAdd.length > 0) {
+      setPoConsumptionFiles(prev => [...prev, ...filesToAdd]);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
     if (e.target) e.target.value = null; // Reset file input
   };
 
@@ -1066,7 +1102,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                 onClick={() => fileInputRef.current?.click()}
                 className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors bg-gray-50 hover:bg-green-50"
               >
-                <File size={32} className="mx-auto text-gray-400 mb-2" />
+                <FileIcon size={32} className="mx-auto text-gray-400 mb-2" />
                 <p className="text-sm text-gray-600 mb-1">
                   Drag and drop files here, or click to browse
                 </p>
@@ -1126,7 +1162,7 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
                           }`}
                         >
                           <div className="flex items-center space-x-2 flex-1 min-w-0">
-                            <File size={16} className={isExisting ? 'text-blue-600' : 'text-green-600'} />
+                            <FileIcon size={16} className={isExisting ? 'text-blue-600' : 'text-green-600'} />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center space-x-2">
                                 <p className="text-xs font-medium text-gray-700 truncate" title={fileName}>
@@ -1191,6 +1227,12 @@ const EditPOConsumptionModal = ({ open, onClose, onSubmit, consumptionId }) => {
           </div>
         </form>
       </div>
+      <GlobalSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </div>
   );
 };

@@ -57,6 +57,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
   const [statusFlags, setStatusFlags] = useState([]);
   const [error, setError] = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
+  const [errors, setErrors] = useState({});
   const { sessionData } = useSession();
 
   // Green theme colors
@@ -188,25 +189,87 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
   };
 
   const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files);
-    if (!newFiles.length) return;
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
 
-    console.log('Selected files:', newFiles.map(f => ({ name: f.name, size: f.size })));
+    // Clear previous attachment error
+    setErrors(prev => ({ ...prev, attachment: "" }));
 
-    // Simple validation for file count
-    if (formData.attachments.length + newFiles.length > 4) {
-      showSnackbar("You can only upload a maximum of 4 files.", "error");
+    const maxFiles = 4;
+
+    // Check if adding these files exceeds the limit
+    if (formData.attachments.length + files.length > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${formData.attachments.length} files and trying to add ${files.length} more.` }));
       return;
     }
 
-    setFormData(prev => {
-      const newAttachments = [...prev.attachments, ...newFiles];
-      console.log('Updated attachments:', newAttachments.length);
-      return {
-        ...prev,
-        attachments: newAttachments
-      };
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        error = "File must be under 10MB.";
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setErrors(prev => ({ ...prev, attachment: error }));
+      return;
+    }
+
+    // de-dup by (name + size + lastModified) against existing attachments
+    const deduped = validFiles.filter(file => {
+      return !formData.attachments.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
     });
+
+    const filesToAdd = deduped.slice(0, maxFiles - formData.attachments.length);
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
+    }
+
+    if (filesToAdd.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...prev.attachments, ...filesToAdd]
+      }));
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
+    e.target.value = null; // Reset file input
   };
 
   const handleRemoveAttachment = (index) => {
@@ -833,6 +896,14 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
                   </span>
                 </div>
               </label>
+
+              {errors.attachment && (
+                <p className="mt-2 text-xs text-red-600 flex items-center">
+                  <AlertCircle size={12} className="mr-1" />
+                  {errors.attachment}
+                </p>
+              )}
+
               <p className="text-xs text-gray-500 mt-1">
                 Max file size: 10 MB per file
               </p>

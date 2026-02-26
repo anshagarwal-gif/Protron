@@ -756,15 +756,15 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Activity size={14} className="inline mr-1" />
-                  Milestone (Optional)
+                  Milestone *
                 </label>
                 <select
                   name="msId"
                   value={formData.msId}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msId ? 'border-red-500' : 'border-gray-300'}`}
                   disabled={loading}
-                  title={formData.msId ? `Selected Milestone: ${formData.msName}` : "Select a milestone (optional)"}
+                  title={formData.msId ? `Selected Milestone: ${formData.msName}` : "Select a milestone"}
                 >
                   <option value="" title="No specific milestone selected">No specific milestone</option>
                   {milestoneList.map(milestone => (
@@ -777,6 +777,11 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                     </option>
                   ))}
                 </select>
+                {errors.msId && (
+                  <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.msId}`}>
+                    {errors.msId.length > 30 ? `${errors.msId.substring(0, 30)}...` : errors.msId}
+                  </p>
+                )}
               </div>
 
               <div className="">
@@ -1311,7 +1316,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
                   <Activity size={14} className="inline mr-1" />
 
-                  Milestone (Optional)
+                  Milestone *
 
                 </label>
 
@@ -1323,11 +1328,11 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
 
                   onChange={handleInputChange}
 
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
+                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msId ? 'border-red-500' : 'border-gray-300'}`}
 
                   disabled={loading}
 
-                  title={formData.msId ? `Selected Milestone: ${formData.msName}` : "Select a milestone (optional)"}
+                  title={formData.msId ? `Selected Milestone: ${formData.msName}` : "Select a milestone"}
 
                 >
 
@@ -1352,6 +1357,16 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   ))}
 
                 </select>
+
+                {errors.msId && (
+
+                  <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.msId}`}>
+
+                    {errors.msId.length > 30 ? `${errors.msId.substring(0, 30)}...` : errors.msId}
+
+                  </p>
+
+                )}
 
               </div>
 

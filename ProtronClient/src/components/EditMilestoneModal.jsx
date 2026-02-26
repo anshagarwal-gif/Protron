@@ -35,8 +35,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [descWordCount, setDescWordCount] = useState(0);
-  const [remarksWordCount, setRemarksWordCount] = useState(0);
+  const [descCharCount, setDescCharCount] = useState(0);
+  const [remarksCharCount, setRemarksCharCount] = useState(0);
   const [milestoneAttachments, setMilestoneAttachments] = useState([]);
   const [poBalance, setPOBalance] = useState(null); // Added state for PO balance
   const dateInputRef = useRef(null);
@@ -70,10 +70,10 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     fetchPOBalance();
   }, [formData.poId]);
 
-  // Helper function to count words
-  const countWords = (text) => {
-    if (!text || text.trim() === '') return 0;
-    return text.trim().split(/\s+/).length;
+  // Helper function to count characters
+  const countCharacters = (text) => {
+    if (!text) return 0;
+    return text.length;
   };
 
   // Fetch milestone data when modal opens
@@ -84,10 +84,10 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
     }
   }, [open, milestoneId]);
 
-  // Initialize word counts when form data is set
+  // Initialize character counts when form data is set
   useEffect(() => {
-    setDescWordCount(countWords(formData.msDesc));
-    setRemarksWordCount(countWords(formData.msRemarks));
+    setDescCharCount(countCharacters(formData.msDesc));
+    setRemarksCharCount(countCharacters(formData.msRemarks));
   }, [formData.msDesc, formData.msRemarks]);
 
   const fetchMilestoneAttachments = async (milestoneId) => {
@@ -180,27 +180,27 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
         [name]: files[0] || null
       }));
     } else {
-      // Check word limit for description and remarks
+      // Check character limit for description and remarks
       if (name === 'msDesc') {
-        const wordCount = countWords(value);
-        if (wordCount > 500) {
+        const charCount = countCharacters(value);
+        if (charCount > 500) {
           setErrors(prev => ({
             ...prev,
-            [name]: "Description cannot exceed 500 words"
+            [name]: "Description cannot exceed 500 characters"
           }));
           return; // Don't update if exceeding limit
         }
-        setDescWordCount(wordCount);
+        setDescCharCount(charCount);
       } else if (name === 'msRemarks') {
-        const wordCount = countWords(value);
-        if (wordCount > 500) {
+        const charCount = countCharacters(value);
+        if (charCount > 500) {
           setErrors(prev => ({
             ...prev,
-            [name]: "Remarks cannot exceed 500 words"
+            [name]: "Remarks cannot exceed 500 characters"
           }));
           return; // Don't update if exceeding limit
         }
-        setRemarksWordCount(wordCount);
+        setRemarksCharCount(charCount);
       }
 
       // Real-time amount validation
@@ -235,55 +235,99 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
       }));
     }
   };
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    const maxFiles = 4;
+const handleFileChange = (e) => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
 
-    if (milestoneAttachments.length + files.length > maxFiles) {
-      setErrors(prev => ({
-        ...prev,
-        attachment: `You can upload a maximum of ${maxFiles} attachments.`
-      }));
-      return;
-    }
+  const maxFiles = 4;
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  const allowedTypes = [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "text/plain",
+  ];
 
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'text/plain'
-    ];
+  // Existing names (supports both meta from API + newly selected File objects)
+  const existingNames = new Set(
+    (milestoneAttachments || [])
+      .map((att) => (att instanceof File ? att.name : att.fileName || att.name))
+      .filter(Boolean)
+      .map((n) => n.toLowerCase())
+  );
 
-    const validFiles = files.filter(file => {
-      if (file.size > maxSize) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: `File ${file.name} exceeds the maximum size of 10MB.`
-        }));
-        return false;
-      }
-      if (!allowedTypes.includes(file.type)) {
-        setErrors(prev => ({
-          ...prev,
-          attachment: `File type for ${file.name} is not supported.`
-        }));
-        return false;
-      }
-      return true;
+  // If already full
+  if (milestoneAttachments.length >= maxFiles) {
+    setSnackbar({
+      open: true,
+      message: `You can upload a maximum of ${maxFiles} attachments.`,
+      severity: "error",
     });
+    e.target.value = null;
+    return;
+  }
 
-    if (validFiles.length > 0) {
-      setMilestoneAttachments(prev => [...prev, ...validFiles]);
+  const validFiles = [];
+  const batchNames = new Set();
+
+  for (const file of files) {
+    // Stop if we reached max
+    if (milestoneAttachments.length + validFiles.length >= maxFiles) {
+      setSnackbar({
+        open: true,
+        message: `You can upload a maximum of ${maxFiles} attachments.`,
+        severity: "error",
+      });
+      break;
     }
 
-    e.target.value = null; // Reset file input
-  };
+    const nameKey = (file.name || "").toLowerCase();
+
+    // Duplicate check (already selected / already uploaded / duplicates in same selection)
+    if (existingNames.has(nameKey) || batchNames.has(nameKey)) {
+      setSnackbar({
+        open: true,
+        message: `Duplicate file "${file.name}" is not allowed.`,
+        severity: "warning",
+      });
+      continue;
+    }
+
+    // Size/type validation
+    if (file.size > maxSize) {
+      setSnackbar({
+        open: true,
+        message: `File "${file.name}" exceeds the maximum size of 10MB.`,
+        severity: "error",
+      });
+      continue;
+    }
+
+    if (!allowedTypes.includes(file.type)) {
+      setSnackbar({
+        open: true,
+        message:
+          'Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.',
+        severity: "error",
+      });
+      continue;
+    }
+
+    batchNames.add(nameKey);
+    validFiles.push(file);
+  }
+
+  if (validFiles.length) {
+    setMilestoneAttachments((prev) => [...prev, ...validFiles]);
+  }
+
+  e.target.value = null; // reset file input
+};
 
   const validateForm = () => {
     const newErrors = {};
@@ -418,8 +462,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
       poNumber: ""
     });
     setErrors({});
-    setDescWordCount(0);
-    setRemarksWordCount(0);
+    setDescCharCount(0);
+    setRemarksCharCount(0);
     onClose();
   };
   const handleDateInputClick = () => {
@@ -438,7 +482,9 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
               <Target size={20} className="mr-2 text-green-600" />
               Edit Milestone
             </h2>
-            <p className="text-xs text-gray-500">PO Number: <b>{formData?.poNumber}</b></p>
+            <p className="text-xs text-gray-500 break-all max-w-full">
+  PO Number: <b className="break-all">{formData?.poNumber}</b>
+</p>
           </div>
           <button
             onClick={handleClose}
@@ -490,8 +536,8 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
 
             <div className="space-y-4">
               {/* Row 1: Milestone Name, Currency, and Amount (all at top) */}
-              <div className="grid grid-cols-12 gap-4">
-                <div className="col-span-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div className="col-span-1 md:col-span-6">
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     <Target size={14} className="inline mr-1" />
                     Milestone Name *
@@ -518,7 +564,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   )}
                 </div>
 
-                <div className="col-span-2">
+                <div className="col-span-1 md:col-span-2">
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Currency
                   </label>
@@ -537,7 +583,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   </select>
                 </div>
 
-                <div className="col-span-3">
+                <div className="col-span-1 md:col-span-3">
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     <DollarSign size={14} className="inline mr-1" />
                     Amount *
@@ -557,38 +603,9 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   {errors.msAmount && (
                     <p className="mt-1 text-xs text-red-600">{errors.msAmount}</p>
                   )}
-                  <label className="text-xs text-green-600 mt-1">
-                    PO Balance: {poBalance !== null ? `${getCurrencySymbol(formData.msCurrency)}${poBalance.toLocaleString()}` : 'Loading...'}
-                  </label>
                 </div>
 
-                <div className="col-span-1"></div> {/* Small spacer */}
-              </div>
-
-              {/* Row 2: Duration, Date and Attachment */}
-              <div className="grid grid-cols-8 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    <Clock size={14} className="inline mr-1" />
-                    Duration (Days)
-                  </label>
-                  <input
-                    type="number"
-                    name="msDuration"
-                    value={formData.msDuration}
-                    onChange={handleInputChange}
-                    min="0"
-                    className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.msDuration ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    placeholder="0"
-                    disabled={loading}
-                  />
-                  {errors.msDuration && (
-                    <p className="mt-1 text-xs text-red-600">{errors.msDuration}</p>
-                  )}
-                </div>
-
-                <div className="col-span-3" onClick={handleDateInputClick}>
+                <div className="col-span-1 md:col-span-3" onClick={handleDateInputClick}>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     <Calendar size={14} className="inline mr-1" />
                     Milestone Date
@@ -613,7 +630,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   <FileText size={14} className="inline mr-1" />
                   Description *
                   <span className="float-right text-xs text-gray-500">
-                    {descWordCount}/500 words
+                    {descCharCount}/500 characters
                   </span>
                 </label>
                 <textarea
@@ -621,9 +638,10 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   value={formData.msDesc}
                   onChange={handleInputChange}
                   rows={4}
+                  maxLength="500"
                   className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${errors.msDesc ? 'border-red-500' : 'border-gray-300'
                     }`}
-                  placeholder="Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max 500 words)"
+                  placeholder="Enter detailed milestone description with all necessary information, objectives, deliverables, and requirements... (Max 500 characters)"
                   disabled={loading}
                 />
                 {errors.msDesc && (
@@ -637,7 +655,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   <FileText size={14} className="inline mr-1" />
                   Remarks
                   <span className="float-right text-xs text-gray-500">
-                    {remarksWordCount}/500 words
+                    {remarksCharCount}/500 characters
                   </span>
                 </label>
                 <textarea
@@ -645,16 +663,17 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
                   value={formData.msRemarks}
                   onChange={handleInputChange}
                   rows={3}
-                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksWordCount > 500 ? 'border-red-500' : 'border-gray-300'
+                  maxLength="500"
+                  className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
                     }`}
-                  placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 words)"
+                  placeholder="Enter additional remarks, notes, special instructions, dependencies, or any other relevant information... (Max 500 characters)"
                   disabled={loading}
                 />
                 {errors.msRemarks && (
                   <p className="mt-1 text-xs text-red-600">{errors.msRemarks}</p>
                 )}
               </div>
-              <div className="col-span-3 max-w-[300px]">
+              <div className="max-w-[300px]">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
                   Attachments (Max 4)
@@ -688,7 +707,7 @@ const EditMilestoneModal = ({ open, onClose, onSubmit, milestoneId }) => {
             </div>
 
             {/* Form Actions */}
-            <div className="flex justify-end gap-3 pt-3 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-3 border-t border-gray-200">
               <button
                 type="button"
                 onClick={handleClose}

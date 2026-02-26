@@ -1,7 +1,7 @@
 import React from "react"
 import { useLocation, useParams } from "react-router-dom"
 import PublicNavbar from "../components/PublicNavbar"
-import careersHero from "../assets/IMG-20250919-WA0005.jpg"
+import careersHero from "../assets/IMG-20250919-WA0005.png"
 import funnelImage from "../assets/Funnel.jpeg"
 import timesheetImage from "../assets/Timesheet and resources.jpeg"
 import invoicingBudgetImage from "../assets/Invoice and budget.jpeg"

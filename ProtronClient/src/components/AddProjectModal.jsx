@@ -361,7 +361,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Initiative name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Initiative name *</label>
                                 <div className="relative">
                                     <input
                                         type="text"

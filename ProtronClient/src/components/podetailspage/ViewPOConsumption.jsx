@@ -85,14 +85,14 @@ const ViewPOConsumptionModal = ({ open, onClose, consumptionData }) => {
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">
+      <div className="text-sm text-gray-900 font-medium break-words">
         {value || "N/A"}
       </div>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-2 sm:p-4 lg:p-6">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="px-6 py-4 bg-green-600 text-white rounded-t-lg">
@@ -120,7 +120,7 @@ const ViewPOConsumptionModal = ({ open, onClose, consumptionData }) => {
               <Hash className="mr-2 text-green-600" size={20} />
               Basic Information
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <Field
                 label="PO Number"
                 value={consumptionData.poNumber}

@@ -500,6 +500,8 @@ const TimesheetManager = () => {
           ),
         }));
         showToast("Task updated successfully!", "success");
+        // Fetch latest data to ensure UI is up to date
+        fetchTasks();
       } catch (err) {
         showToast("Failed to update task", "error");
       }

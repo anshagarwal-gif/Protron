@@ -1,6 +1,6 @@
 import React from "react"
 import PublicNavbar from "../components/PublicNavbar"
-import bannerImage from "../assets/IMG-20250919-WA0005.jpg"
+import bannerImage from "../assets/IMG-20250919-WA0005.png"
 
 export default function About() {
   return (

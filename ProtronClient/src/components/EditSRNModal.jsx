@@ -351,13 +351,14 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
     const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
     if (!files.length) return;
 
+    // Clear previous attachment error
+    setErrors(prev => ({ ...prev, attachment: "" }));
+
     const maxFiles = 4;
-    const totalFiles = srnAttachments.length + files.length;
 
     // Check if adding these files exceeds the limit
-    if (totalFiles > maxFiles) {
-      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed.` }));
-      if (e.target) e.target.value = null;
+    if (srnAttachments.length + files.length > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${srnAttachments.length} files and trying to add ${files.length} more.` }));
       return;
     }
 
@@ -380,11 +381,11 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
 
     for (const file of files) {
       if (file.size > maxSize) {
-        error = `File "${file.name}" exceeds 10MB limit.`;
+        error = "File must be under 10MB.";
         break;
       }
       if (!allowedTypes.includes(file.type)) {
-        error = `Unsupported file type for "${file.name}". Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.`;
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
         break;
       }
       validFiles.push(file);
@@ -392,13 +393,39 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
 
     if (error) {
       setErrors(prev => ({ ...prev, attachment: error }));
-      if (e.target) e.target.value = null;
       return;
     }
 
-    // Add valid files to state
-    setSrnAttachments(prev => [...prev, ...validFiles]);
-    setErrors(prev => ({ ...prev, attachment: "" }));
+    // de-dup by (name + size + lastModified) against existing File objects
+    const existingFiles = srnAttachments.filter(doc => !doc.id); // only new File objects
+    const deduped = validFiles.filter(file => {
+      return !existingFiles.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, maxFiles - srnAttachments.length);
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
+    }
+
+    if (filesToAdd.length > 0) {
+      setSrnAttachments(prev => [...prev, ...filesToAdd]);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
     if (e.target) e.target.value = null; // Reset file input
   };
 

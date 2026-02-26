@@ -63,7 +63,11 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     });
     const [poAttachments, setPoAttachments] = useState([]); // Separate state for attachments
     const [errors, setErrors] = useState({})
-
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "info"
+    })
     const handleNextStep = async () => {
         if (currentStep === 1) {
             try {
@@ -315,6 +319,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
             return;
         }
 
+        // Clear previous attachment error
+        setErrors(prev => ({ ...prev, attachment: "" }));
+
         // Count existing documents (not File objects) and new files
         const existingDocCount = poAttachments.filter(doc => doc.id).length;
         const newFileCount = poAttachments.filter(doc => !doc.id).length;
@@ -322,43 +329,72 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
 
         // Check if adding these files would exceed the 4 document limit
         if (totalCurrentCount + files.length > 4) {
-            alert(`Maximum 4 documents allowed. You have ${totalCurrentCount} documents and trying to add ${files.length} more. Please remove some documents first.`);
+            setErrors(prev => ({ ...prev, attachment: "Maximum 4 documents allowed. You have " + totalCurrentCount + " documents and trying to add " + files.length + " more." }));
             return;
         }
 
-        // Validate each file
+        const maxSize = 10 * 1024 * 1024;
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'text/plain',
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/gif'
+        ];
+
+        let error = "";
         const validFiles = [];
+
         for (const file of files) {
-            // Validate file size (10MB limit)
-            if (file.size > 10 * 1024 * 1024) {
-                alert(`File ${file.name} exceeds 10MB limit. Please choose a smaller file.`);
-                continue;
+            if (file.size > maxSize) {
+                error = "File must be under 10MB.";
+                break;
             }
-
-            // Validate file type
-            const allowedTypes = [
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/vnd.ms-excel',
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'text/plain',
-                'image/jpeg',
-                'image/jpg',
-                'image/png',
-                'image/gif'
-            ];
-
             if (!allowedTypes.includes(file.type)) {
-                alert(`File ${file.name} has unsupported format. Please upload PDF, DOC, DOCX, XLS, XLSX, TXT, or image files.`);
-                continue;
+                error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+                break;
             }
-
             validFiles.push(file);
         }
 
-        if (validFiles.length > 0) {
-            setPoAttachments(prev => [...prev, ...validFiles]);
+        if (error) {
+            setErrors(prev => ({ ...prev, attachment: error }));
+            return;
+        }
+
+        // de-dup by (name + size + lastModified) against existing File objects
+        const existingFiles = poAttachments.filter(doc => !doc.id); // only new File objects
+        const deduped = validFiles.filter(file => {
+            return !existingFiles.some(a =>
+                a.name === file.name &&
+                a.size === file.size &&
+                a.lastModified === file.lastModified
+            );
+        });
+
+        const filesToAdd = deduped.slice(0, 4 - totalCurrentCount);
+
+        if (deduped.length > filesToAdd.length) {
+            setSnackbar({
+                open: true,
+                message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+                severity: 'warning'
+            });
+        }
+
+        if (filesToAdd.length > 0) {
+            setPoAttachments(prev => [...prev, ...filesToAdd]);
+        } else {
+            setSnackbar({
+                open: true,
+                message: 'All selected files are duplicates and were skipped.',
+                severity: 'info'
+            });
         }
 
         // Reset file input
@@ -1432,6 +1468,9 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <p className="text-xs text-gray-500 mt-2">
                                             Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT (Max 10MB each)
                                         </p>
+                                        {errors.attachment && (
+                                            <p className="mt-1 text-red-600 text-xs">{errors.attachment}</p>
+                                        )}
                                     </div>
 
                                     {/* Selected Files Display */}
@@ -1638,8 +1677,14 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                     initialData={editingMilestone || {}}
                 />
             )}
-        </div>
 
+            <GlobalSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+            />
+        </div>
     );
 };
 

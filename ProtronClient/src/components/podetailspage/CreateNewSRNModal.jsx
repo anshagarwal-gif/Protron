@@ -193,19 +193,19 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
 
-        // Combine existing and new files
-        const totalFiles = srnFiles.length + files.length;
-        if (totalFiles > 4) {
-            setSnackbar({
-                open: true,
-                message: "You can upload a maximum of 4 attachments.",
-                severity: "error"
-            });
-            e.target.value = null;
+        // Clear previous attachment error
+        setErrors(prev => ({ ...prev, attachment: "" }));
+
+        const maxFiles = 4;
+
+        // Check if adding these files exceeds the limit
+        if (srnFiles.length + files.length > maxFiles) {
+            setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${srnFiles.length} files and trying to add ${files.length} more.` }));
             return;
         }
 
         // Validate each file
+        const maxSize = 10 * 1024 * 1024; // 10MB
         const allowedTypes = [
             'application/pdf',
             'application/msword',
@@ -218,29 +218,56 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
             'text/plain'
         ];
 
+        let error = "";
+        const validFiles = [];
+
         for (const file of files) {
-            if (file.size > 10 * 1024 * 1024) {
-                setSnackbar({
-                    open: true,
-                    message: "File size must be less than 10MB.",
-                    severity: "error"
-                });
-                e.target.value = null;
-                return;
+            if (file.size > maxSize) {
+                error = "File must be under 10MB.";
+                break;
             }
             if (!allowedTypes.includes(file.type)) {
-                setSnackbar({
-                    open: true,
-                    message: "Unsupported file type.",
-                    severity: "error"
-                });
-                e.target.value = null;
-                return;
+                error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+                break;
             }
+            validFiles.push(file);
         }
 
-        setSrnFiles(prev => [...prev, ...files]);
-        e.target.value = null; // reset input
+        if (error) {
+            setErrors(prev => ({ ...prev, attachment: error }));
+            return;
+        }
+
+        // de-dup by (name + size + lastModified) against existing srnFiles
+        const deduped = validFiles.filter(file => {
+            return !srnFiles.some(a =>
+                a.name === file.name &&
+                a.size === file.size &&
+                a.lastModified === file.lastModified
+            );
+        });
+
+        const filesToAdd = deduped.slice(0, maxFiles - srnFiles.length);
+
+        if (deduped.length > filesToAdd.length) {
+            setSnackbar({
+                open: true,
+                message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+                severity: 'warning'
+            });
+        }
+
+        if (filesToAdd.length > 0) {
+            setSrnFiles(prev => [...prev, ...filesToAdd]);
+        } else {
+            setSnackbar({
+                open: true,
+                message: 'All selected files are duplicates and were skipped.',
+                severity: 'info'
+            });
+        }
+
+        e.target.value = null; // Reset file input
     };
 
     const validateForm = () => {
@@ -733,6 +760,13 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                         </span>
                                     </label>
                                 </div>
+
+                                {errors.attachment && (
+                                    <p className="mt-2 text-xs text-red-600 flex items-center">
+                                        <AlertCircle size={12} className="mr-1" />
+                                        {errors.attachment}
+                                    </p>
+                                )}
 
                                 {/* List of selected files */}
 

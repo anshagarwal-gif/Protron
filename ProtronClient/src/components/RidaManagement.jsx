@@ -290,6 +290,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
             initialData={null}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
           <RidaFormModal
             open={editModalOpen}
@@ -298,6 +299,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
             initialData={editingRida}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
           <DuplicateRidaModal
             open={duplicateModalOpen}
@@ -306,6 +308,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
             initialData={duplicatingRida}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
           <ViewRidaModal
             open={viewModalOpen}
@@ -319,7 +322,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
 }
 
 // Modal for Add/Edit RIDA
-function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, projectId }) {
+function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, projectId, setSnackbar }) {
   const [formData, setFormData] = useState({
     meetingReference: '',
     itemDescription: '',
@@ -405,14 +408,85 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
     }
   };
 
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files);
-    const total = existingAttachments.length + ridaFiles.length + files.length;
-    if (total > 4) {
-      alert('You can only add up to 4 attachments in total.');
+  const handleFileChange = event => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    // Clear previous attachment error
+    setErrors(prev => ({ ...prev, attachment: "" }));
+
+    const maxFiles = 4;
+
+    // Check if adding these files exceeds the limit
+    if (existingAttachments.length + ridaFiles.length + files.length > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${existingAttachments.length + ridaFiles.length} files and trying to add ${files.length} more.` }));
       return;
     }
-    setRidaFiles((prev) => [...prev, ...files]);
+
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        error = "File must be under 10MB.";
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setErrors(prev => ({ ...prev, attachment: error }));
+      return;
+    }
+
+    // de-dup by (name + size + lastModified) against ridaFiles
+    const deduped = validFiles.filter(file => {
+      return !ridaFiles.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, maxFiles - (existingAttachments.length + ridaFiles.length));
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
+    }
+
+    if (filesToAdd.length > 0) {
+      setRidaFiles(prev => [...prev, ...filesToAdd]);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
+    event.target.value = '';
   };
 
   const removeAttachment = (indexToRemove) => {
@@ -580,7 +654,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
-                  Meeting Reference
+                  Meeting Reference *
                   <span className="float-right text-xs text-gray-500">
                     {formData.meetingReference.length}/100
                   </span>
@@ -655,7 +729,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <User size={14} className="inline mr-1" />
-                  Raised By
+                  Raised By *
                   <span className="float-right text-xs text-gray-500">
                     {formData.raisedBy.length}/100 characters
                   </span>
@@ -684,7 +758,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <UserCheck size={14} className="inline mr-1" />
-                  Owner
+                  Owner *
                   <span className="float-right text-xs text-gray-500">
                     {formData.owner.length}/100 characters
                   </span>
@@ -759,7 +833,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
                   id="rida-attachment-input"
                   multiple
                   onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                   className="hidden"
                   disabled={existingAttachments.length + ridaFiles.length >= 4 || uploading}
                 />

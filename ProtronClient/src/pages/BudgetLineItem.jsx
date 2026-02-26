@@ -819,7 +819,7 @@ const { hasAccess } = useAccess(); // Access context
       filter: true,
       cellRenderer: params => (
         <div className="flex items-center">
-          <User size={14} className="text-blue-600 mr-2" />
+          {/* <User size={14} className="text-blue-600 mr-2" /> */}
           <span className="truncate" title={params.value}>{params.value}</span>
         </div>
       )
@@ -834,20 +834,39 @@ const { hasAccess } = useAccess(); // Access context
       filter: true,
       cellRenderer: params => (
         <div className="flex items-center">
-          <Building size={14} className="text-blue-600 mr-2" />
+          {/* <Building size={14} className="text-blue-600 mr-2" /> */}
           <span className="truncate" title={params.value}>{params.value}</span>
         </div>
       )
     },
     {
+      headerName: "Currency",
+      field: "currency",
+      width: 80,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const currency = params.value;
+        return (
+          <span title={currency} className="cursor-help truncate block w-full">
+            {currency || 'N/A'}
+          </span>
+        );
+      }
+    },
+    {
       headerName: "Amount Approved",
       field: "amountApproved",
-      valueGetter: params => formatCurrency(params.data.amountApproved, params.data.currency),
+      valueGetter: params => {
+      const amount = params.data.amountApproved;
+      if (amount == null) return 'N/A';
+      return amount.toLocaleString();
+    },
       width: 160,
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="flex items-center font-bold text-green-600">
+        <div className="flex justify-end items-center w-full font-bold text-green-600">
           {params.value}
         </div>
       )
@@ -855,12 +874,16 @@ const { hasAccess } = useAccess(); // Access context
     {
       headerName: "Amount Available",
       field: "amountAvailable",
-      valueGetter: params => formatCurrency(params.data.amountAvailable, params.data.currency),
+      valueGetter: params => {
+      const amount = params.data.amountAvailable;
+      if (amount == null) return 'N/A';
+      return amount.toLocaleString();
+    },
       width: 160,
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="flex items-center font-bold text-blue-600">
+        <div className="flex justify-end items-center w-full font-bold text-green-600">
           {params.value}
         </div>
       )
@@ -885,7 +908,7 @@ const { hasAccess } = useAccess(); // Access context
         }
         return (
           <div className="flex items-center text-sm">
-            <Calendar size={14} className="text-blue-600 mr-2" />
+            {/* <Calendar size={14} className="text-blue-600 mr-2" /> */}
             <span className="truncate" title={params.value}>{formatted}</span>
           </div>
         );
@@ -895,7 +918,7 @@ const { hasAccess } = useAccess(); // Access context
     {
       headerName: "Actions",
       field: "actions",
-      width: 200,
+      width: 120,
       sortable: false,
       filter: false,
       suppressMenu: true,

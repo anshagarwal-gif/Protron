@@ -157,13 +157,12 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     const files = Array.from(e.target?.files || e.dataTransfer?.files || []);
     if (!files.length) return;
 
+    // Clear previous attachment error
+    setErrors(prev => ({ ...prev, attachment: "" }));
+
     // Check max limit of 4 files
     if (milestoneFiles.length + files.length > 4) {
-      setSnackbar({
-        open: true,
-        message: "Maximum 4 files allowed",
-        severity: "error"
-      });
+      setErrors(prev => ({ ...prev, attachment: "Maximum 4 files allowed. You have " + milestoneFiles.length + " files and trying to add " + files.length + " more." }));
       return;
     }
 
@@ -176,6 +175,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'image/jpeg',
+      'image/jpg',
       'image/png',
       'image/gif',
       'text/plain'
@@ -186,7 +186,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
 
     for (const file of files) {
       if (file.size > maxSize) {
-        error = `File "${file.name}" exceeds 10MB limit.`;
+        error = "File must be under 10MB.";
         break;
       }
       if (!allowedTypes.includes(file.type)) {
@@ -197,15 +197,39 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     }
 
     if (error) {
-      setSnackbar({
-        open: true,
-        message: error,
-        severity: "error"
-      });
+      setErrors(prev => ({ ...prev, attachment: error }));
       return;
     }
 
-    setMilestoneFiles(prev => [...prev, ...validFiles]);
+    // de-dup by (name + size + lastModified)
+    const deduped = validFiles.filter(file => {
+      return !milestoneFiles.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, 4 - milestoneFiles.length);
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
+    }
+
+    if (filesToAdd.length > 0) {
+      setMilestoneFiles(prev => [...prev, ...filesToAdd]);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
     if (e.target) e.target.value = null;
   };
 
@@ -640,6 +664,11 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
                   disabled={loading}
                 />
               </div>
+
+              {/* Error Display for Attachments */}
+              {errors.attachment && (
+                <p className="mt-1 text-red-600 text-xs">{errors.attachment}</p>
+              )}
 
               {/* Selected Files List */}
               {milestoneFiles.length > 0 && (

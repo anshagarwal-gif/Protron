@@ -667,7 +667,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
 
                             <div className="lg:col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Milestone
+                                    Milestone *
                                 </label>
                                 <select
                                     name="msId"

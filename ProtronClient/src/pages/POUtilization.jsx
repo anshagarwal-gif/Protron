@@ -812,14 +812,27 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       }
     },
     {
+      headerName: "Currency",
+      field: "currency",
+      width: 80,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const currency = params.value;
+        return (
+          <span title={currency} className="cursor-help truncate block w-full">
+            {truncateWithTooltip(currency, 8)}
+          </span>
+        );
+      }
+    },
+    {
       headerName: "Amount",
       field: "amount",
-      valueGetter: params => {
+        valueGetter: params => {
         const amount = params.data.amount;
-        const currency = params.data.currency;
-        if (!amount) return 'N/A';
-        const symbol = getCurrencySymbol(currency);
-        return `${symbol}${amount.toLocaleString()}`;
+        if (amount == null) return 'N/A';
+        return amount.toLocaleString();
       },
       width: 110,
       sortable: true,
@@ -828,7 +841,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const amount = params.value;
         return (
-          <span title={amount} className="cursor-help truncate block w-full font-bold text-green-600">
+          <span title={amount} className="cursor-help truncate block w-full text-right font-bold text-green-600">
             {truncateWithTooltip(amount, 12)}
           </span>
         );

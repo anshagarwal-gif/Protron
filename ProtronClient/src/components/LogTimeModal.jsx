@@ -472,7 +472,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
     if (fileInput) {
       fileInput.value = '';
     }
-    showSnackbar("Form reset successfully", 'success');
+    // showSnackbar("Form reset successfully", 'success');
   };
 
   const handleSubmit = async () => {

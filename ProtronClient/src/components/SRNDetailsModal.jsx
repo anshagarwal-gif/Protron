@@ -138,7 +138,7 @@ const SRNDetailsModal = ({ open, onClose, srnDetails, handleEdit }) => {
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
-      <div className="text-sm text-gray-900 font-medium">
+      <div className="text-sm text-gray-900 font-medium break-words word-break">
         {value || "N/A"}
       </div>
     </div>

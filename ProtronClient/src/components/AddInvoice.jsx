@@ -654,73 +654,87 @@ const AddInvoiceModal = ({
                 supplierInfo: ''
             }));
         }
-    };
-
-    // Special handler for employee selection to auto-populate rate and currency
-    // Top-level employee select handler removed (employee rows in table are used)
+    }
 
     // Handle multiple file selection (up to 4 files)
     const handleFileChange = event => {
-    const selected = Array.from(event.target.files || []);
-    if (!selected.length) return;
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
 
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/plain',
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/gif'
-    ];
+      // Clear previous attachment error
+      setErrors(prev => ({ ...prev, attachment: "" }));
 
-    const remaining = MAX_ATTACHMENTS - attachments.length;
+      const maxFiles = 4;
 
-    if (remaining <= 0) {
-      alert(`You can attach a maximum of ${MAX_ATTACHMENTS} files.`);
-      event.target.value = '';
-      return;
-    }
-
-    const validFiles = [];
-
-    for (let file of selected) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert(`File "${file.name}" exceeds 10MB limit and will be skipped.`);
-        continue;
+      // Check if adding these files exceeds the limit
+      if (attachments.length + files.length > maxFiles) {
+        setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${attachments.length} files and trying to add ${files.length} more.` }));
+        return;
       }
 
-      if (!allowedTypes.includes(file.type)) {
-        alert(
-          `File "${file.name}" has unsupported format and will be skipped. Please upload PDF, DOC, DOCX, TXT, or image files.`
+      // Validate each file
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain',
+        'image/jpeg',
+        'image/png',
+        'image/gif'
+      ];
+
+      let error = "";
+      const validFiles = [];
+
+      for (const file of files) {
+        if (file.size > maxSize) {
+          error = "File must be under 10MB.";
+          break;
+        }
+        if (!allowedTypes.includes(file.type)) {
+          error = "Unsupported file type. Upload PDF, DOC, DOCX, JPG, PNG, GIF, or TXT.";
+          break;
+        }
+        validFiles.push(file);
+      }
+
+      if (error) {
+        setErrors(prev => ({ ...prev, attachment: error }));
+        return;
+      }
+
+      // de-dup by (name + size + lastModified)
+      const deduped = validFiles.filter(file => {
+        return !attachments.some(a =>
+          a.name === file.name &&
+          a.size === file.size &&
+          a.lastModified === file.lastModified
         );
-        continue;
+      });
+
+      const filesToAdd = deduped.slice(0, maxFiles - attachments.length);
+
+      if (deduped.length > filesToAdd.length) {
+        setSnackbar({
+          open: true,
+          message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+          severity: 'warning'
+        });
       }
 
-      validFiles.push(file);
-    }
+      if (filesToAdd.length > 0) {
+        setAttachments(prev => [...prev, ...filesToAdd]);
+      } else {
+        setSnackbar({
+          open: true,
+          message: 'All selected files are duplicates and were skipped.',
+          severity: 'info'
+        });
+      }
 
-    // de-dup by (name + size + lastModified)
-    const deduped = validFiles.filter(file => {
-  return !attachments.some(a =>
-    a.name === file.name &&
-    a.size === file.size &&
-    a.lastModified === file.lastModified
-  );
-});
-
-    const filesToAdd = deduped.slice(0, remaining);
-
-    if (deduped.length > remaining) {
-      alert(`Only ${remaining} more file(s) can be added (max ${MAX_ATTACHMENTS}).`);
-    }
-
-    setAttachments(prev => [...prev, ...filesToAdd]);
-
-    // allow selecting same file again later
-    event.target.value = '';
-  };
+      event.target.value = '';
+    };
 
     // ------- Table & Employee row handlers -------
     // Helper: enforce max digit count (excluding decimal point)
@@ -1980,6 +1994,13 @@ const AddInvoiceModal = ({
                                 <p className="text-xs text-gray-500 mt-2">
                                     Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT (Max 10MB each)
                                 </p>
+
+                                {errors.attachment && (
+                                    <p className="mt-2 text-xs text-red-600 flex items-center">
+                                        <AlertCircle size={12} className="mr-1" />
+                                        {errors.attachment}
+                                    </p>
+                                )}
                             </div>
 
                             {/* Selected Files Display */}
@@ -2007,7 +2028,7 @@ const AddInvoiceModal = ({
                                                         <FileText size={16} className="text-green-600" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm text-gray-900 truncate" title={file.name}>
+                                                        <p className="text-sm text-gray-900 break-words" title={file.name}>
                                                             {file.name}
                                                         </p>
                                                         <p className="text-xs text-gray-500">
@@ -2075,7 +2096,7 @@ const AddInvoiceModal = ({
                 )}
 
                 {/* Visual footer details (tenant info for PDF footer preview) */}
-                <div className="px-6 pt-4 pb-2 border-t border-gray-100 bg-gray-50">
+                {/* <div className="px-6 pt-4 pb-2 border-t border-gray-100 bg-gray-50">
                     <div className="flex items-center justify-between text-sm text-gray-700">
                         <div>
                             <div className="font-semibold">{sessionStorage.getItem('tenantName') || ''}</div>
@@ -2084,7 +2105,7 @@ const AddInvoiceModal = ({
                         </div>
                         <div className="text-right text-xs text-gray-500">Page 1 of 1</div>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Footer */}
                 <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">

@@ -306,6 +306,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
             initialData={null}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
           <ReleaseFormModal
             open={editModalOpen}
@@ -314,6 +315,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
             initialData={editingRelease}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
           <ViewReleaseModal
             open={viewModalOpen}
@@ -327,6 +329,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
             initialData={duplicatingRelease}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
         </div>
       </div>
@@ -334,7 +337,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
   );
 }
 
-function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, projectId }) {
+function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, projectId, setSnackbar }) {
   const [formData, setFormData] = useState({
     releaseName: '',
     startDate: '',
@@ -392,17 +395,85 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
     }
   };
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length === 0) return;
-    const totalExisting = existingAttachments.length;
-    const totalFiles = releaseFiles.length + selectedFiles.length + totalExisting;
-    if (totalFiles > 4) {
-      alert(`Maximum 4 attachments allowed in total (existing + new). You already have ${totalExisting} existing attachments.`);
+  const handleFileChange = event => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    // Clear previous attachment error
+    setErrors(prev => ({ ...prev, attachment: "" }));
+
+    const maxFiles = 4;
+
+    // Check if adding these files exceeds the limit
+    if (existingAttachments.length + releaseFiles.length + files.length > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${existingAttachments.length + releaseFiles.length} files and trying to add ${files.length} more.` }));
       return;
     }
-    setReleaseFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-    e.target.value = null;
+
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        error = "File must be under 10MB.";
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setErrors(prev => ({ ...prev, attachment: error }));
+      return;
+    }
+
+    // de-dup by (name + size + lastModified) against releaseFiles
+    const deduped = validFiles.filter(file => {
+      return !releaseFiles.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, maxFiles - (existingAttachments.length + releaseFiles.length));
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
+    }
+
+    if (filesToAdd.length > 0) {
+      setReleaseFiles(prev => [...prev, ...filesToAdd]);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
+    event.target.value = '';
   };
 
   const removeAttachment = (indexToRemove) => {
@@ -669,7 +740,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                   id="release-attachment-input"
                   multiple
                   onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                   className="hidden"
                   disabled={existingAttachments.length + releaseFiles.length >= 4}
                 />
@@ -683,6 +754,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                   </span>
                 </label>
               </div>
+              {errors.attachment && <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>}
               <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
                 {releaseFiles.map((file, index) => (
                   <li
@@ -753,7 +825,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
   );
 }
 
-function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectName, projectId }) {
+function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectName, projectId, setSnackbar }) {
   const [formData, setFormData] = useState({
     releaseName: '',
     startDate: '',
@@ -811,16 +883,85 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
     }
   };
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    if (selectedFiles.length === 0) return;
-    const total = (existingAttachments.length || 0) + releaseFiles.length + selectedFiles.length;
-    if (total > 4) {
-      alert('You can only add up to 4 attachments.');
+  const handleFileChange = event => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    // Clear previous attachment error
+    setErrors(prev => ({ ...prev, attachment: "" }));
+
+    const maxFiles = 4;
+
+    // Check if adding these files exceeds the limit
+    if (existingAttachments.length + releaseFiles.length + files.length > maxFiles) {
+      setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${existingAttachments.length + releaseFiles.length} files and trying to add ${files.length} more.` }));
       return;
     }
-    setReleaseFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-    e.target.value = null;
+
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        error = "File must be under 10MB.";
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setErrors(prev => ({ ...prev, attachment: error }));
+      return;
+    }
+
+    // de-dup by (name + size + lastModified) against releaseFiles
+    const deduped = validFiles.filter(file => {
+      return !releaseFiles.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, maxFiles - (existingAttachments.length + releaseFiles.length));
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
+    }
+
+    if (filesToAdd.length > 0) {
+      setReleaseFiles(prev => [...prev, ...filesToAdd]);
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
+    event.target.value = '';
   };
 
   const removeAttachment = (indexToRemove) => {
@@ -1032,7 +1173,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                   id="duplicate-release-attachment-input"
                   multiple
                   onChange={handleFileChange}
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                   className="hidden"
                   disabled={(existingAttachments.length + releaseFiles.length) >= 4}
                 />
@@ -1046,6 +1187,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                   </span>
                 </label>
               </div>
+              {errors.attachment && <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>}
               <ul className="mt-2 text-sm text-gray-700 flex flex-wrap gap-2">
                 {releaseFiles.map((file, index) => (
                   <li key={index} className="flex items-center bg-gray-100 px-3 py-1 rounded max-w-[150px]">

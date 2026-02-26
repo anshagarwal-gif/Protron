@@ -314,17 +314,19 @@ const ProjectManagement = () => {
       headerName: 'Cost',
       field: 'unit',
       valueFormatter: (params) => params.value || '-',
-      maxWidth: 110,
+      maxWidth: 120,
       filter: 'agTextColumnFilter',
       cellStyle: { textAlign: 'center' }
     },
     {
       headerName: 'Initiative Cost',
       field: 'projectCost',
-      valueFormatter: (params) => params.value ? `${params.value}` : '-',
+      cellRenderer: (params) => {
+        const value = params.value ? `${params.value}` : '-';
+        return <div style={{ textAlign: 'right', fontWeight: '500' }}>{value}</div>;
+      },
       minWidth: 150,
-      filter: 'agNumberColumnFilter',
-      cellStyle: { textAlign: 'right', fontWeight: '500' }
+      filter: 'agNumberColumnFilter'
     },
     {
       headerName: 'Initiative Sponsor',

@@ -414,27 +414,29 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         const files = Array.from(e.target.files);
         if (!files.length) return;
 
-        // Limit to 4 files total
-        if (poConsumptionFiles.length + files.length > 4) {
-            setSnackbar({
-                open: true,
-                message: "You can upload a maximum of 4 attachments.",
-                severity: "error"
-            });
+        // Clear previous attachment error
+        setErrors(prev => ({ ...prev, attachment: "" }));
+
+        const maxFiles = 4;
+
+        // Check if adding these files exceeds the limit
+        if (poConsumptionFiles.length + files.length > maxFiles) {
+            setErrors(prev => ({ ...prev, attachment: `Maximum ${maxFiles} attachments allowed. You have ${poConsumptionFiles.length} files and trying to add ${files.length} more.` }));
             return;
         }
 
-        const maxSize = 10 * 1024 * 1024;
+        // Validate each file
+        const maxSize = 10 * 1024 * 1024; // 10MB
         const allowedTypes = [
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "text/plain",
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'image/jpeg',
+            'image/png',
+            'image/gif',
+            'text/plain'
         ];
 
         let error = "";
@@ -453,16 +455,41 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
         }
 
         if (error) {
-            setSnackbar({
-                open: true,
-                message: error,
-                severity: "error"
-            });
+            setErrors(prev => ({ ...prev, attachment: error }));
             return;
         }
 
-        setPoConsumptionFiles((prev) => [...prev, ...validFiles]);
-        e.target.value = null;
+        // de-dup by (name + size + lastModified) against existing File objects
+        const existingFiles = poConsumptionFiles.filter(doc => !doc.id); // only new File objects
+        const deduped = validFiles.filter(file => {
+            return !existingFiles.some(a =>
+                a.name === file.name &&
+                a.size === file.size &&
+                a.lastModified === file.lastModified
+            );
+        });
+
+        const filesToAdd = deduped.slice(0, maxFiles - poConsumptionFiles.length);
+
+        if (deduped.length > filesToAdd.length) {
+            setSnackbar({
+                open: true,
+                message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+                severity: 'warning'
+            });
+        }
+
+        if (filesToAdd.length > 0) {
+            setPoConsumptionFiles(prev => [...prev, ...filesToAdd]);
+        } else {
+            setSnackbar({
+                open: true,
+                message: 'All selected files are duplicates and were skipped.',
+                severity: 'info'
+            });
+        }
+
+        e.target.value = null; // Reset file input
     };
 
     // Reset form when modal opens
@@ -627,7 +654,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 <CreatableSelect
                                     isClearable
                                     isDisabled={loading}
-                                    placeholder="Select or type a resource"
+                                    placeholder="Select resource"
                                     title={formData.resource ? `Resource: ${formData.resource}` : "Select or type a resource"}
                                     onChange={(selectedOption) =>
                                         setFormData({ ...formData, resource: selectedOption ? selectedOption.value : '' })
@@ -657,7 +684,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 <CreatableSelect
                                     isClearable
                                     isDisabled={loading}
-                                    placeholder="Select or type an initiative"
+                                    placeholder="Select initiative"
                                     title={formData.project ? `Initiative: ${formData.project}` : "Select or type an initiative"}
                                     onChange={(selectedOption) =>
                                         setFormData({ ...formData, project: selectedOption ? selectedOption.value : '' })
@@ -771,7 +798,12 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                                 title="Upload document or image file (max 10MB)"
                             />
 
-                            {/* Selected Files List */}
+                            {errors.attachment && (
+                                <p className="mt-2 text-xs text-red-600 flex items-center">
+                                    <AlertCircle size={12} className="mr-1" />
+                                    {errors.attachment}
+                                </p>
+                            )}
 
                         </div>
                         <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">

@@ -450,23 +450,46 @@ const POManagement = () => {
         </div>
       )
     },
+     {
+      headerName: "Currency",
+      field: "poCurrency",
+      width: 80,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const currency = params.value;
+        return (
+          <span title={currency} className="cursor-help truncate block w-full">
+            {currency || 'N/A'}
+          </span>
+        );
+      }
+    },
     {
       headerName: "Budget Line Amount",
       field: "budgetLineAmount",
-      valueGetter: params => formatCurrency(params.data.budgetLineAmount, params.data.poCurrency),
+      valueGetter: params => {
+        const amount = params.data.budgetLineAmount;
+        if (amount == null) return 'N/A';
+        return amount.toLocaleString();
+      },
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' }
+      cellStyle: { fontWeight: 'bold', color: '#059669', textAlign: 'right' }
     },
     {
       headerName: "Business Value",
       field: "businessValueAmount",
-      valueGetter: params => formatCurrency(params.data.businessValueAmount, params.data.poCurrency),
+      valueGetter: params => {
+        const amount = params.data.businessValueAmount;
+        if (amount == null) return 'N/A';
+        return amount.toLocaleString();
+      },
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' }
+      cellStyle: { fontWeight: 'bold', color: '#059669', textAlign: 'right' }
     },
     {
       headerName: "Actions",
