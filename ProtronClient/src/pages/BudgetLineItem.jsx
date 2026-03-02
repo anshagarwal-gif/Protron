@@ -731,7 +731,7 @@ const { hasAccess } = useAccess(); // Access context
         'Budget End Date': budgetLine.budgetEndDate ? new Date(budgetLine.budgetEndDate).toLocaleDateString() : 'N/A',
         'Remarks': budgetLine.remarks || 'N/A',
         'Last Updated By': budgetLine.lastUpdatedBy || 'N/A',
-        'Created Date': budgetLine.createdDate ? new Date(budgetLine.createdDate).toLocaleDateString() : 'N/A'
+        'Created Date': budgetLine.startTimestamp ? new Date(budgetLine.startTimestamp).toLocaleDateString() : 'N/A'
       }));
 
       // Create worksheet
@@ -889,15 +889,32 @@ const { hasAccess } = useAccess(); // Access context
       )
     },
     {
+      headerName: "Amount Utilized",
+      field: "amountUtilized",
+      valueGetter: params => {
+      const amount = params.data.amountUtilized;
+      if (amount == null) return 'N/A';
+      return amount;
+    },
+      width: 160,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => (
+        <div className="flex justify-end items-center w-full font-bold text-green-600">
+          {params.value}
+        </div>
+      )
+    },
+    {
       headerName: "Budget End Date",
       field: "budgetEndDate",
-      valueGetter: params => formatDate(params.data.budgetEndDate),
+      valueGetter: params => params.data.budgetEndDate,
       width: 140,
       sortable: true,
       filter: true,
       cellRenderer: params => {
         // Format date to DD-Mon-YYYY
-        let formatted = '';
+        let formatted = 'N/A';
         if (params.value) {
           const d = new Date(params.value);
           const day = String(d.getDate()).padStart(2, '0');

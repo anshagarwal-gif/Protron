@@ -733,7 +733,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
             </div>
             {/* Attachments */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">Release Attachments (Max 4)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Release Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
               <div className="relative">
                 <input
                   type="file"
@@ -1166,7 +1166,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">Release Attachments (Max 4)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Release Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
               <div className="relative">
                 <input
                   type="file"

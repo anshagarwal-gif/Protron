@@ -826,7 +826,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
 
             {/* Row 6: Attachments */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">Attachments (Max 4)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
               <div className="relative">
                 <input
                   type="file"
@@ -1260,7 +1260,7 @@ function DuplicateRidaModal({ open, onClose, onSubmit, initialData, projectName,
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">Attachments (Max 4)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
               <div className="relative">
                 <input
                   type="file"

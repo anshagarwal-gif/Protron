@@ -868,7 +868,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
             {/* Attachments */}
             <div className="w-full mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Attachments ({formData.attachments.length}/4)
+                Attachments ({formData.attachments.length}/4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
               </label>
               <label
                 htmlFor="file-upload"

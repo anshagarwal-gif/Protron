@@ -179,6 +179,21 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
       cellClass: 'truncate-cell',
     },
     {
+      headerName: 'Currency',
+      field: 'currency',
+      valueGetter: params => params.data.currency || 'USD',
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => (
+        <div className="truncate w-full cursor-pointer" title={params.value}>
+          {params.value}
+        </div>
+      ),
+      tooltipField: 'currency',
+      cellClass: 'truncate-cell',
+    },
+    {
       headerName: 'Amount',
       field: 'amount',
       flex: 1,
@@ -192,7 +207,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
           const currencySymbol = getCurrencySymbol(currency);
 
           // Format the amount with proper currency symbol
-          return `${currencySymbol}${params.value.toLocaleString()}`;
+          return `${params.value.toLocaleString()}`;
         }
         return '';
       },
@@ -200,12 +215,12 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
         if (params.value) {
           const currency = params.data.currency || poDetails?.poCurrency || 'USD';
           const currencySymbol = getCurrencySymbol(currency);
-          return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+          return `${params.value.toLocaleString()} (${currency})`;
         }
         return 'No amount specified';
       },
       cellClass: 'truncate-cell',
-      cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
+      cellStyle: { textAlign: 'right', justifyContent: 'flex-end' },
     },
     {
       headerName: 'Type',

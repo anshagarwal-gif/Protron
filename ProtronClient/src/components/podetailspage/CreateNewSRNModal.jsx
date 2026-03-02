@@ -738,7 +738,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Attachments (Max 4)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
                                 <div className="relative">
                                     <input
                                         type="file"

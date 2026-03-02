@@ -491,7 +491,7 @@ const TaskDetailsModal = ({
               <div className="bg-blue-50 rounded-xl sm:rounded-2xl border border-blue-100 flex flex-col h-64 lg:h-full p-3 sm:p-6">
                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 flex-shrink-0">
                   <div className="w-1 sm:w-1.5 h-6 sm:h-8 bg-blue-500 rounded-full"></div>
-                  <h3 className="text-base sm:text-xl font-bold text-gray-900">Attachments</h3>
+                  <h3 className="text-base sm:text-xl font-bold text-gray-900">Attachments ( Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT )</h3>
                   {taskDetail.attachments && taskDetail.attachments.length > 0 && (
                     <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
                       {taskDetail.attachments.length}

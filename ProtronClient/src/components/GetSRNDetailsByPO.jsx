@@ -177,7 +177,23 @@ const GetSRNDetailsByPO = ({ poId }) => {
       valueFormatter: (params) => params.value || 'N/A',
       tooltipField: 'milestone.msName',
       cellClass: 'truncate-cell',
-    }, {
+    }, 
+    {
+      headerName: 'Currency',
+      field: 'srnCurrency',
+      valueGetter: params => params.data.srnCurrency || 'USD',
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => (
+        <div className="truncate w-full cursor-pointer" title={params.value}>
+          {params.value}
+        </div>
+      ),
+      tooltipField: 'srnCurrency',
+      cellClass: 'truncate-cell',
+    },
+    {
       headerName: 'Milestone Amount',
       field: 'milestone.msAmount',
       flex: 1,
@@ -191,7 +207,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
           const currencySymbol = getCurrencySymbol(currency);
 
           // Format the amount with proper currency symbol
-          return `${currencySymbol}${params.value.toLocaleString()}`;
+          return `${params.value.toLocaleString()}`;
         }
         return '';
       },
@@ -199,12 +215,12 @@ const GetSRNDetailsByPO = ({ poId }) => {
         if (params.value) {
           const currency = params.data.srnCurrency || poDetails?.poCurrency || 'USD';
           const currencySymbol = getCurrencySymbol(currency);
-          return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+          return `${params.value.toLocaleString()} (${currency})`;
         }
         return 'No amount specified';
       },
       cellClass: 'truncate-cell',
-      cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
+      cellStyle: { textAlign: 'right', justifyContent: 'flex-end' },
     },
     {
       headerName: 'Amount Paid',
@@ -220,7 +236,7 @@ const GetSRNDetailsByPO = ({ poId }) => {
           const currencySymbol = getCurrencySymbol(currency);
 
           // Format the amount with proper currency symbol
-          return `${currencySymbol}${params.value.toLocaleString()}`;
+          return `${params.value.toLocaleString()}`;
         }
         return '';
       },
@@ -228,12 +244,12 @@ const GetSRNDetailsByPO = ({ poId }) => {
         if (params.value) {
           const currency = params.data.srnCurrency || poDetails?.poCurrency || 'USD';
           const currencySymbol = getCurrencySymbol(currency);
-          return `${currencySymbol}${params.value.toLocaleString()} (${currency})`;
+          return `${params.value.toLocaleString()} (${currency})`;
         }
         return 'No amount specified';
       },
       cellClass: 'truncate-cell',
-      cellStyle: { fontWeight: 'bold', color: '#059669' }, // Green color for amounts
+      cellStyle: { textAlign: 'right', justifyContent: 'flex-end' }, // Green color for amounts
     },
     {
       headerName: 'Payment Type',

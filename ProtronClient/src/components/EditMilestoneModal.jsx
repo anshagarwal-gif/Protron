@@ -676,7 +676,7 @@ const handleFileChange = (e) => {
               <div className="max-w-[300px]">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <FileText size={14} className="inline mr-1" />
-                  Attachments (Max 4)
+                  Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                 </label>
                 <input
                   type="file"

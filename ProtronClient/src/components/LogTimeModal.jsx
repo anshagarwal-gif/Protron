@@ -935,22 +935,37 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                           </svg>
                         </div>
                         <input
-                          type="number"
-                          placeholder="HH"
-                          value={formData.remainingHours}
-                          onChange={handleInputChange('remainingHours')}
-                          onKeyDown={(e) => {
-                            if (
-                              !/[0-9]/.test(e.key) &&
-                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                          min="0"
-                          max="24"
-                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:ring-green-500 `}
-                        />
+  type="number"
+  placeholder="HH"
+  value={formData.remainingHours}
+  onChange={handleInputChange('remainingHours')}
+  onKeyDown={(e) => {
+    if (
+      !/[0-9]/.test(e.key) &&
+      !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+    ) {
+      e.preventDefault();
+    }
+  }}
+  min="0"
+  max="24"
+  className="
+    w-full
+    border
+    border-gray-300
+    rounded-md
+    pl-10
+    pr-3
+    py-2
+    text-sm
+    focus:outline-none
+    focus:ring-2
+    focus:ring-green-500
+    focus:border-green-500
+    transition
+    duration-200
+  "
+/>
 
                       </div>
                     </div>
@@ -1010,7 +1025,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
               {/* Compact Attachment Upload */}
               <div className="w-full md:w-[60%]">
                 <p className="text-sm font-semibold text-gray-800 mb-2">
-                  Attachments ({formData.attachments.length}/4)
+                  Attachments ({formData.attachments.length}/4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                 </p>
 
                 {/* Upload Box */}
