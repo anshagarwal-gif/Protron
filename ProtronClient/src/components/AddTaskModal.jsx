@@ -537,7 +537,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
                   <select
                     value={formData.taskType || ''}
                     onChange={handleInputChange('taskType')}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                     style={{ height: fieldHeight }}
                   >
                     <option value="">Select from list</option>
@@ -568,7 +568,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
                   <select
                     value={formData.status}
                     onChange={handleInputChange('status')}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                     style={{ height: fieldHeight }}
                   >
                     {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
@@ -599,7 +599,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
                     onChange={handleInputChange('taskTopic')}
                     placeholder="Enter task topic..."
                     maxLength={100}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                     style={{ height: fieldHeight }}
                   />
                 </div>
@@ -835,7 +835,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
                       }}
                       min="0"
                       max="59"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                     />
                   </div>
@@ -857,7 +857,7 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
                   onChange={handleInputChange('taskDescription')}
                   rows={4}
                   maxLength={500}
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none"
                 ></textarea>
               </div>
               <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">

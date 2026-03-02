@@ -281,7 +281,7 @@ export default function Careers() {
                     onChange={handleChange}
                     required
                     placeholder="Name"
-                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                   />
                   <input
                     name="email"
@@ -290,7 +290,7 @@ export default function Careers() {
                     onChange={handleChange}
                     required
                     placeholder="Email ID"
-                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                   />
                   <input
                     name="contactNo"
@@ -298,7 +298,7 @@ export default function Careers() {
                     onChange={handleChange}
                     required
                     placeholder="Contact No"
-                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                   />
                   <input
                     name="qualification"
@@ -306,7 +306,7 @@ export default function Careers() {
                     onChange={handleChange}
                     required
                     placeholder="Qualification"
-                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                   />
                 </div>
 
@@ -328,7 +328,7 @@ export default function Careers() {
                     onChange={handleChange}
                     placeholder="Message"
                     rows={8}
-                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                    className="w-full px-5 py-4 rounded-xl border border-gray-300 focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none resize-none"
                   />
                 </div>
 

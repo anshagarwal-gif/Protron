@@ -617,7 +617,7 @@ const IndividualTimesheet = () => {
       const dates = getVisibleDates();
       const periodType = viewMode === "Weekly" ? "week" : "month";
       const BOM = "\uFEFF";
-      const headers = ["Date", "Task", "Hours", "Minutes", "Description", "Project"];
+      const headers = ["Date", "Task", "Hours", "Minutes", "Description", "Project", "Remaining Hours", "Remaining Minutes", "Task Topic"];
       let csvContent = BOM + headers.map((h) => `"${h}"`).join(",") + "\r\n";
       dates.forEach((date) => {
         const entries = getTimeEntries(date);
@@ -628,7 +628,10 @@ const IndividualTimesheet = () => {
             `"${entry.hours}"`,
             `"${entry.minutes}"`,
             `"${entry.description}"`,
-            `"${entry.project.projectName || ""}"` // Ensure project name is used,
+            `"${entry.project.projectName || ""}"`,
+            `"${entry.remainingHours}"`,
+            `"${entry.remainingMinutes}"`,
+            `"${entry.fullTask.taskTopic}"`, 
           ];
           csvContent += row.join(",") + "\r\n";
         });
@@ -949,7 +952,7 @@ const IndividualTimesheet = () => {
                     <button
 
                       onClick={() => { console.log(hiddenDateInputRef.current); hiddenDateInputRef.current?.showPicker() }}
-                      className="px-3 sm:px-4 py-2 cursor-pointer text-xs sm:text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[150px] sm:min-w-[200px]"
+                      className="px-2 sm:px-4 py-2 cursor-pointer text-xs sm:text-sm font-medium text-gray-900 hover:bg-white rounded-md transition-colors min-w-[120px] sm:min-w-[200px] truncate"
                     >
                       {getCurrentDateString()}
                     </button>
@@ -990,15 +993,15 @@ const IndividualTimesheet = () => {
               </div>
 
               {/* Action Buttons - Mobile: Stack, Desktop: Row */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full lg:w-auto">
                 {hasAccess("timesheet", "edit") && (sessionData.email === employee.email) && (
                   <button
-                    className="flex items-center justify-center space-x-2 px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="flex items-center justify-center space-x-2 px-2 sm:px-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer w-full sm:w-auto"
                     onClick={handleCopyLastWeek}
                   >
                     <span>📋</span>
                     <span className="hidden sm:inline">Copy Last Week</span>
-                    <span className="sm:hidden">Copy Last Week</span>
+                    <span className="sm:hidden">Copy</span>
                   </button>
                 )}
 
@@ -1008,8 +1011,9 @@ const IndividualTimesheet = () => {
                       setSelectedCell({ date: new Date() }); // Ensure the current date is passed
                       setShowLogTimeModal(true);
                     }}
-                    className="flex items-center justify-center space-x-2 px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
+                    className="flex items-center justify-center space-x-2 px-2 sm:px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer w-full sm:w-auto"
                   >
+                    <Plus className="h-4 w-4" />
                     <span className="hidden sm:inline">Add Timesheet Task</span>
                     <span className="sm:hidden">Add Task</span>
                   </button>
@@ -1018,7 +1022,7 @@ const IndividualTimesheet = () => {
                 {((sessionData.email !== employee.email) || hasAccess(import.meta.env.VITE_GENERATE_INVOICE_MODULE, "view")) && (
                   <button
                     onClick={handleGenerateInvoice}
-                    className="flex items-center justify-center space-x-2 px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
+                    className="flex items-center justify-center space-x-2 px-2 sm:px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer w-full sm:w-auto"
                   >
                     <FileText className="h-4 w-4" />
                     <span className="hidden sm:inline">Generate Invoice</span>
@@ -1028,11 +1032,11 @@ const IndividualTimesheet = () => {
 
                 <button
                   onClick={downloadExcel}
-                  className="flex items-center justify-center space-x-2 px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer"
+                  className="flex items-center justify-center space-x-2 px-2 sm:px-3 py-2 bg-green-700 text-white text-xs sm:text-sm rounded-lg hover:bg-green-600 transition-colors cursor-pointer w-full sm:w-auto"
                 >
                   <Download className="h-4 w-4" />
                   <span className="hidden sm:inline">Download Excel</span>
-                  <span className="sm:hidden">Download</span>
+                  <span className="sm:hidden">Excel</span>
                 </button>
               </div>
             </div>

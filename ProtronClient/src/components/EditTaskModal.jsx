@@ -455,7 +455,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                     <select
                       value={formData.projectId || ''}
                       onChange={handleInputChange("projectId")}
-                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed`}
                       required
                       disabled={loading}
                     >
@@ -489,7 +489,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                     <select
                       value={formData.taskType || ''}
                       onChange={handleInputChange('taskType')}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                       disabled={loading}
                     >
@@ -525,7 +525,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                       onChange={handleInputChange('taskTopic')}
                       placeholder="Enter task topic..."
                       maxLength={100}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                       disabled={loading}
                       required
@@ -555,7 +555,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                   <select
                     value={formData.status}
                     onChange={handleInputChange('status')}
-                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                     style={{ height: fieldHeight }}
                     disabled={loading}
                   >
@@ -787,7 +787,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                           }}
                           min="0"
                           max="24"
-                          className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full border border-gray-300 rounded-md pl-10 pr-3 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                           style={{ height: fieldHeight }}
                           disabled={loading}
                         />
@@ -825,7 +825,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                         }}
                         min="0"
                         max="59"
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                         style={{ height: fieldHeight }}
                         disabled={loading}
                       />
@@ -848,7 +848,7 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
                     onChange={handleInputChange('taskDescription')}
                     rows={4}
                     maxLength={500}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none"
                     disabled={loading}
                   ></textarea>
                 </div>

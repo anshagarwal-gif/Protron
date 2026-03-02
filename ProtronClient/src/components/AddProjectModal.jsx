@@ -128,7 +128,7 @@ const DatePicker = ({ label, value, onChange, icon: Icon, error }) => {
                     type="date"
                     value={value ? value.toISOString().split('T')[0] : ''}
                     onChange={(e) => onChange(e.target.value ? new Date(e.target.value) : null)}
-                    className={`w-full h-10 px-3 py-2 pl-10 border rounded-md focus:ring-2 focus:ring-green-500 hover:border-green-500 cursor-pointer ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-green-500'}`}
+                    className={`w-full h-10 px-3 py-2 pl-10 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none hover:border-green-500 cursor-pointer ${error ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-green-500'}`}
                     title={value || "N/A"}
                 />
                 {error && (
@@ -369,7 +369,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                         value={formData.projectName || ''}
                                         onChange={(e) => handleChange('projectName', e.target.value)}
                                         disabled={isSubmitting}
-                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                         title={formData.projectName || 'Enter Initiative name'}
                                     />
                                     <FolderOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-800" />
@@ -493,7 +493,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                             setFormData(prev => ({ ...prev, cost: value }));
                                         }}
                                         disabled={isSubmitting}
-                                        className={`w-full h-10 px-3 py-2 pl-8 border rounded-md focus:ring-2 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.cost ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-green-500 focus:border-green-500'}`}
+                                        className={`w-full h-10 px-3 py-2 pl-8 border focus:outline-none rounded-md focus:ring-2 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed ${errors.cost ? 'border-red-500 focus:ring-red-200 focus:border-red-500' : 'border-gray-300 focus:ring-green-500 focus:border-green-500'}`}
                                         title={formData.cost || 'Enter Initiative Cost'}
                                         step="0.01"
                                     />
@@ -521,7 +521,8 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     }}
                                     min="0"
                                     disabled={isSubmitting}
-                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md"
+                                    className="w-full h-10 px-3 py-2 border border-gray-300 focus:outline-none rounded-md focus:ring-2 focus:ring-green-500 
+         focus:border-green-500"
                                 />
                             </div>
                             {/* Business Value Type */}
@@ -679,7 +680,7 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                                     value={formData.priority}
                                     onChange={e => handleChange('priority', Number(e.target.value))}
                                     disabled={isSubmitting}
-                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 hover:border-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {Array.from({ length: 10 }, (_, i) => (
                                         <option key={i + 1} value={i + 1}>

@@ -860,7 +860,7 @@ const { hasAccess } = useAccess(); // Access context
       valueGetter: params => {
       const amount = params.data.amountApproved;
       if (amount == null) return 'N/A';
-      return amount.toLocaleString();
+      return amount;
     },
       width: 160,
       sortable: true,
@@ -877,7 +877,7 @@ const { hasAccess } = useAccess(); // Access context
       valueGetter: params => {
       const amount = params.data.amountAvailable;
       if (amount == null) return 'N/A';
-      return amount.toLocaleString();
+      return amount;
     },
       width: 160,
       sortable: true,

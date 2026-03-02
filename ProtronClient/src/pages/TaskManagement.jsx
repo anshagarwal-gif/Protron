@@ -399,7 +399,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               placeholder="Search tasks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
             />
           </div>
           <button

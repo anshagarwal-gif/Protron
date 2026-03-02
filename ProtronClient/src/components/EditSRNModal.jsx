@@ -758,7 +758,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                     name="srnName"
                     value={formData.srnName}
                     onChange={handleInputChange}
-                    className={`w-full h-10 pl-10 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full h-10 pl-10 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
                       }`}
                     placeholder="Enter here"
                     disabled={loading || initialLoading}
@@ -791,7 +791,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                   name="srnType"
                   value={formData.srnType}
                   onChange={handleInputChange}
-                  className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnType ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnType ? 'border-red-500' : 'border-gray-300'
                     }`}
                   disabled={loading || initialLoading}
                 >
@@ -839,7 +839,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                     min="0"
                     pattern="^\d{1,13}(\.\d{0,2})?$"
                     inputMode="decimal"
-                    className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full h-10 pl-8 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
                       }`}
                     placeholder="Enter here"
                     disabled={loading || initialLoading}
@@ -899,7 +899,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 value={formData.srnDsc}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${errors.srnDsc ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-3 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none ${errors.srnDsc ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="Enter here"
                 disabled={loading || initialLoading}
@@ -923,7 +923,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 value={formData.srnRemarks}
                 onChange={handleInputChange}
                 rows={3}
-                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-4 py-3 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
                   }`}
                 placeholder="Enter here"
                 disabled={loading || initialLoading}

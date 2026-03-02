@@ -367,13 +367,26 @@ const POManagement = () => {
       }
     },
     {
+  headerName: "Currency",
+  field: "poCurrency",
+  width: 110,
+  sortable: true,
+  filter: true,
+  valueGetter: params => params.data?.poCurrency || 'N/A',
+  cellRenderer: params => (
+    <span className="font-medium text-gray-700">
+      {params.value}
+    </span>
+  )
+},
+    {
       headerName: "PO Amount",
       field: "poAmount",
-      valueGetter: params => formatCurrency(params.data.poAmount, params.data.poCurrency),
+      valueGetter: params => params.data.poAmount ? params.data.poAmount : 'N/A',
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' }
+      cellStyle: { fontWeight: 'bold', color: '#059669', textAlign: 'right' }
     },
     {
       headerName: "Customer",
@@ -450,7 +463,7 @@ const POManagement = () => {
         </div>
       )
     },
-     {
+    {
       headerName: "Currency",
       field: "poCurrency",
       width: 80,
@@ -471,7 +484,7 @@ const POManagement = () => {
       valueGetter: params => {
         const amount = params.data.budgetLineAmount;
         if (amount == null) return 'N/A';
-        return amount.toLocaleString();
+        return amount;
       },
       width: 140,
       sortable: true,
@@ -484,7 +497,7 @@ const POManagement = () => {
       valueGetter: params => {
         const amount = params.data.businessValueAmount;
         if (amount == null) return 'N/A';
-        return amount.toLocaleString();
+        return amount;
       },
       width: 140,
       sortable: true,
@@ -494,7 +507,7 @@ const POManagement = () => {
     {
       headerName: "Actions",
       field: "actions",
-      width: 150,
+      width: 120,
       sortable: false,
       filter: false,
       suppressMenu: true,
@@ -507,7 +520,7 @@ const POManagement = () => {
             {hasAccess && hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleOpenMilestoneModal(po)}
-                className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
+                className="p-1 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
                 title="Add milestones"
               >
                 <Plus size={16} className="text-green-600" />
@@ -516,7 +529,7 @@ const POManagement = () => {
             {/* View Button (always visible) */}
             <button
               onClick={() => handleViewPO(po)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
+              className="p-1 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
               title="View PO"
             >
               <Eye size={16} className="text-blue-600" />
@@ -525,7 +538,7 @@ const POManagement = () => {
             {hasAccess && hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleEditPO(po)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
+                className="p-1 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Edit PO"
               >
                 <Edit size={16} className="text-blue-600" />

@@ -1950,7 +1950,7 @@ const AddInvoiceModal = ({
                                 rows={3}
                                 value={formData.remarks}
                                 onChange={handleChange('remarks')}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
                                 maxLength={120}
                             />
                             <div className="text-right text-sm text-gray-500 mt-1">

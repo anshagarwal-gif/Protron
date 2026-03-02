@@ -254,7 +254,7 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
                   placeholder="Search releases..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 w-full sm:w-64"
+                  className="px-3 py-2 border rounded-md text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none w-full sm:w-64"
                 />
                 <div className="flex gap-2">
                   <button onClick={downloadReleaseExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer whitespace-nowrap">
@@ -746,7 +746,7 @@ function ReleaseFormModal({ open, onClose, onSubmit, initialData, projectName, p
                 />
                 <label
                   htmlFor="release-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + releaseFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + releaseFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={existingAttachments.length + releaseFiles.length >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">
@@ -1179,7 +1179,7 @@ function DuplicateReleaseModal({ open, onClose, onSubmit, initialData, projectNa
                 />
                 <label
                   htmlFor="duplicate-release-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${releaseFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${releaseFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={(existingAttachments.length + releaseFiles.length) >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">

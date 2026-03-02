@@ -635,7 +635,7 @@ const TimesheetManager = () => {
                   placeholder="Search employees..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full text-sm"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 w-full text-sm"
                 />
                 {searchTerm && (
                   <button

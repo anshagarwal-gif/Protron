@@ -832,7 +832,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         valueGetter: params => {
         const amount = params.data.amount;
         if (amount == null) return 'N/A';
-        return amount.toLocaleString();
+        return amount;
       },
       width: 110,
       sortable: true,
@@ -842,7 +842,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         const amount = params.value;
         return (
           <span title={amount} className="cursor-help truncate block w-full text-right font-bold text-green-600">
-            {truncateWithTooltip(amount, 12)}
+            {(amount)}
           </span>
         );
       }

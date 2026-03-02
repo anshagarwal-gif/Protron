@@ -1136,6 +1136,7 @@ const StoryDashboard = () => {
         if (showBacklog) {
           dataToExport = items.map(story => ({
             'Project ID': story.projectId,
+            'Project Name': projectList.find(p => p.projectId == story.projectId)?.projectName || story.projectId,
             'Summary': story.summary,
             'As A': story.asA,
             'I Want To': story.iWantTo,
@@ -1156,6 +1157,7 @@ const StoryDashboard = () => {
         } else {
           dataToExport = items.map(story => ({
             'Project ID': story.projectId,
+            'Project Name': projectList.find(p => p.projectId == story.projectId)?.projectName || story.projectId,
             'Summary': story.summary,
             'As A': story.asA,
             'I Want To': story.iWantTo,
@@ -1178,6 +1180,7 @@ const StoryDashboard = () => {
         // Similar format to table view usually
         dataToExport = items.map(story => ({
           'Project ID': story.projectId,
+          'Project Name': projectList.find(p => p.projectId == story.projectId)?.projectName || story.projectId,
           'Summary': story.summary,
           'As A': story.asA,
           'I Want To': story.iWantTo,
@@ -2440,7 +2443,7 @@ const StoryDashboard = () => {
       {viewMode === 'dashboard' ? (
         /* Dashboard View - AgGrid */
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
+          <div className="ag-theme-alpine rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
             <style jsx>{`
             .ag-cell-truncate {
               white-space: nowrap;

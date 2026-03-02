@@ -246,7 +246,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
                   <input
                     type="text"
                     placeholder="Search RIDAs..."
-                    className="pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full sm:w-64"
+                    className="pl-9 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 w-full sm:w-64"
                   />
                   <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
@@ -839,7 +839,7 @@ function RidaFormModal({ open, onClose, onSubmit, initialData, projectName, proj
                 />
                 <label
                   htmlFor="rida-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + ridaFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + ridaFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={existingAttachments.length + ridaFiles.length >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">
@@ -1273,7 +1273,7 @@ function DuplicateRidaModal({ open, onClose, onSubmit, initialData, projectName,
                 />
                 <label
                   htmlFor="duplicate-rida-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${ridaFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${ridaFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={(existingAttachments.length + ridaFiles.length) >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">

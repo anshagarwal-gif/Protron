@@ -182,7 +182,7 @@ const DatePicker = ({ label, value, onChange, icon: Icon, className = "" }) => {
                     type="date"
                     value={formatDateForInput(value)}
                     onChange={handleDateChange}
-                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500 text-sm"
+                    className="w-full h-10 px-3 py-2 pl-10 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 hover:border-green-500 text-sm"
                     title={formatDateForInput(value)}
                 />
                 {Icon && (
@@ -470,7 +470,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                         value={localFormData.projectName}
                                         onChange={e => handleChange('projectName', e.target.value.slice(0, 100))}
                                         maxLength={100}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 text-sm"
                                         placeholder="Enter initiative name"
                                         required
                                     />
@@ -518,7 +518,8 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Business Value Amount</label>
                                     <input
                                         type="number"
-                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md"
+                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 
+         focus:border-green-500"
                                         value={localFormData.businessValueAmount || ''}
                                         onChange={e => {
                                             let value = e.target.value.replace(/[^0-9.]/g, '');
@@ -575,7 +576,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     <select
                                         value={localFormData.unit || 'USD'}
                                         onChange={(e) => handleChange('unit', e.target.value)}
-                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
+                                        className="w-full h-10 px-3 py-2 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 hover:border-green-500"
                                         title={localFormData.unit}
                                     >
                                         {currencies.map((currency) => (
@@ -601,7 +602,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                                 value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
                                                 handleChange('projectCost', value);
                                             }}
-                                            className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-500"
+                                            className="w-full h-10 px-3 py-2 pl-8 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 hover:border-green-500"
                                             title={localFormData.projectCost}
                                             step="0.01"
                                         />

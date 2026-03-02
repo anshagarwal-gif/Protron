@@ -584,7 +584,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                 />
                 <label
                   htmlFor="sprint-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={existingAttachments.length + sprintFiles.length >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">
@@ -904,7 +904,7 @@ function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectNam
                 />
                 <label
                   htmlFor="duplicate-sprint-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={(existingAttachments.length + sprintFiles.length) >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">

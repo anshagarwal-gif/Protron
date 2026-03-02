@@ -752,7 +752,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                     />
                                     <label
                                         htmlFor="srn-attachment-input"
-                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
+                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer"
                                     >
                                         <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
                                         <span className="text-gray-500 truncate">

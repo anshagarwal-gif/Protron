@@ -163,7 +163,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     onFocus={() => setShowUserDropdown(true)} // Show dropdown on focus
                     onChange={(e) => handleEmailSearch(e.target.value)} // Filter users as user types
                     placeholder="Search for an email..."
-                    className={`w-full pl-10 pr-3 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${error ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full pl-10 pr-3 py-3 border rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${error ? 'border-red-500' : 'border-gray-300'
                       }`}
                   />
                   {showUserDropdown && filteredUsers.length > 0 && (
@@ -233,7 +233,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     name="tasktype"
                     value={formData.tasktype}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none bg-white"
+                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 appearance-none bg-white"
                   >
                     <option value="" disabled>Select Task Type</option>
                     <option value="Develop">Develop</option>
@@ -265,7 +265,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     name="systemImpacted"
                     value={formData.systemImpacted || ''}
                     onChange={(e) => setFormData({ ...formData, systemImpacted: parseInt(e.target.value, 10) })}
-                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none bg-white"
+                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 appearance-none bg-white"
                   >
                     <option value="" disabled>Select a system</option>
                     {project.systemsImpacted?.map((system, index) => (
@@ -302,7 +302,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     name="unit"
                     value={formData.unit}
                     onChange={handleChange}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 appearance-none bg-white"
+                    className="w-full px-3 py-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 appearance-none bg-white"
                   >
                     <option value="" disabled>Select Unit</option>
                     <option value="USD">USD</option>
@@ -332,7 +332,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     value={formData.cost}
                     onChange={handleChange}
                     placeholder="Enter amount"
-                    className={`w-full ${formData.unit ? 'pl-8' : 'pl-3'} pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+                    className={`w-full ${formData.unit ? 'pl-8' : 'pl-3'} pr-3 py-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500`}
                   />
                 </div>
               </div>
@@ -350,7 +350,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     value={formData.onBoardingDate}
                     onChange={e => setFormData({ ...formData, onBoardingDate: e.target.value })}
                     onClick={e => e.target.showPicker && e.target.showPicker()}
-                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
                   />
                 </div>
               </div>
@@ -368,7 +368,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     name="releaseDate"
                     value={formData.releaseDate}
                     onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
-                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
                   />
                 </div>
               </div>

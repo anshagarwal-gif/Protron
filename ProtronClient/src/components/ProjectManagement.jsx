@@ -735,7 +735,7 @@ const ProjectManagement = () => {
             {isLoading ? (
               <LoadingSpinner />
             ) : (
-              <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
+              <div className="ag-theme-alpine rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
                 <style jsx>{`
                 .ag-cell-truncate {
   white-space: nowrap;

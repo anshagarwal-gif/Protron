@@ -514,7 +514,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     <select
                       value={formData.status || ''}
                       onChange={handleInputChange('status')}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                     >
                       {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
@@ -543,7 +543,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     <select
                       value={formData.priority || ''}
                       onChange={handleInputChange('priority')}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                     >
                       <option value="1">High</option>
@@ -563,7 +563,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     onChange={handleInputChange('storyPoints')}
                     placeholder="0"
                     min="0"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                     style={{ height: fieldHeight }}
                   />
                 </div>
@@ -583,7 +583,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                       value={formData.system || ''}
                       onChange={(e) => { if (!systemFixed) handleInputChange('system')(e); }}
                       placeholder="Enter system name"
-                      className={`w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${systemFixed ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
+                      className={`w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none ${systemFixed ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
                       style={{ height: fieldHeight }}
                       disabled={systemFixed}
                     />
@@ -744,7 +744,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     onChange={handleInputChange('description')}
                     rows={4}
                     maxLength={500}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
                   ></textarea>
                 </div>
                 <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
@@ -764,7 +764,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     onChange={handleInputChange('summary')}
                     rows={4}
                     maxLength={200}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
                   />
                 </div>
                 <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">
