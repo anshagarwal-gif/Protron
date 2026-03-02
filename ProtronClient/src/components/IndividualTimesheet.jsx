@@ -471,7 +471,7 @@ const IndividualTimesheet = () => {
               : entry
           ),
         }));
-        showToast("Task updated successfully!", "success");
+        // showToast("Task updated successfully!", "success");
       } catch (err) {
         showToast("Failed to update task", "error");
       }
