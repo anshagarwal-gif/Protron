@@ -463,21 +463,21 @@ const POManagement = () => {
         </div>
       )
     },
-    {
-      headerName: "Currency",
-      field: "poCurrency",
-      width: 80,
-      sortable: true,
-      filter: true,
-      cellRenderer: params => {
-        const currency = params.value;
-        return (
-          <span title={currency} className="cursor-help truncate block w-full">
-            {currency || 'N/A'}
-          </span>
-        );
-      }
-    },
+    // {
+    //   headerName: "Currency",
+    //   field: "poCurrency",
+    //   width: 80,
+    //   sortable: true,
+    //   filter: true,
+    //   cellRenderer: params => {
+    //     const currency = params.value;
+    //     return (
+    //       <span title={currency} className="cursor-help truncate block w-full">
+    //         {currency || 'N/A'}
+    //       </span>
+    //     );
+    //   }
+    // },
     {
       headerName: "Budget Line Amount",
       field: "budgetLineAmount",

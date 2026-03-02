@@ -264,16 +264,19 @@ public class TimesheetTaskService {
         // Save new task to get the ID
         TimesheetTask savedNewTask = timesheetTaskRepository.save(newTask);
 
-        Task referencedTask = taskRepository.findById(savedNewTask.getTaskRef())
-                .orElseThrow(()-> new RuntimeException("Referenced Task Edit failed"));
-        referencedTask.setTimeSpentHours(savedNewTask.getHoursSpent());
-        referencedTask.setTimeSpentMinutes(savedNewTask.getMinutesSpent());
-        referencedTask.setTaskTopic(savedNewTask.getTaskTopic());
-        referencedTask.setTaskDescription(savedNewTask.getDescription());
-        referencedTask.setTaskType(savedNewTask.getTaskType());
-        referencedTask.setTimeRemainingHours(savedNewTask.getRemainingHours());
-        referencedTask.setTimeRemainingMinutes(savedNewTask.getRemainingMinutes());
-        taskRepository.save(referencedTask);
+        // Update referenced Task only if taskRef exists
+        if (savedNewTask.getTaskRef() != null) {
+            Task referencedTask = taskRepository.findById(savedNewTask.getTaskRef())
+                    .orElseThrow(()-> new RuntimeException("Referenced Task Edit failed"));
+            referencedTask.setTimeSpentHours(savedNewTask.getHoursSpent());
+            referencedTask.setTimeSpentMinutes(savedNewTask.getMinutesSpent());
+            referencedTask.setTaskTopic(savedNewTask.getTaskTopic());
+            referencedTask.setTaskDescription(savedNewTask.getDescription());
+            referencedTask.setTaskType(savedNewTask.getTaskType());
+            referencedTask.setTimeRemainingHours(savedNewTask.getRemainingHours());
+            referencedTask.setTimeRemainingMinutes(savedNewTask.getRemainingMinutes());
+            taskRepository.save(referencedTask);
+        }
 
         // Fetch existing attachments of old task
         List<TimesheetTaskAttachment> existingAttachments = timesheetTaskAttachmentRepository
