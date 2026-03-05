@@ -11,6 +11,7 @@ import com.Protronserver.Protronserver.Repository.RolesRepository;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.Repository.UserRepository;
 import com.Protronserver.Protronserver.Utils.JwtUtil;
+import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.Protronserver.Protronserver.Utils.RSAUtil;
 import jakarta.persistence.EntityNotFoundException;
 import com.Protronserver.Protronserver.DashboardRecords.UserCostCurrencyDTO;
@@ -55,11 +56,22 @@ public class UserService {
     @Autowired
     private RSAUtil rsaUtil;
 
+    @Autowired
+    private LoggedInUserUtils loggedInUserUtils;
+
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public User signupUser(UserSignUpDTO dto) {
         if (userRepository.existsByEmail(dto.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
+        }
+
+        // Determine createdBy from logged-in user if available, otherwise fall back to the new user's email
+        String createdBy;
+        try {
+            createdBy = loggedInUserUtils.getLoggedInUser().getEmail();
+        } catch (RuntimeException ex) {
+            createdBy = dto.getEmail();
         }
 
         User user = new User();
@@ -82,6 +94,11 @@ public class UserService {
         user.setCost(dto.getCost());
         user.setCost_time(dto.getCost_time());
         user.setUnit(dto.getUnit());
+        user.setCreatedBy(createdBy);
+        user.setDateCreated(java.time.LocalDateTime.now());
+        user.setStartTimestamp(java.time.LocalDateTime.now());
+        user.setEndTimestamp(null);
+        user.setLastUpdatedBy(null);
         Tenant tenant = tenantRepository.findById(dto.getTenant())
                 .orElseThrow(() -> new EntityNotFoundException("Tenant Not found"));
         user.setTenant(tenant);
@@ -100,11 +117,12 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
-        message.setSubject("Welcome to Protron - Your Account Details");
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(user.getEmail());
+            message.setSubject("Welcome to Protron - Your Account Details");
 
-        String content = """
+            String content = """
                 Hi %s,
 
                 Welcome to Protron! Your account has been successfully created by the administrator.
@@ -126,9 +144,12 @@ public class UserService {
                 user.getEmail(),
                 dto.getPassword());
 
-        message.setText(content);
-        message.setFrom("dopahiya.feedback@gmail.com");
-        mailSender.send(message);
+            message.setText(content);
+            message.setFrom("dopahiya.feedback@gmail.com");
+            mailSender.send(message);
+        } catch (Exception e) {
+            // Do not fail user creation if welcome email fails (e.g. mail not configured)
+        }
 
         return savedUser;
     }

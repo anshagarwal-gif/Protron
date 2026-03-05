@@ -5,6 +5,7 @@ import { EyeIcon, EyeOffIcon, MailIcon, UserIcon, PhoneIcon, MapPinIcon, UploadI
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
 import GlobalSnackbar from "../components/GlobalSnackbar"
+import * as XLSX from "xlsx"
 
 const Signup = ({ onSignup, onSwitchToLogin }) => {
   const navigate = useNavigate()
@@ -46,6 +47,15 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
   const [photo, setPhoto] = useState(null)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [countriesno, setCountriesno] = useState([]);
+
+  // --- Bulk user creation state ---
+  const [mode, setMode] = useState("single") // "single" | "bulk"
+  const [bulkUsers, setBulkUsers] = useState([]) // Parsed + validated rows from Excel
+  const [bulkValidatedAt, setBulkValidatedAt] = useState(null) // When validation was last run
+  const [bulkFileName, setBulkFileName] = useState("") // Display name of selected file
+  const [bulkFileKey, setBulkFileKey] = useState(0) // Resets file input when clearing
+  const [bulkFile, setBulkFile] = useState(null) // Selected file; parsed only on "Validate Records"
+  const [bulkTemplateMeta, setBulkTemplateMeta] = useState(null) // Template metadata from API (lastUpdated, updatedBy)
 
   // Location-related states
   const [countries, setCountries] = useState([])
@@ -276,8 +286,22 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
         console.error("Failed to fetch roles:", error)
       }
     }
+    const fetchTemplateMeta = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/templates/user-bulk/meta`,
+          {
+            headers: { Authorization: `${token}` },
+          },
+        )
+        setBulkTemplateMeta(response.data)
+      } catch (error) {
+        console.error("Failed to fetch bulk template meta:", error)
+      }
+    }
     fetchRoles()
     fetchCountries()
+    fetchTemplateMeta()
   }, [])
 
   // Handle country change
@@ -358,6 +382,309 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
         setPhotoPreview(reader.result)
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  /**
+   * Validates a single bulk user row (email format, required fields, role, password match).
+   * Returns { isValid, errors } for the row.
+   */
+  const validateBulkUser = (user) => {
+    const errors = []
+
+    if (!user.email) {
+      errors.push("Email is required")
+    } else if (!user.email.includes("@")) {
+      errors.push("Email must contain @")
+    }
+
+    if (!user.firstName) {
+      errors.push("First name is required")
+    }
+
+    if (!user.lastName) {
+      errors.push("Last name is required")
+    }
+
+    if (!user.roleId) {
+      if (user.roleName) {
+        errors.push(`No role found with name "${user.roleName}"`)
+      } else {
+        errors.push("Role name is required")
+      }
+    }
+
+    if (!user.password) {
+      errors.push("Password is required")
+    }
+
+    if (user.password !== user.confirmPassword) {
+      errors.push("Passwords do not match")
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    }
+  }
+
+  /** On file select: store file and name only; clear previous validation. Data is shown only after "Validate Records". */
+  const handleBulkFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setBulkFileName(file.name)
+    setBulkFile(file)
+    setBulkUsers([])
+    setBulkValidatedAt(null)
+  }
+
+  /** Parses the selected Excel file, maps rows to user objects, runs validation, and updates bulkUsers + bulkValidatedAt. */
+  const parseAndValidateBulkFile = () => {
+    if (!bulkFile) return
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result)
+      const workbook = XLSX.read(data, { type: "array" })
+      const sheetName = workbook.SheetNames[0]
+      const sheet = workbook.Sheets[sheetName]
+
+      const jsonRows = XLSX.utils.sheet_to_json(sheet, { defval: "" })
+
+      const mapped = jsonRows.map((row, index) => {
+        const roleNameFromSheet =
+          row.roleName ||
+          row.RoleName ||
+          row.role ||
+          row.Role ||
+          ""
+
+        const matchedRole = roles.find((r) => r.roleName === roleNameFromSheet)
+
+        const user = {
+          email: row.email || row.Email || "",
+          firstName: row.firstName || row.FirstName || "",
+          middleName: row.middleName || row.MiddleName || "",
+          lastName: row.lastName || row.LastName || "",
+          displayName: row.displayName || row.DisplayName || "",
+          mobileCountryCode: row.mobileCountryCode || formData.mobileCountryCode,
+          mobileNumber: row.mobileNumber || "",
+          landlineCountryCode: row.landlineCountryCode || formData.landlineCountryCode,
+          landlineNumber: row.landlineNumber || "",
+          cost: row.cost || "",
+          cost_time: row.cost_time || formData.cost_time,
+          unit: row.unit || formData.unit,
+          addressLine1: row.addressLine1 || "",
+          addressLine2: row.addressLine2 || "",
+          addressLine3: row.addressLine3 || "",
+          country: row.country || "",
+          zipCode: row.zipCode || "",
+          city: row.city || "",
+          state: row.state || "",
+          password: row.password || "",
+          confirmPassword: row.confirmPassword || row.password || "",
+          status: row.status || "active",
+          tenant: formData.tenant,
+          roleId: matchedRole?.roleId || null,
+          _rowIndex: index + 2,
+        }
+
+        const validation = validateBulkUser(user)
+        return { ...user, ...validation, roleName: roleNameFromSheet }
+      })
+
+      // Mark rows with duplicate email in the sheet as invalid
+      const emailCount = new Map()
+      mapped.forEach((row, idx) => {
+        const key = (row.email || "").toString().trim().toLowerCase()
+        if (!key) return
+        if (!emailCount.has(key)) emailCount.set(key, [])
+        emailCount.get(key).push(idx)
+      })
+      const duplicateEmails = new Set(
+        [...emailCount.entries()].filter(([, indices]) => indices.length > 1).map(([email]) => email),
+      )
+      const withDuplicateCheck = mapped.map((row) => {
+        const key = (row.email || "").toString().trim().toLowerCase()
+        if (!duplicateEmails.has(key)) return row
+        const newErrors = [...(row.errors || []), "Duplicate email in sheet"]
+        return { ...row, errors: newErrors, isValid: false }
+      })
+
+      setBulkUsers(withDuplicateCheck)
+      setBulkValidatedAt(new Date())
+    }
+
+    reader.readAsArrayBuffer(bulkFile)
+  }
+
+  /** Clears selected file, parsed data, and validation state; resets file input. */
+  const clearBulkUpload = () => {
+    setBulkFile(null)
+    setBulkUsers([])
+    setBulkValidatedAt(null)
+    setBulkFileName("")
+    setBulkFileKey((prev) => prev + 1)
+  }
+
+  /** Downloads the bulk user template file from the API (from templates table). */
+  const handleDownloadBulkTemplate = async () => {
+    try {
+      const token = sessionStorage.getItem("token")
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/templates/user-bulk/download`,
+        {
+          responseType: "blob",
+          headers: { Authorization: `${token}` },
+        },
+      )
+
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"] || "application/octet-stream",
+      })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      const disposition = response.headers["content-disposition"] || ""
+      const match = disposition.match(/filename="(.+)"/)
+      const filename = match ? match[1] : bulkTemplateMeta?.templateFileName || "bulk-user-template.xlsx"
+
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Failed to download bulk template:", error)
+      setSnackbar({
+        open: true,
+        message: "Failed to download template",
+        severity: "error",
+      })
+    }
+  }
+
+  /** Triggered by "Validate Records" button: parses and validates the selected Excel file. */
+  const handleValidateRecords = () => {
+    if (bulkFile) {
+      parseAndValidateBulkFile()
+    }
+  }
+
+  /** Maps a bulk user object to a plain row for Excel export (same columns as template). */
+  const bulkUserToExcelRow = (user) => ({
+    email: user.email,
+    firstName: user.firstName,
+    middleName: user.middleName || "",
+    lastName: user.lastName,
+    displayName: user.displayName || "",
+    mobileCountryCode: user.mobileCountryCode || "",
+    mobileNumber: user.mobileNumber || "",
+    landlineCountryCode: user.landlineCountryCode || "",
+    landlineNumber: user.landlineNumber || "",
+    cost: user.cost || "",
+    cost_time: user.cost_time || "",
+    unit: user.unit || "",
+    addressLine1: user.addressLine1 || "",
+    addressLine2: user.addressLine2 || "",
+    addressLine3: user.addressLine3 || "",
+    country: user.country || "",
+    zipCode: user.zipCode || "",
+    city: user.city || "",
+    state: user.state || "",
+    password: user.password || "",
+    confirmPassword: user.confirmPassword || "",
+    status: user.status || "active",
+    roleName: user.roleName || "",
+  })
+
+  /** Exports only valid rows to an Excel file (valid-records.xlsx). */
+  const downloadValidRecordsExcel = () => {
+    const valid = bulkUsers.filter((u) => u.isValid)
+    if (valid.length === 0) return
+    const rows = valid.map((u) => bulkUserToExcelRow(u))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Valid Records")
+    XLSX.writeFile(wb, "valid-records.xlsx")
+  }
+
+  /** Exports only invalid rows to an Excel file with an "Errors" column (invalid-records.xlsx). */
+  const downloadInvalidRecordsExcel = () => {
+    const invalid = bulkUsers.filter((u) => !u.isValid)
+    if (invalid.length === 0) return
+    const rows = invalid.map((u) => ({
+      ...bulkUserToExcelRow(u),
+      Errors: u.errors && u.errors.length ? u.errors.join("; ") : "",
+    }))
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Invalid Records")
+    XLSX.writeFile(wb, "invalid-records.xlsx")
+  }
+
+  /** Submits only valid bulk users to the backend bulk-signup API; redirects to /users on success. */
+  const handleBulkSubmit = async () => {
+    const validUsers = bulkUsers.filter((u) => u.isValid)
+
+    if (validUsers.length === 0) {
+      setSnackbar({
+        open: true,
+        message: "No valid records to submit.",
+        severity: "warning",
+      })
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const payload = validUsers.map(({ isValid, errors, _rowIndex, ...rest }) => rest)
+      const token = sessionStorage.getItem("token")
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/users/bulk-signup`,
+        payload,
+        {
+          headers: token ? { Authorization: token } : {},
+        },
+      )
+
+      const data = response.data
+      const created = data?.created ?? 0
+      const failed = data?.failed ?? 0
+      let msg
+      if (created > 0) {
+        msg = `${created} user${created === 1 ? "" : "s"} created successfully.`
+        if (failed > 0) msg += ` ${failed} failed.`
+      } else {
+        msg = data?.message || "No users created."
+        if (failed > 0) msg += ` (${failed} failed).`
+      }
+      if (failed > 0 && data?.rows?.length) {
+        const firstError = data.rows.find((r) => r.error)?.error
+        if (firstError) msg += ` First error: ${firstError}`
+      }
+      setSnackbar({
+        open: true,
+        message: msg,
+        severity: created === 0 ? "error" : "success",
+      })
+
+      navigate("/users")
+    } catch (error) {
+      console.error("Bulk signup failed:", error.response?.data || error.message)
+      const errMsg = error.response?.data?.message || error.response?.data || error.message || "Bulk signup failed!"
+      const rows = error.response?.data?.rows
+      const firstError = Array.isArray(rows) && rows.length ? rows.find((r) => r.error)?.error : null
+      setSnackbar({
+        open: true,
+        message: firstError ? `${errMsg} (${firstError})` : errMsg,
+        severity: "error",
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -451,7 +778,35 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <button
+              type="button"
+              onClick={() => setMode("single")}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                mode === "single"
+                  ? "bg-blue-600 text-white border-blue-600 shadow"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-blue-400"
+              }`}
+              disabled={loading}
+            >
+              Create Single User
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("bulk")}
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                mode === "bulk"
+                  ? "bg-blue-600 text-white border-blue-600 shadow"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-blue-400"
+              }`}
+              disabled={loading}
+            >
+              Create Bulk Users
+            </button>
+          </div>
+
+          {mode === "single" && (
+            <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div>
               <label htmlFor="role" className="block text-slate-700 font-medium mb-2 text-sm">
@@ -990,6 +1345,187 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
               )}
             </button>
           </div>
+          </>
+          )}
+
+          {mode === "bulk" && (
+            <div className="space-y-6 mt-4">
+              <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg p-4 border border-slate-200">
+                <h2 className="text-sm font-semibold mb-3 text-slate-700">
+                  Bulk User Upload (Excel)
+                </h2>
+                <p className="text-xs text-slate-600 mb-3">
+                  Upload an Excel file (.xlsx or .xls) with a header row including at least
+                  <span className="font-semibold"> email, firstName, lastName, roleName, password, confirmPassword</span>.
+                  Profile photo is not supported for bulk upload.
+                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                  <button
+                    type="button"
+                    onClick={handleDownloadBulkTemplate}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm font-medium"
+                    disabled={loading}
+                  >
+                    Download Template
+                  </button>
+                  {bulkTemplateMeta && (
+                    <div className="text-[11px] text-slate-600 text-right">
+                      <div>
+                        <span className="font-semibold">Last updated:</span>{" "}
+                        {bulkTemplateMeta.lastUpdated
+                          ? new Date(bulkTemplateMeta.lastUpdated).toLocaleString()
+                          : "—"}
+                      </div>
+                      <div>
+                        <span className="font-semibold">Updated by:</span>{" "}
+                        {bulkTemplateMeta.updatedBy || "—"}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <input
+                    key={bulkFileKey}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleBulkFileChange}
+                    disabled={loading}
+                    className="block w-full text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  {bulkFileName && (
+                    <div className="flex items-center gap-3 text-xs text-slate-600">
+                      <span className="truncate max-w-[180px]">Selected: {bulkFileName}</span>
+                      <button
+                        type="button"
+                        onClick={clearBulkUpload}
+                        disabled={loading}
+                        className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm font-medium"
+                      >
+                        Remove file
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-2">
+                  Data and validation will appear only after you click &quot;Validate Records&quot;.
+                </p>
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleValidateRecords}
+                    disabled={loading || !bulkFile}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm font-medium"
+                  >
+                    <Loader2 className="h-4 w-4 mr-2" />
+                    Validate Records
+                  </button>
+                  <div className="text-xs text-slate-600 space-y-1">
+                    <div>
+                      <span className="font-semibold">Validation timestamp:</span>{" "}
+                      {bulkValidatedAt ? bulkValidatedAt.toLocaleString() : "Not validated yet"}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Valid records:</span>{" "}
+                      {bulkUsers.filter((u) => u.isValid).length}
+                    </div>
+                    <div>
+                      <span className="font-semibold">Invalid records:</span>{" "}
+                      {bulkUsers.filter((u) => !u.isValid).length}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {bulkUsers.length > 0 && (
+                <>
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <button
+                    type="button"
+                    onClick={downloadValidRecordsExcel}
+                    disabled={bulkUsers.filter((u) => u.isValid).length === 0}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm font-medium"
+                  >
+                    Download Valid Records (Excel)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={downloadInvalidRecordsExcel}
+                    disabled={bulkUsers.filter((u) => !u.isValid).length === 0}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm font-medium"
+                  >
+                    Download Invalid Records (Excel)
+                  </button>
+                </div>
+                <div className="border border-slate-200 rounded-lg overflow-auto bg-white/70">
+                  <table className="min-w-full text-xs">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-700">#</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-700">First Name</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-700">Last Name</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-700">Email</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-700">Role Name</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-700">Status</th>
+                        <th className="px-3 py-2 text-left font-semibold text-slate-700">Errors</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkUsers.map((user, index) => (
+                        <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
+                          <td className="px-3 py-2 text-slate-700">{index + 1}</td>
+                          <td className="px-3 py-2 text-slate-700">{user.firstName}</td>
+                          <td className="px-3 py-2 text-slate-700">{user.lastName}</td>
+                          <td className="px-3 py-2 text-slate-700">{user.email}</td>
+                          <td className="px-3 py-2 text-slate-700">{user.roleName || ""}</td>
+                          <td className="px-3 py-2">
+                            <span
+                              className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                                user.isValid
+                                  ? "bg-green-50 text-green-700 border border-green-200"
+                                  : "bg-red-50 text-red-700 border border-red-200"
+                              }`}
+                            >
+                              {user.isValid ? "Valid" : "Invalid"}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-red-600 max-w-xs">
+                            {user.errors && user.errors.length > 0 ? user.errors.join(", ") : "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                </>
+              )}
+
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-2">
+                <button
+                  type="button"
+                  onClick={handleBulkSubmit}
+                  disabled={loading || bulkUsers.filter((u) => u.isValid).length === 0}
+                  className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Creating Bulk Users...
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium">Submit Bulk Users</span>
+                      <div className="ml-2 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
         </form>
       </div>
 
