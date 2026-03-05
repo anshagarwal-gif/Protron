@@ -6,10 +6,15 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "sprint_attachment")
+@EntityListeners(AuditingEntityListener.class)
 public class SprintAttachment {
 
     @Id
@@ -29,6 +34,14 @@ public class SprintAttachment {
     @Column(name = "sprint_id")
     private Long sprintId;
 
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -44,4 +57,8 @@ public class SprintAttachment {
     public void setUploadedAt(LocalDateTime uploadedAt) { this.uploadedAt = uploadedAt; }
     public Long getSprintId() { return sprintId; }
     public void setSprintId(Long sprintId) { this.sprintId = sprintId; }
+    public String getUpdatedBy() { return updatedBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public LocalDateTime getUpdatedTs() { return updatedTs; }
+    public void setUpdatedTs(LocalDateTime updatedTs) { this.updatedTs = updatedTs; }
 }

@@ -3,6 +3,9 @@ package com.Protronserver.Protronserver.Entities;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,6 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "po_detail")
+@EntityListeners(AuditingEntityListener.class)
 public class PODetails {
 
     @Id
@@ -76,14 +80,19 @@ public class PODetails {
     @Column(name = "create_timestamp", updatable = false)
     private LocalDateTime createTimestamp;
 
-    @Column(name = "last_update_by", length = 100)
-    private String lastUpdateBy;
-
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
+
+    @Column(name = "updated_by", length = 100)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Enum for PO Type
     public enum POType {
@@ -272,12 +281,20 @@ public class PODetails {
         this.createTimestamp = createTimestamp;
     }
 
-    public String getLastUpdateBy() {
-        return lastUpdateBy;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public LocalDateTime getEndTimestamp() {
@@ -312,7 +329,8 @@ public class PODetails {
                 ", poStartDate=" + poStartDate +
                 ", poEndDate=" + poEndDate +
                 ", createTimestamp=" + createTimestamp +
-                ", lastUpdateBy='" + lastUpdateBy + '\'' +
+                ", updatedBy='" + updatedBy + '\'' +
+                ", updatedTs=" + updatedTs +
                 ", endTimestamp=" + endTimestamp +
                 '}';
     }

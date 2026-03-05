@@ -6,10 +6,15 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Getter
 @Setter
 @Entity
 @Table(name = "login_audit")
+@EntityListeners(AuditingEntityListener.class)
 public class login_audit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +30,15 @@ public class login_audit {
     private Tenant tenant;
 
     private LocalDateTime lastloginTimestamp;
+
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
 
     private String task;
 
@@ -81,7 +95,21 @@ public class login_audit {
 
     public void setLastLoginTimestamp(LocalDateTime lastloginTimestamp) {
         this.lastloginTimestamp = lastloginTimestamp;
-
     }
 
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
 }

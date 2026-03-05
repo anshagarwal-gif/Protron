@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 //@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "projectId")
 @Getter
 @Setter
@@ -20,6 +24,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "projects")
+@EntityListeners(AuditingEntityListener.class)
 public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,8 +42,6 @@ public class Project {
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
 
-    // Added last updated by field
-    private String lastUpdatedBy;
 
     // --- NEW FIELDS ---
     private String productOwner;
@@ -68,6 +71,15 @@ public class Project {
     @JoinColumn(name = "sponsor")
     @JsonIgnoreProperties({ "projectsManaged", "projectTeams", "tenant" })
     private User sponsor;
+
+    // Added last updated by field
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public String getProjectCode() {
         return projectCode;
@@ -102,8 +114,20 @@ public class Project {
         this.endTimestamp = endTimestamp;
     }
 
-    public String getLastUpdatedBy() {
-        return lastUpdatedBy;
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public String getUnit() {
@@ -112,10 +136,6 @@ public class Project {
 
     public void setUnit(String unit) {
         this.unit = unit;
-    }
-
-    public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
     }
 
     @ManyToOne

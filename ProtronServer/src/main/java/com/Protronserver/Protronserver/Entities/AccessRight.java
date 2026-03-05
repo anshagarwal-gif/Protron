@@ -6,6 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -13,6 +18,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "access_rights")
+@EntityListeners(AuditingEntityListener.class)
 public class AccessRight {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +31,14 @@ public class AccessRight {
     @ManyToOne
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
+
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public Long getAccessId() {
         return accessId;
@@ -72,5 +86,21 @@ public class AccessRight {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 }

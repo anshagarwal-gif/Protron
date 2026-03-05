@@ -3,8 +3,15 @@ package com.Protronserver.Protronserver.Entities;
 import jakarta.persistence.*;
 import com.Protronserver.Protronserver.Entities.Tenant;
 
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Entity
 @Table(name = "system_master")
+@EntityListeners(AuditingEntityListener.class)
 public class SystemMaster {
 
     @Id
@@ -21,6 +28,14 @@ public class SystemMaster {
 
     @Column(name = "systemdesc", length = 1000)
     private String systemDesc;
+
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Getters and Setters
     public Integer getSystemId() {
@@ -45,6 +60,22 @@ public class SystemMaster {
 
     public void setSystemDesc(String systemDesc) {
         this.systemDesc = systemDesc;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public Tenant getTenant() {

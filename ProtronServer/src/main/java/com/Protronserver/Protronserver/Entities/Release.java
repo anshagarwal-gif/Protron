@@ -2,18 +2,21 @@ package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "release_table")
+@EntityListeners(AuditingEntityListener.class)
 public class Release {
 
     @Id
@@ -46,7 +49,13 @@ public class Release {
 
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
-    private String lastUpdatedBy;
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public String getProjectName() {
         return projectName;
@@ -137,11 +146,27 @@ public class Release {
     }
 
     public String getLastUpdatedBy() {
-        return lastUpdatedBy;
+        return updatedBy;
     }
 
     public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
+        this.updatedBy = lastUpdatedBy;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public LocalTime getStartTime() {

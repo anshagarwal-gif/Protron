@@ -57,7 +57,7 @@ public class RidaService {
         rida.setRemarks(dto.getRemarks());
         rida.setStartTimestamp(LocalDateTime.now());
         rida.setEndTimestamp(null);
-        rida.setLastUpdatedBy(null);
+        rida.setUpdatedBy(null);
 
         if(dto.getStatus().equals("Closed")){
             rida.setCompleted(true);
@@ -104,7 +104,7 @@ public class RidaService {
 
         if(loggedInUserEmail != null){
             rida.setEndTimestamp(LocalDateTime.now());
-            rida.setLastUpdatedBy(loggedInUserEmail);
+            rida.setUpdatedBy(loggedInUserEmail);
         }
 
         rida = ridaRepository.save(rida);
@@ -125,7 +125,7 @@ public class RidaService {
         newRida.setProjectName(dto.getProjectName());
         newRida.setStartTimestamp(LocalDateTime.now());
         newRida.setEndTimestamp(null);
-        newRida.setLastUpdatedBy(null);
+        newRida.setUpdatedBy(null);
 
         if(dto.getStatus().equals("Closed")){
             newRida.setCompleted(true);
@@ -168,7 +168,7 @@ public class RidaService {
 
         if(loggedInUserEmail != null){
             rida.setEndTimestamp(LocalDateTime.now());
-            rida.setLastUpdatedBy(loggedInUserEmail);
+            rida.setUpdatedBy(loggedInUserEmail);
         }
 
         Rida savedRida = ridaRepository.save(rida);

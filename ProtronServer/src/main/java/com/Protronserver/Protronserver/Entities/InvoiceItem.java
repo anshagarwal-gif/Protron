@@ -6,9 +6,14 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Entity
 @Table(name = "invoice_items")
 @Data
+@EntityListeners(AuditingEntityListener.class)
 public class InvoiceItem {
 
     @Id
@@ -32,9 +37,14 @@ public class InvoiceItem {
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
-    private LocalDateTime lastUpdatedDate;
-
+    @Column(nullable = false)
+    @LastModifiedBy
     private String updatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
 
     public Long getItemId() {
         return itemId;
@@ -92,12 +102,12 @@ public class InvoiceItem {
         this.remarks = remarks;
     }
 
-    public LocalDateTime getLastUpdatedDate() {
-        return lastUpdatedDate;
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
     }
 
-    public void setLastUpdatedDate(LocalDateTime lastUpdatedDate) {
-        this.lastUpdatedDate = lastUpdatedDate;
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public String getUpdatedBy() {

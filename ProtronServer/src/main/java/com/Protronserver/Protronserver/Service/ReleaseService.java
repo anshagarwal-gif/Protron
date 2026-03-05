@@ -75,7 +75,7 @@ public class ReleaseService {
         release.setCreatedOn(LocalDateTime.now());
         release.setStartTimestamp(LocalDateTime.now());
         release.setEndTimestamp(null);
-        release.setLastUpdatedBy(null);
+        release.setUpdatedBy(null);
         return releaseRepository.save(release);
     }
 
@@ -101,7 +101,7 @@ public class ReleaseService {
 
         // Close old release
         oldRelease.setEndTimestamp(LocalDateTime.now());
-        oldRelease.setLastUpdatedBy(loggedInUserEmail);
+        oldRelease.setUpdatedBy(loggedInUserEmail);
         releaseRepository.save(oldRelease);
 
         // Create new release entry
@@ -118,7 +118,7 @@ public class ReleaseService {
         newRelease.setCreatedOn(LocalDateTime.now());
         newRelease.setStartTimestamp(LocalDateTime.now());
         newRelease.setEndTimestamp(null);
-        newRelease.setLastUpdatedBy(null);
+        newRelease.setUpdatedBy(null);
 
         List<UserStory> userStories = userStoryRepository
                 .findByTenantIdAndReleaseIdAndEndTimestampIsNull(oldRelease.getTenantId(), oldRelease.getReleaseId());
@@ -148,7 +148,7 @@ public class ReleaseService {
 
         // Close old release
         oldRelease.setEndTimestamp(LocalDateTime.now());
-        oldRelease.setLastUpdatedBy(loggedInUserEmail);
+        oldRelease.setUpdatedBy(loggedInUserEmail);
         releaseRepository.save(oldRelease);
     }
 

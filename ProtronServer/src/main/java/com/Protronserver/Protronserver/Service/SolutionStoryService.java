@@ -133,7 +133,7 @@ public class SolutionStoryService {
         story.setDateCreated(LocalDateTime.now());
         story.setStartTimestamp(LocalDateTime.now());
         story.setEndTimestamp(null);
-        story.setLastUpdatedBy(null);
+        story.setUpdatedBy(null);
 
         return solutionStoryRepository.save(story);
     }
@@ -151,7 +151,7 @@ public class SolutionStoryService {
                 .orElseThrow(() -> new RuntimeException("Active SolutionStory not found with ssId: " + ssId));
 
         oldStory.setEndTimestamp(LocalDateTime.now());
-        oldStory.setLastUpdatedBy(email);
+        oldStory.setUpdatedBy(email);
         solutionStoryRepository.save(oldStory);
 
         SolutionStory newVersion = new SolutionStory();
@@ -173,7 +173,7 @@ public class SolutionStoryService {
 
         newVersion.setStartTimestamp(LocalDateTime.now());
         newVersion.setEndTimestamp(null);
-        newVersion.setLastUpdatedBy(null);
+        newVersion.setUpdatedBy(null);
 
         return solutionStoryRepository.save(newVersion);
     }
@@ -188,7 +188,7 @@ public class SolutionStoryService {
                 .orElseThrow(() -> new RuntimeException("Active SolutionStory not found with ssId: " + ssId));
 
         story.setEndTimestamp(LocalDateTime.now());
-        story.setLastUpdatedBy(email);
+        story.setUpdatedBy(email);
         solutionStoryRepository.save(story);
     }
 

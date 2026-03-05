@@ -3,8 +3,14 @@ package com.Protronserver.Protronserver.Entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "status_flags")
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class StatusFlag {
@@ -31,6 +37,14 @@ public class StatusFlag {
 
     @Column(name = "remarks")
     private String remarks;
+
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Default constructor
     public StatusFlag() {
@@ -97,6 +111,22 @@ public class StatusFlag {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     @Override

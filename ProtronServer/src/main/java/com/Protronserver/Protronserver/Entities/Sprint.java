@@ -8,10 +8,15 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "sprint_table")
+@EntityListeners(AuditingEntityListener.class)
 public class Sprint {
 
     @Id
@@ -39,7 +44,13 @@ public class Sprint {
     
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
-    private String lastUpdatedBy;
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Getters and Setters
     public Long getSprintId() { return sprintId; }
@@ -65,6 +76,8 @@ public class Sprint {
     public void setStartTimestamp(LocalDateTime startTimestamp) { this.startTimestamp = startTimestamp; }
     public LocalDateTime getEndTimestamp() { return endTimestamp; }
     public void setEndTimestamp(LocalDateTime endTimestamp) { this.endTimestamp = endTimestamp; }
-    public String getLastUpdatedBy() { return lastUpdatedBy; }
-    public void setLastUpdatedBy(String lastUpdatedBy) { this.lastUpdatedBy = lastUpdatedBy; }
+    public String getUpdatedBy() { return updatedBy; }
+    public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
+    public LocalDateTime getUpdatedTs() { return updatedTs; }
+    public void setUpdatedTs(LocalDateTime updatedTs) { this.updatedTs = updatedTs; }
 }

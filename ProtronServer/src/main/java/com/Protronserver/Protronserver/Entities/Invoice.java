@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
@@ -141,8 +142,13 @@ public class Invoice {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedTs;
+
 
     @PrePersist
     protected void onCreate() {
@@ -152,12 +158,12 @@ public class Invoice {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
-        updatedAt = LocalDateTime.now();
+        updatedTs = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedTs = LocalDateTime.now();
     }
 
     // Helper methods to get attachment info
@@ -491,12 +497,20 @@ public class Invoice {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
     // Getter and Setter methods for soft delete fields
 

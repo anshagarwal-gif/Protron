@@ -103,7 +103,7 @@ public class ManageProjectService {
 
         project.setStartTimestamp(LocalDateTime.now());
         project.setEndTimestamp(null);
-        project.setLastUpdatedBy(null);
+        project.setUpdatedBy(null);
         project.setCreatedOn(new Date());
 
 
@@ -128,7 +128,7 @@ public class ManageProjectService {
 //                teamMember.setEstimatedReleaseDate(memberDTO.getEstimatedReleaseDate());
                 teamMember.setStartTimestamp(LocalDateTime.now());
                 teamMember.setEndTimestamp(null);
-                teamMember.setLastUpdatedBy(null);
+                teamMember.setUpdatedBy(null);
 
                 teamMembers.add(projectTeamRepository.save(teamMember));
             }
@@ -183,7 +183,7 @@ public class ManageProjectService {
         // Mark old project as inactive (soft delete)
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof User user) {
-            existingProject.setLastUpdatedBy(user.getEmail());
+            existingProject.setUpdatedBy(user.getEmail());
             existingProject.setEndTimestamp(LocalDateTime.now());
         }
         projectRepository.save(existingProject);
@@ -280,7 +280,7 @@ public class ManageProjectService {
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof User user) {
-            existingProject.setLastUpdatedBy(user.getEmail());
+            existingProject.setUpdatedBy(user.getEmail());
             existingProject.setEndTimestamp(LocalDateTime.now());
         }
         projectRepository.save(existingProject);
@@ -299,7 +299,7 @@ public class ManageProjectService {
         // Mark old project as inactive (soft delete)
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof User user) {
-            existingProject.setLastUpdatedBy(user.getEmail());
+            existingProject.setUpdatedBy(user.getEmail());
             existingProject.setEndTimestamp(LocalDateTime.now());
             projectRepository.save(existingProject);
         }

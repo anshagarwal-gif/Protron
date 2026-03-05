@@ -2,11 +2,15 @@ package com.Protronserver.Protronserver.Entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Systemimpacted {
 
     @Id
@@ -16,7 +20,13 @@ public class Systemimpacted {
     private String systemName;
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
-    private String lastUpdatedBy;
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
@@ -46,12 +56,20 @@ public class Systemimpacted {
         this.endTimestamp = endTimestamp;
     }
 
-    public String getLastUpdatedBy() {
-        return lastUpdatedBy;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     // Getters and Setters

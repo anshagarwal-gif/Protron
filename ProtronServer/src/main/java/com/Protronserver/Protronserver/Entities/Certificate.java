@@ -4,11 +4,17 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.Date;
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "certificates")
+@EntityListeners(AuditingEntityListener.class)
 public class Certificate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +30,12 @@ public class Certificate {
     @ManyToOne
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
+
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 }

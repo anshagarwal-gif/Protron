@@ -7,11 +7,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Getter
 @Setter
 @Entity
 @AllArgsConstructor
 @Table(name = "user_access_rights")
+@EntityListeners(AuditingEntityListener.class)
 public class UserAccessRights {
 
     @Id
@@ -27,13 +34,20 @@ public class UserAccessRights {
     @JsonIgnoreProperties("tenant")
     private AccessRight accessRight;
 
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
     public UserAccessRights() {}
 
     public UserAccessRights(User user, AccessRight accessRight) {
         this.user = user;
         this.accessRight = accessRight;
     }
-
     public Long getUserAccessRightsId() {
         return userAccessRightsId;
     }

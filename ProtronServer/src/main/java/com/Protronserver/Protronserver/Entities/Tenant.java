@@ -6,12 +6,18 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "tenant")
+@EntityListeners(AuditingEntityListener.class)
 public class Tenant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,19 +51,17 @@ public class Tenant {
     @Column(name = "tenant_address_postal_code", length = 100)
     private String tenantAddressPostalCode;
 
-    // Add this field after tenantAddressPostalCode
     @Lob
     @Column(name = "tenant_logo", columnDefinition = "LONGBLOB")
     private byte[] tenantLogo;
 
-    // Add getters and setters
-    public byte[] getTenantLogo() {
-        return tenantLogo;
-    }
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
 
-    public void setTenantLogo(byte[] tenantLogo) {
-        this.tenantLogo = tenantLogo;
-    }
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Define relationships with other entities
     @OneToMany(mappedBy = "tenant")

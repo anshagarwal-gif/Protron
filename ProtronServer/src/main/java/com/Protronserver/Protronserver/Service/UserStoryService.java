@@ -92,7 +92,6 @@ public class UserStoryService {
         newStory.setDateCreated(LocalDateTime.now());
         newStory.setStartTimestamp(LocalDateTime.now());
         newStory.setEndTimestamp(null);
-        newStory.setLastUpdatedBy(null);
 
         UserStory savedStory = userStoryRepository.save(newStory);
         return savedStory;
@@ -104,14 +103,11 @@ public class UserStoryService {
 
         validateIds(updatedStoryDto);
 
-        String email = loggedInUserUtils.getLoggedInUser().getEmail();
-
         UserStory oldStory = userStoryRepository.findTopByUsIdAndEndTimestampIsNullOrderByStartTimestampDesc(usId)
                 .orElseThrow(() -> new RuntimeException("Active UserStory not found with ID: " + usId));
 
         // 2. "Close" the old record
         oldStory.setEndTimestamp(LocalDateTime.now());
-        oldStory.setLastUpdatedBy(email);
         userStoryRepository.save(oldStory);
 
         // 3. Create a new record with the updated values
@@ -138,7 +134,6 @@ public class UserStoryService {
 
         newStoryVersion.setStartTimestamp(LocalDateTime.now());
         newStoryVersion.setEndTimestamp(null);
-        newStoryVersion.setLastUpdatedBy(null);
 
         UserStory savedStory = userStoryRepository.save(newStoryVersion);
         return savedStory;
@@ -147,14 +142,11 @@ public class UserStoryService {
     @Transactional
     public void deleteUserStory(String usId) {
 
-        String email = loggedInUserUtils.getLoggedInUser().getEmail();
-
         UserStory storyToDelete = userStoryRepository.findTopByUsIdAndEndTimestampIsNullOrderByStartTimestampDesc(usId)
                 .orElseThrow(() -> new RuntimeException("Active UserStory not found with ID: " + usId));
 
         // Perform a soft delete by "closing" the record
         storyToDelete.setEndTimestamp(LocalDateTime.now());
-        storyToDelete.setLastUpdatedBy(email);
         userStoryRepository.save(storyToDelete);
     }
 

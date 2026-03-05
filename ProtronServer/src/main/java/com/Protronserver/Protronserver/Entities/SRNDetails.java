@@ -7,9 +7,13 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "srn_details")
+@EntityListeners(AuditingEntityListener.class)
 public class SRNDetails {
 
     @Id
@@ -79,8 +83,13 @@ public class SRNDetails {
     @Column(name = "lastupdate_timestamp")
     private LocalDateTime lastUpdateTimestamp;
 
-    @Column(name = "updatedby")
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
     private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
@@ -198,6 +207,14 @@ public class SRNDetails {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public String getSrnType() {

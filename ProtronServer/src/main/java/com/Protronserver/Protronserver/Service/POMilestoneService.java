@@ -88,7 +88,7 @@ public class POMilestoneService {
         milestone.setTenantId(loggedInUser.getTenant().getTenantId());
 
         milestone.setEndTimestamp(null);
-        milestone.setLastUpdateBy(null);
+        milestone.setUpdatedBy(null);
         return poMilestoneRepository.save(milestone);
     }
 
@@ -133,7 +133,7 @@ public class POMilestoneService {
 
         // 1. End the old milestone
         existingMilestone.setEndTimestamp(LocalDateTime.now());
-        existingMilestone.setLastUpdateBy(updatedBy);
+        existingMilestone.setUpdatedBy(updatedBy);
         poMilestoneRepository.save(existingMilestone);
 
         // 2. Create a new milestone version
@@ -150,7 +150,7 @@ public class POMilestoneService {
         newMilestone.setStartTimestamp(LocalDateTime.now());
         newMilestone.setTenantId(existingMilestone.getTenantId());
         newMilestone.setEndTimestamp(null);
-        newMilestone.setLastUpdateBy(null);
+        newMilestone.setUpdatedBy(null);
 
         POMilestone savedNewMilestone = poMilestoneRepository.save(newMilestone);
 
@@ -199,7 +199,7 @@ public class POMilestoneService {
 
         // Soft-delete: mark milestone as ended
         milestone.setEndTimestamp(LocalDateTime.now());
-        milestone.setLastUpdateBy(loggedInUserUtils.getLoggedInUser().getEmail());
+        milestone.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
         poMilestoneRepository.save(milestone);
 
         // Delete all attachments for this milestone

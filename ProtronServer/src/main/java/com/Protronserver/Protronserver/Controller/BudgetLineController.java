@@ -81,7 +81,6 @@ public class BudgetLineController {
             budgetLine.setAmountAvailable(request.getAmountAvailable());
             budgetLine.setRemarks(request.getRemarks());
             budgetLine.setStartTimestamp(LocalDateTime.now());
-            budgetLine.setLastUpdatedBy(null);
             budgetLine.setEndTimestamp(null);
             budgetLine.setAttachment(request.getAttachment());
 
@@ -99,7 +98,6 @@ public class BudgetLineController {
                     allocation.setRemarks(allocationRequest.getRemarks());
                     allocation.setStartTimestamp(LocalDateTime.now());
                     allocation.setEndTimestamp(null);
-                    allocation.setLastUpdatedBy(null);
 
                     // Handle system - either from SystemMaster or custom system name
                     if (allocationRequest.getSystemId() != null) {
@@ -143,10 +141,7 @@ public class BudgetLineController {
                     .orElseThrow(() -> new RuntimeException("Budget line not found with ID: " + budgetId));
 
             // 2. Close old budget line
-            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
-
             existingBudgetLine.setEndTimestamp(LocalDateTime.now());
-            existingBudgetLine.setLastUpdatedBy(updatedBy);
             budgetLineService.save(existingBudgetLine);
 
             // 3. Create new version of budget line
@@ -170,7 +165,6 @@ public class BudgetLineController {
 
             newBudgetLine.setStartTimestamp(LocalDateTime.now());
             newBudgetLine.setEndTimestamp(null);
-            newBudgetLine.setLastUpdatedBy(updatedBy);
 
             // save new budget line
             newBudgetLine = budgetLineService.save(newBudgetLine);
@@ -179,7 +173,6 @@ public class BudgetLineController {
             List<BudgetAllocation> oldAllocations = budgetAllocationService.findByBudgetLineId(budgetId);
             for (BudgetAllocation alloc : oldAllocations) {
                 alloc.setEndTimestamp(LocalDateTime.now());
-                alloc.setLastUpdatedBy(updatedBy);
                 budgetAllocationService.save(alloc);
             }
 
@@ -194,7 +187,6 @@ public class BudgetLineController {
                     newAlloc.setRemarks(allocReq.getRemarks());
                     newAlloc.setStartTimestamp(LocalDateTime.now());
                     newAlloc.setEndTimestamp(null);
-                    newAlloc.setLastUpdatedBy(updatedBy);
 
                     // handle system
                     if (allocReq.getSystemId() != null) {
@@ -224,7 +216,6 @@ public class BudgetLineController {
                     carriedAlloc.setSystemName(oldAlloc.getSystemName());
                     carriedAlloc.setStartTimestamp(LocalDateTime.now());
                     carriedAlloc.setEndTimestamp(null);
-                    carriedAlloc.setLastUpdatedBy(updatedBy);
                     budgetAllocationService.save(carriedAlloc);
                 }
             }
@@ -341,7 +332,6 @@ public class BudgetLineController {
             budgetDocumentService.deleteDocumentsByBudgetId(budgetId);
 
             budgetLineOpt.setEndTimestamp(LocalDateTime.now());
-            budgetLineOpt.setLastUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
             budgetLineService.save(budgetLineOpt);
 
             return ResponseEntity.ok("Budget line deleted successfully");
@@ -373,7 +363,7 @@ public class BudgetLineController {
         response.setRemarks(budgetLine.getRemarks());
         response.setStartTimestamp(budgetLine.getStartTimestamp());
         response.setEndTimestamp(budgetLine.getEndTimestamp());
-        response.setLastUpdatedBy(budgetLine.getLastUpdatedBy());
+        response.setLastUpdatedBy(budgetLine.getUpdatedBy());
         response.setHasAttachment(budgetLine.getAttachment() != null && budgetLine.getAttachment().length > 0);
 
         // Get allocations for this budget line - convert to DTOs to avoid lazy loading

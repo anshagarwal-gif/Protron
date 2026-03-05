@@ -3,8 +3,13 @@ package com.Protronserver.Protronserver.Entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Entity
 @Table(name = "rida_attachment")
+@EntityListeners(AuditingEntityListener.class)
 public class RidaAttachment {
 
     @Id
@@ -23,6 +28,14 @@ public class RidaAttachment {
 
     @Column(name = "rida_id")
     private Long ridaId;
+
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public Long getId() {
         return id;
@@ -70,5 +83,21 @@ public class RidaAttachment {
 
     public void setRidaId(Long ridaId) {
         this.ridaId = ridaId;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 }

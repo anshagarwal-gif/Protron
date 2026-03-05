@@ -6,6 +6,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Where;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +18,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "project_team")
+@EntityListeners(AuditingEntityListener.class)
 public class ProjectTeam {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,8 +33,6 @@ public class ProjectTeam {
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
 
-    // Added last updated by field
-    private String lastUpdatedBy;
     @ManyToOne
     @JoinColumn(name = "tenant_id")
     @JsonIgnoreProperties({"users", "projects"})
@@ -40,6 +42,15 @@ public class ProjectTeam {
     @JsonIgnoreProperties({"projectTeams", "project", "tenant"})
     @Where(clause = "end_timestamp IS NULL")
     private Systemimpacted systemimpacted;
+
+    // Added last updated by field
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public String getPricingType() {
         return pricingType;
@@ -75,11 +86,11 @@ public class ProjectTeam {
     }
 
     public String getLastUpdatedBy() {
-        return lastUpdatedBy;
+        return updatedBy;
     }
 
     public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
+        this.updatedBy = lastUpdatedBy;
     }
 
     @JsonFormat(pattern = "yyyy-MM-dd")

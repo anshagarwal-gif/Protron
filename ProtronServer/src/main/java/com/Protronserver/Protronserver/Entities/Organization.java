@@ -1,9 +1,14 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "organization")
+@EntityListeners(AuditingEntityListener.class)
 public class Organization {
 
     @Id
@@ -44,6 +49,15 @@ public class Organization {
 
     @Column(name = "orgdesc", length = 1000)
     private String orgDesc;
+
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+    
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
 
     // Getters and Setters
     public Integer getOrgId() {
@@ -140,5 +154,21 @@ public class Organization {
 
     public void setOrgDesc(String orgDesc) {
         this.orgDesc = orgDesc;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

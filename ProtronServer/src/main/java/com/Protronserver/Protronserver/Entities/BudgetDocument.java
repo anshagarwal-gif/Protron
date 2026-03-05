@@ -3,11 +3,16 @@ package com.Protronserver.Protronserver.Entities;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 /**
  * Entity class for budget_line_documents table
  */
 @Entity
 @Table(name = "budget_line_documents")
+@EntityListeners(AuditingEntityListener.class)
 public class BudgetDocument {
 
     @Id
@@ -45,6 +50,14 @@ public class BudgetDocument {
 
     @Column(name = "description", length = 500)
     private String description;
+
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Default constructor
     public BudgetDocument() {
@@ -153,5 +166,21 @@ public class BudgetDocument {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 }

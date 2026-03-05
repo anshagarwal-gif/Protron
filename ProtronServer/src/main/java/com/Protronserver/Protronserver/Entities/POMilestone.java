@@ -1,12 +1,16 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
 @Table(name = "po_milestone")
+@EntityListeners(AuditingEntityListener.class)
 public class POMilestone {
 
     @Id
@@ -45,14 +49,19 @@ public class POMilestone {
     @Column(name = "start_timestamp")
     private LocalDateTime startTimestamp;
 
-    @Column(name = "last_update_by")
-    private String lastUpdateBy;
-
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
+
+    @Column(name = "updated_by")
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Getters and Setters
 
@@ -152,12 +161,20 @@ public class POMilestone {
         this.startTimestamp = startTimestamp;
     }
 
-    public String getLastUpdateBy() {
-        return lastUpdateBy;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setLastUpdateBy(String lastUpdateBy) {
-        this.lastUpdateBy = lastUpdateBy;
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public LocalDateTime getEndTimestamp() {

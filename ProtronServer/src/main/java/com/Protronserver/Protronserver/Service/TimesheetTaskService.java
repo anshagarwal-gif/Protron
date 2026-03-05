@@ -13,8 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.Protronserver.Protronserver.DTOs.AttachmentDTO;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -62,7 +60,6 @@ public class TimesheetTaskService {
 
         task.setStartTimestamp(LocalDateTime.now());
         task.setEndTimestamp(null);
-        task.setLastUpdatedBy(null);
 
         task.setUser(targetUser);
         task.setTenant(targetUser.getTenant());
@@ -178,7 +175,7 @@ public class TimesheetTaskService {
             newTask.setProject(oldTask.getProject());
             newTask.setStartTimestamp(LocalDateTime.now());
             newTask.setEndTimestamp(null);
-            newTask.setLastUpdatedBy(null);
+
             // Save the new task first
             TimesheetTask savedNewTask = timesheetTaskRepository.save(newTask);
 
@@ -224,13 +221,6 @@ public class TimesheetTaskService {
         TimesheetTask existingTask = timesheetTaskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User user) {
-            existingTask.setLastUpdatedBy(user.getEmail());
-            existingTask.setEndTimestamp(LocalDateTime.now());
-        }
-        timesheetTaskRepository.save(existingTask);
-
         TimesheetTask newTask = new TimesheetTask();
 
         newTask.setTaskType(dto.getTaskType());
@@ -259,7 +249,6 @@ public class TimesheetTaskService {
         newTask.setUser(taskUser);
 
         newTask.setEndTimestamp(null);
-        newTask.setLastUpdatedBy(null);
 
         // Save new task to get the ID
         TimesheetTask savedNewTask = timesheetTaskRepository.save(newTask);
@@ -344,8 +333,7 @@ public class TimesheetTaskService {
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof User user) {
-            existingTask.setLastUpdatedBy(user.getEmail());
+        if (principal instanceof User) {
             existingTask.setEndTimestamp(LocalDateTime.now());
         }
         timesheetTaskRepository.save(existingTask);

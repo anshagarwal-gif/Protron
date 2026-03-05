@@ -60,7 +60,7 @@ public class SprintService {
         sprint.setCreatedOn(LocalDateTime.now());
         sprint.setStartTimestamp(LocalDateTime.now());
         sprint.setEndTimestamp(null);
-        sprint.setLastUpdatedBy(null);
+        sprint.setUpdatedBy(null);
         return sprintRepository.save(sprint);
     }
 
@@ -70,7 +70,7 @@ public class SprintService {
         String loggedInUserEmail = loggedInUserUtils.getLoggedInUser().getEmail();
         // Close old sprint
         oldSprint.setEndTimestamp(LocalDateTime.now());
-        oldSprint.setLastUpdatedBy(loggedInUserEmail);
+        oldSprint.setUpdatedBy(loggedInUserEmail);
         sprintRepository.save(oldSprint);
 
         // Create new sprint entry
@@ -84,7 +84,7 @@ public class SprintService {
         newSprint.setCreatedOn(LocalDateTime.now());
         newSprint.setStartTimestamp(LocalDateTime.now());
         newSprint.setEndTimestamp(null);
-        newSprint.setLastUpdatedBy(null);
+        newSprint.setUpdatedBy(null);
 
         List<UserStory> userStories = userStoryRepository
                 .findByTenantIdAndSprintAndEndTimestampIsNull(oldSprint.getTenantId(), oldSprint.getSprintId());
@@ -112,7 +112,7 @@ public class SprintService {
         String loggedInUserEmail = loggedInUserUtils.getLoggedInUser().getEmail();
         // Close old sprint
         oldSprint.setEndTimestamp(LocalDateTime.now());
-        oldSprint.setLastUpdatedBy(loggedInUserEmail);
+        oldSprint.setUpdatedBy(loggedInUserEmail);
         sprintRepository.save(oldSprint);
     }
     // --- Attachments ---

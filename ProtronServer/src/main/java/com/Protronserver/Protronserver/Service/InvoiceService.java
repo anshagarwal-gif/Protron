@@ -139,7 +139,7 @@ public class InvoiceService {
                     item.setQuantity(itemDTO.getQuantity());
                     item.setAmount(itemDTO.getAmount());
                     item.setRemarks(itemDTO.getRemarks());
-                    item.setLastUpdatedDate(LocalDateTime.now());
+                    item.setUpdatedTs(LocalDateTime.now());
                     item.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
 
                     itemEntities.add(item);
@@ -162,7 +162,7 @@ public class InvoiceService {
                     emp.setQuantity(empDTO.getQuantity());
                     emp.setAmount(empDTO.getAmount());
                     emp.setRemarks(empDTO.getRemarks());
-                    emp.setLastUpdatedDate(LocalDateTime.now());
+                    emp.setUpdatedTs(LocalDateTime.now());
                     emp.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
 
                     employeeEntities.add(emp);
@@ -236,7 +236,7 @@ public class InvoiceService {
                     item.setQuantity(itemDTO.getQuantity());
                     item.setAmount(itemDTO.getAmount());
                     item.setRemarks(itemDTO.getRemarks());
-                    item.setLastUpdatedDate(LocalDateTime.now());
+                    item.setUpdatedTs(LocalDateTime.now());
                     item.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
 
                     itemEntities.add(item);
@@ -259,7 +259,7 @@ public class InvoiceService {
                     emp.setQuantity(empDTO.getQuantity());
                     emp.setAmount(empDTO.getAmount());
                     emp.setRemarks(empDTO.getRemarks());
-                    emp.setLastUpdatedDate(LocalDateTime.now());
+                    emp.setUpdatedTs(LocalDateTime.now());
                     emp.setUpdatedBy(loggedInUserUtils.getLoggedInUser().getEmail());
 
                     employeeEntities.add(emp);
@@ -1660,7 +1660,7 @@ public class InvoiceService {
                         itemDTO.setQuantity(item.getQuantity());
                         itemDTO.setAmount(item.getAmount());
                         itemDTO.setRemarks(item.getRemarks());
-                        itemDTO.setLastUpdatedDate(item.getLastUpdatedDate());
+                        itemDTO.setUpdatedTs(item.getUpdatedTs());
                         itemDTO.setUpdatedBy(item.getUpdatedBy());
                         return itemDTO;
                     })
@@ -1669,7 +1669,7 @@ public class InvoiceService {
             dto.setItems(itemDTOs);
         }
 
-        // ✅ Map Invoice Employees
+        // Map Invoice Employees
         if (invoice.getInvoiceEmployees() != null) {
             List<InvoiceEmployee> employeeDTOs = invoice.getInvoiceEmployees()
                     .stream()
@@ -1682,7 +1682,7 @@ public class InvoiceService {
                         empDTO.setQuantity(emp.getQuantity());
                         empDTO.setAmount(emp.getAmount());
                         empDTO.setRemarks(emp.getRemarks());
-                        empDTO.setLastUpdatedDate(emp.getLastUpdatedDate());
+                        empDTO.setUpdatedTs(emp.getUpdatedTs());
                         empDTO.setUpdatedBy(emp.getUpdatedBy());
                         return empDTO;
                     })

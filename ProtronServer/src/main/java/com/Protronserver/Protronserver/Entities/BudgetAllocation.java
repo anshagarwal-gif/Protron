@@ -5,12 +5,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.Protronserver.Protronserver.Entities.SystemMaster;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Entity class for budget_allocation table
  */
 @Entity
 @Table(name = "budget_allocation")
+@EntityListeners(AuditingEntityListener.class)
 public class BudgetAllocation {
 
     @Id
@@ -43,7 +47,14 @@ public class BudgetAllocation {
 
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
-    private String lastUpdatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // Default constructor
     public BudgetAllocation() {
@@ -79,14 +90,6 @@ public class BudgetAllocation {
 
     public void setEndTimestamp(LocalDateTime endTimestamp) {
         this.endTimestamp = endTimestamp;
-    }
-
-    public String getLastUpdatedBy() {
-        return lastUpdatedBy;
-    }
-
-    public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
     }
 
     public Integer getAllocationId() {
@@ -151,6 +154,22 @@ public class BudgetAllocation {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     @Override

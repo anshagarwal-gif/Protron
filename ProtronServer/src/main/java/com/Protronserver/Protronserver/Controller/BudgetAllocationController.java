@@ -126,7 +126,6 @@ public class BudgetAllocationController {
             allocation.setRemarks(request.getRemarks());
             allocation.setStartTimestamp(LocalDateTime.now());
             allocation.setEndTimestamp(null);
-            allocation.setLastUpdatedBy(null);
 
             // Save allocation
             BudgetAllocation savedAllocation = budgetAllocationService.save(allocation);
@@ -322,10 +321,8 @@ public class BudgetAllocationController {
             }
 
             // --- Soft close the old allocation ---
-            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
 
             existingAllocation.setEndTimestamp(LocalDateTime.now());
-            existingAllocation.setLastUpdatedBy(updatedBy);
             budgetAllocationService.save(existingAllocation);
 
             // --- Create a new allocation record with updated values ---
@@ -401,10 +398,8 @@ public class BudgetAllocationController {
             BudgetLine budgetLine = allocation.getBudgetLine();
 
             // --- Soft delete instead of physical delete ---
-            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
 
             allocation.setEndTimestamp(LocalDateTime.now());
-            allocation.setLastUpdatedBy(updatedBy);
             budgetAllocationService.save(allocation);
 
             // --- Update budget line amounts after soft deletion ---

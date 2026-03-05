@@ -11,12 +11,17 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "timesheet_tasks")
+@EntityListeners(AuditingEntityListener.class)
 public class TimesheetTask {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,9 +41,16 @@ public class TimesheetTask {
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
 
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
     private Long taskRef;
 
-    private String lastUpdatedBy;
     // IMPORTANT: Make sure to eagerly fetch attachments or use @JsonProperty
     @OneToMany(mappedBy = "timesheetTask", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonIgnoreProperties({ "timesheetTask" })
@@ -180,12 +192,20 @@ public class TimesheetTask {
         this.endTimestamp = endTimestamp;
     }
 
-    public String getLastUpdatedBy() {
-        return lastUpdatedBy;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public String getTaskTopic() {

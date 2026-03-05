@@ -2,7 +2,6 @@ package com.Protronserver.Protronserver.Service;
 
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.*;
-import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +23,6 @@ public class BudgetAllocationService {
 
     @Autowired
     private BudgetLineRepository budgetLineRepository;
-
-    @Autowired
-    private LoggedInUserUtils loggedInUserUtils;
 
     public BudgetAllocation save(BudgetAllocation budgetAllocation) {
         return budgetAllocationRepository.save(budgetAllocation);
@@ -135,11 +131,8 @@ public class BudgetAllocationService {
         List<BudgetAllocation> allocations = budgetAllocationRepository.findByBudgetLineIdAndEndTimestampIsNull(budgetLineId);
 
         if (allocations != null && !allocations.isEmpty()) {
-            String updatedBy = loggedInUserUtils.getLoggedInUser().getEmail();
-
             for (BudgetAllocation alloc : allocations) {
                 alloc.setEndTimestamp(LocalDateTime.now());
-                alloc.setLastUpdatedBy(updatedBy);
                 budgetAllocationRepository.save(alloc);
             }
         }

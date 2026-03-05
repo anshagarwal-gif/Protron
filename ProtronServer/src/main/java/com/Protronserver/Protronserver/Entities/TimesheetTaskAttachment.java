@@ -7,12 +7,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "timesheet_task_attachments")
+@EntityListeners(AuditingEntityListener.class)
 public class TimesheetTaskAttachment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,15 +33,18 @@ public class TimesheetTaskAttachment {
     @Column(name = "file_data", columnDefinition = "LONGBLOB")
     private byte[] fileData;
 
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
     @ManyToOne
     @JoinColumn(name = "task_id")
     @JsonIgnoreProperties({ "attachments" })
     private TimesheetTask timesheetTask;
-
-    // Getters and Setters
-    public Long getAttachmentId() {
-        return attachmentId;
-    }
 
     public void setAttachmentId(Long attachmentId) {
         this.attachmentId = attachmentId;

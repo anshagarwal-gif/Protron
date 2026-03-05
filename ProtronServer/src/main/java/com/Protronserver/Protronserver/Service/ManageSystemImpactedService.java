@@ -40,7 +40,7 @@ public class ManageSystemImpactedService {
 
             if (principal instanceof User user) {
                 system.setEndTimestamp(LocalDateTime.now());
-                system.setLastUpdatedBy(user.getEmail());
+                system.setUpdatedBy(user.getEmail());
             }
 
             systemImpactedRepository.save(system);
@@ -62,7 +62,7 @@ public class ManageSystemImpactedService {
                     // Soft delete old version
                     if (principal instanceof User user) {
                         oldSystem.setEndTimestamp(LocalDateTime.now());
-                        oldSystem.setLastUpdatedBy(user.getEmail());
+                        oldSystem.setUpdatedBy(user.getEmail());
                     }
                     systemImpactedRepository.save(oldSystem);
 
@@ -73,7 +73,7 @@ public class ManageSystemImpactedService {
                     newSystem.setTenant(updatedProject.getTenant());
                     newSystem.setStartTimestamp(LocalDateTime.now());
                     newSystem.setEndTimestamp(null);
-                    newSystem.setLastUpdatedBy(null);
+                    newSystem.setUpdatedBy(null);
 
                     newSystem = systemImpactedRepository.save(newSystem);
 
@@ -97,7 +97,7 @@ public class ManageSystemImpactedService {
                 newSystem.setTenant(updatedProject.getTenant());
                 newSystem.setStartTimestamp(LocalDateTime.now());
                 newSystem.setEndTimestamp(null);
-                newSystem.setLastUpdatedBy(null);
+                newSystem.setUpdatedBy(null);
 
                 systemImpactedRepository.save(newSystem);
             }

@@ -2,9 +2,15 @@ package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
 import java.util.Date;
+import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "po_attachments")
+@EntityListeners(AuditingEntityListener.class)
 public class POAttachments {
 
     @Id
@@ -32,7 +38,14 @@ public class POAttachments {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTimestamp;
 
-    private String lastUpdatedBy;
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+    
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
+
 
     // ------------------ Getters and Setters ------------------
 
@@ -116,11 +129,19 @@ public class POAttachments {
         this.endTimestamp = endTimestamp;
     }
 
-    public String getLastUpdatedBy() {
-        return lastUpdatedBy;
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
     }
 
-    public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
+    }
+
+    public String getUpdatedBy() {
+        return updatedBy;
+    }
+
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
     }
 }

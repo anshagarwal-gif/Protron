@@ -27,8 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static java.lang.Long.parseLong;
-
 @Service
 public class TaskService {
 
@@ -126,7 +124,6 @@ public class TaskService {
         task.setDateCreated(LocalDateTime.now());
         task.setStartTimestamp(LocalDateTime.now());
         task.setEndTimestamp(null);
-        task.setLastUpdatedBy(null);
 
         Task savedTask =  taskRepository.save(task);
 
@@ -172,14 +169,11 @@ public class TaskService {
 
         validateIds(taskDto);
 
-        String email = loggedInUserUtils.getLoggedInUser().getEmail();
-
         Task oldTask = taskRepository.findByTaskIdAndEndTimestampIsNull(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with taskId: " + taskId));
 
         // Soft-delete old task
         oldTask.setEndTimestamp(LocalDateTime.now());
-        oldTask.setLastUpdatedBy(email);
         taskRepository.save(oldTask);
 
         // Create new version
@@ -202,7 +196,6 @@ public class TaskService {
         newTask.setDateCreated(oldTask.getDateCreated());
         newTask.setStartTimestamp(LocalDateTime.now());
         newTask.setEndTimestamp(null);
-        newTask.setLastUpdatedBy(null);
 
         Task savedTask =  taskRepository.save(newTask);
 
@@ -243,13 +236,10 @@ public class TaskService {
 
     @Transactional
     public void deleteTask(String taskId) {
-        String email = loggedInUserUtils.getLoggedInUser().getEmail();
-
         Task task = taskRepository.findByTaskIdAndEndTimestampIsNull(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found with taskId: " + taskId));
 
         task.setEndTimestamp(LocalDateTime.now());
-        task.setLastUpdatedBy(email);
         taskRepository.save(task);
     }
 

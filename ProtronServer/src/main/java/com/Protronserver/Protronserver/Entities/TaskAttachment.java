@@ -6,8 +6,13 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 @Entity
 @Table(name = "task_attachment")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
 public class TaskAttachment {
@@ -28,13 +33,13 @@ public class TaskAttachment {
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
-    public Long getId() {
-        return id;
-    }
+    @Column(name = "updated_by", nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    @Column(name = "updated_ts", nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public String getTaskId() {
         return taskId;

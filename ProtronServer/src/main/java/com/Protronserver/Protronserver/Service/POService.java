@@ -68,7 +68,7 @@ public class POService {
 
         po.setCreateTimestamp(LocalDateTime.now());
         po.setEndTimestamp(null);
-        po.setLastUpdateBy(null);
+        po.setUpdatedBy(null);
 
         return poRepository.save(po);
     }
@@ -135,7 +135,7 @@ public class POService {
 
         // 1. Mark old PO as inactive
         oldPo.setEndTimestamp(LocalDateTime.now());
-        oldPo.setLastUpdateBy(updatedBy);
+        oldPo.setUpdatedBy(updatedBy);
         poRepository.save(oldPo);
 
         // 2. Create new PO
@@ -162,7 +162,7 @@ public class POService {
         newPo.setCreateTimestamp(LocalDateTime.now());
         newPo.setTenantId(oldPo.getTenantId());
         newPo.setEndTimestamp(null);
-        newPo.setLastUpdateBy(null);
+        newPo.setUpdatedBy(null);
 
         PODetails savedNewPo = poRepository.save(newPo);
 

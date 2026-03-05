@@ -1,16 +1,20 @@
 package com.Protronserver.Protronserver.Entities;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Entity class for budget_line table
  */
 @Entity
 @Table(name = "budget_line")
+@EntityListeners(AuditingEntityListener.class)
 public class BudgetLine {
 
     @Id
@@ -63,8 +67,13 @@ public class BudgetLine {
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
-    @Column(name = "last_updated_by", length = 100)
-    private String lastUpdatedBy;
+    @Column(nullable = false)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(nullable = false)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     @Lob
     @Column(name = "attachment")
@@ -203,12 +212,20 @@ public class BudgetLine {
         this.endTimestamp = endTimestamp;
     }
 
-    public String getLastUpdatedBy() {
-        return lastUpdatedBy;
+    public String getUpdatedBy() {
+        return updatedBy;
     }
 
-    public void setLastUpdatedBy(String lastUpdatedBy) {
-        this.lastUpdatedBy = lastUpdatedBy;
+    public void setUpdatedBy(String updatedBy) {
+        this.updatedBy = updatedBy;
+    }
+
+    public LocalDateTime getUpdatedTs() {
+        return updatedTs;
+    }
+
+    public void setUpdatedTs(LocalDateTime updatedTs) {
+        this.updatedTs = updatedTs;
     }
 
     public byte[] getAttachment() {
