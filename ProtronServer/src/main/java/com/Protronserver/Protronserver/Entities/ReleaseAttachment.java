@@ -38,11 +38,11 @@ public class ReleaseAttachment {
     @Column(name = "release_id")
     private Long releaseId;
 
-    @Column(name = "updated_by", nullable = false)
+    @Column(name = "updated_by", nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(name = "updated_ts", nullable = false)
+    @Column(name = "updated_ts", nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

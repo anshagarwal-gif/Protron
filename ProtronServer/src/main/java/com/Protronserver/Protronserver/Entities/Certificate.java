@@ -31,11 +31,11 @@ public class Certificate {
     @JoinColumn(name = "tenant_id")
     private Tenant tenant;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 }

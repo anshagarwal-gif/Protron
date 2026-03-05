@@ -20,13 +20,6 @@ public class Systemimpacted {
     private String systemName;
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
-    @Column(name = "updated_by", nullable = false)
-    @LastModifiedBy
-    private String updatedBy;
-
-    @Column(name = "updated_ts", nullable = false)
-    @LastModifiedDate
-    private LocalDateTime updatedTs;
 
     @ManyToOne
     @JoinColumn(name = "project_id", nullable = false)
@@ -39,6 +32,14 @@ public class Systemimpacted {
     @ManyToMany(mappedBy = "systemimpacted")
     @JsonIgnoreProperties({"tenant", "project", "systemimpacted"})
     private List<ProjectTeam> projectTeams;
+
+    @Column(name = "updated_by", nullable = true)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = true)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public LocalDateTime getStartTimestamp() {
         return startTimestamp;

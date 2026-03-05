@@ -55,14 +55,6 @@ public class Tenant {
     @Column(name = "tenant_logo", columnDefinition = "LONGBLOB")
     private byte[] tenantLogo;
 
-    @Column(name = "updated_by", nullable = false)
-    @LastModifiedBy
-    private String updatedBy;
-
-    @Column(name = "updated_ts", nullable = false)
-    @LastModifiedDate
-    private LocalDateTime updatedTs;
-
     // Define relationships with other entities
     @OneToMany(mappedBy = "tenant")
     @JsonIgnoreProperties({"tenant", "projects", "projectTeams", "projectsManaged", "role"})
@@ -86,6 +78,14 @@ public class Tenant {
 
     @OneToMany(mappedBy = "tenant")
     private List<Certificate> certificates;
+
+    @Column(name = "updated_by", nullable = true)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = true)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public Long getTenantId() {
         return tenantId;

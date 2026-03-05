@@ -51,11 +51,11 @@ public class BudgetDocument {
     @Column(name = "description", length = 500)
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

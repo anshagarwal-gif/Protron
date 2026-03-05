@@ -38,11 +38,11 @@ public class POAttachments {
     @Temporal(TemporalType.TIMESTAMP)
     private Date endTimestamp;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedBy
     private String updatedBy;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

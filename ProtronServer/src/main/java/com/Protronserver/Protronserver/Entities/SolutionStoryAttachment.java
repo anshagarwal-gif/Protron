@@ -33,11 +33,11 @@ public class SolutionStoryAttachment {
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
-    @Column(name = "updated_by", nullable = false)
+    @Column(name = "updated_by", nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(name = "updated_ts", nullable = false)
+    @Column(name = "updated_ts", nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

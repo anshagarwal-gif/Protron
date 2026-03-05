@@ -48,11 +48,11 @@ public class BudgetAllocation {
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

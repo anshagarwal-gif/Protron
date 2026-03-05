@@ -67,11 +67,11 @@ public class BudgetLine {
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

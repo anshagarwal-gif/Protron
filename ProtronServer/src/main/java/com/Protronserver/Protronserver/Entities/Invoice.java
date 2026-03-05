@@ -142,10 +142,11 @@ public class Invoice {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
+    @Column(nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

@@ -37,11 +37,11 @@ public class InvoiceItem {
     @Column(columnDefinition = "TEXT")
     private String remarks;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

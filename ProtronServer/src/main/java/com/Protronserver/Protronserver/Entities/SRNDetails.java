@@ -83,17 +83,17 @@ public class SRNDetails {
     @Column(name = "lastupdate_timestamp")
     private LocalDateTime lastUpdateTimestamp;
 
-    @Column(name = "updated_by", nullable = false)
-    @LastModifiedBy
-    private String updatedBy;
-
-    @Column(name = "updated_ts", nullable = false)
-    @LastModifiedDate
-    private LocalDateTime updatedTs;
-
     @Column(name = "tenant_id", nullable = false)
     private Long tenantId;
     private LocalDate srnDate;
+
+    @Column(name = "updated_by", nullable = true)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = true)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     // ------------------ Getters and Setters ------------------
 

@@ -42,11 +42,11 @@ public class Role {
     @JsonIgnoreProperties({"roles", "roleAccesses", "projects", "projectTeams", "certificates"})
     private Tenant tenant;
 
-    @Column(name = "updated_by", nullable = false)
+    @Column(name = "updated_by", nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(name = "updated_ts", nullable = false)
+    @Column(name = "updated_ts", nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

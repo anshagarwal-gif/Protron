@@ -77,11 +77,11 @@ public class UserStory {
     @Column(name = "end_timestamp")
     private LocalDateTime endTimestamp;
 
-    @Column(name = "updated_by", nullable = false)
+    @Column(name = "updated_by", nullable = true)
     @LastModifiedBy
     private String updatedBy;
 
-    @Column(name = "updated_ts", nullable = false)
+    @Column(name = "updated_ts", nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 

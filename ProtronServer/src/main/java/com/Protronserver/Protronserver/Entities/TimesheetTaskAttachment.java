@@ -33,18 +33,18 @@ public class TimesheetTaskAttachment {
     @Column(name = "file_data", columnDefinition = "LONGBLOB")
     private byte[] fileData;
 
-    @Column(name = "updated_by", nullable = false)
-    @LastModifiedBy
-    private String updatedBy;
-
-    @Column(name = "updated_ts", nullable = false)
-    @LastModifiedDate
-    private LocalDateTime updatedTs;
-
     @ManyToOne
     @JoinColumn(name = "task_id")
     @JsonIgnoreProperties({ "attachments" })
     private TimesheetTask timesheetTask;
+
+    @Column(name = "updated_by", nullable = true)
+    @LastModifiedBy
+    private String updatedBy;
+
+    @Column(name = "updated_ts", nullable = true)
+    @LastModifiedDate
+    private LocalDateTime updatedTs;
 
     public void setAttachmentId(Long attachmentId) {
         this.attachmentId = attachmentId;

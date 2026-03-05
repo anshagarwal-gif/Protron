@@ -50,11 +50,11 @@ public class Organization {
     @Column(name = "orgdesc", length = 1000)
     private String orgDesc;
 
-    @Column(name = "updated_by", nullable = false)
+    @Column(name = "updated_by", nullable = true)
     @LastModifiedBy
     private String updatedBy;
     
-    @Column(name = "updated_ts", nullable = false)
+    @Column(name = "updated_ts", nullable = true)
     @LastModifiedDate
     private LocalDateTime updatedTs;
 
