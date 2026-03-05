@@ -311,7 +311,7 @@ const ProjectManagement = () => {
 
     },
     {
-      headerName: 'Cost',
+      headerName: 'Currency',
       field: 'unit',
       valueFormatter: (params) => params.value || '-',
       maxWidth: 120,
@@ -424,6 +424,8 @@ const ProjectManagement = () => {
         unit: dto.unit,
         projectCost: dto.projectCost,
         projectTeam: Array(dto.projectTeamCount).fill({}), // Placeholder for team members
+        businessValueAmount: dto.businessValueAmount,
+        businessValueType: dto.businessValueType,
       }))
         .sort((a, b) => {
           // Convert ISO strings to Date objects for comparison
@@ -627,6 +629,8 @@ const ProjectManagement = () => {
         'Cost Currency': project.unit || 'N/A',
         'Initiative Cost': project.projectCost != null ? `${project.projectCost}` : 'N/A',
         'Initiative Sponsor': project.sponsor ? `${project.sponsor.firstName} ${project.sponsor.lastName}` : 'N/A',
+        'Business Value Amount': project.businessValueAmount ? `${project.businessValueAmount}` : 'N/A',
+        'Business Value Type': project.businessValueType || 'N/A',
       }));
 
       // Create worksheet from data
@@ -735,7 +739,7 @@ const ProjectManagement = () => {
             {isLoading ? (
               <LoadingSpinner />
             ) : (
-              <div className="ag-theme-alpine border rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
+              <div className="ag-theme-alpine rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
                 <style jsx>{`
                 .ag-cell-truncate {
   white-space: nowrap;

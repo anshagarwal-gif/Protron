@@ -784,7 +784,7 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                         </div>
                         <div className="max-w-[400px]">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                PO Consumption Attachments (Max 4)
+                                PO Consumption Attachments (Max 4) Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                             </label>
 
                             <input

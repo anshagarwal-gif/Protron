@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FiHome, FiUser, FiUserCheck, FiFolder, FiFileText, FiClock, FiLogOut, FiMenu, FiX, FiChevronDown, FiBookOpen } from "react-icons/fi";
-import dstGlobalLogo from "../assets/DST Global logo.png";
+import dstGlobalLogo from "../assets/DST Circle.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext"; // Import AccessContext
@@ -212,7 +212,7 @@ const Navbar = ({ setIsAuthenticated, sessionTimer }) => {
             {/* Logo - Left Side */}
             <div className="flex items-center gap-3 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <div className="h-12 w-12 rounded-full ring-2 ring-white/20 bg-white p-1.5 flex items-center justify-center">
+                <div className="h-12 w-12 rounded-full ring-2 ring-white/20 bg-white p-0.5 flex items-center justify-center">
                   <img
                     src={dstGlobalLogo}
                     alt="DST Global logo"

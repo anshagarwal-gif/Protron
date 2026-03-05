@@ -118,7 +118,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         cellStyle: { borderRight: '1px solid #e5e7eb' }
       },
       {
-        headerName: 'Cost Currency',
+        headerName: 'Currency',
         field: 'unit',
         maxWidth: 100,
         cellStyle: { borderRight: '1px solid #e5e7eb' }
@@ -127,7 +127,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         headerName: 'Cost',
         field: 'pricing',
         maxWidth: 95,
-        cellStyle: { borderRight: '1px solid #e5e7eb' }
+        cellStyle: { borderRight: '1px solid #e5e7eb', textAlign: 'right', justifyContent: 'flex-end' }
       },
       {
         headerName: 'Pricing Type',
@@ -160,7 +160,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       baseColumns.push({
         headerName: 'Actions',
         cellRenderer: ActionsCellRenderer,
-        maxWidth: 120,
+        maxWidth: 80,
         sortable: false,
         filter: false,
         pinned: 'right'

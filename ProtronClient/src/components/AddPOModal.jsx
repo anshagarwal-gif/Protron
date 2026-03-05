@@ -596,7 +596,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         onChange={handleChange('poNumber')}
                                         title={formData.poNumber}
                                         maxLength={50} // Tooltip on hover
-                                        className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 truncate ${fieldErrors.poNumber ? 'border-red-500' : 'border-gray-300'}`}
+                                        className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none truncate ${fieldErrors.poNumber ? 'border-red-500' : 'border-gray-300'}`}
                                     />
                                     {fieldErrors.poNumber && (
                                         <p className="text-xs text-red-600 mt-1">{fieldErrors.poNumber}</p>
@@ -608,7 +608,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         value={formData.poType}
                                         onChange={handleChange('poType')}
                                         title={formData.poType || 'Select from list'} // Tooltip on hover
-                                        className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 truncate ${fieldErrors.poType ? 'border-red-500' : 'border-gray-300'}`}
+                                        className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none truncate ${fieldErrors.poType ? 'border-red-500' : 'border-gray-300'}`}
                                     >
                                         <option value="">Select from list</option>
                                         <option value="FIXED">Fixed</option>
@@ -626,7 +626,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         value={formData.poCountry}
                                         onChange={handleChange('poCountry')}
                                         title={formData.poCountry || 'Select from list'} // Tooltip on hover
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 truncate"
                                     >
                                         <option value="">Select from list</option>
                                         {countries.map((country) => (
@@ -643,7 +643,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         value={formData.currency}
                                         onChange={handleChange('currency')}
                                         title={formData.currency}
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 truncate"
                                     >
                                         <option value="USD">USD</option>
                                         <option value="INR">INR</option>
@@ -678,7 +678,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 }));
                                             }}
                                             title={formData.poAmount?.toString() || 'Enter Amount'}
-                                            className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 truncate ${fieldErrors.poAmount ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full h-10 pl-8 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none truncate ${fieldErrors.poAmount ? 'border-red-500' : 'border-gray-300'}`}
                                             inputMode="decimal"
                                             pattern="^\d{1,13}(\.\d{0,2})?$"
                                             maxLength={16}
@@ -920,7 +920,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             name="sponsorLob"
                                             value={formData.sponsorLob}
                                             onChange={handleChange('sponsorLob')}
-                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                            className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
                                             placeholder="Enter Sponsor LOB"
                                             maxLength={255}
                                         />
@@ -980,7 +980,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 }));
                                             }}
                                             title={formData.budgetLineAmount?.toString() || 'Enter Amount'}
-                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 truncate"
                                             inputMode="decimal"
                                             pattern="^\d{1,13}(\.\d{0,2})?$"
                                             maxLength={16}
@@ -1012,7 +1012,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 }));
                                             }}
                                             title={formData.businessValueAmount?.toString() || 'Enter Amount'}
-                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                            className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 truncate"
                                             inputMode="decimal"
                                             pattern="^\d{1,13}(\.\d{0,2})?$"
                                             maxLength={16}
@@ -1026,7 +1026,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     <select
                                         value={formData.businessValueType}
                                         onChange={handleChange('businessValueType')}
-                                        className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                        className="w-full h-10 px-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 truncate"
                                     >
                                         <option value="">Select Type</option>
                                         <option value="One Time">One Time</option>
@@ -1059,7 +1059,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 projectDescription: value
                                             }));
                                         }}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none"
                                         maxLength={500}
                                         title={formData.projectDescription || 'Enter project description'}
                                     />
@@ -1082,7 +1082,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 budgetLineRemarks: value
                                             }));
                                         }}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none"
                                         maxLength={500}
                                         title={formData.budgetLineRemarks || 'Enter budget line remarks'}
                                     />

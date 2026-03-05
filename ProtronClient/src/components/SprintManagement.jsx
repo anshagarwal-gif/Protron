@@ -264,6 +264,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
             initialData={null}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
           <SprintFormModal
             open={editModalOpen}
@@ -272,6 +273,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
             initialData={editingSprint}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
           <ViewSprintModal
             open={viewModalOpen}
@@ -286,6 +288,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
             initialData={duplicatingSprint}
             projectName={projectName}
             projectId={projectId}
+            setSnackbar={setSnackbar}
           />
         </div>
       </div>
@@ -293,7 +296,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
   );
 }
 
-function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, projectId }) {
+function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, projectId, setSnackbar }) {
   const [formData, setFormData] = useState({
     sprintName: '',
     startDate: '',
@@ -306,7 +309,19 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
   const formRef = useRef(null);
+
+  // Character count helper function
+  const getCharacterCount = (value, maxLength) => {
+    const currentLength = value ? value.length : 0;
+    const isOverLimit = currentLength > maxLength;
+    return (
+      <div className={`text-right text-xs mt-1 ${isOverLimit ? 'text-red-500' : 'text-gray-500'}`}>
+        {currentLength}/{maxLength} characters
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (initialData) {
@@ -348,13 +363,38 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length === 0) return;
+
+    // de-dup by (name + size + lastModified) for new files
+    const deduped = selectedFiles.filter(file => {
+      return !sprintFiles.some(existingFile => {
+        return existingFile.name === file.name &&
+               existingFile.size === file.size &&
+               existingFile.lastModified === file.lastModified;
+      });
+    });
+
     const totalExisting = existingAttachments.length;
-    const totalFiles = sprintFiles.length + selectedFiles.length + totalExisting;
-    if (totalFiles > 4) {
-      alert(`Maximum 4 attachments allowed in total (existing + new). You already have ${totalExisting} existing attachments.`);
-      return;
+    const totalCurrentCount = sprintFiles.length + totalExisting;
+    const filesToAdd = deduped.slice(0, 4 - totalCurrentCount);
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
     }
-    setSprintFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+
+    if (filesToAdd.length > 0) {
+      setSprintFiles((prevFiles) => [...prevFiles, ...filesToAdd]);
+    } else if (deduped.length === 0) {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
     e.target.value = null;
   };
 
@@ -567,11 +607,12 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                 placeholder="Enter sprint description..."
                 maxLength={500}
               />
+              {getCharacterCount(formData.description, 500)}
               {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description}</span>}
             </div>
             {/* Attachments */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">Sprint Attachments (Max 4)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Sprint Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
               <div className="relative">
                 <input
                   type="file"
@@ -584,7 +625,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
                 />
                 <label
                   htmlFor="sprint-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${existingAttachments.length + sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={existingAttachments.length + sprintFiles.length >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">
@@ -662,7 +703,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
   );
 }
 
-function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectName, projectId }) {
+function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectName, projectId, setSnackbar }) {
   const [formData, setFormData] = useState({
     sprintName: '',
     startDate: '',
@@ -719,12 +760,38 @@ function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectNam
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
     if (selectedFiles.length === 0) return;
-    const total = (existingAttachments.length || 0) + sprintFiles.length + selectedFiles.length;
-    if (total > 4) {
-      alert('You can only add up to 4 attachments.');
-      return;
+
+    // de-dup by (name + size + lastModified) for new files
+    const deduped = selectedFiles.filter(file => {
+      return !sprintFiles.some(existingFile => {
+        return existingFile.name === file.name &&
+               existingFile.size === file.size &&
+               existingFile.lastModified === file.lastModified;
+      });
+    });
+
+    const totalExisting = existingAttachments.length || 0;
+    const totalCurrentCount = sprintFiles.length + totalExisting;
+    const filesToAdd = deduped.slice(0, 4 - totalCurrentCount);
+
+    if (deduped.length > filesToAdd.length) {
+      setSnackbar({
+        open: true,
+        message: `Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`,
+        severity: 'warning'
+      });
     }
-    setSprintFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+
+    if (filesToAdd.length > 0) {
+      setSprintFiles((prevFiles) => [...prevFiles, ...filesToAdd]);
+    } else if (deduped.length === 0) {
+      setSnackbar({
+        open: true,
+        message: 'All selected files are duplicates and were skipped.',
+        severity: 'info'
+      });
+    }
+
     e.target.value = null;
   };
 
@@ -887,11 +954,12 @@ function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectNam
                 placeholder="Enter sprint description..."
                 maxLength={500}
               />
+              {getCharacterCount(formData.description, 500)}
               {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description}</span>}
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-2">Sprint Attachments (Max 4)</label>
+              <label className="block text-xs font-medium text-gray-700 mb-2">Sprint Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
               <div className="relative">
                 <input
                   type="file"
@@ -904,7 +972,7 @@ function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectNam
                 />
                 <label
                   htmlFor="duplicate-sprint-attachment-input"
-                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer ${sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                  className={`w-[300px] h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer ${sprintFiles.length >= 4 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                   style={(existingAttachments.length + sprintFiles.length) >= 4 ? { pointerEvents: 'none', opacity: 0.6 } : {}}
                 >
                   <span className="text-gray-500 truncate">

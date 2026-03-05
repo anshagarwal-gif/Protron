@@ -540,7 +540,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                         handleProjectChange(projectId);
                       }}
                       required
-                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed`}
+                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed`}
                       disabled={loading}
                     >
                       <option value="">Select from list</option>
@@ -569,7 +569,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                     <select
                       value={formData.status || ''}
                       onChange={handleInputChange("status")}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                       disabled={loading}
                     >
@@ -596,7 +596,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                     <select
                       value={formData.priority || ''}
                       onChange={handleInputChange("priority")}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                       disabled={loading}
                     >
@@ -624,7 +624,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       min="0"
                       max="100"
                       placeholder="Enter story points"
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                       disabled={loading}
                     />
@@ -767,7 +767,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                     placeholder="Enter summary..."
                     rows={3}
                     maxLength={100}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
                     disabled={loading}
                     required
                   />
@@ -790,7 +790,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                   rows={4}
                   maxLength={500}
                   placeholder="Enter detailed description..."
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none"
                   disabled={loading}
                 />
                 {fieldErrors.description && (

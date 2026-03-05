@@ -227,7 +227,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 disabled={selectedUser ? true : false}
                 value={formData.emailId}
                 onChange={handleInputChange("emailId")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -238,7 +238,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
                 placeholder="Enter User's Name"
                 value={formData.name}
                 onChange={handleInputChange("firstName")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                 readOnly
               />
             </div>
@@ -247,7 +247,7 @@ const AddUserModal = ({ isOpen, onClose, onSubmit, selectedUser }) => {
               <select
                 value={formData.role}
                 onChange={handleInputChange("role")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
               >
                 <option value="">Select from list</option>
                 {roles.map((role) => (

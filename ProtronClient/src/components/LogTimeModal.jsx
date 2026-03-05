@@ -731,7 +731,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     <select
                       value={formData.projectId || ''}
                       onChange={handleInputChange("projectId")}
-                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
+                      className={`w-full border ${!formData.projectId ? 'border-red-500' : 'border-gray-300'} rounded-md h-10 pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none`}
 
                       required
                     >
@@ -767,7 +767,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     <select
                       value={formData.taskType || ''}
                       onChange={handleInputChange('taskType')}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                     >
                       <option value="">Select from list</option>
@@ -800,7 +800,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                       onChange={handleInputChange('taskTopic')}
                       placeholder="Enter task topic..."
                       maxLength={100}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                     />
                   </div>
@@ -935,22 +935,37 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                           </svg>
                         </div>
                         <input
-                          type="number"
-                          placeholder="HH"
-                          value={formData.remainingHours}
-                          onChange={handleInputChange('remainingHours')}
-                          onKeyDown={(e) => {
-                            if (
-                              !/[0-9]/.test(e.key) &&
-                              !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
-                            ) {
-                              e.preventDefault();
-                            }
-                          }}
-                          min="0"
-                          max="24"
-                          className={`w-full border rounded-md pl-10 pr-3 py-2 text-sm focus:ring-green-500 `}
-                        />
+  type="number"
+  placeholder="HH"
+  value={formData.remainingHours}
+  onChange={handleInputChange('remainingHours')}
+  onKeyDown={(e) => {
+    if (
+      !/[0-9]/.test(e.key) &&
+      !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)
+    ) {
+      e.preventDefault();
+    }
+  }}
+  min="0"
+  max="24"
+  className="
+    w-full
+    border
+    border-gray-300
+    rounded-md
+    pl-10
+    pr-3
+    py-2
+    text-sm
+    focus:outline-none
+    focus:ring-2
+    focus:ring-green-500
+    focus:border-green-500
+    transition
+    duration-200
+  "
+/>
 
                       </div>
                     </div>
@@ -1010,7 +1025,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
               {/* Compact Attachment Upload */}
               <div className="w-full md:w-[60%]">
                 <p className="text-sm font-semibold text-gray-800 mb-2">
-                  Attachments ({formData.attachments.length}/4)
+                  Attachments ({formData.attachments.length}/4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                 </p>
 
                 {/* Upload Box */}
@@ -1098,7 +1113,7 @@ const LogTimeModal = ({ isOpen, onClose, selectedDate, onDateChange, onSave, edi
                     onChange={handleInputChange('description')}
                     rows={4}
                     maxLength={500}
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none"
                   ></textarea>
                 </div>
                 <div className="flex justify-end text-sm text-gray-500 pr-1 mt-1">

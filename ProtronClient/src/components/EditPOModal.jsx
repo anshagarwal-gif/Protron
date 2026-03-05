@@ -966,7 +966,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             value={formData.poCountry}
                                             onChange={handleChange('poCountry')}
                                             title={formData.poCountry || 'Select from list'} // Tooltip on hover
-                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 truncate"
                                         >
                                             <option value="">Select from list</option>
                                             {countries.map((country) => (
@@ -1369,7 +1369,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         <select
                                             value={formData.businessValueType}
                                             onChange={handleChange('businessValueType')}
-                                            className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 truncate"
+                                            className="w-full h-10 px-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 truncate"
                                         >
                                             <option value="">Select Type</option>
                                             <option value="One Time">One Time</option>

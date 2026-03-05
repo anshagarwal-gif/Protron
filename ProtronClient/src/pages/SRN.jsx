@@ -224,6 +224,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         'PO Number': srn.poNumber || 'N/A',
         'Payment ID': srn.srnId || 'N/A',
         'Milestone Name': srn.milestone?.msName || 'N/A',
+        'Payment Type': srn.srnType || 'N/A',
         'Payment Name': srn.srnName || 'N/A',
         'Payment Description': srn.srnDsc || 'N/A',
         'Currency': srn.srnCurrency || 'N/A',
@@ -530,7 +531,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "Actions",
       field: "actions",
-      width: 150,
+      width: 120,
       sortable: false,
       filter: false,
       suppressMenu: true,
@@ -541,7 +542,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           <div className="flex justify-center gap-2 h-full items-center">
             <button
               onClick={() => handleViewSRNDetails(srn)}
-              className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
+              className="p-1 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
               title="View SRN Details"
             >
               <Eye size={16} className="text-green-600" />
@@ -549,7 +550,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             {hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleEditSRN(srn)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
+                className="p-1 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
                 title="Edit SRN"
               >
                 <Edit size={16} className="text-blue-600" />
@@ -558,7 +559,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             {hasAccess('budget', 'delete') && (
               <button
                 onClick={() => handleDeleteSRN(srn.srnId)}
-                className="p-2 rounded-full hover:bg-red-100 transition-colors cursor-pointer"
+                className="p-1 rounded-full hover:bg-red-100 transition-colors cursor-pointer"
                 title="Delete SRN"
               >
                 <Trash2 size={16} className="text-red-600" />

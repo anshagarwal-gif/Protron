@@ -738,7 +738,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                         </div>
                         <div className="grid grid-cols-1 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Attachments (Max 4)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT</label>
                                 <div className="relative">
                                     <input
                                         type="file"
@@ -752,7 +752,7 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                     />
                                     <label
                                         htmlFor="srn-attachment-input"
-                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center cursor-pointer"
+                                        className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 flex items-center cursor-pointer"
                                     >
                                         <Upload className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
                                         <span className="text-gray-500 truncate">

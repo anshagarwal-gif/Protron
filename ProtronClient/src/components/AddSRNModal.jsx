@@ -600,8 +600,8 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                         )}
 
                         {/* Row 1: Select PO, Milestone, SRN Type, Currency, and Amount */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 items-end">
-                            <div className="lg:col-span-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 items-end relative">
+                            <div className="lg:col-span-1 relative">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Select PO *
                                 </label>
@@ -636,7 +636,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     </p>
                                 )}
                             </div>
-                            <div>
+                            <div className="relative">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Payment Name *
                                     <span className="float-right text-sm text-gray-500">
@@ -650,7 +650,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                         name="srnName"
                                         value={formData.srnName}
                                         onChange={handleInputChange}
-                                        className={`w-full h-10 pl-10 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full h-10 pl-10 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnName ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Enter here"
                                         maxLength={100}
@@ -665,7 +665,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 )}
                             </div>
 
-                            <div className="lg:col-span-1">
+                            <div className="lg:col-span-1 relative">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Milestone *
                                 </label>
@@ -673,7 +673,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     name="msId"
                                     value={formData.msId}
                                     onChange={handleInputChange}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
                                     disabled={!formData.poId || loading}
                                     title={formData.msId ? `Selected Milestone` : "Select a milestone (optional)"}
                                 >
@@ -695,7 +695,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 )}
                             </div>
 
-                            <div className="lg:col-span-1">
+                            <div className="lg:col-span-1 relative">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Payment Type *
                                 </label>
@@ -703,7 +703,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     name="srnType"
                                     value={formData.srnType}
                                     onChange={handleInputChange}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnType ? 'border-red-500' : 'border-gray-300'
+                                    className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnType ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     disabled={loading}
                                     title={`Selected Type: ${formData.srnType}`}
@@ -751,7 +751,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                         min="0"
                                         pattern="^\d{1,13}(\.\d{0,2})?$"
                                         inputMode="decimal"
-                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full h-10 pl-8 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Enter here"
                                         disabled={loading}
@@ -808,7 +808,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 value={formData.srnDsc}
                                 onChange={handleInputChange}
                                 rows={3}
-                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${errors.srnDsc ? 'border-red-500' : 'border-gray-300'
+                                className={`w-full px-4 py-3 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none ${errors.srnDsc ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 placeholder="Enter here"
                                 maxLength={500}
@@ -835,7 +835,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 value={formData.srnRemarks}
                                 onChange={handleInputChange}
                                 rows={3}
-                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
+                                className={`w-full px-4 py-3 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none ${remarksCharCount > 500 ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 placeholder="Enter here"
                                 maxLength={500}

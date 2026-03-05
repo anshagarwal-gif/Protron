@@ -347,12 +347,24 @@ const PODetailsPage = () => {
       tooltipField: "milestoneName"
     },
     {
+      headerName: "Currency",
+      field: "milestoneCurrency",
+      valueGetter: params => params.data.milestoneCurrency || poDetails?.poCurrency || 'USD',
+      width: 100,
+      sortable: true,
+      filter: true,
+      cellStyle: { textAlign: 'left'},
+      cellRenderer: TruncatedCellRenderer,
+      tooltipField: "milestoneCurrency"
+    },
+    {
       headerName: 'Amount',
       field: 'milestoneAmount',
       flex: 1,
       maxWidth: 130,
       sortable: true,
       filter: 'agNumberColumnFilter',
+      cellStyle: { textAlign: 'right', justifyContent: 'flex-end' },
       valueFormatter: (params) => {
         if (params.value) {
           // Get the milestone currency from the data, fallback to PO currency
@@ -360,7 +372,7 @@ const PODetailsPage = () => {
           const currencySymbol = getCurrencySymbol(currency);
 
           // Format the amount with proper currency symbol
-          return `${currencySymbol}${params.value.toLocaleString()}`;
+          return `${params.value.toLocaleString()}`;
         }
         return '';
       },
@@ -536,7 +548,7 @@ const PODetailsPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 sm:gap-6">
           {/* First Row */}
           <div>
-            <p className="text-sm font-medium text-blue-600 mb-1">PO Number</p>
+            <p className="text-sm font-medium mb-1">PO Number</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poNumber}
@@ -546,7 +558,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-green-600 mb-1">PO Amount</p>
+            <p className="text-sm font-medium mb-1">PO Amount</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={formatCurrency(poDetails.poAmount, poDetails.poCurrency)}
@@ -556,7 +568,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-purple-600 mb-1">Customer</p>
+            <p className="text-sm font-medium mb-1">Customer</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.customer || 'N/A'}
@@ -566,7 +578,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-orange-600 mb-1">SPOC</p>
+            <p className="text-sm font-medium mb-1">SPOC</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poSpoc || 'N/A'}
@@ -576,7 +588,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-indigo-600 mb-1">PO Type</p>
+            <p className="text-sm font-medium mb-1">PO Type</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poType === 'T_AND_M' ? 'T & M' :
@@ -590,7 +602,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-yellow-600 mb-1">Supplier</p>
+            <p className="text-sm font-medium mb-1">Supplier</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.supplier || 'N/A'}
@@ -600,7 +612,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium text-teal-600 mb-1">Initiative name</p>
+            <p className="text-sm font-medium mb-1">Initiative name</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.projectName || 'N/A'}

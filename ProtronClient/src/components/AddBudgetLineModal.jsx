@@ -917,7 +917,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     placeholder="Enter budget name"
                                     value={formData.budgetName}
                                     onChange={handleChange('budgetName')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                    className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
                                         errors.budgetName ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                     maxLength={200}
@@ -939,7 +939,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     placeholder="Enter budget line item code"
                                     value={formData.budgetLineItem}
                                     onChange={handleChange('budgetLineItem')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                    className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
                                         errors.budgetLineItem ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                     maxLength={100}
@@ -1057,7 +1057,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     placeholder="Enter LOB (optional)"
                                     value={formData.lob}
                                     onChange={handleChange('lob')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                    className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
                                         errors.lob ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                     maxLength={50}
@@ -1076,7 +1076,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 <select
                                     value={formData.currency}
                                     onChange={handleChange('currency')}
-                                    className={`w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                    className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
                                         errors.currency ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 >
@@ -1104,7 +1104,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                         placeholder="0.00"
                                         value={formData.amountApproved}
                                         onChange={handleChange('amountApproved')}
-                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                        className={`w-full h-10 pl-8 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
                                             errors.amountApproved ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     />
@@ -1128,7 +1128,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                         placeholder="0.00"
                                         value={formData.amountUtilized}
                                         onChange={handleChange('amountUtilized')}
-                                        className={`w-full h-10 pl-8 pr-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                                        className={`w-full h-10 pl-8 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
                                             errors.amountUtilized ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     />
@@ -1169,7 +1169,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 rows={3}
                                 value={formData.budgetDescription}
                                 onChange={handleChange('budgetDescription')}
-                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${
+                                className={`w-full px-4 py-3 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${
                                     errors.budgetDescription ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 maxLength={500}
@@ -1189,7 +1189,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 rows={3}
                                 value={formData.remarks}
                                 onChange={handleChange('remarks')}
-                                className={`w-full px-4 py-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${
+                                className={`w-full px-4 py-3 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap ${
                                     errors.remarks ? 'border-red-500' : 'border-gray-300'
                                 }`}
                                 maxLength={500}

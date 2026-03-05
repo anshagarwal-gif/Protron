@@ -1049,7 +1049,7 @@ const handleSubmit = async (e) => {
             <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Building size={14} className="inline mr-1" />
-                  Story Attachments (Max 4)
+                  Story Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                 </label>
                 <input
                   type="file"
