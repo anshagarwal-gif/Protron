@@ -36,14 +36,29 @@ public class User {
     @Lob
     private byte[] photo;
 
-    // Added timestamp fields
+    // Audit / lifecycle fields (aligned with Task entity)
+    private String createdBy;
+    private LocalDateTime dateCreated;
     private LocalDateTime startTimestamp;
     private LocalDateTime endTimestamp;
-
-    // Added last updated by field
     private String lastUpdatedBy;
 
-    // Getters and setters for the new fields
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(LocalDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
     public LocalDateTime getStartTimestamp() {
         return startTimestamp;
     }

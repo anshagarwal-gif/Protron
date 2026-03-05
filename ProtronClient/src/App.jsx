@@ -40,6 +40,7 @@ import ProjectMatricsLanding from './pages/LandingPage';
 import StoryDashboard from './pages/StoryDashboard';
 import SolutionStoryManagement from './pages/SolutionStoryManagement';
 import TaskManagement from './pages/TaskManagement';
+import AdminTemplateUpload from './pages/AdminTemplateUpload';
 import Careers from './pages/Careers';
 import PublicInfoPage from './pages/PublicInfoPage';
 import About from './pages/About';
@@ -155,6 +156,9 @@ const AppContent = () => {
               <Route path="/task-management" element={<MemoizedTaskManagement />} />
               <Route path="/user/:id" element={<UserDetails/>}/>
               <Route path="/signup" element={<Signup/>}/>
+              {role === 'tenant_admin' && (
+                <Route path="/admin/bulk-template" element={<AdminTemplateUpload />} />
+              )}
               {/* <Route path="/team" element={<MemoizedTeamManagement />} /> */}
               <Route
                 path="/timesheet"
