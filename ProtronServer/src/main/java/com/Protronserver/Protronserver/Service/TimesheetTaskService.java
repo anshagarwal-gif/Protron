@@ -467,9 +467,6 @@ public class TimesheetTaskService {
         }
     }
 
-    /**
-     * Delete a specific attachment
-     */
     @Transactional
     public void deleteAttachment(Long attachmentId) {
         System.out.println("Service: Deleting attachment with ID: " + attachmentId);
@@ -477,13 +474,24 @@ public class TimesheetTaskService {
         TimesheetTaskAttachment attachment = timesheetTaskAttachmentRepository.findById(attachmentId)
                 .orElseThrow(() -> new RuntimeException("Attachment not found"));
 
-        // Check if the task is submitted
-        if (attachment.getTimesheetTask().isSubmitted()) {
-            throw new RuntimeException("Cannot delete attachments from submitted tasks");
-        }
-
         timesheetTaskAttachmentRepository.delete(attachment);
         System.out.println("Service: Attachment deleted successfully: " + attachmentId);
+    }
+
+    @Transactional
+    public void updateAttachment(Long attachmentId, String fileName, String fileType, Long fileSize, byte[] fileData) {
+        System.out.println("Service: Updating attachment with ID: " + attachmentId);
+
+        TimesheetTaskAttachment attachment = timesheetTaskAttachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new RuntimeException("Attachment not found"));
+
+        if (fileName != null) attachment.setFileName(fileName);
+        if (fileType != null) attachment.setFileType(fileType);
+        if (fileSize != null) attachment.setFileSize(fileSize);
+        if (fileData != null) attachment.setFileData(fileData);
+
+        timesheetTaskAttachmentRepository.save(attachment);
+        System.out.println("Service: Attachment updated successfully: " + attachmentId);
     }
 
     /**

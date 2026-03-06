@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Map;
@@ -259,17 +260,17 @@ public class TimesheetTaskController {
         }
     }
 
-    // NEW: Delete specific attachment
-    @DeleteMapping("/attachments/{attachmentId}")
-    public ResponseEntity<String> deleteAttachment(@PathVariable Long attachmentId) {
+    // NEW: Update specific attachment
+    @PutMapping("/attachments/{attachmentId}")
+    public ResponseEntity<String> updateAttachment(@PathVariable Long attachmentId, @RequestParam("file") MultipartFile file) {
         try {
-            timesheetTaskService.deleteAttachment(attachmentId);
-            return ResponseEntity.ok("Attachment deleted successfully.");
+            timesheetTaskService.updateAttachment(attachmentId, file.getOriginalFilename(), file.getContentType(), file.getSize(), file.getBytes());
+            return ResponseEntity.ok("Attachment updated successfully.");
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete attachment.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update attachment.");
         }
     }
 
