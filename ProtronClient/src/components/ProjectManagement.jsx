@@ -302,21 +302,20 @@ const ProjectManagement = () => {
       headerName: 'Initiative Manager',
       valueGetter: (params) => {
         const pm = params.data.projectManager;
-        return pm ? `${pm.firstName} ${pm.lastName}` : '';
+        return pm ? `${pm.firstName} ${pm.lastName}` : 'N/A';
       },
       minWidth: 160,
       filter: 'agTextColumnFilter',
       cellClass: 'ag-cell-truncate',
       tooltipValueGetter: (params) => params.value || 'N/A'
-
     },
     {
       headerName: 'Currency',
       field: 'unit',
       valueFormatter: (params) => params.value || '-',
-      maxWidth: 120,
+      minWidth: 120,
       filter: 'agTextColumnFilter',
-      cellStyle: { textAlign: 'center' }
+      cellClass: 'ag-cell-truncate',
     },
     {
       headerName: 'Initiative Cost',
@@ -332,7 +331,7 @@ const ProjectManagement = () => {
       headerName: 'Initiative Sponsor',
       valueGetter: (params) => {
         const sponsor = params.data.sponsor;
-        return sponsor ? `${sponsor.firstName} ${sponsor.lastName}` : '';
+        return sponsor ? `${sponsor.firstName} ${sponsor.lastName}` : 'N/A';
       },
       minWidth: 160,
       filter: 'agTextColumnFilter',

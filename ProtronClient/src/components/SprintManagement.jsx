@@ -6,6 +6,17 @@ import { Pencil, Trash2, Eye, Download, Copy } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+// Character count helper function
+const getCharacterCount = (value, maxLength) => {
+  const currentLength = value ? value.length : 0;
+  const isOverLimit = currentLength > maxLength;
+  return (
+    <div className={`text-right text-xs mt-1 ${isOverLimit ? 'text-red-500' : 'text-gray-500'}`}>
+      {currentLength}/{maxLength} characters
+    </div>
+  );
+};
+
 export default function SprintManagement({ projectId, open, onClose }) {
   const [sprints, setSprints] = useState([]);
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -311,17 +322,6 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
   const [errors, setErrors] = useState({});
 
   const formRef = useRef(null);
-
-  // Character count helper function
-  const getCharacterCount = (value, maxLength) => {
-    const currentLength = value ? value.length : 0;
-    const isOverLimit = currentLength > maxLength;
-    return (
-      <div className={`text-right text-xs mt-1 ${isOverLimit ? 'text-red-500' : 'text-gray-500'}`}>
-        {currentLength}/{maxLength} characters
-      </div>
-    );
-  };
 
   useEffect(() => {
     if (initialData) {

@@ -784,12 +784,13 @@ const { hasAccess } = useAccess(); // Access context
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div
-          className="truncate max-w-full overflow-hidden whitespace-nowrap"
-          title={params.value}
+        <button
+          onClick={() => handleViewBudgetLine(params.data)}
+          className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left truncate max-w-full overflow-hidden whitespace-nowrap"
+          title={`View details for ${params.value}`}
         >
           {params.value}
-        </div>
+        </button>
       )
     },
     {

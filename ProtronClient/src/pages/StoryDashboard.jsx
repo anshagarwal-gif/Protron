@@ -1135,7 +1135,7 @@ const StoryDashboard = () => {
         // Note: Logic allows backlog columns if showBacklog is true, mimicking UI
         if (showBacklog) {
           dataToExport = items.map(story => ({
-            'Project ID': story.projectId,
+            'Project ID': story.parentId,
             'Project Name': projectList.find(p => p.projectId == story.projectId)?.projectName || story.projectId,
             'Summary': story.summary,
             'As A': story.asA,
@@ -1156,7 +1156,7 @@ const StoryDashboard = () => {
           filename = 'stories_table_view_with_backlog.xlsx';
         } else {
           dataToExport = items.map(story => ({
-            'Project ID': story.projectId,
+            'Project ID': story.parentId,
             'Project Name': projectList.find(p => p.projectId == story.projectId)?.projectName || story.projectId,
             'Summary': story.summary,
             'As A': story.asA,
@@ -1369,25 +1369,42 @@ const StoryDashboard = () => {
       {
         headerName: '#',
         valueGetter: (params) => params.node.rowIndex + 1,
-        width: 60,
-        pinned: 'left',
+        flex: 1,
+        minWidth: 50,
         suppressMenu: true,
         sortable: false,
         filter: false,
+        cellClass: 'ag-cell-truncate',
+        cellStyle: { fontWeight: '500' },
       },
       {
         headerName: 'ID',
         valueGetter: (params) => params.data?.usId || params.data?.ssId || params.data?.taskId,
-        width: 100,
+        flex: 1,
+        minWidth: 100,
         filter: 'agTextColumnFilter',
-        cellStyle: { fontWeight: '500' },
+        cellStyle: { fontWeight: '500', cursor: 'pointer', color: '#2563eb' },
         cellClass: 'ag-cell-truncate',
-        tooltipValueGetter: (params) => params.value || 'N/A'
+        tooltipValueGetter: (params) => params.value || 'N/A',
+        onCellClicked: (params) => {
+          const story = params.data;
+          if (!story) return;
+
+          // Determine story type and open appropriate view modal
+          if (story?.taskId) {
+            openViewTaskModal(story);
+          } else if (story?.ssId) {
+            openViewSolutionModal(story);
+          } else {
+            openViewModal(story);
+          }
+        }
       },
       {
         headerName: 'Project',
         field: 'projectName',
-        width: 200,
+        flex: 1,
+        minWidth: 200,
         filter: 'agTextColumnFilter',
         cellStyle: { fontWeight: '500' },
         cellClass: 'ag-cell-truncate',
@@ -1472,7 +1489,8 @@ const StoryDashboard = () => {
           headerName: 'Status',
           field: 'status',
           cellRenderer: StatusRenderer,
-          width: 120,
+          flex: 1,
+          minWidth: 120,
           filter: 'agSetColumnFilter',
           filterParams: {
             values: ['todo', 'wip', 'done', 'blocked', 'not-ready', 'ready']
@@ -1482,7 +1500,8 @@ const StoryDashboard = () => {
           headerName: 'Priority',
           field: 'priority',
           cellRenderer: PriorityRenderer,
-          width: 100,
+          flex: 1,
+          minWidth: 100,
           filter: 'agNumberColumnFilter',
           valueFormatter: (params) => {
             const priority = params.value;
@@ -1495,14 +1514,16 @@ const StoryDashboard = () => {
         {
           headerName: 'Story Points',
           field: 'storyPoints',
-          width: 100,
+          flex: 1,
+          minWidth: 100,
           filter: 'agNumberColumnFilter',
           cellStyle: { textAlign: 'center' }
         },
         {
           headerName: 'Assignee',
           field: 'assignee',
-          width: 120,
+          flex: 1,
+          minWidth: 120,
           filter: 'agTextColumnFilter',
           cellClass: 'ag-cell-truncate',
           tooltipValueGetter: (params) => params.value || 'N/A'
@@ -1510,7 +1531,8 @@ const StoryDashboard = () => {
         {
           headerName: 'System',
           field: 'system',
-          width: 120,
+          flex: 1,
+          minWidth: 120,
           filter: 'agTextColumnFilter',
           cellClass: 'ag-cell-truncate',
           tooltipValueGetter: (params) => params.value || 'N/A'
@@ -1968,27 +1990,44 @@ const StoryDashboard = () => {
           {/* Project ID */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Initiative ID</label>
-            <select
-              value={filters.projectName}
-              onChange={(e) => {
-                const projectId = e.target.value;
-                setFilters({ ...filters, projectName: projectId, sprint: '', release: '' });
-                handleProjectChange(projectId);
+            <CreatableSelect
+              value={filters.projectName ? {
+                value: filters.projectName,
+                label: projectList.find(p => p.projectId.toString() === filters.projectName)?.projectName || filters.projectName
+              } : null}
+              onChange={(selectedOption) => {
+                const value = selectedOption ? selectedOption.value : '';
+                setFilters({ ...filters, projectName: value, sprint: '', release: '' });
+                handleProjectChange(value);
                 setShowSearchHelper(true);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="" disabled>Select an initiative</option>
-              {projectList.map(project => (
-                <option
-                  key={project.projectId}
-                  value={project.projectId?.toString()}
-                  title={project.projectName}
-                >
-                  {project.projectName.length > 30 ? `${project.projectName.substring(0, 30)}...` : project.projectName}
-                </option>
-              ))}
-            </select>
+              options={Array.isArray(projectList) ? projectList.map(project => ({
+                value: project.projectId?.toString(),
+                label: project.projectName
+              })) : []}
+              isClearable
+              placeholder="Select or type initiative..."
+              className="text-sm"
+              styles={{
+                control: (provided) => ({
+                  ...provided,
+                  minHeight: '40px',
+                  borderColor: '#d1d5db',
+                  '&:hover': {
+                    borderColor: '#10b981'
+                  }
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 9999
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                  color: state.isFocused ? '#065f46' : '#374151'
+                })
+              }}
+            />
           </div>
 
           {/* Sprint */}
@@ -2115,18 +2154,43 @@ const StoryDashboard = () => {
           {/* Status */}
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Status</label>
-            <select
-              value={filters.status}
-              onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setShowSearchHelper(true); }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="all">All Status</option>
-              {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
-                <option key={statusFlag.statusId} value={statusFlag.statusValue}>
-                  {statusFlag.statusName}
-                </option>
-              ))}
-            </select>
+            <CreatableSelect
+              value={filters.status ? { value: filters.status, label: filters.status === 'all' ? 'All Status' : statusFlags.find(s => s.statusValue === filters.status)?.statusName || filters.status } : null}
+              onChange={(selectedOption) => {
+                const value = selectedOption ? selectedOption.value : '';
+                setFilters({ ...filters, status: value });
+                setShowSearchHelper(true);
+              }}
+              options={[
+                { value: 'all', label: 'All Status' },
+                ...(Array.isArray(statusFlags) ? statusFlags.map(statusFlag => ({
+                  value: statusFlag.statusValue,
+                  label: statusFlag.statusName
+                })) : [])
+              ]}
+              isClearable
+              placeholder="Select or type status..."
+              className="text-sm"
+              styles={{
+                control: (provided) => ({
+                  ...provided,
+                  minHeight: '40px',
+                  borderColor: '#d1d5db',
+                  '&:hover': {
+                    borderColor: '#10b981'
+                  }
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 9999
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                  color: state.isFocused ? '#065f46' : '#374151'
+                })
+              }}
+            />
           </div>
 
 
@@ -2137,7 +2201,7 @@ const StoryDashboard = () => {
               type="date"
               value={filters.createdDate}
               onChange={(e) => { setFilters({ ...filters, createdDate: e.target.value }); setShowSearchHelper(true); }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent focus:outline-none"
             />
           </div>
 

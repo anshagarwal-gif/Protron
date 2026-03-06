@@ -129,8 +129,60 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   };
 
   const downloadSolutionStoryExcel = () => {
-    // TODO: Implement Excel download functionality
-    showSnackbar('Excel download functionality coming soon', 'info');
+    try {
+      if (!filteredSolutionStories || filteredSolutionStories.length === 0) {
+        showSnackbar('No data to export', 'error');
+        return;
+      }
+
+      // Format data for export
+      const dataToExport = filteredSolutionStories.map(story => ({
+        'SS ID': story.ssId || 'N/A',
+        'Summary': story.summary || 'N/A',
+        'Description': story.description || 'N/A',
+        'Status': story.status || 'N/A',
+        'Priority': story.priority === 1 ? 'High' : story.priority === 2 ? 'Medium' : story.priority === 3 ? 'Low' : 'N/A',
+        'Story Points': story.storyPoints || 'N/A',
+        'Assignee': story.assignee || 'N/A',
+        'System': story.system || 'N/A',
+        'Sprint': story.sprint || 'N/A',
+        'Release': story.release || 'N/A',
+        'Created By': story.createdBy || 'N/A',
+        'Date Created': story.dateCreated ? new Date(story.dateCreated).toLocaleDateString() : 'N/A'
+      }));
+
+      // Convert to CSV format
+      const headers = Object.keys(dataToExport[0]);
+      const csvContent = [
+        headers.join(','),
+        ...dataToExport.map(row =>
+          headers.map(header => {
+            const value = row[header];
+            // Escape commas and quotes in CSV
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+              return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+          }).join(',')
+        )
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'solution_stories.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showSnackbar(`Excel file downloaded: solution_stories.csv`, 'success');
+    } catch (error) {
+      console.error('Error downloading Excel file:', error);
+      showSnackbar('Failed to download Excel file', 'error');
+    }
   };
 
   const handleEdit = useCallback((story) => {

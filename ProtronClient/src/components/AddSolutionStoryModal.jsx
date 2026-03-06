@@ -42,6 +42,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
   const [systemFixed, setSystemFixed] = useState(false);
   const [assigneeFixed, setAssigneeFixed] = useState(false);
   const [projects, setProjects] = useState([]);
+  const [systems, setSystems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -167,6 +168,16 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
           console.error("Error fetching projects:", error);
         }
 
+        // Fetch Systems
+        try {
+          const systemsResponse = await axios.get(`${API_BASE_URL}/api/systems/tenant`, {
+            headers: { Authorization: token }
+          });
+          setSystems(systemsResponse.data);
+        } catch (error) {
+          console.error("Error fetching systems:", error);
+        }
+
         // Fetch project-team users if parent story provides a projectId, otherwise leave users empty
         const fetchProjectUsers = async (projectId) => {
           if (!projectId) return;
@@ -232,33 +243,84 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
       severity
     });
   };
-
   const handleSnackbarClose = () => {
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
+  setSnackbar(prev => ({ ...prev, open: false }));
+};
 
-  const handleFileChange = (e) => {
-    const newFiles = Array.from(e.target.files);
-    if (!newFiles.length) return;
+const handleFileChange = (e) => {
+  const newFiles = Array.from(e.target.files);
+  if (!newFiles.length) return;
 
-    // Simple validation for file count
-    if (formData.attachments.length + newFiles.length > 4) {
-      showSnackbar("You can only upload a maximum of 4 files.", "error");
-      return;
+  // Simple validation for file count
+  if (formData.attachments.length + newFiles.length > 4) {
+    showSnackbar("You can only upload a maximum of 4 files.", "error");
+    e.target.value = null;
+    return;
+  }
+
+  // Validate each file
+  const maxSize = 10 * 1024 * 1024;
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'text/plain'
+  ];
+
+  let error = "";
+  const validFiles = [];
+
+  for (const file of newFiles) {
+    if (file.size > maxSize) {
+      error = `File "${file.name}" exceeds 10MB limit.`;
+      break;
+    }
+    if (!allowedTypes.includes(file.type)) {
+      error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+      break;
+    }
+    validFiles.push(file);
+  }
+
+  if (error) {
+    showSnackbar(error, "error");
+    e.target.value = null;
+    return;
+  }
+
+  if (validFiles.length > 0) {
+    // de-dup by (name + size + lastModified)
+    const deduped = validFiles.filter(file => {
+      return !formData.attachments.some(existingFile =>
+        existingFile.name === file.name &&
+        existingFile.size === file.size &&
+        existingFile.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, 4 - formData.attachments.length);
+
+    if (deduped.length > filesToAdd.length) {
+      showSnackbar(`Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`, "warning");
     }
 
-    setFormData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...newFiles]
-    }));
-  };
+    if (filesToAdd.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...prev.attachments, ...filesToAdd]
+      }));
+    } else {
+      showSnackbar('All selected files are duplicates and were skipped.', 'info');
+    }
+  }
 
-  const handleRemoveAttachment = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      attachments: prev.attachments.filter((_, i) => i !== index)
-    }));
-  };
+  e.target.value = null;
+};
 
   const formatFileSize = (bytes) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -267,7 +329,13 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
   };
 
   const handleInputChange = (field) => (event) => {
-    const value = event.target.value;
+    let value = event.target.value;
+
+    if (field === 'storyPoints') {
+      const numValue = parseInt(value) || 0;
+      value = Math.min(100, Math.max(0, numValue));
+    }
+
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -563,6 +631,7 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                     onChange={handleInputChange('storyPoints')}
                     placeholder="0"
                     min="0"
+                    max="100"
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                     style={{ height: fieldHeight }}
                   />
@@ -578,14 +647,40 @@ const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, i
                         <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <input
-                      type="text"
-                      value={formData.system || ''}
-                      onChange={(e) => { if (!systemFixed) handleInputChange('system')(e); }}
-                      placeholder="Enter system name"
-                      className={`w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none ${systemFixed ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}`}
-                      style={{ height: fieldHeight }}
-                      disabled={systemFixed}
+                    <CreatableSelect
+                      value={formData.system ? { value: formData.system, label: formData.system } : null}
+                      onChange={(selectedOption) => {
+                        if (systemFixed) return; // prevent change when fixed
+                        const value = selectedOption ? selectedOption.value : '';
+                        setFormData(prev => ({ ...prev, system: value }));
+                      }}
+                      options={systems.map(system => ({
+                        value: system.systemName,
+                        label: system.systemName
+                      }))}
+                      isClearable={!systemFixed}
+                      placeholder="Select or type system..."
+                      isDisabled={loading || systemFixed}
+                      className={`text-sm ${systemFixed ? 'opacity-60 bg-gray-100' : ''}`}
+                      styles={{
+                        control: (provided) => ({
+                          ...provided,
+                          minHeight: '40px',
+                          borderColor: '#d1d5db',
+                          fontSize: '14px',
+                          '&:hover': {
+                            borderColor: '#10b981'
+                          }
+                        }),
+                        menu: (provided) => ({
+                          ...provided,
+                          zIndex: 9999
+                        }),
+                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
+                        input: (provided) => ({ ...provided, marginLeft: 0 }),
+                        placeholder: (provided) => ({ ...provided, marginLeft: 0 })
+                      }}
                     />
                   </div>
                 </div>

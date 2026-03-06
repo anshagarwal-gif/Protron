@@ -217,14 +217,82 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
     // Simple validation for file count
     if (existingAttachments.length + newAttachments.length + newFiles.length > 4) {
       showSnackbar("You can only upload a maximum of 4 files total.", "error");
+      e.target.value = null;
       return;
     }
 
-    setNewAttachments(prev => {
-      const updated = [...prev, ...newFiles];
-      console.log('Total new attachments:', updated.length);
-      return updated;
-    });
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of newFiles) {
+      if (file.size > maxSize) {
+        error = `File "${file.name}" exceeds 10MB limit.`;
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      showSnackbar(error, "error");
+      e.target.value = null;
+      return;
+    }
+
+    if (validFiles.length > 0) {
+      // de-dup by (name + size + lastModified) against existing new attachments
+      // and by name against existing attachments from server
+      const deduped = validFiles.filter(file => {
+        // Check against existing attachments from server (by name)
+        const existsInExisting = existingAttachments.some(existing =>
+          existing.fileName === file.name
+        );
+        if (existsInExisting) return false;
+
+        // Check against new attachments (by name + size + lastModified)
+        const existsInNew = newAttachments.some(newFile =>
+          newFile.name === file.name &&
+          newFile.size === file.size &&
+          newFile.lastModified === file.lastModified
+        );
+        return !existsInNew;
+      });
+
+      const filesToAdd = deduped.slice(0, 4 - (existingAttachments.length + newAttachments.length));
+
+      if (deduped.length > filesToAdd.length) {
+        showSnackbar(`Only ${filesToAdd.length} more file(s) can be added (max 4 total). Some duplicate files were skipped.`, "warning");
+      }
+
+      if (filesToAdd.length > 0) {
+        setNewAttachments(prev => {
+          const updated = [...prev, ...filesToAdd];
+          console.log('Total new attachments:', updated.length);
+          return updated;
+        });
+      } else {
+        showSnackbar('All selected files are duplicates and were skipped.', 'info');
+      }
+    }
+
+    e.target.value = null;
   };
 
   const handleRemoveNewAttachment = (index) => {
@@ -252,15 +320,20 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
   };
 
   const handleInputChange = (field) => (event) => {
-    const value = event.target.value;
+    let value = event.target.value;
 
-    if (field === 'summary' && value.length > 100) {
-      setFieldErrors(prev => ({ ...prev, summary: "Summary cannot exceed 100 characters" }));
+    if (field === 'summary' && value.length > 200) {
+      setFieldErrors(prev => ({ ...prev, summary: "Summary cannot exceed 200 characters" }));
       return;
     }
     if (field === 'description' && value.length > 500) {
       setFieldErrors(prev => ({ ...prev, description: "Description cannot exceed 500 characters" }));
       return;
+    }
+
+    if (field === 'storyPoints') {
+      const numValue = parseInt(value) || 0;
+      value = Math.min(100, Math.max(0, numValue));
     }
 
     setFormData(prev => ({
@@ -324,8 +397,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
       return false;
     }
 
-    if (formData.summary.length > 100) {
-      showSnackbar("Summary cannot exceed 100 characters", 'error');
+    if (formData.summary.length > 200) {
+      showSnackbar("Summary cannot exceed 200 characters", 'error');
       return false;
     }
 
@@ -758,7 +831,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Summary <span className="text-red-500">*</span>
                     <span className="float-right text-xs text-gray-500">
-                      {formData.summary.length} / 100 characters
+                      {formData.summary.length} / 200 characters
                     </span>
                   </label>
                   <textarea
@@ -766,7 +839,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                     onChange={handleInputChange('summary')}
                     placeholder="Enter summary..."
                     rows={3}
-                    maxLength={100}
+                    maxLength={200}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 resize-none break-words overflow-wrap-anywhere whitespace-pre-wrap"
                     disabled={loading}
                     required

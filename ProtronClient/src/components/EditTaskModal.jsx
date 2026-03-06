@@ -205,13 +205,82 @@ const EditTaskModal = ({ open, onClose, taskId, taskData }) => {
     // Simple validation for file count
     if (formData.attachments.length + newFiles.length > 4) {
       showSnackbar("You can only upload a maximum of 4 files.", "error");
+      e.target.value = null;
       return;
     }
 
-    setFormData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...newFiles]
-    }));
+    // Validate each file
+    const maxSize = 10 * 1024 * 1024;
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'text/plain'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of newFiles) {
+      if (file.size > maxSize) {
+        error = `File "${file.name}" exceeds 10MB limit.`;
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      showSnackbar(error, "error");
+      e.target.value = null;
+      return;
+    }
+
+    if (validFiles.length > 0) {
+      // de-dup by (name + size + lastModified) against existing new attachments
+      // and by name against existing attachments from server
+      const deduped = validFiles.filter(file => {
+        // Check against existing attachments from server (by name)
+        const existsInExisting = formData.attachments.some(existing =>
+          existing.existing && existing.name === file.name
+        );
+        if (existsInExisting) return false;
+
+        // Check against new attachments (by name + size + lastModified)
+        const existsInNew = formData.attachments.some(attachment =>
+          !attachment.existing &&
+          attachment.name === file.name &&
+          attachment.size === file.size &&
+          attachment.lastModified === file.lastModified
+        );
+        return !existsInNew;
+      });
+
+      const filesToAdd = deduped.slice(0, 4 - formData.attachments.length);
+
+      if (deduped.length > filesToAdd.length) {
+        showSnackbar(`Only ${filesToAdd.length} more file(s) can be added (max 4 total). Some duplicate files were skipped.`, "warning");
+      }
+
+      if (filesToAdd.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          attachments: [...prev.attachments, ...filesToAdd]
+        }));
+      } else {
+        showSnackbar('All selected files are duplicates and were skipped.', 'info');
+      }
+    }
+
+    e.target.value = null;
   };
 
   const handleRemoveAttachment = (index, attachmentId = null) => {

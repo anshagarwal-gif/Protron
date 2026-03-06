@@ -368,9 +368,9 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         const poNumber = params.value;
         if (poNumber && poNumber !== 'N/A') {
           return (
-            <span title={poNumber} className="cursor-pointer text-blue-600 font-bold underline" onClick={() => handlePONumberClick(params.data)}>
+            <button title={poNumber} className="cursor-pointer text-blue-600 font-bold underline" onClick={() => handlePONumberClick(params.data)}>
               {poNumber.length > 20 ? `${poNumber.substring(0, 20)}...` : poNumber}
-            </span>
+            </button>
           );
         }
         return poNumber;
