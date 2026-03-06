@@ -478,22 +478,6 @@ public class TimesheetTaskService {
         System.out.println("Service: Attachment deleted successfully: " + attachmentId);
     }
 
-    @Transactional
-    public void updateAttachment(Long attachmentId, String fileName, String fileType, Long fileSize, byte[] fileData) {
-        System.out.println("Service: Updating attachment with ID: " + attachmentId);
-
-        TimesheetTaskAttachment attachment = timesheetTaskAttachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new RuntimeException("Attachment not found"));
-
-        if (fileName != null) attachment.setFileName(fileName);
-        if (fileType != null) attachment.setFileType(fileType);
-        if (fileSize != null) attachment.setFileSize(fileSize);
-        if (fileData != null) attachment.setFileData(fileData);
-
-        timesheetTaskAttachmentRepository.save(attachment);
-        System.out.println("Service: Attachment updated successfully: " + attachmentId);
-    }
-
     /**
      * Count attachments for a specific task
      */
