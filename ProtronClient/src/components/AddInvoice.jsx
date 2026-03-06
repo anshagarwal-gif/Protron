@@ -1588,7 +1588,9 @@ const AddInvoiceModal = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Name</label>
-                                <input type="text" placeholder="Enter invoice name (optional)" value={formData.invoiceName} onChange={handleChange('invoiceName')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
+                                <input type="text" placeholder="Enter invoice name (optional)" value={formData.invoiceName} onChange={handleChange('invoiceName')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                    }`} maxLength={100} />
                             </div>
 
                             <div>
@@ -1606,14 +1608,18 @@ const AddInvoiceModal = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Address</label>
-                                <input type="text" placeholder="Enter supplier address" value={formData.supplierAddress} onChange={handleChange('supplierAddress')} className="w-full h-10 px-4 border rounded-md" />
+                                <input type="text" placeholder="Enter supplier address" value={formData.supplierAddress} onChange={handleChange('supplierAddress')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                    }`} />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Info</label>
-                                <input type="text" placeholder="Supplier info" value={formData.supplierInfo} onChange={handleChange('supplierInfo')} className="w-full h-10 px-4 border rounded-md" />
+                                <input type="text" placeholder="Supplier info" value={formData.supplierInfo} onChange={handleChange('supplierInfo')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                    }`} />
                             </div>
                         </div>
 
@@ -1625,7 +1631,9 @@ const AddInvoiceModal = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID</label>
-                                <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className="w-full h-10 px-4 border rounded-md" maxLength={50} />
+                                <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                    }`} maxLength={50} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
@@ -1667,9 +1675,13 @@ const AddInvoiceModal = ({
                             <div className="col-span-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Bill To Address</label>
                                 {formData.invoiceType === 'DOMESTIC' ? (
-                                    <input type="text" placeholder="Bill to address" value={formData.billToAddress} onChange={handleChange('billToAddress')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
+                                    <input type="text" placeholder="Bill to address" value={formData.billToAddress} onChange={handleChange('billToAddress')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                    }`} maxLength={100} />
                                 ) : (
-                                    <input type="text" placeholder="Customer address (international)" value={formData.customerInfo} onChange={handleChange('customerInfo')} className="w-full h-10 px-4 border rounded-md" />
+                                    <input type="text" placeholder="Customer address (international)" value={formData.customerInfo} onChange={handleChange('customerInfo')}className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                    }`} />
                                 )}
                             </div>
 

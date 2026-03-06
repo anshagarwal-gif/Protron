@@ -837,11 +837,10 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       width: 110,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669' },
       cellRenderer: params => {
         const amount = params.value;
         return (
-          <span title={amount} className="truncate block w-full text-right font-bold text-green-600">
+          <span title={amount} className="truncate block w-full text-right">
             {(amount)}
           </span>
         );

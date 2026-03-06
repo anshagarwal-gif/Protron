@@ -143,7 +143,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
         soThat: isDuplicateData ? (initialValues?.soThat || "") : "",
         acceptanceCriteria: isDuplicateData ? (initialValues?.acceptanceCriteria || "") : "",
         status: initialStatus || (isDuplicateData ? (initialValues?.status || "todo") : (initialValues?.status !== 'all' ? initialValues?.status : 'todo')) || "todo",
-        priority: isDuplicateData ? (initialValues?.priority || 2) : 2,
+        priority: isDuplicateData ? (initialValues?.priority?.toString() || "2") : "2",
         storyPoints: isDuplicateData ? (initialValues?.storyPoints || 0) : 0,
         assignee: isDuplicateData ? (initialValues?.assignee || "") : (initialValues?.assignee || ""),
         sprint: sprintId,
@@ -445,6 +445,11 @@ const validateForm = () => {
     isValid = false;
   }
 
+  if (!formData.priority.toString().trim()) {
+    newErrors.priority = "Priority is required";
+    isValid = false;
+  }
+
   if (!formData.summary.trim()) {
     newErrors.summary = "Summary is required";
     isValid = false;
@@ -575,7 +580,7 @@ const handleSubmit = async (e) => {
       soThat: "",
       acceptanceCriteria: "",
       status: initialStatus || "todo",
-      priority: 2,
+      priority: "2",
       storyPoints: 0,
       assignee: "",
       sprint: "",
@@ -632,30 +637,43 @@ const handleSubmit = async (e) => {
                   <Building size={14} className="inline mr-1" />
                   Project ID *
                 </label>
-                <select
-                  name="projectId"
-                  value={formData.projectId}
-                  onChange={(e) => {
-                    const projectId = e.target.value;
-                    setFormData(prev => ({ ...prev, projectId, sprint: '', release: '' }));
-                    handleProjectChange(projectId);
+                <CreatableSelect
+                  value={formData.projectId ? { value: formData.projectId, label: projectList.find(p => p.projectId == formData.projectId)?.projectName || formData.projectId } : null}
+                  onChange={(selectedOption) => {
+                    const value = selectedOption ? selectedOption.value : '';
+                    setFormData(prev => ({ ...prev, projectId: value, sprint: '', release: '' }));
+                    handleProjectChange(value);
                   }}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.projectId ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={loading || !!initialValues?.projectName}
-                  title={formData.projectId ? `Selected Initiative ID: ${formData.projectId}` : "Select an Initiative ID"}
-                >
-                  <option value="" title="No initiative selected">Select Initiative</option>
-                  {projectList.map(project => (
-                    <option
-                      key={project.projectId}
-                      value={project.projectId}
-                      title={project.projectName}
-                    >
-                      {project.projectName.length > 30 ? `${project.projectName.substring(0, 30)}...` : project.projectName}
-                    </option>
-                  ))}
-                </select>
+                  options={projectList.map(project => ({
+                    value: project.projectId,
+                    label: project.projectName
+                  }))}
+                  isClearable
+                  placeholder="Select or type project..."
+                  isDisabled={loading || !!initialValues?.projectName}
+                  className="text-sm"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '32px',
+                      borderColor: errors.projectId ? '#ef4444' : '#d1d5db',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#10b981'
+                      }
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 9999
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                      color: state.isFocused ? '#065f46' : '#374151',
+                      fontSize: '14px'
+                    })
+                  }}
+                />
                 {errors.projectId && (
                   <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.projectId}`}>
                     {errors.projectId.length > 30 ? `${errors.projectId.substring(0, 30)}...` : errors.projectId}
@@ -668,21 +686,42 @@ const handleSubmit = async (e) => {
                   <CheckCircle size={14} className="inline mr-1" />
                   Status *
                 </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.status ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={loading}
-                  title={`Selected Status: ${formData.status}`}
-                >
-                  {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
-                    <option key={statusFlag.statusId} value={statusFlag.statusValue} title={`${statusFlag.statusName} - ${statusFlag.remarks || 'No description available'}`}>
-                      {statusFlag.statusName}
-                    </option>
-                  ))}
-                </select>
+                <CreatableSelect
+                  value={formData.status ? { value: formData.status, label: statusFlags.find(s => s.statusValue === formData.status)?.statusName || formData.status } : null}
+                  onChange={(selectedOption) => {
+                    const value = selectedOption ? selectedOption.value : '';
+                    setFormData(prev => ({ ...prev, status: value }));
+                  }}
+                  options={Array.isArray(statusFlags) ? statusFlags.map(statusFlag => ({
+                    value: statusFlag.statusValue,
+                    label: statusFlag.statusName
+                  })) : []}
+                  isClearable
+                  placeholder="Select or type status..."
+                  isDisabled={loading}
+                  className="text-sm"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '32px',
+                      borderColor: errors.status ? '#ef4444' : '#d1d5db',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#10b981'
+                      }
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 9999
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                      color: state.isFocused ? '#065f46' : '#374151',
+                      fontSize: '14px'
+                    })
+                  }}
+                />
                 {errors.status && (
                   <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.status}`}>
                     {errors.status.length > 30 ? `${errors.status.substring(0, 30)}...` : errors.status}
@@ -695,19 +734,43 @@ const handleSubmit = async (e) => {
                   <Target size={14} className="inline mr-1" />
                   Priority *
                 </label>
-                <select
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 ${errors.priority ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  disabled={loading}
-                  title={`Selected Priority: ${formData.priority === 1 ? 'High' : formData.priority === 2 ? 'Medium' : 'Low'}`}
-                >
-                  <option value={1} title="High Priority - Critical and urgent">High</option>
-                  <option value={2} title="Medium Priority - Important but not urgent">Medium</option>
-                  <option value={3} title="Low Priority - Nice to have">Low</option>
-                </select>
+                <CreatableSelect
+                  value={formData.priority ? { value: formData.priority.toString(), label: formData.priority === '1' ? 'High' : formData.priority === '2' ? 'Medium' : formData.priority === '3' ? 'Low' : formData.priority.toString() } : null}
+                  onChange={(selectedOption) => {
+                    const value = selectedOption ? selectedOption.value : '';
+                    setFormData(prev => ({ ...prev, priority: value }));
+                  }}
+                  options={[
+                    { value: '1', label: 'High' },
+                    { value: '2', label: 'Medium' },
+                    { value: '3', label: 'Low' }
+                  ]}
+                  isClearable
+                  placeholder="Select or type priority..."
+                  isDisabled={loading}
+                  className="text-sm"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '32px',
+                      borderColor: errors.priority ? '#ef4444' : '#d1d5db',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#10b981'
+                      }
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 9999
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isFocused ? '#f0fdf4' : 'white',
+                      color: state.isFocused ? '#065f46' : '#374151',
+                      fontSize: '14px'
+                    })
+                  }}
+                />
                 {errors.priority && (
                   <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.priority}`}>
                     {errors.priority.length > 30 ? `${errors.priority.substring(0, 30)}...` : errors.priority}
@@ -727,6 +790,7 @@ const handleSubmit = async (e) => {
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"
                   placeholder="0"
                   min="0"
+                  max="100"
                   disabled={loading}
                   title={formData.storyPoints ? `Story Points: ${formData.storyPoints}` : "Enter story points (optional)"}
                 />

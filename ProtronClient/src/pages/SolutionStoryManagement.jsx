@@ -9,6 +9,7 @@ import AddSolutionStoryModal from "../components/AddSolutionStoryModal";
 import AddTaskModal from "../components/AddTaskModal";
 import EditSolutionStoryModal from "../components/EditSolutionStoryModal";
 import ViewSolutionStoryModal from "../components/ViewSolutionStoryModal";
+import { formatExcelDate } from '../utils/dateUtils';
 
 const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
@@ -148,7 +149,7 @@ const SolutionStoryManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         'Sprint': story.sprint || 'N/A',
         'Release': story.release || 'N/A',
         'Created By': story.createdBy || 'N/A',
-        'Date Created': story.dateCreated ? new Date(story.dateCreated).toLocaleDateString() : 'N/A'
+        'Date Created': formatExcelDate(story.dateCreated)
       }));
 
       // Convert to CSV format

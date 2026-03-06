@@ -266,7 +266,15 @@ const ProjectManagement = () => {
     {
       headerName: 'Initiative Id',
       field: 'projectCode',
-      cellRenderer: ProjectCodeRenderer,
+      cellRenderer: params => (
+        <button
+          onClick={() => handleView(params.data.projectId)}
+          className="text-blue-600 hover:text-blue-800 hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-left truncate max-w-full overflow-hidden whitespace-nowrap"
+          title={`View details for ${params.value}`}
+        >
+          {params.value}
+        </button>
+      ),
       minWidth: 200,
       maxWidth: 300,
       filter: 'agTextColumnFilter',

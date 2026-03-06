@@ -24,6 +24,7 @@ import {
 import axios from "axios";
 import AddInvoiceModal from "../components/AddInvoice";
 import { useAccess } from "../Context/AccessContext";
+import { formatExcelDate } from "../utils/dateUtils"; 
 
 
 const ViewInvoiceModal = ({ open, onClose, invoice }) => {
@@ -751,9 +752,9 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         'Currency': invoice.currency || 'N/A',
         'Hours Spent': invoice.hoursSpent || 'N/A',
         'Total Amount': invoice.totalAmount ? parseFloat(invoice.totalAmount) : 'N/A',
-        'From Date': formatDate(invoice.fromDate),
-        'To Date': formatDate(invoice.toDate),
-        'Created Date': formatDate(invoice.createdAt),
+        'From Date': formatExcelDate(invoice.fromDate),
+        'To Date': formatExcelDate(invoice.toDate),
+        'Created Date': formatExcelDate(invoice.createdAt),
         'Attachments': invoice.attachmentCount || 0,
         'Remarks': invoice.remarks || 'N/A'
       }));
@@ -929,7 +930,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="text-right font-bold text-green-600 w-full">
+        <div className="text-right w-full">
           {params.value}
         </div>
       )
@@ -959,7 +960,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       width: 100,
       sortable: true,
       filter: true,
-      cellStyle: { textAlign: 'center', fontWeight: 'bold' }
+      cellStyle: { textAlign: 'center'}
     },
     {
       headerName: "Created Date",
@@ -968,7 +969,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       width: 120,
       sortable: true,
       filter: true,
-      cellStyle: { fontSize: '12px', color: '#6b7280' }
+      
     },
     {
       headerName: "Actions",

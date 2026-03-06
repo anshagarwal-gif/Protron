@@ -22,6 +22,7 @@ import axios from "axios";
 import AddBudgetLineModal from "../components/AddBudgetLineModal";
 import BudgetAllocationModal from "../components/BudgetAllocationModal";
 import { useAccess } from "../Context/AccessContext";
+import { formatExcelDate } from '../utils/dateUtils';
 
 // Component to display budget documents
 const DocumentsDisplay = ({ budgetLine }) => {
@@ -728,10 +729,10 @@ const { hasAccess } = useAccess(); // Access context
         'Amount Approved': budgetLine.amountApproved ? `${budgetLine.amountApproved.toLocaleString()}` : 'N/A',
         'Amount Utilized': budgetLine.amountUtilized ? `${budgetLine.amountUtilized.toLocaleString()}` : 'N/A',
         'Amount Available': budgetLine.amountAvailable ? `${budgetLine.amountAvailable.toLocaleString()}` : 'N/A',
-        'Budget End Date': budgetLine.budgetEndDate ? new Date(budgetLine.budgetEndDate).toLocaleDateString() : 'N/A',
+        'Budget End Date': formatExcelDate(budgetLine.budgetEndDate),
         'Remarks': budgetLine.remarks || 'N/A',
         'Last Updated By': budgetLine.lastUpdatedBy || 'N/A',
-        'Created Date': budgetLine.startTimestamp ? new Date(budgetLine.startTimestamp).toLocaleDateString() : 'N/A'
+        'Created Date': formatExcelDate(budgetLine.startTimestamp)
       }));
 
       // Create worksheet
@@ -867,7 +868,7 @@ const { hasAccess } = useAccess(); // Access context
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="flex justify-end items-center w-full font-bold text-green-600">
+        <div className="flex justify-end items-center w-full">
           {params.value}
         </div>
       )
@@ -884,7 +885,7 @@ const { hasAccess } = useAccess(); // Access context
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="flex justify-end items-center w-full font-bold text-green-600">
+        <div className="flex justify-end items-center w-full">
           {params.value}
         </div>
       )
@@ -901,7 +902,7 @@ const { hasAccess } = useAccess(); // Access context
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="flex justify-end items-center w-full font-bold text-green-600">
+        <div className="flex justify-end items-center w-full">
           {params.value}
         </div>
       )

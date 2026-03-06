@@ -386,7 +386,7 @@ const POManagement = () => {
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669', textAlign: 'right' }
+      cellStyle: { textAlign: 'right' }
     },
     {
       headerName: "Customer",
@@ -489,7 +489,7 @@ const POManagement = () => {
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669', textAlign: 'right' }
+      cellStyle: { textAlign: 'right' }
     },
     {
       headerName: "Business Value",
@@ -502,7 +502,7 @@ const POManagement = () => {
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { fontWeight: 'bold', color: '#059669', textAlign: 'right' }
+      cellStyle: { textAlign: 'right' }
     },
     {
       headerName: "Actions",

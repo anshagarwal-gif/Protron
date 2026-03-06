@@ -7,7 +7,8 @@ import { CheckCircle, XCircle, FileText, Calendar as CalendarIcon, Folder } from
 import { Link } from "react-router-dom";
 import { useAccess } from "../Context/AccessContext";
 import TaskDetailsModal from "./TaskDetailsModal";
-import AddInvoiceModal from "./AddInvoice"
+import AddInvoiceModal from "./AddInvoice";
+import { formatExcelDate } from "../utils/dateUtils"; 
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -631,7 +632,7 @@ const TimesheetManager = () => {
         const entries = getTimeEntries(date);
         entries.forEach((entry) => {
           const row = [
-            `"${formatDateDisplay(date)}"`,
+            `"${formatExcelDate(date)}"`,
             `"${entry.task}"`,
             `"${entry.hours}"`,
             `"${entry.minutes}"`,

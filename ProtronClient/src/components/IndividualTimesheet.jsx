@@ -26,6 +26,7 @@ import { useSession } from '../Context/SessionContext';
 import LogTimeModal from './LogTimeModal';
 import TaskDetailsModal from './TaskDetailsModal';
 import AddInvoiceModal from "../components/AddInvoice";
+import { formatExcelDate } from "../utils/dateUtils"; 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -623,7 +624,7 @@ const IndividualTimesheet = () => {
         const entries = getTimeEntries(date);
         entries.forEach((entry) => {
           const row = [
-            `"${formatDateDisplay(date)}"`,
+            `"${formatExcelDate(date)}"`,
             `"${entry.task}"`,
             `"${entry.hours}"`,
             `"${entry.minutes}"`,

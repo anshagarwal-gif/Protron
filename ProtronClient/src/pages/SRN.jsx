@@ -26,6 +26,7 @@ import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSRNModal from "../components/AddSRNModal";
 import SRNDetailsModal from "../components/SRNDetailsModal";
 import EditSRNModal from "../components/EditSRNModal";
+import { formatExcelDate } from "../utils/dateUtils"; // Import the formatExcelDate function
 // import EditSRNModal from "../components/EditSRNModal";
 
 const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
@@ -228,9 +229,9 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         'Payment Name': srn.srnName || 'N/A',
         'Payment Description': srn.srnDsc || 'N/A',
         'Currency': srn.srnCurrency || 'N/A',
-        'Payment Amount': srn.srnAmount ? `${getCurrencySymbol(srn.srnCurrency)}${srn.srnAmount.toLocaleString()}` : 'N/A',
+        'Payment Amount': srn.srnAmount ? srn.srnAmount.toLocaleString() : 'N/A',
         'Payment Remarks': srn.srnRemarks || 'N/A',
-        'Payment DATE': srn.srnDate || 'N/A',
+        'Payment DATE': formatExcelDate(srn.srnDate),
       }));
 
       const headers = Object.keys(excelData[0] || {});
