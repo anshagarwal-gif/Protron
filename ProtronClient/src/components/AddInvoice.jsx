@@ -73,7 +73,14 @@ const AddInvoiceModal = ({
         totalAmount: '',
         remarks: '',
         projectName: '',
-        employeeId: ''
+        employeeId: '',
+        cgstPercent: '',
+        sgstPercent: '',
+        igstPercent: '',
+        taxPercent: '',
+        discountPercent: '',
+        dueDate: '',
+        dueDateOption: '15' // 15, 30, or custom
     });
 
     // Table headers editable by user
@@ -1105,7 +1112,13 @@ const AddInvoiceModal = ({
                 remarks: formData.remarks || "",
                 projectName: formData.projectName || "",
                 // Include timesheet data if checkbox is checked AND invoice has a single employee selected
-                timesheetData: (attachTimesheet && (invoiceEmployees || []).filter(e => e.userId).length === 1) ? prepareTimesheetData() : null
+                timesheetData: (attachTimesheet && (invoiceEmployees || []).filter(e => e.userId).length === 1) ? prepareTimesheetData() : null,
+                cgstPercent: formData.cgstPercent ? parseFloat(formData.cgstPercent) : null,
+                sgstPercent: formData.sgstPercent ? parseFloat(formData.sgstPercent) : null,
+                igstPercent: formData.igstPercent ? parseFloat(formData.igstPercent) : null,
+                taxPercent: formData.taxPercent ? parseFloat(formData.taxPercent) : null,
+                discountPercent: formData.discountPercent ? parseFloat(formData.discountPercent) : null,
+                dueDate: formData.dueDate || null
             };
             // Set top-level rate (required by backend)
             invoiceData.rate = rateValue;
@@ -1276,7 +1289,13 @@ const AddInvoiceModal = ({
                 totalAmount: computedTableTotal !== null ? computedTableTotal : (formData.totalAmount ? parseFloat(formData.totalAmount) : (rateValue * hoursValue)),
                 remarks: formData.remarks || "",
                 projectName: formData.projectName || "",
-                timesheetData: (attachTimesheet && invoiceEmpRows.length === 1) ? prepareTimesheetData() : null
+                timesheetData: (attachTimesheet && invoiceEmpRows.length === 1) ? prepareTimesheetData() : null,
+                cgstPercent: formData.cgstPercent ? parseFloat(formData.cgstPercent) : null,
+                sgstPercent: formData.sgstPercent ? parseFloat(formData.sgstPercent) : null,
+                igstPercent: formData.igstPercent ? parseFloat(formData.igstPercent) : null,
+                taxPercent: formData.taxPercent ? parseFloat(formData.taxPercent) : null,
+                discountPercent: formData.discountPercent ? parseFloat(formData.discountPercent) : null,
+                dueDate: formData.dueDate || null
             };
             const response = await axios.post(
                 `${API_BASE_URL}/api/invoices/preview`,
@@ -1383,7 +1402,14 @@ const AddInvoiceModal = ({
             totalAmount: '',
             remarks: '',
             projectName: '',
-            employeeId: ''
+            employeeId: '',
+            cgstPercent: '',
+            sgstPercent: '',
+            igstPercent: '',
+            taxPercent: '',
+            discountPercent: '',
+            dueDate: '',
+            dueDateOption: '15'
         });
         setErrors({});
         setAttachments([]);
@@ -1694,10 +1720,55 @@ const AddInvoiceModal = ({
 
                         </div>
 
-                        {/* 3rd Line: Supplier Name and Supplier Address */}
-
-
-
+                        {/* Discount and Due Date */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Discount %</label>
+                                <select 
+                                    value={formData.discountPercent} 
+                                    onChange={handleChange('discountPercent')} 
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+                                >
+                                    <option value="">Select Discount %</option>
+                                    <option value="0">0%</option>
+                                    <option value="5">5%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                    <option value="20">20%</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Due Date Option</label>
+                                <select 
+                                    value={formData.dueDateOption} 
+                                    onChange={(e) => {
+                                        const option = e.target.value;
+                                        setFormData(prev => ({ 
+                                            ...prev, 
+                                            dueDateOption: option,
+                                            dueDate: option === '15' ? new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] :
+                                                   option === '30' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : ''
+                                        }));
+                                    }} 
+                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+                                >
+                                    <option value="15">15 Days</option>
+                                    <option value="30">30 Days</option>
+                                    <option value="custom">Custom Date</option>
+                                </select>
+                            </div>
+                            {formData.dueDateOption === 'custom' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                    <input 
+                                        type="date" 
+                                        value={formData.dueDate} 
+                                        onChange={handleChange('dueDate')} 
+                                        className="w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
+                                    />
+                                </div>
+                            )}
+                        </div>
 
                         {/* 5th Line: Employee Name, Currency, Rate, Hours Spent */}
 
@@ -1783,6 +1854,73 @@ const AddInvoiceModal = ({
                                     <Trash2 size={14} />
                                     Delete
                                 </button>
+                            </div>
+
+                            {/* Tax Fields - Above Table Total */}
+                            <div className="mt-4 space-y-3">
+                                {formData.invoiceType === 'DOMESTIC' && (
+                                    <>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <label className="text-sm font-medium text-gray-700">CGST %</label>
+                                            <input 
+                                                type="number" 
+                                                step="0.01" 
+                                                placeholder="0.00" 
+                                                value={formData.cgstPercent} 
+                                                onChange={handleChange('cgstPercent')} 
+                                                className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
+                                            />
+                                            <span className="text-sm font-medium text-gray-900 w-24 text-right">
+                                                {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.cgstPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <label className="text-sm font-medium text-gray-700">SGST %</label>
+                                            <input 
+                                                type="number" 
+                                                step="0.01" 
+                                                placeholder="0.00" 
+                                                value={formData.sgstPercent} 
+                                                onChange={handleChange('sgstPercent')} 
+                                                className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
+                                            />
+                                            <span className="text-sm font-medium text-gray-900 w-24 text-right">
+                                                {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.sgstPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <label className="text-sm font-medium text-gray-700">IGST %</label>
+                                            <input 
+                                                type="number" 
+                                                step="0.01" 
+                                                placeholder="0.00" 
+                                                value={formData.igstPercent} 
+                                                onChange={handleChange('igstPercent')} 
+                                                className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
+                                            />
+                                            <span className="text-sm font-medium text-gray-900 w-24 text-right">
+                                                {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.igstPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.invoiceType === 'INTERNATIONAL' && (
+                                    <div className="flex items-center justify-end gap-2">
+                                        <label className="text-sm font-medium text-gray-700">Tax %</label>
+                                        <input 
+                                            type="number" 
+                                            step="0.01" 
+                                            placeholder="0.00" 
+                                            value={formData.taxPercent} 
+                                            onChange={handleChange('taxPercent')} 
+                                            className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
+                                        />
+                                        <span className="text-sm font-medium text-gray-900 w-24 text-right">
+                                            {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.taxPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Table totals and amount in words */}

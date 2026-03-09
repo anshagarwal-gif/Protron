@@ -125,6 +125,12 @@ public class InvoiceService {
             invoice.setProjectName(requestDTO.getProjectName());
             invoice.setCreatedAt(LocalDateTime.now());
             invoice.setCountry(requestDTO.getCountry());
+            invoice.setCgstPercent(requestDTO.getCgstPercent());
+            invoice.setSgstPercent(requestDTO.getSgstPercent());
+            invoice.setIgstPercent(requestDTO.getIgstPercent());
+            invoice.setTaxPercent(requestDTO.getTaxPercent());
+            invoice.setDiscountPercent(requestDTO.getDiscountPercent());
+            invoice.setDueDate(requestDTO.getDueDate());
             // =========================
             // MAP ITEMS
             // =========================
@@ -276,6 +282,14 @@ public class InvoiceService {
             invoice.setRemarks(requestDTO.getRemarks());
             invoice.setProjectName(requestDTO.getProjectName());
             invoice.setCreatedAt(LocalDateTime.now());
+
+            // Set tax and discount fields
+            invoice.setCgstPercent(requestDTO.getCgstPercent());
+            invoice.setSgstPercent(requestDTO.getSgstPercent());
+            invoice.setIgstPercent(requestDTO.getIgstPercent());
+            invoice.setTaxPercent(requestDTO.getTaxPercent());
+            invoice.setDiscountPercent(requestDTO.getDiscountPercent());
+            invoice.setDueDate(requestDTO.getDueDate());
 
             // Process attachments (up to 4)
             if (attachments != null && !attachments.isEmpty()) {

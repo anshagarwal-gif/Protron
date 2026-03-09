@@ -87,6 +87,24 @@ public class Invoice {
     @Column(columnDefinition = "TEXT")
     private String projectName;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal cgstPercent;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal sgstPercent;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal igstPercent;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal taxPercent;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal discountPercent;
+
+    @Column
+    private LocalDate dueDate;
+
     @Lob
     @Column(columnDefinition = "LONGBLOB")
     private byte[] pdfData;
@@ -549,5 +567,46 @@ public class Invoice {
      */
     public void setDeletedAt(LocalDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+
+            public BigDecimal getCgstPercent() {
+    return cgstPercent;
+}
+
+    public void setCgstPercent(BigDecimal cgstPercent) {
+        this.cgstPercent = cgstPercent;
+    }
+
+    public BigDecimal getSgstPercent() {
+        return sgstPercent;
+    }
+
+    public void setSgstPercent(BigDecimal sgstPercent) {
+        this.sgstPercent = sgstPercent;
+    }
+
+    public BigDecimal getIgstPercent() {
+        return igstPercent;
+    }
+
+    public void setIgstPercent(BigDecimal igstPercent) {
+        this.igstPercent = igstPercent;
+    }
+
+    public BigDecimal getTaxPercent() {
+        return taxPercent;
+    }
+
+    public void setTaxPercent(BigDecimal taxPercent) {
+        this.taxPercent = taxPercent;
+    }
+
+    public BigDecimal getDiscountPercent() {
+        return discountPercent;
+    }
+
+    public void setDiscountPercent(BigDecimal discountPercent) {
+        this.discountPercent = discountPercent;
     }
 }

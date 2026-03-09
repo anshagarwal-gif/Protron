@@ -67,6 +67,18 @@ public class InvoiceRequestDTO {
     @Size(max = 200, message = "Project name must not exceed 200 characters")
     private String projectName;
 
+    private BigDecimal cgstPercent;
+
+    private BigDecimal sgstPercent;
+
+    private BigDecimal igstPercent;
+
+    private BigDecimal taxPercent;
+
+    private BigDecimal discountPercent;
+
+    private LocalDate dueDate;
+
     private TimesheetDataDTO timesheetData;
 
     private List<InvoiceItemDTO> items;
@@ -437,5 +449,53 @@ public class InvoiceRequestDTO {
 
     public void setEmployees(List<InvoiceEmployeeDTO> employees) {
         this.employees = employees;
+    }
+
+    public BigDecimal getCgstPercent() {
+        return cgstPercent;
+    }
+
+    public void setCgstPercent(BigDecimal cgstPercent) {
+        this.cgstPercent = cgstPercent;
+    }
+
+    public BigDecimal getSgstPercent() {
+        return sgstPercent;
+    }
+
+    public void setSgstPercent(BigDecimal sgstPercent) {
+        this.sgstPercent = sgstPercent;
+    }
+
+    public BigDecimal getIgstPercent() {
+        return igstPercent;
+    }
+
+    public void setIgstPercent(BigDecimal igstPercent) {
+        this.igstPercent = igstPercent;
+    }
+
+    public BigDecimal getTaxPercent() {
+        return taxPercent;
+    }
+
+    public void setTaxPercent(BigDecimal taxPercent) {
+        this.taxPercent = taxPercent;
+    }
+
+    public BigDecimal getDiscountPercent() {
+        return discountPercent;
+    }
+
+    public void setDiscountPercent(BigDecimal discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 }
