@@ -307,6 +307,46 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
             </div>
           </div>
 
+          {/* Tax & Discount Details */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+              <CreditCard className="mr-2 text-green-600" size={20} />
+              Tax & Discount Details
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {(invoice.invoiceType === 'DOMESTIC' || !invoice.invoiceType) && (
+                <>
+                  <Field
+                    label="CGST %"
+                    value={invoice.cgstPercent ? `${invoice.cgstPercent}% = ${formatCurrency((parseFloat(invoice.cgstPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
+                  />
+                  <Field
+                    label="SGST %"
+                    value={invoice.sgstPercent ? `${invoice.sgstPercent}% = ${formatCurrency((parseFloat(invoice.sgstPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
+                  />
+                  <Field
+                    label="IGST %"
+                    value={invoice.igstPercent ? `${invoice.igstPercent}% = ${formatCurrency((parseFloat(invoice.igstPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
+                  />
+                </>
+              )}
+              {(invoice.invoiceType === 'INTERNATIONAL') && (
+                <Field
+                  label="Tax %"
+                  value={invoice.taxPercent ? `${invoice.taxPercent}% = ${formatCurrency((parseFloat(invoice.taxPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
+                />
+              )}
+              <Field
+                label="Discount %"
+                value={invoice.discountPercent ? `${invoice.discountPercent}% = ${formatCurrency((parseFloat(invoice.discountPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
+              />
+              <Field
+                label="Due Date"
+                value={formatDate(invoice.dueDate)}
+              />
+            </div>
+          </div>
+
           {/* Items & Employees (combined table) */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -611,6 +651,13 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         totalAmount: Number.isFinite(parseFloat(invoice.totalAmount)) ? parseFloat(invoice.totalAmount) : 0,
         remarks: invoice.remarks || "",
         projectName: invoice.projectName || "",
+        // Include tax and discount fields
+        cgstPercent: Number.isFinite(parseFloat(invoice.cgstPercent)) ? parseFloat(invoice.cgstPercent) : null,
+        sgstPercent: Number.isFinite(parseFloat(invoice.sgstPercent)) ? parseFloat(invoice.sgstPercent) : null,
+        igstPercent: Number.isFinite(parseFloat(invoice.igstPercent)) ? parseFloat(invoice.igstPercent) : null,
+        taxPercent: Number.isFinite(parseFloat(invoice.taxPercent)) ? parseFloat(invoice.taxPercent) : null,
+        discountPercent: Number.isFinite(parseFloat(invoice.discountPercent)) ? parseFloat(invoice.discountPercent) : null,
+        dueDate: invoice.dueDate || null,
         timesheetData: null // Existing invoices may not have timesheet data
       };
 
