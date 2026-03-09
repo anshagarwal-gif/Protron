@@ -51,11 +51,15 @@ public class InvoiceResponseDTO {
     private Integer attachmentCount;
     private List<String> attachmentFileNames;
 
-    // Helper method to check if invoice has attachments
-    public boolean hasAttachments() {
-        return attachmentCount != null && attachmentCount > 0;
-    }
+    // Tax and discount fields
+    private BigDecimal cgstPercent;
+    private BigDecimal sgstPercent;
+    private BigDecimal igstPercent;
+    private BigDecimal taxPercent;
+    private BigDecimal discountPercent;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dueDate;
 
     public String getCountry() {
         return country;
@@ -247,5 +251,54 @@ public class InvoiceResponseDTO {
 
     public void setAttachmentFileNames(List<String> attachmentFileNames) {
         this.attachmentFileNames = attachmentFileNames;
+    }
+
+    // Tax and discount field getters and setters
+    public BigDecimal getCgstPercent() {
+        return cgstPercent;
+    }
+
+    public void setCgstPercent(BigDecimal cgstPercent) {
+        this.cgstPercent = cgstPercent;
+    }
+
+    public BigDecimal getSgstPercent() {
+        return sgstPercent;
+    }
+
+    public void setSgstPercent(BigDecimal sgstPercent) {
+        this.sgstPercent = sgstPercent;
+    }
+
+    public BigDecimal getIgstPercent() {
+        return igstPercent;
+    }
+
+    public void setIgstPercent(BigDecimal igstPercent) {
+        this.igstPercent = igstPercent;
+    }
+
+    public BigDecimal getTaxPercent() {
+        return taxPercent;
+    }
+
+    public void setTaxPercent(BigDecimal taxPercent) {
+        this.taxPercent = taxPercent;
+    }
+
+    public BigDecimal getDiscountPercent() {
+        return discountPercent;
+    }
+
+    public void setDiscountPercent(BigDecimal discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 }

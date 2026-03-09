@@ -1662,6 +1662,14 @@ public class InvoiceService {
         dto.setAttachmentCount(invoice.getAttachmentCount());
         dto.setAttachmentFileNames(invoice.getAttachmentFileNames());
 
+        // Tax and discount fields
+        dto.setCgstPercent(invoice.getCgstPercent());
+        dto.setSgstPercent(invoice.getSgstPercent());
+        dto.setIgstPercent(invoice.getIgstPercent());
+        dto.setTaxPercent(invoice.getTaxPercent());
+        dto.setDiscountPercent(invoice.getDiscountPercent());
+        dto.setDueDate(invoice.getDueDate());
+
         // ✅ Map Invoice Items
         if (invoice.getInvoiceItems() != null) {
             List<InvoiceItem> itemDTOs = invoice.getInvoiceItems()
