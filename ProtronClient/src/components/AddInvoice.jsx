@@ -1714,19 +1714,17 @@ const AddInvoiceModal = ({
                             {formData.invoiceType === 'DOMESTIC' && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Ship To Address</label>
-                                    <input type="text" placeholder="Ship to address" value={formData.shipToAddress} onChange={handleChange('shipToAddress')} className="w-full h-10 px-4 border rounded-md" maxLength={100} />
                                 </div>
                             )}
-
                         </div>
 
                         {/* Discount and Due Date */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Discount %</label>
-                                <select 
-                                    value={formData.discountPercent} 
-                                    onChange={handleChange('discountPercent')} 
+                                <select
+                                    value={formData.discountPercent}
+                                    onChange={handleChange('discountPercent')}
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
                                 >
                                     <option value="">Select Discount %</option>
@@ -1739,36 +1737,93 @@ const AddInvoiceModal = ({
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Due Date Option</label>
-                                <select 
-                                    value={formData.dueDateOption} 
+                                <select
+                                    value={formData.dueDateOption}
                                     onChange={(e) => {
                                         const option = e.target.value;
-                                        setFormData(prev => ({ 
-                                            ...prev, 
+                                        let dueDate = '';
+
+                                        if (option === 'same_day') {
+                                            dueDate = formData.invoiceDate || new Date().toISOString().split('T')[0];
+                                        } else if (option === 'days_after') {
+                                            // Default to 15 days if no value set, calculate from invoice date
+                                            const days = formData.daysAfter || 15;
+                                            const invoiceDate = formData.invoiceDate || new Date().toISOString().split('T')[0];
+                                            dueDate = new Date(new Date(invoiceDate).getTime() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                                        }
+                                        // For 'custom_date', dueDate remains empty
+
+                                        setFormData(prev => ({
+                                            ...prev,
                                             dueDateOption: option,
-                                            dueDate: option === '15' ? new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] :
-                                                   option === '30' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : ''
+                                            dueDate: dueDate
                                         }));
-                                    }} 
+                                    }}
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
                                 >
-                                    <option value="15">15 Days</option>
-                                    <option value="30">30 Days</option>
-                                    <option value="custom">Custom Date</option>
+                                    <option value="same_day">On date of issue</option>
+                                    <option value="days_after">After a number of days</option>
+                                    <option value="custom_date">On specific date</option>
                                 </select>
                             </div>
-                            {formData.dueDateOption === 'custom' && (
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                                    <input 
-                                        type="date" 
-                                        value={formData.dueDate} 
-                                        onChange={handleChange('dueDate')} 
-                                        className="w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
+                            {formData.dueDateOption === 'days_after' && (
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Number of Days</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="365"
+                                        value={formData.daysAfter || ''}
+                                        onChange={(e) => {
+                                            const days = parseInt(e.target.value) || 0;
+                                            const invoiceDate = formData.invoiceDate;
+                                            if (invoiceDate) {
+                                                const dueDate = new Date(new Date(invoiceDate).getTime() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    daysAfter: days,
+                                                    dueDate: dueDate
+                                                }));
+                                            } else {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    daysAfter: days
+                                                }));
+                                            }
+                                        }}
+                                        className="w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+                                        placeholder="Enter number of days (e.g., 30)"
                                     />
                                 </div>
                             )}
+                            {formData.dueDateOption === 'custom_date' && (
+                                <div className="lg:col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.dueDate}
+                                        onChange={handleChange('dueDate')}
+                                        className="w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+                                    />
+                                </div>
+                            )}
+                            {/* {formData.dueDateOption === 'same_day' && (
+                                <div className="lg:col-span-1 flex items-end">
+                                    <p className="text-sm text-gray-600">
+                                        Due date will be the same as invoice date
+                                    </p>
+                                </div>
+                            )} */}
                         </div>
+
+                        {/* Helper text for days_after option */}
+                        {formData.dueDateOption === 'days_after' && formData.daysAfter && (
+                            <div className="mt-1 ml-auto mr-auto lg:mr-0 lg:ml-0" style={{ gridColumn: 'span 3 / span 3' }}>
+                                <p className="text-xs text-gray-500 text-center lg:text-right">
+                                    Due date will be calculated as: Invoice date + {formData.daysAfter} days
+                                </p>
+                            </div>
+                        )}
 
                         {/* 5th Line: Employee Name, Currency, Rate, Hours Spent */}
 
