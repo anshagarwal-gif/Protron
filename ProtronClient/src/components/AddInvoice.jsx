@@ -1767,24 +1767,29 @@ const AddInvoiceModal = ({
                                 </div>
                             )}
                         </div>
-
-                        {/* Discount and Due Date */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Discount %</label>
-                                <select
+                                <input
+                                    type="number"
+                                    placeholder="Enter discount %"
                                     value={formData.discountPercent}
-                                    onChange={handleChange('discountPercent')}
+                                    onChange={(e) => {
+                                        const value = parseFloat(e.target.value);
+                                        if (value <= 100 && value >= 0) {
+                                            handleChange('discountPercent')(e);
+                                        } else if (value > 100) {
+                                            e.target.value = 100;
+                                            handleChange('discountPercent')(e);
+                                        }
+                                    }}
                                     className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
-                                >
-                                    <option value="">Select Discount %</option>
-                                    <option value="0">0%</option>
-                                    <option value="5">5%</option>
-                                    <option value="10">10%</option>
-                                    <option value="15">15%</option>
-                                    <option value="20">20%</option>
-                                </select>
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                />
                             </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Due Date Option</label>
                                 <select
