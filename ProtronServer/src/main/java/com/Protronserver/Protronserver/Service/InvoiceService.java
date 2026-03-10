@@ -490,10 +490,21 @@ public class InvoiceService {
 
     public ByteArrayResource downloadInvoicePDF(String invoiceId) {
         Optional<Invoice> invoiceOpt = invoiceRepository.findByInvoiceId(invoiceId);
-        if (invoiceOpt.isPresent() && invoiceOpt.get().getPdfData() != null) {
-            return new ByteArrayResource(invoiceOpt.get().getPdfData());
+        if (invoiceOpt.isPresent()) {
+            try {
+                Invoice invoice = invoiceOpt.get();
+                // Generate PDF on-demand with corrected tax logic
+                byte[] pdfBytes = generateInvoicePDF(invoice, null);
+                return new ByteArrayResource(pdfBytes);
+            } catch (Exception e) {
+                log.error("Error generating PDF for invoice {}: {}", invoiceId, e.getMessage());
+                // Fallback to stored PDF if available
+                if (invoiceOpt.get().getPdfData() != null) {
+                    return new ByteArrayResource(invoiceOpt.get().getPdfData());
+                }
+            }
         }
-        throw new RuntimeException("Invoice PDF not found for ID: " + invoiceId);
+        throw new RuntimeException("Invoice not found: " + invoiceId);
     }
 
     public List<InvoiceResponseDTO> searchInvoicesByCustomer(String customerName) {
@@ -912,7 +923,8 @@ public class InvoiceService {
         if (invoice.getInvoiceTaxes() != null && !invoice.getInvoiceTaxes().isEmpty()) {
             for (InvoiceTax tax : invoice.getInvoiceTaxes()) {
                 if (tax.getTaxPercentage() != null) {
-                    BigDecimal taxAmount = grandTotal.multiply(tax.getTaxPercentage()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                    // Calculate tax on discounted amount (grandTotal - totalTaxAmount)
+                    BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(tax.getTaxPercentage()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
                     totalTaxAmount = totalTaxAmount.add(taxAmount);
                 }
             }
