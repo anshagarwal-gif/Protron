@@ -657,6 +657,13 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         timesheetData: null // Existing invoices may not have timesheet data
       };
 
+      // Add taxes array for preview
+      invoiceData.taxes = (invoice.taxes || []).map(tax => ({
+        taxName: tax.taxName || '',
+        taxPercentage: parseFloat(tax.taxPercentage) || 0,
+        taxNumber: tax.taxNumber || ''
+      }));
+
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/invoices/preview`,
         invoiceData,
