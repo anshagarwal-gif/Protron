@@ -314,26 +314,22 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
               Tax & Discount Details
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {(invoice.invoiceType === 'DOMESTIC' || !invoice.invoiceType) && (
-                <>
-                  <Field
-                    label="CGST %"
-                    value={invoice.cgstPercent ? `${invoice.cgstPercent}% = ${formatCurrency((parseFloat(invoice.cgstPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
-                  />
-                  <Field
-                    label="SGST %"
-                    value={invoice.sgstPercent ? `${invoice.sgstPercent}% = ${formatCurrency((parseFloat(invoice.sgstPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
-                  />
-                  <Field
-                    label="IGST %"
-                    value={invoice.igstPercent ? `${invoice.igstPercent}% = ${formatCurrency((parseFloat(invoice.igstPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
-                  />
-                </>
-              )}
-              {(invoice.invoiceType === 'INTERNATIONAL') && (
+              {invoice.taxes && invoice.taxes.length > 0 ? (
+                invoice.taxes.map((tax, index) => {
+                  const taxAmount = (parseFloat(tax.taxPercentage || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2);
+                  return (
+                    <Field
+                      key={`tax-${index}`}
+                      label={`${tax.taxName || `Tax ${index + 1}`} %`}
+                      value={`${tax.taxPercentage || 0}% = ${formatCurrency(taxAmount, invoice.currency)}${tax.taxNumber ? ` (${tax.taxNumber})` : ''}`}
+                    />
+                  );
+                })
+              ) : (
                 <Field
-                  label="Tax %"
-                  value={invoice.taxPercent ? `${invoice.taxPercent}% = ${formatCurrency((parseFloat(invoice.taxPercent || 0) * parseFloat(invoice.totalAmount || 0) / 100).toFixed(2), invoice.currency)}` : '0% = N/A'}
+                  label="Taxes"
+                  value="No taxes applied"
+                  className="sm:col-span-2 lg:col-span-3"
                 />
               )}
               <Field

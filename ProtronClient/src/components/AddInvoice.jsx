@@ -66,7 +66,7 @@ const AddInvoiceModal = ({
         employeeNames: [],
         employeeIds: [],
         rate: '',
-        currency: 'USD',
+        currency: 'INR', // Set to INR by default since invoiceType defaults to DOMESTIC
         fromDate: '',
         toDate: '',
         hoursSpent: '',

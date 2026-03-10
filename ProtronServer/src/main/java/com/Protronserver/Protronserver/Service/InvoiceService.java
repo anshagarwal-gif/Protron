@@ -1440,7 +1440,8 @@ public class InvoiceService {
                     if (taxData.get("taxPercentage") != null) {
                         BigDecimal taxPercentage = new BigDecimal(taxData.get("taxPercentage").toString());
                         if (taxPercentage.compareTo(BigDecimal.ZERO) > 0) {
-                            BigDecimal taxAmount = grandTotal.multiply(taxPercentage).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                            // Calculate tax on discounted amount (grandTotal - totalTaxAmount)
+                            BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(taxPercentage).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
                             totalTaxAmount = totalTaxAmount.add(taxAmount);
                         }
                     }
