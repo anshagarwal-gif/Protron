@@ -3,6 +3,7 @@ package com.Protronserver.Protronserver.Service;
 import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
 import com.Protronserver.Protronserver.DTO.InvoiceItemDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
+import com.Protronserver.Protronserver.DTOs.InvoiceTaxDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.InvoiceRepository;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -125,12 +127,27 @@ public class InvoiceService {
             invoice.setProjectName(requestDTO.getProjectName());
             invoice.setCreatedAt(LocalDateTime.now());
             invoice.setCountry(requestDTO.getCountry());
-            invoice.setCgstPercent(requestDTO.getCgstPercent());
-            invoice.setSgstPercent(requestDTO.getSgstPercent());
-            invoice.setIgstPercent(requestDTO.getIgstPercent());
-            invoice.setTaxPercent(requestDTO.getTaxPercent());
             invoice.setDiscountPercent(requestDTO.getDiscountPercent());
             invoice.setDueDate(requestDTO.getDueDate());
+
+            // =========================
+            // MAP TAXES
+            // =========================
+            if (requestDTO.getTaxes() != null && !requestDTO.getTaxes().isEmpty()) {
+                List<InvoiceTax> taxEntities = new ArrayList<>();
+
+                for (InvoiceTaxDTO taxDTO : requestDTO.getTaxes()) {
+                    InvoiceTax tax = new InvoiceTax();
+                    tax.setInvoice(invoice); // IMPORTANT
+                    tax.setTaxName(taxDTO.getTaxName());
+                    tax.setTaxPercentage(taxDTO.getTaxPercentage());
+                    tax.setTaxNumber(taxDTO.getTaxNumber());
+
+                    taxEntities.add(tax);
+                }
+
+                invoice.setInvoiceTaxes(taxEntities);
+            }
             // =========================
             // MAP ITEMS
             // =========================
@@ -283,11 +300,25 @@ public class InvoiceService {
             invoice.setProjectName(requestDTO.getProjectName());
             invoice.setCreatedAt(LocalDateTime.now());
 
-            // Set tax and discount fields
-            invoice.setCgstPercent(requestDTO.getCgstPercent());
-            invoice.setSgstPercent(requestDTO.getSgstPercent());
-            invoice.setIgstPercent(requestDTO.getIgstPercent());
-            invoice.setTaxPercent(requestDTO.getTaxPercent());
+            // =========================
+            // MAP TAXES
+            // =========================
+            if (requestDTO.getTaxes() != null && !requestDTO.getTaxes().isEmpty()) {
+                List<InvoiceTax> taxEntities = new ArrayList<>();
+
+                for (InvoiceTaxDTO taxDTO : requestDTO.getTaxes()) {
+                    InvoiceTax tax = new InvoiceTax();
+                    tax.setInvoice(invoice); // IMPORTANT
+                    tax.setTaxName(taxDTO.getTaxName());
+                    tax.setTaxPercentage(taxDTO.getTaxPercentage());
+                    tax.setTaxNumber(taxDTO.getTaxNumber());
+
+                    taxEntities.add(tax);
+                }
+
+                invoice.setInvoiceTaxes(taxEntities);
+            }
+
             invoice.setDiscountPercent(requestDTO.getDiscountPercent());
             invoice.setDueDate(requestDTO.getDueDate());
 
@@ -489,83 +520,104 @@ public class InvoiceService {
 
         document.open();
 
-        // Define fonts
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
-        Font headerFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
-        Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
-        Font smallFont = new Font(Font.FontFamily.HELVETICA, 9);
+        // Define professional fonts and colors
+        Font titleFont = new Font(Font.FontFamily.HELVETICA, 24, Font.BOLD, BaseColor.DARK_GRAY);
+        Font headerFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, BaseColor.WHITE);
+        Font normalFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
+        Font smallFont = new Font(Font.FontFamily.HELVETICA, 9, Font.NORMAL, BaseColor.GRAY);
+        Font accentFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, new BaseColor(41, 128, 185)); // Professional blue
+        
+        // Define professional colors
+        BaseColor primaryColor = new BaseColor(41, 128, 185); // Professional blue
+        BaseColor lightGray = new BaseColor(245, 245, 245); // Very light gray
+        BaseColor borderGray = new BaseColor(200, 200, 200); // Border gray
+        BaseColor accentGreen = new BaseColor(39, 174, 96); // Success green
 
         // ---------------------- HEADER: Title + Logo ----------------------
+        // Add a professional header with background
         PdfPTable headerTable = new PdfPTable(2);
         headerTable.setWidthPercentage(100);
-        headerTable.setSpacingAfter(5);
-        headerTable.setWidths(new float[] { 6f, 4f }); // Title left, logo right
+        headerTable.setSpacingAfter(15);
+        headerTable.setWidths(new float[] { 6f, 4f });
 
-        // Invoice Title on left
+        // Invoice Title with professional styling
         PdfPCell titleCell = new PdfPCell(new Phrase("INVOICE", titleFont));
         titleCell.setBorder(Rectangle.NO_BORDER);
         titleCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        titleCell.setPadding(10);
+        titleCell.setBackgroundColor(new BaseColor(248, 249, 250)); // Subtle background
         headerTable.addCell(titleCell);
 
-        // Replace the existing logo cell code with this:
+        // Logo cell with better styling
         PdfPCell logocell;
-
-// Check if supplierName matches tenant name
         if (invoice.getSupplierName() != null) {
             Tenant tenant = loggedInUserUtils.getLoggedInUser().getTenant();
-
             if (tenant != null &&
                     tenant.getTenantName() != null &&
                     invoice.getSupplierName().equalsIgnoreCase(tenant.getTenantName()) &&
                     tenant.getTenantLogo() != null) {
-
-                // Tenant name matches supplier name AND logo exists - show logo
                 try {
                     Image logo = Image.getInstance(tenant.getTenantLogo());
-                    logo.scaleToFit(100f, 50f); // Adjust size as needed
+                    logo.scaleToFit(120f, 60f);
                     logocell = new PdfPCell(logo);
+                    logocell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                    logocell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 } catch (Exception e) {
                     log.warn("Failed to load tenant logo, using placeholder", e);
-                    logocell = new PdfPCell(new Phrase("LOGO", titleFont));
+                    logocell = new PdfPCell(new Phrase("", titleFont));
                 }
             } else {
-                // Supplier name doesn't match OR no logo - no placeholder
                 logocell = new PdfPCell(new Phrase("", titleFont));
             }
         } else {
-            // No supplier name - no logo
             logocell = new PdfPCell(new Phrase("", titleFont));
         }
-
         logocell.setBorder(Rectangle.NO_BORDER);
-        logocell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        logocell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        logocell.setPadding(10);
         headerTable.addCell(logocell);
 
         document.add(headerTable);
+
+        // Add a professional separator line
+        LineSeparator separator = new LineSeparator();
+        separator.setLineColor(new BaseColor(200, 200, 200));
+        separator.setLineWidth(1f);
+        document.add(separator);
+        document.add(new Paragraph(" ")); // Add some spacing
 
         // ---------------------- INVOICE META + SUPPLIER ----------------------
         PdfPTable metaTable = new PdfPTable(2);
         metaTable.setWidthPercentage(100);
         metaTable.setWidths(new float[] { 5f, 5f });
+        metaTable.setSpacingAfter(20);
 
-        // Left side: Invoice ID, Invoice Date, Bill Period, Invoice Name
+        // Left side: Invoice details with better styling
         PdfPCell leftMetaCell = new PdfPCell();
         leftMetaCell.setBorder(Rectangle.NO_BORDER);
-        leftMetaCell.addElement(new Paragraph("Invoice ID: " + invoice.getInvoiceId(), normalFont));
+        leftMetaCell.setPadding(10);
+        leftMetaCell.setBackgroundColor(lightGray);
+        
+        Paragraph invoiceIdPara = new Paragraph("Invoice ID: ", normalFont);
+        invoiceIdPara.add(new Chunk(invoice.getInvoiceId(), accentFont));
+        leftMetaCell.addElement(invoiceIdPara);
+        
         leftMetaCell.addElement(new Paragraph("Invoice Name: " + invoice.getInvoiceName(), normalFont));
-        leftMetaCell.addElement(
-                new Paragraph("Invoice Date: " + formatLocalDateTimeWithSuffix(invoice.getCreatedAt()), normalFont));
+        leftMetaCell.addElement(new Paragraph("Invoice Date: " + formatLocalDateTimeWithSuffix(invoice.getCreatedAt()), normalFont));
         leftMetaCell.addElement(new Paragraph("Bill Period: "
                 + (invoice.getFromDate() != null ? invoice.getFromDate() : "")
                 + " - "
                 + (invoice.getToDate() != null ? invoice.getToDate() : ""), normalFont));
         metaTable.addCell(leftMetaCell);
 
-        // Right side: Supplier Details
+        // Right side: Supplier Details with professional styling
         PdfPCell rightMetaCell = new PdfPCell();
         rightMetaCell.setBorder(Rectangle.NO_BORDER);
-        rightMetaCell.addElement(new Paragraph("Supplier Name: " + invoice.getSupplierName(), normalFont));
+        rightMetaCell.setPadding(10);
+        
+        Paragraph supplierNamePara = new Paragraph("Supplier Name: ", normalFont);
+        supplierNamePara.add(new Chunk(invoice.getSupplierName(), accentFont));
+        rightMetaCell.addElement(supplierNamePara);
+        
         rightMetaCell.addElement(new Paragraph(
                 "Supplier Address: " + (invoice.getShipToAddress() != null ? invoice.getShipToAddress() : ""),
                 normalFont));
@@ -573,16 +625,20 @@ public class InvoiceService {
                 "Supplier Info: " + (invoice.getSupplierInfo() != null ? invoice.getSupplierInfo() : ""), normalFont));
         metaTable.addCell(rightMetaCell);
 
-        metaTable.setSpacingAfter(20);
         document.add(metaTable);
 
         // ---------------------- CUSTOMER DETAILS ----------------------
-        PdfPTable customerTable;
-        // Use invoiceType to determine format, fallback to country for backward
-        // compatibility
+        // Use invoiceType to determine format, fallback to country for backward compatibility
         boolean isDomestic = "DOMESTIC".equalsIgnoreCase(invoice.getInvoiceType())
                 || ("india".equalsIgnoreCase(invoice.getCountry()) && invoice.getInvoiceType() == null);
 
+        // Customer section header
+        Paragraph customerHeader = new Paragraph("BILL TO", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
+        customerHeader.setSpacingBefore(10);
+        customerHeader.setSpacingAfter(8);
+        document.add(customerHeader);
+
+        PdfPTable customerTable;
         if (isDomestic) {
             customerTable = new PdfPTable(2);
             customerTable.setWidthPercentage(100);
@@ -592,52 +648,72 @@ public class InvoiceService {
             customerTable.setWidthPercentage(100);
         }
 
-        PdfPCell customerNameCell = new PdfPCell(new Phrase("Customer Name: " + invoice.getCustomerName(), normalFont));
+        // Customer name with accent styling
+        Paragraph customerNamePara = new Paragraph("Customer Name: ", normalFont);
+        customerNamePara.add(new Chunk(invoice.getCustomerName(), accentFont));
+        PdfPCell customerNameCell = new PdfPCell(customerNamePara);
         customerNameCell.setBorder(Rectangle.NO_BORDER);
+        customerNameCell.setPadding(8);
+        customerNameCell.setBackgroundColor(lightGray);
         customerTable.addCell(customerNameCell);
 
         if (isDomestic) {
-            // Empty right side to balance table
             PdfPCell emptyCell = new PdfPCell(new Phrase(""));
             emptyCell.setBorder(Rectangle.NO_BORDER);
+            emptyCell.setPadding(8);
             customerTable.addCell(emptyCell);
         }
 
         if (isDomestic) {
-            // Addresses in one line: Bill To (left), Ship To (right)
+            // Bill To address
             PdfPCell billToCell = new PdfPCell(new Phrase(
                     "Bill To: " + (invoice.getBillToAddress() != null ? invoice.getBillToAddress() : ""), normalFont));
-            billToCell.setBorder(Rectangle.NO_BORDER);
+            billToCell.setBorder(Rectangle.BOX);
+            billToCell.setBorderColor(borderGray);
+            billToCell.setPadding(8);
             customerTable.addCell(billToCell);
 
+            // Ship To address
             PdfPCell shipToCell = new PdfPCell(new Phrase(
                     "Ship To: " + (invoice.getShipToAddress() != null ? invoice.getShipToAddress() : ""), normalFont));
-            shipToCell.setBorder(Rectangle.NO_BORDER);
+            shipToCell.setBorder(Rectangle.BOX);
+            shipToCell.setBorderColor(borderGray);
+            shipToCell.setPadding(8);
             customerTable.addCell(shipToCell);
         } else {
             PdfPCell addressCell = new PdfPCell(new Phrase(
                     "Customer Address: " + (invoice.getCustomerAddress() != null ? invoice.getCustomerAddress() : ""),
                     normalFont));
-            addressCell.setBorder(Rectangle.NO_BORDER);
+            addressCell.setBorder(Rectangle.BOX);
+            addressCell.setBorderColor(borderGray);
+            addressCell.setPadding(8);
             customerTable.addCell(addressCell);
         }
 
-        customerTable.setSpacingAfter(20);
+        customerTable.setSpacingAfter(25);
         document.add(customerTable);
 
         /// ---------------------- ITEMS & EMPLOYEES TABLE ----------------------
+        // Add section header
+        Paragraph itemsHeader = new Paragraph("ITEM DETAILS", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
+        itemsHeader.setSpacingBefore(5);
+        itemsHeader.setSpacingAfter(8);
+        document.add(itemsHeader);
+
         PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         table.setWidths(new float[] { 0.5f, 5f, 1.4f, 1.4f, 1.8f, 3.8f });
+        table.setSpacingBefore(5);
 
-        // Header row with top/bottom border
+        // Enhanced header row with professional styling
         String amountHeader = "Amount (" + (invoice.getCurrency() != null ? invoice.getCurrency() : "") + ")";
         String[] headers = new String[] { "#", "Item Description", "Rate", "Quantity", amountHeader, "Remarks" };
         for (String header : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
-            cell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-            cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
-            cell.setPadding(5);
+            cell.setBorder(Rectangle.BOX);
+            cell.setBorderColor(borderGray);
+            cell.setBackgroundColor(primaryColor);
+            cell.setPadding(8);
             // Align numeric headers to right, others to left
             if (header.equals("Rate") || header.equals("Quantity") || header.equals(amountHeader)) {
                 cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -647,36 +723,72 @@ public class InvoiceService {
             table.addCell(cell);
         }
 
-        // Add items and employees in same table
+        // Add items and employees in same table with alternating row colors
         int rowCount = 0;
         int srNo = 1;
 
         // ----------- Invoice Items -----------
         if (invoice.getInvoiceItems() != null) {
             for (InvoiceItem item : invoice.getInvoiceItems()) {
+                boolean isEvenRow = (rowCount % 2 == 0);
+                BaseColor rowColor = isEvenRow ? BaseColor.WHITE : new BaseColor(249, 249, 249);
+                
                 // Sr. No
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
+                PdfPCell srNoCell = new PdfPCell(new Phrase(String.valueOf(srNo), normalFont));
+                srNoCell.setBorder(Rectangle.BOX);
+                srNoCell.setBorderColor(borderGray);
+                srNoCell.setBackgroundColor(rowColor);
+                srNoCell.setPadding(6);
+                srNoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(srNoCell);
+                
                 // Description
                 PdfPCell itemDescCell = new PdfPCell(new Phrase(item.getItemDesc() != null ? item.getItemDesc() : "", normalFont));
-                itemDescCell.setPadding(5);
-                itemDescCell.setBorder(Rectangle.NO_BORDER);
+                itemDescCell.setBorder(Rectangle.BOX);
+                itemDescCell.setBorderColor(borderGray);
+                itemDescCell.setBackgroundColor(rowColor);
+                itemDescCell.setPadding(6);
                 itemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                 itemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 table.addCell(itemDescCell);
-                // Rate: max 6 chars
-                table.addCell(createBodyCell(String.valueOf(item.getRate()), normalFont, 6, Element.ALIGN_RIGHT));
-                // Quantity: max 5 chars
-                table.addCell(createBodyCell(String.valueOf(item.getQuantity()), normalFont, 5, Element.ALIGN_RIGHT));
-                // Amount: DO NOT prefix currency here (currency is in header). limit to 10 chars
-                table.addCell(createBodyCell(String.valueOf(item.getAmount()), normalFont, 10, Element.ALIGN_RIGHT));
+                
+                // Rate
+                PdfPCell rateCell = new PdfPCell(new Phrase(String.valueOf(item.getRate()), normalFont));
+                rateCell.setBorder(Rectangle.BOX);
+                rateCell.setBorderColor(borderGray);
+                rateCell.setBackgroundColor(rowColor);
+                rateCell.setPadding(6);
+                rateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(rateCell);
+                
+                // Quantity
+                PdfPCell qtyCell = new PdfPCell(new Phrase(String.valueOf(item.getQuantity()), normalFont));
+                qtyCell.setBorder(Rectangle.BOX);
+                qtyCell.setBorderColor(borderGray);
+                qtyCell.setBackgroundColor(rowColor);
+                qtyCell.setPadding(6);
+                qtyCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(qtyCell);
+                
+                // Amount
+                PdfPCell amountCell = new PdfPCell(new Phrase(String.valueOf(item.getAmount()), normalFont));
+                amountCell.setBorder(Rectangle.BOX);
+                amountCell.setBorderColor(borderGray);
+                amountCell.setBackgroundColor(rowColor);
+                amountCell.setPadding(6);
+                amountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(amountCell);
+                
                 // Remarks
                 PdfPCell remarksCell = new PdfPCell(new Phrase(item.getRemarks() != null ? item.getRemarks() : "", normalFont));
-                remarksCell.setPadding(5);
-                remarksCell.setBorder(Rectangle.NO_BORDER);
+                remarksCell.setBorder(Rectangle.BOX);
+                remarksCell.setBorderColor(borderGray);
+                remarksCell.setBackgroundColor(rowColor);
+                remarksCell.setPadding(6);
                 remarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                 remarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                // Allow wrapping for long remarks
                 table.addCell(remarksCell);
+                
                 srNo++;
                 rowCount++;
             }
@@ -685,24 +797,65 @@ public class InvoiceService {
         // ----------- Invoice Employees -----------
         if (invoice.getInvoiceEmployees() != null) {
             for (InvoiceEmployee emp : invoice.getInvoiceEmployees()) {
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
+                boolean isEvenRow = (rowCount % 2 == 0);
+                BaseColor rowColor = isEvenRow ? BaseColor.WHITE : new BaseColor(249, 249, 249);
+                
+                // Sr. No
+                PdfPCell srNoCell = new PdfPCell(new Phrase(String.valueOf(srNo), normalFont));
+                srNoCell.setBorder(Rectangle.BOX);
+                srNoCell.setBorderColor(borderGray);
+                srNoCell.setBackgroundColor(rowColor);
+                srNoCell.setPadding(6);
+                srNoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(srNoCell);
+                
+                // Description
                 PdfPCell empDescCell = new PdfPCell(new Phrase(emp.getItemDesc() != null ? emp.getItemDesc() : "", normalFont));
-                empDescCell.setPadding(5);
-                empDescCell.setBorder(Rectangle.NO_BORDER);
+                empDescCell.setBorder(Rectangle.BOX);
+                empDescCell.setBorderColor(borderGray);
+                empDescCell.setBackgroundColor(rowColor);
+                empDescCell.setPadding(6);
                 empDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                 empDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 table.addCell(empDescCell);
-                table.addCell(createBodyCell(String.valueOf(emp.getRate()), normalFont, 6, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(String.valueOf(emp.getQuantity()), normalFont, 5, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(String.valueOf(emp.getAmount()), normalFont, 10, Element.ALIGN_RIGHT));
+                
+                // Rate
+                PdfPCell empRateCell = new PdfPCell(new Phrase(String.valueOf(emp.getRate()), normalFont));
+                empRateCell.setBorder(Rectangle.BOX);
+                empRateCell.setBorderColor(borderGray);
+                empRateCell.setBackgroundColor(rowColor);
+                empRateCell.setPadding(6);
+                empRateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(empRateCell);
+                
+                // Quantity
+                PdfPCell empQtyCell = new PdfPCell(new Phrase(String.valueOf(emp.getQuantity()), normalFont));
+                empQtyCell.setBorder(Rectangle.BOX);
+                empQtyCell.setBorderColor(borderGray);
+                empQtyCell.setBackgroundColor(rowColor);
+                empQtyCell.setPadding(6);
+                empQtyCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(empQtyCell);
+                
+                // Amount
+                PdfPCell empAmountCell = new PdfPCell(new Phrase(String.valueOf(emp.getAmount()), normalFont));
+                empAmountCell.setBorder(Rectangle.BOX);
+                empAmountCell.setBorderColor(borderGray);
+                empAmountCell.setBackgroundColor(rowColor);
+                empAmountCell.setPadding(6);
+                empAmountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(empAmountCell);
+                
                 // Remarks
                 PdfPCell empRemarksCell = new PdfPCell(new Phrase(emp.getRemarks() != null ? emp.getRemarks() : "", normalFont));
-                empRemarksCell.setPadding(5);
-                empRemarksCell.setBorder(Rectangle.NO_BORDER);
+                empRemarksCell.setBorder(Rectangle.BOX);
+                empRemarksCell.setBorderColor(borderGray);
+                empRemarksCell.setBackgroundColor(rowColor);
+                empRemarksCell.setPadding(6);
                 empRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                 empRemarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                // Allow wrapping for long remarks
                 table.addCell(empRemarksCell);
+                
                 srNo++;
                 rowCount++;
             }
@@ -737,44 +890,168 @@ public class InvoiceService {
 
         document.add(table);
 
+        // ---------------------- TAXES AND DISCOUNT CALCULATIONS ----------------------
+        // Add section header
+        Paragraph taxHeader = new Paragraph("SUMMARY", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
+        taxHeader.setSpacingBefore(15);
+        taxHeader.setSpacingAfter(10);
+        document.add(taxHeader);
+
+        BigDecimal subtotal = invoice.getTotalAmount() != null ? invoice.getTotalAmount() : BigDecimal.ZERO;
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        BigDecimal totalTaxAmount = BigDecimal.ZERO;
+        BigDecimal grandTotal = subtotal;
+
+        // Calculate discount amount if discount percent is present
+        if (invoice.getDiscountPercent() != null && invoice.getDiscountPercent().compareTo(BigDecimal.ZERO) > 0) {
+            discountAmount = subtotal.multiply(invoice.getDiscountPercent()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+            grandTotal = subtotal.subtract(discountAmount);
+        }
+
+        // Calculate total tax amount
+        if (invoice.getInvoiceTaxes() != null && !invoice.getInvoiceTaxes().isEmpty()) {
+            for (InvoiceTax tax : invoice.getInvoiceTaxes()) {
+                if (tax.getTaxPercentage() != null) {
+                    BigDecimal taxAmount = grandTotal.multiply(tax.getTaxPercentage()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                    totalTaxAmount = totalTaxAmount.add(taxAmount);
+                }
+            }
+            grandTotal = grandTotal.add(totalTaxAmount);
+        }
+
+        // Create professional summary table
+        PdfPTable taxDiscountTable = new PdfPTable(6);
+        taxDiscountTable.setWidthPercentage(100);
+        taxDiscountTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
+        taxDiscountTable.setSpacingBefore(5);
+
+        // Add subtotal row with professional styling
+        for (int i = 0; i < 3; i++) {
+            PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+            emptyCell.setBorder(Rectangle.NO_BORDER);
+            emptyCell.setPadding(4);
+            taxDiscountTable.addCell(emptyCell);
+        }
+        PdfPCell subtotalLabel = new PdfPCell(new Phrase("Subtotal - ", headerFont));
+        subtotalLabel.setBorder(Rectangle.NO_BORDER);
+        subtotalLabel.setPadding(4);
+        subtotalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        taxDiscountTable.addCell(subtotalLabel);
+        PdfPCell subtotalValue = new PdfPCell(new Phrase(String.valueOf(subtotal), accentFont));
+        subtotalValue.setBorder(Rectangle.NO_BORDER);
+        subtotalValue.setPadding(4);
+        subtotalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
+        taxDiscountTable.addCell(subtotalValue);
+        PdfPCell emptyRemarksCell = new PdfPCell(new Phrase(""));
+        emptyRemarksCell.setBorder(Rectangle.NO_BORDER);
+        emptyRemarksCell.setPadding(4);
+        taxDiscountTable.addCell(emptyRemarksCell);
+
+        // Add discount row if applicable with accent color
+        if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+            for (int i = 0; i < 3; i++) {
+                PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+                emptyCell.setBorder(Rectangle.NO_BORDER);
+                emptyCell.setPadding(4);
+                taxDiscountTable.addCell(emptyCell);
+            }
+            PdfPCell discountLabel = new PdfPCell(new Phrase("Discount (" + invoice.getDiscountPercent() + "%) - ", normalFont));
+            discountLabel.setBorder(Rectangle.NO_BORDER);
+            discountLabel.setPadding(4);
+            discountLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            taxDiscountTable.addCell(discountLabel);
+            PdfPCell discountValue = new PdfPCell(new Phrase("(" + String.valueOf(discountAmount) + ")", new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
+            discountValue.setBorder(Rectangle.NO_BORDER);
+            discountValue.setPadding(4);
+            discountValue.setHorizontalAlignment(Element.ALIGN_LEFT);
+            taxDiscountTable.addCell(discountValue);
+            PdfPCell discountRemarksCell = new PdfPCell(new Phrase(""));
+            discountRemarksCell.setBorder(Rectangle.NO_BORDER);
+            discountRemarksCell.setPadding(4);
+            taxDiscountTable.addCell(discountRemarksCell);
+        }
+
+        // Add tax rows if applicable
+        if (invoice.getInvoiceTaxes() != null && !invoice.getInvoiceTaxes().isEmpty()) {
+            for (InvoiceTax tax : invoice.getInvoiceTaxes()) {
+                if (tax.getTaxPercentage() != null && tax.getTaxPercentage().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(tax.getTaxPercentage()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                    
+                    for (int i = 0; i < 3; i++) {
+                        PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+                        emptyCell.setBorder(Rectangle.NO_BORDER);
+                        emptyCell.setPadding(4);
+                        taxDiscountTable.addCell(emptyCell);
+                    }
+                    PdfPCell taxLabel = new PdfPCell(new Phrase("Tax " + (tax.getTaxName() != null ? tax.getTaxName() : "") + " (" + tax.getTaxPercentage() + "%) - ", normalFont));
+                    taxLabel.setBorder(Rectangle.NO_BORDER);
+                    taxLabel.setPadding(4);
+                    taxLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    taxDiscountTable.addCell(taxLabel);
+                    PdfPCell taxValue = new PdfPCell(new Phrase(String.valueOf(taxAmount), normalFont));
+                    taxValue.setBorder(Rectangle.NO_BORDER);
+                    taxValue.setPadding(4);
+                    taxValue.setHorizontalAlignment(Element.ALIGN_LEFT);
+                    taxDiscountTable.addCell(taxValue);
+                    PdfPCell taxRemarksCell = new PdfPCell(new Phrase((tax.getTaxNumber() != null ? tax.getTaxNumber() : ""), smallFont));
+                    taxRemarksCell.setBorder(Rectangle.NO_BORDER);
+                    taxRemarksCell.setPadding(4);
+                    taxRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                    taxDiscountTable.addCell(taxRemarksCell);
+                }
+            }
+        }
+
+        document.add(taxDiscountTable);
+
+        // Enhanced grand total table
         PdfPTable totalTable = new PdfPTable(6);
         totalTable.setWidthPercentage(100);
         totalTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
+        totalTable.setSpacingBefore(10);
 
         // Empty cells for first 3 columns
         for (int i = 0; i < 3; i++) {
             PdfPCell emptyCell = new PdfPCell(new Phrase(""));
-            emptyCell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-            emptyCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            emptyCell.setBorder(Rectangle.BOX);
+            emptyCell.setBorderColor(borderGray);
+            emptyCell.setBackgroundColor(primaryColor);
+            emptyCell.setPadding(8);
             totalTable.addCell(emptyCell);
         }
 
-        // "Total" label under Quantity column (4th column)
-        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total - ", headerFont));
-        totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-        totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        // "Grand Total" label with enhanced styling
+        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total - ", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE)));
+        totalLabel.setBorder(Rectangle.BOX);
+        totalLabel.setBorderColor(borderGray);
+        totalLabel.setBackgroundColor(primaryColor);
+        totalLabel.setPadding(8);
         totalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
         totalTable.addCell(totalLabel);
 
-        // Amount value under Amount column (5th column)
-        PdfPCell totalValue = new PdfPCell(new Phrase(String.valueOf(invoice.getTotalAmount() != null ? invoice.getTotalAmount() : ""), headerFont));
-        totalValue.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-        totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        // Amount value with enhanced styling
+        PdfPCell totalValue = new PdfPCell(new Phrase(String.valueOf(grandTotal), new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE)));
+        totalValue.setBorder(Rectangle.BOX);
+        totalValue.setBorderColor(borderGray);
+        totalValue.setBackgroundColor(primaryColor);
+        totalValue.setPadding(8);
         totalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
         totalTable.addCell(totalValue);
 
-        // Empty cell for Remarks column (6th column)
+        // Empty cell for Remarks column
         PdfPCell remarksEmptyCell = new PdfPCell(new Phrase(""));
-        remarksEmptyCell.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-        remarksEmptyCell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        remarksEmptyCell.setBorder(Rectangle.BOX);
+        remarksEmptyCell.setBorderColor(borderGray);
+        remarksEmptyCell.setBackgroundColor(primaryColor);
+        remarksEmptyCell.setPadding(8);
         totalTable.addCell(remarksEmptyCell);
 
         document.add(totalTable);
 
         // Amount in words
         try {
-            if (invoice.getTotalAmount() != null) {
-                String amountWords = convertAmountToWords(invoice.getTotalAmount(), invoice.getCurrency());
+            if (grandTotal != null) {
+                String amountWords = convertAmountToWords(grandTotal, invoice.getCurrency());
                 Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
                 amountWordsPara.setSpacingBefore(8);
                 document.add(amountWordsPara);
@@ -784,13 +1061,57 @@ public class InvoiceService {
             log.warn("Failed to convert amount to words for invoice {}: {}", invoice.getInvoiceId(), e.getMessage());
         }
 
-        // Invoice remarks
+        // Invoice remarks with enhanced styling
         if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
-            Paragraph remarksPara = new Paragraph("Remarks: " + invoice.getRemarks(), normalFont);
-            remarksPara.setSpacingBefore(8);
+            Paragraph remarksHeader = new Paragraph("REMARKS", new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, primaryColor));
+            remarksHeader.setSpacingBefore(15);
+            remarksHeader.setSpacingAfter(5);
+            document.add(remarksHeader);
+            
+            Paragraph remarksPara = new Paragraph(invoice.getRemarks(), normalFont);
+            remarksPara.setSpacingBefore(5);
+            remarksPara.setSpacingAfter(15);
             document.add(remarksPara);
             log.info("Added remarks to PDF for invoice {}: {}", invoice.getInvoiceId(), invoice.getRemarks());
         }
+
+        // Add professional signature section
+        PdfPTable signatureTable = new PdfPTable(2);
+        signatureTable.setWidthPercentage(100);
+        signatureTable.setWidths(new float[] { 5f, 5f });
+        signatureTable.setSpacingBefore(30);
+
+        // Left side: Authorized Signature
+        PdfPCell signatureCell = new PdfPCell();
+        signatureCell.setBorder(Rectangle.TOP);
+        signatureCell.setBorderColor(borderGray);
+        signatureCell.setPadding(10);
+        
+        Paragraph signatureLabel = new Paragraph("Authorized Signature", smallFont);
+        signatureLabel.setAlignment(Element.ALIGN_CENTER);
+        signatureCell.addElement(signatureLabel);
+        
+        signatureTable.addCell(signatureCell);
+
+        // Right side: Date
+        PdfPCell dateCell = new PdfPCell();
+        dateCell.setBorder(Rectangle.TOP);
+        dateCell.setBorderColor(borderGray);
+        dateCell.setPadding(10);
+        
+        Paragraph dateLabel = new Paragraph("Date", smallFont);
+        dateLabel.setAlignment(Element.ALIGN_CENTER);
+        dateCell.addElement(dateLabel);
+        
+        signatureTable.addCell(dateCell);
+        document.add(signatureTable);
+
+        // Add a separator before footer
+        document.add(new Paragraph(" ")); // Add spacing
+        LineSeparator footerSeparator = new LineSeparator();
+        footerSeparator.setLineColor(borderGray);
+        footerSeparator.setLineWidth(1f);
+        document.add(footerSeparator);
 
         // Timesheet section
         if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
@@ -831,11 +1152,18 @@ public class InvoiceService {
 
         document.open();
 
-        // Fonts
-        Font titleFont = new Font(Font.FontFamily.HELVETICA, 20, Font.BOLD);
-        Font headerFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
-        Font normalFont = new Font(Font.FontFamily.HELVETICA, 10);
-        Font smallFont = new Font(Font.FontFamily.HELVETICA, 9);
+        // Define professional fonts and colors for preview
+        Font titleFont = new Font(Font.FontFamily.HELVETICA, 24, Font.BOLD, BaseColor.DARK_GRAY);
+        Font headerFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, BaseColor.WHITE);
+        Font normalFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
+        Font smallFont = new Font(Font.FontFamily.HELVETICA, 9, Font.NORMAL, BaseColor.GRAY);
+        Font accentFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, new BaseColor(41, 128, 185)); // Professional blue
+        
+        // Define professional colors
+        BaseColor primaryColor = new BaseColor(41, 128, 185); // Professional blue
+        BaseColor lightGray = new BaseColor(245, 245, 245); // Very light gray
+        BaseColor borderGray = new BaseColor(200, 200, 200); // Border gray
+        BaseColor accentGreen = new BaseColor(39, 174, 96); // Success green
 
         // ---------------- HEADER: Title + Logo ----------------
         PdfPTable headerTable = new PdfPTable(2);
@@ -1076,6 +1404,144 @@ public class InvoiceService {
 
         document.add(table);
 
+        // ---------------------- TAXES AND DISCOUNT CALCULATIONS ----------------------
+        BigDecimal subtotal = BigDecimal.ZERO;
+        try {
+            if (invoiceData.get("totalAmount") != null) {
+                subtotal = new BigDecimal(invoiceData.get("totalAmount").toString());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse totalAmount from invoice data: {}", e.getMessage());
+        }
+        
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        BigDecimal totalTaxAmount = BigDecimal.ZERO;
+        BigDecimal grandTotal = subtotal;
+
+        // Calculate discount amount if discount percent is present
+        try {
+            if (invoiceData.get("discountPercent") != null) {
+                BigDecimal discountPercent = new BigDecimal(invoiceData.get("discountPercent").toString());
+                if (discountPercent.compareTo(BigDecimal.ZERO) > 0) {
+                    discountAmount = subtotal.multiply(discountPercent).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                    grandTotal = subtotal.subtract(discountAmount);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to calculate discount: {}", e.getMessage());
+        }
+
+        // Calculate total tax amount
+        Object taxesObj = invoiceData.get("taxes");
+        if (taxesObj instanceof List) {
+            List<Map<String, Object>> taxes = (List<Map<String, Object>>) taxesObj;
+            for (Map<String, Object> taxData : taxes) {
+                try {
+                    if (taxData.get("taxPercentage") != null) {
+                        BigDecimal taxPercentage = new BigDecimal(taxData.get("taxPercentage").toString());
+                        if (taxPercentage.compareTo(BigDecimal.ZERO) > 0) {
+                            BigDecimal taxAmount = grandTotal.multiply(taxPercentage).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                            totalTaxAmount = totalTaxAmount.add(taxAmount);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to calculate tax amount: {}", e.getMessage());
+                }
+            }
+            grandTotal = grandTotal.add(totalTaxAmount);
+        }
+
+        // Create taxes and discount table
+        PdfPTable taxDiscountTable = new PdfPTable(6);
+        taxDiscountTable.setWidthPercentage(100);
+        taxDiscountTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
+
+        // Add subtotal row
+        for (int i = 0; i < 3; i++) {
+            PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+            emptyCell.setBorder(Rectangle.NO_BORDER);
+            taxDiscountTable.addCell(emptyCell);
+        }
+        PdfPCell subtotalLabel = new PdfPCell(new Phrase("Subtotal - ", headerFont));
+        subtotalLabel.setBorder(Rectangle.NO_BORDER);
+        subtotalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        taxDiscountTable.addCell(subtotalLabel);
+        PdfPCell subtotalValue = new PdfPCell(new Phrase(String.valueOf(subtotal), headerFont));
+        subtotalValue.setBorder(Rectangle.NO_BORDER);
+        subtotalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
+        taxDiscountTable.addCell(subtotalValue);
+        PdfPCell emptyRemarksCell = new PdfPCell(new Phrase(""));
+        emptyRemarksCell.setBorder(Rectangle.NO_BORDER);
+        taxDiscountTable.addCell(emptyRemarksCell);
+
+        // Add discount row if applicable
+        if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
+            for (int i = 0; i < 3; i++) {
+                PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+                emptyCell.setBorder(Rectangle.NO_BORDER);
+                taxDiscountTable.addCell(emptyCell);
+            }
+            BigDecimal discountPercent = BigDecimal.ZERO;
+            try {
+                if (invoiceData.get("discountPercent") != null) {
+                    discountPercent = new BigDecimal(invoiceData.get("discountPercent").toString());
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse discount percent: {}", e.getMessage());
+            }
+            
+            PdfPCell discountLabel = new PdfPCell(new Phrase("Discount (" + discountPercent + "%) - ", normalFont));
+            discountLabel.setBorder(Rectangle.NO_BORDER);
+            discountLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            taxDiscountTable.addCell(discountLabel);
+            PdfPCell discountValue = new PdfPCell(new Phrase("(" + String.valueOf(discountAmount) + ")", normalFont));
+            discountValue.setBorder(Rectangle.NO_BORDER);
+            discountValue.setHorizontalAlignment(Element.ALIGN_LEFT);
+            taxDiscountTable.addCell(discountValue);
+            PdfPCell discountRemarksCell = new PdfPCell(new Phrase(""));
+            discountRemarksCell.setBorder(Rectangle.NO_BORDER);
+            taxDiscountTable.addCell(discountRemarksCell);
+        }
+
+        // Add tax rows if applicable
+        if (taxesObj instanceof List) {
+            List<Map<String, Object>> taxes = (List<Map<String, Object>>) taxesObj;
+            for (Map<String, Object> taxData : taxes) {
+                try {
+                    if (taxData.get("taxPercentage") != null) {
+                        BigDecimal taxPercentage = new BigDecimal(taxData.get("taxPercentage").toString());
+                        if (taxPercentage.compareTo(BigDecimal.ZERO) > 0) {
+                            BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(taxPercentage).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                            String taxName = taxData.getOrDefault("taxName", "").toString();
+                            String taxNumber = taxData.getOrDefault("taxNumber", "").toString();
+                            
+                            for (int i = 0; i < 3; i++) {
+                                PdfPCell emptyCell = new PdfPCell(new Phrase(""));
+                                emptyCell.setBorder(Rectangle.NO_BORDER);
+                                taxDiscountTable.addCell(emptyCell);
+                            }
+                            PdfPCell taxLabel = new PdfPCell(new Phrase("Tax " + taxName + " (" + taxPercentage + "%) - ", normalFont));
+                            taxLabel.setBorder(Rectangle.NO_BORDER);
+                            taxLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                            taxDiscountTable.addCell(taxLabel);
+                            PdfPCell taxValue = new PdfPCell(new Phrase(String.valueOf(taxAmount), normalFont));
+                            taxValue.setBorder(Rectangle.NO_BORDER);
+                            taxValue.setHorizontalAlignment(Element.ALIGN_LEFT);
+                            taxDiscountTable.addCell(taxValue);
+                            PdfPCell taxRemarksCell = new PdfPCell(new Phrase(taxNumber, smallFont));
+                            taxRemarksCell.setBorder(Rectangle.NO_BORDER);
+                            taxRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                            taxDiscountTable.addCell(taxRemarksCell);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to process tax row: {}", e.getMessage());
+                }
+            }
+        }
+
+        document.add(taxDiscountTable);
+
         PdfPTable totals = new PdfPTable(6);
         totals.setWidthPercentage(100);
         totals.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
@@ -1088,7 +1554,7 @@ public class InvoiceService {
             totals.addCell(emptyCell);
         }
 
-        // "Total" label under Quantity column (4th column)
+        // "Grand Total" label under Quantity column (4th column)
         PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total - ", headerFont));
         totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
         totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
@@ -1096,7 +1562,7 @@ public class InvoiceService {
         totals.addCell(totalLabel);
 
         // Amount value under Amount column (5th column)
-        PdfPCell totalValue = new PdfPCell(new Phrase(invoiceData.getOrDefault("totalAmount", "").toString(), headerFont));
+        PdfPCell totalValue = new PdfPCell(new Phrase(String.valueOf(grandTotal), headerFont));
         totalValue.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
         totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
         totalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -1112,9 +1578,8 @@ public class InvoiceService {
 
         // Amount in words
         try {
-            if (invoiceData.get("totalAmount") != null) {
-                BigDecimal amt = new BigDecimal(invoiceData.get("totalAmount").toString());
-                String amountWords = convertAmountToWords(amt, invoiceData.getOrDefault("currency", "").toString());
+            if (grandTotal != null) {
+                String amountWords = convertAmountToWords(grandTotal, invoiceData.getOrDefault("currency", "").toString());
                 Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
                 amountWordsPara.setSpacingBefore(8);
                 document.add(amountWordsPara);
@@ -1662,11 +2127,22 @@ public class InvoiceService {
         dto.setAttachmentCount(invoice.getAttachmentCount());
         dto.setAttachmentFileNames(invoice.getAttachmentFileNames());
 
-        // Tax and discount fields
-        dto.setCgstPercent(invoice.getCgstPercent());
-        dto.setSgstPercent(invoice.getSgstPercent());
-        dto.setIgstPercent(invoice.getIgstPercent());
-        dto.setTaxPercent(invoice.getTaxPercent());
+        // Map taxes to DTOs
+        if (invoice.getInvoiceTaxes() != null) {
+            List<InvoiceTaxDTO> taxDTOs = invoice.getInvoiceTaxes()
+                    .stream()
+                    .map(tax -> {
+                        InvoiceTaxDTO taxDTO = new InvoiceTaxDTO();
+                        taxDTO.setTaxName(tax.getTaxName());
+                        taxDTO.setTaxPercentage(tax.getTaxPercentage());
+                        taxDTO.setTaxNumber(tax.getTaxNumber());
+                        return taxDTO;
+                    })
+                    .collect(Collectors.toList());
+
+            dto.setTaxes(taxDTOs);
+        }
+
         dto.setDiscountPercent(invoice.getDiscountPercent());
         dto.setDueDate(invoice.getDueDate());
 

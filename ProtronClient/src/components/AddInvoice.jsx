@@ -74,10 +74,7 @@ const AddInvoiceModal = ({
         remarks: '',
         projectName: '',
         employeeId: '',
-        cgstPercent: '',
-        sgstPercent: '',
-        igstPercent: '',
-        taxPercent: '',
+        taxes: [], // Array of tax objects: { taxName, taxPercentage, taxNumber }
         discountPercent: '',
         dueDate: '',
         dueDateOption: '15' // 15, 30, or custom
@@ -1113,12 +1110,13 @@ const AddInvoiceModal = ({
                 projectName: formData.projectName || "",
                 // Include timesheet data if checkbox is checked AND invoice has a single employee selected
                 timesheetData: (attachTimesheet && (invoiceEmployees || []).filter(e => e.userId).length === 1) ? prepareTimesheetData() : null,
-                cgstPercent: formData.cgstPercent ? parseFloat(formData.cgstPercent) : null,
-                sgstPercent: formData.sgstPercent ? parseFloat(formData.sgstPercent) : null,
-                igstPercent: formData.igstPercent ? parseFloat(formData.igstPercent) : null,
-                taxPercent: formData.taxPercent ? parseFloat(formData.taxPercent) : null,
                 discountPercent: formData.discountPercent ? parseFloat(formData.discountPercent) : null,
-                dueDate: formData.dueDate || null
+                dueDate: formData.dueDate || null,
+                taxes: (formData.taxes || []).map(tax => ({
+                    taxName: tax.taxName || '',
+                    taxPercentage: tax.taxPercentage ? parseFloat(tax.taxPercentage) : 0,
+                    taxNumber: tax.taxNumber || null
+                }))
             };
             // Set top-level rate (required by backend)
             invoiceData.rate = rateValue;
@@ -1290,12 +1288,13 @@ const AddInvoiceModal = ({
                 remarks: formData.remarks || "",
                 projectName: formData.projectName || "",
                 timesheetData: (attachTimesheet && invoiceEmpRows.length === 1) ? prepareTimesheetData() : null,
-                cgstPercent: formData.cgstPercent ? parseFloat(formData.cgstPercent) : null,
-                sgstPercent: formData.sgstPercent ? parseFloat(formData.sgstPercent) : null,
-                igstPercent: formData.igstPercent ? parseFloat(formData.igstPercent) : null,
-                taxPercent: formData.taxPercent ? parseFloat(formData.taxPercent) : null,
                 discountPercent: formData.discountPercent ? parseFloat(formData.discountPercent) : null,
-                dueDate: formData.dueDate || null
+                dueDate: formData.dueDate || null,
+                taxes: (formData.taxes || []).map(tax => ({
+                    taxName: tax.taxName || '',
+                    taxPercentage: tax.taxPercentage ? parseFloat(tax.taxPercentage) : 0,
+                    taxNumber: tax.taxNumber || null
+                }))
             };
             const response = await axios.post(
                 `${API_BASE_URL}/api/invoices/preview`,
@@ -1403,10 +1402,7 @@ const AddInvoiceModal = ({
             remarks: '',
             projectName: '',
             employeeId: '',
-            cgstPercent: '',
-            sgstPercent: '',
-            igstPercent: '',
-            taxPercent: '',
+            taxes: [], // Array of tax objects: { taxName, taxPercentage, taxNumber }
             discountPercent: '',
             dueDate: '',
             dueDateOption: '15'
@@ -1428,6 +1424,57 @@ const AddInvoiceModal = ({
         try { sessionStorage.removeItem('addInvoiceDraft'); } catch { /* ignore */ }
         handleReset();
         if (onClose) onClose();
+    };
+
+    const handleAddTax = () => {
+        setFormData(prev => ({
+            ...prev,
+            taxes: [...prev.taxes, { taxName: '', taxPercentage: '', taxNumber: '' }]
+        }));
+    };
+
+    const handleRemoveTax = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            taxes: prev.taxes.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleTaxChange = (index, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            taxes: prev.taxes.map((tax, i) => 
+                i === index ? { ...tax, [field]: value } : tax
+            )
+        }));
+    };
+
+    const computeTaxTotal = () => {
+        const tableTotal = parseFloat(computeItemsTotal() || 0);
+        let taxTotal = 0;
+        
+        formData.taxes.forEach(tax => {
+            const percentage = parseFloat(tax.taxPercentage || 0);
+            if (!isNaN(percentage) && percentage > 0) {
+                taxTotal += (tableTotal * percentage) / 100;
+            }
+        });
+        
+        return taxTotal;
+    };
+
+    const computeGrandTotal = () => {
+        const tableTotal = parseFloat(computeItemsTotal() || 0);
+        const taxTotal = computeTaxTotal();
+        const discountPercent = parseFloat(formData.discountPercent || 0);
+        
+        let grandTotal = tableTotal + taxTotal;
+        
+        if (!isNaN(discountPercent) && discountPercent > 0) {
+            grandTotal -= (grandTotal * discountPercent) / 100;
+        }
+        
+        return grandTotal;
     };
 
     const getDisplayTotal = () => {
@@ -1702,11 +1749,11 @@ const AddInvoiceModal = ({
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Bill To Address</label>
                                 {formData.invoiceType === 'DOMESTIC' ? (
                                     <input type="text" placeholder="Bill to address" value={formData.billToAddress} onChange={handleChange('billToAddress')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
-                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                        errors.billToAddress ? 'border-red-500' : 'border-gray-300'
                                     }`} maxLength={100} />
                                 ) : (
                                     <input type="text" placeholder="Customer address (international)" value={formData.customerInfo} onChange={handleChange('customerInfo')}className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
-                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                        errors.customerInfo ? 'border-red-500' : 'border-gray-300'
                                     }`} />
                                 )}
                             </div>
@@ -1714,6 +1761,9 @@ const AddInvoiceModal = ({
                             {formData.invoiceType === 'DOMESTIC' && (
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Ship To Address</label>
+                                     <input type="text" placeholder="Ship to address" value={formData.shipToAddress} onChange={handleChange('shipToAddress')}className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.shipToAddress ? 'border-red-500' : 'border-gray-300'
+                                    }`} maxLength={100} />
                                 </div>
                             )}
                         </div>
@@ -1904,243 +1954,152 @@ const AddInvoiceModal = ({
                                     type="button"
                                     onClick={deleteLastRow}
                                     className="ml-2 px-3 py-1 bg-red-600 text-white rounded-md text-sm flex items-center gap-1"
-                                    title="Delete last row"
                                 >
                                     <Trash2 size={14} />
                                     Delete
                                 </button>
                             </div>
+                        </div>
 
-                            {/* Tax Fields - Above Table Total */}
-                            <div className="mt-4 space-y-3">
-                                {formData.invoiceType === 'DOMESTIC' && (
-                                    <>
-                                        <div className="flex items-center justify-end gap-2">
-                                            <label className="text-sm font-medium text-gray-700">CGST %</label>
-                                            <input 
-                                                type="number" 
-                                                step="0.01" 
-                                                placeholder="0.00" 
-                                                value={formData.cgstPercent} 
-                                                onChange={handleChange('cgstPercent')} 
-                                                className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
-                                            />
-                                            <span className="text-sm font-medium text-gray-900 w-24 text-right">
-                                                {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.cgstPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-end gap-2">
-                                            <label className="text-sm font-medium text-gray-700">SGST %</label>
-                                            <input 
-                                                type="number" 
-                                                step="0.01" 
-                                                placeholder="0.00" 
-                                                value={formData.sgstPercent} 
-                                                onChange={handleChange('sgstPercent')} 
-                                                className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
-                                            />
-                                            <span className="text-sm font-medium text-gray-900 w-24 text-right">
-                                                {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.sgstPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center justify-end gap-2">
-                                            <label className="text-sm font-medium text-gray-700">IGST %</label>
-                                            <input 
-                                                type="number" 
-                                                step="0.01" 
-                                                placeholder="0.00" 
-                                                value={formData.igstPercent} 
-                                                onChange={handleChange('igstPercent')} 
-                                                className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
-                                            />
-                                            <span className="text-sm font-medium text-gray-900 w-24 text-right">
-                                                {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.igstPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
-                                            </span>
-                                        </div>
-                                    </>
-                                )}
+                        {/* Dynamic Tax Section - Above Table Total */}
+                        <div className="mt-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-md font-semibold text-gray-800 flex items-center">
+                                    <DollarSign className="mr-2 text-green-600" size={18} />
+                                    Taxes
+                                </h4>
+                                <button
+                                    type="button"
+                                    onClick={handleAddTax}
+                                    className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center gap-1"
+                                >
+                                    <Plus size={14} />
+                                    Add Tax
+                                </button>
+                            </div>
 
-                                {formData.invoiceType === 'INTERNATIONAL' && (
-                                    <div className="flex items-center justify-end gap-2">
-                                        <label className="text-sm font-medium text-gray-700">Tax %</label>
-                                        <input 
-                                            type="number" 
-                                            step="0.01" 
-                                            placeholder="0.00" 
-                                            value={formData.taxPercent} 
-                                            onChange={handleChange('taxPercent')} 
-                                            className="w-24 h-10 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500" 
+                            {/* Tax Rows */}
+                            {formData.taxes.map((tax, index) => (
+                                <div key={index} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 items-center mb-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tax Name</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g., CGST, SGST"
+                                            value={tax.taxName}
+                                            onChange={(e) => handleTaxChange(index, 'taxName', e.target.value)}
+                                            className="w-full h-9 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+                                            maxLength={100}
                                         />
-                                        <span className="text-sm font-medium text-gray-900 w-24 text-right">
-                                            {currencySymbols[formData.currency] || '$'}{(parseFloat(formData.taxPercent || 0) * parseFloat(computeItemsTotal() || 0) / 100).toFixed(2)}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tax %</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            max="100"
+                                            placeholder="0.00"
+                                            value={tax.taxPercentage}
+                                            onChange={(e) => {
+                                                let value = e.target.value;
+                                                // Allow empty value
+                                                if (value === '') {
+                                                    handleTaxChange(index, 'taxPercentage', value);
+                                                    return;
+                                                }
+                                                // Parse and validate
+                                                const numValue = parseFloat(value);
+                                                if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                                                    handleTaxChange(index, 'taxPercentage', numValue.toString());
+                                                }
+                                                // If invalid, don't update
+                                            }}
+                                            onBlur={(e) => {
+                                                const value = e.target.value;
+                                                if (value === '') {
+                                                    handleTaxChange(index, 'taxPercentage', '0');
+                                                    return;
+                                                }
+                                                const numValue = parseFloat(value);
+                                                if (isNaN(numValue) || numValue < 0) {
+                                                    handleTaxChange(index, 'taxPercentage', '0');
+                                                } else if (numValue > 100) {
+                                                    handleTaxChange(index, 'taxPercentage', '100');
+                                                }
+                                            }}
+                                            className={`w-full h-9 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none ${
+                                                parseFloat(tax.taxPercentage || 0) > 100 || parseFloat(tax.taxPercentage || 0) < 0
+                                                    ? 'border-red-500 focus:border-red-500'
+                                                    : 'border-gray-300 focus:border-green-500'
+                                            }`}
+                                            title="Tax percentage (0.00 - 100.00)"
+                                        />
+                                        {parseFloat(tax.taxPercentage || 0) > 100 && (
+                                            <p className="text-xs text-red-600 mt-1">Maximum 100%</p>
+                                        )}
+                                        {parseFloat(tax.taxPercentage || 0) < 0 && (
+                                            <p className="text-xs text-red-600 mt-1">Cannot be negative</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tax Number</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Optional"
+                                            value={tax.taxNumber}
+                                            onChange={(e) => handleTaxChange(index, 'taxNumber', e.target.value)}
+                                            className="w-full h-9 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+                                            maxLength={50}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1">Tax Amount</label>
+                                        <div className="w-full h-9 px-3 bg-gray-100 border border-gray-300 rounded-md flex items-center text-sm font-medium text-gray-700">
+                                            {currencySymbols[formData.currency] || '$'}{(() => {
+                                                const tableTotal = parseFloat(computeItemsTotal() || 0);
+                                                const percentage = parseFloat(tax.taxPercentage || 0);
+                                                const taxAmount = isNaN(percentage) ? 0 : (tableTotal * percentage) / 100;
+                                                return taxAmount.toFixed(2);
+                                            })()}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-700 mb-1"> </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveTax(index)}
+                                            className="px-3 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition-colors flex items-center gap-1"
+                                            title="Remove tax"
+                                        >
+                                            <Trash2 size={14} />
+                                            Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Tax Summary */}
+                            {formData.taxes.length > 0 && (
+                                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-blue-900">Total Tax Amount:</span>
+                                        <span className="text-lg font-bold text-blue-900">
+                                            {currencySymbols[formData.currency] || '$'}{computeTaxTotal().toFixed(2)}
                                         </span>
                                     </div>
-                                )}
-                            </div>
-
-                            {/* Table totals and amount in words */}
-                            <div className="mt-4 text-right">
-                                <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
-                                <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
-                            </div>
-                            {errors.items && (
-                                <div className="mt-2 text-sm text-red-600">{errors.items}</div>
-                            )}
-
-                            {/* <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                                <div className="flex items-start space-x-3">
-                                    <input
-                                        type="checkbox"
-                                        id="attachTimesheet"
-                                        checked={attachTimesheet}
-                                        onChange={(e) => setAttachTimesheet(e.target.checked)}
-                                        disabled={(invoiceEmployees || []).filter(e => e.userId).length > 1}
-                                        className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2 mt-0.5"
-                                    />
-                                    <div className="flex-1">
-                                        <label htmlFor="attachTimesheet" className="text-sm font-medium text-green-900 cursor-pointer">
-                                            Include Timesheet Reference in PDF
-                                        </label>
-                                        <p className="text-xs text-green-600 mt-1">
-                                            {viewMode === "Weekly"
-                                                ? "Include a detailed weekly timesheet table in the generated invoice PDF"
-                                                : "Include a detailed monthly timesheet table in the generated invoice PDF"
-                                            }
-                                        </p>
-                                        {timesheetData && (
-                                            <p className="text-xs text-green-500 mt-1">
-                                                ✓ Timesheet data available for {viewMode?.toLowerCase() || 'current'} view
-                                            </p>
-                                        )}
-                                        {(invoiceEmployees || []).filter(e => e.userId).length > 1 && (
-                                            <p className="text-xs text-red-600 mt-1">Timesheet will not be included when multiple employees are selected</p>
-                                        )}
-                                    </div>
                                 </div>
-
-                                {attachTimesheet && (
-                                    <div className="mt-3">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                                            <div>
-                                                <label className="text-xs text-gray-700">From</label>
-                                                <input type="date" value={formData.fromDate} onChange={handleChange('fromDate')} className="w-full h-8 px-2 border rounded-md" />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-700">To</label>
-                                                <input type="date" value={formData.toDate} onChange={handleChange('toDate')} className="w-full h-8 px-2 border rounded-md" />
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button type="button" onClick={async () => {
-                                                // fetch timesheet refs for selected single employee
-                                                const selectedRows = (invoiceEmployees || []).filter(e => e.userId);
-                                                if (!formData.fromDate || !formData.toDate) {
-                                                    setSnackbar({ open: true, message: 'Please select from and to dates in Bill Period', severity: 'error' });
-                                                    return;
-                                                }
-                                                if (selectedRows.length === 0) {
-                                                    setSnackbar({ open: true, message: 'Please select an employee row to fetch timesheet for', severity: 'error' });
-                                                    return;
-                                                }
-                                                if (selectedRows.length > 1) {
-                                                    setSnackbar({ open: true, message: 'Timesheet auto-fill only available for a single employee', severity: 'error' });
-                                                    return;
-                                                }
-                                                const empId = selectedRows[0].userId;
-                                                try {
-                                                    const res = await axios.get(`${API_BASE_URL}/api/timesheet-tasks/admin-between`, {
-                                                        params: {
-                                                            start: formData.fromDate,
-                                                            end: formData.toDate,
-                                                            userId: empId
-                                                        },
-                                                        headers: { Authorization: sessionStorage.getItem('token') }
-                                                    });
-                                                    const tasks = res.data || [];
-                                                    setFetchedTasks(tasks);
-                                                    // compute total minutes
-                                                    let totalMinutes = 0;
-                                                    tasks.forEach(task => {
-                                                        totalMinutes += (task.hoursSpent || 0) * 60 + (task.minutesSpent || 0);
-                                                    });
-                                                    const hours = Math.floor(totalMinutes / 60);
-                                                    const minutes = totalMinutes % 60;
-                                                    const decimalHours = parseFloat((hours + minutes / 60).toFixed(2));
-                                                    // set a simple timesheet ref
-                                                    const genRef = `TS-${empId}-${formData.fromDate.replace(/-/g, '')}-${formData.toDate.replace(/-/g, '')}`;
-                                                    setTimesheetRef(genRef);
-                                                    setSnackbar({ open: true, message: `Timesheet fetched (${tasks.length} entries). Ref: ${genRef}`, severity: 'success' });
-                                                    // auto-fill the single employee row's quantity and rate
-                                                    const empObj = employees.find(e => e.userId === empId);
-                                                    setInvoiceEmployees(prev => prev.map(e => e.userId === empId ? ({ ...e, quantity: decimalHours, rate: empObj ? (empObj.cost || empObj.cost === 0 ? empObj.cost : '') : e.rate }) : e));
-                                                } catch (err) {
-                                                    console.error('Error fetching timesheet tasks:', err);
-                                                    setSnackbar({ open: true, message: 'Failed to fetch timesheet data', severity: 'error' });
-                                                }
-                                            }} className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Get Timesheet Ref</button>
-                                            {timesheetRef && (
-                                                <div className="text-sm text-gray-700">
-                                                    <div>Ref: {timesheetRef}</div>
-                                                    <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                                {attachTimesheet && getTimesheetSummary() && (
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <h3 className="text-sm font-semibold text-blue-900 flex items-center">
-                                                <Clock className="mr-2" size={16} />
-                                                Timesheet Summary ({getTimesheetSummary().period} View)
-                                            </h3>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                                            <div>
-                                                <span className="text-blue-600 font-medium">Period:</span>
-                                                <p className="text-blue-800">{getTimesheetSummary().dateRange}</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-600 font-medium">Total Hours:</span>
-                                                <p className="text-blue-800">{getTimesheetSummary().totalHours}h {getTimesheetSummary().totalMinutes}m</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-600 font-medium">Tasks Logged:</span>
-                                                <p className="text-blue-800">{getTimesheetSummary().taskCount} tasks</p>
-                                            </div>
-                                            <div>
-                                                <span className="text-blue-600 font-medium">Employee:</span>
-                                                <p className="text-blue-800">{employee?.name || ''}</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-xs text-blue-600 mt-2">
-                                            ✓ Detailed timesheet table will be included in the generated PDF
-                                        </p>
-                                    </div>
-                                )}
-                            </div> */}
-                        </div>
-
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                    <DollarSign className="text-green-600 mr-2" size={24} />
-                                    <span className="text-lg font-semibold text-gray-900">Total Amount:</span>
-                                </div>
-                                <div className={`text-2xl font-bold ${isCalculating ? 'text-orange-600' : 'text-green-600'}`}>
-                                    {getDisplayTotal()}
-                                </div>
-                            </div>
-                            {/** Amount in words */}
-                            <div className="mt-2">
-                                <p className="text-sm text-gray-700 italic">In words: {amountToWords(parseFloat(computeItemsTotal() || formData.totalAmount || 0), formData.currency)}</p>
-                            </div>
-                            {formData.rate && formData.hoursSpent && (
-                                <p className="text-sm text-gray-600 mt-2">
-                                    {currencySymbols[formData.currency]}{formData.rate} × {formData.hoursSpent} hours = {getDisplayTotal()}
-                                </p>
                             )}
                         </div>
+
+                        {/* Table totals and amount in words */}
+                        <div className="mt-4 text-right">
+                            <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
+                            <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
+                        </div>
+                        {errors.items && (
+                            <div className="mt-2 text-sm text-red-600">{errors.items}</div>
+                        )}
 
                         {/* Project */}
 

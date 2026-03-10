@@ -88,18 +88,6 @@ public class Invoice {
     private String projectName;
 
     @Column(precision = 10, scale = 2)
-    private BigDecimal cgstPercent;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal sgstPercent;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal igstPercent;
-
-    @Column(precision = 10, scale = 2)
-    private BigDecimal taxPercent;
-
-    @Column(precision = 10, scale = 2)
     private BigDecimal discountPercent;
 
     @Column
@@ -120,6 +108,10 @@ public class Invoice {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<InvoiceEmployee> invoiceEmployees = new ArrayList<>();
+
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<InvoiceTax> invoiceTaxes = new ArrayList<>();
 
     // Attachments - storing up to 4 attachments
     @Lob
@@ -226,6 +218,14 @@ public class Invoice {
 
     public void setInvoiceEmployees(List<InvoiceEmployee> invoiceEmployees) {
         this.invoiceEmployees = invoiceEmployees;
+    }
+
+    public List<InvoiceTax> getInvoiceTaxes() {
+        return invoiceTaxes;
+    }
+
+    public void setInvoiceTaxes(List<InvoiceTax> invoiceTaxes) {
+        this.invoiceTaxes = invoiceTaxes;
     }
 
     public Long getTenantId() {
@@ -569,38 +569,6 @@ public class Invoice {
         this.deletedAt = deletedAt;
     }
 
-
-            public BigDecimal getCgstPercent() {
-    return cgstPercent;
-}
-
-    public void setCgstPercent(BigDecimal cgstPercent) {
-        this.cgstPercent = cgstPercent;
-    }
-
-    public BigDecimal getSgstPercent() {
-        return sgstPercent;
-    }
-
-    public void setSgstPercent(BigDecimal sgstPercent) {
-        this.sgstPercent = sgstPercent;
-    }
-
-    public BigDecimal getIgstPercent() {
-        return igstPercent;
-    }
-
-    public void setIgstPercent(BigDecimal igstPercent) {
-        this.igstPercent = igstPercent;
-    }
-
-    public BigDecimal getTaxPercent() {
-        return taxPercent;
-    }
-
-    public void setTaxPercent(BigDecimal taxPercent) {
-        this.taxPercent = taxPercent;
-    }
 
     public BigDecimal getDiscountPercent() {
         return discountPercent;

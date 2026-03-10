@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -67,14 +66,6 @@ public class InvoiceRequestDTO {
     @Size(max = 200, message = "Project name must not exceed 200 characters")
     private String projectName;
 
-    private BigDecimal cgstPercent;
-
-    private BigDecimal sgstPercent;
-
-    private BigDecimal igstPercent;
-
-    private BigDecimal taxPercent;
-
     private BigDecimal discountPercent;
 
     private LocalDate dueDate;
@@ -83,6 +74,7 @@ public class InvoiceRequestDTO {
 
     private List<InvoiceItemDTO> items;
     private List<InvoiceEmployeeDTO> employees;
+    private List<InvoiceTaxDTO> taxes;
 
     private String country;
 
@@ -451,36 +443,12 @@ public class InvoiceRequestDTO {
         this.employees = employees;
     }
 
-    public BigDecimal getCgstPercent() {
-        return cgstPercent;
+    public List<InvoiceTaxDTO> getTaxes() {
+        return taxes;
     }
 
-    public void setCgstPercent(BigDecimal cgstPercent) {
-        this.cgstPercent = cgstPercent;
-    }
-
-    public BigDecimal getSgstPercent() {
-        return sgstPercent;
-    }
-
-    public void setSgstPercent(BigDecimal sgstPercent) {
-        this.sgstPercent = sgstPercent;
-    }
-
-    public BigDecimal getIgstPercent() {
-        return igstPercent;
-    }
-
-    public void setIgstPercent(BigDecimal igstPercent) {
-        this.igstPercent = igstPercent;
-    }
-
-    public BigDecimal getTaxPercent() {
-        return taxPercent;
-    }
-
-    public void setTaxPercent(BigDecimal taxPercent) {
-        this.taxPercent = taxPercent;
+    public void setTaxes(List<InvoiceTaxDTO> taxes) {
+        this.taxes = taxes;
     }
 
     public BigDecimal getDiscountPercent() {

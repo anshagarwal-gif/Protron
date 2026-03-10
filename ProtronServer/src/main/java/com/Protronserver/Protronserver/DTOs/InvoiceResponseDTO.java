@@ -1,6 +1,5 @@
 package com.Protronserver.Protronserver.DTOs;
 
-import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
 import com.Protronserver.Protronserver.Entities.InvoiceEmployee;
 import com.Protronserver.Protronserver.Entities.InvoiceItem;
 import lombok.Data;
@@ -51,11 +50,8 @@ public class InvoiceResponseDTO {
     private Integer attachmentCount;
     private List<String> attachmentFileNames;
 
-    // Tax and discount fields
-    private BigDecimal cgstPercent;
-    private BigDecimal sgstPercent;
-    private BigDecimal igstPercent;
-    private BigDecimal taxPercent;
+    // Taxes and discount fields
+    private List<InvoiceTaxDTO> taxes;
     private BigDecimal discountPercent;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -253,37 +249,12 @@ public class InvoiceResponseDTO {
         this.attachmentFileNames = attachmentFileNames;
     }
 
-    // Tax and discount field getters and setters
-    public BigDecimal getCgstPercent() {
-        return cgstPercent;
+    public List<InvoiceTaxDTO> getTaxes() {
+        return taxes;
     }
 
-    public void setCgstPercent(BigDecimal cgstPercent) {
-        this.cgstPercent = cgstPercent;
-    }
-
-    public BigDecimal getSgstPercent() {
-        return sgstPercent;
-    }
-
-    public void setSgstPercent(BigDecimal sgstPercent) {
-        this.sgstPercent = sgstPercent;
-    }
-
-    public BigDecimal getIgstPercent() {
-        return igstPercent;
-    }
-
-    public void setIgstPercent(BigDecimal igstPercent) {
-        this.igstPercent = igstPercent;
-    }
-
-    public BigDecimal getTaxPercent() {
-        return taxPercent;
-    }
-
-    public void setTaxPercent(BigDecimal taxPercent) {
-        this.taxPercent = taxPercent;
+    public void setTaxes(List<InvoiceTaxDTO> taxes) {
+        this.taxes = taxes;
     }
 
     public BigDecimal getDiscountPercent() {
