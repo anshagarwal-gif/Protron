@@ -2287,13 +2287,6 @@ public class InvoiceService {
 
             Invoice invoice = invoiceOptional.get();
 
-            // Check tenant access
-            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
-            if (!invoice.getTenantId().equals(tenantId)) {
-                log.warn("Access denied: Invoice {} does not belong to tenant {}", invoiceId, tenantId);
-                throw new SecurityException("Access denied: Invoice does not belong to your tenant");
-            }
-
             // Check if already deleted
             if (invoice.isDeleted()) {
                 log.warn("Invoice already soft deleted: {}", invoiceId);
@@ -2311,9 +2304,6 @@ public class InvoiceService {
             log.info("Invoice soft deleted successfully: {}", invoiceId);
             return true;
 
-        } catch (SecurityException e) {
-            // Re-throw security exceptions for proper access control handling
-            throw e;
         } catch (Exception e) {
             log.error("Error during soft delete of invoice: {}", invoiceId, e);
             throw new RuntimeException("Failed to soft delete invoice", e);
