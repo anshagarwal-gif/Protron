@@ -1451,29 +1451,40 @@ const AddInvoiceModal = ({
 
     const computeTaxTotal = () => {
         const tableTotal = parseFloat(computeItemsTotal() || 0);
+        const discountPercent = parseFloat(formData.discountPercent || 0);
+
+        // Calculate discounted subtotal first
+        let discountedSubtotal = tableTotal;
+        if (!isNaN(discountPercent) && discountPercent > 0) {
+            discountedSubtotal = tableTotal - (tableTotal * discountPercent) / 100;
+        }
+
+        // Calculate tax on discounted amount
         let taxTotal = 0;
-        
         formData.taxes.forEach(tax => {
             const percentage = parseFloat(tax.taxPercentage || 0);
             if (!isNaN(percentage) && percentage > 0) {
-                taxTotal += (tableTotal * percentage) / 100;
+                taxTotal += (discountedSubtotal * percentage) / 100;
             }
         });
-        
+
         return taxTotal;
     };
 
     const computeGrandTotal = () => {
         const tableTotal = parseFloat(computeItemsTotal() || 0);
-        const taxTotal = computeTaxTotal();
         const discountPercent = parseFloat(formData.discountPercent || 0);
-        
-        let grandTotal = tableTotal + taxTotal;
-        
+
+        // Apply discount first (industry standard: discount before tax)
+        let discountedSubtotal = tableTotal;
         if (!isNaN(discountPercent) && discountPercent > 0) {
-            grandTotal -= (grandTotal * discountPercent) / 100;
+            discountedSubtotal = tableTotal - (tableTotal * discountPercent) / 100;
         }
-        
+
+        // Calculate tax on discounted amount
+        const taxTotal = computeTaxTotal();
+        const grandTotal = discountedSubtotal + taxTotal;
+
         return grandTotal;
     };
 
@@ -1969,18 +1980,18 @@ const AddInvoiceModal = ({
                         {/* Dynamic Tax Section - Above Table Total */}
                         <div className="mt-6">
                             <div className="flex items-center justify-between mb-3">
-                                <h4 className="text-md font-semibold text-gray-800 flex items-center">
+                                {/* <h4 className="text-md font-semibold text-gray-800 flex items-center">
                                     <DollarSign className="mr-2 text-green-600" size={18} />
                                     Taxes
-                                </h4>
-                                <button
+                                </h4> */}
+                                {/* <button
                                     type="button"
                                     onClick={handleAddTax}
                                     className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center gap-1"
                                 >
                                     <Plus size={14} />
                                     Add Tax
-                                </button>
+                                </button> */}
                             </div>
 
                             {/* Tax Rows */}
@@ -2084,6 +2095,18 @@ const AddInvoiceModal = ({
                                 </div>
                             ))}
 
+                            {/* Add Tax Button Below Rows */}
+                            <div className="flex justify-center mt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleAddTax}
+                                    className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center gap-1"
+                                >
+                                    <Plus size={14} />
+                                    Add Tax
+                                </button>
+                            </div>
+
                             {/* Tax Summary */}
                             {formData.taxes.length > 0 && (
                                 <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -2105,6 +2128,56 @@ const AddInvoiceModal = ({
                         {errors.items && (
                             <div className="mt-2 text-sm text-red-600">{errors.items}</div>
                         )}
+
+                        {/* Invoice Summary Section */}
+                        <div className="mt-6 border border-gray-200 rounded-md p-4 bg-gray-50">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <DollarSign className="mr-2 text-green-600" size={20} />
+                                Invoice Summary
+                            </h3>
+                            <div className="space-y-3">
+                                {/* Subtotal Row */}
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium text-gray-700">Subtotal</span>
+                                    <span className="text-sm font-medium text-gray-900">{currencySymbols[formData.currency] || '$'}{parseFloat(computeItemsTotal() || 0).toFixed(2)}</span>
+                                </div>
+
+                                {/* Discount Row */}
+                                {formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium text-gray-700">Discount ({formData.discountPercent}%)</span>
+                                        <span className="text-sm font-medium text-red-600">- {currencySymbols[formData.currency] || '$'}{(parseFloat(computeItemsTotal() || 0) * parseFloat(formData.discountPercent) / 100).toFixed(2)}</span>
+                                    </div>
+                                )}
+
+                                {/* Tax Rows */}
+                                {formData.taxes.map((tax, index) => {
+                                    const tableTotal = parseFloat(computeItemsTotal() || 0);
+                                    const discountPercent = parseFloat(formData.discountPercent || 0);
+                                    let discountedSubtotal = tableTotal;
+                                    if (!isNaN(discountPercent) && discountPercent > 0) {
+                                        discountedSubtotal = tableTotal - (tableTotal * discountPercent) / 100;
+                                    }
+                                    const taxAmount = parseFloat(tax.taxPercentage || 0) * discountedSubtotal / 100;
+
+                                    return taxAmount > 0 ? (
+                                        <div key={index} className="flex justify-between items-center">
+                                            <span className="text-sm font-medium text-gray-700">Tax {tax.taxName || 'Tax'} ({tax.taxPercentage}%)</span>
+                                            <span className="text-sm font-medium text-gray-900">{currencySymbols[formData.currency] || '$'}{taxAmount.toFixed(2)}</span>
+                                        </div>
+                                    ) : null;
+                                })}
+
+                                {/* Separator */}
+                                <div className="border-t border-gray-300"></div>
+
+                                {/* Grand Total Row */}
+                                <div className="flex justify-between items-center">
+                                    <span className="text-lg font-bold text-gray-800">Grand Total</span>
+                                    <span className="text-lg font-bold text-gray-900">{currencySymbols[formData.currency] || '$'}{computeGrandTotal().toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
 
                         {/* Project */}
 
