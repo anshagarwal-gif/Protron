@@ -1463,11 +1463,7 @@ public class InvoiceService {
             }
         }
 
-//        // Grand total row
-//        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total", headerFont));
-//        totalLabel.setColspan(4);
-//        totalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
-//        totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
+        document.add(table);
 //        totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
 //        totalLabel.setPadding(8);
 //
