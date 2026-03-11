@@ -885,12 +885,12 @@ public class InvoiceService {
         }
 
         // ----------- Add empty rows to fill page -----------
-        int minRows = 20; // Adjust this as needed for page size
-        for (int i = rowCount; i < minRows; i++) {
-            for (int j = 0; j < 6; j++) {
-                table.addCell(createBodyCell(" ", normalFont));
-            }
-        }
+        // int minRows = 20; // Adjust this as needed for page size
+        // for (int i = rowCount; i < minRows; i++) {
+        //     for (int j = 0; j < 6; j++) {
+        //         table.addCell(createBodyCell(" ", normalFont));
+        //     }
+        // }
 
 //        // ----------- Grand Total Row -----------
 //        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total", headerFont));
@@ -1419,12 +1419,12 @@ public class InvoiceService {
         }
 
         // Fill empty rows to extend table to bottom
-        int minRows = 20; // adjust based on page size
-        for (int i = rowCount; i < minRows; i++) {
-            for (int j = 0; j < 6; j++) {
-                table.addCell(createBodyCell(" ", normalFont));
-            }
-        }
+        // int minRows = 20; // adjust based on page size
+        // for (int i = rowCount; i < minRows; i++) {
+        //     for (int j = 0; j < 6; j++) {
+        //         table.addCell(createBodyCell(" ", normalFont));
+        //     }
+        // }
 
         document.add(table);
 //        totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
