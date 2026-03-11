@@ -916,8 +916,8 @@ public class InvoiceService {
         // ---------------------- TAXES AND DISCOUNT CALCULATIONS ----------------------
         // Add section header
         Paragraph taxHeader = new Paragraph("SUMMARY", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        taxHeader.setSpacingBefore(15);
-        taxHeader.setSpacingAfter(10);
+        taxHeader.setSpacingBefore(5);
+        taxHeader.setSpacingAfter(8);
         document.add(taxHeader);
 
         BigDecimal subtotal = invoice.getTotalAmount() != null ? invoice.getTotalAmount() : BigDecimal.ZERO;
@@ -1480,8 +1480,8 @@ public class InvoiceService {
         // ---------------------- TAXES AND DISCOUNT CALCULATIONS ----------------------
         // Add section header
         Paragraph taxHeader = new Paragraph("SUMMARY", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        taxHeader.setSpacingBefore(15);
-        taxHeader.setSpacingAfter(10);
+        taxHeader.setSpacingBefore(5);
+        taxHeader.setSpacingAfter(8);
         document.add(taxHeader);
 
         BigDecimal subtotal = BigDecimal.ZERO;
