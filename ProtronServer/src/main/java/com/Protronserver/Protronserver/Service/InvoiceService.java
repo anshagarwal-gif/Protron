@@ -548,7 +548,7 @@ public class InvoiceService {
         PdfPTable headerTable = new PdfPTable(3);
         headerTable.setWidthPercentage(100);
         headerTable.setSpacingAfter(8);
-        headerTable.setWidths(new float[] { 4f, 2f, 4f });
+        headerTable.setWidths(new float[] { 1.5f, 7f, 1.5f });
 
         // Empty left cell for spacing
         PdfPCell leftEmptyCell = new PdfPCell(new Phrase(""));
@@ -1154,7 +1154,7 @@ public class InvoiceService {
         PdfPTable headerTable = new PdfPTable(3);
         headerTable.setWidthPercentage(100);
         headerTable.setSpacingAfter(8);
-        headerTable.setWidths(new float[] { 4f, 2f, 4f });
+        headerTable.setWidths(new float[] { 1.5f, 7f, 1.5f });
 
         // Empty left cell for spacing
         PdfPCell leftEmptyCell = new PdfPCell(new Phrase(""));
