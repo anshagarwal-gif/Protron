@@ -547,7 +547,7 @@ public class InvoiceService {
         // Add a professional header with background
         PdfPTable headerTable = new PdfPTable(3);
         headerTable.setWidthPercentage(100);
-        headerTable.setSpacingAfter(15);
+        headerTable.setSpacingAfter(8);
         headerTable.setWidths(new float[] { 4f, 2f, 4f });
 
         // Empty left cell for spacing
@@ -605,7 +605,7 @@ public class InvoiceService {
         PdfPTable metaTable = new PdfPTable(2);
         metaTable.setWidthPercentage(100);
         metaTable.setWidths(new float[] { 5f, 5f });
-        metaTable.setSpacingAfter(20);
+        metaTable.setSpacingAfter(10);
 
         // Left side: Invoice details with better styling
         PdfPCell leftMetaCell = new PdfPCell();
@@ -653,8 +653,8 @@ public class InvoiceService {
 
         // Customer section header
         Paragraph customerHeader = new Paragraph("BILL TO", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        customerHeader.setSpacingBefore(10);
-        customerHeader.setSpacingAfter(8);
+        customerHeader.setSpacingBefore(5);
+        customerHeader.setSpacingAfter(5);
         document.add(customerHeader);
 
         PdfPTable customerTable;
@@ -713,20 +713,20 @@ public class InvoiceService {
             customerTable.addCell(addressCell);
         }
 
-        customerTable.setSpacingAfter(25);
+        customerTable.setSpacingAfter(10);
         document.add(customerTable);
 
         /// ---------------------- ITEMS & EMPLOYEES TABLE ----------------------
         // Add section header
         Paragraph itemsHeader = new Paragraph("ITEM DETAILS", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        itemsHeader.setSpacingBefore(5);
-        itemsHeader.setSpacingAfter(8);
+        itemsHeader.setSpacingBefore(3);
+        itemsHeader.setSpacingAfter(5);
         document.add(itemsHeader);
 
         PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         table.setWidths(new float[] { 0.5f, 5f, 1.4f, 1.4f, 1.8f, 3.8f });
-        table.setSpacingBefore(5);
+        table.setSpacingBefore(3);
 
         // Enhanced header row with professional styling
         String amountHeader = "Amount (" + (invoice.getCurrency() != null ? invoice.getCurrency() : "") + ")";
@@ -947,7 +947,7 @@ public class InvoiceService {
         PdfPTable taxDiscountTable = new PdfPTable(6);
         taxDiscountTable.setWidthPercentage(100);
         taxDiscountTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
-        taxDiscountTable.setSpacingBefore(5);
+        taxDiscountTable.setSpacingBefore(3);
 
         // Add subtotal row with professional styling
         for (int i = 0; i < 3; i++) {
@@ -1032,7 +1032,7 @@ public class InvoiceService {
         PdfPTable totalTable = new PdfPTable(6);
         totalTable.setWidthPercentage(100);
         totalTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
-        totalTable.setSpacingBefore(10);
+        totalTable.setSpacingBefore(5);
 
         // Empty cells for first 3 columns
         for (int i = 0; i < 3; i++) {
@@ -1077,7 +1077,7 @@ public class InvoiceService {
             if (grandTotal != null) {
                 String amountWords = convertAmountToWords(grandTotal, invoice.getCurrency());
                 Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
-                amountWordsPara.setSpacingBefore(8);
+                amountWordsPara.setSpacingBefore(5);
                 document.add(amountWordsPara);
                 log.info("Added amount-in-words to PDF for invoice {}: {}", invoice.getInvoiceId(), amountWords);
             }
@@ -1088,13 +1088,13 @@ public class InvoiceService {
         // Invoice remarks with enhanced styling
         if (invoice.getRemarks() != null && !invoice.getRemarks().trim().isEmpty()) {
             Paragraph remarksHeader = new Paragraph("REMARKS", new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, primaryColor));
-            remarksHeader.setSpacingBefore(15);
-            remarksHeader.setSpacingAfter(5);
+            remarksHeader.setSpacingBefore(8);
+            remarksHeader.setSpacingAfter(3);
             document.add(remarksHeader);
             
             Paragraph remarksPara = new Paragraph(invoice.getRemarks(), normalFont);
-            remarksPara.setSpacingBefore(5);
-            remarksPara.setSpacingAfter(15);
+            remarksPara.setSpacingBefore(3);
+            remarksPara.setSpacingAfter(8);
             document.add(remarksPara);
             log.info("Added remarks to PDF for invoice {}: {}", invoice.getInvoiceId(), invoice.getRemarks());
         }
@@ -1103,7 +1103,7 @@ public class InvoiceService {
         PdfPTable signatureTable = new PdfPTable(3);
         signatureTable.setWidthPercentage(100);
         signatureTable.setWidths(new float[] { 3f, 2f, 3f });
-        signatureTable.setSpacingBefore(30);
+        signatureTable.setSpacingBefore(15);
 
         // Left empty cell for spacing
         PdfPCell leftSignatureEmpty = new PdfPCell();
@@ -1190,7 +1190,7 @@ public class InvoiceService {
         // ---------------- HEADER: Title + Logo ----------------
         PdfPTable headerTable = new PdfPTable(3);
         headerTable.setWidthPercentage(100);
-        headerTable.setSpacingAfter(15);
+        headerTable.setSpacingAfter(8);
         headerTable.setWidths(new float[] { 4f, 2f, 4f });
 
         // Empty left cell for spacing
@@ -1256,7 +1256,7 @@ public class InvoiceService {
         PdfPTable metaTable = new PdfPTable(2);
         metaTable.setWidthPercentage(100);
         metaTable.setWidths(new float[] { 5f, 5f });
-        metaTable.setSpacingAfter(20);
+        metaTable.setSpacingAfter(10);
 
         // Left: Invoice info
         PdfPCell leftMeta = new PdfPCell();
@@ -1299,8 +1299,8 @@ public class InvoiceService {
 
         // Customer section header
         Paragraph customerHeader = new Paragraph("BILL TO", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        customerHeader.setSpacingBefore(10);
-        customerHeader.setSpacingAfter(8);
+        customerHeader.setSpacingBefore(5);
+        customerHeader.setSpacingAfter(5);
         document.add(customerHeader);
 
         PdfPTable customerTable;
@@ -1358,21 +1358,21 @@ public class InvoiceService {
             customerTable.addCell(addressCell);
         }
 
-        customerTable.setSpacingAfter(25);
+        customerTable.setSpacingAfter(10);
         document.add(customerTable);
 
         // ---------------- ITEMS & EMPLOYEES TABLE ----------------
         // Add section header
         Paragraph itemsHeader = new Paragraph("ITEM DETAILS", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        itemsHeader.setSpacingBefore(5);
-        itemsHeader.setSpacingAfter(8);
+        itemsHeader.setSpacingBefore(3);
+        itemsHeader.setSpacingAfter(5);
         document.add(itemsHeader);
 
         // 6 columns: #, Item Description, Rate, QTY, Amount, Remarks
         PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         table.setWidths(new float[] { 0.5f, 5f, 1.4f, 1.4f, 1.8f, 3.8f });
-        table.setSpacingBefore(5);
+        table.setSpacingBefore(3);
 
         // Header row with professional styling
         String currency = invoiceData.getOrDefault("currency", "").toString();
@@ -1535,7 +1535,7 @@ public class InvoiceService {
         PdfPTable taxDiscountTable = new PdfPTable(6);
         taxDiscountTable.setWidthPercentage(100);
         taxDiscountTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
-        taxDiscountTable.setSpacingBefore(5);
+        taxDiscountTable.setSpacingBefore(3);
 
         // Add subtotal row with professional styling
         for (int i = 0; i < 3; i++) {
@@ -1637,7 +1637,7 @@ public class InvoiceService {
         PdfPTable totalTable = new PdfPTable(6);
         totalTable.setWidthPercentage(100);
         totalTable.setWidths(new float[] { 0.5f, 5f, 1.4f, 2.0f, 1.8f, 3.8f });
-        totalTable.setSpacingBefore(10);
+        totalTable.setSpacingBefore(5);
 
         // Empty cells for first 3 columns
         for (int i = 0; i < 3; i++) {
@@ -1682,7 +1682,7 @@ public class InvoiceService {
             if (grandTotal != null) {
                 String amountWords = convertAmountToWords(grandTotal, invoiceData.getOrDefault("currency", "").toString());
                 Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
-                amountWordsPara.setSpacingBefore(8);
+                amountWordsPara.setSpacingBefore(5);
                 document.add(amountWordsPara);
             }
         } catch (Exception ignored) {
@@ -1691,13 +1691,13 @@ public class InvoiceService {
         // Invoice remarks
         if (invoiceData.get("remarks") != null && !invoiceData.get("remarks").toString().trim().isEmpty()) {
             Paragraph remarksHeader = new Paragraph("REMARKS", new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, primaryColor));
-            remarksHeader.setSpacingBefore(15);
-            remarksHeader.setSpacingAfter(5);
+            remarksHeader.setSpacingBefore(8);
+            remarksHeader.setSpacingAfter(3);
             document.add(remarksHeader);
             
             Paragraph remarksPara = new Paragraph(invoiceData.get("remarks").toString(), normalFont);
-            remarksPara.setSpacingBefore(5);
-            remarksPara.setSpacingAfter(15);
+            remarksPara.setSpacingBefore(3);
+            remarksPara.setSpacingAfter(8);
             document.add(remarksPara);
         }
 
@@ -1705,7 +1705,7 @@ public class InvoiceService {
         PdfPTable signatureTable = new PdfPTable(3);
         signatureTable.setWidthPercentage(100);
         signatureTable.setWidths(new float[] { 3f, 2f, 3f });
-        signatureTable.setSpacingBefore(30);
+        signatureTable.setSpacingBefore(15);
 
         // Left empty cell for spacing
         PdfPCell leftSignatureEmpty = new PdfPCell();
