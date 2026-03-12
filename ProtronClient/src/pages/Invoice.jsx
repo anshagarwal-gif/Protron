@@ -1075,7 +1075,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "Actions",
       field: "actions",
-      width: 160,
+      width: 120,
       sortable: false,
       filter: false,
       suppressMenu: true,
