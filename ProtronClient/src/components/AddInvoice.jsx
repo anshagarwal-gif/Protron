@@ -984,8 +984,8 @@ const AddInvoiceModal = ({
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async () => {
-        console.log('handleSubmit called');
+    const handleSubmit = async (status = 'SAVED') => {
+        console.log('handleSubmit called with status:', status);
 
         // Run validation
         const newErrors = {};
@@ -1123,6 +1123,9 @@ const AddInvoiceModal = ({
             console.log('Submitting invoice data:', invoiceData);
             setSnackbar({ open: true, message: 'Submitting invoice...', severity: 'info' });
 
+            // Set status in invoice data
+            invoiceData.status = status;
+
             let response;
             if (attachments.length > 0) {
                 // Create FormData for multipart request
@@ -1134,8 +1137,9 @@ const AddInvoiceModal = ({
                     formDataToSend.append('attachments', file);
                 });
 
+                const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice';
                 response = await axios.post(
-                    `${API_BASE_URL}/api/invoices/generate-with-attachments`,
+                    `${API_BASE_URL}${endpoint}`,
                     formDataToSend,
                     {
                         headers: {
@@ -1146,8 +1150,9 @@ const AddInvoiceModal = ({
                 );
             } else {
                 // Regular JSON request without attachments
+                const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice';
                 response = await axios.post(
-                    `${API_BASE_URL}/api/invoices/generate`,
+                    `${API_BASE_URL}${endpoint}`,
                     invoiceData,
                     {
                         headers: {
@@ -1158,11 +1163,12 @@ const AddInvoiceModal = ({
                 );
             }
 
-            console.log(isFromInvoiceManagement ? 'Invoice saved successfully:' : 'Invoice generated successfully:', response.data);
+            const statusText = status === 'DRAFT' ? 'Draft' : 'Invoice';
+            console.log(`${statusText} saved successfully:`, response.data);
             setSnackbar((prev) => ({
                 ...prev,
                 open: true,
-                message: isFromInvoiceManagement ? "Invoice Saved Successfully" : "PO Consumption Created Successfully",
+                message: `${statusText} ${status === 'DRAFT' ? 'Saved' : 'Created'} Successfully`,
                 severity: "success",
             }))
 
@@ -2359,19 +2365,39 @@ const AddInvoiceModal = ({
                         Cancel
                     </button>
 
-                    {/* Show Preview and Generate Invoice buttons only when NOT from invoice management */}
+                    {/* Show Preview button only when NOT from invoice management */}
                     {!isFromInvoiceManagement && (
                         <button
                             onClick={handleInvoicePreview}
                             disabled={loading}
-                            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50"
+                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50"
                         >
                             Preview
                         </button>
                     )}
 
+                    {/* Save as Draft button */}
                     <button
-                        onClick={handleSubmit}
+                        onClick={() => handleSubmit('DRAFT')}
+                        disabled={loading}
+                        className="px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors font-semibold disabled:opacity-50 flex items-center"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Saving Draft...
+                            </>
+                        ) : (
+                            <>
+                                <FileText className="mr-2" size={16} />
+                                Save as Draft
+                            </>
+                        )}
+                    </button>
+
+                    {/* Save Invoice button */}
+                    <button
+                        onClick={() => handleSubmit('SAVED')}
                         disabled={loading}
                         className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 flex items-center"
                     >

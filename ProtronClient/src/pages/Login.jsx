@@ -82,11 +82,12 @@ const Login = ({ setIsAuthenticated }) => {
         setIsLoading(true);
         try {
             const encryptedPassword = encryptPassword(password);
-const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/login`, {
-    email,
-    password: encryptedPassword,
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-});
+            const apiUrl = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
+            const response = await axios.post(`${apiUrl}/api/users/login`, {
+                email,
+                password: encryptedPassword,
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            });
 
             const data = response.data;
 

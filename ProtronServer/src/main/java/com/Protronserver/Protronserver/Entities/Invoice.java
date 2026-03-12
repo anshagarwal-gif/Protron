@@ -101,6 +101,10 @@ public class Invoice {
     private boolean deleted = false;
     private LocalDateTime deletedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private InvoiceStatus status = InvoiceStatus.DRAFT;
+
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<InvoiceItem> invoiceItems = new ArrayList<>();
@@ -569,6 +573,13 @@ public class Invoice {
         this.deletedAt = deletedAt;
     }
 
+    public InvoiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(InvoiceStatus status) {
+        this.status = status;
+    }
 
     public BigDecimal getDiscountPercent() {
         return discountPercent;

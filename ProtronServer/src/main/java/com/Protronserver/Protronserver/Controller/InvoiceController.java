@@ -3,6 +3,7 @@ package com.Protronserver.Protronserver.Controller;
 import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
 import com.Protronserver.Protronserver.Entities.Invoice;
+import com.Protronserver.Protronserver.Entities.InvoiceStatus;
 import com.Protronserver.Protronserver.Service.InvoiceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -316,6 +317,59 @@ public class InvoiceController {
         List<InvoiceResponseDTO> invoices = invoiceService.searchInvoicesByCustomer(customerName);
         log.info("Search completed - Found {} invoices for customer: {}", invoices.size(), customerName);
         return ResponseEntity.ok(invoices);
+    }
+
+    @PostMapping("/save-draft")
+    public ResponseEntity<?> saveDraftInvoice(@Valid @RequestBody InvoiceRequestDTO requestDTO) {
+        try {
+            requestDTO.setStatus(InvoiceStatus.DRAFT);
+            InvoiceResponseDTO response = invoiceService.createInvoice(requestDTO);
+            log.info("Draft invoice saved successfully: {}", response.getInvoiceId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error saving draft invoice: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error saving draft invoice: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/save-invoice")
+    public ResponseEntity<?> saveInvoice(@Valid @RequestBody InvoiceRequestDTO requestDTO) {
+        try {
+            requestDTO.setStatus(InvoiceStatus.SAVED);
+            InvoiceResponseDTO response = invoiceService.createInvoice(requestDTO);
+            log.info("Invoice saved successfully: {}", response.getInvoiceId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error saving invoice: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error saving invoice: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/update/{invoiceId}")
+    public ResponseEntity<?> updateInvoice(@PathVariable String invoiceId, @Valid @RequestBody InvoiceRequestDTO requestDTO) {
+        try {
+            InvoiceResponseDTO response = invoiceService.updateInvoice(invoiceId, requestDTO);
+            log.info("Invoice updated successfully: {}", invoiceId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error updating invoice {}: {}", invoiceId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error updating invoice: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<InvoiceResponseDTO>> filterInvoicesByStatus(@RequestParam InvoiceStatus status) {
+        try {
+            List<InvoiceResponseDTO> invoices = invoiceService.filterInvoicesByStatus(status);
+            log.info("Filtered invoices by status {}: found {} invoices", status, invoices.size());
+            return ResponseEntity.ok(invoices);
+        } catch (Exception e) {
+            log.error("Error filtering invoices by status {}: {}", status, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }

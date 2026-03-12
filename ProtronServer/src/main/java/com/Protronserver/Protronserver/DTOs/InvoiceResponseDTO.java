@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.DTOs;
 
 import com.Protronserver.Protronserver.Entities.InvoiceEmployee;
 import com.Protronserver.Protronserver.Entities.InvoiceItem;
+import com.Protronserver.Protronserver.Entities.InvoiceStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -56,6 +57,8 @@ public class InvoiceResponseDTO {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dueDate;
+
+    private InvoiceStatus status;
 
     public String getCountry() {
         return country;
@@ -271,5 +274,13 @@ public class InvoiceResponseDTO {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public InvoiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(InvoiceStatus status) {
+        this.status = status;
     }
 }

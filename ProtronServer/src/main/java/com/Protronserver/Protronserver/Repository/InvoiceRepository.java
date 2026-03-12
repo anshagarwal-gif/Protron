@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.Repository;
 
 import com.Protronserver.Protronserver.DashboardRecords.InvoiceTrendDTO;
 import com.Protronserver.Protronserver.Entities.Invoice;
+import com.Protronserver.Protronserver.Entities.InvoiceStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -54,4 +55,10 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     ORDER BY MAX(from_date) DESC
     """, nativeQuery = true)
     List<Object[]> getMonthlyInvoiceTrendsRaw();
+
+    // Status-based filtering methods
+    List<Invoice> findByTenantIdAndStatusAndDeletedFalseOrderByCreatedAtDesc(Long tenantId, InvoiceStatus status);
+    
+    @EntityGraph(attributePaths = {"invoiceTaxes", "invoiceItems", "invoiceEmployees"})
+    Optional<Invoice> findByInvoiceIdAndTenantIdAndDeletedFalse(String invoiceId, Long tenantId);
 }

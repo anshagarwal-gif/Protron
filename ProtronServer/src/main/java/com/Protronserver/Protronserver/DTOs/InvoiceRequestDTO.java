@@ -2,6 +2,7 @@ package com.Protronserver.Protronserver.DTOs;
 
 import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
 import com.Protronserver.Protronserver.DTO.InvoiceItemDTO;
+import com.Protronserver.Protronserver.Entities.InvoiceStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -69,6 +70,8 @@ public class InvoiceRequestDTO {
     private BigDecimal discountPercent;
 
     private LocalDate dueDate;
+
+    private InvoiceStatus status;
 
     private TimesheetDataDTO timesheetData;
 
@@ -465,5 +468,13 @@ public class InvoiceRequestDTO {
 
     public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public InvoiceStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(InvoiceStatus status) {
+        this.status = status;
     }
 }

@@ -476,6 +476,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [downloadingInvoice, setDownloadingInvoice] = useState(null);
   const [downloadingAttachment, setDownloadingAttachment] = useState(null);
   const [deletingInvoice, setDeletingInvoice] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('');
   const { hasAccess } = useAccess();
 
   // Currency symbols mapping
@@ -509,12 +510,24 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         throw new Error("Missing authentication credentials");
       }
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/invoices`,
-        {
-          headers: { Authorization: token }
-        }
-      );
+      let response;
+      if (statusFilter) {
+        // Use filter endpoint when status is selected
+        response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/invoices/filter?status=${statusFilter}`,
+          {
+            headers: { Authorization: token }
+          }
+        );
+      } else {
+        // Use regular endpoint when no status filter
+        response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/invoices`,
+          {
+            headers: { Authorization: token }
+          }
+        );
+      }
 
       // Sort invoice list by startTimestamp (latest first)
       const sortedList = (response.data || []).sort((a, b) => {
@@ -533,7 +546,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
   useEffect(() => {
     fetchInvoiceData();
-  }, []);
+  }, [statusFilter]);
 
   // Filter invoice data based on search
   const filteredInvoiceData = invoiceList.filter(invoice => {
@@ -839,6 +852,16 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     }
   };
 
+  // Handle edit invoice
+  const handleEditInvoice = (invoice) => {
+    // For now, we'll open the same modal but pre-populate with existing data
+    // In a real implementation, you might want to pass the invoice data to the modal
+    console.log("Editing invoice:", invoice);
+    // TODO: Implement edit functionality - pass invoice data to AddInvoiceModal
+    // For now, just open the modal
+    setIsAddModalOpen(true);
+  };
+
   // Handle add invoice
   const handleAddInvoice = () => {
     setIsAddModalOpen(true);
@@ -1022,25 +1045,76 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       
     },
     {
+      headerName: "Status",
+      field: "status",
+      width: 120,
+      sortable: true,
+      filter: true,
+      cellRenderer: params => {
+        const status = params.value;
+        let statusClass = "";
+        let statusText = "";
+        
+        switch(status) {
+          case "DRAFT":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800";
+            statusText = "Draft";
+            break;
+          case "SAVED":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800";
+            statusText = "Saved";
+            break;
+          default:
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800";
+            statusText = status || "Unknown";
+        }
+        
+        return <span className={statusClass}>{statusText}</span>;
+      }
+    },
+    {
       headerName: "Actions",
       field: "actions",
-      width: 80,
+      width: 160,
       sortable: false,
       filter: false,
       suppressMenu: true,
       pinned: 'right',
       cellRenderer: params => (
         <div className="flex gap-2">
-          {/* Edit Button */}
+          {/* View Button */}
           {hasAccess('budget', 'edit') && (
             <button
               onClick={() => handleViewInvoice(params.data)}
-              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
-              title="Edit Invoice"
+              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
+              title="View Invoice"
             >
               <Eye size={16} />
             </button>
           )}
+          {/* Edit Button - Only for draft invoices */}
+          {hasAccess('budget', 'edit') && params.data.status === 'DRAFT' && (
+            <button
+              onClick={() => handleEditInvoice(params.data)}
+              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
+              title="Edit Draft Invoice"
+            >
+              <Edit size={16} />
+            </button>
+          )}
+          {/* Download Button */}
+          <button
+            onClick={() => handleDownloadInvoicePDF(params.data.invoiceId, params.data.invoiceName)}
+            className="p-1 rounded hover:bg-gray-100 text-gray-600 cursor-pointer"
+            title="Download PDF"
+            disabled={downloadingInvoice === params.data.invoiceId}
+          >
+            {downloadingInvoice === params.data.invoiceId ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Download size={16} />
+            )}
+          </button>
           {/* Delete Button */}
           {hasAccess('budget', 'delete') && (
             <button
@@ -1078,6 +1152,31 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           {error}
         </div>
       )}
+
+      {/* Status Filter and Download Excel */}
+      <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+            >
+              <option value="">All Invoices</option>
+              <option value="DRAFT">Draft</option>
+              <option value="SAVED">Saved</option>
+            </select>
+          </div>
+          <button
+            onClick={downloadInvoiceExcel}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+          >
+            <Download size={16} className="mr-2" />
+            Download Excel
+          </button>
+        </div>
+      </div>
 
       {/* AG Grid Table */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">

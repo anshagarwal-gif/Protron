@@ -129,6 +129,7 @@ public class InvoiceService {
             invoice.setCountry(requestDTO.getCountry());
             invoice.setDiscountPercent(requestDTO.getDiscountPercent());
             invoice.setDueDate(requestDTO.getDueDate());
+            invoice.setStatus(requestDTO.getStatus() != null ? requestDTO.getStatus() : InvoiceStatus.DRAFT);
 
             // =========================
             // MAP TAXES
@@ -321,6 +322,7 @@ public class InvoiceService {
 
             invoice.setDiscountPercent(requestDTO.getDiscountPercent());
             invoice.setDueDate(requestDTO.getDueDate());
+            invoice.setStatus(requestDTO.getStatus() != null ? requestDTO.getStatus() : InvoiceStatus.DRAFT);
 
             // Process attachments (up to 4)
             if (attachments != null && !attachments.isEmpty()) {
@@ -2247,6 +2249,9 @@ public class InvoiceService {
             dto.setEmployees(employeeDTOs);
         }
 
+        // Set status
+        dto.setStatus(invoice.getStatus());
+
         return dto;
     }
 
@@ -2481,5 +2486,87 @@ public class InvoiceService {
             log.error("Failed to add contact footer for tenant ID {}: {}", tenantId, e.getMessage(), e);
             // Don't throw exception, just log error - PDF generation should continue
         }
+    }
+
+    @Transactional
+    public InvoiceResponseDTO updateInvoice(String invoiceId, InvoiceRequestDTO requestDTO) {
+        try {
+            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+            
+            Optional<Invoice> existingInvoiceOpt = invoiceRepository.findByInvoiceIdAndTenantIdAndDeletedFalse(invoiceId, tenantId);
+            if (existingInvoiceOpt.isEmpty()) {
+                throw new IllegalArgumentException("Invoice not found: " + invoiceId);
+            }
+            
+            Invoice existingInvoice = existingInvoiceOpt.get();
+            
+            // Only allow editing if invoice is in DRAFT status
+            if (existingInvoice.getStatus() != InvoiceStatus.DRAFT) {
+                throw new IllegalStateException("Only draft invoices can be edited");
+            }
+            
+            // Update fields from request DTO
+            updateInvoiceFromDTO(existingInvoice, requestDTO);
+            
+            // Save updated invoice
+            Invoice savedInvoice = invoiceRepository.save(existingInvoice);
+            
+            log.info("Invoice updated successfully: {}", invoiceId);
+            return convertToResponseDTO(savedInvoice);
+            
+        } catch (Exception e) {
+            log.error("Error updating invoice {}: {}", invoiceId, e.getMessage(), e);
+            throw new RuntimeException("Failed to update invoice: " + e.getMessage(), e);
+        }
+    }
+
+    public List<InvoiceResponseDTO> filterInvoicesByStatus(InvoiceStatus status) {
+        try {
+            Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+            List<Invoice> invoices;
+            
+            if (status == null) {
+                // If no status specified, return all non-deleted invoices
+                invoices = invoiceRepository.findByTenantIdAndDeletedFalseOrderByCreatedAtDesc(tenantId);
+            } else {
+                // Filter by specific status
+                invoices = invoiceRepository.findByTenantIdAndStatusAndDeletedFalseOrderByCreatedAtDesc(tenantId, status);
+            }
+            
+            return invoices.stream()
+                    .map(this::convertToResponseDTO)
+                    .collect(Collectors.toList());
+                    
+        } catch (Exception e) {
+            log.error("Error filtering invoices by status {}: {}", status, e.getMessage(), e);
+            throw new RuntimeException("Failed to filter invoices: " + e.getMessage(), e);
+        }
+    }
+
+    private void updateInvoiceFromDTO(Invoice invoice, InvoiceRequestDTO dto) {
+        // Update basic fields
+        invoice.setInvoiceName(dto.getInvoiceName());
+        invoice.setInvoiceType(dto.getInvoiceType());
+        invoice.setCustomerName(dto.getCustomerName());
+        invoice.setCustomerAddress(dto.getCustomerAddress());
+        invoice.setBillToAddress(dto.getBillToAddress());
+        invoice.setShipToAddress(dto.getShipToAddress());
+        invoice.setSupplierName(dto.getSupplierName());
+        invoice.setSupplierAddress(dto.getSupplierAddress());
+        invoice.setRate(dto.getRate());
+        invoice.setCurrency(dto.getCurrency());
+        invoice.setFromDate(dto.getFromDate());
+        invoice.setToDate(dto.getToDate());
+        invoice.setHoursSpent(dto.getHoursSpent());
+        invoice.setTotalAmount(dto.getTotalAmount());
+        invoice.setRemarks(dto.getRemarks());
+        invoice.setProjectName(dto.getProjectName());
+        invoice.setDiscountPercent(dto.getDiscountPercent());
+        invoice.setDueDate(dto.getDueDate());
+        invoice.setStatus(dto.getStatus() != null ? dto.getStatus() : InvoiceStatus.DRAFT);
+        
+        // Update related entities (items, employees, taxes) if needed
+        // This would require more complex logic to handle updates to collections
+        // For now, keeping it simple for the draft functionality
     }
 }
