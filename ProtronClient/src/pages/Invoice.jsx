@@ -1103,7 +1103,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             </button>
           )}
           {/* Download Button */}
-          <button
+          {/* <button
             onClick={() => handleDownloadInvoicePDF(params.data.invoiceId, params.data.invoiceName)}
             className="p-1 rounded hover:bg-gray-100 text-gray-600 cursor-pointer"
             title="Download PDF"
@@ -1114,7 +1114,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             ) : (
               <Download size={16} />
             )}
-          </button>
+          </button> */}
           {/* Delete Button */}
           {hasAccess('budget', 'delete') && (
             <button
