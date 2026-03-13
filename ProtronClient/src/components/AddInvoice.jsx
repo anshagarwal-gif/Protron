@@ -46,7 +46,8 @@ const AddInvoiceModal = ({
     // currentWeekStart,
     // currentMonthRange,
     employee,
-    isFromInvoiceManagement = false
+    isFromInvoiceManagement = false,
+    editInvoiceData = null
 }) => {
     const [formData, setFormData] = useState({
         invoiceName: '',
@@ -351,6 +352,70 @@ const AddInvoiceModal = ({
     };
     // ...existing code...
 
+    // Helper function to populate form with edit data
+    const populateFormWithEditData = useCallback((editData) => {
+        if (!editData) return;
+
+        setFormData({
+            invoiceName: editData.invoiceName || '',
+            invoiceType: editData.invoiceType || 'DOMESTIC',
+            invoiceDate: editData.invoiceDate || '',
+            taxId: editData.taxId || '',
+            billPeriod: editData.billPeriod || '',
+            customerName: editData.customerName || '',
+            billToAddress: editData.billToAddress || '',
+            shipToAddress: editData.shipToAddress || '',
+            customerInfo: editData.customerInfo || '',
+            supplierName: editData.supplierName || sessionStorage.getItem('tenantName') || '',
+            supplierAddress: editData.supplierAddress || '',
+            supplierInfo: editData.supplierInfo || '',
+            country: editData.country || '',
+            employeeName: editData.employeeName || '',
+            employeeNames: editData.employeeNames || [],
+            employeeIds: editData.employeeIds || [],
+            rate: editData.rate || '',
+            currency: editData.currency || 'INR',
+            fromDate: editData.fromDate || '',
+            toDate: editData.toDate || '',
+            hoursSpent: editData.hoursSpent || '',
+            totalAmount: editData.totalAmount || '',
+            remarks: editData.remarks || '',
+            projectName: editData.projectName || '',
+            employeeId: editData.employeeId || '',
+            taxes: editData.taxes || [],
+            discountPercent: editData.discountPercent || '',
+            dueDate: editData.dueDate || '',
+            dueDateOption: editData.dueDateOption || '15'
+        });
+
+        // Populate items
+        if (editData.invoiceItems && editData.invoiceItems.length > 0) {
+            const populatedItems = editData.invoiceItems.map((item, index) => ({
+                id: index + 1,
+                description: item.itemDesc || item.description || '',
+                rate: item.rate || '',
+                quantity: item.quantity || '',
+                amount: item.amount || '',
+                remarks: item.remarks || ''
+            }));
+            setItems(populatedItems);
+        }
+
+        // Populate employees
+        if (editData.invoiceEmployees && editData.invoiceEmployees.length > 0) {
+            const populatedEmployees = editData.invoiceEmployees.map((emp, index) => ({
+                id: index + 1,
+                userId: emp.userId || '',
+                name: emp.itemDesc || emp.name || '',
+                rate: emp.rate || '',
+                quantity: emp.quantity || '',
+                amount: emp.amount || '',
+                remarks: emp.remarks || ''
+            }));
+            setInvoiceEmployees(populatedEmployees);
+        }
+    }, []);
+
     // Auto-populate employee fields if coming from timesheet (after reset)
     useEffect(() => {
         console.log(employee)
@@ -367,8 +432,6 @@ const AddInvoiceModal = ({
             }, 100);
         }
     }, [employee, open]);
-
-
 
     // Auto-set currency to INR when India (DOMESTIC) is selected
     useEffect(() => {
@@ -460,31 +523,37 @@ const AddInvoiceModal = ({
             fetchDropdownData();
             fetchProjects();
             fetchTenantInfo();
-            // Restore draft if present, otherwise initialize
-            try {
-                const draft = sessionStorage.getItem('addInvoiceDraft');
-                if (draft) {
-                    const parsed = JSON.parse(draft);
-                    if (parsed) {
-                        setFormData(parsed.formData || {});
-                        setItems(parsed.items || [{ id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }]);
-                        setInvoiceEmployees(parsed.invoiceEmployees || []);
-                        setAttachments(parsed.attachments || []);
-                        setAttachTimesheet(parsed.attachTimesheet || false);
-                        setFetchedTasks(parsed.fetchedTasks || []);
-                        // do not clear draft here
+            
+            // If in edit mode, populate form with edit data
+            if (editInvoiceData) {
+                populateFormWithEditData(editInvoiceData);
+            } else {
+                // Restore draft if present, otherwise initialize
+                try {
+                    const draft = sessionStorage.getItem('addInvoiceDraft');
+                    if (draft) {
+                        const parsed = JSON.parse(draft);
+                        if (parsed) {
+                            setFormData(parsed.formData || {});
+                            setItems(parsed.items || [{ id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }]);
+                            setInvoiceEmployees(parsed.invoiceEmployees || []);
+                            setAttachments(parsed.attachments || []);
+                            setAttachTimesheet(parsed.attachTimesheet || false);
+                            setFetchedTasks(parsed.fetchedTasks || []);
+                            // do not clear draft here
+                        } else {
+                            handleReset();
+                        }
                     } else {
                         handleReset();
                     }
-                } else {
+                } catch (e) {
+                    console.error('Failed to restore invoice draft:', e);
                     handleReset();
                 }
-            } catch (e) {
-                console.error('Failed to restore invoice draft:', e);
-                handleReset();
             }
         }
-    }, [open, fetchDropdownData]);
+    }, [open, fetchDropdownData, editInvoiceData, populateFormWithEditData]);
 
     const fetchProjects = async () => {
         try {
@@ -1127,48 +1196,91 @@ const AddInvoiceModal = ({
             invoiceData.status = status;
 
             let response;
-            if (attachments.length > 0) {
-                // Create FormData for multipart request
-                const formDataToSend = new FormData();
-                formDataToSend.append('invoice', JSON.stringify(invoiceData));
+            const isEditMode = !!editInvoiceData;
+            
+            if (isEditMode) {
+                // Update existing invoice
+                invoiceData.status = status;
+                
+                if (attachments.length > 0) {
+                    // Create FormData for multipart request
+                    const formDataToSend = new FormData();
+                    formDataToSend.append('invoice', JSON.stringify(invoiceData));
 
-                // Add attachments to FormData
-                attachments.forEach((file) => {
-                    formDataToSend.append('attachments', file);
-                });
+                    // Add attachments to FormData
+                    attachments.forEach((file) => {
+                        formDataToSend.append('attachments', file);
+                    });
 
-                const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice';
-                response = await axios.post(
-                    `${API_BASE_URL}${endpoint}`,
-                    formDataToSend,
-                    {
-                        headers: {
-                            Authorization: sessionStorage.getItem("token"),
-                            "Content-Type": "multipart/form-data"
+                    response = await axios.put(
+                        `${API_BASE_URL}/api/invoices/update/${editInvoiceData.invoiceId}`,
+                        formDataToSend,
+                        {
+                            headers: {
+                                Authorization: sessionStorage.getItem("token"),
+                                "Content-Type": "multipart/form-data"
+                            }
                         }
-                    }
-                );
+                    );
+                } else {
+                    // Regular JSON request without attachments
+                    response = await axios.put(
+                        `${API_BASE_URL}/api/invoices/update/${editInvoiceData.invoiceId}`,
+                        invoiceData,
+                        {
+                            headers: {
+                                Authorization: sessionStorage.getItem("token"),
+                                "Content-Type": "application/json"
+                            }
+                        }
+                    );
+                }
             } else {
-                // Regular JSON request without attachments
-                const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice';
-                response = await axios.post(
-                    `${API_BASE_URL}${endpoint}`,
-                    invoiceData,
-                    {
-                        headers: {
-                            Authorization: sessionStorage.getItem("token"),
-                            "Content-Type": "application/json"
+                // Create new invoice
+                if (attachments.length > 0) {
+                    // Create FormData for multipart request
+                    const formDataToSend = new FormData();
+                    formDataToSend.append('invoice', JSON.stringify(invoiceData));
+
+                    // Add attachments to FormData
+                    attachments.forEach((file) => {
+                        formDataToSend.append('attachments', file);
+                    });
+
+                    const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice';
+                    response = await axios.post(
+                        `${API_BASE_URL}${endpoint}`,
+                        formDataToSend,
+                        {
+                            headers: {
+                                Authorization: sessionStorage.getItem("token"),
+                                "Content-Type": "multipart/form-data"
+                            }
                         }
-                    }
-                );
+                    );
+                } else {
+                    // Regular JSON request without attachments
+                    const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice';
+                    response = await axios.post(
+                        `${API_BASE_URL}${endpoint}`,
+                        invoiceData,
+                        {
+                            headers: {
+                                Authorization: sessionStorage.getItem("token"),
+                                "Content-Type": "application/json"
+                            }
+                        }
+                    );
+                }
             }
 
             const statusText = status === 'DRAFT' ? 'Draft' : 'Invoice';
-            console.log(`${statusText} saved successfully:`, response.data);
+            const actionText = isEditMode ? 'Updated' : (status === 'DRAFT' ? 'Saved' : 'Created');
+            console.log(`${statusText} ${actionText.toLowerCase()} successfully:`, response.data);
             setSnackbar((prev) => ({
                 ...prev,
                 open: true,
-                message: `${statusText} ${status === 'DRAFT' ? 'Saved' : 'Created'} Successfully`,
+                message: `${statusText} ${actionText} Successfully`,
                 severity: "success",
             }))
 
@@ -1585,7 +1697,9 @@ const AddInvoiceModal = ({
                                 <FileText className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">Add New Invoice</h2>
+                                <h2 className="text-base sm:text-lg lg:text-xl font-bold">
+    {editInvoiceData ? 'Edit Invoice' : 'Add New Invoice'}
+</h2>
                             </div>
                         </div>
 

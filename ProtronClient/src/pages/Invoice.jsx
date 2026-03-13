@@ -929,12 +929,8 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
   // Handle edit invoice
   const handleEditInvoice = (invoice) => {
-    // For now, we'll open the same modal but pre-populate with existing data
-    // In a real implementation, you might want to pass the invoice data to the modal
-    console.log("Editing invoice:", invoice);
-    // TODO: Implement edit functionality - pass invoice data to AddInvoiceModal
-    // For now, just open the modal
-    setIsAddModalOpen(true);
+    setSelectedInvoice(invoice);
+    setIsEditModalOpen(true);
   };
 
   // Handle add invoice
@@ -1634,9 +1630,13 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       {/* Add Invoice Modal */}
       <AddInvoiceModal
         open={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedInvoice(null);
+        }}
         onSubmit={handleModalSubmit}
         isFromInvoiceManagement={true}
+        editInvoiceData={selectedInvoice}
       />
     </div>
   );
