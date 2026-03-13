@@ -417,15 +417,22 @@ const AddInvoiceModal = ({
 
         // Populate employees (API returns 'employees', not 'invoiceEmployees')
         if (editData.employees && editData.employees.length > 0) {
-            const populatedEmployees = editData.employees.map((emp, index) => ({
-                id: index + 1,
-                userId: emp.userId || '',
-                name: emp.itemDesc || emp.name || '',
-                rate: emp.rate || '',
-                quantity: emp.quantity || '',
-                amount: emp.amount || '',
-                remarks: emp.remarks || ''
-            }));
+            const populatedEmployees = editData.employees.map((emp, index) => {
+                // Extract userId from itemDesc format: "Name (EMP1234)"
+                const itemDescMatch = emp.itemDesc?.match(/^(.+)\s*\((EMP\d+)\)$/);
+                const userId = itemDescMatch ? itemDescMatch[2] : '';
+                const name = itemDescMatch ? itemDescMatch[1].trim() : emp.itemDesc || emp.name || '';
+
+                return {
+                    id: index + 1,
+                    userId: userId,
+                    name: name,
+                    rate: emp.rate || '',
+                    quantity: emp.quantity || '',
+                    amount: emp.amount || '',
+                    remarks: emp.remarks || ''
+                };
+            });
             setInvoiceEmployees(populatedEmployees);
         }
     }, []);
