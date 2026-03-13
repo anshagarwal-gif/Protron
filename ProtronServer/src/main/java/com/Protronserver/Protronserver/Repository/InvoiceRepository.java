@@ -17,7 +17,7 @@ import java.util.Optional;
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
-    @EntityGraph(attributePaths = {"invoiceTaxes", "invoiceItems", "invoiceEmployees"})
+    @EntityGraph(attributePaths = {"invoiceTaxes"})
     Optional<Invoice> findByInvoiceId(String invoiceId);
     boolean existsByInvoiceId(String invoiceId);
 
@@ -59,6 +59,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     // Status-based filtering methods
     List<Invoice> findByTenantIdAndStatusAndDeletedFalseOrderByCreatedAtDesc(Long tenantId, InvoiceStatus status);
     
-    @EntityGraph(attributePaths = {"invoiceTaxes", "invoiceItems", "invoiceEmployees"})
+    @EntityGraph(attributePaths = {"invoiceTaxes"})
     Optional<Invoice> findByInvoiceIdAndTenantIdAndDeletedFalse(String invoiceId, Long tenantId);
 }
