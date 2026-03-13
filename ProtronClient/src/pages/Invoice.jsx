@@ -19,10 +19,12 @@ import {
   Clock,
   CreditCard,
   Edit,
-  Folder
+  Folder,
+  CheckCircle
 } from "lucide-react";
 import axios from "axios";
 import AddInvoiceModal from "../components/AddInvoice";
+import SettlementModal from "../components/SettlementModal";
 import { useAccess } from "../Context/AccessContext";
 import { formatExcelDate } from "../utils/dateUtils"; 
 
@@ -472,6 +474,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const [error, setError] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isSettlementModalOpen, setIsSettlementModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [downloadingInvoice, setDownloadingInvoice] = useState(null);
   const [downloadingAttachment, setDownloadingAttachment] = useState(null);
@@ -744,6 +747,19 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     } finally {
       setDownloadingAttachment(null);
     }
+  };
+
+  // Handle settlement
+  const handleSettlement = (invoice) => {
+    setSelectedInvoice(invoice);
+    setIsSettlementModalOpen(true);
+  };
+
+  // Handle settlement complete
+  const handleSettlementComplete = () => {
+    fetchInvoiceData(); // Refresh the table
+    setIsSettlementModalOpen(false);
+    setSelectedInvoice(null);
   };
 
   // Handle view invoice - Updated to open modal
@@ -1064,6 +1080,30 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800";
             statusText = "Saved";
             break;
+          case "SENT":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800";
+            statusText = "Sent";
+            break;
+          case "PARTIALLY_PAID":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800";
+            statusText = "Partially Paid";
+            break;
+          case "PAID":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800";
+            statusText = "Paid";
+            break;
+          case "OVERDUE":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800";
+            statusText = "Overdue";
+            break;
+          case "CANCELLED":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800";
+            statusText = "Cancelled";
+            break;
+          case "REFUNDED":
+            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800";
+            statusText = "Refunded";
+            break;
           default:
             statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800";
             statusText = status || "Unknown";
@@ -1075,13 +1115,13 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "Actions",
       field: "actions",
-      width: 120,
+      width: 160,
       sortable: false,
       filter: false,
       suppressMenu: true,
       pinned: 'right',
       cellRenderer: params => (
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {/* View Button */}
           {hasAccess('budget', 'edit') && (
             <button
@@ -1089,7 +1129,18 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
               title="View Invoice"
             >
-              <Eye size={16} />
+              <Eye size={14} />
+            </button>
+          )}
+          {/* Settlement Button - For saved, sent, partially paid invoices */}
+          {hasAccess('budget', 'edit') && 
+           ['SAVED', 'SENT', 'PARTIALLY_PAID'].includes(params.data.status) && (
+            <button
+              onClick={() => handleSettlement(params.data)}
+              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
+              title="Settle Payment"
+            >
+              <CreditCard size={14} />
             </button>
           )}
           {/* Edit Button - Only for draft invoices */}
@@ -1099,22 +1150,9 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
               title="Edit Draft Invoice"
             >
-              <Edit size={16} />
+              <Edit size={14} />
             </button>
           )}
-          {/* Download Button */}
-          {/* <button
-            onClick={() => handleDownloadInvoicePDF(params.data.invoiceId, params.data.invoiceName)}
-            className="p-1 rounded hover:bg-gray-100 text-gray-600 cursor-pointer"
-            title="Download PDF"
-            disabled={downloadingInvoice === params.data.invoiceId}
-          >
-            {downloadingInvoice === params.data.invoiceId ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Download size={16} />
-            )}
-          </button> */}
           {/* Delete Button */}
           {hasAccess('budget', 'delete') && (
             <button
@@ -1122,7 +1160,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer"
               title="Delete Invoice"
             >
-              <Trash2 size={16} />
+              <Trash2 size={14} />
             </button>
           )}
         </div>
@@ -1166,15 +1204,21 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               <option value="">All Invoices</option>
               <option value="DRAFT">Draft</option>
               <option value="SAVED">Saved</option>
+              <option value="SENT">Sent</option>
+              <option value="PARTIALLY_PAID">Partially Paid</option>
+              <option value="PAID">Paid</option>
+              <option value="OVERDUE">Overdue</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="REFUNDED">Refunded</option>
             </select>
           </div>
-          <button
+          {/* <button
             onClick={downloadInvoiceExcel}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
           >
             <Download size={16} className="mr-2" />
             Download Excel
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -1515,6 +1559,17 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           setSelectedInvoice(null);
         }}
         invoice={selectedInvoice}
+      />
+
+      {/* Settlement Modal */}
+      <SettlementModal
+        open={isSettlementModalOpen}
+        onClose={() => {
+          setIsSettlementModalOpen(false);
+          setSelectedInvoice(null);
+        }}
+        invoice={selectedInvoice}
+        onSettlementComplete={handleSettlementComplete}
       />
 
       {/* Add Invoice Modal */}

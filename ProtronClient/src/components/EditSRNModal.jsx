@@ -140,7 +140,6 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
             srnType: srn.srnType,
             srnRemarks: srn.srnRemarks || "",
             srnDate: srn.srnDate || "",
-            srnDate: srn.srnDate || "",
           });
           setPoId(srn.poDetail.poId || "");
           console.log('Form data set:', {

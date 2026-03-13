@@ -117,6 +117,22 @@ public class Invoice {
     @JsonManagedReference
     private List<InvoiceTax> invoiceTaxes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Payment> payments = new ArrayList<>();
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal totalPaidAmount = BigDecimal.ZERO;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal outstandingAmount;
+
+    @Column
+    private LocalDate lastPaymentDate;
+
+    @Column
+    private LocalDate fullyPaidDate;
+
     // Attachments - storing up to 4 attachments
     @Lob
     @Column(columnDefinition = "LONGBLOB")
@@ -587,5 +603,61 @@ public class Invoice {
 
     public void setDiscountPercent(BigDecimal discountPercent) {
         this.discountPercent = discountPercent;
+    }
+
+    // Payment tracking methods
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
+    public BigDecimal getTotalPaidAmount() {
+        return totalPaidAmount;
+    }
+
+    public void setTotalPaidAmount(BigDecimal totalPaidAmount) {
+        this.totalPaidAmount = totalPaidAmount;
+    }
+
+    public BigDecimal getOutstandingAmount() {
+        return outstandingAmount != null ? outstandingAmount : totalAmount.subtract(totalPaidAmount);
+    }
+
+    public void setOutstandingAmount(BigDecimal outstandingAmount) {
+        this.outstandingAmount = outstandingAmount;
+    }
+
+    public LocalDate getLastPaymentDate() {
+        return lastPaymentDate;
+    }
+
+    public void setLastPaymentDate(LocalDate lastPaymentDate) {
+        this.lastPaymentDate = lastPaymentDate;
+    }
+
+    public LocalDate getFullyPaidDate() {
+        return fullyPaidDate;
+    }
+
+    public void setFullyPaidDate(LocalDate fullyPaidDate) {
+        this.fullyPaidDate = fullyPaidDate;
+    }
+
+    // Business logic methods
+    public boolean isFullyPaid() {
+        return getOutstandingAmount().compareTo(BigDecimal.ZERO) <= 0;
+    }
+
+    public boolean isPartiallyPaid() {
+        return totalPaidAmount.compareTo(BigDecimal.ZERO) > 0 && !isFullyPaid();
+    }
+
+    public BigDecimal getPaymentProgressPercentage() {
+        if (totalAmount.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
+        return totalPaidAmount.divide(totalAmount, 4, BigDecimal.ROUND_HALF_UP)
+                .multiply(new BigDecimal("100"));
     }
 }

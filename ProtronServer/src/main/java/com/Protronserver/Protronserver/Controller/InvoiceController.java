@@ -2,9 +2,12 @@ package com.Protronserver.Protronserver.Controller;
 
 import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
+import com.Protronserver.Protronserver.DTOs.PaymentDTO;
+import com.Protronserver.Protronserver.DTOs.PaymentSettlementRequest;
 import com.Protronserver.Protronserver.Entities.Invoice;
 import com.Protronserver.Protronserver.Entities.InvoiceStatus;
 import com.Protronserver.Protronserver.Service.InvoiceService;
+import com.Protronserver.Protronserver.Service.PaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,9 @@ public class InvoiceController {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private PaymentService paymentService;
 
     @PostMapping("/generate")
     public ResponseEntity<?> generateInvoice(@Valid @RequestBody InvoiceRequestDTO requestDTO) {
@@ -369,6 +375,136 @@ public class InvoiceController {
         } catch (Exception e) {
             log.error("Error filtering invoices by status {}: {}", status, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Payment Settlement Endpoints
+
+    @PostMapping("/settle-payment")
+    public ResponseEntity<?> settleInvoicePayment(@Valid @RequestBody PaymentSettlementRequest request) {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            log.info("Payment settlement requested for invoice: {}, amount: {}, type: {}", 
+                    request.getInvoiceId(), request.getSettlementAmount(), request.getSettlementType());
+
+            PaymentDTO response = paymentService.settleInvoice(request, tenantId);
+            
+            log.info("Payment settled successfully: {}", response.getPaymentId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error settling payment for invoice {}: {}", request.getInvoiceId(), e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error settling payment: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/settle-multiple-payments")
+    public ResponseEntity<?> settleInvoiceWithMultiplePayments(@Valid @RequestBody PaymentSettlementRequest request) {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            log.info("Multiple payment settlement requested for invoice: {}, total payments: {}", 
+                    request.getInvoiceId(), request.getPaymentDetails().size());
+
+            List<PaymentDTO> response = paymentService.settleInvoiceWithMultiplePayments(request, tenantId);
+            
+            log.info("Multiple payments settled successfully for invoice: {}", request.getInvoiceId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error settling multiple payments for invoice {}: {}", request.getInvoiceId(), e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error settling multiple payments: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{invoiceId}/payments")
+    public ResponseEntity<?> getPaymentsByInvoiceId(@PathVariable String invoiceId) {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            log.info("Retrieving payments for invoice: {}", invoiceId);
+            
+            List<PaymentDTO> payments = paymentService.getPaymentsByInvoiceId(invoiceId, tenantId);
+            
+            log.info("Retrieved {} payments for invoice: {}", payments.size(), invoiceId);
+            return ResponseEntity.ok(payments);
+        } catch (Exception e) {
+            log.error("Error retrieving payments for invoice {}: {}", invoiceId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving payments: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/payments/{paymentId}")
+    public ResponseEntity<?> getPaymentById(@PathVariable String paymentId) {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            log.info("Retrieving payment: {}", paymentId);
+            
+            PaymentDTO payment = paymentService.getPaymentById(paymentId, tenantId);
+            
+            log.info("Retrieved payment: {}", paymentId);
+            return ResponseEntity.ok(payment);
+        } catch (Exception e) {
+            log.error("Error retrieving payment {}: {}", paymentId, e.getMessage(), e);
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving payment: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/payments")
+    public ResponseEntity<?> getAllPaymentsByTenant() {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            log.info("Retrieving all payments for tenant");
+            
+            List<PaymentDTO> payments = paymentService.getAllPaymentsByTenant(tenantId);
+            
+            log.info("Retrieved {} payments for tenant", payments.size());
+            return ResponseEntity.ok(payments);
+        } catch (Exception e) {
+            log.error("Error retrieving all payments: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving payments: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/payments/{paymentId}/reverse")
+    public ResponseEntity<?> reversePayment(
+            @PathVariable String paymentId,
+            @RequestBody Map<String, String> reversalRequest) {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            String reason = reversalRequest.get("reason");
+            String reversedBy = reversalRequest.get("reversedBy");
+            
+            if (reason == null || reason.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Reversal reason is required");
+            }
+            
+            log.info("Reversing payment: {}, reason: {}", paymentId, reason);
+            
+            PaymentDTO payment = paymentService.reversePayment(paymentId, reason, reversedBy, tenantId);
+            
+            log.info("Payment reversed successfully: {}", paymentId);
+            return ResponseEntity.ok(payment);
+        } catch (Exception e) {
+            log.error("Error reversing payment {}: {}", paymentId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error reversing payment: " + e.getMessage());
         }
     }
 

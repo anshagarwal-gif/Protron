@@ -32,7 +32,6 @@ const AddTaskModal = ({ open, onClose, parentStory, initialProjectId, initialSta
     projectId: '',
     parentId: '',
     projectId: '',
-    parentId: '',
     date: getLocalDateString(),
     taskType: '',
     taskTopic: '',
