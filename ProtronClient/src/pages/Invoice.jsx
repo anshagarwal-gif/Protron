@@ -162,6 +162,33 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
     }
   };
 
+  const downloadInvoiceExcel = async () => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/invoices/download-excel/${invoice.invoiceId}`,
+        {
+          headers: { Authorization: token },
+          responseType: 'blob'
+        }
+      );
+
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice_list_${new Date().toISOString().split('T')[0]}.xlsx`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading invoice Excel:', error);
+      alert('Failed to download Excel file. Please try again.');
+    }
+  };
+
   // Field component for consistent styling (matching other modals)
   const Field = ({ label, value, className = "" }) => (
     <div className={className}>
@@ -898,6 +925,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       }));
 
       const headers = Object.keys(excelData[0] || {});
+
       const csvContent = [
         headers.join(','),
         ...excelData.map(row =>
@@ -911,30 +939,38 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       ].join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
       const link = document.createElement('a');
+
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
+
         link.setAttribute('href', url);
-        link.setAttribute('download', `invoice_list_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
+        link.setAttribute(
+          'download',
+          `invoice_list_${new Date().toISOString().split('T')[0]}.csv`
+        );
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
       }
+
     } catch (error) {
-      console.error('Error downloading invoice Excel:', error);
-      alert('Failed to download Excel file. Please try again.');
+      console.error("Error downloading invoice excel:", error);
+      alert("Failed to download Excel file");
     }
   };
 
-  // Handle edit invoice
-  const handleEditInvoice = (invoice) => {
-    setSelectedInvoice(invoice);
-    setIsEditModalOpen(true);
+  const handleAddInvoice = () => {
+    setSelectedInvoice(null);
+    setIsAddModalOpen(true);
   };
 
-  // Handle add invoice
-  const handleAddInvoice = () => {
+  const handleEditInvoice = (invoice) => {
+    setSelectedInvoice(invoice);
     setIsAddModalOpen(true);
   };
 
