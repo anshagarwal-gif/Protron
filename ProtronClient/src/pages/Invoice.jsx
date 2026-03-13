@@ -293,21 +293,80 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
               <CreditCard className="mr-2 text-green-600" size={20} />
               Payment Summary
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              <Field
-                label="Rate per Hour"
-                value={formatCurrency(invoice.rate, invoice.currency)}
-              />
-              <Field
-                label="Total Hours"
-                value={`${invoice.hoursSpent || '0'} hours`}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <Field
                 label="Total Amount"
                 value={formatCurrency(invoice.totalAmount, invoice.currency)}
               />
+              <Field
+                label="Total Paid"
+                value={formatCurrency(invoice.totalPaidAmount, invoice.currency)}
+              />
+              <Field
+                label="Outstanding Amount"
+                value={formatCurrency(invoice.outstandingAmount, invoice.currency)}
+              />
+              <Field
+                label="Last Payment Date"
+                value={formatDate(invoice.lastPaymentDate)}
+              />
             </div>
           </div>
+
+          {/* Payment Details Table */}
+          {invoice.payments && invoice.payments.length > 0 && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <DollarSign className="mr-2 text-green-600" size={20} />
+                Payment Details
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm table-auto border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="text-left p-2 border">Payment ID</th>
+                      <th className="text-left p-2 border">Amount</th>
+                      <th className="text-left p-2 border">Method</th>
+                      <th className="text-left p-2 border">Status</th>
+                      <th className="text-left p-2 border">Payment Date</th>
+                      <th className="text-left p-2 border">Transaction Ref</th>
+                      <th className="text-left p-2 border">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoice.payments.map((payment, idx) => (
+                      <tr key={`payment-${idx}`}>
+                        <td className="p-2 border font-medium">{payment.paymentId || 'N/A'}</td>
+                        <td className="p-2 border">{formatCurrency(payment.paymentAmount, invoice.currency)}</td>
+                        <td className="p-2 border">{payment.paymentMethod || 'N/A'}</td>
+                        <td className="p-2 border">
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            payment.paymentStatus === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                            payment.paymentStatus === 'PROCESSING' ? 'bg-yellow-100 text-yellow-800' :
+                            payment.paymentStatus === 'FAILED' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {payment.paymentStatus || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="p-2 border">{formatDate(payment.paymentDate)}</td>
+                        <td className="p-2 border">{payment.transactionReference || 'N/A'}</td>
+                        <td className="p-2 border">{payment.notes || 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-gray-100 font-semibold">
+                      <td className="p-2 border" colSpan="2">Total Paid:</td>
+                      <td className="p-2 border" colSpan="5">
+                        {formatCurrency(invoice.totalPaidAmount, invoice.currency)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Tax & Discount Details */}
           <div className="bg-gray-50 rounded-lg p-4">
