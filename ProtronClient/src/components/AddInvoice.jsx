@@ -2068,7 +2068,7 @@ const AddInvoiceModal = ({
                                         <div>
                                             <CreatableSelect
                                                 options={employees}
-                                                value={employees.find(emp => emp.userId === er.userId) || null}
+                                                value={employees.find(emp => emp.userId === er.userId) || (er.userId ? { userId: er.userId, label: er.name || er.userId } : null)}
                                                 onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
                                                 classNamePrefix="react-select"
                                                 isClearable
