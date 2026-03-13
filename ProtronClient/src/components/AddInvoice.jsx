@@ -356,11 +356,25 @@ const AddInvoiceModal = ({
     const populateFormWithEditData = useCallback((editData) => {
         if (!editData) return;
 
+        // Extract taxId from taxes array if available
+        const taxId = editData.taxes && editData.taxes.length > 0 ? editData.taxes[0].taxNumber || '' : '';
+
+        // Construct supplierInfo from supplier name and taxId
+        const supplierInfo = editData.supplierName && taxId
+            ? `${editData.supplierName} | Tax ID : ${taxId}`
+            : editData.supplierName || '';
+
+        // Use createdAt as invoiceDate if invoiceDate not available
+        const invoiceDate = editData.invoiceDate || editData.createdAt || '';
+
+        // Calculate dueDateOption based on due date (assuming it's set to 15 days from invoice date)
+        const dueDateOption = editData.dueDateOption || '15';
+
         setFormData({
             invoiceName: editData.invoiceName || '',
             invoiceType: editData.invoiceType || 'DOMESTIC',
-            invoiceDate: editData.invoiceDate || '',
-            taxId: editData.taxId || '',
+            invoiceDate: invoiceDate,
+            taxId: taxId,
             billPeriod: editData.billPeriod || '',
             customerName: editData.customerName || '',
             billToAddress: editData.billToAddress || '',
@@ -368,7 +382,7 @@ const AddInvoiceModal = ({
             customerInfo: editData.customerInfo || '',
             supplierName: editData.supplierName || sessionStorage.getItem('tenantName') || '',
             supplierAddress: editData.supplierAddress || '',
-            supplierInfo: editData.supplierInfo || '',
+            supplierInfo: supplierInfo,
             country: editData.country || '',
             employeeName: editData.employeeName || '',
             employeeNames: editData.employeeNames || [],
@@ -385,12 +399,12 @@ const AddInvoiceModal = ({
             taxes: editData.taxes || [],
             discountPercent: editData.discountPercent || '',
             dueDate: editData.dueDate || '',
-            dueDateOption: editData.dueDateOption || '15'
+            dueDateOption: dueDateOption
         });
 
-        // Populate items
-        if (editData.invoiceItems && editData.invoiceItems.length > 0) {
-            const populatedItems = editData.invoiceItems.map((item, index) => ({
+        // Populate items (API returns 'items', not 'invoiceItems')
+        if (editData.items && editData.items.length > 0) {
+            const populatedItems = editData.items.map((item, index) => ({
                 id: index + 1,
                 description: item.itemDesc || item.description || '',
                 rate: item.rate || '',
@@ -401,9 +415,9 @@ const AddInvoiceModal = ({
             setItems(populatedItems);
         }
 
-        // Populate employees
-        if (editData.invoiceEmployees && editData.invoiceEmployees.length > 0) {
-            const populatedEmployees = editData.invoiceEmployees.map((emp, index) => ({
+        // Populate employees (API returns 'employees', not 'invoiceEmployees')
+        if (editData.employees && editData.employees.length > 0) {
+            const populatedEmployees = editData.employees.map((emp, index) => ({
                 id: index + 1,
                 userId: emp.userId || '',
                 name: emp.itemDesc || emp.name || '',
