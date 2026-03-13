@@ -60,6 +60,18 @@ public class InvoiceResponseDTO {
 
     private InvoiceStatus status;
 
+    // Payment-related fields
+    private BigDecimal totalPaidAmount;
+    private BigDecimal outstandingAmount;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate lastPaymentDate;
+    
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate fullyPaidDate;
+    
+    private List<PaymentDTO> payments;
+
     public String getCountry() {
         return country;
     }
@@ -276,11 +288,52 @@ public class InvoiceResponseDTO {
         this.dueDate = dueDate;
     }
 
-    public InvoiceStatus getStatus() {
-        return status;
-    }
+public InvoiceStatus getStatus() {
+    return status;
+}
 
-    public void setStatus(InvoiceStatus status) {
-        this.status = status;
-    }
+public void setStatus(InvoiceStatus status) {
+    this.status = status;
+}
+
+// Payment-related getters and setters
+public BigDecimal getTotalPaidAmount() {
+    return totalPaidAmount;
+}
+
+public void setTotalPaidAmount(BigDecimal totalPaidAmount) {
+    this.totalPaidAmount = totalPaidAmount;
+}
+
+public BigDecimal getOutstandingAmount() {
+    return outstandingAmount;
+}
+
+public void setOutstandingAmount(BigDecimal outstandingAmount) {
+    this.outstandingAmount = outstandingAmount;
+}
+
+public LocalDate getLastPaymentDate() {
+    return lastPaymentDate;
+}
+
+public void setLastPaymentDate(LocalDate lastPaymentDate) {
+    this.lastPaymentDate = lastPaymentDate;
+}
+
+public LocalDate getFullyPaidDate() {
+    return fullyPaidDate;
+}
+
+public void setFullyPaidDate(LocalDate fullyPaidDate) {
+    this.fullyPaidDate = fullyPaidDate;
+}
+
+public List<PaymentDTO> getPayments() {
+    return payments;
+}
+
+public void setPayments(List<PaymentDTO> payments) {
+    this.payments = payments;
+}
 }

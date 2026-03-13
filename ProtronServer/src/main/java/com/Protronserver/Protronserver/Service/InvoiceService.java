@@ -4,6 +4,7 @@ import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
 import com.Protronserver.Protronserver.DTO.InvoiceItemDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceRequestDTO;
 import com.Protronserver.Protronserver.DTOs.InvoiceTaxDTO;
+import com.Protronserver.Protronserver.DTOs.PaymentDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.InvoiceRepository;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
@@ -55,6 +56,9 @@ public class InvoiceService {
 
     @Autowired
     private TenantRepository tenantRepository;
+
+    @Autowired
+    private PaymentService paymentService;
 
     /**
      * Generates a custom invoice ID in format: INV-MMDDYYYY-100001
@@ -2251,6 +2255,44 @@ public class InvoiceService {
 
         // Set status
         dto.setStatus(invoice.getStatus());
+
+        // Payment-related information
+        try {
+            BigDecimal totalPaidAmount = paymentService.getTotalPaidAmount(invoice.getId());
+            BigDecimal outstandingAmount = invoice.getTotalAmount().subtract(totalPaidAmount);
+            
+            dto.setTotalPaidAmount(totalPaidAmount);
+            dto.setOutstandingAmount(outstandingAmount);
+            
+            // Get payment details
+            List<PaymentDTO> payments = paymentService.getPaymentsByInvoiceId(invoice.getInvoiceId(), invoice.getTenantId());
+            dto.setPayments(payments);
+            
+            // Set last payment date
+            if (payments != null && !payments.isEmpty()) {
+                LocalDate lastPaymentDate = payments.stream()
+                    .map(PaymentDTO::getPaymentDate)
+                    .filter(date -> date != null)
+                    .max(LocalDate::compareTo)
+                    .orElse(null);
+                dto.setLastPaymentDate(lastPaymentDate);
+            }
+            
+            // Set fully paid date if invoice is fully paid
+            if (invoice.getStatus() == InvoiceStatus.PAID && payments != null && !payments.isEmpty()) {
+                LocalDate fullyPaidDate = payments.stream()
+                    .map(PaymentDTO::getPaymentDate)
+                    .filter(date -> date != null)
+                    .max(LocalDate::compareTo)
+                    .orElse(null);
+                dto.setFullyPaidDate(fullyPaidDate);
+            }
+        } catch (Exception e) {
+            log.warn("Error fetching payment information for invoice {}: {}", invoice.getInvoiceId(), e.getMessage());
+            dto.setTotalPaidAmount(BigDecimal.ZERO);
+            dto.setOutstandingAmount(invoice.getTotalAmount());
+            dto.setPayments(new ArrayList<>());
+        }
 
         return dto;
     }
