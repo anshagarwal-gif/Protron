@@ -1921,28 +1921,6 @@ const AddInvoiceModal = ({
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Discount %</label>
-                                <input
-                                    type="number"
-                                    placeholder="Enter discount %"
-                                    value={formData.discountPercent}
-                                    onChange={(e) => {
-                                        const value = parseFloat(e.target.value);
-                                        if (value <= 100 && value >= 0) {
-                                            handleChange('discountPercent')(e);
-                                        } else if (value > 100) {
-                                            e.target.value = 100;
-                                            handleChange('discountPercent')(e);
-                                        }
-                                    }}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                />
-                            </div>
-
-                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Due Date Option</label>
                                 <select
                                     value={formData.dueDateOption}
@@ -2056,8 +2034,8 @@ const AddInvoiceModal = ({
                                 {items.map((it) => (
                                     <div key={`item-${it.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
                                         <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
-                                        <input type="number" step="0.01" min="0" max="99999999.99" placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                        <input type="number" step="0.01" min="0" max="99999999.99" placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
                                         <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
                                     </div>
@@ -2067,25 +2045,8 @@ const AddInvoiceModal = ({
                                     <div key={`emp-${er.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
                                         <div>
                                             <CreatableSelect
-                                                options={[
-                                                    ...employees,
-                                                    ...invoiceEmployees.filter(e => e.userId).map(e => ({
-                                                        label: e.name ? `${e.name} (${e.userId})` : e.userId,
-                                                        value: e.name || e.userId,
-                                                        userId: e.userId,
-                                                        empCode: e.userId,
-                                                        name: e.name,
-                                                        cost: e.rate,
-                                                        email: '',
-                                                        status: 'ACTIVE',
-                                                        currency: formData.currency || 'USD',
-                                                        city: '',
-                                                        state: '',
-                                                        country: '',
-                                                        mobilePhone: ''
-                                                    }))
-                                                ]}
-                                                value={er.userId ? { userId: er.userId, label: er.name ? `${er.name} (${er.userId})` : er.userId } : null}
+                                                options={employees}
+                                                value={employees.find(emp => emp.userId === er.userId) || (er.userId ? { userId: er.userId, label: er.name || er.userId } : null)}
                                                 onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
                                                 classNamePrefix="react-select"
                                                 isClearable
@@ -2093,7 +2054,7 @@ const AddInvoiceModal = ({
                                             />
                                         </div>
                                         <div>
-                                            <input type="number" step="0.01" min="0" max="99999999.99" value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" />
+                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" />
                                         </div>
                                         <div>
                                             <input value={er.quantity} onChange={(e) => updateEmployeeRow(er.id, 'quantity', e.target.value)} placeholder="Qty" className="px-2 py-1 border rounded-none w-full" />
@@ -2185,14 +2146,14 @@ const AddInvoiceModal = ({
                                                 // Parse and validate
                                                 const numValue = parseFloat(value);
                                                 if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-                                                    handleTaxChange(index, 'taxPercentage', numValue.toFixed(2));
+                                                    handleTaxChange(index, 'taxPercentage', numValue.toString());
                                                 }
                                                 // If invalid, don't update
                                             }}
                                             onBlur={(e) => {
                                                 const value = e.target.value;
                                                 if (value === '') {
-                                                    handleTaxChange(index, 'taxPercentage', '0.00');
+                                                    handleTaxChange(index, 'taxPercentage', '0');
                                                     return;
                                                 }
                                                 const numValue = parseFloat(value);
@@ -2271,16 +2232,90 @@ const AddInvoiceModal = ({
                                     <div className="flex items-center justify-between">
                                         <span className="text-sm font-medium text-blue-900">Total Tax Amount:</span>
                                         <span className="text-lg font-bold text-blue-900">
-                                            {currencySymbols[formData.currency] || '$'}{Number(computeTaxTotal()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            {currencySymbols[formData.currency] || '$'}{computeTaxTotal().toFixed(2)}
                                         </span>
                                     </div>
                                 </div>
                             )}
                         </div>
 
+                        {/* Discount Section */}
+                        <div className="mt-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-md font-semibold text-gray-800 flex items-center">
+                                    <Percent className="mr-2 text-green-600" size={18} />
+                                    Discount
+                                </h4>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-center mb-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Discount %</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        max="100"
+                                        placeholder="0.00"
+                                        value={formData.discountPercent}
+                                        onChange={(e) => {
+                                            let value = e.target.value;
+                                            // Allow empty value
+                                            if (value === '') {
+                                                handleChange('discountPercent')(e);
+                                                return;
+                                            }
+                                            // Parse and validate
+                                            const numValue = parseFloat(value);
+                                            if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                                                handleChange('discountPercent')(e);
+                                            }
+                                            // If invalid, don't update
+                                        }}
+                                        onBlur={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '') {
+                                                setFormData(prev => ({ ...prev, discountPercent: '' }));
+                                                return;
+                                            }
+                                            const numValue = parseFloat(value);
+                                            if (isNaN(numValue) || numValue < 0) {
+                                                setFormData(prev => ({ ...prev, discountPercent: '' }));
+                                            } else if (numValue > 100) {
+                                                setFormData(prev => ({ ...prev, discountPercent: '100' }));
+                                            }
+                                        }}
+                                        className={`w-full h-9 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none ${
+                                            parseFloat(formData.discountPercent || 0) > 100 || parseFloat(formData.discountPercent || 0) < 0
+                                                ? 'border-red-500 focus:border-red-500'
+                                                : 'border-gray-300 focus:border-green-500'
+                                        }`}
+                                        title="Discount percentage (0.00 - 100.00)"
+                                    />
+                                    {parseFloat(formData.discountPercent || 0) > 100 && (
+                                        <p className="text-xs text-red-600 mt-1">Maximum 100%</p>
+                                    )}
+                                    {parseFloat(formData.discountPercent || 0) < 0 && (
+                                        <p className="text-xs text-red-600 mt-1">Cannot be negative</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Discount Amount</label>
+                                    <div className="w-full h-9 px-3 bg-gray-100 border border-gray-300 rounded-md flex items-center text-sm font-medium text-gray-700">
+                                        {currencySymbols[formData.currency] || '$'}{(() => {
+                                            const tableTotal = parseFloat(computeItemsTotal() || 0);
+                                            const discountPercent = parseFloat(formData.discountPercent || 0);
+                                            const discountAmount = isNaN(discountPercent) ? 0 : (tableTotal * discountPercent) / 100;
+                                            return discountAmount.toFixed(2);
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Table totals and amount in words */}
                         <div className="mt-4 text-right">
-                            <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{Number(computeItemsTotal()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                            <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
                             <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
                         </div>
                         {errors.items && (
@@ -2297,14 +2332,14 @@ const AddInvoiceModal = ({
                                 {/* Subtotal Row */}
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm font-medium text-gray-700">Subtotal</span>
-                                    <span className="text-sm font-medium text-gray-900">{currencySymbols[formData.currency] || '$'}{Number(parseFloat(computeItemsTotal() || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="text-sm font-medium text-gray-900">{currencySymbols[formData.currency] || '$'}{parseFloat(computeItemsTotal() || 0).toFixed(2)}</span>
                                 </div>
 
                                 {/* Discount Row */}
                                 {formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-medium text-gray-700">Discount ({formData.discountPercent}%)</span>
-                                        <span className="text-sm font-medium text-red-600">- {currencySymbols[formData.currency] || '$'}{Number(parseFloat(computeItemsTotal() || 0) * parseFloat(formData.discountPercent) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <span className="text-sm font-medium text-red-600">- {currencySymbols[formData.currency] || '$'}{(parseFloat(computeItemsTotal() || 0) * parseFloat(formData.discountPercent) / 100).toFixed(2)}</span>
                                     </div>
                                 )}
 
@@ -2321,7 +2356,7 @@ const AddInvoiceModal = ({
                                     return taxAmount > 0 ? (
                                         <div key={index} className="flex justify-between items-center">
                                             <span className="text-sm font-medium text-gray-700">Tax {tax.taxName || 'Tax'} ({tax.taxPercentage}%)</span>
-                                            <span className="text-sm font-medium text-gray-900">{currencySymbols[formData.currency] || '$'}{Number(taxAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                            <span className="text-sm font-medium text-gray-900">{currencySymbols[formData.currency] || '$'}{taxAmount.toFixed(2)}</span>
                                         </div>
                                     ) : null;
                                 })}
@@ -2332,7 +2367,7 @@ const AddInvoiceModal = ({
                                 {/* Grand Total Row */}
                                 <div className="flex justify-between items-center">
                                     <span className="text-lg font-bold text-gray-800">Grand Total</span>
-                                    <span className="text-lg font-bold text-gray-900">{currencySymbols[formData.currency] || '$'}{Number(computeGrandTotal()).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="text-lg font-bold text-gray-900">{currencySymbols[formData.currency] || '$'}{computeGrandTotal().toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
