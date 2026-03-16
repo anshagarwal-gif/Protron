@@ -2531,6 +2531,74 @@ public class InvoiceService {
     }
 
     @Transactional
+    public InvoiceResponseDTO updateInvoiceWithAttachments(String invoiceId, InvoiceRequestDTO requestDTO, List<MultipartFile> attachments) {
+        log.info("Updating invoice with attachments: {}", invoiceId);
+        
+        // First update the invoice
+        InvoiceResponseDTO response = updateInvoice(invoiceId, requestDTO);
+        
+        // Then handle attachments if any are provided
+        if (attachments != null && !attachments.isEmpty()) {
+            try {
+                // Get the updated invoice entity
+                Optional<Invoice> invoiceOpt = invoiceRepository.findByInvoiceId(invoiceId);
+                if (invoiceOpt.isPresent()) {
+                    Invoice invoice = invoiceOpt.get();
+                    
+                    // Clear existing attachments
+                    invoice.setAttachment1Data(null);
+                    invoice.setAttachment1ContentType(null);
+                    invoice.setAttachment1FileName(null);
+                    invoice.setAttachment2Data(null);
+                    invoice.setAttachment2ContentType(null);
+                    invoice.setAttachment2FileName(null);
+                    invoice.setAttachment3Data(null);
+                    invoice.setAttachment3ContentType(null);
+                    invoice.setAttachment3FileName(null);
+                    invoice.setAttachment4Data(null);
+                    invoice.setAttachment4ContentType(null);
+                    invoice.setAttachment4FileName(null);
+                    
+                    // Add new attachments
+                    for (int i = 0; i < attachments.size() && i < 4; i++) {
+                        MultipartFile file = attachments.get(i);
+                        switch (i) {
+                            case 0:
+                                invoice.setAttachment1Data(file.getBytes());
+                                invoice.setAttachment1ContentType(file.getContentType());
+                                invoice.setAttachment1FileName(file.getOriginalFilename());
+                                break;
+                            case 1:
+                                invoice.setAttachment2Data(file.getBytes());
+                                invoice.setAttachment2ContentType(file.getContentType());
+                                invoice.setAttachment2FileName(file.getOriginalFilename());
+                                break;
+                            case 2:
+                                invoice.setAttachment3Data(file.getBytes());
+                                invoice.setAttachment3ContentType(file.getContentType());
+                                invoice.setAttachment3FileName(file.getOriginalFilename());
+                                break;
+                            case 3:
+                                invoice.setAttachment4Data(file.getBytes());
+                                invoice.setAttachment4ContentType(file.getContentType());
+                                invoice.setAttachment4FileName(file.getOriginalFilename());
+                                break;
+                        }
+                    }
+                    
+                    invoiceRepository.save(invoice);
+                    log.info("Updated {} attachments for invoice: {}", attachments.size(), invoiceId);
+                }
+            } catch (IOException e) {
+                log.error("Error processing attachments for invoice {}: {}", invoiceId, e.getMessage());
+                throw new RuntimeException("Error processing attachments: " + e.getMessage());
+            }
+        }
+        
+        return response;
+    }
+
+    @Transactional
     public InvoiceResponseDTO updateInvoice(String invoiceId, InvoiceRequestDTO requestDTO) {
         try {
             Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();

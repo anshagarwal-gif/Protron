@@ -1235,7 +1235,7 @@ const AddInvoiceModal = ({
                     });
 
                     response = await axios.put(
-                        `${API_BASE_URL}/api/invoices/update/${editInvoiceData.invoiceId}`,
+                        `${API_BASE_URL}/api/invoices/update-with-attachments/${editInvoiceData.invoiceId}`,
                         formDataToSend,
                         {
                             headers: {
@@ -1269,7 +1269,7 @@ const AddInvoiceModal = ({
                         formDataToSend.append('attachments', file);
                     });
 
-                    const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice';
+                    const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice-with-attachments';
                     response = await axios.post(
                         `${API_BASE_URL}${endpoint}`,
                         formDataToSend,
