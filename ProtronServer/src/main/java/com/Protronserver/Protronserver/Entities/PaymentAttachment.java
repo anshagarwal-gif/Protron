@@ -32,7 +32,7 @@ public class PaymentAttachment {
     private Long tenantId;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "LONGBLOB")
     private byte[] attachmentData;
 
     @Column(nullable = false)
