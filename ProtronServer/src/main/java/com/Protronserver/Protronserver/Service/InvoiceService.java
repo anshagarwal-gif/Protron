@@ -2531,63 +2531,117 @@ public class InvoiceService {
     }
 
     @Transactional
-    public InvoiceResponseDTO updateInvoiceWithAttachments(String invoiceId, InvoiceRequestDTO requestDTO, List<MultipartFile> attachments) {
+    public InvoiceResponseDTO updateInvoiceWithAttachments(String invoiceId, InvoiceRequestDTO requestDTO, List<MultipartFile> attachments, List<String> attachmentsToRemove) {
         log.info("Updating invoice with attachments: {}", invoiceId);
         
         // First update the invoice
         InvoiceResponseDTO response = updateInvoice(invoiceId, requestDTO);
         
-        // Then handle attachments if any are provided
-        if (attachments != null && !attachments.isEmpty()) {
+        // Then handle attachments if any are provided or need to be removed
+        if (attachments != null && !attachments.isEmpty() || (attachmentsToRemove != null && !attachmentsToRemove.isEmpty())) {
             try {
                 // Get the updated invoice entity
                 Optional<Invoice> invoiceOpt = invoiceRepository.findByInvoiceId(invoiceId);
                 if (invoiceOpt.isPresent()) {
                     Invoice invoice = invoiceOpt.get();
                     
-                    // Clear existing attachments
-                    invoice.setAttachment1Data(null);
-                    invoice.setAttachment1ContentType(null);
-                    invoice.setAttachment1FileName(null);
-                    invoice.setAttachment2Data(null);
-                    invoice.setAttachment2ContentType(null);
-                    invoice.setAttachment2FileName(null);
-                    invoice.setAttachment3Data(null);
-                    invoice.setAttachment3ContentType(null);
-                    invoice.setAttachment3FileName(null);
-                    invoice.setAttachment4Data(null);
-                    invoice.setAttachment4ContentType(null);
-                    invoice.setAttachment4FileName(null);
+                    // Remove specified attachments
+                    if (attachmentsToRemove != null && !attachmentsToRemove.isEmpty()) {
+                        for (String attachmentId : attachmentsToRemove) {
+                            // Extract index from attachmentId (format: "existing-{index}")
+                            String[] parts = attachmentId.split("-");
+                            if (parts.length == 2) {
+                                try {
+                                    int index = Integer.parseInt(parts[1]);
+                                    switch (index) {
+                                        case 0:
+                                            invoice.setAttachment1Data(null);
+                                            invoice.setAttachment1ContentType(null);
+                                            invoice.setAttachment1FileName(null);
+                                            break;
+                                        case 1:
+                                            invoice.setAttachment2Data(null);
+                                            invoice.setAttachment2ContentType(null);
+                                            invoice.setAttachment2FileName(null);
+                                            break;
+                                        case 2:
+                                            invoice.setAttachment3Data(null);
+                                            invoice.setAttachment3ContentType(null);
+                                            invoice.setAttachment3FileName(null);
+                                            break;
+                                        case 3:
+                                            invoice.setAttachment4Data(null);
+                                            invoice.setAttachment4ContentType(null);
+                                            invoice.setAttachment4FileName(null);
+                                            break;
+                                    }
+                                    log.info("Removed attachment {} for invoice: {}", attachmentId, invoiceId);
+                                } catch (NumberFormatException e) {
+                                    log.warn("Invalid attachment ID format: {}", attachmentId);
+                                }
+                            }
+                        }
+                    }
                     
                     // Add new attachments
-                    for (int i = 0; i < attachments.size() && i < 4; i++) {
-                        MultipartFile file = attachments.get(i);
-                        switch (i) {
-                            case 0:
-                                invoice.setAttachment1Data(file.getBytes());
-                                invoice.setAttachment1ContentType(file.getContentType());
-                                invoice.setAttachment1FileName(file.getOriginalFilename());
+                    if (attachments != null && !attachments.isEmpty()) {
+                        // Find first available slot
+                        int slotIndex = 0;
+                        for (int i = 0; i < 4; i++) {
+                            boolean isOccupied = false;
+                            switch (i) {
+                                case 0:
+                                    isOccupied = invoice.getAttachment1Data() != null;
+                                    break;
+                                case 1:
+                                    isOccupied = invoice.getAttachment2Data() != null;
+                                    break;
+                                case 2:
+                                    isOccupied = invoice.getAttachment3Data() != null;
+                                    break;
+                                case 3:
+                                    isOccupied = invoice.getAttachment4Data() != null;
+                                    break;
+                            }
+                            if (!isOccupied) {
+                                slotIndex = i;
                                 break;
-                            case 1:
-                                invoice.setAttachment2Data(file.getBytes());
-                                invoice.setAttachment2ContentType(file.getContentType());
-                                invoice.setAttachment2FileName(file.getOriginalFilename());
-                                break;
-                            case 2:
-                                invoice.setAttachment3Data(file.getBytes());
-                                invoice.setAttachment3ContentType(file.getContentType());
-                                invoice.setAttachment3FileName(file.getOriginalFilename());
-                                break;
-                            case 3:
-                                invoice.setAttachment4Data(file.getBytes());
-                                invoice.setAttachment4ContentType(file.getContentType());
-                                invoice.setAttachment4FileName(file.getOriginalFilename());
-                                break;
+                            }
+                        }
+                        
+                        // Add attachments to available slots
+                        for (int i = 0; i < attachments.size() && slotIndex < 4; i++, slotIndex++) {
+                            MultipartFile file = attachments.get(i);
+                            switch (slotIndex) {
+                                case 0:
+                                    invoice.setAttachment1Data(file.getBytes());
+                                    invoice.setAttachment1ContentType(file.getContentType());
+                                    invoice.setAttachment1FileName(file.getOriginalFilename());
+                                    break;
+                                case 1:
+                                    invoice.setAttachment2Data(file.getBytes());
+                                    invoice.setAttachment2ContentType(file.getContentType());
+                                    invoice.setAttachment2FileName(file.getOriginalFilename());
+                                    break;
+                                case 2:
+                                    invoice.setAttachment3Data(file.getBytes());
+                                    invoice.setAttachment3ContentType(file.getContentType());
+                                    invoice.setAttachment3FileName(file.getOriginalFilename());
+                                    break;
+                                case 3:
+                                    invoice.setAttachment4Data(file.getBytes());
+                                    invoice.setAttachment4ContentType(file.getContentType());
+                                    invoice.setAttachment4FileName(file.getOriginalFilename());
+                                    break;
+                            }
                         }
                     }
                     
                     invoiceRepository.save(invoice);
-                    log.info("Updated {} attachments for invoice: {}", attachments.size(), invoiceId);
+                    log.info("Updated attachments for invoice: {} (added: {}, removed: {})", 
+                        invoiceId, 
+                        attachments != null ? attachments.size() : 0,
+                        attachmentsToRemove != null ? attachmentsToRemove.size() : 0);
                 }
             } catch (IOException e) {
                 log.error("Error processing attachments for invoice {}: {}", invoiceId, e.getMessage());

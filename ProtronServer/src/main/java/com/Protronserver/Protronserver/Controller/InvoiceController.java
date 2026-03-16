@@ -450,7 +450,8 @@ public class InvoiceController {
     public ResponseEntity<?> updateInvoiceWithAttachments(
             @PathVariable String invoiceId,
             @RequestPart("invoice") String invoiceJson,
-            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments,
+            @RequestPart(value = "attachmentsToRemove", required = false) String attachmentsToRemoveJson) {
         try {
             // Log raw invoice JSON part
             try {
@@ -461,6 +462,17 @@ public class InvoiceController {
 
             // Parse the JSON string to InvoiceRequestDTO
             InvoiceRequestDTO requestDTO = objectMapper.readValue(invoiceJson, InvoiceRequestDTO.class);
+
+            // Parse attachments to remove if provided
+            List<String> attachmentsToRemove = new ArrayList<>();
+            if (attachmentsToRemoveJson != null && !attachmentsToRemoveJson.trim().isEmpty()) {
+                try {
+                    attachmentsToRemove = objectMapper.readValue(attachmentsToRemoveJson, List.class);
+                    log.info("Attachments to remove: {}", attachmentsToRemove);
+                } catch (Exception e) {
+                    log.warn("Failed to parse attachmentsToRemove: {}", e.getMessage());
+                }
+            }
 
             // Log timesheet data inclusion
             if (requestDTO.hasTimesheetData()) {
@@ -509,12 +521,12 @@ public class InvoiceController {
             }
 
             InvoiceResponseDTO response;
-            if (validAttachments.isEmpty()) {
-                // No attachments, use regular method
+            if (validAttachments.isEmpty() && attachmentsToRemove.isEmpty()) {
+                // No attachments changes, use regular method
                 response = invoiceService.updateInvoice(invoiceId, requestDTO);
             } else {
-                // With attachments
-                response = invoiceService.updateInvoiceWithAttachments(invoiceId, requestDTO, validAttachments);
+                // With attachments or removals
+                response = invoiceService.updateInvoiceWithAttachments(invoiceId, requestDTO, validAttachments, attachmentsToRemove);
             }
 
             log.info("Invoice with attachments updated successfully: {}", invoiceId);

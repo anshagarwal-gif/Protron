@@ -118,6 +118,8 @@ const AddInvoiceModal = ({
     // Single attachment field that handles multiple files (up to 4)
     const MAX_ATTACHMENTS = 4;
     const [attachments, setAttachments] = useState([]);
+    const [existingAttachments, setExistingAttachments] = useState([]); // For edit mode
+    const [attachmentsToRemove, setAttachmentsToRemove] = useState([]); // Track which existing attachments to remove
     const [attachTimesheet, setAttachTimesheet] = useState(false);
     // Bill period uses `formData.fromDate` and `formData.toDate`
     const [timesheetRef, setTimesheetRef] = useState('');
@@ -435,6 +437,16 @@ const AddInvoiceModal = ({
                 };
             });
             setInvoiceEmployees(populatedEmployees);
+        }
+
+        // Populate existing attachments if in edit mode
+        if (editData.attachmentFileNames && editData.attachmentFileNames.length > 0) {
+            const existing = editData.attachmentFileNames.map((fileName, index) => ({
+                id: `existing-${index}`,
+                fileName: fileName,
+                isExisting: true
+            }));
+            setExistingAttachments(existing);
         }
     }, []);
 
@@ -1036,6 +1048,21 @@ const AddInvoiceModal = ({
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
+    };
+
+    const removeExistingAttachment = (attachmentId) => {
+        // Add to removals list
+        setAttachmentsToRemove(prev => [...prev, attachmentId]);
+        // Remove from existing attachments display
+        setExistingAttachments(prev => prev.filter(att => att.id !== attachmentId));
+    };
+
+    const getTotalAttachmentCount = () => {
+        return attachments.length + existingAttachments.length;
+    };
+
+    const getRemainingSlots = () => {
+        return MAX_ATTACHMENTS - getTotalAttachmentCount();
     };
 
     const validateForm = () => {
