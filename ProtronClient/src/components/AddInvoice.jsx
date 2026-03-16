@@ -19,7 +19,8 @@ import {
     Trash2,
     EyeIcon,
     Folder,
-    AlertCircle
+    AlertCircle,
+    Percent
 } from 'lucide-react';
 import GlobalSnackbar from './GlobalSnackbar';
 
