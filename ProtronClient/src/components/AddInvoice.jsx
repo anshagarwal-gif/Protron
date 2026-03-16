@@ -2035,7 +2035,7 @@ const AddInvoiceModal = ({
                                 {items.map((it) => (
                                     <div key={`item-${it.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
                                         <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
-                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" maxLength="10" />
                                         <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
                                         <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
@@ -2055,7 +2055,7 @@ const AddInvoiceModal = ({
                                             />
                                         </div>
                                         <div>
-                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" />
+                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" maxLength="10" />
                                         </div>
                                         <div>
                                             <input value={er.quantity} onChange={(e) => updateEmployeeRow(er.id, 'quantity', e.target.value)} placeholder="Qty" className="px-2 py-1 border rounded-none w-full" />
