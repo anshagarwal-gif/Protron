@@ -896,7 +896,7 @@ const AddInvoiceModal = ({
     };
 
     const addItem = () => {
-        if (items.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 items allowed', severity: 'error' });
+        if (items.length + invoiceEmployees.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 rows allowed (items + employees combined)', severity: 'error' });
         const nextId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
         setItems(prev => ([...prev, { id: nextId, description: '', rate: '', quantity: '', amount: '', remarks: '' }]));
     };
@@ -908,7 +908,7 @@ const AddInvoiceModal = ({
     };
 
     const addEmployeeRow = () => {
-        if (invoiceEmployees.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 employees allowed', severity: 'error' });
+        if (items.length + invoiceEmployees.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 rows allowed (items + employees combined)', severity: 'error' });
         const nextId = invoiceEmployees.length ? Math.max(...invoiceEmployees.map(i => i.id)) + 1 : 1;
         setInvoiceEmployees(prev => ([...prev, { id: nextId, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]));
     };
@@ -1296,7 +1296,7 @@ const AddInvoiceModal = ({
                         formDataToSend.append('attachments', file);
                     });
 
-                    const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft' : '/api/invoices/save-invoice-with-attachments';
+                    const endpoint = status === 'DRAFT' ? '/api/invoices/save-draft-with-attachments' : '/api/invoices/save-invoice-with-attachments';
                     response = await axios.post(
                         `${API_BASE_URL}${endpoint}`,
                         formDataToSend,

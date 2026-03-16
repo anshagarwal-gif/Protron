@@ -339,6 +339,86 @@ public class InvoiceController {
         }
     }
 
+    @PostMapping(value = "/save-draft-with-attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> saveDraftWithAttachments(
+            @RequestPart("invoice") String invoiceJson,
+            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        try {
+            // Log raw invoice JSON part
+            try {
+                log.info("Received invoice payload (save-draft-with-attachments): {}", invoiceJson);
+            } catch (Exception e) {
+                log.warn("Failed to log raw invoice JSON: {}", e.getMessage());
+            }
+
+            // Parse the JSON string to InvoiceRequestDTO
+            InvoiceRequestDTO requestDTO = objectMapper.readValue(invoiceJson, InvoiceRequestDTO.class);
+            requestDTO.setStatus(InvoiceStatus.DRAFT);
+
+            // Log timesheet data inclusion
+            if (requestDTO.hasTimesheetData()) {
+                log.info(
+                        "Draft with attachments save requested with timesheet data - View: {}, Employee: {}, Total entries: {}",
+                        requestDTO.getTimesheetData().getViewMode(),
+                        requestDTO.getTimesheetData().getEmployeeName(),
+                        requestDTO.getTimesheetData().getEntries().size());
+
+                // Log detailed timesheet information
+                InvoiceRequestDTO.TimesheetDataDTO timesheetData = requestDTO.getTimesheetData();
+                log.info("Timesheet details - Period: {}, Total time: {}h {}m, Target: {}h",
+                        timesheetData.getPeriod(),
+                        timesheetData.getTotalHours(),
+                        timesheetData.getTotalMinutes(),
+                        timesheetData.getTargetHours());
+
+                // Log breakdown by date (for debugging)
+                int loggedTasks = 0;
+                for (InvoiceRequestDTO.TimesheetEntryDTO entry : timesheetData.getEntries()) {
+                    if (entry.getHours() > 0 || entry.getMinutes() > 0) {
+                        loggedTasks++;
+                    }
+                }
+                log.info("Timesheet contains {} task entries with logged time", loggedTasks);
+            } else {
+                log.info("Draft with attachments save requested without timesheet data");
+            }
+
+            // Validate attachments
+            if (attachments != null && attachments.size() > 4) {
+                log.warn("Too many attachments provided: {}. Maximum allowed: 4", attachments.size());
+                return ResponseEntity.badRequest()
+                        .body("Maximum 4 attachments allowed. You provided " + attachments.size());
+            }
+
+            // Filter out empty files
+            List<MultipartFile> validAttachments = new ArrayList<>();
+            if (attachments != null) {
+                for (MultipartFile file : attachments) {
+                    if (file != null && !file.isEmpty()) {
+                        validAttachments.add(file);
+                    }
+                }
+                log.info("Processing {} valid attachments", validAttachments.size());
+            }
+
+            InvoiceResponseDTO response;
+            if (validAttachments.isEmpty()) {
+                // No attachments, use regular method
+                response = invoiceService.createInvoice(requestDTO);
+            } else {
+                // With attachments
+                response = invoiceService.createInvoiceWithAttachments(requestDTO, validAttachments);
+            }
+
+            log.info("Draft with attachments saved successfully: {}", response.getInvoiceId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error saving draft with attachments: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error saving draft with attachments: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/save-invoice")
     public ResponseEntity<?> saveInvoice(@Valid @RequestBody InvoiceRequestDTO requestDTO) {
         try {
