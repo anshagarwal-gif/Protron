@@ -310,37 +310,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
             </select>
           </div>
 
-          {/* Payment Form */}
-          <>
-            {/* Settlement Amount */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Amount *
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                  {invoice.currency === 'INR' ? '₹' : '$'}
-                </span>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max={outstanding}
-                  value={settlementAmount}
-                  onChange={(e) => setSettlementAmount(e.target.value)}
-                  className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="0.00"
-                  maxLength="10"
-                />
-              </div>
-              {settlementType === "PARTIAL_PAYMENT" && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Maximum: {formatCurrency(outstanding)}
-                </p>
-              )}
-            </div>
-
-              {/* Currency */}
+          {/* Currency */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Currency
@@ -360,6 +330,34 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
                   <option value="CHF">CHF - Swiss Franc</option>
                 </select>
               </div>
+
+              
+          {/* Payment Form */}
+          <>
+            {/* Settlement Amount */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Amount *
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={outstanding}
+                  value={settlementAmount}
+                  onChange={(e) => setSettlementAmount(e.target.value)}
+                  className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="0.00"
+                  maxLength="10"
+                />
+              </div>
+              {settlementType === "PARTIAL_PAYMENT" && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum: {formatCurrency(outstanding)}
+                </p>
+              )}
+            </div>
 
               {/* Payment Method */}
               <div>

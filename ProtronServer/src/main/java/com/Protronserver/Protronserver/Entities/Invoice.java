@@ -102,7 +102,7 @@ public class Invoice {
     private LocalDateTime deletedAt;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private InvoiceStatus status = InvoiceStatus.DRAFT;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
