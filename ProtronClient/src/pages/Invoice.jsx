@@ -1121,7 +1121,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="text-right w-full text-green-600 font-semibold">
+        <div className="text-right w-full font-semibold">
           {params.value || 0}
         </div>
       )
@@ -1217,7 +1217,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "Actions",
       field: "actions",
-      width: 160,
+      width: 120,
       sortable: false,
       filter: false,
       suppressMenu: true,
