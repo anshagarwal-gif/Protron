@@ -364,7 +364,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Amount *
               </label>
-              <div className="relative">
+              <div>
                 <input
                   type="number"
                   step="0.01"
@@ -372,7 +372,8 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
                   max={outstanding}
                   value={settlementAmount}
                   onChange={(e) => setSettlementAmount(e.target.value)}
-                  className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  disabled={settlementType === "FULL_PAYMENT"}
+                  className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="0.00"
                   maxLength="10"
                 />

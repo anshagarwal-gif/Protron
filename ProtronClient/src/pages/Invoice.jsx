@@ -1103,35 +1103,46 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       }
     },
     {
-      headerName: "Amount",
+      headerName: "Invoice Amount",
       field: "totalAmount",
-      // valueGetter: params => formatCurrency(params.data.totalAmount, params.data.currency),
-      width: 140,
+      width: 160,
       sortable: true,
       filter: true,
       cellRenderer: params => (
-        <div className="text-right w-full">
+        <div className="text-right w-full font-semibold">
           {params.value}
         </div>
       )
     },
     {
-      headerName: "Period",
-      field: "period",
-      valueGetter: params => {
-        const fromDate = formatDate(params.data.fromDate);
-        const toDate = formatDate(params.data.toDate);
-        return `${fromDate} - ${toDate}`;
-      },
-      width: 180,
-      sortable: false,
-      filter: false,
+      headerName: "Paid Amount",
+      field: "totalPaidAmount",
+      width: 160,
+      sortable: true,
+      filter: true,
       cellRenderer: params => (
-        <div className="flex items-center text-sm">
-          {/* <Calendar size={14} className="text-blue-600 mr-2" /> */}
-          <span className="truncate" title={params.value}>{params.value}</span>
+        <div className="text-right w-full text-green-600 font-semibold">
+          {params.value || 0}
         </div>
       )
+    },
+    {
+      headerName: "FROM DATE",
+      field: "fromDate",
+      valueGetter: params => formatDate(params.data.fromDate),
+      width: 130,
+      sortable: true,
+      filter: true,
+      cellStyle: { textAlign: "center" }
+    },
+    {
+      headerName: "TO DATE",
+      field: "toDate",
+      valueGetter: params => formatDate(params.data.toDate),
+      width: 130,
+      sortable: true,
+      filter: true,
+      cellStyle: { textAlign: "center" }
     },
     {
       headerName: "Hours",
@@ -1165,11 +1176,11 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         switch(status) {
           case "DRAFT":
             statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800";
-            statusText = "Draft";
+            statusText = "DRAFT INVOICE";
             break;
           case "SAVED":
             statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800";
-            statusText = "Saved";
+            statusText = "FINAL INVOICE";
             break;
           case "SENT":
             statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800";
