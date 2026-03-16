@@ -19,7 +19,8 @@ import {
     Trash2,
     EyeIcon,
     Folder,
-    AlertCircle
+    AlertCircle,
+    Percent
 } from 'lucide-react';
 import GlobalSnackbar from './GlobalSnackbar';
 
@@ -869,7 +870,7 @@ const AddInvoiceModal = ({
         setItems(prev => prev.map(it => {
             if (it.id !== id) return it;
             let sanitized = value;
-            if (field === 'rate') sanitized = enforceDigitLimit(value, 6, true);
+            if (field === 'rate') sanitized = enforceDigitLimit(value, 8, true);
             if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
             const next = { ...it, [field]: sanitized };
             // recalc amount when rate or quantity change
@@ -920,7 +921,7 @@ const AddInvoiceModal = ({
     const updateEmployeeRow = (id, field, value) => {
         setInvoiceEmployees(prev => {
             let sanitized = value;
-            if (field === 'rate') sanitized = enforceDigitLimit(value, 6, true);
+            if (field === 'rate') sanitized = enforceDigitLimit(value, 8, true);
             if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
             const next = prev.map(e => e.id === id ? { ...e, [field]: sanitized } : e);
             const selectedCount = next.filter(e => e.userId).length;
@@ -1921,28 +1922,6 @@ const AddInvoiceModal = ({
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Discount %</label>
-                                <input
-                                    type="number"
-                                    placeholder="Enter discount %"
-                                    value={formData.discountPercent}
-                                    onChange={(e) => {
-                                        const value = parseFloat(e.target.value);
-                                        if (value <= 100 && value >= 0) {
-                                            handleChange('discountPercent')(e);
-                                        } else if (value > 100) {
-                                            e.target.value = 100;
-                                            handleChange('discountPercent')(e);
-                                        }
-                                    }}
-                                    className="w-full h-10 px-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
-                                    min="0"
-                                    max="100"
-                                    step="0.01"
-                                />
-                            </div>
-
-                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Due Date Option</label>
                                 <select
                                     value={formData.dueDateOption}
@@ -2056,7 +2035,7 @@ const AddInvoiceModal = ({
                                 {items.map((it) => (
                                     <div key={`item-${it.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
                                         <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
-                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" maxLength="10" />
                                         <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
                                         <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={100} />
@@ -2076,7 +2055,7 @@ const AddInvoiceModal = ({
                                             />
                                         </div>
                                         <div>
-                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" />
+                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" maxLength="10" />
                                         </div>
                                         <div>
                                             <input value={er.quantity} onChange={(e) => updateEmployeeRow(er.id, 'quantity', e.target.value)} placeholder="Qty" className="px-2 py-1 border rounded-none w-full" />
@@ -2259,6 +2238,80 @@ const AddInvoiceModal = ({
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Discount Section */}
+                        <div className="mt-6">
+                            <div className="flex items-center justify-between mb-3">
+                                <h4 className="text-md font-semibold text-gray-800 flex items-center">
+                                    <Percent className="mr-2 text-green-600" size={18} />
+                                    Discount
+                                </h4>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-center mb-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Discount %</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        max="100"
+                                        placeholder="0.00"
+                                        value={formData.discountPercent}
+                                        onChange={(e) => {
+                                            let value = e.target.value;
+                                            // Allow empty value
+                                            if (value === '') {
+                                                handleChange('discountPercent')(e);
+                                                return;
+                                            }
+                                            // Parse and validate
+                                            const numValue = parseFloat(value);
+                                            if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
+                                                handleChange('discountPercent')(e);
+                                            }
+                                            // If invalid, don't update
+                                        }}
+                                        onBlur={(e) => {
+                                            const value = e.target.value;
+                                            if (value === '') {
+                                                setFormData(prev => ({ ...prev, discountPercent: '' }));
+                                                return;
+                                            }
+                                            const numValue = parseFloat(value);
+                                            if (isNaN(numValue) || numValue < 0) {
+                                                setFormData(prev => ({ ...prev, discountPercent: '' }));
+                                            } else if (numValue > 100) {
+                                                setFormData(prev => ({ ...prev, discountPercent: '100' }));
+                                            }
+                                        }}
+                                        className={`w-full h-9 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none ${
+                                            parseFloat(formData.discountPercent || 0) > 100 || parseFloat(formData.discountPercent || 0) < 0
+                                                ? 'border-red-500 focus:border-red-500'
+                                                : 'border-gray-300 focus:border-green-500'
+                                        }`}
+                                        title="Discount percentage (0.00 - 100.00)"
+                                    />
+                                    {parseFloat(formData.discountPercent || 0) > 100 && (
+                                        <p className="text-xs text-red-600 mt-1">Maximum 100%</p>
+                                    )}
+                                    {parseFloat(formData.discountPercent || 0) < 0 && (
+                                        <p className="text-xs text-red-600 mt-1">Cannot be negative</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Discount Amount</label>
+                                    <div className="w-full h-9 px-3 bg-gray-100 border border-gray-300 rounded-md flex items-center text-sm font-medium text-gray-700">
+                                        {currencySymbols[formData.currency] || '$'}{(() => {
+                                            const tableTotal = parseFloat(computeItemsTotal() || 0);
+                                            const discountPercent = parseFloat(formData.discountPercent || 0);
+                                            const discountAmount = isNaN(discountPercent) ? 0 : (tableTotal * discountPercent) / 100;
+                                            return discountAmount.toFixed(2);
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Table totals and amount in words */}
