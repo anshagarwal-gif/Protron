@@ -46,16 +46,26 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
     "Other"
   ];
 
-  // Initialize form when invoice changes
+  // Reset form when modal closes
   useEffect(() => {
-    if (invoice && open) {
-      const outstanding = parseFloat(invoice.totalAmount || 0) - parseFloat(invoice.totalPaidAmount || 0);
-      setSettlementAmount(outstanding.toString());
-      setSettlementType(outstanding <= 0 ? "FULL_PAYMENT" : "PARTIAL_PAYMENT");
-      setCurrency(invoice.currency || "USD");
+    if (!open) {
+      // Reset all form fields and attachments when modal closes
+      setSettlementType("FULL_PAYMENT");
+      setSettlementAmount("");
+      setCurrency("USD");
+      setPaymentMethod("");
+      setTransactionReference("");
+      setChequeNumber("");
+      setBankName("");
+      setPaymentDate(new Date().toISOString().split('T')[0]);
+      setSettlementNotes("");
+      setAttachments([]);
       setError("");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
-  }, [invoice, open]);
+  }, [open]);
 
   // Calculate outstanding amount
   const getOutstandingAmount = () => {
@@ -68,6 +78,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
     const files = Array.from(event.target.files);
     if (!files.length) return;
 
+    // Validate each file
     const maxSize = 10 * 1024 * 1024; // 10MB
     const allowedTypes = [
       'application/pdf',
@@ -99,13 +110,27 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
       return;
     }
 
-    // Check total attachments limit
-    if (attachments.length + validFiles.length > MAX_ATTACHMENTS) {
-      setError(`Maximum ${MAX_ATTACHMENTS} attachments allowed.`);
-      return;
+    // De-dup by (name + size + lastModified)
+    const deduped = validFiles.filter(file => {
+      return !attachments.some(a =>
+        a.name === file.name &&
+        a.size === file.size &&
+        a.lastModified === file.lastModified
+      );
+    });
+
+    const filesToAdd = deduped.slice(0, MAX_ATTACHMENTS - attachments.length);
+
+    if (deduped.length > filesToAdd.length) {
+      setError(`Only ${filesToAdd.length} more file(s) can be added (max 4). Some duplicate files were skipped.`);
     }
 
-    setAttachments([...attachments, ...validFiles]);
+    if (filesToAdd.length > 0) {
+      setAttachments([...attachments, ...filesToAdd]);
+    } else {
+      setError('All selected files are duplicates and were skipped.');
+    }
+
     event.target.value = '';
   };
 
@@ -154,7 +179,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
       return false;
     }
 
-    if (settlementType === "PARTIAL_PAYMENT" && parseFloat(settlementAmount) > outstanding) {
+    if (settlementType === "PARTIAL_PAYMENT" && parseFloat(settlementAmount) > outstanding && outstanding > 0) {
       setError(`Partial payment amount cannot exceed outstanding amount (${outstanding})`);
       return false;
     }
@@ -352,7 +377,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
                   maxLength="10"
                 />
               </div>
-              {settlementType === "PARTIAL_PAYMENT" && (
+              {settlementType === "PARTIAL_PAYMENT" && outstanding > 0 && (
                 <p className="text-xs text-gray-500 mt-1">
                   Maximum: {formatCurrency(outstanding)}
                 </p>
