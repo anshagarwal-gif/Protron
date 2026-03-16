@@ -870,7 +870,7 @@ const AddInvoiceModal = ({
         setItems(prev => prev.map(it => {
             if (it.id !== id) return it;
             let sanitized = value;
-            if (field === 'rate') sanitized = enforceDigitLimit(value, 6, true);
+            if (field === 'rate') sanitized = enforceDigitLimit(value, 8, true);
             if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
             const next = { ...it, [field]: sanitized };
             // recalc amount when rate or quantity change
@@ -921,7 +921,7 @@ const AddInvoiceModal = ({
     const updateEmployeeRow = (id, field, value) => {
         setInvoiceEmployees(prev => {
             let sanitized = value;
-            if (field === 'rate') sanitized = enforceDigitLimit(value, 6, true);
+            if (field === 'rate') sanitized = enforceDigitLimit(value, 8, true);
             if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
             const next = prev.map(e => e.id === id ? { ...e, [field]: sanitized } : e);
             const selectedCount = next.filter(e => e.userId).length;
