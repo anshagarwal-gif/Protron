@@ -1604,6 +1604,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             columnDefs={columnDefs}
             rowData={filteredInvoiceData}
             defaultColDef={defaultColDef}
+            domLayout="autoHeight"
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}

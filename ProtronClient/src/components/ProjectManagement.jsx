@@ -362,7 +362,7 @@ const ProjectManagement = () => {
         return <span>{value}</span>;
       },
       minWidth: 120,
-      filter: 'agSetColumnFilter',
+      filter: 'agTextColumnFilter',
       cellStyle: { textAlign: 'center' }
     },
     {
@@ -746,7 +746,7 @@ const ProjectManagement = () => {
             {isLoading ? (
               <LoadingSpinner />
             ) : (
-              <div className="ag-theme-alpine rounded-lg shadow-sm" style={{ height: '80vh', width: '100%' }}>
+              <div className="ag-theme-alpine rounded-lg shadow-sm" style={{ width: '100%' }}>
                 <style jsx>{`
                 .ag-cell-truncate {
   white-space: nowrap;
@@ -1103,6 +1103,7 @@ const ProjectManagement = () => {
                   rowData={filteredProjects}
                   defaultColDef={defaultColDef}
                   gridOptions={gridOptions}
+                  domLayout="autoHeight"
                   suppressRowClickSelection={true}
                   onGridReady={(params) => {
                     params.api.sizeColumnsToFit();

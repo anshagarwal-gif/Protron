@@ -333,7 +333,7 @@ const handleFileChange = (e) => {
 
     if (field === 'storyPoints') {
       const numValue = parseInt(value) || 0;
-      value = Math.min(100, Math.max(0, numValue));
+      value = Math.min(50, Math.max(0, numValue));
     }
 
     setFormData(prev => ({
@@ -631,7 +631,7 @@ const handleFileChange = (e) => {
                     onChange={handleInputChange('storyPoints')}
                     placeholder="0"
                     min="0"
-                    max="100"
+                    max="50"
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                     style={{ height: fieldHeight }}
                   />

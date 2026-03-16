@@ -304,12 +304,13 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                                 </button>
                             </div>
                         </div>
-                        <div className="h-96 w-full border border-gray-200 rounded-md">
-                            <div className="ag-theme-alpine h-full w-full">
+                        <div className="w-full border border-gray-200 rounded-md">
+                            <div className="ag-theme-alpine w-full">
                                 <AgGridReact
                                     columnDefs={milestoneColumnDefs}
                                     rowData={milestones}
                                     defaultColDef={defaultColDef}
+                                    domLayout="autoHeight"
                                     suppressMovableColumns={true}
                                     enableCellTextSelection={true}
                                     suppressRowClickSelection={true}

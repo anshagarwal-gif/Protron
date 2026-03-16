@@ -994,7 +994,7 @@ const UserManagement = () => {
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
 
         {/* AG Grid Tables */}
-        <div className="ag-theme-alpine" style={{ height: '76vh', width: '100%' }}>
+        <div className="ag-theme-alpine" style={{ width: '100%' }}>
           <style jsx>{`
                   .ag-theme-alpine .ag-header {
                     background-color: #15803d!important;
@@ -1345,6 +1345,7 @@ const UserManagement = () => {
               columnDefs={userColumnDefs}
               rowData={filteredUsers}
               defaultColDef={defaultColDef}
+              domLayout="autoHeight"
               pagination={true}
               paginationPageSize={10}
               paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
@@ -1387,8 +1388,8 @@ const UserManagement = () => {
             <AgGridReact
               columnDefs={roleColumnDefs}
               rowData={filteredRoles}
-
               defaultColDef={defaultColDef}
+              domLayout="autoHeight"
               pagination={true}
               paginationPageSize={10}
               paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}

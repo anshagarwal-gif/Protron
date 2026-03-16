@@ -490,7 +490,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     return (
       <span
         title={text}
-        className="truncate block"
+        className="cursor-help truncate block"
         style={{ maxWidth: '100%' }}
       >
         {text.substring(0, maxLength)}...
@@ -624,13 +624,31 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     navigate(`/po-consumption-details/${consumption.utilizationId}`);
   };
 
-  const handlePONumberClick = (consumption) => {
-    // Navigate to PO details using the poNumber
-    if (consumption.poNumber) {
-      // You might need to fetch the PO ID first, or modify the route to use poNumber
-      navigate(`/po-details/${consumption.poNumber}`);
-    } else {
+  const handlePONumberClick = async (consumption) => {
+    if (!consumption.poNumber) {
       showSnackbar("PO Number not found", "error");
+      return;
+    }
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        showSnackbar("Please sign in again", "error");
+        return;
+      }
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/po/${consumption.poNumber}`,
+        { headers: { Authorization: token } }
+      );
+      const poId = response.data?.poId ?? response.data?.id;
+      if (poId != null) {
+        navigate(`/po-details/${poId}`);
+      } else {
+        navigate(`/po-details/${consumption.poNumber}`);
+      }
+    } catch (err) {
+      console.error("Error resolving PO for navigation:", err);
+      showSnackbar(err.response?.data?.message || "Could not load PO. Opening by number.", "warning");
+      navigate(`/po-details/${consumption.poNumber}`);
     }
   };
 
@@ -706,7 +724,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       suppressMenu: true,
       cellStyle: { textAlign: 'center' },
       cellRenderer: params => (
-        <span title={`Row ${params.value}`}>
+        <span title={`Row ${params.value}`} className="cursor-help">
           {params.value}
         </span>
       )
@@ -747,7 +765,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const msName = params.value;
         return (
-          <span title={msName} className="truncate block w-full">
+          <span title={msName} className="cursor-help truncate block w-full">
             {truncateWithTooltip(msName, 15)}
           </span>
         );
@@ -788,7 +806,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const project = params.value;
         return (
-          <span title={project} className="truncate block w-full font-medium">
+          <span title={project} className="cursor-help truncate block w-full font-medium">
             {truncateWithTooltip(project, 15)}
           </span>
         );
@@ -805,7 +823,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const description = params.value;
         return (
-          <span title={description} className="truncate block w-full">
+          <span title={description} className="cursor-help truncate block w-full">
             {truncateWithTooltip(description, 35)}
           </span>
         );
@@ -820,7 +838,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const currency = params.value;
         return (
-          <span title={currency} className="truncate block w-full">
+          <span title={currency} className="cursor-help truncate block w-full">
             {truncateWithTooltip(currency, 8)}
           </span>
         );
@@ -837,10 +855,11 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       width: 110,
       sortable: true,
       filter: true,
+      cellStyle: { fontWeight: 'bold', color: '#059669' },
       cellRenderer: params => {
         const amount = params.value;
         return (
-          <span title={amount} className="truncate block w-full text-right">
+          <span title={amount} className="cursor-help truncate block w-full text-right font-bold text-green-600">
             {(amount)}
           </span>
         );
@@ -867,7 +886,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const date = params.value;
         return (
-          <span title={date} className="truncate block w-full text-gray-700 text-sm">
+          <span title={date} className="cursor-help truncate block w-full text-gray-700 text-sm">
             {truncateWithTooltip(date, 10)}
           </span>
         );
@@ -893,7 +912,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const date = params.value;
         return (
-          <span title={date} className="truncate block w-full text-gray-700 text-sm">
+          <span title={date} className="cursor-help truncate block w-full text-gray-700 text-sm">
             {truncateWithTooltip(date, 10)}
           </span>
         );
@@ -910,7 +929,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const remarks = params.value;
         return (
-          <span title={remarks} className="truncate block w-full">
+          <span title={remarks} className="cursor-help truncate block w-full">
             {truncateWithTooltip(remarks, 15)}
           </span>
         );
@@ -927,7 +946,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
       cellRenderer: params => {
         const system = params.value;
         return (
-          <span title={system} className="truncate block w-full text-gray-500 text-sm">
+          <span title={system} className="cursor-help truncate block w-full text-gray-500 text-sm">
             {truncateWithTooltip(system, 10)}
           </span>
         );
@@ -1287,11 +1306,18 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
               text-overflow: ellipsis;
               white-space: nowrap;
             }
+            /* Tooltip hover effects */
+            .cursor-help:hover {
+              background-color: rgba(59, 130, 246, 0.05);
+              border-radius: 2px;
+              transition: background-color 0.2s ease;
+            }
           `}</style>
           <AgGridReact
             columnDefs={columnDefs}
             rowData={filteredConsumptionData}
             defaultColDef={defaultColDef}
+            domLayout="autoHeight"
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}

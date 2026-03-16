@@ -458,7 +458,7 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
 
                     {!isLoading && (
                         <>
-                            {/* Row 1: Project Name and Project Icon */}
+                            {/* Row 1: Project Name and Dates (Project Icon removed in edit) */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -476,30 +476,6 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                     />
                                 </div>
 
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
-                                    <div className="h-10 border-2 border-dashed border-gray-300 rounded-md bg-gray-50 flex items-center justify-center">
-                                        {localFormData.projectIcon ? (
-                                            <div className="flex items-center gap-2">
-                                                <img
-                                                    src={localFormData.projectIcon}
-                                                    alt="Project Icon"
-                                                    className="w-10 h-10 rounded-full object-cover"
-                                                />
-                                                <label className="px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                                    Change
-                                                    <input hidden accept="image/*" type="file" onChange={handleImageUpload} title={localFormData.projectIcon} />
-                                                </label>
-                                            </div>
-                                        ) : (
-                                            <label className="flex items-center gap-2 px-3 py-1 text-sm border border-green-800 text-green-800 rounded hover:bg-green-50 cursor-pointer">
-                                                <Upload className="w-4 h-4" />
-                                                Project Icon
-                                                <input hidden accept="image/*" type="file" onChange={handleImageUpload} />
-                                            </label>
-                                        )}
-                                    </div>
-                                </div>
                                 <DatePicker
                                     label="Project Start Date"
                                     value={localFormData.startDate}

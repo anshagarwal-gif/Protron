@@ -1102,6 +1102,7 @@ const { hasAccess } = useAccess(); // Access context
             columnDefs={columnDefs}
             rowData={filteredBudgetLineData}
             defaultColDef={defaultColDef}
+            domLayout="autoHeight"
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}

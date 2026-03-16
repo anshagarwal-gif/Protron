@@ -41,7 +41,15 @@ const POManagement = () => {
   const budgetLineRef = useRef();
 
   // State management
-  const [activeTab, setActiveTab] = useState("approval");
+  // Restore last active tab (e.g. Details / Utilization) so when navigating back from PO Details,
+  // the user returns to the same tab instead of always "Approved Budget".
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      return sessionStorage.getItem("poActiveTab") || "approval";
+    } catch {
+      return "approval";
+    }
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [poList, setPOList] = useState([]);
   const [selectedPO, setSelectedPO] = useState(null);
@@ -75,6 +83,17 @@ const POManagement = () => {
       severity
     });
   };
+
+  // Persist active tab so navigation back to /po restores the same tab
+  useEffect(() => {
+    try {
+      if (activeTab) {
+        sessionStorage.setItem("poActiveTab", activeTab);
+      }
+    } catch {
+      // ignore storage errors (private browsing, etc.)
+    }
+  }, [activeTab]);
 
   const handleSnackbarClose = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -623,6 +642,7 @@ const POManagement = () => {
                 columnDefs={columnDefs}
                 rowData={filteredPOData}
                 defaultColDef={defaultColDef}
+                domLayout="autoHeight"
                 pagination={true}
                 paginationPageSize={10}
                 paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}

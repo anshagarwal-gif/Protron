@@ -136,6 +136,12 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         cellStyle: { borderRight: '1px solid #e5e7eb' },
       },
       {
+        headerName: 'Task Type',
+        field: 'taskType',
+        minWidth: 130,
+        cellStyle: { borderRight: '1px solid #e5e7eb' }
+      },
+      {
         headerName: 'System Impacted',
         field: 'systemImpacted.systemName',
         minWidth: 180,
@@ -201,6 +207,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         unit: member.unit,
         pricing: member.pricing,
         pricingType: member.pricingType,
+        taskType: member.taskType,
         systemImpacted: { systemName: member.systemName, systemId: member.systemId },
         estimatedReleaseDate: member.estimatedReleaseDate,
         onBoardingDate: member.onBoardingDate,
@@ -392,6 +399,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         'Email': employee.user.email,
         'Cost Currency': employee.unit,
         'Cost': employee.pricing,
+        'Task Type': employee.taskType,
         'System Impacted': employee.systemImpacted.systemName,
         'Estimated Release Date': employee.estimatedReleaseDate,
         'Onboarding Date': employee.onBoardingDate,
@@ -437,9 +445,12 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       {projectDetails && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 bg-[#aee4be] p-4 rounded-lg">
           <div>
-            <p className="text-gray-500 text-sm">
-              Initiative name:{" "}
-              <span className="font-medium text-gray-700 truncate block" title={projectDetails.project.projectName}>
+            <p className="text-gray-500 text-sm flex items-center space-x-1">
+              <span>Initiative name:</span>
+              <span
+                className="font-medium text-gray-700 truncate max-w-[220px] sm:max-w-xs md:max-w-sm lg:max-w-md"
+                title={projectDetails.project.projectName}
+              >
                 {projectDetails.project.projectName}
               </span>
             </p>
@@ -451,7 +462,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
             <p className="text-gray-500 text-sm mt-2">Initiative Sponsor: <span className="font-medium text-gray-700">{projectDetails.project.sponsorName}</span></p>
           </div>
           <div>
-            <p className="text-gray-500 text-sm">Initiative Cost: <span className="font-medium text-gray-700">{projectDetails.project.projectCost} {projectDetails.project.unit}</span></p>
+            <p className="text-gray-500 text-sm">Initiative Cost: <span className="font-medium text-gray-700">{projectDetails.project.unit} {projectDetails.project.projectCost}</span></p>
             <p className="text-gray-500 text-sm mt-2">System Impacted: <span className="font-medium text-gray-700">{projectDetails.systemsImpacted?.map((sys, index) => {
               return sys.systemName + (index < projectDetails.systemsImpacted.length - 1 ? ', ' : '')
             })}</span></p>
@@ -492,7 +503,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
             <div className="hidden md:block">
               <div
                 className="ag-theme-alpine border rounded overflow-hidden"
-                style={{ height: '55vh', width: '100%' }}
+                style={{ width: '100%' }}
               >
                 <style jsx>{`
                 .ag-cell-truncate {
@@ -859,6 +870,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                     minWidth: 80,
                     cellRenderer: CellWithTitle
                   }}
+                  domLayout="autoHeight"
                 />
               </div>
             </div>

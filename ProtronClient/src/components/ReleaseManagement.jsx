@@ -266,11 +266,12 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
                 </div>
               </div>
             </div>
-            <div className="h-64 sm:h-80 md:h-96 w-full border rounded-md">
-              <div className="ag-theme-alpine h-full w-full">
+            <div className="w-full border rounded-md">
+              <div className="ag-theme-alpine w-full">
                 <AgGridReact
                   columnDefs={columnDefs}
                   rowData={filteredReleases}
+                  domLayout="autoHeight"
                   pagination={true}
                   paginationPageSize={10}
                   paginationPageSizeSelector={[5, 10, 20, 50]}

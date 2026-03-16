@@ -248,12 +248,13 @@ export default function SprintManagement({ projectId, open, onClose }) {
                 </button>
               </div>
             </div>
-            <div className="h-96 w-full border rounded-md">
-              <div className="ag-theme-alpine h-full w-full">
+            <div className="w-full border rounded-md">
+              <div className="ag-theme-alpine w-full">
                 <AgGridReact
                   columnDefs={columnDefs}
                   rowData={sprints}
                   defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  domLayout="autoHeight"
                   suppressRowClickSelection={true}
                   animateRows={true}
                   rowHeight={48}

@@ -1618,13 +1618,14 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                         Milestones Details
                                     </h3>
                                 </div>
-                                <div className="h-96 w-full border border-gray-200 rounded-md">
-                                    <div className="ag-theme-alpine h-full w-full">
+                                <div className="w-full border border-gray-200 rounded-md">
+                                    <div className="ag-theme-alpine w-full">
                                         <AgGridReact
                                             key={formData.milestones.length}
                                             columnDefs={milestoneColumnDefs}
                                             rowData={formData.milestones}
                                             defaultColDef={defaultColDef}
+                                            domLayout="autoHeight"
                                             rowHeight={48}
                                             headerHeight={48}
                                             components={{ AttachmentRenderer }}

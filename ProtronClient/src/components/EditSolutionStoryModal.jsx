@@ -333,7 +333,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
 
     if (field === 'storyPoints') {
       const numValue = parseInt(value) || 0;
-      value = Math.min(100, Math.max(0, numValue));
+      value = Math.min(50, Math.max(0, numValue));
     }
 
     setFormData(prev => ({
@@ -695,7 +695,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                       value={formData.storyPoints || ''}
                       onChange={handleInputChange('storyPoints')}
                       min="0"
-                      max="100"
+                      max="50"
                       placeholder="Enter story points"
                       className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}

@@ -302,7 +302,7 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
         msDate: formData.msDate || null,
         msDuration: parseInt(formData.msDuration) || 0,
         msRemarks: formData.msRemarks || "",
-        poId: parseInt(poId),
+        poId: typeof poId === "number" ? poId : parseInt(poId, 10),
         poNumber: formData.poNumber
       };
 

@@ -235,8 +235,6 @@ const PODetailsPage = () => {
         'Date': milestone.startDate ? new Date(milestone.startDate).toLocaleDateString() : 'N/A',
         'Duration (Days)': milestone.duration || 0,
         'Remark': milestone.remark || 'N/A',
-        'Attachment': milestone.attachment ? 'Yes' : 'No',
-
       }));
 
       const headers = Object.keys(excelData[0] || {});
@@ -675,7 +673,7 @@ const PODetailsPage = () => {
         </div>
 
         {/* Milestones Table */}
-        <div className="ag-theme-alpine h-64 sm:h-80 md:h-96 lg:h-[60vh]" style={{ width: '100%' }}>
+        <div className="ag-theme-alpine w-full">
           <style jsx>{`
           .ag-theme-alpine {
   font-family: 'Segoe UI', 'Noto Sans', 'Roboto', 'Arial', sans-serif;
@@ -707,6 +705,7 @@ const PODetailsPage = () => {
             columnDefs={milestoneColumnDefs}
             rowData={filteredMilestones}
             defaultColDef={defaultColDef}
+            domLayout="autoHeight"
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[5, 10, 15, 20, 25]}
@@ -741,12 +740,12 @@ const PODetailsPage = () => {
         <GetConsumptionByPO poNumber={poDetails.poNumber} poId={poId} />
       </div>
 
-      {/* Add Milestone Modal */}
+      {/* Add Milestone Modal - use numeric poId so add works when URL was opened by PO number (e.g. from Consumption) */}
       <AddMilestoneModal
         open={isAddMilestoneModalOpen}
         onClose={() => setIsAddMilestoneModalOpen(false)}
         onSubmit={handleMilestoneModalSubmit}
-        poId={poId}
+        poId={poDetails?.poId ?? (typeof poId === "string" && /^\d+$/.test(poId) ? parseInt(poId, 10) : poId)}
       />
 
       {/* Edit Milestone Modal */}

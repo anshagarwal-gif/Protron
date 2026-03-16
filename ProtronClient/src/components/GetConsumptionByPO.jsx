@@ -509,7 +509,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
   </div>
 </div>
 
-      <div className="ag-theme-alpine h-64 sm:h-80 md:h-96 lg:h-[60vh]" style={{ width: '100%' }}>
+      <div className="ag-theme-alpine w-full">
         <style jsx>{`
           .ag-theme-alpine .ag-header {
             background-color: #15803d !important;
@@ -539,6 +539,7 @@ const GetConsumptionByPO = ({ poNumber, poId, onViewConsumption }) => {
           rowData={filteredConsumptions}
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
+          domLayout="autoHeight"
           pagination={true}
           paginationPageSize={10}
           paginationPageSizeSelector={[5, 10, 15, 20, 25]}

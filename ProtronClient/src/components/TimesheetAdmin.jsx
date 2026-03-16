@@ -681,7 +681,7 @@ const TimesheetManager = () => {
           <LoadingSpinner />
         ) : (
           /* AG Grid Table */
-          <div className="ag-theme-alpine" style={{ height: '78vh', width: '100%', ...gridStyle }}>
+          <div className="ag-theme-alpine" style={{ width: '100%', ...gridStyle }}>
             <style>{`
               .ag-theme-alpine {
                 --ag-header-background-color: #15803d !important;
@@ -1001,6 +1001,7 @@ const TimesheetManager = () => {
               columnDefs={columnDefs}
               defaultColDef={defaultColDef}
               gridOptions={gridOptions}
+              domLayout="autoHeight"
               paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
               onGridReady={onGridReady}
               suppressMenuHide={true}

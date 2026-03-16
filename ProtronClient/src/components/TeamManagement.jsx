@@ -562,7 +562,7 @@ const TeamManagement = () => {
                             </div>
                         ) : (
                             /* Desktop View with AG Grid */
-                            <div className="ag-theme-alpine ag-cell-truncate" style={{ height: '80vh', width: '100%' }}>
+                            <div className="ag-theme-alpine ag-cell-truncate" style={{ width: '100%' }}>
                                 <style jsx>{`
                   .ag-theme-alpine .ag-header {
                     background-color: #15803d!important;
@@ -919,6 +919,7 @@ const TeamManagement = () => {
                                     enableCellTextSelection={true}
                                     ensureDomOrder={true}
                                     suppressRowTransform={true}
+                                    domLayout="autoHeight"
                                 />
                             </div>
                         )}

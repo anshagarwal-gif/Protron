@@ -82,12 +82,14 @@ export default function RidaManagement({ projectId, open, onClose }) {
   const downloadRidaExcel = () => {
     try {
       const headers = [
-        '#', 'Type', 'Meeting Ref', 'Description', 'Raised By', 'Owner', 'Status', 'Remarks'
+        '#', 'Type', 'Meeting Ref', 'Date Raised', 'Target Closer', 'Description', 'Raised By', 'Owner', 'Status', 'Remarks'
       ];
       const rows = (ridas || []).map((rida, idx) => ([
         idx + 1,
         rida.type || '',
         rida.meetingReference || '',
+        formatDate(rida.dateRaised) || '',
+        formatDate(rida.targetCloser) || '',
         rida.itemDescription || '',
         rida.raisedBy || '',
         rida.owner || '',
@@ -260,12 +262,13 @@ export default function RidaManagement({ projectId, open, onClose }) {
                 </button>
               </div>
             </div>
-            <div className="h-96 w-full border rounded-md">
-              <div className="ag-theme-alpine h-full w-full">
+            <div className="w-full border rounded-md">
+              <div className="ag-theme-alpine w-full">
                 <AgGridReact
                   columnDefs={columnDefs}
                   rowData={ridas}
                   defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  domLayout="autoHeight"
                   suppressRowClickSelection={true}
                   animateRows={true}
                   rowHeight={48}

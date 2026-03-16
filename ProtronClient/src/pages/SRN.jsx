@@ -878,6 +878,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             columnDefs={columnDefs}
             rowData={filteredSRNData}
             defaultColDef={defaultColDef}
+            domLayout="autoHeight"
             pagination={true}
             paginationPageSize={10}
             paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
