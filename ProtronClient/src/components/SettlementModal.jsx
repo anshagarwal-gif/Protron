@@ -18,6 +18,7 @@ import axios from "axios";
 const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
   const [settlementType, setSettlementType] = useState("FULL_PAYMENT");
   const [settlementAmount, setSettlementAmount] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [transactionReference, setTransactionReference] = useState("");
   const [chequeNumber, setChequeNumber] = useState("");
@@ -51,6 +52,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
       const outstanding = parseFloat(invoice.totalAmount || 0) - parseFloat(invoice.totalPaidAmount || 0);
       setSettlementAmount(outstanding.toString());
       setSettlementType(outstanding <= 0 ? "FULL_PAYMENT" : "PARTIAL_PAYMENT");
+      setCurrency(invoice.currency || "USD");
       setError("");
     }
   }, [invoice, open]);
@@ -179,7 +181,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
         invoiceId: invoice.invoiceId,
         settlementType,
         settlementAmount: parseFloat(settlementAmount),
-        currency: invoice.currency,
+        currency: currency,
         paymentMethod,
         transactionReference,
         chequeNumber,
@@ -338,18 +340,25 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
               )}
             </div>
 
-              {/* Currency (display only - defaults to invoice currency) */}
+              {/* Currency */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Currency
                 </label>
-                <input
-                  type="text"
-                  value={invoice.currency}
-                  disabled
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
-                  readOnly
-                />
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="USD">USD - US Dollar</option>
+                  <option value="EUR">EUR - Euro</option>
+                  <option value="GBP">GBP - British Pound</option>
+                  <option value="INR">INR - Indian Rupee</option>
+                  <option value="JPY">JPY - Japanese Yen</option>
+                  <option value="CAD">CAD - Canadian Dollar</option>
+                  <option value="AUD">AUD - Australian Dollar</option>
+                  <option value="CHF">CHF - Swiss Franc</option>
+                </select>
               </div>
 
               {/* Payment Method */}
@@ -502,34 +511,6 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
               </div>
             </>
           
-
-          {/* Common fields */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Payment Date *
-            </label>
-            <input
-              type="date"
-              value={paymentDate}
-              onChange={(e) => setPaymentDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Settlement Notes
-            </label>
-            <textarea
-              value={settlementNotes}
-              onChange={(e) => setSettlementNotes(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              rows="3"
-              placeholder="Enter settlement notes"
-              maxLength="500"
-            />
-            <p className="text-xs text-gray-500 mt-1">Maximum 500 characters</p>
-          </div>
 
           {/* Error Display */}
           {error && (
