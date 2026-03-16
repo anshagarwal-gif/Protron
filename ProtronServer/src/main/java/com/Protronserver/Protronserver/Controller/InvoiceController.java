@@ -552,6 +552,110 @@ public class InvoiceController {
 
     // Payment Settlement Endpoints
 
+    @PostMapping("/settle-payment-with-attachments")
+    public ResponseEntity<?> settleInvoicePaymentWithAttachments(
+            @RequestPart("payment") String paymentJson,
+            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            // Parse the JSON string to PaymentSettlementRequest
+            PaymentSettlementRequest request = objectMapper.readValue(paymentJson, PaymentSettlementRequest.class);
+            
+            log.info("Payment settlement with attachments requested for invoice: {}, amount: {}, type: {}, attachments: {}", 
+                    request.getInvoiceId(), request.getSettlementAmount(), request.getSettlementType(), 
+                    attachments != null ? attachments.size() : 0);
+
+            // Validate attachments
+            if (attachments != null && attachments.size() > 4) {
+                log.warn("Too many attachments provided: {}. Maximum allowed: 4", attachments.size());
+                return ResponseEntity.badRequest()
+                        .body("Maximum 4 attachments allowed. You provided " + attachments.size());
+            }
+
+            // Filter out empty files
+            List<MultipartFile> validAttachments = new ArrayList<>();
+            if (attachments != null) {
+                for (MultipartFile file : attachments) {
+                    if (file != null && !file.isEmpty()) {
+                        validAttachments.add(file);
+                    }
+                }
+                log.info("Processing {} valid attachments", validAttachments.size());
+            }
+
+            PaymentDTO response;
+            if (validAttachments.isEmpty()) {
+                // No attachments, use regular method
+                response = paymentService.settleInvoice(request, tenantId);
+            } else {
+                // With attachments
+                response = paymentService.settleInvoiceWithAttachments(request, tenantId, validAttachments);
+            }
+            
+            log.info("Payment with attachments settled successfully: {}", response.getPaymentId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error settling payment with attachments for invoice {}: {}", 
+                    paymentJson, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error settling payment with attachments: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/settle-multiple-payments-with-attachments")
+    public ResponseEntity<?> settleInvoiceWithMultiplePaymentsWithAttachments(
+            @RequestPart("payment") String paymentJson,
+            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        try {
+            // TODO: Get tenant ID from security context
+            Long tenantId = 1L; // Placeholder - should get from authenticated user
+            
+            // Parse the JSON string to PaymentSettlementRequest
+            PaymentSettlementRequest request = objectMapper.readValue(paymentJson, PaymentSettlementRequest.class);
+            
+            log.info("Multiple payment settlement with attachments requested for invoice: {}, total payments: {}, attachments: {}", 
+                    request.getInvoiceId(), request.getPaymentDetails().size(),
+                    attachments != null ? attachments.size() : 0);
+
+            // Validate attachments
+            if (attachments != null && attachments.size() > 4) {
+                log.warn("Too many attachments provided: {}. Maximum allowed: 4", attachments.size());
+                return ResponseEntity.badRequest()
+                        .body("Maximum 4 attachments allowed. You provided " + attachments.size());
+            }
+
+            // Filter out empty files
+            List<MultipartFile> validAttachments = new ArrayList<>();
+            if (attachments != null) {
+                for (MultipartFile file : attachments) {
+                    if (file != null && !file.isEmpty()) {
+                        validAttachments.add(file);
+                    }
+                }
+                log.info("Processing {} valid attachments", validAttachments.size());
+            }
+
+            List<PaymentDTO> response;
+            if (validAttachments.isEmpty()) {
+                // No attachments, use regular method
+                response = paymentService.settleInvoiceWithMultiplePayments(request, tenantId);
+            } else {
+                // With attachments
+                response = paymentService.settleInvoiceWithMultiplePaymentsAndAttachments(request, tenantId, validAttachments);
+            }
+            
+            log.info("Multiple payments with attachments settled successfully for invoice: {}", request.getInvoiceId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error settling multiple payments with attachments for invoice {}: {}", 
+                    paymentJson, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error settling multiple payments with attachments: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/settle-payment")
     public ResponseEntity<?> settleInvoicePayment(@Valid @RequestBody PaymentSettlementRequest request) {
         try {

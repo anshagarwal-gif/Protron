@@ -23,8 +23,11 @@ public class PaymentSettlementRequest {
 
     @NotNull(message = "Payment amount is required")
     @DecimalMin(value = "0.01", message = "Payment amount must be greater than 0")
-    @Digits(integer = 15, fraction = 2, message = "Payment amount must have maximum 15 integer digits and 2 decimal digits")
+    @Digits(integer = 8, fraction = 2, message = "Payment amount must have maximum 8 integer digits and 2 decimal digits")
     private BigDecimal settlementAmount;
+
+    @NotNull(message = "Currency is required")
+    private String currency;
 
     @NotNull(message = "Payment date is required")
     private LocalDate paymentDate;
@@ -33,7 +36,7 @@ public class PaymentSettlementRequest {
     @Size(max = 100, message = "Payment method must not exceed 100 characters")
     private String paymentMethod;
 
-    @Size(max = 50, message = "Transaction reference must not exceed 50 characters")
+    @Size(max = 250, message = "Transaction reference must not exceed 250 characters")
     private String transactionReference;
 
     @Size(max = 50, message = "Cheque number must not exceed 50 characters")
@@ -42,10 +45,7 @@ public class PaymentSettlementRequest {
     @Size(max = 100, message = "Bank name must not exceed 100 characters")
     private String bankName;
 
-    @Size(max = 1000, message = "Notes must not exceed 1000 characters")
-    private String notes;
-
-    @Size(max = 1000, message = "Settlement notes must not exceed 1000 characters")
+    @Size(max = 500, message = "Settlement notes must not exceed 500 characters")
     private String settlementNotes;
 
     private String settledBy;
@@ -61,15 +61,30 @@ public class PaymentSettlementRequest {
     public static class PaymentDetail {
         @NotNull(message = "Payment amount is required")
         @DecimalMin(value = "0.01", message = "Payment amount must be greater than 0")
+        @Digits(integer = 8, fraction = 2, message = "Payment amount must have maximum 8 integer digits and 2 decimal digits")
         private BigDecimal amount;
+
+        @NotNull(message = "Currency is required")
+        private String currency;
 
         @NotBlank(message = "Payment method is required")
         private String paymentMethod;
 
-        private String transactionReference;
-        private String chequeNumber;
-        private String bankName;
+        @NotNull(message = "Payment date is required")
         private LocalDate paymentDate;
+
+        @Size(max = 250, message = "Transaction reference must not exceed 250 characters")
+        private String transactionReference;
+
+        @Size(max = 50, message = "Cheque number must not exceed 50 characters")
+        private String chequeNumber;
+
+        @Size(max = 100, message = "Bank name must not exceed 100 characters")
+        private String bankName;
+
+        @Size(max = 500, message = "Settlement notes must not exceed 500 characters")
+        private String settlementNotes;
+
         private String notes;
     }
 

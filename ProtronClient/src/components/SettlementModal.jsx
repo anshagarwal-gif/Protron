@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   DollarSign,
   Calendar,
@@ -10,7 +10,8 @@ import {
   Trash2,
   Check,
   AlertCircle,
-  Loader2
+  Loader2,
+  Paperclip
 } from "lucide-react";
 import axios from "axios";
 
@@ -22,12 +23,14 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
   const [chequeNumber, setChequeNumber] = useState("");
   const [bankName, setBankName] = useState("");
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
-  const [notes, setNotes] = useState("");
   const [settlementNotes, setSettlementNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [multiplePayments, setMultiplePayments] = useState([]);
-  const [showMultiplePayments, setShowMultiplePayments] = useState(false);
+  
+  // Attachment states
+  const MAX_ATTACHMENTS = 4;
+  const [attachments, setAttachments] = useState([]);
+  const fileInputRef = useRef(null);
 
   // Payment methods
   const paymentMethods = [
@@ -49,8 +52,6 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
       setSettlementAmount(outstanding.toString());
       setSettlementType(outstanding <= 0 ? "FULL_PAYMENT" : "PARTIAL_PAYMENT");
       setError("");
-      setMultiplePayments([]);
-      setShowMultiplePayments(false);
     }
   }, [invoice, open]);
 
@@ -60,36 +61,71 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
     return parseFloat(invoice.totalAmount || 0) - parseFloat(invoice.totalPaidAmount || 0);
   };
 
-  // Add multiple payment entry
-  const addMultiplePaymentEntry = () => {
-    const newPayment = {
-      id: Date.now(),
-      amount: "",
-      paymentMethod: "",
-      transactionReference: "",
-      chequeNumber: "",
-      bankName: "",
-      paymentDate: new Date().toISOString().split('T')[0],
-      notes: ""
-    };
-    setMultiplePayments([...multiplePayments, newPayment]);
+  // Handle file selection
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'image/jpeg',
+      'image/png',
+      'image/gif'
+    ];
+
+    let error = "";
+    const validFiles = [];
+
+    for (const file of files) {
+      if (file.size > maxSize) {
+        error = "File must be under 10MB.";
+        break;
+      }
+      if (!allowedTypes.includes(file.type)) {
+        error = "Unsupported file type. Upload PDF, DOC, DOCX, JPG, PNG, GIF, or TXT.";
+        break;
+      }
+      validFiles.push(file);
+    }
+
+    if (error) {
+      setError(error);
+      return;
+    }
+
+    // Check total attachments limit
+    if (attachments.length + validFiles.length > MAX_ATTACHMENTS) {
+      setError(`Maximum ${MAX_ATTACHMENTS} attachments allowed.`);
+      return;
+    }
+
+    setAttachments([...attachments, ...validFiles]);
+    event.target.value = '';
   };
 
-  // Remove multiple payment entry
-  const removeMultiplePaymentEntry = (id) => {
-    setMultiplePayments(multiplePayments.filter(p => p.id !== id));
+  const removeAttachment = (index) => {
+    const newAttachments = [...attachments];
+    newAttachments.splice(index, 1);
+    setAttachments(newAttachments);
   };
 
-  // Update multiple payment entry
-  const updateMultiplePaymentEntry = (id, field, value) => {
-    setMultiplePayments(multiplePayments.map(p => 
-      p.id === id ? { ...p, [field]: value } : p
-    ));
+  const removeAllAttachments = () => {
+    setAttachments([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
-  // Calculate total of multiple payments
-  const getTotalMultiplePayments = () => {
-    return multiplePayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   // Validate form
@@ -101,53 +137,24 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
 
     const outstanding = getOutstandingAmount();
     
-    if (settlementType === "MULTIPLE_PAYMENTS") {
-      if (multiplePayments.length === 0) {
-        setError("At least one payment entry is required");
-        return false;
-      }
+    if (!settlementAmount || parseFloat(settlementAmount) <= 0) {
+      setError("Settlement amount must be greater than 0");
+      return false;
+    }
 
-      const total = getTotalMultiplePayments();
-      if (total <= 0) {
-        setError("Total payment amount must be greater than 0");
-        return false;
-      }
+    if (!paymentMethod) {
+      setError("Payment method is required");
+      return false;
+    }
 
-      if (total > outstanding) {
-        setError(`Total payment amount (${total}) cannot exceed outstanding amount (${outstanding})`);
-        return false;
-      }
+    if (settlementType === "FULL_PAYMENT" && parseFloat(settlementAmount) !== outstanding) {
+      setError(`Full payment amount must equal outstanding amount (${outstanding})`);
+      return false;
+    }
 
-      for (const payment of multiplePayments) {
-        if (!payment.amount || parseFloat(payment.amount) <= 0) {
-          setError("All payment amounts must be greater than 0");
-          return false;
-        }
-        if (!payment.paymentMethod) {
-          setError("Payment method is required for all entries");
-          return false;
-        }
-      }
-    } else {
-      if (!settlementAmount || parseFloat(settlementAmount) <= 0) {
-        setError("Settlement amount must be greater than 0");
-        return false;
-      }
-
-      if (!paymentMethod) {
-        setError("Payment method is required");
-        return false;
-      }
-
-      if (settlementType === "FULL_PAYMENT" && parseFloat(settlementAmount) !== outstanding) {
-        setError(`Full payment amount must equal outstanding amount (${outstanding})`);
-        return false;
-      }
-
-      if (settlementType === "PARTIAL_PAYMENT" && parseFloat(settlementAmount) > outstanding) {
-        setError(`Partial payment amount cannot exceed outstanding amount (${outstanding})`);
-        return false;
-      }
+    if (settlementType === "PARTIAL_PAYMENT" && parseFloat(settlementAmount) > outstanding) {
+      setError(`Partial payment amount cannot exceed outstanding amount (${outstanding})`);
+      return false;
     }
 
     if (!paymentDate) {
@@ -168,60 +175,50 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
     try {
       const token = sessionStorage.getItem("token");
       
-      let requestData;
-      
-      if (settlementType === "MULTIPLE_PAYMENTS") {
-        requestData = {
-          invoiceId: invoice.invoiceId,
-          settlementType: "MULTIPLE_PAYMENTS",
-          settlementAmount: getTotalMultiplePayments(),
-          paymentDate,
-          notes,
-          settlementNotes,
-          settledBy: "Current User", // TODO: Get from auth context
-          autoApplyToInvoice: true,
-          paymentDetails: multiplePayments.map(p => ({
-            amount: parseFloat(p.amount),
-            paymentMethod: p.paymentMethod,
-            transactionReference: p.transactionReference,
-            chequeNumber: p.chequeNumber,
-            bankName: p.bankName,
-            paymentDate: p.paymentDate,
-            notes: p.notes
-          }))
-        };
+      const requestData = {
+        invoiceId: invoice.invoiceId,
+        settlementType,
+        settlementAmount: parseFloat(settlementAmount),
+        currency: invoice.currency,
+        paymentMethod,
+        transactionReference,
+        chequeNumber,
+        bankName,
+        paymentDate,
+        settlementNotes,
+        settledBy: "Current User", // TODO: Get from auth context
+        autoApplyToInvoice: true
+      };
 
-        const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/invoices/settle-multiple-payments`,
-          requestData,
-          { headers: { Authorization: token } }
+      let response;
+      if (attachments.length > 0) {
+        // Use multipart endpoint with attachments
+        const formData = new FormData();
+        formData.append('payment', JSON.stringify(requestData));
+        attachments.forEach((file) => {
+          formData.append('attachments', file);
+        });
+
+        response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/invoices/settle-payment-with-attachments`,
+          formData,
+          { 
+            headers: { 
+              Authorization: token,
+              "Content-Type": "multipart/form-data"
+            } 
+          }
         );
-
-        console.log("Multiple payments settled:", response.data);
       } else {
-        requestData = {
-          invoiceId: invoice.invoiceId,
-          settlementType,
-          settlementAmount: parseFloat(settlementAmount),
-          paymentMethod,
-          transactionReference,
-          chequeNumber,
-          bankName,
-          paymentDate,
-          notes,
-          settlementNotes,
-          settledBy: "Current User", // TODO: Get from auth context
-          autoApplyToInvoice: true
-        };
-
-        const response = await axios.post(
+        // Use regular endpoint
+        response = await axios.post(
           `${import.meta.env.VITE_API_URL}/api/invoices/settle-payment`,
           requestData,
           { headers: { Authorization: token } }
         );
-
-        console.log("Payment settled:", response.data);
       }
+
+      console.log("Payment settled:", response.data);
 
       // Call success callback
       if (onSettlementComplete) {
@@ -295,100 +292,64 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Settlement Type
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              {outstanding <= 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setSettlementType("FULL_PAYMENT")}
-                  className={`px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
-                    settlementType === "FULL_PAYMENT"
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  Full Payment
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSettlementType("FULL_PAYMENT");
-                      setSettlementAmount(outstanding.toString());
-                      setShowMultiplePayments(false);
-                    }}
-                    className={`px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
-                      settlementType === "FULL_PAYMENT"
-                        ? "bg-green-600 text-white border-green-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    Full Payment
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSettlementType("PARTIAL_PAYMENT");
-                      setShowMultiplePayments(false);
-                    }}
-                    className={`px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
-                      settlementType === "PARTIAL_PAYMENT"
-                        ? "bg-green-600 text-white border-green-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    Partial Payment
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSettlementType("MULTIPLE_PAYMENTS");
-                      setShowMultiplePayments(true);
-                      if (multiplePayments.length === 0) {
-                        addMultiplePaymentEntry();
-                      }
-                    }}
-                    className={`px-3 py-2 rounded-md border text-sm font-medium transition-colors ${
-                      settlementType === "MULTIPLE_PAYMENTS"
-                        ? "bg-green-600 text-white border-green-600"
-                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    Multiple Payments
-                  </button>
-                </>
-              )}
-            </div>
+            <select
+              value={settlementType}
+              onChange={(e) => {
+                const newType = e.target.value;
+                setSettlementType(newType);
+                if (newType === "FULL_PAYMENT") {
+                  setSettlementAmount(outstanding.toString());
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="FULL_PAYMENT">Full Payment</option>
+              <option value="PARTIAL_PAYMENT">Partial Payment</option>
+            </select>
           </div>
 
-          {/* Single Payment Form */}
-          {settlementType !== "MULTIPLE_PAYMENTS" && (
-            <>
-              {/* Settlement Amount */}
+          {/* Payment Form */}
+          <>
+            {/* Settlement Amount */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Amount *
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  {invoice.currency === 'INR' ? '₹' : '$'}
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={outstanding}
+                  value={settlementAmount}
+                  onChange={(e) => setSettlementAmount(e.target.value)}
+                  className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  placeholder="0.00"
+                  maxLength="10"
+                />
+              </div>
+              {settlementType === "PARTIAL_PAYMENT" && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Maximum: {formatCurrency(outstanding)}
+                </p>
+              )}
+            </div>
+
+              {/* Currency (display only - defaults to invoice currency) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Settlement Amount *
+                  Currency
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    {invoice.currency === 'INR' ? '₹' : '$'}
-                  </span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    max={outstanding}
-                    value={settlementAmount}
-                    onChange={(e) => setSettlementAmount(e.target.value)}
-                    className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="0.00"
-                  />
-                </div>
-                {settlementType === "PARTIAL_PAYMENT" && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Maximum: {formatCurrency(outstanding)}
-                  </p>
-                )}
+                <input
+                  type="text"
+                  value={invoice.currency}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600"
+                  readOnly
+                />
               </div>
 
               {/* Payment Method */}
@@ -408,35 +369,19 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
                 </select>
               </div>
 
-              {/* Conditional fields based on payment method */}
-              {paymentMethod === "Cheque" && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Cheque Number
-                    </label>
-                    <input
-                      type="text"
-                      value={chequeNumber}
-                      onChange={(e) => setChequeNumber(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Enter cheque number"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bank Name
-                    </label>
-                    <input
-                      type="text"
-                      value={bankName}
-                      onChange={(e) => setBankName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Enter bank name"
-                    />
-                  </div>
-                </>
-              )}
+              {/* Payment Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Payment Date *
+                </label>
+                <input
+                  type="date"
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+              </div>
 
               {/* Transaction Reference */}
               <div>
@@ -449,160 +394,114 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
                   onChange={(e) => setTransactionReference(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Enter transaction reference"
+                  maxLength="250"
                 />
-              </div>
-            </>
-          )}
-
-          {/* Multiple Payments Form */}
-          {settlementType === "MULTIPLE_PAYMENTS" && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-medium text-gray-700">Payment Entries</h4>
-                <button
-                  type="button"
-                  onClick={addMultiplePaymentEntry}
-                  className="flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Payment
-                </button>
+                <p className="text-xs text-gray-500 mt-1">Maximum 250 characters</p>
               </div>
 
-              {multiplePayments.map((payment, index) => (
-                <div key={payment.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h5 className="text-sm font-medium text-gray-700">Payment {index + 1}</h5>
-                    {multiplePayments.length > 1 && (
+              {/* Settlement Notes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Settlement Notes
+                </label>
+                <textarea
+                  value={settlementNotes}
+                  onChange={(e) => setSettlementNotes(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  rows="3"
+                  placeholder="Enter settlement notes"
+                  maxLength="500"
+                />
+                <p className="text-xs text-gray-500 mt-1">Maximum 500 characters</p>
+              </div>
+
+              {/* Attachments Section */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center">
+                  <Paperclip className="mr-2 text-green-600" size={16} />
+                  Attachments (Optional - Max 4 files)
+                </label>
+
+                {/* File Input */}
+                <div className="mb-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt"
+                    multiple
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors flex items-center justify-center space-x-2 text-gray-600 hover:text-green-600"
+                    disabled={attachments.length >= 4}
+                  >
+                    <Paperclip size={20} />
+                    <span className="text-sm font-medium">
+                      {attachments.length === 0
+                        ? 'Choose Files (Max 4)'
+                        : attachments.length >= 4
+                          ? 'Maximum 4 files reached'
+                          : `Add More Files (${4 - attachments.length} remaining)`
+                      }
+                    </span>
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT (Max 10MB each)
+                  </p>
+                </div>
+
+                {/* Selected Files Display */}
+                {attachments.length > 0 && (
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-700 flex items-center">
+                        <FileText className="mr-1" size={16} />
+                        Selected Files ({attachments.length}/4)
+                      </h4>
                       <button
                         type="button"
-                        onClick={() => removeMultiplePaymentEntry(payment.id)}
-                        className="text-red-600 hover:text-red-800 transition-colors"
+                        onClick={removeAllAttachments}
+                        className="text-red-500 hover:text-red-700 text-xs font-medium"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        Remove All
                       </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Amount *
-                      </label>
-                      <div className="relative">
-                        <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">
-                          {invoice.currency === 'INR' ? '₹' : '$'}
-                        </span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={payment.amount}
-                          onChange={(e) => updateMultiplePaymentEntry(payment.id, 'amount', e.target.value)}
-                          className="pl-6 w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                          placeholder="0.00"
-                        />
-                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Payment Method *
-                      </label>
-                      <select
-                        value={payment.paymentMethod}
-                        onChange={(e) => updateMultiplePaymentEntry(payment.id, 'paymentMethod', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                      >
-                        <option value="">Select method</option>
-                        {paymentMethods.map(method => (
-                          <option key={method} value={method}>{method}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Transaction Reference
-                      </label>
-                      <input
-                        type="text"
-                        value={payment.transactionReference}
-                        onChange={(e) => updateMultiplePaymentEntry(payment.id, 'transactionReference', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                        placeholder="Reference"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Payment Date
-                      </label>
-                      <input
-                        type="date"
-                        value={payment.paymentDate}
-                        onChange={(e) => updateMultiplePaymentEntry(payment.id, 'paymentDate', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                      />
+                    <div className="space-y-2">
+                      {attachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-shrink-0">
+                              <FileText size={16} className="text-green-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-900 break-words" title={file.name}>
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatFileSize(file.size)}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeAttachment(index)}
+                            className="text-red-500 hover:text-red-700 p-1"
+                            title="Remove file"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-
-                  {payment.paymentMethod === "Cheque" && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Cheque Number
-                        </label>
-                        <input
-                          type="text"
-                          value={payment.chequeNumber}
-                          onChange={(e) => updateMultiplePaymentEntry(payment.id, 'chequeNumber', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                          placeholder="Cheque number"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Bank Name
-                        </label>
-                        <input
-                          type="text"
-                          value={payment.bankName}
-                          onChange={(e) => updateMultiplePaymentEntry(payment.id, 'bankName', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                          placeholder="Bank name"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Notes
-                    </label>
-                    <textarea
-                      value={payment.notes}
-                      onChange={(e) => updateMultiplePaymentEntry(payment.id, 'notes', e.target.value)}
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                      rows="2"
-                      placeholder="Payment notes"
-                    />
-                  </div>
-                </div>
-              ))}
-
-              {multiplePayments.length > 0 && (
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">Total Multiple Payments:</span>
-                    <span className="text-sm font-bold text-green-600">
-                      {formatCurrency(getTotalMultiplePayments())}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            </>
+          
 
           {/* Common fields */}
           <div>
@@ -619,28 +518,17 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notes
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              rows="3"
-              placeholder="Additional notes about this payment"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
               Settlement Notes
             </label>
             <textarea
               value={settlementNotes}
               onChange={(e) => setSettlementNotes(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              rows="2"
-              placeholder="Internal settlement notes"
+              rows="3"
+              placeholder="Enter settlement notes"
+              maxLength="500"
             />
+            <p className="text-xs text-gray-500 mt-1">Maximum 500 characters</p>
           </div>
 
           {/* Error Display */}

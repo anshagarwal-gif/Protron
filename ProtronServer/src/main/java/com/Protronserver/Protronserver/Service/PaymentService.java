@@ -5,10 +5,14 @@ import com.Protronserver.Protronserver.DTOs.PaymentSettlementRequest;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.InvoiceRepository;
 import com.Protronserver.Protronserver.Repository.PaymentRepository;
+import com.Protronserver.Protronserver.Repositories.PaymentAttachmentRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class PaymentService {
 
     @Autowired
@@ -25,6 +30,9 @@ public class PaymentService {
 
     @Autowired
     private InvoiceRepository invoiceRepository;
+
+    @Autowired
+    private PaymentAttachmentRepository paymentAttachmentRepository;
 
     public PaymentDTO settleInvoice(PaymentSettlementRequest request, Long tenantId) {
         // Find the invoice
@@ -221,7 +229,6 @@ public class PaymentService {
         payment.setTransactionReference(request.getTransactionReference());
         payment.setChequeNumber(request.getChequeNumber());
         payment.setBankName(request.getBankName());
-        payment.setNotes(request.getNotes());
         payment.setPaymentDate(request.getPaymentDate());
         payment.setSettlementDate(LocalDate.now());
         payment.setSettledBy(request.getSettledBy());
@@ -298,5 +305,72 @@ public class PaymentService {
         dto.setOutstandingAmount(getOutstandingAmount(payment.getInvoice().getId()));
 
         return dto;
+    }
+
+    public PaymentDTO settleInvoiceWithAttachments(PaymentSettlementRequest request, Long tenantId, List<MultipartFile> attachments) {
+        // First settle the payment
+        PaymentDTO paymentDTO = settleInvoice(request, tenantId);
+        
+        // Then add attachments
+        if (attachments != null && !attachments.isEmpty()) {
+            try {
+                Payment payment = paymentRepository.findByPaymentId(paymentDTO.getPaymentId())
+                        .orElseThrow(() -> new RuntimeException("Payment not found after settlement: " + paymentDTO.getPaymentId()));
+                
+                for (int i = 0; i < attachments.size() && i < 4; i++) {
+                    MultipartFile file = attachments.get(i);
+                    PaymentAttachment attachment = new PaymentAttachment();
+                    attachment.setPayment(payment);
+                    attachment.setTenantId(tenantId);
+                    attachment.setAttachmentData(file.getBytes());
+                    attachment.setFileName(file.getOriginalFilename());
+                    attachment.setContentType(file.getContentType());
+                    attachment.setFileSize(file.getSize());
+                    attachment.setAttachmentOrder(i + 1);
+                    
+                    paymentAttachmentRepository.save(attachment);
+                }
+                
+                log.info("Added {} attachments to payment: {}", attachments.size(), paymentDTO.getPaymentId());
+            } catch (IOException e) {
+                throw new RuntimeException("Error processing payment attachments: " + e.getMessage(), e);
+            }
+        }
+        
+        return paymentDTO;
+    }
+
+    public List<PaymentDTO> settleInvoiceWithMultiplePaymentsAndAttachments(PaymentSettlementRequest request, Long tenantId, List<MultipartFile> attachments) {
+        // First settle multiple payments
+        List<PaymentDTO> paymentDTOs = settleInvoiceWithMultiplePayments(request, tenantId);
+        
+        // Then add attachments to the first payment (or distribute across payments)
+        if (attachments != null && !attachments.isEmpty() && !paymentDTOs.isEmpty()) {
+            try {
+                // For simplicity, attach all files to the first payment
+                Payment firstPayment = paymentRepository.findByPaymentId(paymentDTOs.get(0).getPaymentId())
+                        .orElseThrow(() -> new RuntimeException("First payment not found after settlement: " + paymentDTOs.get(0).getPaymentId()));
+                
+                for (int i = 0; i < attachments.size() && i < 4; i++) {
+                    MultipartFile file = attachments.get(i);
+                    PaymentAttachment attachment = new PaymentAttachment();
+                    attachment.setPayment(firstPayment);
+                    attachment.setTenantId(tenantId);
+                    attachment.setAttachmentData(file.getBytes());
+                    attachment.setFileName(file.getOriginalFilename());
+                    attachment.setContentType(file.getContentType());
+                    attachment.setFileSize(file.getSize());
+                    attachment.setAttachmentOrder(i + 1);
+                    
+                    paymentAttachmentRepository.save(attachment);
+                }
+                
+                log.info("Added {} attachments to first payment: {}", attachments.size(), paymentDTOs.get(0).getPaymentId());
+            } catch (IOException e) {
+                throw new RuntimeException("Error processing payment attachments: " + e.getMessage(), e);
+            }
+        }
+        
+        return paymentDTOs;
     }
 }

@@ -119,7 +119,7 @@ public class Payment {
     @PrePersist
     protected void onCreate() {
         if (paymentId == null) {
-            paymentId = "PAY-" + System.currentTimeMillis();
+            paymentId = "PYNT-" + System.currentTimeMillis();
         }
         if (paymentDate == null) {
             paymentDate = LocalDate.now();
