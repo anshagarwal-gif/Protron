@@ -1890,32 +1890,20 @@ const AddInvoiceModal = ({
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Address</label>
-                                <input type="text" placeholder="Enter supplier address" value={formData.supplierAddress} onChange={handleChange('supplierAddress')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
-                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
-                                    }`} />
+                                <input type="text" placeholder="Enter supplier address" value={formData.supplierAddress} onChange={handleChange('supplierAddress')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500`} />
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Supplier Info</label>
                                 <input type="text" placeholder="Supplier info" value={formData.supplierInfo} onChange={handleChange('supplierInfo')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
                                         errors.budgetName ? 'border-red-500' : 'border-gray-300'
                                     }`} />
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Invoice Date</label>
                                 <input type="date" value={formData.invoiceDate} onChange={handleChange('invoiceDate')} className="w-full h-10 px-4 border rounded-md" />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID</label>
-                                <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
-                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
-                                    }`} maxLength={50} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name *</label>
@@ -1931,6 +1919,16 @@ const AddInvoiceModal = ({
                                 />
                             </div>
                         </div>
+
+                        {/* Tax ID field commented out as requested */}
+                        {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mt-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID</label>
+                                <input type="text" placeholder="Enter tax id" value={formData.taxId} onChange={handleChange('taxId')} className={`w-full h-10 px-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${
+                                        errors.budgetName ? 'border-red-500' : 'border-gray-300'
+                                    }`} maxLength={50} />
+                            </div>
+                        </div> */}
 
                         <div className="mt-3">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Bill Period</label>
@@ -2298,14 +2296,14 @@ const AddInvoiceModal = ({
 
                         {/* Discount Section */}
                         <div className="mt-6">
-                            <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center justify-end mb-3">
                                 <h4 className="text-md font-semibold text-gray-800 flex items-center">
                                     <Percent className="mr-2 text-green-600" size={18} />
                                     Discount
                                 </h4>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-center mb-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-center justify-end mb-3">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Discount %</label>
                                     <input
@@ -2371,7 +2369,7 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* Table totals and amount in words */}
-                        <div className="mt-4 text-right">
+                        <div className="mt-6 text-right">
                             <div className="text-lg font-semibold">Table Total: {currencySymbols[formData.currency] || '$'}{computeItemsTotal()}</div>
                             <div className="text-sm italic mt-1">In words: {amountToWords(parseFloat(computeItemsTotal() || 0), formData.currency)}</div>
                         </div>
