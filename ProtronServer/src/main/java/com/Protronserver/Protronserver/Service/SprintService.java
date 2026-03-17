@@ -56,6 +56,19 @@ public class SprintService {
 
     public Sprint createSprint(Sprint sprint) {
         Long tenantId = loggedInUserUtils.getLoggedInUser().getTenant().getTenantId();
+        if (sprint.getProjectId() == null) {
+            throw new RuntimeException("Project ID is required");
+        }
+        String sprintName = sprint.getSprintName() != null ? sprint.getSprintName().trim() : "";
+        if (sprintName.isEmpty()) {
+            throw new RuntimeException("Sprint name is required");
+        }
+        if (sprintRepository.existsByTenantIdAndProjectIdAndSprintNameIgnoreCaseAndEndTimestampIsNull(
+                tenantId, sprint.getProjectId(), sprintName
+        )) {
+            throw new RuntimeException("Sprint name already exists for this project");
+        }
+        sprint.setSprintName(sprintName);
         sprint.setTenantId(tenantId);
         sprint.setCreatedOn(LocalDateTime.now());
         sprint.setStartTimestamp(LocalDateTime.now());
@@ -68,6 +81,17 @@ public class SprintService {
         Sprint oldSprint = sprintRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sprint not found"));
         String loggedInUserEmail = loggedInUserUtils.getLoggedInUser().getEmail();
+
+        String nextName = updatedSprint.getSprintName() != null ? updatedSprint.getSprintName().trim() : "";
+        if (nextName.isEmpty()) {
+            throw new RuntimeException("Sprint name is required");
+        }
+        // Prevent duplicate names inside same project (exclude current sprintId)
+        if (sprintRepository.existsByTenantIdAndProjectIdAndSprintNameIgnoreCaseAndEndTimestampIsNullAndSprintIdNot(
+                oldSprint.getTenantId(), oldSprint.getProjectId(), nextName, oldSprint.getSprintId()
+        )) {
+            throw new RuntimeException("Sprint name already exists for this project");
+        }
         // Close old sprint
         oldSprint.setEndTimestamp(LocalDateTime.now());
         oldSprint.setUpdatedBy(loggedInUserEmail);
@@ -75,7 +99,7 @@ public class SprintService {
 
         // Create new sprint entry
         Sprint newSprint = new Sprint();
-        newSprint.setSprintName(updatedSprint.getSprintName());
+        newSprint.setSprintName(nextName);
         newSprint.setTenantId(oldSprint.getTenantId());
         newSprint.setProjectId(oldSprint.getProjectId());
         newSprint.setStartDate(updatedSprint.getStartDate());

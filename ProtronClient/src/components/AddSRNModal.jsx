@@ -759,9 +759,13 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     />
                                 </div>
 
-                                <p className="mt-1 text-xs text-gray-500">
-                                    {formData.msId ? `Milestone Balance: ${milestoneBalance}` : `PO Balance: ${poBalance ?? 'Loading...'}`} {formData.srnCurrency}
-                                </p>
+                                <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1">
+                                    <div className="text-xs text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis">
+                                        {formData.msId
+                                            ? `Milestone Balance: ${milestoneBalance ?? 'Loading...'} ${formData.srnCurrency}`
+                                            : `PO Balance: ${poBalance ?? 'Loading...'} ${formData.srnCurrency}`}
+                                    </div>
+                                </div>
 
                                 {errors.srnAmount && (
                                     <p className="mt-1 text-sm text-red-600" title={`Error: ${errors.srnAmount}`}>

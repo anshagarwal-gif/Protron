@@ -586,10 +586,10 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   }), []);
 
   return (
-    <div className="w-full">
+      <div className="w-full">
       {/* SRN Grid */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="ag-theme-alpine" style={{ height: '76vh', width: '100%' }}>
+        <div className="ag-theme-alpine w-full">
           <style jsx>{`
             .ag-theme-alpine .ag-header {
               background-color: #15803d!important;
@@ -879,9 +879,10 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             rowData={filteredSRNData}
             defaultColDef={defaultColDef}
             domLayout="autoHeight"
-            pagination={true}
+            pagination={filteredSRNData.length > 10}
             paginationPageSize={10}
             paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
+            suppressPaginationPanel={filteredSRNData.length <= 10}
             suppressMovableColumns={true}
             suppressRowClickSelection={true}
             enableBrowserTooltips={true}

@@ -274,6 +274,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
             onClose={() => setAddModalOpen(false)}
             onSubmit={handleAddSubmit}
             initialData={null}
+            existingSprints={sprints}
             projectName={projectName}
             projectId={projectId}
             setSnackbar={setSnackbar}
@@ -283,6 +284,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
             onClose={() => setEditModalOpen(false)}
             onSubmit={handleEditSubmit}
             initialData={editingSprint}
+            existingSprints={sprints}
             projectName={projectName}
             projectId={projectId}
             setSnackbar={setSnackbar}
@@ -298,6 +300,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
             onClose={() => setDuplicateModalOpen(false)}
             onSubmit={handleDuplicateSubmit}
             initialData={duplicatingSprint}
+            existingSprints={sprints}
             projectName={projectName}
             projectId={projectId}
             setSnackbar={setSnackbar}
@@ -308,7 +311,7 @@ export default function SprintManagement({ projectId, open, onClose }) {
   );
 }
 
-function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, projectId, setSnackbar }) {
+function SprintFormModal({ open, onClose, onSubmit, initialData, existingSprints, projectName, projectId, setSnackbar }) {
   const [formData, setFormData] = useState({
     sprintName: '',
     startDate: '',
@@ -419,10 +422,21 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
 
   const validate = () => {
     const errs = {};
-    if (!formData.sprintName) errs.sprintName = 'Required';
+    const name = (formData.sprintName || '').trim();
+    if (!name) errs.sprintName = 'Required';
     if (!formData.startDate) errs.startDate = 'Required';
     if (!formData.endDate) errs.endDate = 'Required';
     if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
+    if (name) {
+      const currentId = initialData?.sprintId ?? null;
+      const duplicate = (existingSprints || []).some((s) => {
+        if (!s) return false;
+        if (currentId != null && s.sprintId === currentId) return false;
+        if (String(s.projectId) !== String(projectId)) return false;
+        return (s.sprintName || '').trim().toLowerCase() === name.toLowerCase();
+      });
+      if (duplicate) errs.sprintName = 'Sprint name already exists in this project';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -704,7 +718,7 @@ function SprintFormModal({ open, onClose, onSubmit, initialData, projectName, pr
   );
 }
 
-function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectName, projectId, setSnackbar }) {
+function DuplicateSprintModal({ open, onClose, onSubmit, initialData, existingSprints, projectName, projectId, setSnackbar }) {
   const [formData, setFormData] = useState({
     sprintName: '',
     startDate: '',
@@ -808,10 +822,19 @@ function DuplicateSprintModal({ open, onClose, onSubmit, initialData, projectNam
 
   const validate = () => {
     const errs = {};
-    if (!formData.sprintName) errs.sprintName = 'Required';
+    const name = (formData.sprintName || '').trim();
+    if (!name) errs.sprintName = 'Required';
     if (!formData.startDate) errs.startDate = 'Required';
     if (!formData.endDate) errs.endDate = 'Required';
     if (formData.startDate && formData.endDate && formData.startDate > formData.endDate) errs.endDate = 'End date must be after start date';
+    if (name) {
+      const duplicate = (existingSprints || []).some((s) => {
+        if (!s) return false;
+        if (String(s.projectId) !== String(projectId)) return false;
+        return (s.sprintName || '').trim().toLowerCase() === name.toLowerCase();
+      });
+      if (duplicate) errs.sprintName = 'Sprint name already exists in this project';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
