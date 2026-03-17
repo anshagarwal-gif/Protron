@@ -1123,6 +1123,8 @@ const AddInvoiceModal = ({
         return Object.keys(newErrors).length === 0;
     };
 
+    const isEditMode = !!editInvoiceData;
+
     const handleSubmit = async (status = 'SAVED') => {
         console.log('handleSubmit called with status:', status);
 
@@ -1166,7 +1168,6 @@ const AddInvoiceModal = ({
         setLoading(true);
         try {
 
-
             // Normalize numeric fields to avoid null/NaN being sent to backend
             const parsedRate = parseFloat(formData.rate);
             let rateValue = Number.isFinite(parsedRate) ? parsedRate : null;
@@ -1206,7 +1207,6 @@ const AddInvoiceModal = ({
             if (!rateValue || rateValue <= 0) {
                 rateValue = 0.01;
             }
-
             // Hours fallback: sum of employee quantities (treated as hours) or default 1
             if ((!hoursValue || hoursValue <= 0) && employeesToSend.length > 0) {
                 const sumHours = employeesToSend.reduce((s, ee) => s + (Number.isFinite(parseFloat(ee.quantity)) ? parseFloat(ee.quantity) : 0), 0);
@@ -1266,8 +1266,6 @@ const AddInvoiceModal = ({
             invoiceData.status = status;
 
             let response;
-            const isEditMode = !!editInvoiceData;
-            
             if (isEditMode) {
                 // Update existing invoice
                 invoiceData.status = status;
