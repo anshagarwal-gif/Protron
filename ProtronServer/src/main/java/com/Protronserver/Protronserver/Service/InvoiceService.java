@@ -44,6 +44,55 @@ import java.util.HashMap;
 public class InvoiceService {
 
     private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
+    
+    /**
+     * Helper method to format BigDecimal values with exactly 2 decimal places
+     * @param value the BigDecimal value to format
+     * @return formatted string with 2 decimal places
+     */
+    private String formatAmount(BigDecimal value) {
+        if (value == null) {
+            return "0.00";
+        }
+        return value.setScale(2, RoundingMode.HALF_UP).toString();
+    }
+    
+    /**
+     * Helper method to format Integer values with exactly 2 decimal places
+     * @param value the Integer value to format
+     * @return formatted string with 2 decimal places
+     */
+    private String formatAmount(Integer value) {
+        if (value == null) {
+            return "0.00";
+        }
+        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).toString();
+    }
+    
+    /**
+     * Helper method to safely convert Object to BigDecimal and format with 2 decimal places
+     * @param value the Object value to convert and format
+     * @return formatted string with 2 decimal places
+     */
+    private String formatAmount(Object value) {
+        if (value == null) {
+            return "0.00";
+        }
+        try {
+            BigDecimal decimalValue;
+            if (value instanceof BigDecimal) {
+                decimalValue = (BigDecimal) value;
+            } else if (value instanceof Number) {
+                decimalValue = BigDecimal.valueOf(((Number) value).doubleValue());
+            } else {
+                decimalValue = new BigDecimal(value.toString());
+            }
+            return decimalValue.setScale(2, RoundingMode.HALF_UP).toString();
+        } catch (Exception e) {
+            log.warn("Failed to convert value to BigDecimal: {}", value);
+            return "0.00";
+        }
+    }
 
     @Autowired
     private InvoiceRepository invoiceRepository;
@@ -657,12 +706,6 @@ public class InvoiceService {
         boolean isDomestic = "DOMESTIC".equalsIgnoreCase(invoice.getInvoiceType())
                 || ("india".equalsIgnoreCase(invoice.getCountry()) && invoice.getInvoiceType() == null);
 
-        // Customer section header
-        Paragraph customerHeader = new Paragraph("BILL TO", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        customerHeader.setSpacingBefore(5);
-        customerHeader.setSpacingAfter(5);
-        document.add(customerHeader);
-
         PdfPTable customerTable;
         if (isDomestic) {
             customerTable = new PdfPTable(2);
@@ -692,25 +735,21 @@ public class InvoiceService {
             customerTable.addCell(emptyCell);
 
             // Bill To address
-            PdfPCell billToCell = new PdfPCell(new Phrase(
-                    "Bill To: " + (invoice.getBillToAddress() != null ? invoice.getBillToAddress() : ""), normalFont));
+            Paragraph billToPara = new Paragraph();
+            billToPara.add(new Chunk("Bill To: ", new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, primaryColor)));
+            billToPara.add(new Chunk(invoice.getBillToAddress() != null ? invoice.getBillToAddress() : "", normalFont));
+            PdfPCell billToCell = new PdfPCell(billToPara);
             billToCell.setBorder(Rectangle.BOX);
             billToCell.setBorderColor(borderGray);
             billToCell.setPadding(8);
             billToCell.setBackgroundColor(BaseColor.WHITE);
             customerTable.addCell(billToCell);
 
-            // Ship To header styled like BILL TO - added as a separate cell in the table
-            PdfPCell shipToHeaderCell = new PdfPCell(new Phrase("SHIP TO", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor)));
-            shipToHeaderCell.setBorder(Rectangle.BOX);
-            shipToHeaderCell.setBorderColor(borderGray);
-            shipToHeaderCell.setPadding(8);
-            shipToHeaderCell.setBackgroundColor(BaseColor.WHITE);
-            shipToHeaderCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-            customerTable.addCell(shipToHeaderCell);
-            
-            // Ship To address cell
-            PdfPCell shipToCell = new PdfPCell(new Phrase(invoice.getShipToAddress() != null ? invoice.getShipToAddress() : "", normalFont));
+            // Ship To address
+            Paragraph shipToPara = new Paragraph();
+            shipToPara.add(new Chunk("Ship To: ", new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, primaryColor)));
+            shipToPara.add(new Chunk(invoice.getShipToAddress() != null ? invoice.getShipToAddress() : "", normalFont));
+            PdfPCell shipToCell = new PdfPCell(shipToPara);
             shipToCell.setBorder(Rectangle.BOX);
             shipToCell.setBorderColor(borderGray);
             shipToCell.setPadding(8);
@@ -954,34 +993,38 @@ public class InvoiceService {
         // ---------------------- SUMMARY SECTION ----------------------
         // Create a right-aligned summary table with 2 columns
         PdfPTable summaryWrapper = new PdfPTable(1);
-        summaryWrapper.setWidthPercentage(60); // Increased width to prevent wrapping
+        summaryWrapper.setWidthPercentage(40);
         summaryWrapper.setHorizontalAlignment(Element.ALIGN_RIGHT);
         summaryWrapper.setSpacingBefore(5);
         summaryWrapper.setSpacingAfter(5);
         
+        // SUMMARY header cell
+        PdfPCell summaryTitleCell = new PdfPCell(new Phrase("SUMMARY", new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, primaryColor)));
+        summaryTitleCell.setBorder(Rectangle.NO_BORDER);
+        summaryTitleCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        summaryTitleCell.setPaddingBottom(8);
+        summaryWrapper.addCell(summaryTitleCell);
+        
         // Create the summary content table (2 columns: label and value)
         PdfPTable summaryContent = new PdfPTable(2);
         summaryContent.setWidthPercentage(100);
-        summaryContent.setWidths(new float[] { 3f, 2f }); // Adjusted ratios for better spacing
-        summaryContent.setKeepTogether(true); // Prevent row splitting
+        summaryContent.setWidths(new float[] { 2f, 1f });
         
         Font summaryLabelFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
         Font summaryValueFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.DARK_GRAY);
-        Font grandTotalFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, primaryColor);
+        Font grandTotalFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, BaseColor.WHITE);
         
         // Subtotal row
         PdfPCell subtotalLabelCell = new PdfPCell(new Phrase("Subtotal -", summaryLabelFont));
         subtotalLabelCell.setBorder(Rectangle.NO_BORDER);
         subtotalLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
         subtotalLabelCell.setPadding(3);
-        subtotalLabelCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(subtotalLabelCell);
         
-        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(formatAmount(subtotal), summaryValueFont));
+        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(String.valueOf(subtotal), summaryValueFont));
         subtotalValueCell.setBorder(Rectangle.NO_BORDER);
         subtotalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         subtotalValueCell.setPadding(3);
-        subtotalValueCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(subtotalValueCell);
         
         // Discount row if applicable
@@ -990,14 +1033,12 @@ public class InvoiceService {
             discountLabelCell.setBorder(Rectangle.NO_BORDER);
             discountLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
             discountLabelCell.setPadding(3);
-            discountLabelCell.setNoWrap(true); // Prevent wrapping
             summaryContent.addCell(discountLabelCell);
             
-            PdfPCell discountValueCell = new PdfPCell(new Phrase("(" + formatAmount(discountAmount) + ")", new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
+            PdfPCell discountValueCell = new PdfPCell(new Phrase("(" + String.valueOf(discountAmount) + ")", new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
             discountValueCell.setBorder(Rectangle.NO_BORDER);
             discountValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             discountValueCell.setPadding(3);
-            discountValueCell.setNoWrap(true); // Prevent wrapping
             summaryContent.addCell(discountValueCell);
         }
         
@@ -1012,14 +1053,12 @@ public class InvoiceService {
                     taxLabelCell.setBorder(Rectangle.NO_BORDER);
                     taxLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                     taxLabelCell.setPadding(3);
-                    taxLabelCell.setNoWrap(true); // Prevent wrapping
                     summaryContent.addCell(taxLabelCell);
                     
                     PdfPCell taxValueCell = new PdfPCell(new Phrase(formatAmount(taxAmount), summaryValueFont));
                     taxValueCell.setBorder(Rectangle.NO_BORDER);
                     taxValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     taxValueCell.setPadding(3);
-                    taxValueCell.setNoWrap(true); // Prevent wrapping
                     summaryContent.addCell(taxValueCell);
                 }
             }
@@ -1032,16 +1071,14 @@ public class InvoiceService {
         grandTotalLabelCell.setBackgroundColor(primaryColor);
         grandTotalLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
         grandTotalLabelCell.setPadding(6);
-        grandTotalLabelCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(grandTotalLabelCell);
         
-        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(formatAmount(grandTotal), grandTotalFont));
+        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(String.valueOf(grandTotal), grandTotalFont));
         grandTotalValueCell.setBorder(Rectangle.BOX);
         grandTotalValueCell.setBorderColor(borderGray);
         grandTotalValueCell.setBackgroundColor(primaryColor);
         grandTotalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         grandTotalValueCell.setPadding(6);
-        grandTotalValueCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(grandTotalValueCell);
         
         // Add summary content to wrapper
@@ -1123,48 +1160,9 @@ public class InvoiceService {
 
         // Footer
         addContactFooter(document, invoice.getTenantId(), smallFont);
+
         document.close();
         return baos.toByteArray();
-    }
-
-    /**
-     * Formats a BigDecimal value to exactly 2 decimal places
-     * @param value BigDecimal value to format
-     * @return formatted string with exactly 2 decimal places
-     */
-    private String formatAmount(BigDecimal value) {
-        if (value == null) {
-            return "0.00";
-        }
-        return value.setScale(2, RoundingMode.HALF_UP).toString();
-    }
-
-    /**
-     * Formats an Integer value to exactly 2 decimal places
-     * @param value Integer value to format
-     * @return formatted string with exactly 2 decimal places
-     */
-    private String formatAmount(Integer value) {
-        if (value == null) {
-            return "0.00";
-        }
-        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).toString();
-    }
-
-    /**
-     * Safely converts Object to BigDecimal for preview PDF
-     * @param value Object value to convert
-     * @return BigDecimal value or ZERO if conversion fails
-     */
-    private BigDecimal safeToBigDecimal(Object value) {
-        if (value == null) {
-            return BigDecimal.ZERO;
-        }
-        try {
-            return new BigDecimal(value.toString());
-        } catch (Exception e) {
-            return BigDecimal.ZERO;
-        }
     }
 
     private PdfPCell createBodyCell(String text, Font font, int maxLen, int horizontalAlignment) {
@@ -1315,12 +1313,6 @@ public class InvoiceService {
         String invoiceType = (String) invoiceData.getOrDefault("invoiceType", "INTERNATIONAL");
         boolean isDomestic = "DOMESTIC".equalsIgnoreCase(invoiceType);
 
-        // Customer section header
-        Paragraph customerHeader = new Paragraph("BILL TO", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor));
-        customerHeader.setSpacingBefore(5);
-        customerHeader.setSpacingAfter(5);
-        document.add(customerHeader);
-
         PdfPTable customerTable;
         if (isDomestic) {
             customerTable = new PdfPTable(2);
@@ -1350,26 +1342,21 @@ public class InvoiceService {
             customerTable.addCell(emptyCell);
 
             // Addresses: Bill To / Ship To
-            PdfPCell billToCell = new PdfPCell(
-                    new Phrase("Bill To: " + invoiceData.getOrDefault("billToAddress", ""), normalFont));
+            Paragraph billToPara = new Paragraph();
+            billToPara.add(new Chunk("Bill To: ", new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, primaryColor)));
+            billToPara.add(new Chunk(invoiceData.getOrDefault("billToAddress", "").toString(), normalFont));
+            PdfPCell billToCell = new PdfPCell(billToPara);
             billToCell.setBorder(Rectangle.BOX);
             billToCell.setBorderColor(borderGray);
             billToCell.setPadding(8);
             billToCell.setBackgroundColor(BaseColor.WHITE);
             customerTable.addCell(billToCell);
 
-            // Ship To header styled like BILL TO - added as a separate cell in the table
-            PdfPCell shipToHeaderCell = new PdfPCell(new Phrase("SHIP TO", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, primaryColor)));
-            shipToHeaderCell.setBorder(Rectangle.BOX);
-            shipToHeaderCell.setBorderColor(borderGray);
-            shipToHeaderCell.setPadding(8);
-            shipToHeaderCell.setBackgroundColor(BaseColor.WHITE);
-            shipToHeaderCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-            customerTable.addCell(shipToHeaderCell);
-            
-            // Ship To address cell
-            PdfPCell shipToCell = new PdfPCell(
-                    new Phrase(invoiceData.getOrDefault("shipToAddress", "").toString(), normalFont));
+            PdfPCell shipToCell = new PdfPCell();
+            Paragraph shipToPara = new Paragraph();
+            shipToPara.add(new Chunk("Ship To: ", new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, primaryColor)));
+            shipToPara.add(new Chunk(invoiceData.getOrDefault("shipToAddress", "").toString(), normalFont));
+            shipToCell.addElement(shipToPara);
             shipToCell.setBorder(Rectangle.BOX);
             shipToCell.setBorderColor(borderGray);
             shipToCell.setPadding(8);
@@ -1437,10 +1424,10 @@ public class InvoiceService {
                 previewItemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                 previewItemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 table.addCell(previewItemDescCell);
-                table.addCell(createBodyCell(item.getOrDefault("rate", "").toString(), normalFont, 6, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(item.getOrDefault("quantity", "").toString(), normalFont, 5, Element.ALIGN_RIGHT));
-                // Use formatAmount for consistent decimal formatting
-                table.addCell(createBodyCell(formatAmount(safeToBigDecimal(item.get("amount"))), normalFont, 10, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(formatAmount(item.getOrDefault("rate", "")), normalFont, 6, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(formatAmount(item.getOrDefault("quantity", "")), normalFont, 5, Element.ALIGN_RIGHT));
+                // Remove currency from rows:
+                table.addCell(createBodyCell(formatAmount(item.getOrDefault("amount", "")), normalFont, 10, Element.ALIGN_RIGHT));
                 // Remarks
                 PdfPCell previewRemarksCell = new PdfPCell(new Phrase(item.getOrDefault("remarks", "").toString(), normalFont));
                 previewRemarksCell.setPadding(5);
@@ -1467,9 +1454,9 @@ public class InvoiceService {
                 empItemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                 empItemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
                 table.addCell(empItemDescCell);
-                table.addCell(createBodyCell(emp.getOrDefault("rate", "").toString(), normalFont, 6, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(emp.getOrDefault("quantity", "").toString(), normalFont, 5, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(formatAmount(safeToBigDecimal(emp.get("amount"))), normalFont, 10, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(formatAmount(emp.getOrDefault("rate", "")), normalFont, 6, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(formatAmount(emp.getOrDefault("quantity", "")), normalFont, 5, Element.ALIGN_RIGHT));
+                table.addCell(createBodyCell(formatAmount(emp.getOrDefault("amount", "")), normalFont, 10, Element.ALIGN_RIGHT));
                 // Remarks
                 PdfPCell empPreviewRemarksCell = new PdfPCell(new Phrase(emp.getOrDefault("remarks", "").toString(), normalFont));
                 empPreviewRemarksCell.setPadding(5);
@@ -1552,34 +1539,38 @@ public class InvoiceService {
         // ---------------------- SUMMARY SECTION ----------------------
         // Create a right-aligned summary table with 2 columns
         PdfPTable summaryWrapper = new PdfPTable(1);
-        summaryWrapper.setWidthPercentage(60); // Increased width to prevent wrapping
+        summaryWrapper.setWidthPercentage(40);
         summaryWrapper.setHorizontalAlignment(Element.ALIGN_RIGHT);
         summaryWrapper.setSpacingBefore(5);
         summaryWrapper.setSpacingAfter(5);
         
+        // SUMMARY header cell
+        PdfPCell summaryTitleCell = new PdfPCell(new Phrase("SUMMARY", new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, primaryColor)));
+        summaryTitleCell.setBorder(Rectangle.NO_BORDER);
+        summaryTitleCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+        summaryTitleCell.setPaddingBottom(8);
+        summaryWrapper.addCell(summaryTitleCell);
+        
         // Create the summary content table (2 columns: label and value)
         PdfPTable summaryContent = new PdfPTable(2);
         summaryContent.setWidthPercentage(100);
-        summaryContent.setWidths(new float[] { 3f, 2f }); // Adjusted ratios for better spacing
-        summaryContent.setKeepTogether(true); // Prevent row splitting
+        summaryContent.setWidths(new float[] { 2f, 1f });
         
         Font summaryLabelFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
         Font summaryValueFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.DARK_GRAY);
-        Font grandTotalFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, primaryColor);
+        Font grandTotalFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, BaseColor.WHITE);
         
         // Subtotal row
         PdfPCell subtotalLabelCell = new PdfPCell(new Phrase("Subtotal -", summaryLabelFont));
         subtotalLabelCell.setBorder(Rectangle.NO_BORDER);
         subtotalLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
         subtotalLabelCell.setPadding(3);
-        subtotalLabelCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(subtotalLabelCell);
         
-        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(formatAmount(subtotal), summaryValueFont));
+        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(String.valueOf(subtotal), summaryValueFont));
         subtotalValueCell.setBorder(Rectangle.NO_BORDER);
         subtotalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         subtotalValueCell.setPadding(3);
-        subtotalValueCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(subtotalValueCell);
         
         // Discount row if applicable
@@ -1588,14 +1579,12 @@ public class InvoiceService {
             discountLabelCell.setBorder(Rectangle.NO_BORDER);
             discountLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
             discountLabelCell.setPadding(3);
-            discountLabelCell.setNoWrap(true); // Prevent wrapping
             summaryContent.addCell(discountLabelCell);
             
-            PdfPCell discountValueCell = new PdfPCell(new Phrase("(" + formatAmount(discountAmount) + ")", new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
+            PdfPCell discountValueCell = new PdfPCell(new Phrase("(" + String.valueOf(discountAmount) + ")", new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
             discountValueCell.setBorder(Rectangle.NO_BORDER);
             discountValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             discountValueCell.setPadding(3);
-            discountValueCell.setNoWrap(true); // Prevent wrapping
             summaryContent.addCell(discountValueCell);
         }
         
@@ -1615,14 +1604,12 @@ public class InvoiceService {
                             taxLabelCell.setBorder(Rectangle.NO_BORDER);
                             taxLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
                             taxLabelCell.setPadding(3);
-                            taxLabelCell.setNoWrap(true); // Prevent wrapping
                             summaryContent.addCell(taxLabelCell);
                             
                             PdfPCell taxValueCell = new PdfPCell(new Phrase(formatAmount(taxAmount), summaryValueFont));
                             taxValueCell.setBorder(Rectangle.NO_BORDER);
                             taxValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
                             taxValueCell.setPadding(3);
-                            taxValueCell.setNoWrap(true); // Prevent wrapping
                             summaryContent.addCell(taxValueCell);
                         }
                     }
@@ -1639,16 +1626,14 @@ public class InvoiceService {
         grandTotalLabelCell.setBackgroundColor(primaryColor);
         grandTotalLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
         grandTotalLabelCell.setPadding(6);
-        grandTotalLabelCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(grandTotalLabelCell);
         
-        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(formatAmount(grandTotal), grandTotalFont));
+        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(String.valueOf(grandTotal), grandTotalFont));
         grandTotalValueCell.setBorder(Rectangle.BOX);
         grandTotalValueCell.setBorderColor(borderGray);
         grandTotalValueCell.setBackgroundColor(primaryColor);
         grandTotalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         grandTotalValueCell.setPadding(6);
-        grandTotalValueCell.setNoWrap(true); // Prevent wrapping
         summaryContent.addCell(grandTotalValueCell);
         
         // Add summary content to wrapper
