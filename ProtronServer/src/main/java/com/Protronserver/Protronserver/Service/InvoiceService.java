@@ -2773,10 +2773,50 @@ public class InvoiceService {
         invoice.setProjectName(dto.getProjectName());
         invoice.setDiscountPercent(dto.getDiscountPercent());
         invoice.setDueDate(dto.getDueDate());
+        invoice.setCountry(dto.getCountry());
         invoice.setStatus(dto.getStatus() != null ? dto.getStatus() : InvoiceStatus.DRAFT);
         
-        // Update related entities (items, employees, taxes) if needed
-        // This would require more complex logic to handle updates to collections
-        // For now, keeping it simple for the draft functionality
+        // Update items collection
+        invoice.getInvoiceItems().clear();
+        if (dto.getItems() != null && !dto.getItems().isEmpty()) {
+            for (InvoiceItemDTO itemDTO : dto.getItems()) {
+                InvoiceItem item = new InvoiceItem();
+                item.setInvoice(invoice);
+                item.setItemDesc(itemDTO.getItemDesc());
+                item.setRate(itemDTO.getRate());
+                item.setQuantity(itemDTO.getQuantity());
+                item.setAmount(itemDTO.getAmount());
+                item.setRemarks(itemDTO.getRemarks());
+                invoice.getInvoiceItems().add(item);
+            }
+        }
+        
+        // Update employees collection
+        invoice.getInvoiceEmployees().clear();
+        if (dto.getEmployees() != null && !dto.getEmployees().isEmpty()) {
+            for (InvoiceEmployeeDTO empDTO : dto.getEmployees()) {
+                InvoiceEmployee emp = new InvoiceEmployee();
+                emp.setInvoice(invoice);
+                emp.setItemDesc(empDTO.getItemDesc());
+                emp.setRate(empDTO.getRate());
+                emp.setQuantity(empDTO.getQuantity());
+                emp.setAmount(empDTO.getAmount());
+                emp.setRemarks(empDTO.getRemarks());
+                invoice.getInvoiceEmployees().add(emp);
+            }
+        }
+        
+        // Update taxes collection
+        invoice.getInvoiceTaxes().clear();
+        if (dto.getTaxes() != null && !dto.getTaxes().isEmpty()) {
+            for (InvoiceTaxDTO taxDTO : dto.getTaxes()) {
+                InvoiceTax tax = new InvoiceTax();
+                tax.setInvoice(invoice);
+                tax.setTaxName(taxDTO.getTaxName());
+                tax.setTaxPercentage(taxDTO.getTaxPercentage());
+                tax.setTaxNumber(taxDTO.getTaxNumber());
+                invoice.getInvoiceTaxes().add(tax);
+            }
+        }
     }
 }
