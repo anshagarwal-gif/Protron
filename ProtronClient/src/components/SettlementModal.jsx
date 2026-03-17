@@ -46,6 +46,13 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
     "Other"
   ];
 
+  // ✅ Set currency from invoice dynamically
+  useEffect(() => {
+    if (invoice?.currency) {
+      setCurrency(invoice.currency);
+    }
+  }, [invoice]);
+  
   // Reset form when modal closes
   useEffect(() => {
     if (!open) {
@@ -336,55 +343,36 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
             </select>
           </div>
 
-          {/* Currency */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Currency
-                </label>
-                <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="USD">USD - US Dollar</option>
-                  <option value="EUR">EUR - Euro</option>
-                  <option value="GBP">GBP - British Pound</option>
-                  <option value="INR">INR - Indian Rupee</option>
-                  <option value="JPY">JPY - Japanese Yen</option>
-                  <option value="CAD">CAD - Canadian Dollar</option>
-                  <option value="AUD">AUD - Australian Dollar</option>
-                  <option value="CHF">CHF - Swiss Franc</option>
-                </select>
-              </div>
+          {/* ✅ Currency + Amount SAME ROW */}
+          <div className="flex gap-3 items-end">
 
-              
-          {/* Payment Form */}
-          <>
-            {/* Settlement Amount */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Amount *
-              </label>
-              <div>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max={outstanding}
-                  value={settlementAmount}
-                  onChange={(e) => setSettlementAmount(e.target.value)}
-                  disabled={settlementType === "FULL_PAYMENT"}
-                  className="pl-8 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  placeholder="0.00"
-                  maxLength="10"
-                />
-              </div>
-              {settlementType === "PARTIAL_PAYMENT" && outstanding > 0 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Maximum: {formatCurrency(outstanding)}
-                </p>
-              )}
+            {/* Currency (smaller) */}
+            <div className="w-1/3">
+              <label className="text-sm">Currency</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full border p-2 rounded"
+              >
+                <option value="USD">USD</option>
+                <option value="INR">INR</option>
+                <option value="EUR">EUR</option>
+              </select>
             </div>
+
+            {/* Amount (larger) */}
+            <div className="w-2/3">
+              <label className="text-sm">Amount</label>
+              <input
+                type="number"
+                value={settlementAmount}
+                onChange={(e) => setSettlementAmount(e.target.value)}
+                className="w-full border p-2 rounded"
+                disabled={settlementType === "FULL_PAYMENT"}
+              />
+            </div>
+
+          </div>
 
               {/* Payment Method */}
               <div>
@@ -534,7 +522,6 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
                   </div>
                 )}
               </div>
-            </>
           
 
           {/* Error Display */}
