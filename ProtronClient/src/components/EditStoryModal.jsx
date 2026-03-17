@@ -1,5 +1,5 @@
 // EditStoryModal.jsx
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { X, BookOpen, User, Target, CheckCircle, AlertCircle, Building, Calendar, Paperclip } from "lucide-react";
 import CreatableSelect from 'react-select/creatable';
 import axios from "axios";
@@ -50,6 +50,24 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     message: "",
     severity: "info"
   });
+
+  const fetchProjectUsersForProject = useCallback(async (projectId) => {
+    if (!projectId) {
+      setUsers([]);
+      return;
+    }
+
+    try {
+      const token = sessionStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/api/project-team/list/${projectId}`, {
+        headers: { Authorization: token }
+      });
+      setUsers(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Error fetching project team users:', error);
+      setUsers([]);
+    }
+  }, []);
 
   // Truncate text utility function
   const truncateText = (text, maxLength = 50) => {
@@ -152,7 +170,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
           if (storyData.projectId) {
             await handleProjectChange(storyData.projectId);
             // Fetch project-scoped users as well
-            await fetchProjectUsers(storyData.projectId);
+            await fetchProjectUsersForProject(storyData.projectId);
           }
 
         } catch (error) {
@@ -183,21 +201,6 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
         } catch (error) {
           console.error("Error fetching projects:", error);
         }
-      }
-    };
-
-    const fetchProjectUsers = async (projectId) => {
-      if (!projectId) return setUsers([]);
-
-      try {
-        const token = sessionStorage.getItem('token');
-        const response = await axios.get(`${API_BASE_URL}/api/project-team/list/${projectId}`, {
-          headers: { Authorization: token }
-        });
-        setUsers(Array.isArray(response.data) ? response.data : []);
-      } catch (error) {
-        console.error('Error fetching project team users:', error);
-        setUsers([]);
       }
     };
 
@@ -239,7 +242,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   fetchSystems();
   fetchStatusFlags();
     
-  }, [open, storyId]);
+  }, [open, storyId, sessionData.tenantId, handleProjectChange, fetchProjectUsersForProject]);
 
   const getParentIdDisplay = (projId) => {
     if (!projId) return '—';
@@ -332,7 +335,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   };
 
   // Handle project selection to fetch sprints and releases
-  const handleProjectChange = async (projectId) => {
+  const handleProjectChange = useCallback(async (projectId) => {
     if (!projectId) {
       setSprintList([]);
       setReleaseList([]);
@@ -381,7 +384,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       // helper handles its own errors but catch to avoid unhandled rejection
       console.error('Error fetching project users after project change:', err);
     }
-  };
+  }, [fetchProjectUsersForProject]);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -1062,8 +1065,11 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
-                  Story Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
+                  Story Attachments
                 </label>
+                <p className="text-[11px] text-gray-500 mb-2 leading-tight">
+                  Max 4 files. Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT
+                </p>
                 {/* Hidden native input, styled trigger button */}
                 <input
                   ref={storyAttachmentInputRef}
@@ -1075,12 +1081,12 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                   multiple
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
                 />
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full">
                   <button
                     type="button"
                     onClick={() => storyAttachmentInputRef.current?.click()}
                     disabled={loading}
-                    className="h-10 px-3 border border-gray-300 rounded-md bg-white text-sm text-gray-700 hover:border-green-500 hover:bg-green-50 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer inline-flex items-center"
+                    className="h-10 px-3 border border-gray-300 rounded-md bg-white text-sm text-gray-700 hover:border-green-500 hover:bg-green-50 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer inline-flex items-center whitespace-nowrap"
                     title="Upload document or image file (max 10MB)"
                   >
                     <Paperclip size={16} className="mr-2 text-green-700" />

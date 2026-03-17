@@ -635,20 +635,9 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                             </div>
 
                             <div>
-                                <div className='flex justify-between items-center'>
-                                    <label className='block text-sm font-medium text-gray-700 mb-2'>Payment Amount*</label>
-                                    <label className='block text-[10px] font-medium text-gray-700 mb-2'>
-                                        {milestoneBalance !== null ? (
-                                            <span className="text-green-600">
-                                                Milestone Balance: {getCurrencySymbol(formData.srnCurrency)}{milestoneBalance.toLocaleString()}
-                                            </span>
-                                        ) : (
-                                            <span className="text-green-600">
-                                                PO Balance: {getCurrencySymbol(formData.srnCurrency)}{poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}
-                                            </span>
-                                        )}
-                                    </label>
-                                </div>
+                                <label className='block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap'>
+                                    Payment Amount*
+                                </label>
                                 <input
                                     type="number"
                                     name="srnAmount"
@@ -671,6 +660,13 @@ const CreateNewSRNModal = ({ open, onClose, poId }) => {
                                     inputMode='decimal'
                                     readOnly={formData.srnType === 'full'}
                                 />
+                                <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1">
+                                    <div className="text-xs text-green-700 whitespace-nowrap overflow-hidden text-ellipsis">
+                                        {milestoneBalance !== null
+                                            ? `Milestone Balance: ${getCurrencySymbol(formData.srnCurrency)}${milestoneBalance.toLocaleString()}`
+                                            : `PO Balance: ${getCurrencySymbol(formData.srnCurrency)}${poBalance !== null ? poBalance.toLocaleString() : 'Loading...'}`}
+                                    </div>
+                                </div>
                                 {errors.srnAmount && (
                                     <p className="mt-1 text-red-600 text-sm">{errors.srnAmount}</p>
                                 )}
