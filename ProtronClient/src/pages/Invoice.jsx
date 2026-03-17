@@ -1170,48 +1170,38 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       filter: true,
       cellRenderer: params => {
         const status = params.value;
-        let statusClass = "";
         let statusText = "";
         
         switch(status) {
           case "DRAFT":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800";
             statusText = "DRAFT INVOICE";
             break;
           case "SAVED":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800";
             statusText = "FINAL INVOICE";
             break;
           case "SENT":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800";
             statusText = "Sent";
             break;
           case "PARTIALLY_PAID":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800";
             statusText = "Partially Paid";
             break;
           case "PAID":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800";
             statusText = "Paid";
             break;
           case "OVERDUE":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800";
             statusText = "Overdue";
             break;
           case "CANCELLED":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800";
             statusText = "Cancelled";
             break;
           case "REFUNDED":
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800";
             statusText = "Refunded";
             break;
           default:
-            statusClass = "px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800";
             statusText = status || "Unknown";
         }
         
-        return <span className={statusClass}>{statusText}</span>;
+        return <span className="font-bold text-black">{statusText}</span>;
       }
     },
     {

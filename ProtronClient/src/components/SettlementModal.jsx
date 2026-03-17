@@ -16,9 +16,9 @@ import {
 import axios from "axios";
 
 const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
-  const [settlementType, setSettlementType] = useState("FULL_PAYMENT");
+  const [settlementType, setSettlementType] = useState("");
   const [settlementAmount, setSettlementAmount] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState(invoice?.currency || "USD");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [transactionReference, setTransactionReference] = useState("");
   const [chequeNumber, setChequeNumber] = useState("");
