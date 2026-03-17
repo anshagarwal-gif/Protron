@@ -73,6 +73,44 @@ public class PaymentService {
         return convertToDTO(payment);
     }
 
+    public PaymentDTO settleInvoiceWithoutStatusUpdate(PaymentSettlementRequest request, Long tenantId) {
+        // Find the invoice
+        Invoice invoice = invoiceRepository.findByInvoiceId(request.getInvoiceId())
+                .orElseThrow(() -> new RuntimeException("Invoice not found: " + request.getInvoiceId()));
+
+        // Validate tenant access
+        if (!invoice.getTenantId().equals(tenantId)) {
+            throw new RuntimeException("Access denied: You don't have permission to settle this invoice");
+        }
+
+        // Validate invoice status
+        if (invoice.getStatus() == InvoiceStatus.CANCELLED || invoice.getStatus() == InvoiceStatus.REFUNDED) {
+            throw new RuntimeException("Cannot settle a cancelled or refunded invoice");
+        }
+
+        BigDecimal totalPaidAmount = getTotalPaidAmount(invoice.getId());
+        BigDecimal outstandingAmount = invoice.getTotalAmount().subtract(totalPaidAmount);
+
+        if (request.getSettlementType() == PaymentSettlementRequest.SettlementType.FULL_PAYMENT) {
+            if (request.getSettlementAmount().compareTo(outstandingAmount) != 0) {
+                throw new RuntimeException("Full payment amount must equal the outstanding amount: " + outstandingAmount);
+            }
+        } else if (request.getSettlementType() == PaymentSettlementRequest.SettlementType.PARTIAL_PAYMENT) {
+            if (request.getSettlementAmount().compareTo(outstandingAmount) > 0) {
+                throw new RuntimeException("Partial payment amount cannot exceed the outstanding amount: " + outstandingAmount);
+            }
+        }
+
+        Payment payment = createPaymentFromRequest(request, invoice, tenantId);
+        
+        // DO NOT update invoice status for this specific API
+
+        payment = paymentRepository.save(payment);
+        // DO NOT save invoice status update
+
+        return convertToDTO(payment);
+    }
+
     public List<PaymentDTO> settleInvoiceWithMultiplePayments(PaymentSettlementRequest request, Long tenantId) {
         Invoice invoice = invoiceRepository.findByInvoiceId(request.getInvoiceId())
                 .orElseThrow(() -> new RuntimeException("Invoice not found: " + request.getInvoiceId()));
