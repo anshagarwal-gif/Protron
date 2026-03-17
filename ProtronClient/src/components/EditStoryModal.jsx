@@ -242,7 +242,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   fetchSystems();
   fetchStatusFlags();
     
-  }, [open, storyId, sessionData.tenantId, handleProjectChange, fetchProjectUsersForProject]);
+  }, [open, storyId, sessionData.tenantId]);
 
   const getParentIdDisplay = (projId) => {
     if (!projId) return '—';
