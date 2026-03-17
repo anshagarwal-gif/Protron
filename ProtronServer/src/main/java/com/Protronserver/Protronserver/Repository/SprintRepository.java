@@ -12,6 +12,12 @@ import java.util.List;
 public interface SprintRepository extends JpaRepository<Sprint, Long> {
     List<Sprint> findAllByProjectIdAndEndTimestampIsNull(Long projectId);
 
+    boolean existsByTenantIdAndProjectIdAndSprintNameIgnoreCaseAndEndTimestampIsNull(Long tenantId, Long projectId, String sprintName);
+
+    boolean existsByTenantIdAndProjectIdAndSprintNameIgnoreCaseAndEndTimestampIsNullAndSprintIdNot(
+            Long tenantId, Long projectId, String sprintName, Long sprintId
+    );
+
     @Modifying
     @Query("UPDATE Sprint s SET s.projectId = :newProjectId WHERE s.projectId = :oldProjectId")
     void updateProjectForSprints(Long oldProjectId, Long newProjectId);
