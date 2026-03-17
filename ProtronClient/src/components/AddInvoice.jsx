@@ -1594,6 +1594,11 @@ const AddInvoiceModal = ({
     };
 
     const handleAddTax = () => {
+        // Limit to maximum 3 tax entries
+        if (formData.taxes.length >= 3) {
+            setSnackbar({ open: true, message: 'Maximum 3 tax entries allowed', severity: 'error' });
+            return;
+        }
         setFormData(prev => ({
             ...prev,
             taxes: [...prev.taxes, { taxName: '', taxPercentage: '', taxNumber: '' }]
