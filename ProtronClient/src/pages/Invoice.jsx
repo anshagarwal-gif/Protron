@@ -1306,12 +1306,12 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               <option value="">All Invoices</option>
               <option value="DRAFT">Draft</option>
               <option value="SAVED">Saved</option>
-              <option value="SENT">Sent</option>
+              {/* <option value="SENT">Sent</option>
               <option value="PARTIALLY_PAID">Partially Paid</option>
               <option value="PAID">Paid</option>
               <option value="OVERDUE">Overdue</option>
               <option value="CANCELLED">Cancelled</option>
-              <option value="REFUNDED">Refunded</option>
+              <option value="REFUNDED">Refunded</option> */}
             </select>
           </div>
           {/* <button
