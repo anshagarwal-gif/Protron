@@ -425,11 +425,13 @@ const AddInvoiceModal = ({
                 const itemDescMatch = emp.itemDesc?.match(/^(.+)\s*\((EMP\d+)\)$/);
                 const userId = itemDescMatch ? itemDescMatch[2] : '';
                 const name = itemDescMatch ? itemDescMatch[1].trim() : emp.itemDesc || emp.name || '';
+                const itemDesc = emp.itemDesc || `${name} (${userId})` || '';
 
                 return {
                     id: index + 1,
                     userId: userId,
                     name: name,
+                    itemDesc: itemDesc,
                     rate: emp.rate || '',
                     quantity: emp.quantity || '',
                     amount: emp.amount || '',
@@ -919,6 +921,44 @@ const AddInvoiceModal = ({
         setInvoiceEmployees(prev => prev.filter(e => e.id !== id));
     };
 
+    const updateEmployeeRow = (id, field, value) => {
+        setInvoiceEmployees(prev => {
+            let sanitized = value;
+            if (field === 'rate') sanitized = enforceDigitLimit(value, 8, true);
+            if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
+            
+            const next = prev.map(e => {
+                if (e.id !== id) return e;
+                
+                const updatedEmployee = { ...e, [field]: sanitized };
+                
+                // Auto-populate itemDesc when userId is set/changed
+                if (field === 'userId' && sanitized) {
+                    const selectedEmployee = employees.find(emp => emp.userId === sanitized);
+                    if (selectedEmployee) {
+                        updatedEmployee.itemDesc = selectedEmployee.label || selectedEmployee.name;
+                        updatedEmployee.name = selectedEmployee.name;
+                    }
+                }
+                
+                return updatedEmployee;
+            });
+            
+            const selectedCount = next.filter(e => e.userId).length;
+            if (selectedCount !== 1 && attachTimesheet) setAttachTimesheet(false);
+            
+            // Recalculate amount for updated row if rate/quantity changed
+            return next.map(e => {
+                const updatedRow = next.find(er => er.id === e.id);
+                if (e.id !== id) return e;
+                const rate = parseFloat(updatedRow.rate) || 0;
+                const qty = parseFloat(updatedRow.quantity) || 0;
+                const amt = (rate * qty).toFixed(2);
+                return { ...updatedRow, amount: amt.replace('.', '').length > 8 ? amt.slice(0, 9) : amt };
+            });
+        });
+    };
+
     const deleteLastRow = () => {
         // delete last employee row if any, otherwise last item row
         if (invoiceEmployees.length > 0) {
@@ -928,25 +968,6 @@ const AddInvoiceModal = ({
             const lastItem = items[items.length - 1];
             removeItem(lastItem.id);
         }
-    };
-
-    const updateEmployeeRow = (id, field, value) => {
-        setInvoiceEmployees(prev => {
-            let sanitized = value;
-            if (field === 'rate') sanitized = enforceDigitLimit(value, 8, true);
-            if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
-            const next = prev.map(e => e.id === id ? { ...e, [field]: sanitized } : e);
-            const selectedCount = next.filter(e => e.userId).length;
-            if (selectedCount !== 1 && attachTimesheet) setAttachTimesheet(false);
-            // Recalculate amount for the updated row if rate/quantity changed
-            return next.map(e => {
-                if (e.id !== id) return e;
-                const rate = parseFloat(e.rate) || 0;
-                const qty = parseFloat(e.quantity) || 0;
-                const amt = (rate * qty).toFixed(2);
-                return { ...e, amount: amt.replace('.', '').length > 8 ? amt.slice(0, 9) : amt };
-            });
-        });
     };
 
     // Ensure timesheet checkbox is disabled when selected employees count is not exactly one
@@ -1251,15 +1272,20 @@ const AddInvoiceModal = ({
                 // Update existing invoice
                 invoiceData.status = status;
                 
-                if (attachments.length > 0) {
+                if (attachments.length > 0 || attachmentsToRemove.length > 0) {
                     // Create FormData for multipart request
                     const formDataToSend = new FormData();
                     formDataToSend.append('invoice', JSON.stringify(invoiceData));
 
-                    // Add attachments to FormData
+                    // Add new attachments to FormData
                     attachments.forEach((file) => {
                         formDataToSend.append('attachments', file);
                     });
+
+                    // Add attachments to remove
+                    if (attachmentsToRemove.length > 0) {
+                        formDataToSend.append('attachmentsToRemove', JSON.stringify(attachmentsToRemove));
+                    }
 
                     response = await axios.put(
                         `${API_BASE_URL}/api/invoices/update-with-attachments/${editInvoiceData.invoiceId}`,
@@ -2521,6 +2547,46 @@ const AddInvoiceModal = ({
                                         <p className="text-xs text-gray-600">
                                             Total size: {formatFileSize(getTotalFileSize())}
                                         </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Existing Attachments Display (Edit Mode Only) */}
+                            {isEditMode && existingAttachments.length > 0 && (
+                                <div className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="text-sm font-medium text-gray-700 flex items-center">
+                                            <FileText className="mr-1" size={16} />
+                                            Existing Attachments ({existingAttachments.length})
+                                        </h4>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {existingAttachments.map((attachment) => (
+                                            <div key={attachment.id} className="flex items-center justify-between bg-white rounded-md p-3 border border-gray-200">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="flex-shrink-0">
+                                                        <FileText size={16} className="text-blue-600" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm text-gray-900 break-words" title={attachment.fileName}>
+                                                            {attachment.fileName}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            Existing file
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeExistingAttachment(attachment.id)}
+                                                    className="text-red-500 hover:text-red-700 p-1"
+                                                    title="Remove existing file"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             )}
