@@ -502,9 +502,10 @@ const GetSRNDetailsByPO = ({ poId }) => {
           columnDefs={columnDefs}
           defaultColDef={defaultColDef}
           domLayout="autoHeight"
-          pagination={true}
+          pagination={filteredSRNDetails.length > 10}
           paginationPageSize={10}
           paginationPageSizeSelector={[5, 10, 15, 20, 25]}
+          suppressPaginationPanel={filteredSRNDetails.length <= 10}
           suppressMovableColumns={true}
           suppressRowClickSelection={true}
           enableBrowserTooltips={true}

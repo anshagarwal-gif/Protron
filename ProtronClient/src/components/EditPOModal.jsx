@@ -1014,7 +1014,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                                     value = parts[1] !== undefined ? parts[0] + '.' + parts[1] : parts[0];
                                                     setFormData(prev => ({ ...prev, poAmount: value }));
                                                 }}
-                                                className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
+                                                className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
                                                 title={formData.poAmount || "Enter PO Amount"}
                                                 placeholder="Enter Amount"
                                                 maxLength={16}

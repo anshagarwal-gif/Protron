@@ -678,7 +678,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 }));
                                             }}
                                             title={formData.poAmount?.toString() || 'Enter Amount'}
-                                            className={`w-full h-10 pl-8 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none truncate ${fieldErrors.poAmount ? 'border-red-500' : 'border-gray-300'}`}
+                                            className={`w-full h-10 pl-10 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none truncate ${fieldErrors.poAmount ? 'border-red-500' : 'border-gray-300'}`}
                                             inputMode="decimal"
                                             pattern="^\d{1,13}(\.\d{0,2})?$"
                                             maxLength={16}
