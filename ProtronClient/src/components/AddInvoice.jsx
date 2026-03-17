@@ -2152,7 +2152,7 @@ const AddInvoiceModal = ({
                         </div>
 
                         {/* Dynamic Tax Section - Above Table Total */}
-                        <div className="mt-6">
+                        <div className="mt-6 border border-gray-200 rounded-md p-4 bg-white">
                             <div className="flex items-center justify-between mb-3">
                                 {/* <h4 className="text-md font-semibold text-gray-800 flex items-center">
                                     <DollarSign className="mr-2 text-green-600" size={18} />
@@ -2304,8 +2304,8 @@ const AddInvoiceModal = ({
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 items-center justify-end mb-3">
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Discount %</label>
+                                <div className="sm:col-span-1 lg:col-span-1">
+                                    <label className="block text-xs font-medium text-gray-700 mb-1 text-right">Discount %</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -2348,15 +2348,15 @@ const AddInvoiceModal = ({
                                         title="Discount percentage (0.00 - 100.00)"
                                     />
                                     {parseFloat(formData.discountPercent || 0) > 100 && (
-                                        <p className="text-xs text-red-600 mt-1">Maximum 100%</p>
+                                        <p className="text-xs text-red-600 mt-1 text-right">Maximum 100%</p>
                                     )}
                                     {parseFloat(formData.discountPercent || 0) < 0 && (
-                                        <p className="text-xs text-red-600 mt-1">Cannot be negative</p>
+                                        <p className="text-xs text-red-600 mt-1 text-right">Cannot be negative</p>
                                     )}
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Discount Amount</label>
-                                    <div className="w-full h-9 px-3 bg-gray-100 border border-gray-300 rounded-md flex items-center text-sm font-medium text-gray-700">
+                                <div className="sm:col-span-1 lg:col-span-1">
+                                    <label className="block text-xs font-medium text-gray-700 mb-1 text-right">Discount Amount</label>
+                                    <div className="w-full h-9 px-3 bg-gray-100 border border-gray-300 rounded-md flex items-center justify-end text-sm font-medium text-gray-700">
                                         {currencySymbols[formData.currency] || '$'}{(() => {
                                             const tableTotal = parseFloat(computeItemsTotal() || 0);
                                             const discountPercent = parseFloat(formData.discountPercent || 0);
