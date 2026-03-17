@@ -331,10 +331,12 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
               onChange={(e) => {
                 const newType = e.target.value;
                 setSettlementType(newType);
+                if (newType === "FULL_PAYMENT") {
+                  setSettlementAmount(outstanding.toString());
+                }
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="">Select payment type</option>
               <option value="FULL_PAYMENT">Full Payment</option>
               <option value="PARTIAL_PAYMENT">Partial Payment</option>
             </select>
