@@ -1,5 +1,5 @@
 // EditStoryModal.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { X, BookOpen, User, Target, CheckCircle, AlertCircle, Building, Calendar, Paperclip } from "lucide-react";
 import CreatableSelect from 'react-select/creatable';
 import axios from "axios";
@@ -38,6 +38,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
   const { sessionData } = useSession();
 
   const [users, setUsers] = useState([]);
+  const storyAttachmentInputRef = useRef(null);
   const [storyFiles, setStoryFiles] = useState([]);
   const [systems, setSystems] = useState([]);
   const [newlyAddedFiles, setNewlyAddedFiles] = useState([]);
@@ -375,9 +376,9 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     
     // Also fetch project-team users for the selected project
     try {
-      await fetchProjectUsers(projectId);
+      await fetchProjectUsersForProject(projectId);
     } catch (err) {
-      // fetchProjectUsers handles its own errors but catch to avoid unhandled rejection
+      // helper handles its own errors but catch to avoid unhandled rejection
       console.error('Error fetching project users after project change:', err);
     }
   };
@@ -452,14 +453,6 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
         message: error.response?.data?.message || "Failed to delete attachment.",
         severity: "error",
       });
-    }
-  };
-
-  // Function to handle date input clicks
-  const handleDateInputClick = (inputName) => {
-    const dateInput = document.getElementsByName(inputName)[0];
-    if (dateInput) {
-      dateInput.showPicker();
     }
   };
 
@@ -1071,16 +1064,36 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                   <Paperclip size={14} className="inline mr-1" />
                   Story Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                 </label>
+                {/* Hidden native input, styled trigger button */}
                 <input
+                  ref={storyAttachmentInputRef}
                   type="file"
                   name="storyAttachment"
                   onChange={handleFileChange}
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  className="hidden"
                   disabled={loading}
                   multiple
                   accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
-                  title="Upload document or image file (max 10MB)"
                 />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => storyAttachmentInputRef.current?.click()}
+                    disabled={loading}
+                    className="h-10 px-3 border border-gray-300 rounded-md bg-white text-sm text-gray-700 hover:border-green-500 hover:bg-green-50 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer inline-flex items-center"
+                    title="Upload document or image file (max 10MB)"
+                  >
+                    <Paperclip size={16} className="mr-2 text-green-700" />
+                    Choose files
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-600 truncate">
+                      {storyFiles.length + newlyAddedFiles.length > 0
+                        ? `${storyFiles.length + newlyAddedFiles.length} file(s) selected`
+                        : "No file chosen"}
+                    </p>
+                  </div>
+                </div>
                 {errors.attachment && (
                   <p className="mt-1 text-xs text-red-600">{errors.attachment}</p>
                 )}

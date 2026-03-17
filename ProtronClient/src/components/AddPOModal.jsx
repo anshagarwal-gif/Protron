@@ -693,7 +693,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO Start Date</label>
                                     <div
-                                        onClick={() => StartDateInputRef.current?.showPicker?.()}
+                                        onClick={() => StartDateInputRef.current?.focus()}
                                         className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
                                     >
                                         <Calendar
@@ -708,19 +708,17 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                             className="w-full bg-transparent outline-none cursor-pointer appearance-none"
                                             min="1900-01-01"
                                             max="2100-12-31"
-                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
                                         />
                                     </div>
                                 </div>
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO End Date</label>
-                                    <div onClick={() => EndDateInputRef.current?.showPicker?.()} className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center">
+                                    <div onClick={() => EndDateInputRef.current?.focus()} className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center">
                                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={20} />
                                         <input
                                             ref={EndDateInputRef}
                                             type="date"
                                             value={formData.endDate}
-                                            onFocus={e => e.target.showPicker && e.target.showPicker()}
                                             onChange={handleChange('endDate')}
                                             className="w-full bg-transparent outline-none cursor-pointer"
                                         />
