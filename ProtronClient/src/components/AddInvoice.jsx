@@ -61,7 +61,7 @@ const AddInvoiceModal = ({
     const [formData, setFormData] = useState({
         invoiceName: '',
         invoiceType: 'DOMESTIC',
-        invoiceDate: todayStr, // Default to current date
+        invoiceDate: todayStr,
         taxId: '',
         billPeriod: '',
         customerName: '',
@@ -76,18 +76,18 @@ const AddInvoiceModal = ({
         employeeNames: [],
         employeeIds: [],
         rate: '',
-        currency: 'INR', // Set to INR by default since invoiceType defaults to DOMESTIC
-        fromDate: todayStr, // Default to current date
-        toDate: nextMonthStr, // Default to current date + 1 month
+        currency: 'INR',
+        fromDate: todayStr,
+        toDate: nextMonthStr,
         hoursSpent: '',
         totalAmount: '',
         remarks: '',
         projectName: '',
         employeeId: '',
-        taxes: [], // Array of tax objects: { taxName, taxPercentage, taxNumber }
+        taxes: [],
         discountPercent: '',
         dueDate: '',
-        dueDateOption: '15' // 15, 30, or custom
+        dueDateOption: '15'
     });
 
     // Table headers editable by user
@@ -1595,7 +1595,7 @@ const AddInvoiceModal = ({
             employeeNames: [],
             employeeIds: [],
             rate: '',
-            currency: 'USD',
+            currency: 'INR',
             fromDate: todayStr, // Default to current date
             toDate: nextMonthStr, // Default to current date + 1 month
             hoursSpent: '',
