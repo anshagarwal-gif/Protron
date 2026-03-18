@@ -848,6 +848,7 @@ public class InvoiceService {
                 rateCell.setBackgroundColor(rowColor);
                 rateCell.setPadding(4);
                 rateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                rateCell.setNoWrap(true); // Prevent truncation of large numbers
                 table.addCell(rateCell);
                 
                 // Quantity
@@ -857,6 +858,7 @@ public class InvoiceService {
                 qtyCell.setBackgroundColor(rowColor);
                 qtyCell.setPadding(4);
                 qtyCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                qtyCell.setNoWrap(true); // Prevent truncation of large numbers
                 table.addCell(qtyCell);
                 
                 // Amount
@@ -866,6 +868,7 @@ public class InvoiceService {
                 amountCell.setBackgroundColor(rowColor);
                 amountCell.setPadding(4);
                 amountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                amountCell.setNoWrap(true); // Prevent truncation of large numbers
                 table.addCell(amountCell);
                 
                 // Remarks
@@ -915,6 +918,7 @@ public class InvoiceService {
                 empRateCell.setBackgroundColor(rowColor);
                 empRateCell.setPadding(4);
                 empRateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                empRateCell.setNoWrap(true); // Prevent truncation of large numbers
                 table.addCell(empRateCell);
                 
                 // Quantity
@@ -924,6 +928,7 @@ public class InvoiceService {
                 empQtyCell.setBackgroundColor(rowColor);
                 empQtyCell.setPadding(4);
                 empQtyCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                empQtyCell.setNoWrap(true); // Prevent truncation of large numbers
                 table.addCell(empQtyCell);
                 
                 // Amount
@@ -933,6 +938,7 @@ public class InvoiceService {
                 empAmountCell.setBackgroundColor(rowColor);
                 empAmountCell.setPadding(4);
                 empAmountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                empAmountCell.setNoWrap(true); // Prevent truncation of large numbers
                 table.addCell(empAmountCell);
                 
                 // Remarks
