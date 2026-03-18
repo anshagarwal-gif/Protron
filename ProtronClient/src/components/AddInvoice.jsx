@@ -910,8 +910,6 @@ const AddInvoiceModal = ({
     };
 
     const removeItem = (id) => {
-        // allow removal as long as at least 1 combined row (items + employees) remains
-        if (items.length + invoiceEmployees.length <= 1) return;
         setItems(prev => prev.filter(i => i.id !== id));
     };
 
@@ -922,10 +920,8 @@ const AddInvoiceModal = ({
     };
 
     const removeEmployeeRow = (id) => {
-        // allow removal as long as at least 1 combined row (items + employees) remains
-        if (items.length + invoiceEmployees.length <= 1) return;
         setInvoiceEmployees(prev => prev.filter(e => e.id !== id));
-    };
+    }
 
     const updateEmployeeRow = (id, field, value) => {
         setInvoiceEmployees(prev => {
@@ -2095,7 +2091,7 @@ const AddInvoiceModal = ({
                                 <input value={tableHeaders.col3} onChange={(e) => updateTableHeader('col3', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col4} onChange={(e) => updateTableHeader('col4', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col5} onChange={(e) => updateTableHeader('col5', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                <div className="px-2 py-1 border rounded-none bg-gray-50 text-center text-sm text-gray-600">Actions</div>
+                                <div className="px-2 py-1 border rounded-none bg-gray-50"></div> {/* Empty column for delete buttons */}
                             </div>
 
                             {/* Unified rows — items then employees */}
@@ -2111,7 +2107,7 @@ const AddInvoiceModal = ({
                                         <button
                                             type="button"
                                             onClick={() => removeItem(it.id)}
-                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors flex items-center justify-center mx-auto"
                                             title="Remove this item"
                                         >
                                             <Trash2 size={14} />
@@ -2146,7 +2142,7 @@ const AddInvoiceModal = ({
                                         <button
                                             type="button"
                                             onClick={() => removeEmployeeRow(er.id)}
-                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors flex items-center justify-center mx-auto"
                                             title="Remove this employee"
                                         >
                                             <Trash2 size={14} />
