@@ -1128,13 +1128,6 @@ public class InvoiceService {
             log.info("Added remarks to PDF for invoice {}: {}", invoice.getInvoiceId(), invoice.getRemarks());
         }
 
-        // Add a separator before footer
-        document.add(new Paragraph(" ")); // Add spacing
-        LineSeparator footerSeparator = new LineSeparator();
-        footerSeparator.setLineColor(borderGray);
-        footerSeparator.setLineWidth(1f);
-        document.add(footerSeparator);
-
         // Timesheet section
         if (timesheetData != null && timesheetData.getEntries() != null && !timesheetData.getEntries().isEmpty()) {
             document.newPage();
@@ -1671,13 +1664,6 @@ public class InvoiceService {
             remarksPara.setSpacingAfter(8);
             document.add(remarksPara);
         }
-
-        // Add a separator before footer
-        document.add(new Paragraph(" ")); // Add spacing
-        LineSeparator footerSeparator = new LineSeparator();
-        footerSeparator.setLineColor(borderGray);
-        footerSeparator.setLineWidth(1f);
-        document.add(footerSeparator);
 
         // Timesheet section
         if (invoiceData.get("timesheetData") instanceof Map tsData) {

@@ -2091,7 +2091,7 @@ const AddInvoiceModal = ({
                                 <input value={tableHeaders.col3} onChange={(e) => updateTableHeader('col3', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col4} onChange={(e) => updateTableHeader('col4', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col5} onChange={(e) => updateTableHeader('col5', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                <div className="px-2 py-1 border rounded-none bg-gray-50"></div> {/* Empty column for delete buttons */}
+                                <div></div>
                             </div>
 
                             {/* Unified rows — items then employees */}
@@ -2110,7 +2110,7 @@ const AddInvoiceModal = ({
                                             className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors flex items-center justify-center mx-auto"
                                             title="Remove this item"
                                         >
-                                            <Trash2 size={14} />
+                                            Remove
                                         </button>
                                     </div>
                                 ))}
@@ -2145,7 +2145,7 @@ const AddInvoiceModal = ({
                                             className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors flex items-center justify-center mx-auto"
                                             title="Remove this employee"
                                         >
-                                            <Trash2 size={14} />
+                                            Remove
                                         </button>
                                     </div>
                                 ))}
