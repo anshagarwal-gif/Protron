@@ -937,61 +937,65 @@ public class InvoiceService {
             }
         }
 
-        // ----------- Add empty rows to fill page -----------
-        // int minRows = 20; // Adjust this as needed for page size
-        // for (int i = rowCount; i < minRows; i++) {
-        //     for (int j = 0; j < 6; j++) {
-        //         table.addCell(createBodyCell(" ", normalFont));
-        //     }
-        // }
-
-//        // ----------- Grand Total Row -----------
-//        PdfPCell totalLabel = new PdfPCell(new Phrase("Grand Total", headerFont));
-//        totalLabel.setColspan(4);
-//        totalLabel.setHorizontalAlignment(Element.ALIGN_RIGHT);
-//        totalLabel.setBackgroundColor(BaseColor.LIGHT_GRAY);
-//        totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-//        totalLabel.setPadding(8);
-//
-//        PdfPCell totalValue = new PdfPCell(
-//                new Phrase(invoice.getCurrency() + " " + invoice.getTotalAmount(), headerFont));
-//        totalValue.setColspan(1);
-//        totalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
-//        totalValue.setBackgroundColor(BaseColor.LIGHT_GRAY);
-//        totalValue.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-//        totalValue.setPadding(8);
-//
-//        table.addCell(totalLabel);
-//        table.addCell(totalValue);
-
         document.add(table);
 
         // ---------------------- TAXES AND DISCOUNT CALCULATIONS ----------------------
-        BigDecimal subtotal = invoice.getTotalAmount() != null ? invoice.getTotalAmount() : BigDecimal.ZERO;
-        BigDecimal discountAmount = BigDecimal.ZERO;
-        BigDecimal totalTaxAmount = BigDecimal.ZERO;
-        BigDecimal grandTotal = subtotal;
-
-        // Calculate discount amount if discount percent is present
-        if (invoice.getDiscountPercent() != null && invoice.getDiscountPercent().compareTo(BigDecimal.ZERO) > 0) {
-            discountAmount = subtotal.multiply(invoice.getDiscountPercent()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
-            grandTotal = subtotal.subtract(discountAmount);
+        // Calculate subtotal from items and employees
+        BigDecimal subtotal = BigDecimal.ZERO;
+        
+        if (invoice.getInvoiceItems() != null) {
+            for (InvoiceItem item : invoice.getInvoiceItems()) {
+                if (item.getAmount() != null) {
+                    subtotal = subtotal.add(item.getAmount());
+                }
+            }
+        }
+        
+        if (invoice.getInvoiceEmployees() != null) {
+            for (InvoiceEmployee emp : invoice.getInvoiceEmployees()) {
+                if (emp.getAmount() != null) {
+                    subtotal = subtotal.add(emp.getAmount());
+                }
+            }
         }
 
-        // Calculate total tax amount
+        // Calculate discount amount (applied before tax - industry standard)
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        BigDecimal discountedSubtotal = subtotal;
+        
+        if (invoice.getDiscountPercent() != null && invoice.getDiscountPercent().compareTo(BigDecimal.ZERO) > 0) {
+            discountAmount = subtotal.multiply(invoice.getDiscountPercent())
+                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            discountedSubtotal = subtotal.subtract(discountAmount);
+        }
+
+        // Calculate tax amounts on discounted subtotal
+        List<Map<String, Object>> taxCalculations = new ArrayList<>();
+        BigDecimal totalTaxAmount = BigDecimal.ZERO;
+        
         if (invoice.getInvoiceTaxes() != null && !invoice.getInvoiceTaxes().isEmpty()) {
             for (InvoiceTax tax : invoice.getInvoiceTaxes()) {
-                if (tax.getTaxPercentage() != null) {
-                    // Calculate tax on discounted amount (grandTotal - totalTaxAmount)
-                    BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(tax.getTaxPercentage()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                if (tax.getTaxPercentage() != null && tax.getTaxPercentage().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal taxAmount = discountedSubtotal
+                            .multiply(tax.getTaxPercentage())
+                            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                    
+                    Map<String, Object> taxInfo = new HashMap<>();
+                    taxInfo.put("name", tax.getTaxName() != null ? tax.getTaxName() : "Tax");
+                    taxInfo.put("percentage", tax.getTaxPercentage());
+                    taxInfo.put("amount", taxAmount);
+                    taxCalculations.add(taxInfo);
+                    
                     totalTaxAmount = totalTaxAmount.add(taxAmount);
                 }
             }
-            grandTotal = grandTotal.add(totalTaxAmount);
         }
 
+        // Calculate grand total
+        BigDecimal grandTotal = discountedSubtotal.add(totalTaxAmount);
+
         // ---------------------- SUMMARY SECTION ----------------------
-        // Create a right-aligned summary table with 2 columns
+        // Create a right-aligned summary table
         PdfPTable summaryWrapper = new PdfPTable(1);
         summaryWrapper.setWidthPercentage(40);
         summaryWrapper.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -1008,20 +1012,23 @@ public class InvoiceService {
         // Create the summary content table (2 columns: label and value)
         PdfPTable summaryContent = new PdfPTable(2);
         summaryContent.setWidthPercentage(100);
-        summaryContent.setWidths(new float[] { 2f, 1f });
+        summaryContent.setWidths(new float[] { 3f, 1f });
         
         Font summaryLabelFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
         Font summaryValueFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.DARK_GRAY);
         Font grandTotalFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, BaseColor.WHITE);
         
+        // Currency symbol
+        String currencySymbol = getCurrencySymbol(invoice.getCurrency());
+        
         // Subtotal row
-        PdfPCell subtotalLabelCell = new PdfPCell(new Phrase("Subtotal -", summaryLabelFont));
+        PdfPCell subtotalLabelCell = new PdfPCell(new Phrase("Subtotal", summaryLabelFont));
         subtotalLabelCell.setBorder(Rectangle.NO_BORDER);
         subtotalLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
         subtotalLabelCell.setPadding(3);
         summaryContent.addCell(subtotalLabelCell);
         
-        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(String.valueOf(subtotal), summaryValueFont));
+        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(currencySymbol + " " + formatAmount(subtotal), summaryValueFont));
         subtotalValueCell.setBorder(Rectangle.NO_BORDER);
         subtotalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         subtotalValueCell.setPadding(3);
@@ -1029,43 +1036,49 @@ public class InvoiceService {
         
         // Discount row if applicable
         if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
-            PdfPCell discountLabelCell = new PdfPCell(new Phrase("Discount (" + invoice.getDiscountPercent() + "%) -", summaryLabelFont));
+            PdfPCell discountLabelCell = new PdfPCell(new Phrase("Discount (" + invoice.getDiscountPercent() + "%)", summaryLabelFont));
             discountLabelCell.setBorder(Rectangle.NO_BORDER);
             discountLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
             discountLabelCell.setPadding(3);
             summaryContent.addCell(discountLabelCell);
             
-            PdfPCell discountValueCell = new PdfPCell(new Phrase("(" + String.valueOf(discountAmount) + ")", new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
+            PdfPCell discountValueCell = new PdfPCell(new Phrase("- " + currencySymbol + " " + formatAmount(discountAmount), 
+                    new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
             discountValueCell.setBorder(Rectangle.NO_BORDER);
             discountValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             discountValueCell.setPadding(3);
             summaryContent.addCell(discountValueCell);
         }
         
-        // Tax rows
-        if (invoice.getInvoiceTaxes() != null && !invoice.getInvoiceTaxes().isEmpty()) {
-            for (InvoiceTax tax : invoice.getInvoiceTaxes()) {
-                if (tax.getTaxPercentage() != null && tax.getTaxPercentage().compareTo(BigDecimal.ZERO) > 0) {
-                    BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(tax.getTaxPercentage()).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
-                    String taxLabel = "Tax " + (tax.getTaxName() != null ? tax.getTaxName() : "") + " (" + tax.getTaxPercentage() + "%) -";
-                    
-                    PdfPCell taxLabelCell = new PdfPCell(new Phrase(taxLabel, summaryLabelFont));
-                    taxLabelCell.setBorder(Rectangle.NO_BORDER);
-                    taxLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-                    taxLabelCell.setPadding(3);
-                    summaryContent.addCell(taxLabelCell);
-                    
-                    PdfPCell taxValueCell = new PdfPCell(new Phrase(formatAmount(taxAmount), summaryValueFont));
-                    taxValueCell.setBorder(Rectangle.NO_BORDER);
-                    taxValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-                    taxValueCell.setPadding(3);
-                    summaryContent.addCell(taxValueCell);
-                }
-            }
+        // Tax rows - use the actual tax name without "Tax " prefix
+        for (Map<String, Object> taxInfo : taxCalculations) {
+            String taxName = (String) taxInfo.get("name");
+            BigDecimal taxPercentage = (BigDecimal) taxInfo.get("percentage");
+            BigDecimal taxAmount = (BigDecimal) taxInfo.get("amount");
+            
+            PdfPCell taxLabelCell = new PdfPCell(new Phrase(taxName + " (" + taxPercentage + "%)", summaryLabelFont));
+            taxLabelCell.setBorder(Rectangle.NO_BORDER);
+            taxLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+            taxLabelCell.setPadding(3);
+            summaryContent.addCell(taxLabelCell);
+            
+            PdfPCell taxValueCell = new PdfPCell(new Phrase(currencySymbol + " " + formatAmount(taxAmount), summaryValueFont));
+            taxValueCell.setBorder(Rectangle.NO_BORDER);
+            taxValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            taxValueCell.setPadding(3);
+            summaryContent.addCell(taxValueCell);
         }
         
+        // Separator line
+        PdfPCell separatorLabelCell = new PdfPCell(new Phrase(""));
+        separatorLabelCell.setBorder(Rectangle.BOTTOM);
+        separatorLabelCell.setBorderColor(borderGray);
+        separatorLabelCell.setColspan(2);
+        separatorLabelCell.setPadding(2);
+        summaryContent.addCell(separatorLabelCell);
+        
         // Grand Total row with background
-        PdfPCell grandTotalLabelCell = new PdfPCell(new Phrase("Grand Total -", grandTotalFont));
+        PdfPCell grandTotalLabelCell = new PdfPCell(new Phrase("Grand Total", grandTotalFont));
         grandTotalLabelCell.setBorder(Rectangle.BOX);
         grandTotalLabelCell.setBorderColor(borderGray);
         grandTotalLabelCell.setBackgroundColor(primaryColor);
@@ -1073,7 +1086,7 @@ public class InvoiceService {
         grandTotalLabelCell.setPadding(6);
         summaryContent.addCell(grandTotalLabelCell);
         
-        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(String.valueOf(grandTotal), grandTotalFont));
+        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(currencySymbol + " " + formatAmount(grandTotal), grandTotalFont));
         grandTotalValueCell.setBorder(Rectangle.BOX);
         grandTotalValueCell.setBorderColor(borderGray);
         grandTotalValueCell.setBackgroundColor(primaryColor);
@@ -1090,7 +1103,7 @@ public class InvoiceService {
 
         // Amount in words
         try {
-            if (grandTotal != null) {
+            if (grandTotal != null && grandTotal.compareTo(BigDecimal.ZERO) > 0) {
                 String amountWords = convertAmountToWords(grandTotal, invoice.getCurrency());
                 Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
                 amountWordsPara.setSpacingBefore(5);
@@ -1114,36 +1127,6 @@ public class InvoiceService {
             document.add(remarksPara);
             log.info("Added remarks to PDF for invoice {}: {}", invoice.getInvoiceId(), invoice.getRemarks());
         }
-
-        // Add professional signature section
-        PdfPTable signatureTable = new PdfPTable(3);
-        signatureTable.setWidthPercentage(100);
-        signatureTable.setWidths(new float[] { 3f, 2f, 3f });
-        signatureTable.setSpacingBefore(15);
-
-        // Left empty cell for spacing
-        PdfPCell leftSignatureEmpty = new PdfPCell();
-        leftSignatureEmpty.setBorder(Rectangle.NO_BORDER);
-        signatureTable.addCell(leftSignatureEmpty);
-
-        // Center: Authorized Signature
-        PdfPCell signatureCell = new PdfPCell();
-        signatureCell.setBorder(Rectangle.TOP);
-        signatureCell.setBorderColor(borderGray);
-        signatureCell.setPadding(10);
-        
-        Paragraph signatureLabel = new Paragraph("Authorized Signature", smallFont);
-        signatureLabel.setAlignment(Element.ALIGN_CENTER);
-        signatureCell.addElement(signatureLabel);
-        
-        signatureTable.addCell(signatureCell);
-
-        // Right empty cell for spacing
-        PdfPCell rightSignatureEmpty = new PdfPCell();
-        rightSignatureEmpty.setBorder(Rectangle.NO_BORDER);
-        signatureTable.addCell(rightSignatureEmpty);
-        
-        document.add(signatureTable);
 
         // Add a separator before footer
         document.add(new Paragraph(" ")); // Add spacing
@@ -1470,53 +1453,64 @@ public class InvoiceService {
             }
         }
 
-        // Fill empty rows to extend table to bottom
-        // int minRows = 20; // adjust based on page size
-        // for (int i = rowCount; i < minRows; i++) {
-        //     for (int j = 0; j < 6; j++) {
-        //         table.addCell(createBodyCell(" ", normalFont));
-        //     }
-        // }
-
         document.add(table);
-//        totalLabel.setBorder(Rectangle.TOP | Rectangle.BOTTOM);
-//        totalLabel.setPadding(8);
-//
-//        PdfPCell totalValue = new PdfPCell(
-//                new Phrase(invoiceData.getOrDefault("currency", "") + " " + invoiceData.getOrDefault("totalAmount", ""),
-//                        headerFont));
-//        totalValue.setColspan(1);
-//        totalValue.setHorizontalAlignment(Element.ALIGN_LEFT);
 
         // ---------------------- TAXES AND DISCOUNT CALCULATIONS ----------------------
+        // Calculate subtotal from items and employees
         BigDecimal subtotal = BigDecimal.ZERO;
-        try {
-            if (invoiceData.get("totalAmount") != null) {
-                subtotal = new BigDecimal(invoiceData.get("totalAmount").toString());
+        
+        if (itemsObj instanceof List) {
+            List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
+            for (Map<String, Object> item : items) {
+                try {
+                    Object amountObj = item.get("amount");
+                    if (amountObj != null) {
+                        BigDecimal amount = new BigDecimal(amountObj.toString());
+                        subtotal = subtotal.add(amount);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse item amount: {}", e.getMessage());
+                }
             }
-        } catch (Exception e) {
-            log.warn("Failed to parse totalAmount from invoice data: {}", e.getMessage());
         }
         
-        BigDecimal discountAmount = BigDecimal.ZERO;
-        BigDecimal totalTaxAmount = BigDecimal.ZERO;
-        BigDecimal grandTotal = subtotal;
+        if (empObj instanceof List) {
+            List<Map<String, Object>> emps = (List<Map<String, Object>>) empObj;
+            for (Map<String, Object> emp : emps) {
+                try {
+                    Object amountObj = emp.get("amount");
+                    if (amountObj != null) {
+                        BigDecimal amount = new BigDecimal(amountObj.toString());
+                        subtotal = subtotal.add(amount);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse employee amount: {}", e.getMessage());
+                }
+            }
+        }
 
-        // Calculate discount amount if discount percent is present
+        // Calculate discount amount (applied before tax - industry standard)
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        BigDecimal discountedSubtotal = subtotal;
         BigDecimal discountPercent = BigDecimal.ZERO;
+        
         try {
             if (invoiceData.get("discountPercent") != null) {
                 discountPercent = new BigDecimal(invoiceData.get("discountPercent").toString());
                 if (discountPercent.compareTo(BigDecimal.ZERO) > 0) {
-                    discountAmount = subtotal.multiply(discountPercent).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
-                    grandTotal = subtotal.subtract(discountAmount);
+                    discountAmount = subtotal.multiply(discountPercent)
+                            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                    discountedSubtotal = subtotal.subtract(discountAmount);
                 }
             }
         } catch (Exception e) {
             log.warn("Failed to calculate discount: {}", e.getMessage());
         }
 
-        // Calculate total tax amount
+        // Calculate tax amounts on discounted subtotal
+        List<Map<String, Object>> taxCalculations = new ArrayList<>();
+        BigDecimal totalTaxAmount = BigDecimal.ZERO;
+        
         Object taxesObj = invoiceData.get("taxes");
         if (taxesObj instanceof List) {
             List<Map<String, Object>> taxes = (List<Map<String, Object>>) taxesObj;
@@ -1525,7 +1519,16 @@ public class InvoiceService {
                     if (taxData.get("taxPercentage") != null) {
                         BigDecimal taxPercentage = new BigDecimal(taxData.get("taxPercentage").toString());
                         if (taxPercentage.compareTo(BigDecimal.ZERO) > 0) {
-                            BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(taxPercentage).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+                            BigDecimal taxAmount = discountedSubtotal
+                                    .multiply(taxPercentage)
+                                    .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+                            
+                            Map<String, Object> taxInfo = new HashMap<>();
+                            taxInfo.put("name", taxData.getOrDefault("taxName", "Tax").toString());
+                            taxInfo.put("percentage", taxPercentage);
+                            taxInfo.put("amount", taxAmount);
+                            taxCalculations.add(taxInfo);
+                            
                             totalTaxAmount = totalTaxAmount.add(taxAmount);
                         }
                     }
@@ -1533,11 +1536,13 @@ public class InvoiceService {
                     log.warn("Failed to calculate tax amount: {}", e.getMessage());
                 }
             }
-            grandTotal = grandTotal.add(totalTaxAmount);
         }
 
+        // Calculate grand total
+        BigDecimal grandTotal = discountedSubtotal.add(totalTaxAmount);
+
         // ---------------------- SUMMARY SECTION ----------------------
-        // Create a right-aligned summary table with 2 columns
+        // Create a right-aligned summary table
         PdfPTable summaryWrapper = new PdfPTable(1);
         summaryWrapper.setWidthPercentage(40);
         summaryWrapper.setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -1554,20 +1559,23 @@ public class InvoiceService {
         // Create the summary content table (2 columns: label and value)
         PdfPTable summaryContent = new PdfPTable(2);
         summaryContent.setWidthPercentage(100);
-        summaryContent.setWidths(new float[] { 2f, 1f });
+        summaryContent.setWidths(new float[] { 3f, 1f });
         
         Font summaryLabelFont = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, BaseColor.DARK_GRAY);
         Font summaryValueFont = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.DARK_GRAY);
         Font grandTotalFont = new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD, BaseColor.WHITE);
         
+        // Currency symbol
+        String currencySymbol = getCurrencySymbol(currency);
+        
         // Subtotal row
-        PdfPCell subtotalLabelCell = new PdfPCell(new Phrase("Subtotal -", summaryLabelFont));
+        PdfPCell subtotalLabelCell = new PdfPCell(new Phrase("Subtotal", summaryLabelFont));
         subtotalLabelCell.setBorder(Rectangle.NO_BORDER);
         subtotalLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
         subtotalLabelCell.setPadding(3);
         summaryContent.addCell(subtotalLabelCell);
         
-        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(String.valueOf(subtotal), summaryValueFont));
+        PdfPCell subtotalValueCell = new PdfPCell(new Phrase(currencySymbol + " " + formatAmount(subtotal), summaryValueFont));
         subtotalValueCell.setBorder(Rectangle.NO_BORDER);
         subtotalValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         subtotalValueCell.setPadding(3);
@@ -1575,52 +1583,49 @@ public class InvoiceService {
         
         // Discount row if applicable
         if (discountAmount.compareTo(BigDecimal.ZERO) > 0) {
-            PdfPCell discountLabelCell = new PdfPCell(new Phrase("Discount (" + discountPercent + "%) -", summaryLabelFont));
+            PdfPCell discountLabelCell = new PdfPCell(new Phrase("Discount (" + discountPercent + "%)", summaryLabelFont));
             discountLabelCell.setBorder(Rectangle.NO_BORDER);
             discountLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
             discountLabelCell.setPadding(3);
             summaryContent.addCell(discountLabelCell);
             
-            PdfPCell discountValueCell = new PdfPCell(new Phrase("(" + String.valueOf(discountAmount) + ")", new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
+            PdfPCell discountValueCell = new PdfPCell(new Phrase("- " + currencySymbol + " " + formatAmount(discountAmount), 
+                    new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL, accentGreen)));
             discountValueCell.setBorder(Rectangle.NO_BORDER);
             discountValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             discountValueCell.setPadding(3);
             summaryContent.addCell(discountValueCell);
         }
         
-        // Tax rows
-        if (taxesObj instanceof List) {
-            List<Map<String, Object>> taxes = (List<Map<String, Object>>) taxesObj;
-            for (Map<String, Object> taxData : taxes) {
-                try {
-                    if (taxData.get("taxPercentage") != null) {
-                        BigDecimal taxPercentage = new BigDecimal(taxData.get("taxPercentage").toString());
-                        if (taxPercentage.compareTo(BigDecimal.ZERO) > 0) {
-                            BigDecimal taxAmount = grandTotal.subtract(totalTaxAmount).multiply(taxPercentage).divide(new BigDecimal("100"), RoundingMode.HALF_UP);
-                            String taxName = taxData.getOrDefault("taxName", "").toString();
-                            String taxLabel = "Tax " + taxName + " (" + taxPercentage + "%) -";
-                            
-                            PdfPCell taxLabelCell = new PdfPCell(new Phrase(taxLabel, summaryLabelFont));
-                            taxLabelCell.setBorder(Rectangle.NO_BORDER);
-                            taxLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-                            taxLabelCell.setPadding(3);
-                            summaryContent.addCell(taxLabelCell);
-                            
-                            PdfPCell taxValueCell = new PdfPCell(new Phrase(formatAmount(taxAmount), summaryValueFont));
-                            taxValueCell.setBorder(Rectangle.NO_BORDER);
-                            taxValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
-                            taxValueCell.setPadding(3);
-                            summaryContent.addCell(taxValueCell);
-                        }
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to process tax row: {}", e.getMessage());
-                }
-            }
+        // Tax rows - use the actual tax name without "Tax " prefix
+        for (Map<String, Object> taxInfo : taxCalculations) {
+            String taxName = (String) taxInfo.get("name");
+            BigDecimal taxPercentage = (BigDecimal) taxInfo.get("percentage");
+            BigDecimal taxAmount = (BigDecimal) taxInfo.get("amount");
+            
+            PdfPCell taxLabelCell = new PdfPCell(new Phrase(taxName + " (" + taxPercentage + "%)", summaryLabelFont));
+            taxLabelCell.setBorder(Rectangle.NO_BORDER);
+            taxLabelCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+            taxLabelCell.setPadding(3);
+            summaryContent.addCell(taxLabelCell);
+            
+            PdfPCell taxValueCell = new PdfPCell(new Phrase(currencySymbol + " " + formatAmount(taxAmount), summaryValueFont));
+            taxValueCell.setBorder(Rectangle.NO_BORDER);
+            taxValueCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            taxValueCell.setPadding(3);
+            summaryContent.addCell(taxValueCell);
         }
         
+        // Separator line
+        PdfPCell separatorLabelCell = new PdfPCell(new Phrase(""));
+        separatorLabelCell.setBorder(Rectangle.BOTTOM);
+        separatorLabelCell.setBorderColor(borderGray);
+        separatorLabelCell.setColspan(2);
+        separatorLabelCell.setPadding(2);
+        summaryContent.addCell(separatorLabelCell);
+        
         // Grand Total row with background
-        PdfPCell grandTotalLabelCell = new PdfPCell(new Phrase("Grand Total -", grandTotalFont));
+        PdfPCell grandTotalLabelCell = new PdfPCell(new Phrase("Grand Total", grandTotalFont));
         grandTotalLabelCell.setBorder(Rectangle.BOX);
         grandTotalLabelCell.setBorderColor(borderGray);
         grandTotalLabelCell.setBackgroundColor(primaryColor);
@@ -1628,7 +1633,7 @@ public class InvoiceService {
         grandTotalLabelCell.setPadding(6);
         summaryContent.addCell(grandTotalLabelCell);
         
-        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(String.valueOf(grandTotal), grandTotalFont));
+        PdfPCell grandTotalValueCell = new PdfPCell(new Phrase(currencySymbol + " " + formatAmount(grandTotal), grandTotalFont));
         grandTotalValueCell.setBorder(Rectangle.BOX);
         grandTotalValueCell.setBorderColor(borderGray);
         grandTotalValueCell.setBackgroundColor(primaryColor);
@@ -1645,8 +1650,8 @@ public class InvoiceService {
 
         // Amount in words
         try {
-            if (grandTotal != null) {
-                String amountWords = convertAmountToWords(grandTotal, invoiceData.getOrDefault("currency", "").toString());
+            if (grandTotal != null && grandTotal.compareTo(BigDecimal.ZERO) > 0) {
+                String amountWords = convertAmountToWords(grandTotal, currency);
                 Paragraph amountWordsPara = new Paragraph("Amount (in words): " + amountWords, smallFont);
                 amountWordsPara.setSpacingBefore(5);
                 document.add(amountWordsPara);
@@ -1666,36 +1671,6 @@ public class InvoiceService {
             remarksPara.setSpacingAfter(8);
             document.add(remarksPara);
         }
-
-        // Add professional signature section
-        PdfPTable signatureTable = new PdfPTable(3);
-        signatureTable.setWidthPercentage(100);
-        signatureTable.setWidths(new float[] { 3f, 2f, 3f });
-        signatureTable.setSpacingBefore(15);
-
-        // Left empty cell for spacing
-        PdfPCell leftSignatureEmpty = new PdfPCell();
-        leftSignatureEmpty.setBorder(Rectangle.NO_BORDER);
-        signatureTable.addCell(leftSignatureEmpty);
-
-        // Center: Authorized Signature
-        PdfPCell signatureCell = new PdfPCell();
-        signatureCell.setBorder(Rectangle.TOP);
-        signatureCell.setBorderColor(borderGray);
-        signatureCell.setPadding(10);
-        
-        Paragraph signatureLabel = new Paragraph("Authorized Signature", smallFont);
-        signatureLabel.setAlignment(Element.ALIGN_CENTER);
-        signatureCell.addElement(signatureLabel);
-        
-        signatureTable.addCell(signatureCell);
-
-        // Right empty cell for spacing
-        PdfPCell rightSignatureEmpty = new PdfPCell();
-        rightSignatureEmpty.setBorder(Rectangle.NO_BORDER);
-        signatureTable.addCell(rightSignatureEmpty);
-        
-        document.add(signatureTable);
 
         // Add a separator before footer
         document.add(new Paragraph(" ")); // Add spacing
@@ -1723,6 +1698,24 @@ public class InvoiceService {
 
         document.close();
         return baos.toByteArray();
+    }
+
+    /**
+     * Helper method to get currency symbol
+     */
+    private String getCurrencySymbol(String currency) {
+        if (currency == null) return "$";
+        
+        switch (currency.toUpperCase()) {
+            case "USD": return "$";
+            case "INR": return "₹";
+            case "EUR": return "€";
+            case "GBP": return "£";
+            case "JPY": return "¥";
+            case "CAD": return "C$";
+            case "AUD": return "A$";
+            default: return "$";
+        }
     }
 
     // Helper method to safely format dates (assuming this doesn't exist)
@@ -2091,7 +2084,7 @@ public class InvoiceService {
 
         String words = numberToWords(whole) + " " + (whole == 1 ? majorName : (majorName + "s"));
         if (fraction > 0) {
-            words += " and " + numberToWords(fraction) + " " + (fraction == 1 ? minorName : minorName);
+            words += " and " + numberToWords(fraction) + " " + (fraction == 1 ? minorName : (minorName));
         }
         return words;
     }

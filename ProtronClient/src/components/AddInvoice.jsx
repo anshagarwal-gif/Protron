@@ -50,10 +50,18 @@ const AddInvoiceModal = ({
     isFromInvoiceManagement = false,
     editInvoiceData = null
 }) => {
+    // Get current date and calculate default dates for initial state
+    const today = new Date();
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    
+    const todayStr = today.toISOString().split('T')[0];
+    const nextMonthStr = nextMonth.toISOString().split('T')[0];
+    
     const [formData, setFormData] = useState({
         invoiceName: '',
         invoiceType: 'DOMESTIC',
-        invoiceDate: '',
+        invoiceDate: todayStr, // Default to current date
         taxId: '',
         billPeriod: '',
         customerName: '',
@@ -69,8 +77,8 @@ const AddInvoiceModal = ({
         employeeIds: [],
         rate: '',
         currency: 'INR', // Set to INR by default since invoiceType defaults to DOMESTIC
-        fromDate: '',
-        toDate: '',
+        fromDate: todayStr, // Default to current date
+        toDate: nextMonthStr, // Default to current date + 1 month
         hoursSpent: '',
         totalAmount: '',
         remarks: '',
@@ -91,10 +99,8 @@ const AddInvoiceModal = ({
         col5: 'Remarks'
     });
 
-    // Invoice line items (max 5)
-    const [items, setItems] = useState([
-        { id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }
-    ]);
+    // Invoice line items (max 5) - start with empty array
+    const [items, setItems] = useState([]);
 
     // Employee rows (max 5). Each row holds selected employee and line fields
     const [invoiceEmployees, setInvoiceEmployees] = useState([]);
@@ -1567,10 +1573,18 @@ const AddInvoiceModal = ({
 
 
     const handleReset = () => {
+        // Get current date and calculate default dates
+        const today = new Date();
+        const nextMonth = new Date(today);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        
+        const todayStr = today.toISOString().split('T')[0];
+        const nextMonthStr = nextMonth.toISOString().split('T')[0];
+        
         setFormData({
             invoiceName: '',
             invoiceType: 'DOMESTIC',
-            invoiceDate: '',
+            invoiceDate: todayStr, // Default to current date
             taxId: '',
             billPeriod: '',
             customerName: '',
@@ -1586,8 +1600,8 @@ const AddInvoiceModal = ({
             employeeIds: [],
             rate: '',
             currency: 'USD',
-            fromDate: '',
-            toDate: '',
+            fromDate: todayStr, // Default to current date
+            toDate: nextMonthStr, // Default to current date + 1 month
             hoursSpent: '',
             totalAmount: '',
             remarks: '',
@@ -1602,7 +1616,7 @@ const AddInvoiceModal = ({
         setAttachments([]);
         setAttachTimesheet(false);
         setFetchedTasks([]);
-        setItems([{ id: 1, description: '', rate: '', quantity: '', amount: '', remarks: '' }]);
+        setItems([]); // Start with empty items array
         setInvoiceEmployees([]);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -2075,29 +2089,38 @@ const AddInvoiceModal = ({
                             <h3 className="text-sm font-semibold">Invoice Items</h3>
 
                             {/* editable headers */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 mb-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-2">
                                 <input value={tableHeaders.col1} onChange={(e) => updateTableHeader('col1', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col2} onChange={(e) => updateTableHeader('col2', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col3} onChange={(e) => updateTableHeader('col3', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col4} onChange={(e) => updateTableHeader('col4', e.target.value)} className="px-2 py-1 border rounded-none" />
                                 <input value={tableHeaders.col5} onChange={(e) => updateTableHeader('col5', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                <div className="px-2 py-1 border rounded-none bg-gray-50 text-center text-sm text-gray-600">Actions</div>
                             </div>
 
                             {/* Unified rows — items then employees */}
                             <div className="space-y-2">
                                 {/* Item rows */}
                                 {items.map((it) => (
-                                    <div key={`item-${it.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
+                                    <div key={`item-${it.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 items-center">
                                         <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={70} />
                                         <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" maxLength="10" />
                                         <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" />
                                         <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
                                         <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={70} />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeItem(it.id)}
+                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                            title="Remove this item"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
                                     </div>
                                 ))}
                                 {/* Employee rows */}
                                 {invoiceEmployees.map((er) => (
-                                    <div key={`emp-${er.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-0 items-center">
+                                    <div key={`emp-${er.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 items-center">
                                         <div>
                                             <CreatableSelect
                                                 options={employees}
@@ -2120,6 +2143,14 @@ const AddInvoiceModal = ({
                                         <div>
                                             <input value={er.remarks} onChange={(e) => updateEmployeeRow(er.id, 'remarks', e.target.value)} placeholder="Remarks" className="px-2 py-1 border rounded-none w-full" maxLength={70} />
                                         </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeEmployeeRow(er.id)}
+                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                            title="Remove this employee"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -2139,14 +2170,6 @@ const AddInvoiceModal = ({
                                     className="px-3 py-1 bg-green-600 text-white rounded-md text-sm"
                                 >
                                     Add Employee
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={deleteLastRow}
-                                    className="ml-2 px-3 py-1 bg-red-600 text-white rounded-md text-sm flex items-center gap-1"
-                                >
-                                    <Trash2 size={14} />
-                                    Delete
                                 </button>
                             </div>
                         </div>
@@ -2274,9 +2297,9 @@ const AddInvoiceModal = ({
                                 <button
                                     type="button"
                                     onClick={handleAddTax}
-                                    className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center gap-1"
+                                    className="px-6 py-3 bg-green-600 text-white rounded-md text-base hover:bg-green-700 transition-colors flex items-center gap-2 font-semibold"
                                 >
-                                    <Plus size={14} />
+                                    <Plus size={18} />
                                     Add Tax
                                 </button>
                             </div>
