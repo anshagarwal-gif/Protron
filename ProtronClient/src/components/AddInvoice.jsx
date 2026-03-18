@@ -904,7 +904,7 @@ const AddInvoiceModal = ({
     };
 
     const addItem = () => {
-        if (items.length + invoiceEmployees.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 rows allowed (items + employees combined)', severity: 'error' });
+        if (items.length + invoiceEmployees.length >= 4) return setSnackbar({ open: true, message: 'Maximum 4 rows allowed (items + employees combined)', severity: 'error' });
         const nextId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
         setItems(prev => ([...prev, { id: nextId, description: '', rate: '', quantity: '', amount: '', remarks: '' }]));
     };
