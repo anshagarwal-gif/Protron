@@ -181,9 +181,35 @@ const UserEditForm = ({ userId, onSubmit, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const clampToMaxChars = (val, maxChars = 100) => {
+      const str = val == null ? "" : String(val);
+      return str.length > maxChars ? str.slice(0, maxChars) : str;
+    };
+    const sanitizeMoney9_2 = (val) => {
+      const raw = val == null ? "" : String(val);
+      let cleaned = raw.replace(/[^\d.]/g, "");
+      const firstDot = cleaned.indexOf(".");
+      if (firstDot !== -1) {
+        cleaned = cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, "");
+      }
+      const [intPartRaw, decPartRaw] = cleaned.split(".");
+      const intPart = (intPartRaw || "").slice(0, 9);
+      const decPart = decPartRaw != null ? decPartRaw.slice(0, 2) : null;
+      if (decPart === null) return intPart;
+      return decPart.length > 0 ? `${intPart}.${decPart}` : `${intPart}.`;
+    };
+
+    const limitedTextFields = new Set(["firstName", "middleName", "lastName"]);
+    const nextValue =
+      name === "cost"
+        ? sanitizeMoney9_2(value)
+        : limitedTextFields.has(name)
+          ? clampToMaxChars(value, 100)
+          : value;
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
     console.log(name, value);
     if (name === "country") {
@@ -287,6 +313,7 @@ const UserEditForm = ({ userId, onSubmit, onCancel }) => {
                     type="text"
                     value={formData.firstName}
                     onChange={handleChange}
+                    maxLength={100}
                     className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
                     title={formData.firstName || "Enter First Name"}
                     placeholder="Enter First Name"
@@ -305,6 +332,7 @@ const UserEditForm = ({ userId, onSubmit, onCancel }) => {
                     type="text"
                     value={formData.middleName}
                     onChange={handleChange}
+                    maxLength={100}
                     className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
                     title={formData.middleName || "Enter Middle Name"}
                     placeholder="Enter Middle Name"
@@ -323,6 +351,7 @@ const UserEditForm = ({ userId, onSubmit, onCancel }) => {
                     type="text"
                     value={formData.lastName}
                     onChange={handleChange}
+                    maxLength={100}
                     className="w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md truncate"
                     title={formData.lastName || "Enter Last Name"}
                     placeholder="Enter Last Name"
@@ -362,12 +391,14 @@ const UserEditForm = ({ userId, onSubmit, onCancel }) => {
                   <input
                     id="cost"
                     name="cost"
-                    type="number"
+                    type="text"
                     value={formData.cost}
                     onChange={handleChange}
                     className="w-full h-10 pl-8 pr-4 border border-gray-300 rounded-md truncate"
                     title={formData.cost || "Enter Cost"}
                     placeholder="Enter Cost"
+                    inputMode="decimal"
+                    pattern="^\\d{0,9}(\\.\\d{0,2})?$"
                   />
                 </div>
               </div>

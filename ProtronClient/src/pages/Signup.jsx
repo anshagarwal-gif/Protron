@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom"
 import GlobalSnackbar from "../components/GlobalSnackbar"
 import * as XLSX from "xlsx"
 
-const Signup = ({ onSignup, onSwitchToLogin }) => {
+const Signup = () => {
   const navigate = useNavigate()
   const [roles, setRoles] = useState([])
   const [loading, setLoading] = useState(false)
@@ -79,7 +79,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     AUD: "A$",
   }
 
-  const timePeriods = [
+  const _timePeriods = [
     { value: "hour", label: "Hourly" },
     { value: "day", label: "Daily" },
     { value: "week", label: "Weekly" },
@@ -355,6 +355,26 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     }))
   }
 
+  const clampToMaxChars = (val, maxChars = 100) => {
+    const str = val == null ? "" : String(val)
+    return str.length > maxChars ? str.slice(0, maxChars) : str
+  }
+
+  const sanitizeMoney9_2 = (val) => {
+    const raw = val == null ? "" : String(val)
+    // keep digits and a single dot
+    let cleaned = raw.replace(/[^\d.]/g, "")
+    const firstDot = cleaned.indexOf(".")
+    if (firstDot !== -1) {
+      cleaned = cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, "")
+    }
+    const [intPartRaw, decPartRaw] = cleaned.split(".")
+    const intPart = (intPartRaw || "").slice(0, 9)
+    const decPart = decPartRaw != null ? decPartRaw.slice(0, 2) : null
+    if (decPart === null) return intPart
+    return decPart.length > 0 ? `${intPart}.${decPart}` : `${intPart}.`
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
     if (name === "role") {
@@ -366,9 +386,23 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     } else if (name === "city") {
       handleCitySelection(value)
     } else {
+      const limitedTextFields = new Set([
+        "firstName",
+        "middleName",
+        "lastName",
+        "displayName",
+        "password",
+        "confirmPassword",
+      ])
+      const nextValue =
+        name === "cost"
+          ? sanitizeMoney9_2(value)
+          : limitedTextFields.has(name)
+            ? clampToMaxChars(value, 100)
+            : value
       setFormData((prev) => ({
         ...prev,
-        [name]: value,
+        [name]: nextValue,
       }))
     }
   }
@@ -640,7 +674,10 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     setLoading(true)
 
     try {
-      const payload = validUsers.map(({ isValid, errors, _rowIndex, ...rest }) => rest)
+      const payload = validUsers.map((u) => {
+        const { isValid: _isValid, errors: _errors, _rowIndex: __rowIndex, ...rest } = u
+        return rest
+      })
       const token = sessionStorage.getItem("token")
 
       const response = await axios.post(
@@ -736,7 +773,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
     }
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/signup`, submissionData, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/users/signup`, submissionData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -843,6 +880,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                 value={formData.firstName}
                 onChange={handleChange}
+                maxLength={100}
                 required
                 disabled={loading}
               />
@@ -861,6 +899,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                 value={formData.middleName}
                 onChange={handleChange}
+                maxLength={100}
                 disabled={loading}
               />
             </div>
@@ -878,6 +917,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                 className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                 value={formData.lastName}
                 onChange={handleChange}
+                maxLength={100}
                 required
                 disabled={loading}
               />
@@ -898,6 +938,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                   value={formData.displayName}
                   onChange={handleChange}
+                  maxLength={100}
                   disabled={loading}
                 />
               </div>
@@ -956,11 +997,13 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                     <input
                       id="cost"
                       name="cost"
-                      type="number"
+                      type="text"
                       placeholder="0.00"
                       className="w-full pl-8 pr-2 py-2.5 text-sm border-0 focus:ring-2 focus:ring-blue-500 bg-transparent"
                       value={formData.cost}
                       onChange={handleChange}
+                      inputMode="decimal"
+                      pattern="^\\d{0,9}(\\.\\d{0,2})?$"
                       disabled={loading}
                     />
                     <input
@@ -1285,6 +1328,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                   value={formData.password}
                   onChange={handleChange}
+                  maxLength={100}
                   required
                   disabled={loading}
                 />
@@ -1317,6 +1361,7 @@ const Signup = ({ onSignup, onSwitchToLogin }) => {
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  maxLength={100}
                   required
                   disabled={loading}
                 />
