@@ -852,32 +852,39 @@ const AddInvoiceModal = ({
     };
 
     // ------- Table & Employee row handlers -------
-    // Helper: enforce max digit count (excluding decimal point)
-    // rate: max 6 digits, decimal allowed; qty: max 5 digits, integer only
+    // Helper: enforce max digit count and allow decimals with proper validation
+    // rate: max 8 digits + decimal, qty: max 99 digits + decimal, amount: auto-calculated
     const enforceDigitLimit = (value, maxDigits, allowDecimal = false) => {
         if (!value && value !== 0) return '';
         let str = String(value);
         if (!allowDecimal) {
+            // Remove all non-digit characters
             str = str.replace(/[^0-9]/g, '');
         } else {
-            str = str.replace(/[^0-9.]/g, '');
-            // prevent multiple decimals
+            // Allow decimal point but only one
             const parts = str.split('.');
-            if (parts.length > 2) str = parts[0] + '.' + parts.slice(1).join('');
-        }
-        // count digits only (exclude decimal point)
-        const digitCount = str.replace(/\./g, '').length;
-        if (digitCount > maxDigits) {
-            // trim from the end to stay within limit
-            let kept = 0;
-            let trimmed = '';
-            for (const ch of str) {
-                if (ch === '.') { trimmed += ch; continue; }
-                if (kept >= maxDigits) break;
-                trimmed += ch;
-                kept++;
+            if (parts.length > 2) {
+                // If more than one decimal point, keep only first two parts
+                str = parts[0] + '.' + parts.slice(1, 3).join('');
+            } else {
+                // Ensure at most one decimal point
+                const decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+                str = parts[0] + decimalPart + (parts[1] || '');
             }
-            str = trimmed;
+            // Limit total digits - allow larger numbers for quantity
+            const digitCount = str.replace(/\./g, '').length;
+            if (digitCount > maxDigits) {
+                // Trim from the end to stay within limit
+                let kept = 0;
+                let trimmed = '';
+                for (const ch of str) {
+                    if (ch === '.') { trimmed += ch; continue; }
+                    if (kept >= maxDigits) break;
+                    trimmed += ch;
+                    kept++;
+                }
+                str = trimmed;
+            }
         }
         return str;
     };
@@ -890,16 +897,21 @@ const AddInvoiceModal = ({
         setItems(prev => prev.map(it => {
             if (it.id !== id) return it;
             let sanitized = value;
-            if (field === 'rate') sanitized = enforceDigitLimit(value, 8, true);
-            if (field === 'quantity') sanitized = enforceDigitLimit(value, 5, false);
+            if (field === 'rate') {
+                sanitized = enforceDigitLimit(value, 8, true);
+            } else if (field === 'quantity') {
+                sanitized = enforceDigitLimit(value, 5, true);
+            } else {
+                // For other fields, just use the value as-is
+                sanitized = value;
+            }
             const next = { ...it, [field]: sanitized };
             // recalc amount when rate or quantity change
             const rate = parseFloat(next.rate) || 0;
             const qty = parseFloat(next.quantity) || 0;
             const amt = (rate * qty).toFixed(2);
-            // enforce 8-digit limit on amount display
-            next.amount = amt.replace('.', '').length > 8 ? amt.slice(0, 9) : amt;
-            return next;
+            // No digit limit on amount since it's calculated
+            return { ...next, amount: amt };
         }));
     };
 
@@ -2100,7 +2112,7 @@ const AddInvoiceModal = ({
                                 {items.map((it) => (
                                     <div key={`item-${it.id}`} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 items-center">
                                         <input placeholder="Description" value={it.description} onChange={(e) => updateItemField(it.id, 'description', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={70} />
-                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" maxLength="8" />
+                                        <input placeholder="Rate" value={it.rate} onChange={(e) => updateItemField(it.id, 'rate', e.target.value)} className="px-2 py-1 border rounded-none" maxLength="10" />
                                         <input placeholder="Qty" value={it.quantity} onChange={(e) => updateItemField(it.id, 'quantity', e.target.value)} className="px-2 py-1 border rounded-none" maxLength="2"/>
                                         <input placeholder="Amount" value={it.amount} readOnly className="px-2 py-1 border rounded-none bg-gray-50" />
                                         <input placeholder="Remarks" value={it.remarks} onChange={(e) => updateItemField(it.id, 'remarks', e.target.value)} className="px-2 py-1 border rounded-none" maxLength={70} />
@@ -2129,7 +2141,7 @@ const AddInvoiceModal = ({
                                             />
                                         </div>
                                         <div>
-                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" maxLength="8" />
+                                            <input value={er.rate} onChange={(e) => updateEmployeeRow(er.id, 'rate', e.target.value)} placeholder="Rate" className="px-2 py-1 border rounded-none w-full" maxLength="10" />
                                         </div>
                                         <div>
                                             <input value={er.quantity} onChange={(e) => updateEmployeeRow(er.id, 'quantity', e.target.value)} placeholder="Qty" className="px-2 py-1 border rounded-none w-full" maxLength="2"/>
