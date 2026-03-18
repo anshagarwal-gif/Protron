@@ -914,7 +914,7 @@ const AddInvoiceModal = ({
     };
 
     const addEmployeeRow = () => {
-        if (items.length + invoiceEmployees.length >= 5) return setSnackbar({ open: true, message: 'Maximum 5 rows allowed (items + employees combined)', severity: 'error' });
+        if (items.length + invoiceEmployees.length >= 4) return setSnackbar({ open: true, message: 'Maximum 4 rows allowed (items + employees combined)', severity: 'error' });
         const nextId = invoiceEmployees.length ? Math.max(...invoiceEmployees.map(i => i.id)) + 1 : 1;
         setInvoiceEmployees(prev => ([...prev, { id: nextId, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]));
     };
@@ -2441,7 +2441,7 @@ const AddInvoiceModal = ({
 
                                     return taxAmount > 0 ? (
                                         <div key={index} className="flex justify-between items-center">
-                                            <span className="text-sm font-medium text-gray-700">Tax {tax.taxName || 'Tax'} ({tax.taxPercentage}%)</span>
+                                            <span className="text-sm font-medium text-gray-700">{tax.taxName || 'Tax'} ({tax.taxPercentage}%)</span>
                                             <span className="text-sm font-medium text-gray-900">{currencySymbols[formData.currency] || '$'}{taxAmount.toFixed(2)}</span>
                                         </div>
                                     ) : null;
