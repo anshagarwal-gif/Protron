@@ -2107,9 +2107,10 @@ const AddInvoiceModal = ({
                                         <button
                                             type="button"
                                             onClick={() => removeItem(it.id)}
-                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors flex items-center justify-center mx-auto"
+                                             className="px-3 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition-colors flex items-center gap-1"
                                             title="Remove this item"
                                         >
+                                            <Trash2 size={14} />
                                             Remove
                                         </button>
                                     </div>
@@ -2142,9 +2143,10 @@ const AddInvoiceModal = ({
                                         <button
                                             type="button"
                                             onClick={() => removeEmployeeRow(er.id)}
-                                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors flex items-center justify-center mx-auto"
+                                            className="px-3 py-2 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 transition-colors flex items-center gap-1"
                                             title="Remove this employee"
                                         >
+                                            <Trash2 size={14} />
                                             Remove
                                         </button>
                                     </div>
