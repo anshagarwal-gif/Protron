@@ -1125,7 +1125,7 @@ public class InvoiceService {
             remarksPara.setSpacingBefore(3);
             remarksPara.setSpacingAfter(8);
             document.add(remarksPara);
-            log.info("Added remarks to PDF for invoice {}: {}", invoice.getInvoiceId(), invoice.getRemarks());
+            log.info("Added remarks to PDF for invoice {}: {}", invoice.getInvoiceId(), invoice.getRemarks()); 
         }
 
         // Timesheet section
