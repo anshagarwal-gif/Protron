@@ -2200,7 +2200,7 @@ const AddInvoiceModal = ({
                                             value={tax.taxName}
                                             onChange={(e) => handleTaxChange(index, 'taxName', e.target.value)}
                                             className="w-full h-9 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
-                                            maxLength={100}
+                                            maxLength={25}
                                         />
                                     </div>
                                     <div>
@@ -2261,7 +2261,7 @@ const AddInvoiceModal = ({
                                             value={tax.taxNumber}
                                             onChange={(e) => handleTaxChange(index, 'taxNumber', e.target.value)}
                                             className="w-full h-9 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
-                                            maxLength={50}
+                                            maxLength={25}
                                         />
                                     </div>
                                     <div>
