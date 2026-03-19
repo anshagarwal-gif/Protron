@@ -1828,7 +1828,7 @@ const AddInvoiceModal = ({
                     <button
                         onClick={handleCloseModal}
                         disabled={loading}
-                        className="px-4 sm:px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50"
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                     >
                         Cancel
                     </button>
@@ -1838,7 +1838,7 @@ const AddInvoiceModal = ({
                         <button
                             onClick={handleInvoicePreview}
                             disabled={loading}
-                            className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50"
+                           className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                         >
                             Preview
                         </button>
@@ -1848,7 +1848,7 @@ const AddInvoiceModal = ({
                     <button
                         onClick={() => handleSubmit('DRAFT')}
                         disabled={loading}
-                        className="px-4 sm:px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors font-semibold disabled:opacity-50 flex items-center"
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                     >
                         {loading ? (
                             <>
@@ -1857,7 +1857,6 @@ const AddInvoiceModal = ({
                             </>
                         ) : (
                             <>
-                                <FileText className="mr-2" size={16} />
                                 Save as Draft
                             </>
                         )}
@@ -1867,7 +1866,7 @@ const AddInvoiceModal = ({
                     <button
                         onClick={() => handleSubmit('SAVED')}
                         disabled={loading}
-                        className="px-4 sm:px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 flex items-center"
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                     >
                         {loading ? (
                             <>
@@ -1876,7 +1875,6 @@ const AddInvoiceModal = ({
                             </>
                         ) : (
                             <>
-                                <FileText className="mr-2" size={16} />
                                 {isFromInvoiceManagement ? 'Save Invoice' : 'Generate Invoice'}
                                 {!isFromInvoiceManagement && (attachments.length > 0 || attachTimesheet) && (
                                     <span className="ml-1 bg-green-600 text-green-200 text-xs px-1.5 py-0.5 rounded-full">
@@ -2801,7 +2799,6 @@ const AddInvoiceModal = ({
                             </>
                         ) : (
                             <>
-                                <FileText className="mr-2" size={16} />
                                 {isFromInvoiceManagement ? 'Save Invoice' : 'Generate Invoice'}
                                 {!isFromInvoiceManagement && (attachments.length > 0 || attachTimesheet) && (
                                     <span className="ml-1 bg-green-600 text-green-200 text-xs px-1.5 py-0.5 rounded-full">
