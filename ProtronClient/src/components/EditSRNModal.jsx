@@ -694,7 +694,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 <h2 className="text-base sm:text-lg lg:text-xl font-bold">Edit Payment</h2>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 px-4 sm:px-6 pb-4 sm:pb-6 border-t border-gray-200 bg-gray-50">
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 px-4 sm:px-6 pb-4 sm:pb-6">
           <button
             type="button"
             onClick={handleClose}
