@@ -1016,7 +1016,7 @@ public class InvoiceService {
         // ---------------------- SUMMARY SECTION ----------------------
         // Create a right-aligned summary table
         PdfPTable summaryWrapper = new PdfPTable(1);
-        summaryWrapper.setWidthPercentage(40);
+        summaryWrapper.setWidthPercentage(60);
         summaryWrapper.setHorizontalAlignment(Element.ALIGN_RIGHT);
         summaryWrapper.setSpacingBefore(5);
         summaryWrapper.setSpacingAfter(5);
@@ -1412,26 +1412,68 @@ public class InvoiceService {
         if (itemsObj instanceof List) {
             List<Map<String, Object>> items = (List<Map<String, Object>>) itemsObj;
             for (Map<String, Object> item : items) {
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
-                // Item Description
-                PdfPCell previewItemDescCell = new PdfPCell(new Phrase(item.getOrDefault("itemDesc", "").toString(), normalFont));
-                previewItemDescCell.setPadding(3);
-                previewItemDescCell.setBorder(Rectangle.NO_BORDER);
-                previewItemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-                previewItemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                table.addCell(previewItemDescCell);
-                table.addCell(createBodyCell(formatAmount(item.getOrDefault("rate", "")), normalFont, 6, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(formatAmount(item.getOrDefault("quantity", "")), normalFont, 5, Element.ALIGN_RIGHT));
-                // Remove currency from rows:
-                table.addCell(createBodyCell(formatAmount(item.getOrDefault("amount", "")), normalFont, 10, Element.ALIGN_RIGHT));
+                boolean isEvenRow = (rowCount % 2 == 0);
+                BaseColor rowColor = isEvenRow ? BaseColor.WHITE : new BaseColor(249, 249, 249);
+                
+                // Sr. No
+                PdfPCell srNoCell = new PdfPCell(new Phrase(String.valueOf(srNo), normalFont));
+                srNoCell.setBorder(Rectangle.BOX);
+                srNoCell.setBorderColor(borderGray);
+                srNoCell.setBackgroundColor(rowColor);
+                srNoCell.setPadding(4);
+                srNoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(srNoCell);
+                
+                // Description
+                PdfPCell itemDescCell = new PdfPCell(new Phrase(item.getOrDefault("itemDesc", "").toString(), normalFont));
+                itemDescCell.setBorder(Rectangle.BOX);
+                itemDescCell.setBorderColor(borderGray);
+                itemDescCell.setBackgroundColor(rowColor);
+                itemDescCell.setPadding(4);
+                itemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                itemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(itemDescCell);
+                
+                // Rate
+                PdfPCell rateCell = new PdfPCell(new Phrase(formatAmount(item.getOrDefault("rate", "")), normalFont));
+                rateCell.setBorder(Rectangle.BOX);
+                rateCell.setBorderColor(borderGray);
+                rateCell.setBackgroundColor(rowColor);
+                rateCell.setPadding(4);
+                rateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                rateCell.setNoWrap(true); // Prevent truncation of large numbers
+                table.addCell(rateCell);
+                
+                // Quantity
+                PdfPCell qtyCell = new PdfPCell(new Phrase(formatAmount(item.getOrDefault("quantity", "")), normalFont));
+                qtyCell.setBorder(Rectangle.BOX);
+                qtyCell.setBorderColor(borderGray);
+                qtyCell.setBackgroundColor(rowColor);
+                qtyCell.setPadding(4);
+                qtyCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                qtyCell.setNoWrap(true); // Prevent truncation of large numbers
+                table.addCell(qtyCell);
+                
+                // Amount
+                PdfPCell amountCell = new PdfPCell(new Phrase(formatAmount(item.getOrDefault("amount", "")), normalFont));
+                amountCell.setBorder(Rectangle.BOX);
+                amountCell.setBorderColor(borderGray);
+                amountCell.setBackgroundColor(rowColor);
+                amountCell.setPadding(4);
+                amountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                amountCell.setNoWrap(true); // Prevent truncation of large numbers
+                table.addCell(amountCell);
+                
                 // Remarks
-                PdfPCell previewRemarksCell = new PdfPCell(new Phrase(item.getOrDefault("remarks", "").toString(), normalFont));
-                previewRemarksCell.setPadding(3);
-                previewRemarksCell.setBorder(Rectangle.NO_BORDER);
-                previewRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-                previewRemarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                // Allow wrapping for long remarks
-                table.addCell(previewRemarksCell);
+                PdfPCell remarksCell = new PdfPCell(new Phrase(item.getOrDefault("remarks", "").toString(), normalFont));
+                remarksCell.setBorder(Rectangle.BOX);
+                remarksCell.setBorderColor(borderGray);
+                remarksCell.setBackgroundColor(rowColor);
+                remarksCell.setPadding(4);
+                remarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                remarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(remarksCell);
+                
                 srNo++;
                 rowCount++;
             }
@@ -1442,25 +1484,68 @@ public class InvoiceService {
         if (empObj instanceof List) {
             List<Map<String, Object>> emps = (List<Map<String, Object>>) empObj;
             for (Map<String, Object> emp : emps) {
-                table.addCell(createBodyCell(String.valueOf(srNo), normalFont, 0, Element.ALIGN_LEFT));
-                // Employee Item Description
-                PdfPCell empItemDescCell = new PdfPCell(new Phrase(emp.getOrDefault("itemDesc", "").toString(), normalFont));
-                empItemDescCell.setPadding(5);
-                empItemDescCell.setBorder(Rectangle.NO_BORDER);
-                empItemDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-                empItemDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                table.addCell(empItemDescCell);
-                table.addCell(createBodyCell(formatAmount(emp.getOrDefault("rate", "")), normalFont, 6, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(formatAmount(emp.getOrDefault("quantity", "")), normalFont, 5, Element.ALIGN_RIGHT));
-                table.addCell(createBodyCell(formatAmount(emp.getOrDefault("amount", "")), normalFont, 10, Element.ALIGN_RIGHT));
+                boolean isEvenRow = (rowCount % 2 == 0);
+                BaseColor rowColor = isEvenRow ? BaseColor.WHITE : new BaseColor(249, 249, 249);
+                
+                // Sr. No
+                PdfPCell srNoCell = new PdfPCell(new Phrase(String.valueOf(srNo), normalFont));
+                srNoCell.setBorder(Rectangle.BOX);
+                srNoCell.setBorderColor(borderGray);
+                srNoCell.setBackgroundColor(rowColor);
+                srNoCell.setPadding(4);
+                srNoCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(srNoCell);
+                
+                // Description
+                PdfPCell empDescCell = new PdfPCell(new Phrase(emp.getOrDefault("itemDesc", "").toString(), normalFont));
+                empDescCell.setBorder(Rectangle.BOX);
+                empDescCell.setBorderColor(borderGray);
+                empDescCell.setBackgroundColor(rowColor);
+                empDescCell.setPadding(4);
+                empDescCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                empDescCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(empDescCell);
+                
+                // Rate
+                PdfPCell empRateCell = new PdfPCell(new Phrase(formatAmount(emp.getOrDefault("rate", "")), normalFont));
+                empRateCell.setBorder(Rectangle.BOX);
+                empRateCell.setBorderColor(borderGray);
+                empRateCell.setBackgroundColor(rowColor);
+                empRateCell.setPadding(4);
+                empRateCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                empRateCell.setNoWrap(true); // Prevent truncation of large numbers
+                table.addCell(empRateCell);
+                
+                // Quantity
+                PdfPCell empQtyCell = new PdfPCell(new Phrase(formatAmount(emp.getOrDefault("quantity", "")), normalFont));
+                empQtyCell.setBorder(Rectangle.BOX);
+                empQtyCell.setBorderColor(borderGray);
+                empQtyCell.setBackgroundColor(rowColor);
+                empQtyCell.setPadding(4);
+                empQtyCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                empQtyCell.setNoWrap(true); // Prevent truncation of large numbers
+                table.addCell(empQtyCell);
+                
+                // Amount
+                PdfPCell empAmountCell = new PdfPCell(new Phrase(formatAmount(emp.getOrDefault("amount", "")), normalFont));
+                empAmountCell.setBorder(Rectangle.BOX);
+                empAmountCell.setBorderColor(borderGray);
+                empAmountCell.setBackgroundColor(rowColor);
+                empAmountCell.setPadding(4);
+                empAmountCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                empAmountCell.setNoWrap(true); // Prevent truncation of large numbers
+                table.addCell(empAmountCell);
+                
                 // Remarks
-                PdfPCell empPreviewRemarksCell = new PdfPCell(new Phrase(emp.getOrDefault("remarks", "").toString(), normalFont));
-                empPreviewRemarksCell.setPadding(5);
-                empPreviewRemarksCell.setBorder(Rectangle.NO_BORDER);
-                empPreviewRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
-                empPreviewRemarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-                // Allow wrapping for long remarks
-                table.addCell(empPreviewRemarksCell);
+                PdfPCell empRemarksCell = new PdfPCell(new Phrase(emp.getOrDefault("remarks", "").toString(), normalFont));
+                empRemarksCell.setBorder(Rectangle.BOX);
+                empRemarksCell.setBorderColor(borderGray);
+                empRemarksCell.setBackgroundColor(rowColor);
+                empRemarksCell.setPadding(4);
+                empRemarksCell.setHorizontalAlignment(Element.ALIGN_LEFT);
+                empRemarksCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                table.addCell(empRemarksCell);
+                
                 srNo++;
                 rowCount++;
             }
@@ -1557,7 +1642,7 @@ public class InvoiceService {
         // ---------------------- SUMMARY SECTION ----------------------
         // Create a right-aligned summary table
         PdfPTable summaryWrapper = new PdfPTable(1);
-        summaryWrapper.setWidthPercentage(40);
+        summaryWrapper.setWidthPercentage(60);
         summaryWrapper.setHorizontalAlignment(Element.ALIGN_RIGHT);
         summaryWrapper.setSpacingBefore(5);
         summaryWrapper.setSpacingAfter(5);

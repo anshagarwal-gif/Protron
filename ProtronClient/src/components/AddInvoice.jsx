@@ -916,7 +916,7 @@ const AddInvoiceModal = ({
     };
 
     const addItem = () => {
-        if (items.length + invoiceEmployees.length >= 3) return setSnackbar({ open: true, message: 'Maximum 4 rows allowed (items + employees combined)', severity: 'error' });
+        if (items.length + invoiceEmployees.length >= 3) return setSnackbar({ open: true, message: 'Maximum 3 rows allowed (items + employees combined)', severity: 'error' });
         const nextId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
         setItems(prev => ([...prev, { id: nextId, description: '', rate: '', quantity: '', amount: '', remarks: '' }]));
     };
@@ -926,7 +926,7 @@ const AddInvoiceModal = ({
     };
 
     const addEmployeeRow = () => {
-        if (items.length + invoiceEmployees.length >= 3) return setSnackbar({ open: true, message: 'Maximum 4 rows allowed (items + employees combined)', severity: 'error' });
+        if (items.length + invoiceEmployees.length >= 3) return setSnackbar({ open: true, message: 'Maximum 3 rows allowed (items + employees combined)', severity: 'error' });
         const nextId = invoiceEmployees.length ? Math.max(...invoiceEmployees.map(i => i.id)) + 1 : 1;
         setInvoiceEmployees(prev => ([...prev, { id: nextId, userId: '', rate: '', quantity: '', amount: '', remarks: '' }]));
     };
