@@ -895,12 +895,60 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 })()}
                             </div>
                         </div>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-                        >
-                            <X className="w-5 h-5 text-white" />
-                        </button>
+                        <div className="flex justify-end gap-3 pt-4 px-6 pb-6">
+                    <button
+                        onClick={onClose}
+                        disabled={loading}
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                {(() => {
+                                    const newCount = documents.filter(doc => !doc.isExistingDocument).length;
+                                    if (isEdit && newCount > 0) {
+                                        return 'Updating & Uploading...';
+                                    } else if (isEdit) {
+                                        return 'Updating...';
+                                    } else if (documents.length > 0) {
+                                        return 'Creating & Uploading...';
+                                    } else {
+                                        return 'Creating...';
+                                    }
+                                })()}
+                            </>
+                        ) : (
+                            <>
+                                {isEdit ? 'Update Budget Line' : 'Create Budget Line'}
+                                {(() => {
+                                    const newCount = documents.filter(doc => !doc.isExistingDocument).length;
+                                    if (isEdit && newCount > 0) {
+                                        return (
+                                    <span className="ml-1 bg-green-600 text-green-200 text-xs px-1.5 py-0.5 rounded-full">
+                                        +📎
+                                    </span>
+                                        );
+                                    } else if (!isEdit && documents.length > 0) {
+                                        return (
+                                            <span className="ml-1 bg-green-600 text-green-200 text-xs px-1.5 py-0.5 rounded-full">
+                                                +📎
+                                            </span>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+                            </>
+                        )}
+                    </button>
+                </div>
                     </div>
                 </div>
 
@@ -1421,7 +1469,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50"
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                     >
                         Cancel
                     </button>
@@ -1429,7 +1477,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 flex items-center"
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                     >
                         {loading ? (
                             <>
@@ -1449,7 +1497,6 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                             </>
                         ) : (
                             <>
-                                <FileText className="mr-2" size={16} />
                                 {isEdit ? 'Update Budget Line' : 'Create Budget Line'}
                                 {(() => {
                                     const newCount = documents.filter(doc => !doc.isExistingDocument).length;

@@ -895,18 +895,55 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                 </h2>
                             </div>
                         </div>
+                        <div className="flex justify-end gap-3 pt-4 px-6 pb-6">
+                    <button
+                                onClick={() => {
+                                    onClose();
+                                    setFormData({
+                                        poNumber: '',
+                                        poType: '',
+                                        poAmount: '',
+                                        currency: 'USD',
+                                        customerName: '',
+                                        sponsorName: '',
+                                        sponsorLob: '',
+                                        budgetLineItem: '',
+                                        budgetLineAmount: '',
+                                        budgetLineRemarks: '',
+                                        businessValueAmount: '',
+                                        businessValueType: '',
+                                        poCountry: '',
+                                        supplierName: sessionStorage.getItem('tenantName') || '',
+                                        projectName: '',
+                                        spocName: '',
+                                        startDate: '',
+                                        endDate: '',
+                                        projectDescription: '',
+                                        milestones: []
+                                    });
+                                }}
+                               className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                            >
+                                Cancel
+                            </button>
+                    {currentStep === 1 ? (
                         <button
-                            onClick={() => {
-                                setCurrentStep(1);
-                                setEditingMilestone(null);
-                                setIsEditMilestoneModalOpen(false);
-                                onClose();
-                            }}
-                            className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-                            title="Close"
+                            onClick={handleNextStep}
+                            disabled={loading}
+                            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
                         >
-                            <X className="w-5 h-5 text-white" />
+                            Submit
                         </button>
+                    ) : (
+                        <button
+                            onClick={handleSubmitMilestones}
+                            disabled={loading}
+                            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
+                        >
+                            Submit
+                        </button>
+                    )}
+                </div>
                     </div>
                 </div>
 
@@ -1638,6 +1675,36 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                 )}
 
                 <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+                    <button
+                                onClick={() => {
+                                    onClose();
+                                    setFormData({
+                                        poNumber: '',
+                                        poType: '',
+                                        poAmount: '',
+                                        currency: 'USD',
+                                        customerName: '',
+                                        sponsorName: '',
+                                        sponsorLob: '',
+                                        budgetLineItem: '',
+                                        budgetLineAmount: '',
+                                        budgetLineRemarks: '',
+                                        businessValueAmount: '',
+                                        businessValueType: '',
+                                        poCountry: '',
+                                        supplierName: sessionStorage.getItem('tenantName') || '',
+                                        projectName: '',
+                                        spocName: '',
+                                        startDate: '',
+                                        endDate: '',
+                                        projectDescription: '',
+                                        milestones: []
+                                    });
+                                }}
+                               className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                            >
+                                Cancel
+                            </button>
                     {currentStep === 1 ? (
                         <button
                             onClick={handleNextStep}
