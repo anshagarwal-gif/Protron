@@ -221,12 +221,26 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
 
             {/* Invoice Actions */}
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  // Close view modal and open edit modal with current invoice
+                  onClose();
+                  setSelectedInvoice(invoice);
+                  setIsAddModalOpen(true);
+                }}
+                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                title="Edit Invoice"
+              >
+                <Edit className="w-5 h-5 text-white" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -539,7 +553,7 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
 
         {/* Footer */}
         <div className="px-3 sm:px-6 py-3 sm:py-4 bg-gray-50 border-t rounded-b-lg">
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
             <button
               onClick={onClose}
               className="px-3 sm:px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm sm:text-base cursor-pointer"

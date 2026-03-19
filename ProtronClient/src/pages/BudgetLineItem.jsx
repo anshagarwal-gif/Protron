@@ -961,7 +961,7 @@ const { hasAccess } = useAccess(); // Access context
                 className="p-2 rounded-full hover:bg-yellow-100 transition-colors cursor-pointer"
                 title="Edit Budget Line"
               >
-                <Pencil size={14} className="text-yellow-600" />
+                <Edit size={14} />
               </button>
             )}
             
