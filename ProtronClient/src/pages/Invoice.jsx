@@ -1219,6 +1219,29 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       width: 140,
       sortable: true,
       filter: true,
+      filterValueGetter: params => {
+        const status = params.data.status;
+        switch(status) {
+          case "DRAFT":
+            return "Draft Invoice";
+          case "SAVED":
+            return "Final";
+          case "SENT":
+            return "Sent";
+          case "PARTIALLY_PAID":
+            return "Partially Paid";
+          case "PAID":
+            return "Paid";
+          case "OVERDUE":
+            return "Overdue";
+          case "CANCELLED":
+            return "Cancelled";
+          case "REFUNDED":
+            return "Refunded";
+          default:
+            return status || "Unknown";
+        }
+      },
       cellRenderer: params => {
         const status = params.value;
         let statusText = "";
@@ -1342,7 +1365,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       )}
 
       {/* Status Filter and Download Excel */}
-      <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* <div className="mb-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="flex items-center gap-3">
             <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
@@ -1354,23 +1377,23 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               <option value="">All Invoices</option>
               <option value="DRAFT">Draft</option>
               <option value="SAVED">Saved</option>
-              {/* <option value="SENT">Sent</option>
+              <option value="SENT">Sent</option>
               <option value="PARTIALLY_PAID">Partially Paid</option>
               <option value="PAID">Paid</option>
               <option value="OVERDUE">Overdue</option>
               <option value="CANCELLED">Cancelled</option>
-              <option value="REFUNDED">Refunded</option> */}
+              <option value="REFUNDED">Refunded</option>
             </select>
           </div>
-          {/* <button
+          <button
             onClick={downloadInvoiceExcel}
             className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
           >
             <Download size={16} className="mr-2" />
             Download Excel
-          </button> */}
+          </button>
         </div>
-      </div>
+      </div> */}
 
       {/* AG Grid Table */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
