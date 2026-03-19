@@ -1833,6 +1833,71 @@ const AddInvoiceModal = ({
                     </div>
                 </div>
 
+                {/* Top Buttons - Duplicate of Footer */}
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 px-6 pb-4 border-b border-gray-200 bg-gray-50">
+                    <button
+                        onClick={handleCloseModal}
+                        disabled={loading}
+                        className="px-4 sm:px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+
+                    {/* Show Preview button only when NOT from invoice management */}
+                    {!isFromInvoiceManagement && (
+                        <button
+                            onClick={handleInvoicePreview}
+                            disabled={loading}
+                            className="px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50"
+                        >
+                            Preview
+                        </button>
+                    )}
+
+                    {/* Save as Draft button */}
+                    <button
+                        onClick={() => handleSubmit('DRAFT')}
+                        disabled={loading}
+                        className="px-4 sm:px-6 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors font-semibold disabled:opacity-50 flex items-center"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Saving Draft...
+                            </>
+                        ) : (
+                            <>
+                                <FileText className="mr-2" size={16} />
+                                Save as Draft
+                            </>
+                        )}
+                    </button>
+
+                    {/* Save Invoice button */}
+                    <button
+                        onClick={() => handleSubmit('SAVED')}
+                        disabled={loading}
+                        className="px-4 sm:px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 flex items-center"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                {isFromInvoiceManagement ? 'Saving...' : (attachTimesheet ? 'Including Timesheet...' : attachments.length > 0 ? 'Uploading...' : 'Generating...')}
+                            </>
+                        ) : (
+                            <>
+                                <FileText className="mr-2" size={16} />
+                                {isFromInvoiceManagement ? 'Save Invoice' : 'Generate Invoice'}
+                                {!isFromInvoiceManagement && (attachments.length > 0 || attachTimesheet) && (
+                                    <span className="ml-1 bg-green-600 text-green-200 text-xs px-1.5 py-0.5 rounded-full">
+                                        {attachTimesheet ? '+📊' : `+${attachments.length}`}
+                                    </span>
+                                )}
+                            </>
+                        )}
+                    </button>
+                </div>
+
                 <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
                     <div className="space-y-6">
                         {/* 1st Line: Invoice ID, Invoice Name, and Project Name */}
@@ -2692,7 +2757,7 @@ const AddInvoiceModal = ({
                 </div> */}
 
                 {/* Footer */}
-                <div className="flex justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 px-6 pb-6 border-t border-gray-200 bg-gray-50">
                     <button
                         onClick={handleCloseModal}
                         disabled={loading}
