@@ -930,7 +930,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                         <button
                             onClick={handleNextStep}
                             disabled={loading}
-                            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
+                            className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                         >
                             Submit
                         </button>
@@ -1709,7 +1709,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                         <button
                             onClick={handleNextStep}
                             disabled={loading}
-                            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800"
+                            className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                         >
                             Submit
                         </button>
