@@ -578,13 +578,33 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                 <h2 className="text-base sm:text-lg lg:text-xl font-bold">Create New Payment</h2>
                             </div>
                         </div>
-                        <button
-                            onClick={handleClose}
-                            className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-                            disabled={loading}
-                        >
-                            <X className="w-5 h-5 text-white" />
-                        </button>
+                        <div className="flex justify-end gap-3 pt-4 px-6 pb-6">
+                            <button
+                                type="button"
+                                onClick={handleClose}
+                                className="px-6 py-2 text-green-700 hover:text-green-800 transition-colors"
+                                disabled={loading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className="px-6 py-2 text-white hover:text-green-100 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                        Creating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Receipt size={16} className="mr-2" />
+                                        Create Payment
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
