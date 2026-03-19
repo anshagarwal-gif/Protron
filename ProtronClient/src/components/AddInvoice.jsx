@@ -1824,7 +1824,7 @@ const AddInvoiceModal = ({
                             </div>
 
                             {/* Top Buttons - Duplicate of Footer */}
-                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 px-6 pb-4 border-b border-gray-200 bg-gray-50">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 px-6 pb-4 ">
                     <button
                         onClick={handleCloseModal}
                         disabled={loading}
