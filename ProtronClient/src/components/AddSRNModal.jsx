@@ -582,7 +582,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             <button
                                 type="button"
                                 onClick={handleClose}
-                                className="px-6 py-2 text-green-700 hover:text-green-800 transition-colors"
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                                 disabled={loading}
                             >
                                 Cancel
@@ -590,7 +590,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="px-6 py-2 text-white hover:text-green-100 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                             >
                                 {loading ? (
                                     <>
@@ -599,7 +599,6 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                     </>
                                 ) : (
                                     <>
-                                        <Receipt size={16} className="mr-2" />
                                         Create Payment
                                     </>
                                 )}
@@ -969,7 +968,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                         disabled={loading}
                     >
                         Cancel
@@ -977,7 +976,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                        className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                     >
                         {loading ? (
                             <>
@@ -986,7 +985,6 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             </>
                         ) : (
                             <>
-                                <Receipt size={16} className="mr-2" />
                                 Create Payment
                             </>
                         )}
