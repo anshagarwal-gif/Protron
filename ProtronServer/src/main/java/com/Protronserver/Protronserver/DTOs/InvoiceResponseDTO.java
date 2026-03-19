@@ -1,6 +1,6 @@
 package com.Protronserver.Protronserver.DTOs;
 
-import com.Protronserver.Protronserver.Entities.InvoiceEmployee;
+import com.Protronserver.Protronserver.DTO.InvoiceEmployeeDTO;
 import com.Protronserver.Protronserver.Entities.InvoiceItem;
 import com.Protronserver.Protronserver.Entities.InvoiceStatus;
 import lombok.Data;
@@ -28,7 +28,7 @@ public class InvoiceResponseDTO {
     private String supplierAddress;
     private String country;
     List<InvoiceItem> items;
-    List<InvoiceEmployee> employees;
+    List<InvoiceEmployeeDTO> employees;
     private BigDecimal rate;
     private String currency;
 
@@ -88,11 +88,11 @@ public class InvoiceResponseDTO {
         this.items = items;
     }
 
-    public List<InvoiceEmployee> getEmployees() {
+    public List<InvoiceEmployeeDTO> getEmployees() {
         return employees;
     }
 
-    public void setEmployees(List<InvoiceEmployee> employees) {
+    public void setEmployees(List<InvoiceEmployeeDTO> employees) {
         this.employees = employees;
     }
 

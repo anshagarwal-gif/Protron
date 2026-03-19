@@ -7,6 +7,9 @@ import com.Protronserver.Protronserver.DTOs.InvoiceTaxDTO;
 import com.Protronserver.Protronserver.DTOs.PaymentDTO;
 import com.Protronserver.Protronserver.Entities.*;
 import com.Protronserver.Protronserver.Repository.InvoiceRepository;
+import com.Protronserver.Protronserver.Repository.UserRepository;
+import com.Protronserver.Protronserver.Repository.ProjectRepository;
+import com.Protronserver.Protronserver.Repository.TenantRepository;
 import com.Protronserver.Protronserver.DTOs.InvoiceResponseDTO;
 import com.Protronserver.Protronserver.Utils.LoggedInUserUtils;
 import com.itextpdf.text.*;
@@ -119,19 +122,16 @@ public class InvoiceService {
     private TenantRepository tenantRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private PaymentService paymentService;
 
-    /**
-     * Generates a custom invoice ID in format: INV-MMDDYYYY-100001
-     *
-     * @return Generated invoice ID
-     */
     private String generateInvoiceId() {
         LocalDate today = LocalDate.now();
 
         // Format: MMDDYYYY
         String datePrefix = today.format(DateTimeFormatter.ofPattern("MMddyyyy"));
-
         // Convert LocalDate to LocalDateTime for proper query parameters
         LocalDateTime startOfDay = today.atStartOfDay(); // 00:00:00
         LocalDateTime endOfDay = today.plusDays(1).atStartOfDay(); // Next day 00:00:00
@@ -2293,6 +2293,35 @@ public class InvoiceService {
         table.addCell(descriptionCell);
     }
 
+    /**
+     * Helper method to extract empCode from itemDesc and find user
+     * @param itemDesc the item description containing employee info (e.g., "Avi Garg (EMPEB262363)")
+     * @return array containing [userId, empCode] or [null, null] if not found
+     */
+    private Object[] extractUserInfoFromItemDesc(String itemDesc) {
+        if (itemDesc == null || itemDesc.trim().isEmpty()) {
+            return new Object[]{null, null};
+        }
+        
+        // Pattern: Employee Name (EMP_CODE)
+        // Example: "Avi Garg (EMPEB262363)"
+        int startIndex = itemDesc.lastIndexOf('(');
+        int endIndex = itemDesc.lastIndexOf(')');
+        
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex + 1) {
+            String empCode = itemDesc.substring(startIndex + 1, endIndex).trim();
+            
+            // Find user by empCode
+            Optional<User> userOpt = userRepository.findByEmpCodeAndEndTimestampIsNull(empCode);
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                return new Object[]{user.getUserId(), user.getEmpCode()};
+            }
+        }
+        
+        return new Object[]{null, null};
+    }
+
     private InvoiceResponseDTO convertToResponseDTO(Invoice invoice) {
         InvoiceResponseDTO dto = new InvoiceResponseDTO();
 
@@ -2363,12 +2392,11 @@ public class InvoiceService {
 
         // Map Invoice Employees
         if (invoice.getInvoiceEmployees() != null) {
-            List<InvoiceEmployee> employeeDTOs = invoice.getInvoiceEmployees()
+            List<InvoiceEmployeeDTO> employeeDTOs = invoice.getInvoiceEmployees()
                     .stream()
                     .map(emp -> {
-                        InvoiceEmployee empDTO = new InvoiceEmployee();
+                        InvoiceEmployeeDTO empDTO = new InvoiceEmployeeDTO();
                         empDTO.setItemId(emp.getItemId());
-                        empDTO.setInvoice(emp.getInvoice());
                         empDTO.setItemDesc(emp.getItemDesc());
                         empDTO.setRate(emp.getRate());
                         empDTO.setQuantity(emp.getQuantity());
@@ -2376,6 +2404,16 @@ public class InvoiceService {
                         empDTO.setRemarks(emp.getRemarks());
                         empDTO.setUpdatedTs(emp.getUpdatedTs());
                         empDTO.setUpdatedBy(emp.getUpdatedBy());
+                        
+                        // Extract userId and empCode from itemDesc
+                        Object[] userInfo = extractUserInfoFromItemDesc(emp.getItemDesc());
+                        if (userInfo[0] != null) {
+                            empDTO.setUserId((Long) userInfo[0]);
+                        }
+                        if (userInfo[1] != null) {
+                            empDTO.setEmpCode((String) userInfo[1]);
+                        }
+                        
                         return empDTO;
                     })
                     .collect(Collectors.toList());
