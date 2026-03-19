@@ -791,7 +791,7 @@ public class InvoiceService {
         PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         // Adjusted column widths to accommodate larger numbers and prevent wrapping
-        table.setWidths(new float[] { 0.4f, 3.5f, 1.0f, 1.0f, 2.0f, 3.0f });
+        table.setWidths(new float[] { 0.4f, 3.5f, 1.5f, 1.0f, 2.0f, 3.0f });
         table.setSpacingBefore(3);
 
         // Enhanced header row with professional styling
@@ -1382,7 +1382,7 @@ public class InvoiceService {
         PdfPTable table = new PdfPTable(6);
         table.setWidthPercentage(100);
         // Adjusted column widths to accommodate larger numbers and prevent wrapping
-        table.setWidths(new float[] { 0.4f, 3.5f, 1.0f, 1.0f, 2.0f, 3.0f });
+        table.setWidths(new float[] { 0.4f, 3.5f, 1.5f, 1.0f, 2.0f, 3.0f });
         table.setSpacingBefore(3);
 
         // Header row with professional styling
