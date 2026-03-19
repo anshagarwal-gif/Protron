@@ -545,6 +545,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     <h2 className="text-base sm:text-lg lg:text-xl font-bold">Create new Purchase Order</h2>
                                 </div>
                             </div>
+                            <div className="flex justify-end gap-3 pt-4 px-6 pb-6">
+
                             <button
                                 onClick={() => {
                                     onClose();
@@ -571,10 +573,29 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         milestones: []
                                     });
                                 }}
-                                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                               className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                             >
-                                <X className="w-5 h-5 text-white" />
+                                Cancel
                             </button>
+                            <button
+                                onClick={handleCreatePO}
+                                disabled={loading}
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                            >
+                                {loading ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                        </svg>
+                                        Saving...
+                                    </>
+                                ) : (
+                                    'Save'
+                                )}
+                            </button>
+
+                        </div>
                         </div>
                     </div>
 
@@ -1232,14 +1253,14 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         milestones: []
                                     });
                                 }}
-                                className="px-6 py-2 bg-white border-2 border-green-700 cursor-pointer text-green-700 rounded-md hover:bg-green-700 hover:text-white transition-colors font-semibold"
+                               className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleCreatePO}
                                 disabled={loading}
-                                className={`cursor-pointer px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                             >
                                 {loading ? (
                                     <>
