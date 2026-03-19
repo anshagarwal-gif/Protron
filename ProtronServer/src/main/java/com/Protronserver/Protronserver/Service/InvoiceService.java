@@ -684,16 +684,16 @@ public class InvoiceService {
         Paragraph invoiceIdPara = new Paragraph("Invoice ID: ", normalFont);
         invoiceIdPara.add(new Chunk(invoice.getInvoiceId(), accentFont));
         leftMetaCell.addElement(invoiceIdPara);
-        
         leftMetaCell.addElement(new Paragraph("Invoice Name: " + invoice.getInvoiceName(), normalFont));
         leftMetaCell.addElement(new Paragraph("Invoice Date: " + formatLocalDateTimeWithSuffix(invoice.getCreatedAt()), normalFont));
         leftMetaCell.addElement(new Paragraph("Bill Period: "
                 + (invoice.getFromDate() != null ? invoice.getFromDate() : "")
                 + " - "
                 + (invoice.getToDate() != null ? invoice.getToDate() : ""), normalFont));
+        leftMetaCell.addElement(new Paragraph("Due Date: " + (invoice.getDueDate() != null ? invoice.getDueDate() : ""), normalFont));
         metaTable.addCell(leftMetaCell);
 
-        // Right side: Supplier Details with professional styling
+        // Right side: Supplier details with better styling
         PdfPCell rightMetaCell = new PdfPCell();
         rightMetaCell.setBorder(Rectangle.BOX);
         rightMetaCell.setBorderColor(borderGray);
@@ -804,7 +804,7 @@ public class InvoiceService {
             cell.setBackgroundColor(primaryColor);
             cell.setPadding(4);
             // Align numeric headers to right, others to left
-            if (header.equals("Rate") || header.equals("Quantity") || header.equals(amountHeader)) {
+            if (header.equals("Rate") || header.equals("Qty") || header.equals(amountHeader)) {
                 cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             } else {
                 cell.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -1281,8 +1281,8 @@ public class InvoiceService {
         leftMeta.addElement(invoiceIdPara);
         leftMeta.addElement(new Paragraph("Invoice Name: " + invoiceData.getOrDefault("invoiceName", ""), normalFont));
         leftMeta.addElement(new Paragraph("Invoice Date: " + invoiceData.getOrDefault("invoiceDate", ""), normalFont));
-        leftMeta.addElement(new Paragraph("Bill Period: " + invoiceData.getOrDefault("fromDate", "") + " - "
-                + invoiceData.getOrDefault("toDate", ""), normalFont));
+        leftMeta.addElement(new Paragraph("Bill Period: " + invoiceData.getOrDefault("fromDate", "") + " - " + invoiceData.getOrDefault("toDate", ""), normalFont));
+        leftMeta.addElement(new Paragraph("Due Date: " + invoiceData.getOrDefault("dueDate", ""), normalFont));
         metaTable.addCell(leftMeta);
 
         // Right: Supplier info
@@ -1396,7 +1396,7 @@ public class InvoiceService {
             cell.setBackgroundColor(primaryColor);
             cell.setPadding(4);
             // Align numeric headers to right, others to left
-            if (header.equals("Rate") || header.equals("Quantity") || header.equals(amountHeader)) {
+            if (header.equals("Rate") || header.equals("Qty") || header.equals(amountHeader)) {
                 cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
             } else {
                 cell.setHorizontalAlignment(Element.ALIGN_LEFT);

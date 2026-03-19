@@ -731,13 +731,24 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           amount: Number.isFinite(parseFloat(item.amount)) ? parseFloat(item.amount) : 0,
           remarks: item.remarks || ''
         })),
-        employees: (invoice.invoiceEmployees || invoice.employees || []).map(emp => ({
-          itemDesc: emp.itemDesc || emp.name || '',
-          rate: Number.isFinite(parseFloat(emp.rate)) ? parseFloat(emp.rate) : 0,
-          quantity: Number.isFinite(parseFloat(emp.quantity)) ? parseFloat(emp.quantity) : 0,
-          amount: Number.isFinite(parseFloat(emp.amount)) ? parseFloat(emp.amount) : 0,
-          remarks: emp.remarks || ''
-        })),
+        employees: (invoice.invoiceEmployees || invoice.employees || []).map(emp => {
+          // Extract userId and empCode from itemDesc format: "Name (EMP1234)"
+          const itemDescMatch = emp.itemDesc?.match(/^(.+)\s*\((EMP\d+)\)$/);
+          const userId = itemDescMatch ? itemDescMatch[2] : '';
+          const empCode = itemDescMatch ? itemDescMatch[2] : '';
+          const name = itemDescMatch ? itemDescMatch[1].trim() : emp.itemDesc || emp.name || '';
+          
+          return {
+            itemDesc: emp.itemDesc || emp.name || '',
+            userId: userId,
+            empCode: empCode,
+            name: name,
+            rate: Number.isFinite(parseFloat(emp.rate)) ? parseFloat(emp.rate) : 0,
+            quantity: Number.isFinite(parseFloat(emp.quantity)) ? parseFloat(emp.quantity) : 0,
+            amount: Number.isFinite(parseFloat(emp.amount)) ? parseFloat(emp.amount) : 0,
+            remarks: emp.remarks || ''
+          };
+        }),
         employeeName: invoice.employeeName || "",
         employeeNames: invoice.employeeNames || [],
         rate: Number.isFinite(parseFloat(invoice.rate)) ? parseFloat(invoice.rate) : 0,
@@ -1096,7 +1107,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellRenderer: params => {
         const currency = params.value;
         return (
-          <span title={currency} className="cursor-help">
+          <span title={currency}>
             {currency}
           </span>
         );
@@ -1108,11 +1119,17 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       width: 160,
       sortable: true,
       filter: true,
-      cellRenderer: params => (
-        <div className="text-right w-full font-semibold">
-          {params.value}
-        </div>
-      )
+      cellRenderer: params => {
+        const amount = params.value;
+        return (
+          <div
+            className="text-right w-full font-semibold"
+            title={amount}
+          >
+            {amount}
+          </div>
+      );
+      }
     },
     {
       headerName: "Paid Amount",
@@ -1120,29 +1137,49 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       width: 160,
       sortable: true,
       filter: true,
-      cellRenderer: params => (
-        <div className="text-right w-full font-semibold">
-          {params.value || 0}
-        </div>
-      )
+      cellRenderer: params => {
+        const amount = params.value || 0;
+        return (
+          <div
+            className="text-right w-full font-semibold"
+            title={amount}
+          >
+            {amount}
+          </div>
+        );
+      }
     },
     {
-      headerName: "FROM DATE",
+      headerName: "From Date",
       field: "fromDate",
       valueGetter: params => formatDate(params.data.fromDate),
       width: 130,
       sortable: true,
       filter: true,
-      cellStyle: { textAlign: "center" }
+      cellRenderer: params => {
+        const value = params.value;
+        return (
+          <div title={value} className="text-center">
+            {value}
+          </div>
+        );
+      }
     },
     {
-      headerName: "TO DATE",
+      headerName: "To Date",
       field: "toDate",
       valueGetter: params => formatDate(params.data.toDate),
       width: 130,
       sortable: true,
       filter: true,
-      cellStyle: { textAlign: "center" }
+      cellRenderer: params => {
+        const value = params.value;
+        return (
+          <div title={value} className="text-center">
+            {value}
+          </div>
+        );
+      }
     },
     {
       headerName: "Hours",
@@ -1151,7 +1188,14 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       width: 100,
       sortable: true,
       filter: true,
-      cellStyle: { textAlign: 'center'}
+      cellRenderer: params => {
+        const value = params.value;
+        return (
+          <div title={value} className="text-center">
+            {value}
+          </div>
+        );
+      }
     },
     {
       headerName: "Created Date",
@@ -1160,24 +1204,31 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       width: 120,
       sortable: true,
       filter: true,
-      
+      cellRenderer: params => {
+        const value = params.value;
+        return (
+          <div title={value}>
+            {value}
+          </div>
+        );
+      }
     },
     {
       headerName: "Status",
       field: "status",
-      width: 120,
+      width: 140,
       sortable: true,
       filter: true,
       cellRenderer: params => {
         const status = params.value;
         let statusText = "";
-        
+
         switch(status) {
           case "DRAFT":
-            statusText = "DRAFT INVOICE";
+            statusText = "Draft Invoice";
             break;
           case "SAVED":
-            statusText = "FINAL INVOICE";
+            statusText = "Final Invoice";
             break;
           case "SENT":
             statusText = "Sent";
@@ -1200,8 +1251,15 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
           default:
             statusText = status || "Unknown";
         }
-        
-        return <span className="font-bold text-black">{statusText}</span>;
+
+        return (
+          <span
+            className="font-bold text-black"
+            title={statusText}
+          >
+            {statusText}
+          </span>
+        );
       }
     },
     {

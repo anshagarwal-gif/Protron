@@ -2133,7 +2133,20 @@ const AddInvoiceModal = ({
                                         <div>
                                             <CreatableSelect
                                                 options={employees}
-                                                value={employees.find(emp => emp.userId === er.userId) || (er.userId ? { userId: er.userId, label: er.name || er.userId } : null)}
+                                                value={(() => {
+                                                    if (!er.userId) return null;
+                                                    // Try to find by userId first
+                                                    let foundEmp = employees.find(emp => emp.userId === er.userId);
+                                                    // If not found, try by empCode (in case userId contains empCode)
+                                                    if (!foundEmp) {
+                                                        foundEmp = employees.find(emp => emp.empCode === er.userId);
+                                                    }
+                                                    // If still not found, try by name
+                                                    if (!foundEmp && er.name) {
+                                                        foundEmp = employees.find(emp => emp.name === er.name || emp.label === er.name);
+                                                    }
+                                                    return foundEmp || { userId: er.userId, label: er.name || `${er.userId}` };
+                                                })()}
                                                 onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
                                                 classNamePrefix="react-select"
                                                 isClearable
