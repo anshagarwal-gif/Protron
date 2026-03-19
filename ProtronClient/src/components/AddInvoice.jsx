@@ -597,6 +597,13 @@ const AddInvoiceModal = ({
         }
     }, [open, fetchDropdownData, editInvoiceData, populateFormWithEditData]);
 
+    // Force re-render of employee dropdowns when employees are loaded
+    useEffect(() => {
+        if (employees.length > 0) {
+            setInvoiceEmployees(prev => [...prev]);
+        }
+    }, [employees]);
+
     const fetchProjects = async () => {
         try {
             const token = sessionStorage.getItem("token");
@@ -2134,21 +2141,8 @@ const AddInvoiceModal = ({
                                             <CreatableSelect
                                                 options={employees}
                                                 value={(() => {
-                                                    if (!er.userId) return null;
-                                                    // Try to find by userId first
-                                                    let foundEmp = employees.find(emp => emp.userId == er.userId);
-                                                    // If not found, try by empCode (in case userId contains empCode)
-                                                    if (!foundEmp) {
-                                                        foundEmp = employees.find(emp => emp.empCode === er.userId);
-                                                    }
-                                                    // If still not found, try by name
-                                                    if (!foundEmp && er.itemDesc) {
-                                                        // Extract name from itemDesc (format: "Name (EMP_CODE)")
-                                                        const nameMatch = er.itemDesc.match(/^([^(]+)\s*\(/);
-                                                        const empName = nameMatch ? nameMatch[1].trim() : er.itemDesc;
-                                                        foundEmp = employees.find(emp => emp.name === empName || emp.label === empName);
-                                                    }
-                                                    return foundEmp || { userId: er.userId, label: er.itemDesc || `${er.userId}` };
+                                                    if (!er.userId || !employees || employees.length === 0) return null;
+                                                    return employees.find(emp => emp.userId == er.userId) || null;
                                                 })()}
                                                 onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
                                                 classNamePrefix="react-select"
