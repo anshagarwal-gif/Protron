@@ -694,13 +694,32 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
                 <h2 className="text-base sm:text-lg lg:text-xl font-bold">Edit Payment</h2>
               </div>
             </div>
-            <button
-              onClick={handleClose}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-              disabled={loading || initialLoading}
-            >
-              <X className="w-5 h-5 text-white" />
-            </button>
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 px-4 sm:px-6 pb-4 sm:pb-6 border-t border-gray-200 bg-gray-50">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+            disabled={loading || initialLoading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading || initialLoading}
+            className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+          >
+            {loading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Updating...
+              </>
+            ) : (
+              <>
+                Update Payment
+              </>
+            )}
+          </button>
+        </div>
           </div>
         </div>
 
@@ -1048,7 +1067,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           <button
             type="button"
             onClick={handleClose}
-            className="px-6 py-2 border border-green-700 text-green-700 rounded-md hover:bg-green-50 transition-colors"
+            className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
             disabled={loading || initialLoading}
           >
             Cancel
@@ -1056,7 +1075,7 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
           <button
             onClick={handleSubmit}
             disabled={loading || initialLoading}
-            className="px-6 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
           >
             {loading ? (
               <>
@@ -1065,7 +1084,6 @@ const EditSRNModal = ({ open, onClose, onSubmit, srnId }) => {
               </>
             ) : (
               <>
-                <Receipt size={16} className="mr-2" />
                 Update Payment
               </>
             )}
