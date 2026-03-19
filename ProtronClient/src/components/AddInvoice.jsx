@@ -427,21 +427,16 @@ const AddInvoiceModal = ({
         // Populate employees (API returns 'employees', not 'invoiceEmployees')
         if (editData.employees && editData.employees.length > 0) {
             const populatedEmployees = editData.employees.map((emp, index) => {
-                // Extract userId from itemDesc format: "Name (EMP1234)"
-                const itemDescMatch = emp.itemDesc?.match(/^(.+)\s*\((EMP\d+)\)$/);
-                const userId = itemDescMatch ? itemDescMatch[2] : '';
-                const name = itemDescMatch ? itemDescMatch[1].trim() : emp.itemDesc || emp.name || '';
-                const itemDesc = emp.itemDesc || `${name} (${userId})` || '';
-
                 return {
                     id: index + 1,
-                    userId: userId,
-                    name: name,
-                    itemDesc: itemDesc,
+                    userId: emp.userId || '', // Use the userId directly from API response
+                    itemDesc: emp.itemDesc || '',
                     rate: emp.rate || '',
                     quantity: emp.quantity || '',
                     amount: emp.amount || '',
-                    remarks: emp.remarks || ''
+                    remarks: emp.remarks || '',
+                    updatedBy: emp.updatedBy || '',
+                    updatedTs: emp.updatedTs || ''
                 };
             });
             setInvoiceEmployees(populatedEmployees);
@@ -2142,7 +2137,11 @@ const AddInvoiceModal = ({
                                                 options={employees}
                                                 value={(() => {
                                                     if (!er.userId || !employees || employees.length === 0) return null;
-                                                    return employees.find(emp => emp.userId == er.userId) || null;
+                                                    console.log('Looking for employee with userId:', er.userId, 'type:', typeof er.userId);
+                                                    console.log('Available employees:', employees.map(e => ({userId: e.userId, type: typeof e.userId, name: e.label})));
+                                                    const found = employees.find(emp => emp.userId == er.userId);
+                                                    console.log('Found employee:', found);
+                                                    return found || null;
                                                 })()}
                                                 onChange={(opt) => updateEmployeeRow(er.id, 'userId', opt ? opt.userId : '')}
                                                 classNamePrefix="react-select"
