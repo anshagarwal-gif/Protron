@@ -698,13 +698,32 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 )}
               </div>
             </div>
+            <div className="flex justify-end gap-3 pt-3">
             <button
+              type="button"
               onClick={handleClose}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+              className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
               disabled={loading}
             >
-              <X className="w-5 h-5 text-white" />
+              Cancel
             </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  Add Consumption
+                </>
+              )}
+            </button>
+          </div>
           </div>
         </div>
 
@@ -1123,7 +1142,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
               disabled={loading}
             >
               Cancel
@@ -1131,7 +1150,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
             >
               {loading ? (
                 <>
@@ -1140,7 +1159,6 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                 </>
               ) : (
                 <>
-                  <Activity size={14} className="mr-2" />
                   Add Consumption
                 </>
               )}
