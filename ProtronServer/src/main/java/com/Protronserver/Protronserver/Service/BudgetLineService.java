@@ -156,7 +156,6 @@ public class BudgetLineService {
             BudgetLine budgetLine = budgetLineOpt.get();
             budgetLine.setAmountUtilized(amountUtilized);
             budgetLine.setAmountAvailable(amountAvailable);
-            budgetLine.setEndTimestamp(LocalDateTime.now());
             return budgetLineRepository.save(budgetLine);
         }
         throw new RuntimeException("Budget line not found with ID: " + budgetId);
