@@ -357,7 +357,7 @@ const POManagement = () => {
             </button>
           );
         }
-        return <span className="text-gray-500">{poNumber}</span>;
+        return <span title={poNumber} className="text-gray-500">{poNumber}</span>;
       }
     },
     {
@@ -379,25 +379,25 @@ const POManagement = () => {
           type === 'FIXED' ? 'Fixed' :
             type === 'MIXED' ? 'Mixed' : type;
         return (
-          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>
+          <span title={params.value} className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${colorClass}`}>
             {displayText}
           </span>
         );
       }
     },
     {
-  headerName: "Currency",
-  field: "poCurrency",
-  width: 110,
-  sortable: true,
-  filter: true,
-  valueGetter: params => params.data?.poCurrency || 'N/A',
-  cellRenderer: params => (
-    <span className="font-medium text-gray-700">
-      {params.value}
-    </span>
-  )
-},
+      headerName: "Currency",
+      field: "poCurrency",
+      width: 110,
+      sortable: true,
+      filter: true,
+      valueGetter: params => params.data?.poCurrency || 'N/A',
+      cellRenderer: params => (
+        <span title={params.value} className="font-medium text-gray-700">
+          {params.value}
+        </span>
+      )
+    },
     {
       headerName: "PO Amount",
       field: "poAmount",
@@ -405,7 +405,12 @@ const POManagement = () => {
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { textAlign: 'right' }
+      cellStyle: { textAlign: 'right' },
+      cellRenderer: params => (
+        <span title={params.value} className="block text-right w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Customer",
@@ -482,21 +487,6 @@ const POManagement = () => {
         </div>
       )
     },
-    // {
-    //   headerName: "Currency",
-    //   field: "poCurrency",
-    //   width: 80,
-    //   sortable: true,
-    //   filter: true,
-    //   cellRenderer: params => {
-    //     const currency = params.value;
-    //     return (
-    //       <span title={currency} className="cursor-help truncate block w-full">
-    //         {currency || 'N/A'}
-    //       </span>
-    //     );
-    //   }
-    // },
     {
       headerName: "Budget Line Amount",
       field: "budgetLineAmount",
@@ -508,7 +498,12 @@ const POManagement = () => {
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { textAlign: 'right' }
+      cellStyle: { textAlign: 'right' },
+      cellRenderer: params => (
+        <span title={params.value} className="block text-right w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Business Value",
@@ -521,7 +516,12 @@ const POManagement = () => {
       width: 140,
       sortable: true,
       filter: true,
-      cellStyle: { textAlign: 'right' }
+      cellStyle: { textAlign: 'right' },
+      cellRenderer: params => (
+        <span title={params.value} className="block text-right w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Actions",

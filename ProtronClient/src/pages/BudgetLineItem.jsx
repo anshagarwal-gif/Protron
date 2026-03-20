@@ -850,7 +850,7 @@ const { hasAccess } = useAccess(); // Access context
       cellRenderer: params => {
         const currency = params.value;
         return (
-          <span title={currency} className="cursor-help truncate block w-full">
+          <span title={currency} className="truncate block w-full">
             {currency || 'N/A'}
           </span>
         );
@@ -869,24 +869,7 @@ const { hasAccess } = useAccess(); // Access context
       filter: true,
       cellRenderer: params => (
         <div className="flex justify-end items-center w-full">
-          {params.value}
-        </div>
-      )
-    },
-    {
-      headerName: "Amount Available",
-      field: "amountAvailable",
-      valueGetter: params => {
-      const amount = params.data.amountAvailable;
-      if (amount == null) return 'N/A';
-      return amount;
-    },
-      width: 160,
-      sortable: true,
-      filter: true,
-      cellRenderer: params => (
-        <div className="flex justify-end items-center w-full">
-          {params.value}
+          <span title={params.value}>{params.value}</span>
         </div>
       )
     },
@@ -903,7 +886,7 @@ const { hasAccess } = useAccess(); // Access context
       filter: true,
       cellRenderer: params => (
         <div className="flex justify-end items-center w-full">
-          {params.value}
+          <span title={params.value}>{params.value}</span>
         </div>
       )
     },
@@ -958,7 +941,7 @@ const { hasAccess } = useAccess(); // Access context
             {hasAccess && hasAccess('budget', 'edit') && (
               <button
                 onClick={() => handleEditBudgetLine(budgetLine)}
-                className="p-2 rounded-full hover:bg-yellow-100 transition-colors cursor-pointer"
+                className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
                 title="Edit Budget Line"
               >
                 <Edit size={14} />

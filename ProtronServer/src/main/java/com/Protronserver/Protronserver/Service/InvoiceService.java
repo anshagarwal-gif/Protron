@@ -687,10 +687,10 @@ public class InvoiceService {
         leftMetaCell.addElement(new Paragraph("Invoice Name: " + invoice.getInvoiceName(), normalFont));
         leftMetaCell.addElement(new Paragraph("Invoice Date: " + formatLocalDateTimeWithSuffix(invoice.getCreatedAt()), normalFont));
         leftMetaCell.addElement(new Paragraph("Bill Period: "
-                + (invoice.getFromDate() != null ? invoice.getFromDate() : "")
+                + (invoice.getFromDate() != null ? formatDateWithSuffix(invoice.getFromDate()) : "")
                 + " - "
-                + (invoice.getToDate() != null ? invoice.getToDate() : ""), normalFont));
-        leftMetaCell.addElement(new Paragraph("Due Date: " + (invoice.getDueDate() != null ? invoice.getDueDate() : ""), normalFont));
+                + (invoice.getToDate() != null ? formatDateWithSuffix(invoice.getToDate()) : ""), normalFont));
+        leftMetaCell.addElement(new Paragraph("Due Date: " + (invoice.getDueDate() != null ? formatDateWithSuffix(invoice.getDueDate()) : ""), normalFont));
         metaTable.addCell(leftMetaCell);
 
         // Right side: Supplier details with better styling
@@ -1275,14 +1275,14 @@ public class InvoiceService {
         leftMeta.setBorderColor(borderGray);
         leftMeta.setPadding(10);
         leftMeta.setBackgroundColor(BaseColor.WHITE);
-        
+
         Paragraph invoiceIdPara = new Paragraph("Invoice ID: ", normalFont);
         invoiceIdPara.add(new Chunk(invoiceData.getOrDefault("invoiceId", "").toString(), accentFont));
         leftMeta.addElement(invoiceIdPara);
         leftMeta.addElement(new Paragraph("Invoice Name: " + invoiceData.getOrDefault("invoiceName", ""), normalFont));
-        leftMeta.addElement(new Paragraph("Invoice Date: " + invoiceData.getOrDefault("invoiceDate", ""), normalFont));
-        leftMeta.addElement(new Paragraph("Bill Period: " + invoiceData.getOrDefault("fromDate", "") + " - " + invoiceData.getOrDefault("toDate", ""), normalFont));
-        leftMeta.addElement(new Paragraph("Due Date: " + invoiceData.getOrDefault("dueDate", ""), normalFont));
+        leftMeta.addElement(new Paragraph("Invoice Date: " + formatDateFromMap(invoiceData.get("invoiceDate")), normalFont));
+        leftMeta.addElement(new Paragraph("Bill Period: " + formatDateFromMap(invoiceData.get("fromDate")) + " - " + formatDateFromMap(invoiceData.get("toDate")), normalFont));
+        leftMeta.addElement(new Paragraph("Due Date: " + formatDateFromMap(invoiceData.get("dueDate")), normalFont));
         metaTable.addCell(leftMeta);
 
         // Right: Supplier info
@@ -1825,6 +1825,45 @@ public class InvoiceService {
         }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy");
         return date.format(formatter);
+    }
+
+    /**
+     * Helper method to format date objects from Map (for preview PDF)
+     * @param dateObj the date object from the map
+     * @return formatted date string in dd-MMM-yyyy format
+     */
+    private String formatDateFromMap(Object dateObj) {
+        if (dateObj == null) {
+            return "";
+        }
+        
+        try {
+            if (dateObj instanceof LocalDate) {
+                return formatDateWithSuffix((LocalDate) dateObj);
+            } else if (dateObj instanceof String) {
+                // Try to parse as ISO date string first
+                String dateStr = (String) dateObj;
+                try {
+                    LocalDate date = LocalDate.parse(dateStr);
+                    return formatDateWithSuffix(date);
+                } catch (Exception e) {
+                    // If parsing fails, return the string as-is (it might already be formatted)
+                    return dateStr;
+                }
+            } else {
+                // For other types, convert to string and try parsing
+                String dateStr = dateObj.toString();
+                try {
+                    LocalDate date = LocalDate.parse(dateStr);
+                    return formatDateWithSuffix(date);
+                } catch (Exception e) {
+                    return dateStr; // Return as-is if parsing fails
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to format date from map object: {}", dateObj);
+            return dateObj != null ? dateObj.toString() : "";
+        }
     }
 
     /**

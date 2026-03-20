@@ -387,7 +387,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellRenderer: params => {
         const srnId = params.value;
         return (
-          <span title={srnId} className="cursor-help">
+          <span title={srnId} >
             {srnId}
           </span>
         );
@@ -405,7 +405,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         const milestoneName = params.value;
         if (milestoneName && milestoneName !== 'N/A') {
           return (
-            <span title={milestoneName} className="cursor-help">
+            <span title={milestoneName} >
               {milestoneName.length > 30 ? `${milestoneName.substring(0, 30)}...` : milestoneName}
             </span>
           );
@@ -424,7 +424,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellRenderer: params => {
         const srnType = params.value;
         return (
-          <span title={srnType} className="cursor-help">
+          <span title={srnType} >
             {srnType || 'N/A'}
           </span>
         );
@@ -442,7 +442,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         const srnName = params.value;
         if (srnName && srnName !== 'N/A') {
           return (
-            <span title={srnName} className="cursor-help">
+            <span title={srnName} >
               {srnName.length > 30 ? `${srnName.substring(0, 30)}...` : srnName}
             </span>
           );
@@ -462,7 +462,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         const description = params.value;
         if (description && description !== 'N/A') {
           return (
-            <span title={description} className="cursor-help">
+            <span title={description} >
               {description.length > 50 ? `${description.substring(0, 50)}...` : description}
             </span>
           );
@@ -482,7 +482,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         const remarks = params.value;
         if (remarks && remarks !== 'N/A') {
           return (
-            <span title={remarks} className="cursor-help">
+            <span title={remarks} >
               {remarks.length > 40 ? `${remarks.substring(0, 40)}...` : remarks}
             </span>
           );
@@ -500,7 +500,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellRenderer: params => {
         const currency = params.value;
         return (
-          <span title={currency} className="cursor-help">
+          <span title={currency} >
             {currency}
           </span>
         );
@@ -522,7 +522,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellRenderer: params => {
         const amount = params.value;
         return (
-          <span title={amount} className="cursor-help block text-right w-full">
+          <span title={amount} className="block text-right w-full">
             {amount}
           </span>
         );

@@ -863,15 +863,17 @@ const AddInvoiceModal = ({
             // Remove all non-digit characters
             str = str.replace(/[^0-9]/g, '');
         } else {
-            // Allow decimal point but only one
+            // Allow decimal point but only one, and limit to 2 decimal places
+            str = str.replace(/[^0-9.]/g, '');
             const parts = str.split('.');
             if (parts.length > 2) {
                 // If more than one decimal point, keep only first two parts
-                str = parts[0] + '.' + parts.slice(1, 3).join('');
-            } else {
-                // Ensure at most one decimal point
-                const decimalPart = parts.length > 1 ? '.' + parts[1] : '';
-                str = parts[0] + decimalPart + (parts[1] || '');
+                str = parts[0] + '.' + parts.slice(1).join('');
+            }
+            if (parts.length === 2 && parts[1]) {
+                // Limit decimal places to 2
+                parts[1] = parts[1].substring(0, 2);
+                str = parts[0] + '.' + parts[1];
             }
             // Limit total digits - allow larger numbers for quantity
             const digitCount = str.replace(/\./g, '').length;
@@ -2095,7 +2097,11 @@ const AddInvoiceModal = ({
                                         max="365"
                                         value={formData.daysAfter || ''}
                                         onChange={(e) => {
-                                            const days = parseInt(e.target.value) || 0;
+                                            let value = e.target.value;
+                                            // Remove non-numeric characters
+                                            value = value.replace(/[^0-9]/g, '');
+                                            // Parse and clamp to maximum 365
+                                            const days = Math.min(parseInt(value) || 0, 365);
                                             const invoiceDate = formData.invoiceDate;
                                             if (invoiceDate) {
                                                 const dueDate = new Date(new Date(invoiceDate).getTime() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -2122,6 +2128,7 @@ const AddInvoiceModal = ({
                                     <input
                                         type="date"
                                         value={formData.dueDate}
+                                        min={formData.invoiceDate}
                                         onChange={handleChange('dueDate')}
                                         className="w-full h-10 px-4 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
                                     />
@@ -2156,11 +2163,11 @@ const AddInvoiceModal = ({
 
                             {/* editable headers */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-0 mb-2">
-                                <input value={tableHeaders.col1} onChange={(e) => updateTableHeader('col1', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                <input value={tableHeaders.col2} onChange={(e) => updateTableHeader('col2', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                <input value={tableHeaders.col3} onChange={(e) => updateTableHeader('col3', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                <input value={tableHeaders.col4} onChange={(e) => updateTableHeader('col4', e.target.value)} className="px-2 py-1 border rounded-none" />
-                                <input value={tableHeaders.col5} onChange={(e) => updateTableHeader('col5', e.target.value)} className="px-2 py-1 border rounded-none" />
+                                <input value={tableHeaders.col1} disabled className="px-2 py-1 border rounded-none bg-gray-50 cursor-not-allowed" />
+                                <input value={tableHeaders.col2} disabled className="px-2 py-1 border rounded-none bg-gray-50 cursor-not-allowed" />
+                                <input value={tableHeaders.col3} disabled className="px-2 py-1 border rounded-none bg-gray-50 cursor-not-allowed" />
+                                <input value={tableHeaders.col4} disabled className="px-2 py-1 border rounded-none bg-gray-50 cursor-not-allowed" />
+                                <input value={tableHeaders.col5} disabled className="px-2 py-1 border rounded-none bg-gray-50 cursor-not-allowed" />
                                 <div></div>
                             </div>
 
@@ -2291,17 +2298,20 @@ const AddInvoiceModal = ({
                                             value={tax.taxPercentage}
                                             onChange={(e) => {
                                                 let value = e.target.value;
-                                                // Allow empty value
-                                                if (value === '') {
+                                                // Remove non-numeric characters except decimal point
+                                                value = value.replace(/[^0-9.]/g, '');
+                                                // Allow only one decimal point and limit to 2 decimal places
+                                                const parts = value.split('.');
+                                                if (parts.length > 2) {
+                                                    value = parts[0] + '.' + parts.slice(1).join('');
+                                                }
+                                                if (parts.length === 2 && parts[1]) {
+                                                    value = parts[0] + '.' + parts[1].substring(0, 2);
+                                                }
+                                                // Update only if valid
+                                                if (value === '' || (!isNaN(parseFloat(value)) && parseFloat(value) >= 0 && parseFloat(value) <= 100)) {
                                                     handleTaxChange(index, 'taxPercentage', value);
-                                                    return;
                                                 }
-                                                // Parse and validate
-                                                const numValue = parseFloat(value);
-                                                if (!isNaN(numValue) && numValue >= 0 && numValue <= 100) {
-                                                    handleTaxChange(index, 'taxPercentage', numValue.toString());
-                                                }
-                                                // If invalid, don't update
                                             }}
                                             onBlur={(e) => {
                                                 const value = e.target.value;
@@ -2314,6 +2324,9 @@ const AddInvoiceModal = ({
                                                     handleTaxChange(index, 'taxPercentage', '0');
                                                 } else if (numValue > 100) {
                                                     handleTaxChange(index, 'taxPercentage', '100');
+                                                } else {
+                                                    // Ensure exactly 2 decimal places for display
+                                                    handleTaxChange(index, 'taxPercentage', numValue.toFixed(2));
                                                 }
                                             }}
                                             className={`w-full h-9 px-3 border rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none ${

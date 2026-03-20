@@ -486,13 +486,32 @@ const handleFileChange = (e) => {
   PO Number: <b className="break-all">{formData?.poNumber}</b>
 </p>
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            disabled={loading || fetchLoading}
-          >
-            <X size={20} className="text-gray-400" />
-          </button>
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-3">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    Update Milestone
+                  </>
+                )}
+              </button>
+            </div>
         </div>
 
         {/* Loading State */}
@@ -711,7 +730,7 @@ const handleFileChange = (e) => {
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                 disabled={loading}
               >
                 Cancel
@@ -719,7 +738,7 @@ const handleFileChange = (e) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
               >
                 {loading ? (
                   <>
@@ -728,7 +747,6 @@ const handleFileChange = (e) => {
                   </>
                 ) : (
                   <>
-                    <Target size={14} className="mr-2" />
                     Update Milestone
                   </>
                 )}

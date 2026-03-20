@@ -199,7 +199,7 @@ const UserEditForm = ({ userId, onSubmit, onCancel }) => {
       return decPart.length > 0 ? `${intPart}.${decPart}` : `${intPart}.`;
     };
 
-    const limitedTextFields = new Set(["firstName", "middleName", "lastName"]);
+    const limitedTextFields = new Set(["firstName", "middleName", "lastName", "addressLine1", "addressLine2", "addressLine3"]);
     const nextValue =
       name === "cost"
         ? sanitizeMoney9_2(value)

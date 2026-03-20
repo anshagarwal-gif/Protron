@@ -509,13 +509,23 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                             Create New PO Consumption
                         </h2>
                     </div>
-                    <button
-                        onClick={handleClose}
-                        className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                        disabled={loading}
-                    >
-                        <X size={20} />
-                    </button>
+                     <div className='flex flex-col sm:flex-row sm:justify-end gap-3'>
+                            <button
+                                type='button'
+                                onClick={handleClose}
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                                disabled={loading}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type='submit'
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
+                                disabled={loading}
+                            >
+                                {loading ? 'Creating...' : 'Submit'}
+                            </button>
+                        </div>
                 </div>
 
                 <div className='p-4 sm:p-6 overflow-y-auto flex-grow'>
@@ -830,14 +840,14 @@ const CreateNewPOConsumption = ({ open, onClose, poNumber, poId }) => {
                             <button
                                 type='button'
                                 onClick={handleClose}
-                                className="w-full sm:w-auto px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                                 disabled={loading}
                             >
                                 Cancel
                             </button>
                             <button
                                 type='submit'
-                                className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                                 disabled={loading}
                             >
                                 {loading ? 'Creating...' : 'Submit'}

@@ -123,9 +123,15 @@ return module.moduleName;
         <TextField
           label="Role Name"
           value={roleName}
-          onChange={(e) => setRoleName(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value.length <= 100) {
+              setRoleName(value);
+            }
+          }}
           fullWidth
           sx={{ mb: 3 }}
+          helperText={`${roleName.length}/100 characters`}
         />
         
         {/* NEW TABLE-BASED LAYOUT - REPLACE THE EXISTING MODULES SECTION */}

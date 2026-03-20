@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, DollarSign, FileText, Hash, Clock } from 'lucide-react';
+import { X, Calendar, DollarSign, FileText, Hash, Clock, Edit } from 'lucide-react';
 import axios from 'axios';
 import { useSession } from '../Context/SessionContext';
 
@@ -81,11 +81,11 @@ const ViewMilestoneModal = ({ open, onClose, milestoneData, openEditMilestoneMod
             <div className='flex justify-center items-center space-x-2'>
               <button onClick={() => {
                 openEditMilestoneModal(milestoneData.msId);
-              }} className="p-2 bg-green-700 rounded-md transition-colors cursor-pointer">Edit Milestone</button>
+              }} className="cursor-pointer p-2 hover:bg-green-700 rounded-lg transition-colors"><Edit size={20} /></button>
 
               <button
                 onClick={onClose}
-                className="p-2 bg-green-700 rounded-md transition-colors cursor-pointer"
+                className="cursor-pointer p-2 hover:bg-green-700 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-white" />
               </button>
