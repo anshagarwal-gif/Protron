@@ -327,12 +327,11 @@ const POManagement = () => {
       headerName: "#",
       valueGetter: "node.rowIndex + 1",
       width: 50,
-      maxWidth: 50,
       pinned: "left",
       sortable: false,
       filter: false,
       suppressMenu: true,
-      cellStyle: { textAlign: 'center' }
+      cellStyle: { textAlign: 'left' }
     },
     {
       headerName: "PO Number",
@@ -733,7 +732,7 @@ const POManagement = () => {
       {/* Search bar and action buttons */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         {/* Search input */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:w-100">
           <input
             type="text"
             placeholder={activeTab === "approval" ? "Search Budget Lines..." :

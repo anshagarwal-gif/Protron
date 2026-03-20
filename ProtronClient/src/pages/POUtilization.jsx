@@ -32,12 +32,14 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddPOConsumptionModal from "../components/AddPOConsumptionModal";
 import EditPOConsumptionModal from "../components/EditPOConsumptionModal";
+import { formatExcelDate } from "../utils/dateUtils";
 
 // ViewDetailsModal Component - Fixed with correct milestone properties
 const ViewDetailsModal = ({ open, onClose, consumption }) => {
   const [attachments, setAttachments] = useState([]);
   const [loadingAttachments, setLoadingAttachments] = useState(false);
   const [attachmentError, setAttachmentError] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (open && consumption?.utilizationId) {
@@ -163,12 +165,21 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
                 <p className="text-green-100 text-xs sm:text-sm truncate">Consumption ID: {consumption.utilizationId || 'N/A'}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors flex-shrink-0"
-            >
-              <X size={18} className="sm:w-5 sm:h-5" />
-            </button>
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors"
+                title="Edit Consumption"
+              >
+                <Edit size={18} className="sm:w-5 sm:h-5" />
+              </button>
+              <button
+                onClick={onClose}
+                className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors"
+              >
+                <X size={18} className="sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -361,6 +372,18 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
           </div>
         </div>
       </div>
+
+      {/* Edit PO Consumption Modal */}
+      <EditPOConsumptionModal
+        open={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={() => {
+          setIsEditModalOpen(false);
+          // Refresh the page or reload data after successful edit
+          window.location.reload();
+        }}
+        editData={consumption}
+      />
     </div>
   );
 };
@@ -567,9 +590,9 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
         'Project': consumption.project || 'N/A',
         'Work Description': consumption.workDesc || 'N/A',
         'Currency': consumption.currency || 'N/A',
-        'Amount': consumption.amount ? `${getCurrencySymbol(consumption.currency)}${consumption.amount.toLocaleString()}` : 'N/A',
-        'Work Assign Date': consumption.workAssignDate ? new Date(consumption.workAssignDate).toLocaleDateString() : 'N/A',
-        'Work Completion Date': consumption.workCompletionDate ? new Date(consumption.workCompletionDate).toLocaleDateString() : 'N/A',
+        'Amount': consumption.amount ? consumption.amount.toLocaleString() : 'N/A',
+        'Work Assign Date': formatExcelDate(consumption.workAssignDate),
+        'Work Completion Date': formatExcelDate(consumption.workCompletionDate),
         'Remarks': consumption.remarks || 'N/A',
         'System Name': consumption.systemName || 'N/A',
       }));
@@ -717,7 +740,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     {
       headerName: "#",
       valueGetter: "node.rowIndex + 1",
-      width: 60,
+      width: 50,
       pinned: "left",
       sortable: false,
       filter: false,

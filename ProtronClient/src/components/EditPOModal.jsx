@@ -155,6 +155,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
     const [initialFormData, setInitialFormData] = useState({});
     const [users, setUsers] = useState([]);
     const [projects, setProjects] = useState([]);
+    const [budgetLineOptions, setBudgetLineOptions] = useState([]);
     const [loading, setLoading] = useState(true);
     const startDateRef = useRef(null);
     const endDateRef = useRef(null);
@@ -199,6 +200,26 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         } catch (error) {
             console.log({ message: error });
 
+        }
+    };
+
+    const fetchBudgetLines = async () => {
+        try {
+            const token = sessionStorage.getItem('token');
+            const tenantId = sessionStorage.getItem('tenantId');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/budget-lines/tenant/${tenantId}`, {
+                headers: { Authorization: `${token}` }
+            });
+            const data = Array.isArray(res.data) ? res.data : [];
+            const opts = data.map(bl => ({
+                label: `${bl.budgetName} (${bl.currency || ''} ${bl.amountApproved})`,
+                value: bl.budgetName,
+                amountApproved: bl.amountApproved,
+                currency: bl.currency || 'USD'
+            }));
+            setBudgetLineOptions(opts);
+        } catch (error) {
+            console.error('Error fetching budget lines:', error);
         }
     };
 
@@ -299,6 +320,7 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
         if (open && poId) {
             fetchUsers();
             fetchProjects();
+            fetchBudgetLines();
             fetchCountries();
             fetchPOData();
             fetchPOAttachments(poId);
@@ -1314,16 +1336,17 @@ const EditPOModal = ({ open, onClose, onSubmit, poId }) => {
                                             />
                                             <CreatableSelect
                                                 inputId="budgetLineItem"
-                                                options={userOptions}
-                                                value={
-                                                    formData.budgetLineItem
-                                                        ? { label: formData.budgetLineItem, value: formData.budgetLineItem }
-                                                        : null
-                                                }
-                                                onChange={(selectedOption) => {
-                                                    let value = selectedOption?.value || '';
-                                                    if (value.length > 255) value = value.slice(0, 255);
-                                                    setFormData(prev => ({ ...prev, budgetLineItem: value }));
+                                                options={budgetLineOptions}
+                                                value={formData.budgetLineItem ? { label: formData.budgetLineItem, value: formData.budgetLineItem } : null}
+                                                onChange={(selected) => {
+                                                    const value = selected?.value || '';
+                                                    const match = budgetLineOptions.find(o => o.value === value);
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        budgetLineItem: value,
+                                                        budgetLineAmount: match ? String(match.amountApproved ?? '') : prev.budgetLineAmount,
+                                                        poCurrency: match?.currency || prev.poCurrency
+                                                    }));
                                                 }}
                                                 className="react-select-container"
                                                 classNamePrefix="react-select"

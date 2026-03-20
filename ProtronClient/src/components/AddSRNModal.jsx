@@ -658,9 +658,9 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                             <div className="relative">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Payment Name *
-                                    <span className="float-right text-sm text-gray-500">
+                                    {/* <span className="float-right text-sm text-gray-500">
                                         {formData.srnName.length}/100 characters
-                                    </span>
+                                    </span> */}
                                 </label>
                                 <div className="relative">
                                     <Receipt className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600" size={20} />
@@ -686,7 +686,7 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
 
                             <div className="lg:col-span-1 relative">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Milestone *
+                                    Milestone{milestoneList.length > 0 ? ' *' : ''}
                                 </label>
                                 <select
                                     name="msId"

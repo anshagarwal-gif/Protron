@@ -668,7 +668,12 @@ const UserManagement = () => {
       flex: 1,
       minWidth: 250,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <span title={params.value} className="truncate block w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Mobile Number",
@@ -677,17 +682,27 @@ const UserManagement = () => {
       flex: 1,
       minWidth: 200,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <span title={params.value} className="truncate block w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Role",
       field: "role",
-      valueGetter: params => getRoleName(params.data.role),
+      valueGetter: params => getRoleName(params.data),
       flex: 1,
       minWidth: 70,
       maxWidth: 170,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <span title={params.value} className="truncate block w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Tenant",
@@ -696,7 +711,12 @@ const UserManagement = () => {
       flex: 1,
       minWidth: 150,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <span title={params.value} className="truncate block w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "City",
@@ -705,7 +725,12 @@ const UserManagement = () => {
       flex: 1,
       minWidth: 100,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <span title={params.value} className="truncate block w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Country",
@@ -714,7 +739,12 @@ const UserManagement = () => {
       flex: 1,
       minWidth: 100,
       sortable: true,
-      filter: true
+      filter: true,
+      cellRenderer: params => (
+        <span title={params.value} className="truncate block w-full">
+          {params.value}
+        </span>
+      )
     },
     {
       headerName: "Status",
@@ -758,6 +788,7 @@ const UserManagement = () => {
 
         return (
           <span
+            title={getStatusLabel(rawStatus)}
             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(rawStatus)}`}
           >
             {getStatusLabel(rawStatus)}

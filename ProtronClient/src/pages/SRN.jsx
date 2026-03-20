@@ -377,22 +377,22 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
         return poNumber;
       }
     },
-    {
-      headerName: "Payment ID",
-      field: "srnId",
-      valueGetter: params => params.data.srnId || 'N/A',
-      width: 100,
-      sortable: true,
-      filter: true,
-      cellRenderer: params => {
-        const srnId = params.value;
-        return (
-          <span title={srnId} >
-            {srnId}
-          </span>
-        );
-      }
-    },
+    // {
+    //   headerName: "Payment ID",
+    //   field: "srnId",
+    //   valueGetter: params => params.data.srnId || 'N/A',
+    //   width: 100,
+    //   sortable: true,
+    //   filter: true,
+    //   cellRenderer: params => {
+    //     const srnId = params.value;
+    //     return (
+    //       <span title={srnId} >
+    //         {srnId}
+    //       </span>
+    //     );
+    //   }
+    // },
     {
       headerName: "Milestone Name",
       field: "milestone.msName",
