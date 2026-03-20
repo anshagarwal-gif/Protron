@@ -5,7 +5,7 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 
 
-const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
+const AddMilestoneModal = ({ open, onClose, onSubmit, poId, milestone }) => {
   const fileInputRef = useRef(null);
 
   // Helper function to format file size
@@ -101,6 +101,26 @@ const AddMilestoneModal = ({ open, onClose, onSubmit, poId }) => {
     setDescCharCount(formData.msDesc.length);
     setRemarksCharCount(formData.msRemarks.length);
   }, [formData.msDesc, formData.msRemarks]);
+
+  // Populate form when milestone data is provided (for duplication)
+  useEffect(() => {
+    if (milestone && open) {
+      setFormData(prev => ({
+        ...prev,
+        msName: milestone.msName || "",
+        msDesc: milestone.msDesc || "",
+        msAmount: milestone.msAmount || "",
+        msCurrency: milestone.msCurrency || "USD",
+        msDate: milestone.msDate || "",
+        msDuration: milestone.msDuration || "",
+        msRemarks: milestone.msRemarks || "",
+        poId: poId,
+        poNumber: prev.poNumber || ""
+      }));
+      setDescCharCount(milestone.msDesc?.length || 0);
+      setRemarksCharCount(milestone.msRemarks?.length || 0);
+    }
+  }, [milestone, open, poId]);
 
   useEffect(() => {
     if (open && poId) {

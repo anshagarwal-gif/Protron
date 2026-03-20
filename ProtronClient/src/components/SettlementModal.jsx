@@ -57,7 +57,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
   useEffect(() => {
     if (!open) {
       // Reset all form fields and attachments when modal closes
-      setSettlementType("FULL_PAYMENT");
+      setSettlementType("");
       setSettlementAmount("");
       setCurrency("USD");
       setPaymentMethod("");
@@ -337,6 +337,7 @@ const SettlementModal = ({ open, onClose, invoice, onSettlementComplete }) => {
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             >
+              <option value="">Select Settlement Type</option>
               <option value="FULL_PAYMENT">Full Payment</option>
               <option value="PARTIAL_PAYMENT">Partial Payment</option>
             </select>

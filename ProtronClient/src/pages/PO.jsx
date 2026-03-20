@@ -732,7 +732,7 @@ const POManagement = () => {
       {/* Search bar and action buttons */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
         {/* Search input */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:w-100">
           <input
             type="text"
             placeholder={activeTab === "approval" ? "Search Budget Lines..." :

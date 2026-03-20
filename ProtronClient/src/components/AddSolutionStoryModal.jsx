@@ -870,7 +870,7 @@ const handleFileChange = (e) => {
               {/* Attachments Section */}
               <div className="w-full mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Attachments
+                  Attachments (Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT)
                 </label>
                 <div className="space-y-2">
                   <div className="flex items-center gap-4 mb-2">

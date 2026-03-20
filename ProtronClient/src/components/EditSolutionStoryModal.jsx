@@ -874,7 +874,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
               {/* Attachments Section */}
               <div className="w-full mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Attachments ({existingAttachments.length + newAttachments.length}/4)
+                  Attachments ({existingAttachments.length + newAttachments.length}/4) Supported: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF, TXT
                 </label>
 
                 {/* File Upload */}

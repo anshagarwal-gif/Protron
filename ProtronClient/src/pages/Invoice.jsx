@@ -29,7 +29,7 @@ import { useAccess } from "../Context/AccessContext";
 import { formatExcelDate } from "../utils/dateUtils"; 
 
 
-const ViewInvoiceModal = ({ open, onClose, invoice }) => {
+const ViewInvoiceModal = ({ open, onClose, invoice, onEditInvoice }) => {
   if (!open || !invoice) return null;
 
   // Format currency (matching other modals)
@@ -226,8 +226,7 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
                 onClick={() => {
                   // Close view modal and open edit modal with current invoice
                   onClose();
-                  setSelectedInvoice(invoice);
-                  setIsAddModalOpen(true);
+                  onEditInvoice(invoice);
                 }}
                 className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
                 title="Edit Invoice"
@@ -276,10 +275,10 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
                 label="Rate per Hour"
                 value={formatCurrency(invoice.rate, invoice.currency)}
               />
-              <Field
+              {/* <Field
                 label="Hours Spent"
                 value={invoice.hoursSpent}
-              />
+              /> */}
               <Field
                 label="Created Date"
                 value={formatDate(invoice.createdAt)}
@@ -303,10 +302,10 @@ const ViewInvoiceModal = ({ open, onClose, invoice }) => {
                 label="Supplier Name"
                 value={invoice.supplierName}
               />
-              <Field
+              {/* <Field
                 label="Employee Name"
                 value={invoice.employeeName}
-              />
+              /> */}
             </div>
           </div>
 
@@ -930,24 +929,58 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   // Excel download function
   const downloadInvoiceExcel = () => {
     try {
-      const excelData = filteredInvoiceData.map((invoice, index) => ({
-        'S.No': index + 1,
-        'Invoice ID': invoice.invoiceId || 'N/A',
-        'Invoice Name': invoice.invoiceName || 'N/A',
-        'Initiative name': invoice.projectName || 'N/A',
-        'Customer Name': invoice.customerName || 'N/A',
-        'Supplier Name': invoice.supplierName || 'N/A',
-        'Employee Name': invoice.employeeName || 'N/A',
-        'Rate': invoice.rate ? parseFloat(invoice.rate) : 'N/A',
-        'Currency': invoice.currency || 'N/A',
-        'Hours Spent': invoice.hoursSpent || 'N/A',
-        'Total Amount': invoice.totalAmount ? parseFloat(invoice.totalAmount) : 'N/A',
-        'From Date': formatExcelDate(invoice.fromDate),
-        'To Date': formatExcelDate(invoice.toDate),
-        'Created Date': formatExcelDate(invoice.createdAt),
-        'Attachments': invoice.attachmentCount || 0,
-        'Remarks': invoice.remarks || 'N/A'
-      }));
+      const excelData = filteredInvoiceData.map((invoice, index) => {
+        // Get status text same as table
+        let statusText = "";
+        switch(invoice.status) {
+          case "DRAFT":
+            statusText = "Draft Invoice";
+            break;
+          case "SAVED":
+            statusText = "Final Invoice";
+            break;
+          case "SENT":
+            statusText = "Sent";
+            break;
+          case "PARTIALLY_PAID":
+            statusText = "Partially Paid";
+            break;
+          case "PAID":
+            statusText = "Paid";
+            break;
+          case "OVERDUE":
+            statusText = "Overdue";
+            break;
+          case "CANCELLED":
+            statusText = "Cancelled";
+            break;
+          case "REFUNDED":
+            statusText = "Refunded";
+            break;
+          default:
+            statusText = invoice.status || "Unknown";
+        }
+
+        return {
+          'S.No': index + 1,
+          'Invoice ID': invoice.invoiceId || 'N/A',
+          'Invoice Name': invoice.invoiceName || 'N/A',
+          'Initiative name': invoice.projectName || 'N/A',
+          'Customer Name': invoice.customerName || 'N/A',
+          'Supplier Name': invoice.supplierName || 'N/A',
+          'Employee Name': invoice.employeeName || 'N/A',
+          'Currency': invoice.currency || 'N/A',
+          'Invoice Amount': invoice.totalAmount ? parseFloat(invoice.totalAmount) : 'N/A',
+          'Paid Amount': invoice.totalPaidAmount ? parseFloat(invoice.totalPaidAmount) : 0,
+          'Outstanding Amount': invoice.totalAmount && invoice.totalPaidAmount ? parseFloat(invoice.totalAmount) - parseFloat(invoice.totalPaidAmount) : (invoice.totalAmount ? parseFloat(invoice.totalAmount) : 0),
+          'From Date': formatExcelDate(invoice.fromDate),
+          'To Date': formatExcelDate(invoice.toDate),
+          'Hours Spent': invoice.hoursSpent || 'N/A',
+          'Created Date': formatExcelDate(invoice.createdAt),
+          'Status': statusText,
+          'Remarks': invoice.remarks || 'N/A'
+        };
+      });
 
       const headers = Object.keys(excelData[0] || {});
 
@@ -1742,11 +1775,9 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       {/* View Invoice Modal */}
       <ViewInvoiceModal
         open={isViewModalOpen}
-        onClose={() => {
-          setIsViewModalOpen(false);
-          setSelectedInvoice(null);
-        }}
+        onClose={() => setIsViewModalOpen(false)}
         invoice={selectedInvoice}
+        onEditInvoice={handleEditInvoice}
       />
 
       {/* Settlement Modal */}

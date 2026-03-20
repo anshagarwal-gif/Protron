@@ -1058,7 +1058,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
 
 
 
-                            <div>
+                            <div className="space-y-6">
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2, Edit, FileText, Eye, Download } from 'lucide-react';
+import { Plus, Trash2, Edit, FileText, Eye, Download, Copy, Search } from 'lucide-react';
 import AddMilestoneModal from './AddMilestoneModal';
 import GlobalSnackbar from './GlobalSnackbar';
 import { AgGridReact } from 'ag-grid-react';
@@ -11,6 +11,8 @@ import ViewMilestoneModal from './ViewMilestoneModal';
 
 const MilestoneManagement = ({ poId, open, onClose }) => {
     const [milestones, setMilestones] = useState([]);
+    const [filteredMilestones, setFilteredMilestones] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [milestoneModalOpen, setMilestoneModalOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState(null);
     const [snackbar, setSnackbar] = useState({
@@ -30,6 +32,22 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, poId]);
 
+    // Filter milestones based on search term
+    useEffect(() => {
+        if (searchTerm.trim() === '') {
+            setFilteredMilestones(milestones);
+        } else {
+            const filtered = milestones.filter(milestone => 
+                milestone.msName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                milestone.msDesc?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                milestone.msCurrency?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                milestone.msAmount?.toString().includes(searchTerm.toLowerCase()) ||
+                milestone.msRemarks?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredMilestones(filtered);
+        }
+    }, [searchTerm, milestones]);
+
     const fetchMilestones = async () => {
         try {
             const token = sessionStorage.getItem('token');
@@ -40,6 +58,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                 }
             );
             setMilestones(response.data || []);
+            setFilteredMilestones(response.data || []);
         } catch (error) {
             console.error('Error fetching milestones:', error);
         }
@@ -134,6 +153,17 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         setIsEditMilestoneModalOpen(false);
         setSelectedMilestoneId(null);
         setSnackbar({ open: true, message: 'Milestone updated!', severity: 'success' });
+    };
+
+    const handleDuplicateMilestone = (index) => {
+        const milestoneToDuplicate = milestones[index];
+        const duplicatedMilestone = {
+            ...milestoneToDuplicate,
+            msId: null, // Clear the ID so it's treated as a new milestone
+            msName: `${milestoneToDuplicate.msName} (Copy)`,
+        };
+        setEditingMilestone(duplicatedMilestone);
+        setMilestoneModalOpen(true);
     };
 
     const handleRemoveMilestone = async (index) => {
@@ -232,7 +262,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         {
             headerName: 'Actions',
             field: 'actions',
-            width: 120,
+            width: 160,
             sortable: false,
             filter: false,
             cellRenderer: (params) => (
@@ -250,6 +280,13 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                         title="Edit milestone"
                     >
                         <Edit size={16} />
+                    </button>
+                    <button
+                        onClick={() => handleDuplicateMilestone(params.node.rowIndex)}
+                        className="p-1 rounded-full hover:bg-indigo-100 text-indigo-600 cursor-pointer transition-colors"
+                        title="Duplicate Milestone"
+                    >
+                        <Copy size={16} />
                     </button>
                     <button
                         onClick={() => handleRemoveMilestone(params.node.rowIndex)}
@@ -288,6 +325,17 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-2 mb-4">
                             <h3 className="text-base sm:text-lg font-semibold text-green-900">Milestones Details</h3>
                             <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                                {/* Search Bar */}
+                                <div className="relative">
+                                    <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search milestones..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500"
+                                    />
+                                </div>
                                 <button
                                     onClick={downloadMilestoneExcel}
                                     className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 transition-colors cursor-pointer"
@@ -304,13 +352,17 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                                 </button>
                             </div>
                         </div>
+                        
                         <div className="w-full border border-gray-200 rounded-md">
                             <div className="ag-theme-alpine w-full">
                                 <AgGridReact
                                     columnDefs={milestoneColumnDefs}
-                                    rowData={milestones}
+                                    rowData={filteredMilestones}
                                     defaultColDef={defaultColDef}
                                     domLayout="autoHeight"
+                                    pagination={true}
+                                    paginationPageSize={10}
+                                    paginationPageSizeSelector={[5, 10, 15, 20, 25, 50]}
                                     suppressMovableColumns={true}
                                     enableCellTextSelection={true}
                                     suppressRowClickSelection={true}
@@ -321,8 +373,8 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                                         <div className="flex flex-col items-center justify-center h-full text-gray-500 space-y-3">
 
                                             <div className="text-center">
-                                                <p className="text-lg font-medium">No milestones added yet</p>
-                                                <p className="text-sm">Click "Add Milestone" above to get started</p>
+                                                <p className="text-lg font-medium">No milestones found</p>
+                                                <p className="text-sm">{searchTerm ? 'Try adjusting your search' : 'Click "Add Milestone" above to get started'}</p>
                                             </div>
                                         </div>
                                     )}
@@ -344,7 +396,7 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
                         }}
                         onSubmit={handleMilestoneSubmit}
                         poId={poId}
-                        milestone={editingMilestone !== null ? milestones[editingMilestone] : null}
+                        milestone={editingMilestone}
                     />
                     <EditMilestoneModal
                         open={isEditMilestoneModalOpen}
