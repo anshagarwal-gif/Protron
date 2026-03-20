@@ -1018,7 +1018,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     {
       headerName: "#",
       valueGetter: "node.rowIndex + 1",
-      width: 70,
+      width: 50,
       pinned: "left",
       sortable: false,
       filter: false,

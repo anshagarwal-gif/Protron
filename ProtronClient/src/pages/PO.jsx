@@ -327,12 +327,11 @@ const POManagement = () => {
       headerName: "#",
       valueGetter: "node.rowIndex + 1",
       width: 50,
-      maxWidth: 50,
       pinned: "left",
       sortable: false,
       filter: false,
       suppressMenu: true,
-      cellStyle: { textAlign: 'center' }
+      cellStyle: { textAlign: 'left' }
     },
     {
       headerName: "PO Number",
