@@ -312,7 +312,6 @@ const ViewSolutionStoryModal = ({ open, onClose, storyData, onEdit }) => {
               <Field label="Parent Story" value={`${parentStorySummary} (${storyData.parentId})`} />
               <Field label="Created By" value={storyData.createdBy} />
               <Field label="Date Created" value={formatDate(storyData.dateCreated)} />
-              <Field label="Tenant ID" value={storyData.tenantId} />
             </div>
           </div>
 

@@ -151,11 +151,6 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
               <div className="flex-1 relative">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg className="h-5 w-5 text-green-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                    </svg>
-                  </div>
                   <input
                     type="email"
                     name="email"
@@ -163,7 +158,7 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
                     onFocus={() => setShowUserDropdown(true)} // Show dropdown on focus
                     onChange={(e) => handleEmailSearch(e.target.value)} // Filter users as user types
                     placeholder="Search for an email..."
-                    className={`w-full pl-10 pr-3 py-3 border rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${error ? 'border-red-500' : 'border-gray-300'
+                    className={`w-full pl-3 pr-3 py-3 border rounded-md focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${error ? 'border-red-500' : 'border-gray-300'
                       }`}
                   />
                   {showUserDropdown && filteredUsers.length > 0 && (

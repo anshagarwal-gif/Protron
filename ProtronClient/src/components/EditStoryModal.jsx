@@ -254,6 +254,15 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
     return `PRJ-${asString}`;
   };
 
+  const getInitiativeNameDisplay = (projId) => {
+    if (!projId) return '—';
+    const asString = String(projId);
+    const found = projectList.find(
+      (p) => String(p.projectId) === asString || p.projectName === asString || p.projectCode === asString
+    );
+    return found?.projectName || '—';
+  };
+
   // Initialize character counts when form data is set
   useEffect(() => {
     setSummaryCharCount(formData.summary.length);
@@ -658,17 +667,46 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
               </p>
             )}
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-            disabled={loading}
-          >
-            <X size={20} className="text-gray-400" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="edit-story-form"
+              disabled={loading}
+              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <BookOpen size={14} className="mr-2" />
+                  Update Story
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+              disabled={loading}
+              aria-label="Close"
+            >
+              <X size={20} className="text-gray-400" />
+            </button>
+          </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+        <form id="edit-story-form" onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {/* Error Display */}
           {errors.submit && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3 flex items-center">
@@ -722,6 +760,9 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                     })
                   }}
                 />
+                <p className="mt-1 text-xs text-gray-600">
+                  Initiative Name: {getInitiativeNameDisplay(formData.projectId)}
+                </p>
                 {errors.projectId && (
                   <p className="mt-1 text-xs text-red-600" title={`Error: ${errors.projectId}`}>
                     {errors.projectId.length > 30 ? `${errors.projectId.substring(0, 30)}...` : errors.projectId}
@@ -889,7 +930,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
             </div>
 
             {/* Row 2: Sprint, Release, System, Created By */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Calendar size={14} className="inline mr-1" />
@@ -1062,6 +1103,10 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
                 />
               </div>
 
+            </div>
+
+            {/* Story Attachments (full width) */}
+            <div className="mt-4">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   <Paperclip size={14} className="inline mr-1" />
@@ -1281,7 +1326,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
             </div>
           </div>
 
-          {/* Form Actions */}
+          {/* Form Actions (footer + header) */}
           <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-3 border-t border-gray-200">
             <button
               type="button"

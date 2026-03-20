@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import GlobalSnackbar from './GlobalSnackbar';
 import ViewSprintModal from './ViewSprintModal';
 import { Pencil, Trash2, Eye, Download, Copy } from 'lucide-react';
+import ThreeDotsMenu from './ThreeDotsMenu';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -28,6 +29,17 @@ export default function SprintManagement({ projectId, open, onClose }) {
   const [duplicatingSprint, setDuplicatingSprint] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [projectName, setProjectName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Client-side search filtering (same behavior as Release)
+  const filteredSprints = useMemo(() => {
+    if (!searchTerm) return sprints;
+    const lowerTerm = searchTerm.toLowerCase();
+    return sprints.filter((s) =>
+      (s.sprintName && s.sprintName.toLowerCase().includes(lowerTerm)) ||
+      (s.description && s.description.toLowerCase().includes(lowerTerm))
+    );
+  }, [sprints, searchTerm]);
 
   useEffect(() => {
     if (open && projectId) {
@@ -110,23 +122,24 @@ export default function SprintManagement({ projectId, open, onClose }) {
     setAddModalOpen(true);
   };
 
-  const handleEditSprint = (rowIndex) => {
-    setEditingSprint(sprints[rowIndex]);
+  const handleEditSprint = (data) => {
+    setEditingSprint(data);
     setEditModalOpen(true);
   };
 
-  const handleViewSprint = (rowIndex) => {
-    setViewingSprint(sprints[rowIndex]);
+  const handleViewSprint = (data) => {
+    setViewingSprint(data);
     setViewModalOpen(true);
   };
 
-  const handleDuplicateSprint = (rowIndex) => {
-    setDuplicatingSprint(sprints[rowIndex]);
+  const handleDuplicateSprint = (data) => {
+    setDuplicatingSprint(data);
     setDuplicateModalOpen(true);
   };
 
-  const handleDeleteSprint = async (rowIndex) => {
-    const sprintId = sprints[rowIndex].sprintId;
+  const handleDeleteSprint = async (data) => {
+    const sprintId = data?.sprintId;
+    if (!sprintId) return;
     try {
       await fetch(`${API_BASE_URL}/api/sprints/${sprintId}`, {
         method: 'DELETE', headers: {
@@ -171,7 +184,13 @@ export default function SprintManagement({ projectId, open, onClose }) {
   };
 
   const columnDefs = [
-    { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50 },
+    {
+      headerName: '#',
+      valueGetter: 'node.rowIndex + 1',
+      width: 50,
+      headerClass: 'serial-col-header',
+      cellClass: 'serial-col-cell',
+    },
     { headerName: 'Sprint Name', field: 'sprintName', flex: 1 },
     {
       headerName: 'Start Date',
@@ -206,25 +225,25 @@ export default function SprintManagement({ projectId, open, onClose }) {
     {
       headerName: 'Actions',
       field: 'actions',
-      width: 120,
+      width: 55,
       cellRenderer: (params) => (
-        <div className="flex gap-1">
-          <button onClick={() => handleViewSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700 cursor-pointer" title="View">
-            <Eye size={16} />
-          </button>
-          <button onClick={() => handleEditSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
-            <Pencil size={16} />
-          </button>
-          <button onClick={() => handleDeleteSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
-            <Trash2 size={16} />
-          </button>
-          <button onClick={() => handleDuplicateSprint(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
-            <Copy size={16} />
-          </button>
-        </div>
+        <ThreeDotsMenu
+          items={[
+            { label: "View", tone: "info", icon: <Eye size={16} />, onClick: () => handleViewSprint(params.data) },
+            { label: "Edit", tone: "info", icon: <Pencil size={16} />, onClick: () => handleEditSprint(params.data) },
+            { label: "Delete", tone: "danger", icon: <Trash2 size={16} />, onClick: () => handleDeleteSprint(params.data) },
+            { label: "Duplicate", tone: "info", icon: <Copy size={16} />, onClick: () => handleDuplicateSprint(params.data) },
+          ]}
+        />
       ),
     }
   ];
+
+  // Ensure header tooltip is a string (not a callback) so we show full header text.
+  const columnDefsWithHeaderTooltips = columnDefs.map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  }));
 
   if (!open) return null;
 
@@ -239,27 +258,70 @@ export default function SprintManagement({ projectId, open, onClose }) {
           <div className="p-6 overflow-y-auto flex-grow">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-green-900">Sprint List</h3>
-              <div className="flex items-center gap-2">
-                <button onClick={downloadSprintExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer">
-                  <Download size={16} className="mr-2" /> Download Excel
-                </button>
-                <button onClick={handleAddSprint} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 cursor-pointer">
-                  Add Sprint
-                </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  placeholder="Search sprints..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="px-3 py-2 border rounded-md text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none w-full sm:w-64"
+                />
+                <div className="flex gap-2">
+                  <button onClick={downloadSprintExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer whitespace-nowrap">
+                    <Download size={16} className="mr-2" /> <span className="hidden sm:inline">Download Excel</span>
+                    <span className="sm:hidden">Excel</span>
+                  </button>
+                  <button onClick={handleAddSprint} className="flex items-center px-4 py-2 bg-green-700 text-white rounded-md hover:bg-green-800 cursor-pointer whitespace-nowrap">
+                    Add Sprint
+                  </button>
+                </div>
               </div>
             </div>
             <div className="w-full border rounded-md">
-              <div className="ag-theme-alpine w-full">
+              <div className="ag-theme-alpine w-full sprint-grid">
                 <AgGridReact
-                  columnDefs={columnDefs}
-                  rowData={sprints}
-                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  columnDefs={columnDefsWithHeaderTooltips}
+                  rowData={filteredSprints}
+                  defaultColDef={{
+                    sortable: true,
+                    filter: true,
+                    resizable: true,
+                    tooltipValueGetter: (params) => {
+                      const v = params.valueFormatted ?? params.value;
+                      return v === null || v === undefined ? '' : String(v);
+                    },
+                  }}
                   domLayout="autoHeight"
                   suppressRowClickSelection={true}
                   animateRows={true}
+                  pagination={true}
+                  paginationPageSize={10}
+                  paginationPageSizeSelector={[5, 10, 20, 50]}
+                  enableBrowserTooltips={true}
+                  tooltipShowDelay={0}
                   rowHeight={48}
                   headerHeight={48}
                 />
+                <style>{`
+                  .sprint-grid .ag-header-cell:hover {
+                    background-color: #047857 !important;
+                  }
+                  .sprint-grid .ag-row:hover {
+                    background-color: #f0fdf4 !important;
+                  }
+                  .sprint-grid .ag-cell:hover {
+                    background-color: #f0fdf4 !important;
+                  }
+                  .sprint-grid .serial-col-header .ag-header-cell-label {
+                    justify-content: center !important;
+                  }
+                  .sprint-grid .ag-cell.serial-col-cell {
+                    text-align: center !important;
+                    justify-content: center !important;
+                    display: flex !important;
+                    align-items: center !important;
+                  }
+                `}</style>
               </div>
             </div>
           </div>

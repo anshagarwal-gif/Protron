@@ -18,6 +18,7 @@ import ProjectDetailsModal from "./ProjectDetailsModal";
 import RidaManagement from "./RidaManagement"
 import ReleaseManagement from "./ReleaseManagement";
 import SprintManagement from "./SprintManagement"
+import ThreeDotsMenu from './ThreeDotsMenu';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -194,66 +195,43 @@ const ProjectManagement = () => {
 
   const ActionsRenderer = (params) => {
     return (
-      <div className="flex justify-center gap-2">
-        {/* View Initiative Button */}
-        <button
-          onClick={() => handleView(params.data.projectId)}
-          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
-          title="View"
-        >
-          <FiEye size={20} className="text-green-700" />
-        </button>
-
-        {/* Manage Team Button */}
-        {hasAccess('project_team', 'view') && (
-          <button
-            onClick={() => handleManageTeam(params.data.projectId, params.data)}
-            className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
-            title="Manage Team"
-          >
-            <FiUsers size={20} className="text-green-700" />
-          </button>)}
-
-        <button
-          onClick={() => handleRidaManagement(params.data.projectId)}
-          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
-          title="RIDA Management"
-        >
-          <ListChecks size={20} className="text-green-700" />
-        </button>
-        <button
-          onClick={() => {
-            setReleaseProjectId(params.data.projectId);
-            setShowReleaseManagement(true);
-          }}
-          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
-          title="Release Management"
-        >
-          <AiFillProject size={20} className="text-green-700" />
-        </button>
-        <button
-          onClick={() => {
-            setSelectedProjectId(params.data.projectId);
-            setShowSprintManagement(true);
-          }}
-          className="p-2 rounded-full hover:bg-blue-100 cursor-pointer"
-          title="Sprint Management"
-        >
-          <span role="img" aria-label="Sprint" className="text-blue-700 font-bold">S</span>
-        </button>
-        <button
-          onClick={() => handleOpenDodModal(params.data)}
-          className="p-2 rounded-full hover:bg-green-100 cursor-pointer"
-          title="Define of Done"
-        >
-          <FileCheck2 size={20} className="text-green-700" />
-        </button>
-      </div>
+      <ThreeDotsMenu
+        items={[
+          { label: "View", tone: "info", icon: <FiEye size={20} />, onClick: () => handleView(params.data.projectId) },
+          {
+            label: "Manage Team",
+            tone: "info",
+            icon: <FiUsers size={20} />,
+            hidden: !hasAccess("project_team", "view"),
+            onClick: () => handleManageTeam(params.data.projectId, params.data),
+          },
+          { label: "RIDA Management", tone: "info", icon: <ListChecks size={20} />, onClick: () => handleRidaManagement(params.data.projectId) },
+          {
+            label: "Release Management",
+            tone: "info",
+            icon: <AiFillProject size={20} />,
+            onClick: () => {
+              setReleaseProjectId(params.data.projectId);
+              setShowReleaseManagement(true);
+            },
+          },
+          {
+            label: "Sprint Management",
+            tone: "info",
+            icon: <span role="img" aria-label="Sprint" className="font-bold">S</span>,
+            onClick: () => {
+              setSelectedProjectId(params.data.projectId);
+              setShowSprintManagement(true);
+            },
+          },
+          { label: "Define of Done", tone: "info", icon: <FileCheck2 size={20} />, onClick: () => handleOpenDodModal(params.data) },
+        ]}
+      />
     );
   };
 
   // AgGrid column definitions
-  const columnDefs = useMemo(() => [
+  const columnDefs = useMemo(() => ([
     {
       headerName: '#',
       valueGetter: (params) => params.node.rowIndex + 1,
@@ -262,6 +240,8 @@ const ProjectManagement = () => {
       suppressMenu: true,
       sortable: false,
       filter: false,
+      headerClass: 'serial-col-header',
+      cellClass: 'serial-col-cell',
     },
     {
       headerName: 'Initiative Id',
@@ -281,7 +261,7 @@ const ProjectManagement = () => {
       cellStyle: { fontWeight: '500' }
     },
     {
-      headerName: 'Initiative name',
+      headerName: 'Initiative Name',
       field: 'projectName',
       cellRenderer: ProjectNameRenderer,
       flex: 1,
@@ -349,33 +329,43 @@ const ProjectManagement = () => {
     {
       headerName: 'Business Value Amount',
       field: 'businessValueAmount',
-      valueFormatter: (params) => params.value ? `${params.value}` : '-',
+      cellRenderer: (params) => {
+        const value = params.value != null && params.value !== '' ? `${params.value}` : '-';
+        // Wrap with inline style so it overrides the global `.ag-cell { text-align:left !important }` rule.
+        return <div style={{ textAlign: 'right', fontWeight: '500' }}>{value}</div>;
+      },
       minWidth: 150,
       filter: 'agNumberColumnFilter',
-      cellStyle: { textAlign: 'right', fontWeight: '500' }
+      sortable: true
     },
     {
       headerName: 'Business Value Type',
       field: 'businessValueType',
       cellRenderer: (params) => {
-        const value = params.value || 'N/A';
-        return <span>{value}</span>;
+        const value = params.value != null && String(params.value).trim() !== '' ? params.value : 'N/A';
+        return <div style={{ textAlign: 'left' }}>{value}</div>;
       },
       minWidth: 120,
       filter: 'agTextColumnFilter',
-      cellStyle: { textAlign: 'center' }
     },
     {
-      headerName: 'Actions',
+      headerName: '',
+      headerTooltip: 'Actions',
       cellRenderer: ActionsRenderer,
-      minWidth: 300,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
+      suppressSizeToFit: true,
       suppressMenu: true,
       sortable: false,
       filter: false,
       pinned: 'right',
       cellStyle: { textAlign: 'center' }
     }
-  ], [hasAccess, ActionsRenderer, ProjectCodeRenderer, ProjectNameRenderer]);
+  ]).map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  })), [ActionsRenderer, ProjectNameRenderer]);
 
   // Default column properties
   const defaultColDef = useMemo(() => ({
@@ -384,7 +374,11 @@ const ProjectManagement = () => {
     filter: true,
     floatingFilter: false,
     headerClass: 'ag-header-cell-custom',
-    cellClass: 'ag-cell-custom'
+    cellClass: 'ag-cell-custom',
+    tooltipValueGetter: (params) => {
+      const v = params.valueFormatted ?? params.value;
+      return v === null || v === undefined ? '' : String(v);
+    },
   }), []);
 
   // Grid options
@@ -419,6 +413,18 @@ const ProjectManagement = () => {
         headers: { Authorization: `${sessionStorage.getItem('token')}` }
       });
 
+      const token = sessionStorage.getItem("token");
+      const fetchBusinessValuesFromProjectDetails = async (projectId) => {
+        const response = await axios.get(`${API_BASE_URL}/api/projects/${projectId}`, {
+          headers: { Authorization: token }
+        });
+        const project = response?.data?.project || {};
+        return {
+          businessValueAmount: project.businessValueAmount ?? null,
+          businessValueType: project.businessValueType ?? null
+        };
+      };
+
       // Map the response data to match the expected structure and sort by startTimestamp (latest first)
       const mappedProjects = res.data.map((dto) => ({
         projectCode: dto.projectCode,
@@ -431,18 +437,56 @@ const ProjectManagement = () => {
         unit: dto.unit,
         projectCost: dto.projectCost,
         projectTeam: Array(dto.projectTeamCount).fill({}), // Placeholder for team members
-        businessValueAmount: dto.businessValueAmount,
-        businessValueType: dto.businessValueType,
+        _businessFromListPresent:
+          Object.prototype.hasOwnProperty.call(dto, "businessValueAmount") ||
+          Object.prototype.hasOwnProperty.call(dto, "businessValueType") ||
+          Object.prototype.hasOwnProperty.call(dto, "business_value_amount") ||
+          Object.prototype.hasOwnProperty.call(dto, "business_value_type"),
+        businessValueAmount:
+          dto.businessValueAmount ?? dto.business_value_amount ?? 0,
+        businessValueType:
+          dto.businessValueType ?? dto.business_value_type ?? 'One Time',
       }))
-        .sort((a, b) => {
-          // Convert ISO strings to Date objects for comparison
-          const dateA = a.startTimestamp ? new Date(a.startTimestamp) : new Date(0);
-          const dateB = b.startTimestamp ? new Date(b.startTimestamp) : new Date(0);
-          return dateB - dateA;
-        });
+      ;
 
-      setProjects(mappedProjects);
-      setFilteredProjects(mappedProjects);
+      // If the tenant projects list API doesn't return business value fields,
+      // enrich from /api/projects/{projectId} (ProjectDetailsDTO) which does.
+      // This keeps the initiatives table correct even when list projection is missing fields.
+      try {
+        const concurrency = 5;
+        for (let i = 0; i < mappedProjects.length; i += concurrency) {
+          const chunk = mappedProjects.slice(i, i + concurrency);
+          await Promise.all(
+            chunk.map(async (p) => {
+              const needsBusinessValues =
+                !p._businessFromListPresent ||
+                p.businessValueAmount == null ||
+                p.businessValueType == null ||
+                p.businessValueType === '';
+              if (!needsBusinessValues) return;
+
+              try {
+                const bv = await fetchBusinessValuesFromProjectDetails(p.projectId);
+                p.businessValueAmount = bv.businessValueAmount ?? p.businessValueAmount;
+                p.businessValueType = bv.businessValueType ?? p.businessValueType;
+              } catch {
+                // Keep original values on failure
+              }
+            })
+          );
+        }
+      } catch {
+        // Ignore enrichment failures; table will still render.
+      }
+
+      const sorted = mappedProjects.sort((a, b) => {
+        const dateA = a.startTimestamp ? new Date(a.startTimestamp) : new Date(0);
+        const dateB = b.startTimestamp ? new Date(b.startTimestamp) : new Date(0);
+        return dateB - dateA;
+      });
+
+      setProjects(sorted);
+      setFilteredProjects(sorted);
     } catch (error) {
       console.error("Error fetching projects:", error);
     } finally {
@@ -810,6 +854,9 @@ const ProjectManagement = () => {
                   .ag-theme-alpine .ag-row:hover {
                     background-color: #f0fdf4;
                   }
+                  .ag-theme-alpine .ag-cell:hover {
+                    background-color: #f0fdf4;
+                  }
                                           .ag-theme-alpine .ag-filter-panel .ag-filter-apply-panel .ag-button.ag-button-secondary:hover {
                                         background: #f9fafb;
                                         border-color: #9ca3af;
@@ -817,6 +864,14 @@ const ProjectManagement = () => {
 /* Left-align header labels */
 .ag-theme-alpine .ag-header-cell .ag-header-cell-label {
     justify-content: flex-start;
+}
+
+/* Center the serial (#) column header + values */
+.ag-theme-alpine .serial-col-header .ag-header-cell-label {
+  justify-content: center !important;
+}
+.ag-theme-alpine .ag-cell.serial-col-cell {
+  text-align: center !important;
 }
 
 
@@ -1113,7 +1168,7 @@ const ProjectManagement = () => {
                   }}
                   loading={isLoading}
                   enableBrowserTooltips={true}
-                  tooltipShowDelay={500}
+                  tooltipShowDelay={0}
                 />
               </div>
             )}

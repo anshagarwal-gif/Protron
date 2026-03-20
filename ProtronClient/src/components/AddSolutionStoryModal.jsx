@@ -11,13 +11,6 @@ import { useSession } from '../Context/SessionContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// Truncate function for project names
-const truncateText = (text, maxLength = 20) => {
-  if (!text) return "";
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + "...";
-};
-
 const AddSolutionStoryModal = ({ open, onClose, parentStory, initialProjectId, initialStatus }) => {
   const [formData, setFormData] = useState({
     projectId: '',
@@ -322,12 +315,6 @@ const handleFileChange = (e) => {
   e.target.value = null;
 };
 
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
   const handleInputChange = (field) => (event) => {
     let value = event.target.value;
 
@@ -505,6 +492,13 @@ const handleFileChange = (e) => {
     setAssigneeFixed(!!parentStory?.assignee);
   };
 
+  const handleRemoveAttachment = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      attachments: (prev.attachments || []).filter((_, i) => i !== index),
+    }));
+  };
+
   const handleClose = () => {
     resetForm();
     onClose();
@@ -550,14 +544,46 @@ const handleFileChange = (e) => {
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={handleClose}
-                  className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
-                >
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    disabled={loading}
+                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}
+                  >
+                    Reset
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    disabled={loading}
+                    className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
+                  >
+                    {loading ? "Creating..." : "Add Solution Story"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                    disabled={loading}
+                    aria-label="Close"
+                  >
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -570,19 +596,10 @@ const handleFileChange = (e) => {
                     Status
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg
-                        className="h-5 w-5"
-                        fill={greenPrimary}
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M9 2a1 1 0 0 0-1 1v1H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H17.5A1.5 1.5 0 0 0 19 18.5v-13A1.5 1.5 0 0 0 17.5 4H16V3a1 1 0 0 0-1-1H9zm1 2h4v1h-4V4zM7 7h10v11H7V7z" />
-                      </svg>
-                    </div>
                     <select
                       value={formData.status || ''}
                       onChange={handleInputChange('status')}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
+                      className="w-full border border-gray-300 rounded-md pl-3 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                     >
                       {Array.isArray(statusFlags) && statusFlags.map(statusFlag => (
@@ -599,19 +616,10 @@ const handleFileChange = (e) => {
                     Priority
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg
-                        className="h-5 w-5"
-                        fill={greenPrimary}
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                      </svg>
-                    </div>
                     <select
                       value={formData.priority || ''}
                       onChange={handleInputChange('priority')}
-                      className="w-full border border-gray-300 rounded-md pl-10 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
+                      className="w-full border border-gray-300 rounded-md pl-3 pr-4 py-2 text-sm focus:outline-none  focus:ring-2 focus:ring-green-500 focus:outline-none"
                       style={{ height: fieldHeight }}
                     >
                       <option value="1">High</option>
@@ -642,11 +650,6 @@ const handleFileChange = (e) => {
                     System
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                      </svg>
-                    </div>
                     <CreatableSelect
                       value={formData.system ? { value: formData.system, label: formData.system } : null}
                       onChange={(selectedOption) => {
@@ -676,7 +679,7 @@ const handleFileChange = (e) => {
                           ...provided,
                           zIndex: 9999
                         }),
-                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        valueContainer: (provided) => provided,
                         singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
                         input: (provided) => ({ ...provided, marginLeft: 0 }),
                         placeholder: (provided) => ({ ...provided, marginLeft: 0 })
@@ -693,11 +696,6 @@ const handleFileChange = (e) => {
                     Assignee
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
-                    </div>
                     <CreatableSelect
                       value={formData.assignee ? { value: formData.assignee, label: formData.assignee } : null}
                       onChange={(selectedOption) => {
@@ -727,7 +725,7 @@ const handleFileChange = (e) => {
                           ...provided,
                           zIndex: 9999
                         }),
-                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        valueContainer: (provided) => provided,
                         singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
                         input: (provided) => ({ ...provided, marginLeft: 0 }),
                         placeholder: (provided) => ({ ...provided, marginLeft: 0 })
@@ -741,11 +739,6 @@ const handleFileChange = (e) => {
                     Release
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                      </svg>
-                    </div>
                     <CreatableSelect
                       value={formData.releaseId ? (() => {
                         const selectedRelease = releases.find(r => r.releaseId.toString() === formData.releaseId.toString());
@@ -772,7 +765,7 @@ const handleFileChange = (e) => {
                           }
                         }),
                         menu: (provided) => ({ ...provided, zIndex: 9999 }),
-                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        valueContainer: (provided) => provided,
                         singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
                         input: (provided) => ({ ...provided, marginLeft: 0 }),
                         placeholder: (provided) => ({ ...provided, marginLeft: 0 })
@@ -786,11 +779,6 @@ const handleFileChange = (e) => {
                     Sprint
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                      </svg>
-                    </div>
                     <CreatableSelect
                       value={formData.sprintId ? (() => {
                         const selectedSprint = sprints.find(s => s.sprintId.toString() === formData.sprintId.toString());
@@ -815,7 +803,7 @@ const handleFileChange = (e) => {
                           '&:hover': { borderColor: '#10b981' }
                         }),
                         menu: (provided) => ({ ...provided, zIndex: 9999 }),
-                        valueContainer: (provided) => ({ ...provided, paddingLeft: '36px' }),
+                        valueContainer: (provided) => provided,
                         singleValue: (provided) => ({ ...provided, marginLeft: 0 }),
                         input: (provided) => ({ ...provided, marginLeft: 0 }),
                         placeholder: (provided) => ({ ...provided, marginLeft: 0 })
@@ -867,68 +855,52 @@ const handleFileChange = (e) => {
                 </div>
               </div>
 
-              {/* Attachments Section */}
+              {/* Attachments Section (match Add User Story UI) */}
               <div className="w-full mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Attachments
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Story Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                 </label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-4 mb-2">
-                    <label className="cursor-pointer">
-                      <input
-                        type="file"
-                        multiple
-                        onChange={handleFileChange}
-                        disabled={formData.attachments.length >= 4}
-                        className="hidden"
-                      />
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <svg
-                          className="w-5 h-5 text-green-600"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z" />
-                        </svg>
-                        <span className="text-green-600 font-medium">
-                          {formData.attachments.length >= 4 ? "Max files reached" : "Attach Files"}
-                        </span>
-                        {formData.attachments.length < 4 && (
-                          <span className="text-gray-500 text-xs">(max 4 files)</span>
-                        )}
-                      </div>
-                    </label>
-                  </div>
 
-                  {/* Selected Files List */}
-                  {formData.attachments.length > 0 && (
-                    <div className="space-y-1">
-                      {formData.attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between bg-gray-50 p-2 rounded border text-sm"
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  disabled={loading}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  title="Upload document or image file (max 10MB)"
+                />
+
+                {formData.attachments.length > 0 && (
+                  <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+                    {formData.attachments.map((file, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                      >
+                        <span
+                          className="truncate max-w-[150px]"
+                          title={file.name}
                         >
-                          <span className="text-gray-700 flex items-center gap-2">
-                            <span className="truncate">{file.name}</span>
-                            <span className="text-gray-500 text-xs">({formatFileSize(file.size)})</span>
-                          </span>
-                          <button
-                            onClick={() => handleRemoveAttachment(index)}
-                            type="button"
-                            className="ml-2 text-sm text-gray-500 hover:text-red-500"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                          {file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAttachment(index)}
+                          className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons (footer + header) */}
               <div className="flex justify-between items-center mt-2">
                 <button
+                  type="button"
                   onClick={resetForm}
                   disabled={loading}
                   className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}
@@ -938,6 +910,7 @@ const handleFileChange = (e) => {
 
                 <div className="flex gap-4">
                   <button
+                    type="button"
                     onClick={handleClose}
                     disabled={loading}
                     className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
@@ -946,6 +919,7 @@ const handleFileChange = (e) => {
                   </button>
 
                   <button
+                    type="button"
                     onClick={handleSubmit}
                     disabled={loading}
                     className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}

@@ -53,6 +53,18 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
     return `${day}-${month}-${year} ${hours}:${minutes}`;
   };
 
+  const getTypeLabel = (type) => {
+    // API/UI stores Type as a single letter (R/I/D/A). Show full form in View modal.
+    const map = {
+      R: 'Risk',
+      I: 'Issue',
+      D: 'Decision',
+      A: 'Action',
+    };
+    const key = (type || '').toString().trim().toUpperCase();
+    return map[key] || type || 'N/A';
+  };
+
   const Field = ({ label, value, className = '', isDate }) => (
     <div className={className}>
       <label className="text-xs font-medium text-gray-600 mb-1 block">{label}</label>
@@ -100,14 +112,14 @@ const ViewRidaModal = ({ open, onClose, ridaData }) => {
                   </div>
                   <div className="bg-white rounded p-3 border">
                     <label className="text-xs font-medium text-gray-600 mb-1 block">Completed At</label>
-                    <div className="text-sm font-medium text-gray-900 break-words overflow-wrap-anywhere">{formatDateTime(ridaData.completedAt)}</div>
+                    <div className="text-sm font-medium text-gray-900 break-words overflow-wrap-anywhere">{formatDate(ridaData.completedAt)}</div>
                   </div>
                 </div>
               </div>
           )}
           <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-              <Field label="Type" value={ridaData.type} />
+              <Field label="Type" value={getTypeLabel(ridaData.type)} />
               <Field label="Meeting Reference" value={ridaData.meetingReference} />
               <Field label="Raised By" value={ridaData.raisedBy} />
               <Field label="Owner" value={ridaData.owner} />

@@ -12,6 +12,7 @@ public class ProjectTeamMemberDTO {
     private String unit;
     private Double pricing;
     private String pricingType;
+    private String taskType;
     private Long systemId;
     private String systemName;
     private LocalDate estimatedReleaseDate;
@@ -20,7 +21,7 @@ public class ProjectTeamMemberDTO {
     private LocalDateTime startTimestamp;
 
     public ProjectTeamMemberDTO(Long projectTeamId, Long userId, String name, String empCode, String email,
-                                String unit, Double pricing, String pricingType, Long systemId, String systemName,
+                                String unit, Double pricing, String pricingType, String taskType, Long systemId, String systemName,
                                 LocalDate estimatedReleaseDate, LocalDate onBoardingDate, String status, LocalDateTime startTimestamp) {
         this.projectTeamId = projectTeamId;
         this.userId = userId;
@@ -30,6 +31,7 @@ public class ProjectTeamMemberDTO {
         this.unit = unit;
         this.pricing = pricing;
         this.pricingType = pricingType;
+        this.taskType = taskType;
         this.systemId = systemId;
         this.systemName = systemName;
         this.estimatedReleaseDate = estimatedReleaseDate;
@@ -44,6 +46,14 @@ public class ProjectTeamMemberDTO {
 
     public void setPricingType(String pricingType) {
         this.pricingType = pricingType;
+    }
+
+    public String getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(String taskType) {
+        this.taskType = taskType;
     }
 
     public LocalDateTime getStartTimestamp() {

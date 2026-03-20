@@ -8,6 +8,7 @@ import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddTaskModal from "../components/AddTaskModal";
 import EditTaskModal from "../components/EditTaskModal";
 import ViewTaskModal from "../components/ViewTaskModal";
+import ThreeDotsMenu from "../components/ThreeDotsMenu";
 
 const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
@@ -190,39 +191,18 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     const task = params.data;
 
     return (
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={() => handleView(task)}
-          className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="View Task"
-        >
-          <FiEye size={16} />
-        </button>
-
-        <button
-          onClick={() => handleEdit(task)}
-          className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="Edit Task"
-        >
-          <FiEdit size={16} />
-        </button>
-
-        <button
-          onClick={() => handleDuplicate(task)}
-          className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
-          title="Copy Task"
-        >
-          <Copy size={16} />
-        </button>
-
-
-
-
-      </div>
+      <ThreeDotsMenu
+        items={[
+          { label: "View Task", tone: "info", icon: <FiEye size={16} />, onClick: () => handleView(task) },
+          { label: "Edit Task", tone: "info", icon: <FiEdit size={16} />, onClick: () => handleEdit(task) },
+          { label: "Copy Task", tone: "info", icon: <Copy size={16} />, onClick: () => handleDuplicate(task) },
+          { label: "Delete Task", tone: "danger", icon: <FiTrash2 size={16} />, onClick: () => handleDelete(task.taskId) },
+        ]}
+      />
     );
   }, [handleView, handleEdit, handleDelete, handleDuplicate]);
 
-  const columnDefs = [
+  const columnDefs = useMemo(() => [
     {
       headerName: "#",
       valueGetter: "node.rowIndex + 1",
@@ -232,6 +212,8 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       sortable: false,
       filter: false,
       suppressMenu: true,
+      headerClass: 'serial-col-header',
+      cellClass: 'serial-col-cell',
       cellStyle: { textAlign: 'center' }
     },
     {
@@ -332,15 +314,29 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
       cellStyle: { textAlign: 'center' }
     },
     {
-      headerName: "Actions",
+      headerName: "",
+      headerTooltip: "Actions",
       cellRenderer: ActionsRenderer,
-      width: 120,
+      width: 50,
+      minWidth: 50,
+      maxWidth: 50,
+      suppressSizeToFit: true,
       suppressMenu: true,
       sortable: false,
       filter: false,
       pinned: 'right'
     }
-  ];
+  ], [ActionsRenderer]);
+
+  // Use string-based header tooltips so truncated headers show full text.
+  const columnDefsWithHeaderTooltips = useMemo(
+    () =>
+      (columnDefs || []).map((col) => ({
+        ...col,
+        headerTooltip: col.headerTooltip ?? col.headerName,
+      })),
+    [columnDefs]
+  );
 
   const defaultColDef = {
     sortable: true,
@@ -354,6 +350,10 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     suppressMenu: false,
     menuTabs: ['filterMenuTab'],
     cellRenderer: CellWithTitle,
+    tooltipValueGetter: (params) => {
+      const v = params.valueFormatted ?? params.value;
+      return v === null || v === undefined ? '' : String(v);
+    },
   };
 
   // Filter data based on search query
@@ -462,9 +462,20 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
                background-color: #f0fdf4;
                padding: 16px 20px;
              }
+
+            /* Center serial (#) column header + values */
+            .ag-theme-alpine .serial-col-header .ag-header-cell-label {
+              justify-content: center !important;
+            }
+            .ag-theme-alpine .ag-cell.serial-col-cell {
+              text-align: center !important;
+              justify-content: center !important;
+              display: flex !important;
+              align-items: center !important;
+            }
            `}</style>
           <AgGridReact
-            columnDefs={columnDefs}
+            columnDefs={columnDefsWithHeaderTooltips}
             rowData={filteredTasks}
             defaultColDef={defaultColDef}
             domLayout="autoHeight"
@@ -474,6 +485,7 @@ const TaskManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
             suppressMovableColumns={true}
             suppressRowClickSelection={true}
             enableBrowserTooltips={true}
+            tooltipShowDelay={0}
             loadingOverlayComponent={LoadingOverlay}
             noRowsOverlayComponent={() => (
               <div className="flex items-center justify-center h-full">

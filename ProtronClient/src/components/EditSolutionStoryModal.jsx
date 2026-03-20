@@ -313,12 +313,6 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
     }
   };
 
-  const formatFileSize = (bytes) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
   const handleInputChange = (field) => (event) => {
     let value = event.target.value;
 
@@ -379,11 +373,6 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
         console.error('Failed to fetch project team users for project', projectId, err);
         setUsers([]);
       });
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    return new Date(dateString).toISOString().split('T')[0];
   };
 
   const validateForm = () => {
@@ -571,15 +560,45 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={handleClose}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                disabled={loading}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
+                <button
+                  onClick={resetForm}
+                  type="button"
+                  disabled={loading}
+                  className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}
+                >
+                  Reset
+                </button>
+
+                <button
+                  onClick={handleClose}
+                  type="button"
+                  disabled={loading}
+                  className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  form="edit-solution-story-form"
+                  disabled={loading}
+                  className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
+                >
+                  {loading ? "Updating..." : "Update Solution Story"}
+                </button>
+
+                <button
+                  onClick={handleClose}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  disabled={loading}
+                  aria-label="Close"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {/* Error Display */}
@@ -592,7 +611,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
+            <form id="edit-solution-story-form" onSubmit={handleSubmit}>
               {/* Row 1: Project, Status, Priority, Story Points */}
               <div className='grid grid-cols-2 gap-3 mb-4'>
                 <div className="w-full flex-1">
@@ -871,88 +890,98 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
                 )}
               </div>
 
-              {/* Attachments Section */}
+              {/* Attachments Section (match Add User Story UI) */}
               <div className="w-full mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Attachments ({existingAttachments.length + newAttachments.length}/4)
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Story Attachments (Max 4), Supported formats: PDF, DOC, DOCX, JPG, PNG, GIF, TXT
                 </label>
 
-                {/* File Upload */}
-                <div className="mb-3">
-                  <label className={`border border-dashed rounded p-3 flex items-center justify-center min-h-[50px] bg-gray-50 w-full cursor-pointer transition ${existingAttachments.length + newAttachments.length >= 4 ? 'cursor-not-allowed opacity-50' : 'hover:border-green-700 hover:bg-green-50'}`}>
-                    <input
-                      type="file"
-                      multiple
-                      accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx,.doc,.docx"
-                      onChange={handleFileChange}
-                      disabled={existingAttachments.length + newAttachments.length >= 4}
-                      className="hidden"
-                    />
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z"/></svg>
-                      <span>{existingAttachments.length + newAttachments.length >= 4 ? 'Max files reached' : 'Add Attachments'}</span>
-                    </div>
-                  </label>
-                </div>
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt"
+                  onChange={handleFileChange}
+                  disabled={loading}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"
+                  title="Upload document or image file (max 10MB)"
+                />
 
-                {/* Existing Attachments */}
-                {existingAttachments.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-medium text-gray-600 mb-2">Existing Attachments:</p>
-                    <div className="space-y-2">
-                      {existingAttachments.map((attachment, index) => (
-                        <div key={attachment.id} className="flex items-center justify-between bg-blue-50 p-3 rounded border text-sm">
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/></svg>
-                            <span className="text-blue-700 font-medium">{attachment.fileName}</span>
-                            <span className="text-blue-500 text-xs">({formatFileSize(attachment.fileSize)})</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => { window.open(`${API_BASE_URL}/api/solutionstory/attachment/${attachment.id}/download`, '_blank'); }}
-                              className="text-xs text-blue-600 hover:text-blue-800 underline"
-                            >
-                              Download
-                            </button>
-                            <button onClick={() => handleRemoveExistingAttachment(attachment.id, index)} className="text-xs text-red-600 hover:text-red-800">Delete</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                {(existingAttachments.length > 0 || newAttachments.length > 0) && (
+                  <ul className="mt-2 text-xs text-gray-700 flex flex-wrap gap-2">
+                    {existingAttachments.map((attachment, index) => (
+                      <li
+                        key={attachment.id}
+                        className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                      >
+                        <span
+                          className="truncate max-w-[150px]"
+                          title={attachment.fileName}
+                        >
+                          {attachment.fileName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveExistingAttachment(attachment.id, index)
+                          }
+                          className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
+                          disabled={loading}
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+
+                    {newAttachments.map((file, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between bg-gray-100 px-3 py-1 rounded"
+                      >
+                        <span
+                          className="truncate max-w-[150px]"
+                          title={file.name}
+                        >
+                          {file.name}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveNewAttachment(index)}
+                          className="ml-2 text-red-600 hover:text-red-800 text-xs cursor-pointer"
+                          disabled={loading}
+                        >
+                          Delete
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
 
-                {/* New Attachments */}
-                {newAttachments.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-medium text-gray-600 mb-2">New Attachments (to be uploaded):</p>
-                    <div className="space-y-2">
-                      {newAttachments.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between bg-green-50 p-3 rounded border text-sm">
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M19 15v4H5v-4H3v4a2 2 0 002 2h14a2 2 0 002-2v-4h-2ZM11 5.83 8.41 8.41 7 7l5-5 5 5-1.41 1.41L13 5.83V16h-2V5.83Z"/></svg>
-                            <span className="text-green-700 font-medium">{file.name}</span>
-                            <span className="text-green-500 text-xs">({formatFileSize(file.size)})</span>
-                          </div>
-                          <button onClick={() => handleRemoveNewAttachment(index)} className="text-xs text-red-600 hover:text-red-800">Remove</button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
+                {/* Action Buttons (footer + header) */}
                 <div className="flex justify-between items-center mt-2">
-                  <button onClick={resetForm} disabled={loading} className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}>
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    disabled={loading}
+                    className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? 'text-white cursor-not-allowed' : 'text-white hover:text-black bg-gray-500 hover:bg-gray-100'}`}
+                  >
                     Reset
                   </button>
 
                   <div className="flex gap-4">
-                    <button onClick={handleClose} disabled={loading} className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}>
+                    <button
+                      type="button"
+                      onClick={handleClose}
+                      disabled={loading}
+                      className={`border rounded px-5 h-[42px] text-sm transition-colors ${loading ? 'border-gray-300 text-gray-400 cursor-not-allowed' : `border-[${greenPrimary}] text-[${greenPrimary}] hover:border-[${greenHover}] hover:text-[${greenHover}]`}`}
+                    >
                       Cancel
                     </button>
 
-                    <button type="submit" disabled={loading} className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className={`rounded px-5 h-[42px] font-semibold text-sm text-white transition-colors ${loading ? `bg-green-500 cursor-not-allowed` : `bg-green-500 hover:bg-green-600`}`}
+                    >
                       {loading ? "Updating..." : "Update Solution Story"}
                     </button>
                   </div>

@@ -136,7 +136,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
         (initialValues?.release ? String(initialValues.release) : "");
       
       setFormData({
-        projectId: isDuplicateData ? (initialValues?.projectId || "") : (initialValues?.projectName || ""),
+        projectId: isDuplicateData ? String(initialValues?.projectId ?? "") : (initialValues?.projectName || ""),
         summary: isDuplicateData ? (initialValues?.summary || "") : "",
         asA: isDuplicateData ? (initialValues?.asA || "") : "",
         iWantTo: isDuplicateData ? (initialValues?.iWantTo || "") : "",
@@ -152,7 +152,7 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
         createdBy: isDuplicateData ? (initialValues?.createdBy || "") : (initialValues?.createdBy || "")
       });
       
-      const projectIdToUse = isDuplicateData ? initialValues?.projectId : initialValues?.projectName;
+      const projectIdToUse = isDuplicateData ? String(initialValues?.projectId ?? "") : initialValues?.projectName;
       if (projectIdToUse) {
         handleProjectChange(projectIdToUse);
       }
@@ -435,37 +435,45 @@ const validateForm = () => {
   let isValid = true;
   const newErrors = {};
 
-  if (!formData.projectId.trim()) {
+  const projectId = String(formData.projectId ?? "").trim();
+  const status = String(formData.status ?? "").trim();
+  const priority = String(formData.priority ?? "").trim();
+  const summary = String(formData.summary ?? "").trim();
+  const asA = String(formData.asA ?? "").trim();
+  const iWantTo = String(formData.iWantTo ?? "").trim();
+  const soThat = String(formData.soThat ?? "").trim();
+
+  if (!projectId) {
     newErrors.projectId = "Project ID is required";
     isValid = false;
   }
 
-  if (!formData.status.trim()) {
+  if (!status) {
     newErrors.status = "Status is required";
     isValid = false;
   }
 
-  if (!formData.priority.toString().trim()) {
+  if (!priority) {
     newErrors.priority = "Priority is required";
     isValid = false;
   }
 
-  if (!formData.summary.trim()) {
+  if (!summary) {
     newErrors.summary = "Summary is required";
     isValid = false;
   }
 
-  if (!formData.asA.trim()) {
+  if (!asA) {
     newErrors.asA = "As A is required";
     isValid = false;
   }
 
-  if (!formData.iWantTo.trim()) {
+  if (!iWantTo) {
     newErrors.iWantTo = "I Want To is required";
     isValid = false;
   }
 
-  if (!formData.soThat.trim()) {
+  if (!soThat) {
     newErrors.soThat = "So That is required";
     isValid = false;
   }
@@ -618,17 +626,46 @@ const handleSubmit = async (e) => {
               </p>
             )}
           </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
-            disabled={loading}
-          >
-            <X size={20} className="text-gray-400" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors cursor-pointer"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="add-story-form"
+              disabled={loading}
+              className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2"></div>
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <BookOpen size={14} className="mr-2" />
+                  Add Story
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+              disabled={loading}
+              aria-label="Close"
+            >
+              <X size={20} className="text-gray-400" />
+            </button>
+          </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+        <form id="add-story-form" onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div className="space-y-4">
             {/* Row 1: Project ID, Status, Priority, Story Points, Assignee */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -1150,7 +1187,7 @@ const handleSubmit = async (e) => {
             </ul>
 
 
-          {/* Form Actions */}
+          {/* Form Actions (footer + header) */}
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 p-4 sm:p-6">
             <button
               type="button"

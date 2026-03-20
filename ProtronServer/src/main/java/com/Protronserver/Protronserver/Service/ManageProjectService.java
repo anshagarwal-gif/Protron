@@ -213,6 +213,9 @@ public class ManageProjectService {
         updatedProject.setBusinessUnitDeliveredTo(request.getBusinessUnitDeliveredTo());
         updatedProject.setPriority(request.getPriority());
         updatedProject.setCreatedOn(existingProject.getCreatedOn());
+        // ProjectUpdateDTO does not include defineDone, but updateProject creates a new project version.
+        // Preserve the old defineDone so it doesn't become null on update.
+        updatedProject.setDefineDone(existingProject.getDefineDone());
         updatedProject.setBusinessValueAmount(request.getBusinessValueAmount());
         updatedProject.setBusinessValueType(request.getBusinessValueType());
 

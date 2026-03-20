@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Calendar, Upload, Users, User, FolderOpen, X, Building2, Users as UsersIcon, AlertCircle } from 'lucide-react';
 import CreatableSelect from 'react-select/creatable';
+import Select from 'react-select';
 import axios from 'axios';
 import OrganizationSelect from './OrganizationSelect';
 
@@ -543,32 +544,32 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
-                                <CreatableSelect
+                                    <Select
                                     options={userOptions}
                                     value={formData.productOwner ? userOptions.find(u => u.label === formData.productOwner) : null}
                                     onChange={(selected) => handleChange('productOwner', selected ? selected.label : '')}
-                                    placeholder="Select or type name..."
+                                        placeholder="Select name..."
                                     isClearable
+                                    isSearchable={false}
                                     styles={{
                                         menuPortal: base => ({ ...base, zIndex: 9999 }),
                                         menu: base => ({ ...base, zIndex: 9999 })
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                 />
                             </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Scrum Master</label>
-                                <CreatableSelect
+                                    <Select
                                     options={userOptions}
                                     value={formData.scrumMaster ? userOptions.find(u => u.label === formData.scrumMaster) : null}
                                     onChange={(selected) => handleChange('scrumMaster', selected ? selected.label : '')}
-                                    placeholder="Select or type name..."
+                                        placeholder="Select name..."
                                     isClearable
+                                    isSearchable={false}
                                     styles={{
                                         menuPortal: base => ({ ...base, zIndex: 9999 }),
                                         menu: base => ({ ...base, zIndex: 9999 })
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                 />
                             </div>
                             <div className="flex-1">
@@ -588,17 +589,17 @@ const AddProjectModal = ({ open, onClose, onSubmit, formData, setFormData }) => 
                             </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Chief Scrum Master</label>
-                                <CreatableSelect
+                                    <Select
                                     options={userOptions}
                                     value={formData.chiefScrumMaster ? userOptions.find(u => u.label === formData.chiefScrumMaster) : null}
                                     onChange={(selected) => handleChange('chiefScrumMaster', selected ? selected.label : '')}
-                                    placeholder="Select or type name..."
+                                        placeholder="Select name..."
                                     isClearable
+                                    isSearchable={false}
                                     styles={{
                                         menuPortal: base => ({ ...base, zIndex: 9999 }),
                                         menu: base => ({ ...base, zIndex: 9999 })
                                     }}
-                                    formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                 />
                             </div>
                         </div>

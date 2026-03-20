@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Calendar, Upload, User, FolderOpen, X, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import CreatableSelect from 'react-select/creatable';
+import Select from 'react-select';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -444,7 +445,38 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
             <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] overflow-auto shadow-xl">
                 {/* Header */}
                 <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
-                    <h1 className="text-xl font-semibold text-green-800">Edit Initiative</h1>
+                    <div className="flex items-center justify-between gap-4">
+                        <h1 className="text-xl font-semibold text-green-800">Edit Initiative</h1>
+
+                        {/* Header Action Buttons */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={onClose}
+                                disabled={isLoading}
+                                className="px-4 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleReset}
+                                disabled={isLoading}
+                                className="px-4 py-2 border border-green-800 text-green-800 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Reset
+                            </button>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={isLoading}
+                                className="px-6 py-2 bg-green-800 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed w-48 font-semibold flex items-center justify-center"
+                            >
+                                {isLoading ? (
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    'Update Initiative'
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Content */}
@@ -592,33 +624,35 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Product Owner</label>
-                                    <CreatableSelect
+                                    <Select
                                         options={userOptions}
-                                        value={localFormData.productOwner ? { label: localFormData.productOwner, value: localFormData.productOwner } : null}
+                                        value={localFormData.productOwner ? userOptions.find(u => u.value === localFormData.productOwner) : null}
                                         onChange={(selected) => handleChange('productOwner', selected?.value || '')}
-                                        placeholder="Select or type name..."
+                                        placeholder="Select name..."
                                         isClearable
+                                        isSearchable={false}
                                         styles={{
                                             menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                            menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                            menu: base => ({ ...base, zIndex: 9999 }),
+                                            menuList: base => ({ ...base, maxHeight: 200, overflowY: 'auto', overflowX: 'hidden' })
                                         }}
-                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                         menuPortalTarget={document.body}
                                     />
                                 </div>
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Scrum Master</label>
-                                    <CreatableSelect
+                                    <Select
                                         options={userOptions}
-                                        value={localFormData.scrumMaster ? { label: localFormData.scrumMaster, value: localFormData.scrumMaster } : null}
+                                        value={localFormData.scrumMaster ? userOptions.find(u => u.value === localFormData.scrumMaster) : null}
                                         onChange={(selected) => handleChange('scrumMaster', selected?.value || '')}
-                                        placeholder="Select or type name..."
+                                        placeholder="Select name..."
                                         isClearable
+                                        isSearchable={false}
                                         styles={{
                                             menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                            menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                            menu: base => ({ ...base, zIndex: 9999 }),
+                                            menuList: base => ({ ...base, maxHeight: 200, overflowY: 'auto', overflowX: 'hidden' })
                                         }}
-                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                         menuPortalTarget={document.body}
                                     />
                                 </div>
@@ -640,17 +674,18 @@ const EditProjectModal = ({ open, onClose, onSubmit, formData, setFormData, proj
                                 </div>
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Chief Scrum Master</label>
-                                    <CreatableSelect
+                                    <Select
                                         options={userOptions}
-                                        value={localFormData.chiefScrumMaster ? { label: localFormData.chiefScrumMaster, value: localFormData.chiefScrumMaster } : null}
+                                        value={localFormData.chiefScrumMaster ? userOptions.find(u => u.value === localFormData.chiefScrumMaster) : null}
                                         onChange={(selected) => handleChange('chiefScrumMaster', selected?.value || '')}
-                                        placeholder="Select or type name..."
+                                        placeholder="Select name..."
                                         isClearable
+                                        isSearchable={false}
                                         styles={{
                                             menuPortal: base => ({ ...base, zIndex: 9999 }),
-                                            menu: base => ({ ...base, zIndex: 9999, maxHeight: 200, overflowY: 'auto', pointerEvents: 'auto' })
+                                            menu: base => ({ ...base, zIndex: 9999 }),
+                                            menuList: base => ({ ...base, maxHeight: 200, overflowY: 'auto', overflowX: 'hidden' })
                                         }}
-                                        formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
                                         menuPortalTarget={document.body}
                                     />
                                 </div>

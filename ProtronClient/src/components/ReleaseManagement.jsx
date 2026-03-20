@@ -3,6 +3,7 @@ import { AgGridReact } from 'ag-grid-react';
 import GlobalSnackbar from './GlobalSnackbar';
 import ViewReleaseModal from './ViewReleaseModal';
 import { Pencil, Trash2, Eye, Download, Copy } from 'lucide-react';
+import ThreeDotsMenu from './ThreeDotsMenu';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -173,7 +174,13 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
   };
 
   const columnDefs = [
-    { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50 },
+    {
+      headerName: '#',
+      valueGetter: 'node.rowIndex + 1',
+      width: 50,
+      headerClass: 'serial-col-header',
+      cellClass: 'serial-col-cell',
+    },
     { headerName: 'Release Name', field: 'releaseName', flex: 1 },
     {
       headerName: 'Start Date',
@@ -215,25 +222,25 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
     {
       headerName: 'Actions',
       field: 'actions',
-      width: 120,
+      width: 55,
       cellRenderer: (params) => (
-        <div className="flex gap-1">
-          <button onClick={() => handleViewRelease(params.data)} className="p-1 rounded hover:bg-gray-100 text-gray-700 cursor-pointer" title="View">
-            <Eye size={16} />
-          </button>
-          <button onClick={() => handleEditRelease(params.data)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
-            <Pencil size={16} />
-          </button>
-          <button onClick={() => handleDeleteRelease(params.data)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
-            <Trash2 size={16} />
-          </button>
-          <button onClick={() => handleDuplicateRelease(params.data)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Duplicate">
-            <Copy size={16} />
-          </button>
-        </div>
+        <ThreeDotsMenu
+          items={[
+            { label: "View", tone: "info", icon: <Eye size={16} />, onClick: () => handleViewRelease(params.data) },
+            { label: "Edit", tone: "info", icon: <Pencil size={16} />, onClick: () => handleEditRelease(params.data) },
+            { label: "Delete", tone: "danger", icon: <Trash2 size={16} />, onClick: () => handleDeleteRelease(params.data) },
+            { label: "Duplicate", tone: "info", icon: <Copy size={16} />, onClick: () => handleDuplicateRelease(params.data) },
+          ]}
+        />
       ),
     }
   ];
+
+  // Ensure header tooltip is a string (not a callback) so we show header text.
+  const columnDefsWithHeaderTooltips = columnDefs.map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  }));
 
   if (!open) return null;
 
@@ -267,20 +274,50 @@ export default function ReleaseManagement({ projectId, open, onClose }) {
               </div>
             </div>
             <div className="w-full border rounded-md">
-              <div className="ag-theme-alpine w-full">
+              <div className="ag-theme-alpine w-full release-grid">
                 <AgGridReact
-                  columnDefs={columnDefs}
+                  columnDefs={columnDefsWithHeaderTooltips}
                   rowData={filteredReleases}
                   domLayout="autoHeight"
                   pagination={true}
                   paginationPageSize={10}
                   paginationPageSizeSelector={[5, 10, 20, 50]}
-                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  defaultColDef={{
+                    sortable: true,
+                    filter: true,
+                    resizable: true,
+                    tooltipValueGetter: (params) => {
+                      const v = params.valueFormatted ?? params.value;
+                      return v === null || v === undefined ? '' : String(v);
+                    },
+                  }}
                   suppressRowClickSelection={true}
                   animateRows={true}
+                  enableBrowserTooltips={true}
+                  tooltipShowDelay={0}
                   rowHeight={48}
                   headerHeight={48}
                 />
+                <style>{`
+                  .release-grid .ag-header-cell:hover {
+                    background-color: #047857 !important;
+                  }
+                  .release-grid .ag-row:hover {
+                    background-color: #f0fdf4 !important;
+                  }
+                  .release-grid .ag-cell:hover {
+                    background-color: #f0fdf4 !important;
+                  }
+                  .release-grid .serial-col-header .ag-header-cell-label {
+                    justify-content: center !important;
+                  }
+                  .release-grid .ag-cell.serial-col-cell {
+                    text-align: center !important;
+                    justify-content: center !important;
+                    display: flex !important;
+                    align-items: center !important;
+                  }
+                `}</style>
                 <style>{`
                   .ag-theme-alpine .ag-tooltip {
                     background-color: white !important;

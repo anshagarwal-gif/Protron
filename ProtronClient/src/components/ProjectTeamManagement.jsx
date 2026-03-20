@@ -95,7 +95,9 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         maxWidth: 60,
         pinned: 'left',
         sortable: false,
-        cellStyle: { borderRight: '1px solid #e5e7eb' }
+        cellStyle: { borderRight: '1px solid #e5e7eb' },
+        headerClass: 'serial-col-header',
+        cellClass: 'serial-col-cell'
       },
       {
         headerName: 'Name',
@@ -172,7 +174,10 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         pinned: 'right'
       });
     }
-    return baseColumns;
+    return baseColumns.map((col) => ({
+      ...col,
+      headerTooltip: col.headerTooltip ?? col.headerName,
+    }));
   }, [hasAccess]);
 
   // Grid options
@@ -444,11 +449,11 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
       {/* Project Details */}
       {projectDetails && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 bg-[#aee4be] p-4 rounded-lg">
-          <div>
-            <p className="text-gray-500 text-sm flex items-center space-x-1">
+          <div className="min-w-0">
+            <p className="text-gray-500 text-sm flex items-center gap-2 min-w-0">
               <span>Initiative name:</span>
               <span
-                className="font-medium text-gray-700 truncate max-w-[220px] sm:max-w-xs md:max-w-sm lg:max-w-md"
+                className="font-medium text-gray-700 truncate min-w-0 flex-1"
                 title={projectDetails.project.projectName}
               >
                 {projectDetails.project.projectName}
@@ -457,24 +462,61 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
 
             <p className="text-gray-500 text-sm mt-2">Start Date: <span className="font-medium text-gray-700">{formatDate(projectDetails.project.startDate)}</span></p>
           </div>
-          <div>
-            <p className="text-gray-500  text-sm">Initiative Manager: <span className="font-medium text-gray-700">{projectDetails.project.managerName}</span></p>
-            <p className="text-gray-500 text-sm mt-2">Initiative Sponsor: <span className="font-medium text-gray-700">{projectDetails.project.sponsorName}</span></p>
+          <div className="min-w-0">
+            <p className="text-gray-500 text-sm min-w-0">
+              Initiative Manager:{' '}
+              <span
+                className="font-medium text-gray-700 truncate min-w-0 flex-1"
+                title={projectDetails.project.managerName}
+              >
+                {projectDetails.project.managerName}
+              </span>
+            </p>
+            <p className="text-gray-500 text-sm mt-2 min-w-0">
+              Initiative Sponsor:{' '}
+              <span
+                className="font-medium text-gray-700 truncate min-w-0 flex-1"
+                title={projectDetails.project.sponsorName}
+              >
+                {projectDetails.project.sponsorName}
+              </span>
+            </p>
           </div>
-          <div>
-            <p className="text-gray-500 text-sm">Initiative Cost: <span className="font-medium text-gray-700">{projectDetails.project.unit} {projectDetails.project.projectCost}</span></p>
-            <p className="text-gray-500 text-sm mt-2">System Impacted: <span className="font-medium text-gray-700">{projectDetails.systemsImpacted?.map((sys, index) => {
-              return sys.systemName + (index < projectDetails.systemsImpacted.length - 1 ? ', ' : '')
-            })}</span></p>
+          <div className="min-w-0">
+            <p className="text-gray-500 text-sm min-w-0">
+              Initiative Cost:{' '}
+              <span
+                className="font-medium text-gray-700 truncate block w-full min-w-0"
+                title={`${projectDetails.project.unit} ${projectDetails.project.projectCost}`}
+              >
+                {projectDetails.project.unit} {projectDetails.project.projectCost}
+              </span>
+            </p>
+            <p className="text-gray-500 text-sm mt-2 min-w-0">
+              System Impacted:{' '}
+              <span
+                className="font-medium text-gray-700 truncate block w-full min-w-0"
+                title={projectDetails.systemsImpacted?.map((sys) => sys.systemName).join(', ') || ''}
+              >
+                {projectDetails.systemsImpacted?.map((sys, index) =>
+                  sys.systemName + (index < projectDetails.systemsImpacted.length - 1 ? ', ' : '')
+                )}
+              </span>
+            </p>
           </div>
         </div>
       )}
 
       {/* Team Members Section */}
       <div>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-bold text-gray-800">Manage Team Member</h2>
-          <div className="flex gap-10 items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+          <h2
+            className="font-bold text-gray-800 truncate max-w-full sm:max-w-[260px]"
+            title="Manage Team Member"
+          >
+            Manage Team Member
+          </h2>
+          <div className="flex flex-wrap gap-2 sm:gap-10 items-center justify-start sm:justify-end w-full sm:w-auto">
             {hasAccess('project_team', 'edit') && (
               <button
                 className="bg-green-900 text-white px-3 py-2 rounded flex items-center hover:bg-green-600"
@@ -598,6 +640,20 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
   border-right: 1px solid #e5e7eb;
   padding: 8px 12px;
   font-size: 14px;
+}
+
+/* Center the serial (#) column header + values */
+.ag-theme-alpine .serial-col-header .ag-header-cell-label {
+  justify-content: center !important;
+}
+.ag-theme-alpine .ag-cell.serial-col-cell {
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+/* Hover effect on fields (cells) */
+.ag-theme-alpine .ag-cell:hover {
+  background-color: #f0fdf4;
 }
 
 
@@ -868,9 +924,15 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
                     filter: true,
                     resizable: true,
                     minWidth: 80,
-                    cellRenderer: CellWithTitle
+                    cellRenderer: CellWithTitle,
+                    tooltipValueGetter: (params) => {
+                      const v = params.valueFormatted ?? params.value;
+                      return v === null || v === undefined ? '' : String(v);
+                    }
                   }}
                   domLayout="autoHeight"
+                  enableBrowserTooltips={true}
+                  tooltipShowDelay={0}
                 />
               </div>
             </div>
@@ -912,6 +974,9 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
 
                     <div className="text-gray-500">Cost:</div>
                     <div>{member.pricing}</div>
+
+                    <div className="text-gray-500">Task Type:</div>
+                    <div>{member.taskType || '-'}</div>
 
                     <div className="text-gray-500">Est. Release:</div>
                     <div>{member.estimatedReleaseDate}</div>

@@ -201,7 +201,7 @@ const TimesheetManager = () => {
         state={{ employee: data }}
         className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800 cursor-pointer"
       >
-        <span className="hidden xl:inline">View Details</span>
+        <span className="hidden xl:inline">View Timesheet</span>
         <ChevronRight className="w-4 h-4" />
       </Link>
     );

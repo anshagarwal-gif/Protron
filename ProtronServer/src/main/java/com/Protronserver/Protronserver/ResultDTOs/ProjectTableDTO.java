@@ -1,10 +1,15 @@
 package com.Protronserver.Protronserver.ResultDTOs;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@JsonInclude(JsonInclude.Include.ALWAYS)
 public class ProjectTableDTO {
     private String projectCode;
     private Long projectId;
@@ -18,10 +23,16 @@ public class ProjectTableDTO {
     private Double projectCost;
     private int projectTeamCount;
     private LocalDateTime startTimestamp;
+    @JsonProperty("businessValueAmount")
+    private BigDecimal businessValueAmount;
+
+    @JsonProperty("businessValueType")
+    private String businessValueType;
 
     public ProjectTableDTO(String projectCode, Long projectId, String projectName, Date startDate,
                            Long pmId, String pmName, Long sponsorId, String sponsorName,
-                           String unit, Double projectCost, int projectTeamCount, LocalDateTime startTimestamp) {
+                           String unit, Double projectCost, int projectTeamCount, LocalDateTime startTimestamp,
+                           BigDecimal businessValueAmount, String businessValueType) {
         this.projectCode = projectCode;
         this.projectId = projectId;
         this.projectName = projectName;
@@ -34,6 +45,8 @@ public class ProjectTableDTO {
         this.projectCost = projectCost;
         this.projectTeamCount = projectTeamCount;
         this.startTimestamp = startTimestamp;
+        this.businessValueAmount = businessValueAmount;
+        this.businessValueType = businessValueType;
     }
 
     public LocalDateTime getStartTimestamp() {
@@ -42,6 +55,22 @@ public class ProjectTableDTO {
 
     public void setStartTimestamp(LocalDateTime startTimestamp) {
         this.startTimestamp = startTimestamp;
+    }
+
+    public BigDecimal getBusinessValueAmount() {
+        return businessValueAmount;
+    }
+
+    public void setBusinessValueAmount(BigDecimal businessValueAmount) {
+        this.businessValueAmount = businessValueAmount;
+    }
+
+    public String getBusinessValueType() {
+        return businessValueType;
+    }
+
+    public void setBusinessValueType(String businessValueType) {
+        this.businessValueType = businessValueType;
     }
 
     public String getProjectCode() {

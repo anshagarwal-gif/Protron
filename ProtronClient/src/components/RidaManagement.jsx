@@ -6,6 +6,7 @@ import GlobalSnackbar from './GlobalSnackbar';
 import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 import { AgGridReact } from 'ag-grid-react';
+import ThreeDotsMenu from './ThreeDotsMenu';
 
 // Dropdown options (example)
 const typeOptions = [
@@ -36,7 +37,7 @@ export default function RidaManagement({ projectId, open, onClose }) {
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
   const [duplicatingRida, setDuplicatingRida] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [projectName, setProjetName] = useState('');
+  const [projectName, setProjectName] = useState('');
 
 
   useEffect(() => {
@@ -188,7 +189,13 @@ export default function RidaManagement({ projectId, open, onClose }) {
   };
 
   const columnDefs = [
-    { headerName: '#', valueGetter: 'node.rowIndex + 1', width: 50 },
+    {
+      headerName: '#',
+      valueGetter: 'node.rowIndex + 1',
+      width: 50,
+      headerClass: 'serial-col-header',
+      cellClass: 'serial-col-cell',
+    },
     { headerName: 'Type', field: 'type', width: 100 },
     { headerName: 'Meeting Ref', field: 'meetingReference', flex: 1 },
     { headerName: 'Date Raised', field: 'dateRaised', width: 120, valueFormatter: params => formatDate(params.value) },
@@ -201,34 +208,28 @@ export default function RidaManagement({ projectId, open, onClose }) {
     {
       headerName: 'Actions',
       field: 'actions',
-      width: 120,
+      width: 55,
       cellRenderer: (params) => (
-        <div className="flex gap-1">
-          <button onClick={() => handleViewRida(params.node.rowIndex)} className="p-1 rounded hover:bg-gray-100 text-gray-700 cursor-pointer" title="View">
-            <Eye size={16} />
-          </button>
-          <button onClick={() => handleEditRida(params.node.rowIndex)} className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer" title="Edit">
-            <Pencil size={16} />
-          </button>
-          <button onClick={() => handleDeleteRida(params.node.rowIndex)} className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer" title="Delete">
-            <Trash2 size={16} />
-          </button>
-          <button onClick={() => handleDuplicateRida(params.node.rowIndex)} className="p-1 rounded hover:bg-indigo-100 text-indigo-600 cursor-pointer" title="Copy RIDA">
-            <Copy size={16} />
-          </button>
-          {params.data.status !== 'Closed' && (
-            <button
-              onClick={() => handleCompleteRida(params.data.id)}
-              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
-              title="Complete RIDA"
-            >
-              <CheckCircle size={16} />
-            </button>
-          )}
-        </div>
+        <ThreeDotsMenu
+          items={[
+            { label: "View", tone: "info", icon: <Eye size={16} />, onClick: () => handleViewRida(params.node.rowIndex) },
+            { label: "Edit", tone: "info", icon: <Pencil size={16} />, onClick: () => handleEditRida(params.node.rowIndex) },
+            { label: "Delete", tone: "danger", icon: <Trash2 size={16} />, onClick: () => handleDeleteRida(params.node.rowIndex) },
+            { label: "Duplicate", tone: "info", icon: <Copy size={16} />, onClick: () => handleDuplicateRida(params.node.rowIndex) },
+            ...(params.data.status !== 'Closed'
+              ? [{ label: "Complete RIDA", tone: "success", icon: <CheckCircle size={16} />, onClick: () => handleCompleteRida(params.data.id) }]
+              : [])
+          ]}
+        />
       ),
     }
   ];
+
+  // Ensure header tooltip is a string (not a callback) so we show header text.
+  const columnDefsWithHeaderTooltips = columnDefs.map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  }));
 
   if (!open) return null;
 
@@ -242,8 +243,10 @@ export default function RidaManagement({ projectId, open, onClose }) {
           </div>
           <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-              <div className="flex items-center gap-3">
+              <div>
                 <h3 className="text-lg font-semibold text-green-900">RIDA List</h3>
+              </div>
+              <div className="flex items-center gap-2">
                 <div className="relative">
                   <input
                     type="text"
@@ -252,8 +255,6 @@ export default function RidaManagement({ projectId, open, onClose }) {
                   />
                   <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
                 <button onClick={downloadRidaExcel} className="flex items-center px-4 py-2 bg-green-900 text-white rounded-md hover:bg-green-800 cursor-pointer">
                   <Download size={16} className="mr-2" /> Download Excel
                 </button>
@@ -263,11 +264,19 @@ export default function RidaManagement({ projectId, open, onClose }) {
               </div>
             </div>
             <div className="w-full border rounded-md">
-              <div className="ag-theme-alpine w-full">
+              <div className="ag-theme-alpine w-full rida-grid">
                 <AgGridReact
-                  columnDefs={columnDefs}
+                  columnDefs={columnDefsWithHeaderTooltips}
                   rowData={ridas}
-                  defaultColDef={{ sortable: true, filter: true, resizable: true }}
+                  defaultColDef={{
+                    sortable: true,
+                    filter: true,
+                    resizable: true,
+                    tooltipValueGetter: (params) => {
+                      const v = params.valueFormatted ?? params.value;
+                      return v === null || v === undefined ? '' : String(v);
+                    },
+                  }}
                   domLayout="autoHeight"
                   suppressRowClickSelection={true}
                   animateRows={true}
@@ -276,7 +285,29 @@ export default function RidaManagement({ projectId, open, onClose }) {
                   pagination={true}
                   paginationPageSize={30}
                   paginationPageSizeSelector={[30, 50, 100]}
+                  enableBrowserTooltips={true}
+                  tooltipShowDelay={0}
                 />
+                <style>{`
+                  .rida-grid .ag-header-cell:hover {
+                    background-color: #047857 !important;
+                  }
+                  .rida-grid .ag-row:hover {
+                    background-color: #f0fdf4 !important;
+                  }
+                  .rida-grid .ag-cell:hover {
+                    background-color: #f0fdf4 !important;
+                  }
+                  .rida-grid .serial-col-header .ag-header-cell-label {
+                    justify-content: center !important;
+                  }
+                  .rida-grid .ag-cell.serial-col-cell {
+                    text-align: center !important;
+                    justify-content: center !important;
+                    display: flex !important;
+                    align-items: center !important;
+                  }
+                `}</style>
               </div>
             </div>
           </div>

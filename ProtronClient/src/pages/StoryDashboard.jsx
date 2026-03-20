@@ -18,6 +18,7 @@ import EditTaskModal from '../components/EditTaskModal';
 import ViewStoryModal from '../components/ViewStoryModal';
 import ViewSolutionStoryModal from '../components/ViewSolutionStoryModal';
 import ViewTaskModal from '../components/ViewTaskModal';
+import ThreeDotsMenu from '../components/ThreeDotsMenu';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -1235,7 +1236,6 @@ const StoryDashboard = () => {
 
   const ActionsRenderer = useCallback((params) => {
     const story = params.data;
-    const storyId = story?.id || story?.ssId || story?.taskId;
 
     // PRIORITIZE story object fields (taskId, ssId, id) to determine actual type
     // This ensures correct actions when both Solution Story and Task are selected in filters
@@ -1273,94 +1273,88 @@ const StoryDashboard = () => {
       return 'Edit User Story';
     };
 
-    // Render different action sets based on the item type
-    return (
-      <div className="flex items-center space-x-2">
-        {/* View */}
-        <button
-          onClick={() => {
-            if (storyType === 'task') openViewTaskModal(story);
-            else if (storyType === 'solutionstory') openViewSolutionModal(story);
-            else openViewModal(story);
-          }}
-          className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-          title={getViewLabel()}
-        >
-          <FiEye size={16} />
-        </button>
+    const items = [
+      {
+        label: getViewLabel(),
+        tone: "info",
+        icon: <FiEye size={16} />,
+        onClick: () => {
+          if (storyType === "task") openViewTaskModal(story);
+          else if (storyType === "solutionstory") openViewSolutionModal(story);
+          else openViewModal(story);
+        },
+      },
+      {
+        label: getEditLabel(),
+        tone: "info",
+        icon: <FiEdit size={16} />,
+        onClick: () => {
+          if (storyType === "task") openEditTaskModal(story);
+          else if (storyType === "solutionstory") openEditSolutionModal(story);
+          else openEditModal(story);
+        },
+      },
+      ...(storyType === "userstory"
+        ? [
+            {
+              label: "Add Solution Story",
+              tone: "info",
+              icon: <FiGitBranch size={16} />,
+              onClick: () => {
+                const parentStoryData = encodeURIComponent(JSON.stringify(story));
+                window.open(
+                  `/solution-story-management?parentStory=${parentStoryData}`,
+                  "_blank"
+                );
+              },
+            },
+          ]
+        : []),
+      ...(storyType === "userstory" || storyType === "solutionstory"
+        ? [
+            {
+              label: "Add Task",
+              tone: "info",
+              icon: <FiCheckSquare size={16} />,
+              onClick: () => {
+                const parentStoryData = encodeURIComponent(JSON.stringify(story));
+                window.open(
+                  `/task-management?parentStory=${parentStoryData}`,
+                  "_blank"
+                );
+              },
+            },
+          ]
+        : []),
+      ...(storyType === "solutionstory"
+        ? [
+            {
+              label: "Duplicate Solution Story",
+              tone: "info",
+              icon: <Copy size={16} />,
+              onClick: () => handleDuplicateSolutionStory(story),
+            },
+          ]
+        : storyType === "task"
+          ? [
+              {
+                label: "Duplicate Task",
+                tone: "info",
+                icon: <Copy size={16} />,
+                onClick: () => handleDuplicateTask(story),
+              },
+            ]
+          : [
+              {
+                label: "Duplicate User Story",
+                tone: "info",
+                icon: <Copy size={16} />,
+                onClick: () => handleDuplicateStory(story),
+              },
+            ]),
+    ];
 
-        {/* Edit - opens specific modal per type */}
-        <button
-          onClick={() => {
-            if (storyType === 'task') openEditTaskModal(story);
-            else if (storyType === 'solutionstory') openEditSolutionModal(story);
-            else openEditModal(story);
-          }}
-          className="text-gray-400 hover:text-green-600 transition-colors duration-200 p-1 cursor-pointer"
-          title={getEditLabel()}
-        >
-          <FiEdit size={16} />
-        </button>
-
-        {/* For user stories allow adding solution story */}
-        {storyType === 'userstory' && (
-          <button
-            onClick={() => {
-              const parentStoryData = encodeURIComponent(JSON.stringify(story));
-              window.open(`/solution-story-management?parentStory=${parentStoryData}`, '_blank');
-            }}
-            className="text-gray-400 hover:text-blue-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Add Solution Story"
-          >
-            <FiGitBranch size={16} />
-          </button>
-        )}
-
-        {/* For userstory and solutionstory allow adding a task */}
-        {(storyType === 'userstory' || storyType === 'solutionstory') && (
-          <button
-            onClick={() => {
-              const parentStoryData = encodeURIComponent(JSON.stringify(story));
-              window.open(`/task-management?parentStory=${parentStoryData}`, '_blank');
-            }}
-            className="text-gray-400 hover:text-purple-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Add Task"
-          >
-            <FiCheckSquare size={16} />
-          </button>
-        )}
-
-        {/* Copy/Duplicate: call type-specific duplicate handlers */}
-        {storyType === 'solutionstory' ? (
-          <button
-            onClick={() => handleDuplicateSolutionStory(story)}
-            className="text-gray-400 hover:text-indigo-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Duplicate Solution Story"
-          >
-            <Copy size={16} />
-          </button>
-        ) : storyType === 'task' ? (
-          <button
-            onClick={() => handleDuplicateTask(story)}
-            className="text-gray-400 hover:text-indigo-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Duplicate Task"
-          >
-            <Copy size={16} />
-          </button>
-        ) : (
-          <button
-            onClick={() => handleDuplicateStory(story)}
-            className="text-gray-400 hover:text-indigo-600 transition-colors duration-200 p-1 cursor-pointer"
-            title="Duplicate User Story"
-          >
-            <Copy size={16} />
-          </button>
-        )}
-
-        {/* Delete: call type-specific delete handlers where applicable */}
-
-      </div>
-    );
+    return <ThreeDotsMenu items={items} />;
   }, [openViewModal, openEditModal, handleDeleteStory, handleDeleteSolutionStory, handleDeleteTask, handleDuplicateStory, handleDuplicateSolutionStory, handleDuplicateTask, filters.type]);
 
   // AgGrid column definitions - Dynamic based on type filter
@@ -1374,7 +1368,8 @@ const StoryDashboard = () => {
         suppressMenu: true,
         sortable: false,
         filter: false,
-        cellClass: 'ag-cell-truncate',
+        headerClass: 'serial-col-header',
+        cellClass: 'ag-cell-truncate serial-col-cell',
         cellStyle: { fontWeight: '500' },
       },
       {
@@ -1535,9 +1530,12 @@ const StoryDashboard = () => {
           tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
-          headerName: 'Actions',
+          headerName: '',
           cellRenderer: ActionsRenderer,
-          width: 180,
+          width: 50,
+          minWidth: 50,
+          maxWidth: 50,
+          suppressSizeToFit: true,
           // suppressMenu: true,
           sortable: false,
           filter: false,
@@ -1611,9 +1609,12 @@ const StoryDashboard = () => {
           tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
-          headerName: 'Actions',
+          headerName: '',
           cellRenderer: ActionsRenderer,
-          width: 150,
+          width: 50,
+          minWidth: 50,
+          maxWidth: 50,
+          suppressSizeToFit: true,
           suppressMenu: true,
           sortable: false,
           filter: false,
@@ -1698,9 +1699,12 @@ const StoryDashboard = () => {
           tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
-          headerName: 'Actions',
+          headerName: '',
           cellRenderer: ActionsRenderer,
-          width: 150,
+          width: 50,
+          minWidth: 50,
+          maxWidth: 50,
+          suppressSizeToFit: true,
           suppressMenu: true,
           sortable: false,
           filter: false,
@@ -1762,9 +1766,12 @@ const StoryDashboard = () => {
           tooltipValueGetter: (params) => params.value || 'N/A'
         },
         {
-          headerName: 'Actions',
+          headerName: '',
           cellRenderer: ActionsRenderer,
-          width: 150,
+          width: 50,
+          minWidth: 50,
+          maxWidth: 50,
+          suppressSizeToFit: true,
           suppressMenu: true,
           sortable: false,
           filter: false,
@@ -1774,6 +1781,16 @@ const StoryDashboard = () => {
     }
   }, [filters.type, StatusRenderer, PriorityRenderer, ActionsRenderer]);
 
+  // Use string-based header tooltips (AG Grid expects tooltip text, not a function).
+  const columnDefsWithHeaderTooltips = useMemo(
+    () =>
+      (columnDefs || []).map((col) => ({
+        ...col,
+        headerTooltip: col.headerTooltip ?? col.headerName,
+      })),
+    [columnDefs]
+  );
+
   // Default column properties
   const defaultColDef = useMemo(() => ({
     sortable: true,
@@ -1782,7 +1799,11 @@ const StoryDashboard = () => {
     floatingFilter: false
     ,
     // Use the generic cell renderer to attach native title tooltips
-    cellRenderer: CellWithTitle
+    cellRenderer: CellWithTitle,
+    tooltipValueGetter: (params) => {
+      const v = params.valueFormatted ?? params.value;
+      return v === null || v === undefined ? '' : String(v);
+    }
   }), []);
 
   // Grid options
@@ -2577,6 +2598,17 @@ const StoryDashboard = () => {
     justify-content: flex-start;
 }
 
+/* Center serial (#) column header + values */
+.ag-theme-alpine .serial-col-header .ag-header-cell-label {
+  justify-content: center !important;
+}
+.ag-theme-alpine .ag-cell.serial-col-cell {
+  text-align: center !important;
+  justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
 
             .ag-theme-alpine .ag-row-even {
               background-color: #ffffff;
@@ -2857,7 +2889,7 @@ const StoryDashboard = () => {
 
             `}</style>
             <AgGridReact
-              columnDefs={columnDefs}
+              columnDefs={columnDefsWithHeaderTooltips}
               defaultColDef={defaultColDef}
               gridOptions={gridOptions}
               rowData={filteredStories}
@@ -2875,7 +2907,7 @@ const StoryDashboard = () => {
                 params.api.sizeColumnsToFit();
               }}
               enableBrowserTooltips={true}
-              tooltipShowDelay={500}
+              tooltipShowDelay={0}
             />
           </div>
         </div>
