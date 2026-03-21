@@ -344,19 +344,19 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
       nextValue = Number.isNaN(numValue) ? 0 : Math.min(50, Math.max(0, numValue));
     }
 
-  setFormData(prev => ({
-    ...prev,
-    [name]: nextValue
-  }));
-
-  // Clear error when user starts typing
-  if (errors[name]) {
-    setErrors(prev => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: ""
+      [name]: nextValue
     }));
-  }
-};
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
+  };
 
 const handleFileChange = (e) => {
   const files = Array.from(e.target.files);

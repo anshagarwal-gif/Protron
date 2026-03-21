@@ -155,7 +155,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
             acceptanceCriteria: storyData.acceptanceCriteria || "",
             status: storyData.status || "todo",
             priority: storyData.priority?.toString() || "2",
-            storyPoints: storyData.storyPoints || 0,
+            storyPoints: Math.min(50, Math.max(0, Number(storyData.storyPoints) || 0)),
             assignee: storyData.assignee || "",
             sprint: storyData.sprint != null ? String(storyData.sprint) : "",
             release: storyData.release != null ? String(storyData.release) : "",

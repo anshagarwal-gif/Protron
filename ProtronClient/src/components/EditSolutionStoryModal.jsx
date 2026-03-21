@@ -90,7 +90,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
             summary: storyData.summary || '',
             description: storyData.description || '',
             system: storyData.system || '',
-            storyPoints: storyData.storyPoints || 0,
+            storyPoints: Math.min(50, Math.max(0, Number(storyData.storyPoints) || 0)),
             assignee: storyData.assignee || '',
             // Accept both sprintId and sprint from backend payloads
             releaseId: storyData.releaseId || storyData.release || '',
@@ -491,7 +491,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
         summary: storyData.summary || '',
         description: storyData.description || '',
         system: storyData.system || '',
-        storyPoints: storyData.storyPoints || 0,
+        storyPoints: Math.min(50, Math.max(0, Number(storyData.storyPoints) || 0)),
         assignee: storyData.assignee || '',
         releaseId: storyData.releaseId || storyData.release || '',
         sprintId: storyData.sprintId || storyData.sprint || '',
