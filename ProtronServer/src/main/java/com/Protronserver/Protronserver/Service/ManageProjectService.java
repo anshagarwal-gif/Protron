@@ -106,7 +106,6 @@ public class ManageProjectService {
         project.setUpdatedBy(null);
         project.setCreatedOn(new Date());
 
-
         Project savedProject = projectRepository.save(project);
 
         // If project team members are provided, save them
@@ -120,12 +119,12 @@ public class ManageProjectService {
                 ProjectTeam teamMember = new ProjectTeam();
                 teamMember.setProject(savedProject);
                 teamMember.setUser(user);
-//                teamMember.setPricing(memberDTO.getPricing());
+                // teamMember.setPricing(memberDTO.getPricing());
                 teamMember.setEmpCode(user.getEmpCode());
                 teamMember.setStatus(memberDTO.getStatus() != null ? memberDTO.getStatus() : "active");
-//                teamMember.setTaskType(memberDTO.getTaskType());
-//                teamMember.setUnit(memberDTO.getUnit());
-//                teamMember.setEstimatedReleaseDate(memberDTO.getEstimatedReleaseDate());
+                // teamMember.setTaskType(memberDTO.getTaskType());
+                // teamMember.setUnit(memberDTO.getUnit());
+                // teamMember.setEstimatedReleaseDate(memberDTO.getEstimatedReleaseDate());
                 teamMember.setStartTimestamp(LocalDateTime.now());
                 teamMember.setEndTimestamp(null);
                 teamMember.setUpdatedBy(null);
@@ -174,7 +173,6 @@ public class ManageProjectService {
         return dto;
     }
 
-
     @Transactional
     public Project updateProject(Long id, ProjectUpdateDTO request) {
         Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
@@ -213,9 +211,7 @@ public class ManageProjectService {
         updatedProject.setBusinessUnitDeliveredTo(request.getBusinessUnitDeliveredTo());
         updatedProject.setPriority(request.getPriority());
         updatedProject.setCreatedOn(existingProject.getCreatedOn());
-        // ProjectUpdateDTO does not include defineDone, but updateProject creates a new project version.
-        // Preserve the old defineDone so it doesn't become null on update.
-        updatedProject.setDefineDone(existingProject.getDefineDone());
+
         updatedProject.setBusinessValueAmount(request.getBusinessValueAmount());
         updatedProject.setBusinessValueType(request.getBusinessValueType());
 
@@ -250,16 +246,18 @@ public class ManageProjectService {
         if (request.getSystemImpacted() != null && !request.getSystemImpacted().isEmpty()) {
             manageSystemImpactedService.handleUpdatedAndNewSystems(request.getSystemImpacted(), updatedProject);
         } else {
-            manageSystemImpactedService.associateExistingSystemsWithNewProject(existingProject.getSystemImpacted(), updatedProject);
+            manageSystemImpactedService.associateExistingSystemsWithNewProject(existingProject.getSystemImpacted(),
+                    updatedProject);
         }
 
         ridaRepository.updateProjectForRidas(existingProject, updatedProject);
-        releaseRepository.updateProjectForReleases(existingProject.getProjectId(), updatedProject.getProjectId(), updatedProject.getProjectName());
+        releaseRepository.updateProjectForReleases(existingProject.getProjectId(), updatedProject.getProjectId(),
+                updatedProject.getProjectName());
         sprintRepository.updateProjectForSprints(existingProject.getProjectId(), updatedProject.getProjectId());
 
-
         userStoryRepository.updateProjectForUserStories(existingProject.getProjectId(), updatedProject.getProjectId());
-        solutionStoryRepository.updateProjectForSolutionStories(existingProject.getProjectId(), updatedProject.getProjectId());
+        solutionStoryRepository.updateProjectForSolutionStories(existingProject.getProjectId(),
+                updatedProject.getProjectId());
         taskRepository.updateProjectForTasks(existingProject.getProjectId(), updatedProject.getProjectId());
 
         // Save new project
@@ -277,7 +275,7 @@ public class ManageProjectService {
         return projectRepository.findActiveProjectsByUserInSameTenant(user.getUserId());
     }
 
-    public void deleteProject(Long id){
+    public void deleteProject(Long id) {
         Project existingProject = projectRepository.findByProjectIdAndEndTimestampIsNull(id)
                 .orElseThrow(() -> new RuntimeException("Project not found with ID: " + id));
 
@@ -349,7 +347,8 @@ public class ManageProjectService {
         projectRepository.save(updatedProject);
 
         ridaRepository.updateProjectForRidas(existingProject, updatedProject);
-        releaseRepository.updateProjectForReleases(existingProject.getProjectId(), updatedProject.getProjectId(), updatedProject.getProjectName());
+        releaseRepository.updateProjectForReleases(existingProject.getProjectId(), updatedProject.getProjectId(),
+                updatedProject.getProjectName());
         sprintRepository.updateProjectForSprints(existingProject.getProjectId(), updatedProject.getProjectId());
     }
 
