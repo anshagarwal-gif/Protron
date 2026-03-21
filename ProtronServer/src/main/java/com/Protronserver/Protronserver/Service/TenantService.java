@@ -1,10 +1,9 @@
 package com.Protronserver.Protronserver.Service;
 
+import com.Protronserver.Protronserver.DTOs.TenantDTO;
 import com.Protronserver.Protronserver.DTOs.TenantEditDTO;
 import com.Protronserver.Protronserver.DTOs.TenantRequestDTO;
-import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Tenant;
-import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.Entities.UserAccessRights;
 import com.Protronserver.Protronserver.Repository.ProjectRepository;
 import com.Protronserver.Protronserver.Repository.TenantRepository;
@@ -98,9 +97,10 @@ public class TenantService {
         return tenantRepository.findAll();
     }
 
-    public Tenant getTenantById(Long tenantId) {
-        return tenantRepository.findById(tenantId)
+    public TenantDTO getTenantById(Long tenantId) {
+        Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new RuntimeException("Tenant not found with id: " + tenantId));
+        return new TenantDTO(tenant);
     }
 
     public void deleteTenant(Long tenantId) {

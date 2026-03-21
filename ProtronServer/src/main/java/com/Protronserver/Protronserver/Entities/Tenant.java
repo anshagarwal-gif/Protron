@@ -62,24 +62,30 @@ public class Tenant {
     @OneToMany(mappedBy = "tenant")
     @JsonIgnoreProperties({"tenant", "projects", "projectTeams", "projectsManaged", "role"})
     @JsonBackReference
+    @JsonIgnore
     private List<User> users;
 
     @OneToMany(mappedBy = "tenant")
     @JsonIgnoreProperties("tenant")
+    @JsonIgnore
     private List<Role> roles;
 
     @OneToMany(mappedBy = "tenant")
     @JsonIgnoreProperties({"tenant"})
+    @JsonIgnore
     private List<Project> projects;
 
     @OneToMany(mappedBy = "tenant")
     @JsonIgnoreProperties("tenant")
+    @JsonIgnore
     private List<AccessRight> roleAccesses;
 
     @OneToMany(mappedBy = "tenant")
+    @JsonIgnore
     private List<ProjectTeam> projectTeams;
 
     @OneToMany(mappedBy = "tenant")
+    @JsonIgnore
     private List<Certificate> certificates;
 
     @Column(name = "updated_by", nullable = true)
