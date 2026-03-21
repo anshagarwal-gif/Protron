@@ -27,6 +27,7 @@ import AddInvoiceModal from "../components/AddInvoice";
 import SettlementModal from "../components/SettlementModal";
 import { useAccess } from "../Context/AccessContext";
 import { formatExcelDate } from "../utils/dateUtils"; 
+import ThreeDotsMenu from '../components/ThreeDotsMenu'; 
 
 
 const ViewInvoiceModal = ({ open, onClose, invoice, onEditInvoice }) => {
@@ -228,16 +229,16 @@ const ViewInvoiceModal = ({ open, onClose, invoice, onEditInvoice }) => {
                   onClose();
                   onEditInvoice(invoice);
                 }}
-                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                 title="Edit Invoice"
               >
-                <Edit className="w-5 h-5 text-white" />
+                Edit
               </button>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
               >
-                <X className="w-5 h-5 text-white" />
+                Close
               </button>
             </div>
           </div>
@@ -1050,6 +1051,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const columnDefs = useMemo(() => [
     {
       headerName: "#",
+      headerTooltip: 'Serial Number',
       valueGetter: "node.rowIndex + 1",
       width: 50,
       pinned: "left",
@@ -1060,6 +1062,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Invoice ID",
+      headerTooltip: 'Invoice ID',
       field: "invoiceId",
       valueGetter: params => params.data.invoiceId || 'N/A',
       flex: 1,
@@ -1079,6 +1082,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Invoice Name",
+      headerTooltip: 'Invoice Name',
       field: "invoiceName",
       valueGetter: params => params.data.invoiceName || 'N/A',
       flex: 1,
@@ -1096,6 +1100,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Initiative name",
+      headerTooltip: 'Initiative name',
       field: "projectName",
       valueGetter: params => params.data.projectName || 'N/A',
       flex: 1,
@@ -1116,6 +1121,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Customer",
+      headerTooltip: 'Customer Name',
       field: "customerName",
       valueGetter: params => params.data.customerName || 'N/A',
       flex: 1,
@@ -1131,6 +1137,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Employee",
+      headerTooltip: 'Employee Name',
       field: "employeeName",
       valueGetter: params => params.data.employeeName || 'N/A',
       flex: 1,
@@ -1146,6 +1153,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Currency",
+      headerTooltip: 'Currency',
       field: "currency",
       valueGetter: params => params.data.currency || 'N/A',
       width: 100,
@@ -1162,6 +1170,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Invoice Amount",
+      headerTooltip: 'Invoice Amount',
       field: "totalAmount",
       width: 160,
       sortable: true,
@@ -1180,6 +1189,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Paid Amount",
+      headerTooltip: 'Paid Amount',
       field: "totalPaidAmount",
       width: 160,
       sortable: true,
@@ -1198,6 +1208,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "From Date",
+      headerTooltip: 'From Date',
       field: "fromDate",
       valueGetter: params => formatDate(params.data.fromDate),
       width: 130,
@@ -1214,6 +1225,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "To Date",
+      headerTooltip: 'To Date',
       field: "toDate",
       valueGetter: params => formatDate(params.data.toDate),
       width: 130,
@@ -1230,6 +1242,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Hours",
+      headerTooltip: 'Hours Spent',
       field: "hoursSpent",
       valueGetter: params => params.data.hoursSpent || 'N/A',
       width: 100,
@@ -1246,6 +1259,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Created Date",
+      headerTooltip: 'Created Date',
       field: "createdAt",
       valueGetter: params => formatDate(params.data.createdAt),
       width: 120,
@@ -1262,6 +1276,7 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Status",
+      headerTooltip: 'Invoice Status',
       field: "status",
       width: 140,
       sortable: true,
@@ -1334,59 +1349,50 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Actions",
+      headerTooltip: 'Actions',
       field: "actions",
-      width: 120,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
+      suppressSizeToFit: true,
+      suppressMenu: true,
       sortable: false,
       filter: false,
-      suppressMenu: true,
       pinned: 'right',
+      cellStyle: { textAlign: 'center' },
       cellRenderer: params => (
-        <div className="flex gap-1">
-          {/* View Button */}
-          {hasAccess('budget', 'edit') && (
-            <button
-              onClick={() => handleViewInvoice(params.data)}
-              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
-              title="View Invoice"
-            >
-              <Eye size={14} />
-            </button>
-          )}
-          {/* Settlement Button - For saved, sent, partially paid invoices */}
-          {hasAccess('budget', 'edit') && 
-           ['SAVED', 'SENT', 'PARTIALLY_PAID'].includes(params.data.status) && (
-            <button
-              onClick={() => handleSettlement(params.data)}
-              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
-              title="Settle Payment"
-            >
-              <CreditCard size={14} />
-            </button>
-          )}
-          {/* Edit Button - Only for draft invoices */}
-          {hasAccess('budget', 'edit') && params.data.status === 'DRAFT' && (
-            <button
-              onClick={() => handleEditInvoice(params.data)}
-              className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
-              title="Edit Draft Invoice"
-            >
-              <Edit size={14} />
-            </button>
-          )}
-          {/* Delete Button */}
-          {hasAccess('budget', 'delete') && (
-            <button
-              onClick={() => handleSoftDeleteInvoice(params.data.invoiceId, params.data.invoiceName)}
-              className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer"
-              title="Delete Invoice"
-            >
-              <Trash2 size={14} />
-            </button>
-          )}
-        </div>
+        <ThreeDotsMenu
+          items={[
+            { label: "View", tone: "info", icon: <Eye size={20} />, onClick: () => handleViewInvoice(params.data) },
+            {
+              label: "Settle Payment",
+              tone: "info",
+              icon: <CreditCard size={20} />,
+              hidden: !['SAVED', 'SENT', 'PARTIALLY_PAID'].includes(params.data.status) || !hasAccess('budget', 'edit'),
+              onClick: () => handleSettlement(params.data),
+            },
+            {
+              label: "Edit Draft",
+              tone: "info",
+              icon: <Edit size={20} />,
+              hidden: params.data.status !== 'DRAFT' || !hasAccess('budget', 'edit'),
+              onClick: () => handleEditInvoice(params.data),
+            },
+            {
+              label: "Delete",
+              tone: "danger",
+              icon: <Trash2 size={20} />,
+              hidden: !hasAccess('budget', 'delete'),
+              onClick: () => handleSoftDeleteInvoice(params.data.invoiceId, params.data.invoiceName),
+            },
+          ]}
+        />
       )
     }
-  ], [downloadingInvoice, downloadingAttachment, deletingInvoice, hasAccess]);
+  ].map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  })), [downloadingInvoice, downloadingAttachment, deletingInvoice, hasAccess]);
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -1524,6 +1530,10 @@ const InvoiceManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               border-right: 1px solid #e5e7eb;
               padding: 8px 12px;
               font-size: 14px;
+              user-select: text !important;
+              -webkit-user-select: text !important;
+              -moz-user-select: text !important;
+              -ms-user-select: text !important;
             }
             .ag-theme-alpine .ag-pinned-left-cols-container {
               border-right: 2px solid #d1d5db;

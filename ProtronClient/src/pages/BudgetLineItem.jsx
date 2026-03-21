@@ -21,6 +21,7 @@ import {
 import axios from "axios";
 import AddBudgetLineModal from "../components/AddBudgetLineModal";
 import BudgetAllocationModal from "../components/BudgetAllocationModal";
+import ThreeDotsMenu from '../components/ThreeDotsMenu';
 import { useAccess } from "../Context/AccessContext";
 import { formatExcelDate } from '../utils/dateUtils';
 
@@ -452,10 +453,11 @@ const ViewBudgetLineModal = ({ open, onClose, budgetLine }) => {
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-green-700 rounded-full transition-colors cursor-pointer"
+              className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
             >
-              <X className="w-5 h-5 text-white" />
+              Close
             </button>
+
           </div>
         </div>
 
@@ -768,6 +770,7 @@ const { hasAccess } = useAccess(); // Access context
   const columnDefs = useMemo(() => [
     {
       headerName: "#",
+      headerTooltip: 'Serial Number',
       valueGetter: "node.rowIndex + 1",
       width: 50,
       pinned: "left",
@@ -778,6 +781,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Budget Name",
+      headerTooltip: 'Budget Name',
       field: "budgetName",
       valueGetter: params => params.data.budgetName || 'N/A',
       flex: 1,
@@ -796,6 +800,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Budget Line Item",
+      headerTooltip: 'Budget Line Item',
       field: "budgetLineItem",
       valueGetter: params => params.data.budgetLineItem || 'N/A',
       flex: 1,
@@ -813,6 +818,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Budget Owner",
+      headerTooltip: 'Budget Owner',
       field: "budgetOwner",
       valueGetter: params => params.data.budgetOwner || 'N/A',
       flex: 1,
@@ -828,6 +834,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Sponsor",
+      headerTooltip: 'Sponsor',
       field: "sponsor",
       valueGetter: params => params.data.sponsor || 'N/A',
       flex: 1,
@@ -843,6 +850,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Currency",
+      headerTooltip: 'Currency',
       field: "currency",
       width: 80,
       sortable: true,
@@ -858,6 +866,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Amount Approved",
+      headerTooltip: 'Amount Approved',
       field: "amountApproved",
       valueGetter: params => {
       const amount = params.data.amountApproved;
@@ -875,6 +884,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Amount Utilized",
+      headerTooltip: 'Amount Utilized',
       field: "amountUtilized",
       valueGetter: params => {
       const amount = params.data.amountUtilized;
@@ -892,6 +902,7 @@ const { hasAccess } = useAccess(); // Access context
     },
     {
       headerName: "Budget End Date",
+      headerTooltip: 'Budget End Date',
       field: "budgetEndDate",
       valueGetter: params => params.data.budgetEndDate,
       width: 140,
@@ -919,50 +930,43 @@ const { hasAccess } = useAccess(); // Access context
    
     {
       headerName: "Actions",
+      headerTooltip: 'Actions',
       field: "actions",
-      width: 120,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
+      suppressSizeToFit: true,
+      suppressMenu: true,
       sortable: false,
       filter: false,
-      suppressMenu: true,
       pinned: 'right',
-      cellRenderer: params => {
-        const budgetLine = params.data;
-        return (
-          <div className="flex justify-center gap-1 h-full items-center">
-            {/* View Button (always visible) */}
-            <button
-              onClick={() => handleViewBudgetLine(budgetLine)}
-              className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
-              title="View Budget Line"
-            >
-              <Eye size={14} className="text-green-600" />
-            </button>
-            {/* Edit Button (edit access) */}
-            {hasAccess && hasAccess('budget', 'edit') && (
-              <button
-                onClick={() => handleEditBudgetLine(budgetLine)}
-                className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
-                title="Edit Budget Line"
-              >
-                <Edit size={14} />
-              </button>
-            )}
-            
-            {/* Budget Allocation Button (edit access) */}
-            {hasAccess && hasAccess('budget', 'edit') && (
-              <button
-                onClick={() => handleOpenBudgetAllocation(budgetLine)}
-                className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
-                title="Manage Budget Allocations"
-              >
-                <Plus size={14} className="text-green-600" />
-              </button>
-            )}
-          </div>
-        );
-      }
+      cellStyle: { textAlign: 'center' },
+      cellRenderer: params => (
+        <ThreeDotsMenu
+          items={[
+            { label: "View Details", tone: "info", icon: <Eye size={20} />, onClick: () => handleViewBudgetLine(params.data) },
+            {
+              label: "Edit",
+              tone: "info",
+              icon: <Edit size={20} />,
+              hidden: !hasAccess('budget', 'edit'),
+              onClick: () => handleEditBudgetLine(params.data),
+            },
+            {
+              label: "Budget Allocation",
+              tone: "info",
+              icon: <Plus size={20} />,
+              hidden: !hasAccess('budget', 'edit'),
+              onClick: () => handleOpenBudgetAllocation(params.data),
+            },
+          ]}
+        />
+      )
     }
-  ], []);
+  ].map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  })), []);
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -1062,6 +1066,10 @@ const { hasAccess } = useAccess(); // Access context
               border-right: 1px solid #e5e7eb;
               padding: 8px 12px;
               font-size: 14px;
+              user-select: text !important;
+              -webkit-user-select: text !important;
+              -moz-user-select: text !important;
+              -ms-user-select: text !important;
             }
             .ag-theme-alpine .ag-pinned-left-cols-container {
               border-right: 2px solid #d1d5db;

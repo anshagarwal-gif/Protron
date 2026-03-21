@@ -32,6 +32,7 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddPOConsumptionModal from "../components/AddPOConsumptionModal";
 import EditPOConsumptionModal from "../components/EditPOConsumptionModal";
+import ThreeDotsMenu from '../components/ThreeDotsMenu';
 import { formatExcelDate } from "../utils/dateUtils";
 
 // ViewDetailsModal Component - Fixed with correct milestone properties
@@ -168,16 +169,16 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
             <div className="flex items-center space-x-2 flex-shrink-0">
               <button
                 onClick={() => setIsEditModalOpen(true)}
-                className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors"
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
                 title="Edit Consumption"
               >
-                <Edit size={18} className="sm:w-5 sm:h-5" />
+                Edit
               </button>
               <button
                 onClick={onClose}
-                className="p-1.5 sm:p-2 hover:bg-green-700 rounded-lg transition-colors"
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
               >
-                <X size={18} className="sm:w-5 sm:h-5" />
+                Close
               </button>
             </div>
           </div>
@@ -389,7 +390,7 @@ const ViewDetailsModal = ({ open, onClose, consumption }) => {
 };
 
 
-const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
+const POUtilization = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const navigate = useNavigate();
   const { hasAccess } = useAccess();
 
@@ -739,6 +740,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   const columnDefs = useMemo(() => [
     {
       headerName: "#",
+      headerTooltip: 'Serial Number',
       valueGetter: "node.rowIndex + 1",
       width: 50,
       pinned: "left",
@@ -754,6 +756,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "PO Number",
+      headerTooltip: 'PO Number',
       field: "poNumber",
       valueGetter: params => params.data.poNumber || 'N/A',
       width: 120,
@@ -780,6 +783,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Milestone",
+      headerTooltip: 'Milestone Name',
       field: "milestone.msName",
       valueGetter: params => params.data.milestone?.msName || 'N/A',
       width: 120,
@@ -796,6 +800,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Type",
+      headerTooltip: 'Utilization Type',
       field: "utilizationType",
       valueGetter: params => params.data.utilizationType || 'N/A',
       width: 80,
@@ -819,6 +824,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Initiative",
+      headerTooltip: 'Initiative Name',
       field: "project",
       valueGetter: params => params.data?.project || 'N/A',
       width: 120,
@@ -837,6 +843,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Work Description",
+      headerTooltip: 'Work Description',
       field: "workDesc",
       valueGetter: params => params.data.workDesc || 'N/A',
       flex: 1,
@@ -854,6 +861,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Currency",
+      headerTooltip: 'Currency',
       field: "currency",
       width: 80,
       sortable: true,
@@ -869,6 +877,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Amount",
+      headerTooltip: 'Amount',
       field: "amount",
         valueGetter: params => {
         const amount = params.data.amount;
@@ -890,6 +899,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
 
     {
       headerName: "Assigned",
+      headerTooltip: 'Work Assign Date',
       field: "workAssignDate",
       valueGetter: params => {
         const dateString = params.data.workAssignDate;
@@ -916,6 +926,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Completed",
+      headerTooltip: 'Work Completion Date',
       field: "workCompletionDate",
       valueGetter: params => {
         const dateString = params.data.workCompletionDate;
@@ -942,6 +953,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Remarks",
+      headerTooltip: 'Remarks',
       field: "remarks",
       valueGetter: params => params.data.remarks || 'N/A',
       width: 120,
@@ -959,6 +971,7 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "System",
+      headerTooltip: 'System Name',
       field: "systemName",
       valueGetter: params => params.data.systemName || 'N/A',
       width: 90,
@@ -976,49 +989,43 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
     },
     {
       headerName: "Actions",
+      headerTooltip: 'Actions',
       field: "actions",
-      width: 120,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
+      suppressSizeToFit: true,
+      suppressMenu: true,
       sortable: false,
       filter: false,
-      suppressMenu: true,
       pinned: 'right',
-      cellRenderer: params => {
-        const consumption = params.data;
-        return (
-          <div className="flex gap-2">
-            {/* View Button */}
-            <button
-              onClick={() => handleViewConsumption(consumption)}
-              className="p-1 rounded hover:bg-green-100 text-green-600 cursor-pointer"
-              title="View Details"
-            >
-              <Eye size={16} />
-            </button>
-            {/* Edit Button */}
-            {hasAccess('budget', 'edit') && (
-              <button
-                onClick={() => handleEditConsumption(consumption)}
-                className="p-1 rounded hover:bg-blue-100 text-blue-600 cursor-pointer"
-                title="Edit Consumption"
-              >
-                <Edit size={16} />
-              </button>
-            )}
-            {/* Delete Button */}
-            {hasAccess('budget', 'delete') && (
-              <button
-                onClick={() => handleDeleteConsumption(consumption.utilizationId)}
-                className="p-1 rounded hover:bg-red-100 text-red-600 cursor-pointer"
-                title="Delete Consumption"
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
-          </div>
-        );
-      }
+      cellStyle: { textAlign: 'center' },
+      cellRenderer: params => (
+        <ThreeDotsMenu
+          items={[
+            { label: "View Details", tone: "info", icon: <Eye size={20} />, onClick: () => handleViewConsumption(params.data) },
+            {
+              label: "Edit",
+              tone: "info",
+              icon: <Edit size={20} />,
+              hidden: !hasAccess('budget', 'edit'),
+              onClick: () => handleEditConsumption(params.data),
+            },
+            {
+              label: "Delete",
+              tone: "danger",
+              icon: <Trash2 size={20} />,
+              hidden: !hasAccess('budget', 'delete'),
+              onClick: () => handleDeleteConsumption(params.data.utilizationId),
+            },
+          ]}
+        />
+      )
     }
-  ], [hasAccess]);
+  ].map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  })), [hasAccess]);
 
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
@@ -1118,6 +1125,10 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
               border-right: 1px solid #e5e7eb;
               padding: 8px 12px;
               font-size: 14px;
+              user-select: text !important;
+              -webkit-user-select: text !important;
+              -moz-user-select: text !important;
+              -ms-user-select: text !important;
             }
             .ag-theme-alpine .ag-pinned-left-cols-container {
               border-right: 2px solid #d1d5db;
@@ -1420,4 +1431,4 @@ const POConsumptionManagement = forwardRef(({ searchQuery, setSearchQuery }, ref
   );
 });
 
-export default POConsumptionManagement;
+export default POUtilization;

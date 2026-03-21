@@ -26,8 +26,9 @@ import axios from "axios";
 import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddPOModal from "../components/AddPOModal";
 import EditPOModal from "../components/EditPOModal";
+import ThreeDotsMenu from '../components/ThreeDotsMenu';
 import SRNManagement from "./SRN";
-import POConsumptionManagement from "./POUtilization";
+import POUtilization from "./POUtilization";
 import InvoiceManagement from "./Invoice";
 import BudgetLineManagement from "./BudgetLineItem";
 import MilestoneManagement from "../components/MilestoneManagement";
@@ -325,6 +326,7 @@ const POManagement = () => {
   const columnDefs = useMemo(() => [
     {
       headerName: "#",
+      headerTooltip: 'Serial Number',
       valueGetter: "node.rowIndex + 1",
       width: 50,
       pinned: "left",
@@ -335,6 +337,7 @@ const POManagement = () => {
     },
     {
       headerName: "PO Number",
+      headerTooltip: 'PO Number',
       field: "poNumber",
       valueGetter: params => params.data.poNumber || 'N/A',
       flex: 1,
@@ -361,6 +364,7 @@ const POManagement = () => {
     },
     {
       headerName: "PO Type",
+      headerTooltip: 'PO Type',
       field: "poType",
       valueGetter: params => params.data.poType || 'N/A',
       maxWidth: 120,
@@ -386,6 +390,7 @@ const POManagement = () => {
     },
     {
       headerName: "Currency",
+      headerTooltip: 'Currency',
       field: "poCurrency",
       width: 110,
       sortable: true,
@@ -399,6 +404,7 @@ const POManagement = () => {
     },
     {
       headerName: "PO Amount",
+      headerTooltip: 'PO Amount',
       field: "poAmount",
       valueGetter: params => params.data.poAmount ? params.data.poAmount : 'N/A',
       width: 140,
@@ -413,6 +419,7 @@ const POManagement = () => {
     },
     {
       headerName: "Customer",
+      headerTooltip: 'Customer Name',
       field: "customer",
       valueGetter: params => params.data.customer || 'N/A',
       flex: 1,
@@ -428,6 +435,7 @@ const POManagement = () => {
     },
     {
       headerName: "Supplier",
+      headerTooltip: 'Supplier Name',
       field: "supplier",
       valueGetter: params => params.data.supplier || 'N/A',
       flex: 1,
@@ -443,6 +451,7 @@ const POManagement = () => {
     },
     {
       headerName: "Initiative name",
+      headerTooltip: 'Initiative Name',
       field: "projectName",
       valueGetter: params => params.data.projectName || 'N/A',
       flex: 1,
@@ -458,6 +467,7 @@ const POManagement = () => {
     },
     {
       headerName: "SPOC Name",
+      headerTooltip: 'SPOC Name',
       field: "poSpoc",
       valueGetter: params => params.data.poSpoc || 'N/A',
       flex: 1,
@@ -473,6 +483,7 @@ const POManagement = () => {
     },
     {
       headerName: "Budget Line Item",
+      headerTooltip: 'Budget Line Item',
       field: "budgetLineItem",
       valueGetter: params => params.data.budgetLineItem || 'N/A',
       flex: 1,
@@ -488,6 +499,7 @@ const POManagement = () => {
     },
     {
       headerName: "Budget Line Amount",
+      headerTooltip: 'Budget Line Amount',
       field: "budgetLineAmount",
       valueGetter: params => {
         const amount = params.data.budgetLineAmount;
@@ -506,6 +518,7 @@ const POManagement = () => {
     },
     {
       headerName: "Business Value",
+      headerTooltip: 'Business Value Amount',
       field: "businessValueAmount",
       valueGetter: params => {
         const amount = params.data.businessValueAmount;
@@ -524,50 +537,43 @@ const POManagement = () => {
     },
     {
       headerName: "Actions",
+      headerTooltip: 'Actions',
       field: "actions",
-      width: 120,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
+      suppressSizeToFit: true,
+      suppressMenu: true,
       sortable: false,
       filter: false,
-      suppressMenu: true,
       pinned: 'right',
-      cellRenderer: params => {
-        const po = params.data;
-        return (
-          <div className="flex justify-center gap-2 h-full items-center">
-            {/* Add Milestone Button (edit access) */}
-            {hasAccess && hasAccess('budget', 'edit') && (
-              <button
-                onClick={() => handleOpenMilestoneModal(po)}
-                className="p-1 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
-                title="Add milestones"
-              >
-                <Plus size={16} className="text-green-600" />
-              </button>
-            )}
-            {/* View Button (always visible) */}
-            <button
-              onClick={() => handleViewPO(po)}
-              className="p-1 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
-              title="View PO"
-            >
-              <Eye size={16} className="text-blue-600" />
-            </button>
-            {/* Edit Button (edit access) */}
-            {hasAccess && hasAccess('budget', 'edit') && (
-              <button
-                onClick={() => handleEditPO(po)}
-                className="p-1 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
-                title="Edit PO"
-              >
-                <Edit size={16} className="text-blue-600" />
-              </button>
-            )}
-
-          </div>
-        );
-      }
+      cellStyle: { textAlign: 'center' },
+      cellRenderer: params => (
+        <ThreeDotsMenu
+          items={[
+            {
+              label: "Add Milestone",
+              tone: "info",
+              icon: <Plus size={20} />,
+              hidden: !hasAccess('budget', 'edit'),
+              onClick: () => handleOpenMilestoneModal(params.data),
+            },
+            { label: "View PO", tone: "info", icon: <Eye size={20} />, onClick: () => handleViewPO(params.data) },
+            {
+              label: "Edit PO",
+              tone: "info",
+              icon: <Edit size={20} />,
+              hidden: !hasAccess('budget', 'edit'),
+              onClick: () => handleEditPO(params.data),
+            },
+          ]}
+        />
+      )
     }
-  ], []);
+  ].map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  })), []);
 
   const handleViewCloseAndEditOpen = (poId) => {
     setIsViewModalOpen(false);
@@ -630,6 +636,10 @@ const POManagement = () => {
                   border-right: 1px solid #e5e7eb;
                   padding: 8px 12px;
                   font-size: 14px;
+                  user-select: text !important;
+                  -webkit-user-select: text !important;
+                  -moz-user-select: text !important;
+                  -ms-user-select: text !important;
                 }
                 .ag-theme-alpine .ag-paging-panel {
                   border-top: 2px solid #e5e7eb;
@@ -669,7 +679,7 @@ const POManagement = () => {
           </div>
         );
       case "utilization":
-        return <POConsumptionManagement ref={poRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
+        return <POUtilization ref={poRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       case "srn":
         return <SRNManagement ref={srnRef} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />;
       case "invoice":
