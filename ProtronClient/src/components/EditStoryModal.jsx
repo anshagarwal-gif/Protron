@@ -329,9 +329,15 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
       setAcceptanceCharCount(value.length);
     }
 
+    let nextValue = value;
+    if (name === 'storyPoints') {
+      const numValue = parseInt(value, 10);
+      nextValue = Number.isNaN(numValue) ? 0 : Math.min(50, Math.max(0, numValue));
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: nextValue
     }));
 
     // Clear error when user starts typing
@@ -533,7 +539,7 @@ const EditStoryModal = ({ open, onClose, onSubmit, storyId }) => {
         soThat: formData.soThat || '',
         acceptanceCriteria: formData.acceptanceCriteria || '',
         system: formData.system || '',
-        storyPoints: parseInt(formData.storyPoints) || 0,
+        storyPoints: Math.min(50, Math.max(0, parseInt(formData.storyPoints, 10) || 0)),
         assignee: formData.assignee || '',
         releaseId: parseInt(formData.release) || null,
         sprintId: parseInt(formData.sprint) || null

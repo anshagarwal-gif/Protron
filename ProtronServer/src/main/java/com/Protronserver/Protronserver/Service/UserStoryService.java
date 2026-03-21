@@ -34,6 +34,12 @@ import com.Protronserver.Protronserver.Entities.Project;
 @Service
 public class UserStoryService {
 
+    private static final int MAX_STORY_POINTS = 50;
+
+    private static int clampStoryPoints(int points) {
+        return Math.max(0, Math.min(MAX_STORY_POINTS, points));
+    }
+
     private final UserStoryRepository userStoryRepository;
     private final CustomIdGenerator idGenerator;
 
@@ -84,7 +90,7 @@ public class UserStoryService {
         newStory.setSoThat(storyDto.soThat());
         newStory.setAcceptanceCriteria(storyDto.acceptanceCriteria());
         newStory.setSystem(storyDto.system());
-        newStory.setStoryPoints(storyDto.storyPoints());
+        newStory.setStoryPoints(clampStoryPoints(storyDto.storyPoints()));
         newStory.setAssignee(storyDto.assignee());
         newStory.setRelease(storyDto.releaseId());
         newStory.setSprint(storyDto.sprintId());
@@ -125,7 +131,7 @@ public class UserStoryService {
         newStoryVersion.setSoThat(updatedStoryDto.soThat());
         newStoryVersion.setAcceptanceCriteria(updatedStoryDto.acceptanceCriteria());
         newStoryVersion.setSystem(updatedStoryDto.system());
-        newStoryVersion.setStoryPoints(updatedStoryDto.storyPoints());
+        newStoryVersion.setStoryPoints(clampStoryPoints(updatedStoryDto.storyPoints()));
         newStoryVersion.setAssignee(updatedStoryDto.assignee());
         newStoryVersion.setRelease(updatedStoryDto.releaseId());
         newStoryVersion.setSprint(updatedStoryDto.sprintId());

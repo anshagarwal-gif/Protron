@@ -326,8 +326,8 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
     }
 
     if (field === 'storyPoints') {
-      const numValue = parseInt(value) || 0;
-      value = Math.min(50, Math.max(0, numValue));
+      const numValue = parseInt(value, 10);
+      value = Number.isNaN(numValue) ? 0 : Math.min(50, Math.max(0, numValue));
     }
 
     setFormData(prev => ({
@@ -415,7 +415,7 @@ const EditSolutionStoryModal = ({ open, onClose, storyId, storyData }) => {
         description: formData.description,
         status: formData.status,
         priority: parseInt(formData.priority),
-        storyPoints: parseInt(formData.storyPoints) || 0,
+        storyPoints: Math.min(50, Math.max(0, parseInt(formData.storyPoints, 10) || 0)),
         assignee: formData.assignee,
         sprint: formData.sprintId ? parseInt(formData.sprintId) : null,
         release: formData.releaseId ? parseInt(formData.releaseId) : null,
