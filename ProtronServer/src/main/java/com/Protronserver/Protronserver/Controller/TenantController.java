@@ -1,10 +1,9 @@
 package com.Protronserver.Protronserver.Controller;
 
+import com.Protronserver.Protronserver.DTOs.TenantDTO;
 import com.Protronserver.Protronserver.DTOs.TenantEditDTO;
 import com.Protronserver.Protronserver.DTOs.TenantRequestDTO;
-import com.Protronserver.Protronserver.Entities.Project;
 import com.Protronserver.Protronserver.Entities.Tenant;
-import com.Protronserver.Protronserver.Entities.User;
 import com.Protronserver.Protronserver.ResultDTOs.ProjectTableDTO;
 import com.Protronserver.Protronserver.ResultDTOs.TeamTableResultDTO;
 import com.Protronserver.Protronserver.ResultDTOs.UsersTableResultDTO;
@@ -38,7 +37,7 @@ public class TenantController {
     }
 
     @GetMapping("/{tenantId}")
-    public Tenant getTenantById(@PathVariable Long tenantId) {
+    public TenantDTO getTenantById(@PathVariable Long tenantId) {
         return tenantService.getTenantById(tenantId);
     }
 

@@ -770,20 +770,18 @@ const AddSRNModal = ({ open, onClose, poNumber }) => {
                                         min="0"
                                         pattern="^\d{1,13}(\.\d{0,2})?$"
                                         inputMode="decimal"
-                                        className={`w-full h-10 pl-8 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full h-10 pl-10 pr-4 border rounded-md  focus:ring-2 focus:ring-green-500 focus:outline-none focus:border-green-500 ${errors.srnAmount ? 'border-red-500' : 'border-gray-300'
                                             }`}
-                                        placeholder="Enter here"
-                                        disabled={loading}
-                                        title={formData.srnAmount ? `Amount: ${getCurrencySymbol(formData.srnCurrency)}${parseFloat(formData.srnAmount).toLocaleString()}` : "Enter SRN amount"}
+                                        placeholder="0"
+                                        disabled={formData.srnType === 'full' || loading}
+                                        title={formData.srnAmount ? `Amount: ${getCurrencySymbol(formData.srnCurrency)}${parseFloat(formData.srnAmount).toLocaleString()}` : "Enter payment amount (required)"}
                                     />
                                 </div>
 
-                                <div className="mt-1 rounded-md border border-gray-200 bg-gray-50 px-3 py-1">
-                                    <div className="text-xs text-gray-600 whitespace-nowrap overflow-hidden text-ellipsis">
-                                        {formData.msId
-                                            ? `Milestone Balance: ${milestoneBalance ?? 'Loading...'} ${formData.srnCurrency}`
-                                            : `PO Balance: ${poBalance ?? 'Loading...'} ${formData.srnCurrency}`}
-                                    </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                    {formData.msId
+                                        ? `Milestone Balance: ${milestoneBalance ?? 'Loading...'} ${formData.srnCurrency}`
+                                        : `PO Balance: ${poBalance ?? 'Loading...'} ${formData.srnCurrency}`}
                                 </div>
 
                                 {errors.srnAmount && (

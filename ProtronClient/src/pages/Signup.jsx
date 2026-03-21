@@ -17,6 +17,7 @@ const Signup = () => {
     severity: "info",
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState("")
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
     email: "",
@@ -347,6 +348,31 @@ const Signup = () => {
     setShowPassword(!showPassword)
   }
 
+  const validatePassword = (password) => {
+    // Industrial strength password validation
+    const minLength = 8
+    const maxLength = 50
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&^#])[A-Za-z\d@$!%*?&^#]{8,50}$/
+    
+    if (!password) {
+      return "Password is required"
+    }
+    
+    if (password.length < minLength) {
+      return `Password must be at least ${minLength} characters long`
+    }
+    
+    if (password.length > maxLength) {
+      return `Password must not exceed ${maxLength} characters`
+    }
+    
+    if (!passwordPattern.test(password)) {
+      return "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&^#)"
+    }
+    
+    return ""
+  }
+
   const handleNumericInput = (e, fieldName) => {
     const value = e.target.value.replace(/\D/g, "") // Remove non-numeric characters
     setFormData((prev) => ({
@@ -385,6 +411,31 @@ const Signup = () => {
       }))
     } else if (name === "city") {
       handleCitySelection(value)
+    } else if (name === "password" || name === "confirmPassword") {
+      const limitedTextFields = new Set([
+        "firstName",
+        "middleName",
+        "lastName",
+        "displayName",
+        "password",
+        "confirmPassword",
+      ])
+      const nextValue = limitedTextFields.has(name) ? clampToMaxChars(value, 50) : value
+      setFormData((prev) => ({
+        ...prev,
+        [name]: nextValue,
+      }))
+      
+      // Real-time password validation
+      if (name === "password") {
+        const validationError = validatePassword(nextValue)
+        setPasswordError(validationError)
+      }
+      
+      // Clear password error when passwords match
+      if (name === "confirmPassword" && formData.password === value) {
+        setPasswordError("")
+      }
     } else {
       const limitedTextFields = new Set([
         "firstName",
@@ -738,6 +789,13 @@ const Signup = () => {
 
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match")
+      setLoading(false)
+      return
+    }
+
+    const passwordValidationError = validatePassword(formData.password)
+    if (passwordValidationError) {
+      setError(passwordValidationError)
       setLoading(false)
       return
     }
@@ -1318,6 +1376,9 @@ const Signup = () => {
             <div>
               <label htmlFor="password" className="block text-slate-700 font-medium mb-3">
                 Password <span className="text-red-500">*</span>
+                <span className="text-xs text-slate-500 ml-2 font-normal">
+                  ({formData.password.length}/50)
+                </span>
               </label>
               <div className="relative">
                 <input
@@ -1325,10 +1386,12 @@ const Signup = () => {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300 ${
+                    passwordError ? "border-red-300" : "border-slate-200"
+                  }`}
                   value={formData.password}
                   onChange={handleChange}
-                  maxLength={100}
+                  maxLength={50}
                   required
                   disabled={loading}
                 />
@@ -1345,12 +1408,90 @@ const Signup = () => {
                   )}
                 </button>
               </div>
+              
+              {/* Password Requirements */}
+              <div className="mt-2 p-3 bg-slate-50 rounded-lg">
+                <p className="text-xs font-medium text-slate-700 mb-2">Password must contain:</p>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                      formData.password.length >= 8 ? "bg-green-500" : "bg-slate-300"
+                    }`}>
+                      {formData.password.length >= 8 && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <span className={formData.password.length >= 8 ? "text-green-700" : "text-slate-600"}>
+                      At least 8 characters
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                      /[A-Z]/.test(formData.password) ? "bg-green-500" : "bg-slate-300"
+                    }`}>
+                      {/[A-Z]/.test(formData.password) && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <span className={/[A-Z]/.test(formData.password) ? "text-green-700" : "text-slate-600"}>
+                      One uppercase letter
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                      /[a-z]/.test(formData.password) ? "bg-green-500" : "bg-slate-300"
+                    }`}>
+                      {/[a-z]/.test(formData.password) && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <span className={/[a-z]/.test(formData.password) ? "text-green-700" : "text-slate-600"}>
+                      One lowercase letter
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                      /\d/.test(formData.password) ? "bg-green-500" : "bg-slate-300"
+                    }`}>
+                      {/\d/.test(formData.password) && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <span className={/\d/.test(formData.password) ? "text-green-700" : "text-slate-600"}>
+                      One number
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className={`w-3 h-3 rounded-full flex items-center justify-center ${
+                      /[@$!%*?&^#]/.test(formData.password) ? "bg-green-500" : "bg-slate-300"
+                    }`}>
+                      {/[@$!%*?&^#]/.test(formData.password) && (
+                        <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    <span className={/[@$!%*?&^#]/.test(formData.password) ? "text-green-700" : "text-slate-600"}>
+                      One special character (@$!%*?&^#)
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Password Error */}
+              {passwordError && (
+                <div className="mt-2 text-red-600 text-xs flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>
+                  {passwordError}
+                </div>
+              )}
             </div>
 
             {/* Confirm Password */}
             <div>
               <label htmlFor="confirmPassword" className="block text-slate-700 font-medium mb-3">
                 Confirm Password <span className="text-red-500">*</span>
+                <span className="text-xs text-slate-500 ml-2 font-normal">
+                  ({formData.confirmPassword.length}/50)
+                </span>
               </label>
               <div className="relative">
                 <input
@@ -1358,14 +1499,28 @@ const Signup = () => {
                   name="confirmPassword"
                   type={showPassword ? "text" : "password"}
                   placeholder="Confirm password"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300"
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/50 backdrop-blur-sm transition-all duration-200 hover:border-slate-300 ${
+                    formData.confirmPassword && formData.password !== formData.confirmPassword ? "border-red-300" : "border-slate-200"
+                  }`}
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  maxLength={100}
+                  maxLength={50}
                   required
                   disabled={loading}
                 />
               </div>
+              
+              {/* Password Match Indicator */}
+              {formData.confirmPassword && (
+                <div className={`mt-2 text-xs flex items-center gap-1 ${
+                  formData.password === formData.confirmPassword ? "text-green-600" : "text-red-600"
+                }`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${
+                    formData.password === formData.confirmPassword ? "bg-green-400" : "bg-red-400"
+                  }`}></div>
+                  {formData.password === formData.confirmPassword ? "Passwords match" : "Passwords do not match"}
+                </div>
+              )}
             </div>
           </div>
 
