@@ -31,6 +31,12 @@ import java.util.Optional;
 @Service
 public class SolutionStoryService {
 
+    private static final int MAX_STORY_POINTS = 50;
+
+    private static int clampStoryPoints(int points) {
+        return Math.max(0, Math.min(MAX_STORY_POINTS, points));
+    }
+
     private final SolutionStoryRepository solutionStoryRepository;
     private final CustomIdGenerator idGenerator;
 
@@ -125,7 +131,7 @@ public class SolutionStoryService {
         story.setSummary(storyDto.summary());
         story.setDescription(storyDto.description());
         story.setSystem(storyDto.system());
-        story.setStoryPoints(storyDto.storyPoints());
+        story.setStoryPoints(clampStoryPoints(storyDto.storyPoints()));
         story.setAssignee(storyDto.assignee());
         story.setRelease(storyDto.releaseId());
         story.setSprint(storyDto.sprintId());
@@ -164,7 +170,7 @@ public class SolutionStoryService {
         newVersion.setSummary(updatedDto.summary());
         newVersion.setDescription(updatedDto.description());
         newVersion.setSystem(updatedDto.system());
-        newVersion.setStoryPoints(updatedDto.storyPoints());
+        newVersion.setStoryPoints(clampStoryPoints(updatedDto.storyPoints()));
         newVersion.setAssignee(updatedDto.assignee());
         newVersion.setRelease(updatedDto.releaseId());
         newVersion.setSprint(updatedDto.sprintId());

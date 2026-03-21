@@ -338,19 +338,25 @@ const AddStoryModal = ({ open, onClose, onSubmit, initialStatus, initialValues }
       setAcceptanceCharCount(value.length);
     }
 
-  setFormData(prev => ({
-    ...prev,
-    [name]: value
-  }));
+    let nextValue = value;
+    if (name === 'storyPoints') {
+      const numValue = parseInt(value, 10);
+      nextValue = Number.isNaN(numValue) ? 0 : Math.min(50, Math.max(0, numValue));
+    }
 
-  // Clear error when user starts typing
-  if (errors[name]) {
-    setErrors(prev => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: ""
+      [name]: nextValue
     }));
-  }
-};
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ""
+      }));
+    }
+  };
 
 const handleFileChange = (e) => {
   const files = Array.from(e.target.files);
@@ -510,7 +516,7 @@ const handleSubmit = async (e) => {
         soThat: formData.soThat || '',
         acceptanceCriteria: formData.acceptanceCriteria || '',
         system: formData.system || '',
-        storyPoints: parseInt(formData.storyPoints) || 0,
+        storyPoints: Math.min(50, Math.max(0, parseInt(formData.storyPoints, 10) || 0)),
         assignee: formData.assignee || '',
         releaseId: parseInt(formData.release) || null,
         sprintId: parseInt(formData.sprint) || null
