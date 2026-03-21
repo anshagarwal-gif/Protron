@@ -89,16 +89,37 @@ export default function SprintManagement({ projectId, open, onClose }) {
     return `${day}-${monthStr}-${year}`;
   };
 
+  /** CSV download only: DD-MMM-YYYY with leading apostrophe for Excel; parses YYYY-MM-DD as local date (no UTC shift). */
+  const formatDateForExcelExport = (dateString) => {
+    if (!dateString) return '';
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (typeof dateString === 'string') {
+      const m = dateString.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        const y = parseInt(m[1], 10);
+        const mo = parseInt(m[2], 10) - 1;
+        const dayNum = parseInt(m[3], 10);
+        const local = new Date(y, mo, dayNum);
+        const day = String(local.getDate()).padStart(2, '0');
+        return `'${day}-${monthNames[local.getMonth()]}-${local.getFullYear()}`;
+      }
+    }
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return '';
+    const day = String(d.getDate()).padStart(2, '0');
+    return `'${day}-${monthNames[d.getMonth()]}-${d.getFullYear()}`;
+  };
+
   const downloadSprintExcel = () => {
     try {
       const headers = ['#', 'Sprint Name', 'Start Date', 'End Date', 'Description', 'Created On'];
       const rows = (sprints || []).map((s, idx) => ([
         idx + 1,
         s.sprintName || '',
-        formatDate(s.startDate),
-        formatDate(s.endDate),
+        formatDateForExcelExport(s.startDate),
+        formatDateForExcelExport(s.endDate),
         s.description || '',
-        formatDate(s.createdOn)
+        formatDateForExcelExport(s.createdOn)
       ]));
       const csv = [headers.join(','), ...rows.map(r => r.map(v => {
         const s = String(v ?? '');

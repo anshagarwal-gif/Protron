@@ -12,10 +12,16 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 // Import the AssignTeamMemberModal component
 import AssignTeamMemberModal from './AssignTeamMemberModal';
 import EditProjectModal from './EditProjectModal';
+import GlobalSnackbar from './GlobalSnackbar';
 import { useAccess } from '../Context/AccessContext';
 
 const ProjectTeamManagement = ({ projectId, onClose }) => {
   const { hasAccess } = useAccess();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
   const [teamMembers, setTeamMembers] = useState([]);
   const [projectDetails, setProjectDetails] = useState(null);
   const [users, setUsers] = useState([]);
@@ -1007,6 +1013,7 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         projectName={projectDetails?.project?.projectName}
+        projectId={projectId}
         onAddMember={handleAddMember}
         project={projectDetails}
       />
@@ -1033,6 +1040,13 @@ const ProjectTeamManagement = ({ projectId, onClose }) => {
           setFormData={setProjectFormData}
         />
       )}
+
+      <GlobalSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

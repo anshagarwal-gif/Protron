@@ -496,9 +496,14 @@ const TimesheetManager = () => {
     const sheet = workbook.addWorksheet('Timesheet');
 
     const weekdays = getWeekdays();
-    const formattedWeekdays = weekdays.map(day =>
-      day.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })
-    );
+    const formattedWeekdays = weekdays.map((day) => {
+      const d = new Date(day);
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const month = monthNames[d.getMonth()];
+      const dayNum = `${d.getDate()}`.padStart(2, '0');
+      const wd = d.toLocaleDateString('en-GB', { weekday: 'short' });
+      return `${wd} ${dayNum}-${month}-${d.getFullYear()}`;
+    });
 
     // Prepare header rows
     const headerRow1 = ['Employee ID', 'Name', 'Email'];
