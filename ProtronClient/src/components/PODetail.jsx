@@ -566,7 +566,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium mb-1">Customer</p>
+            <p className="text-sm font-medium mb-1">Customer Name</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.customer || 'N/A'}
@@ -576,7 +576,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium mb-1">SPOC</p>
+            <p className="text-sm font-medium mb-1">Customer SPOC</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.poSpoc || 'N/A'}
@@ -600,7 +600,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium mb-1">Supplier</p>
+            <p className="text-sm font-medium mb-1">Supplier Name</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.supplier || 'N/A'}
@@ -610,7 +610,7 @@ const PODetailsPage = () => {
           </div>
 
           <div>
-            <p className="text-sm font-medium mb-1">Initiative name</p>
+            <p className="text-sm font-medium mb-1">Initiative Name</p>
             <p
               className="text-base font-bold text-gray-900 truncate cursor-pointer"
               title={poDetails.projectName || 'N/A'}
