@@ -426,8 +426,8 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
       newErrors.poNumber = "PO Number is required";
     }
 
-    if (milestoneList.length > 0 && !formData.msId) {
-      newErrors.msId = "Milestone is required when PO has milestones";
+    if (!formData.msId) {
+      newErrors.msId = "Milestone selection is required";
     }
 
     if (!formData.amount || formData.amount <= 0) {
@@ -785,7 +785,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   disabled={loading}
                   title={formData.msId ? `Selected Milestone: ${formData.msName}` : "Select a milestone"}
                 >
-                  <option value="" title="No specific milestone selected">No specific milestone</option>
+                  <option value="" title="Select a milestone" disabled>Select milestone</option>
                   {milestoneList.map(milestone => (
                     <option
                       key={milestone.msId}
@@ -893,7 +893,7 @@ const AddPOConsumptionModal = ({ open, onClose, onSubmit }) => {
                   Project
                 </label>
                 <select
-                  name=" Initiatives"
+                  name="project"
                   value={formData.project}
                   onChange={handleInputChange}
                   className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 focus:border-green-500"

@@ -1,6 +1,7 @@
 package com.Protronserver.Protronserver.Entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -52,7 +53,9 @@ public class Tenant {
     private String tenantAddressPostalCode;
 
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "tenant_logo", columnDefinition = "LONGBLOB")
+    @JsonIgnore
     private byte[] tenantLogo;
 
     // Define relationships with other entities
