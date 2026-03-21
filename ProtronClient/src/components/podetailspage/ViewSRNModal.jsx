@@ -121,11 +121,11 @@ const ViewSRNModal = ({ open, onClose, srnData, handleEdit }) => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="cursor-pointer p-2 hover:bg-green-700 rounded-lg transition-colors" onClick={() => {
+              <button className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center" onClick={() => {
                 handleEdit(srnData.srnId)
-              }}><Edit size={20} /></button>
-              <button className="cursor-pointer p-2 hover:bg-green-700 rounded-lg transition-colors" onClick={onClose}>
-                <X size={20} />
+              }}>Edit</button>
+              <button className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center" onClick={onClose}>
+                Close
               </button>
             </div>
           </div>

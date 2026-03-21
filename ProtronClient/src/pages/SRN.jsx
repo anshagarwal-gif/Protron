@@ -26,6 +26,7 @@ import GlobalSnackbar from "../components/GlobalSnackbar";
 import AddSRNModal from "../components/AddSRNModal";
 import SRNDetailsModal from "../components/SRNDetailsModal";
 import EditSRNModal from "../components/EditSRNModal";
+import ThreeDotsMenu from '../components/ThreeDotsMenu';
 import { formatExcelDate } from "../utils/dateUtils"; // Import the formatExcelDate function
 // import EditSRNModal from "../components/EditSRNModal";
 
@@ -349,6 +350,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
   const columnDefs = useMemo(() => [
     {
       headerName: "#",
+      headerTooltip: 'Serial Number',
       valueGetter: "node.rowIndex + 1",
       width: 50,
       pinned: "left",
@@ -359,6 +361,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "PO Number",
+      headerTooltip: 'PO Number',
       field: "poNumber",
       valueGetter: params => params.data.poNumber || 'N/A',
       flex: 1,
@@ -395,6 +398,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     // },
     {
       headerName: "Milestone Name",
+      headerTooltip: 'Milestone Name',
       field: "milestone.msName",
       valueGetter: params => params.data.milestone?.msName || 'N/A',
       flex: 1,
@@ -415,6 +419,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Payment Type",
+      headerTooltip: 'Payment Type',
       field: "srnType",
       valueGetter: params => params.data.srnType || 'N/A',
       width: 120,
@@ -432,6 +437,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Payment Name",
+      headerTooltip: 'Payment Name',
       field: "srnName",
       valueGetter: params => params.data.srnName || 'N/A',
       flex: 1,
@@ -452,6 +458,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Payment Description",
+      headerTooltip: 'Payment Description',
       field: "srnDsc",
       valueGetter: params => params.data.srnDsc || 'N/A',
       flex: 2,
@@ -472,6 +479,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Payment Remarks",
+      headerTooltip: 'Payment Remarks',
       field: "srnRemarks",
       valueGetter: params => params.data.srnRemarks || 'N/A',
       flex: 1,
@@ -492,6 +500,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Currency",
+      headerTooltip: 'Currency',
       field: "srnCurrency",
       valueGetter: params => params.data.srnCurrency || 'N/A',
       width: 100,
@@ -508,6 +517,7 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
     },
     {
       headerName: "Amount Paid",
+      headerTooltip: 'Amount Paid',
       field: "srnAmount",
       // valueGetter: params => {
       //   const amount = params.data.srnAmount;
@@ -531,46 +541,43 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
 
     {
       headerName: "Actions",
+      headerTooltip: 'Actions',
       field: "actions",
-      width: 120,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
+      suppressSizeToFit: true,
+      suppressMenu: true,
       sortable: false,
       filter: false,
-      suppressMenu: true,
       pinned: 'right',
-      cellRenderer: params => {
-        const srn = params.data;
-        return (
-          <div className="flex justify-center gap-2 h-full items-center">
-            <button
-              onClick={() => handleViewSRNDetails(srn)}
-              className="p-1 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
-              title="View SRN Details"
-            >
-              <Eye size={16} className="text-green-600" />
-            </button>
-            {hasAccess('budget', 'edit') && (
-              <button
-                onClick={() => handleEditSRN(srn)}
-                className="p-1 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
-                title="Edit SRN"
-              >
-                <Edit size={16} className="text-blue-600" />
-              </button>
-            )}
-            {hasAccess('budget', 'delete') && (
-              <button
-                onClick={() => handleDeleteSRN(srn.srnId)}
-                className="p-1 rounded-full hover:bg-red-100 transition-colors cursor-pointer"
-                title="Delete SRN"
-              >
-                <Trash2 size={16} className="text-red-600" />
-              </button>
-            )}
-          </div>
-        );
-      }
+      cellStyle: { textAlign: 'center' },
+      cellRenderer: params => (
+        <ThreeDotsMenu
+          items={[
+            { label: "View Details", tone: "info", icon: <Eye size={20} />, onClick: () => handleViewSRNDetails(params.data) },
+            {
+              label: "Edit",
+              tone: "info",
+              icon: <Edit size={20} />,
+              hidden: !hasAccess('budget', 'edit'),
+              onClick: () => handleEditSRN(params.data),
+            },
+            {
+              label: "Delete",
+              tone: "danger",
+              icon: <Trash2 size={20} />,
+              hidden: !hasAccess('budget', 'delete'),
+              onClick: () => handleDeleteSRN(params.data.srnId),
+            },
+          ]}
+        />
+      )
     }
-  ], []);
+  ].map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  })), []);
   // AG Grid default column properties
   const defaultColDef = useMemo(() => ({
     sortable: true,
@@ -669,6 +676,10 @@ const SRNManagement = forwardRef(({ searchQuery, setSearchQuery }, ref) => {
               border-right: 1px solid #e5e7eb;
               padding: 8px 12px;
               font-size: 14px;
+              user-select: text !important;
+              -webkit-user-select: text !important;
+              -moz-user-select: text !important;
+              -ms-user-select: text !important;
             }
             .ag-theme-alpine .ag-pinned-left-cols-container {
               border-right: 2px solid #d1d5db;

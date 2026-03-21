@@ -105,12 +105,12 @@ const ViewPOModal = ({ open, onClose, poData, handleViewCloseAndEditOpen }) => {
               </div>
             </div>
             <div className='flex items-center space-x-2 sm:space-x-3'>
-              <button onClick={() => handleViewCloseAndEditOpen(poData.poId)} className="p-2 cursor-pointer hover:bg-green-700 text-white rounded-lg transition-colors"><Edit size={20} /></button>
+              <button onClick={() => handleViewCloseAndEditOpen(poData.poId)} className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center">Edit</button>
               <button
                 onClick={onClose}
-                className="p-2 cursor-pointer hover:bg-green-700 rounded-lg transition-colors"
+                className="px-6 py-2 border rounded-md bg-green-700 text-white hover:bg-green-800 transition-colors disabled:opacity-50 flex items-center"
               >
-                <X size={20} />
+                Close
               </button>
             </div>
           </div>

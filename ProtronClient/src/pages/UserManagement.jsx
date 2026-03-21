@@ -15,7 +15,10 @@ import {
   ShieldCheck,
   Download,
   Loader2,
-  UserRoundPen
+  UserRoundPen,
+  Eye,
+  Edit,
+  MoreVertical
 } from "lucide-react";
 import { useAccess } from "../Context/AccessContext";
 import AddUserModal from "../components/AcccesModal";
@@ -27,6 +30,7 @@ import UserEditForm from "../components/UserEditForm"; // Import your user edit 
 import UserDetails from "../components/UserDetails";
 
 import UserDetailsModal from "../components/UserDetailsModal";
+import ThreeDotsMenu from '../components/ThreeDotsMenu';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -642,8 +646,8 @@ const UserManagement = () => {
   const userColumnDefs = useMemo(() => [
     {
       headerName: "#",
+      headerTooltip: 'Serial Number',
       valueGetter: "node.rowIndex + 1",
-
       minWidth: 10,
       maxWidth: 50,
       pinned: "left",
@@ -654,6 +658,7 @@ const UserManagement = () => {
     },
     {
       headerName: "Name",
+      headerTooltip: 'User Name',
       field: "name",
       flex: 1,
       minWidth: 150,
@@ -663,6 +668,7 @@ const UserManagement = () => {
     },
     {
       headerName: "Email",
+      headerTooltip: 'Email Address',
       field: "email",
       valueGetter: params => params.data.email || 'N/A',
       flex: 1,
@@ -677,6 +683,7 @@ const UserManagement = () => {
     },
     {
       headerName: "Mobile Number",
+      headerTooltip: 'Mobile Number',
       field: "mobileNumber",
       valueGetter: params => params.data.mobilePhone || 'N/A',
       flex: 1,
@@ -691,6 +698,7 @@ const UserManagement = () => {
     },
     {
       headerName: "Role",
+      headerTooltip: 'User Role',
       field: "role",
       valueGetter: params => getRoleName(params.data),
       flex: 1,
@@ -706,6 +714,7 @@ const UserManagement = () => {
     },
     {
       headerName: "Tenant",
+      headerTooltip: 'Tenant Name',
       field: "tenantName",
       valueGetter: params => getTenantName(params.data),
       flex: 1,
@@ -720,6 +729,7 @@ const UserManagement = () => {
     },
     {
       headerName: "City",
+      headerTooltip: 'City',
       field: "city",
       valueGetter: params => params.data.city || 'N/A',
       flex: 1,
@@ -734,6 +744,7 @@ const UserManagement = () => {
     },
     {
       headerName: "Country",
+      headerTooltip: 'Country',
       field: "country",
       valueGetter: params => params.data.country || 'N/A',
       flex: 1,
@@ -748,6 +759,7 @@ const UserManagement = () => {
     },
     {
       headerName: "Status",
+      headerTooltip: 'User Status',
       field: "status",
       valueGetter: params => getUserStatus(params.data),
       width: 120,
@@ -798,61 +810,61 @@ const UserManagement = () => {
     },
     {
       headerName: "Actions",
+      headerTooltip: 'Actions',
       field: "actions",
-      width: 180,
+      width: 40,
+      minWidth: 40,
+      maxWidth: 40,
+      suppressSizeToFit: true,
+      suppressMenu: true,
       sortable: false,
       filter: false,
-      suppressMenu: true,
       pinned: 'right',
+      cellStyle: { textAlign: 'center' },
       cellRenderer: params => {
         const user = params.data;
         return (
-          <div className="flex justify-center gap-2 h-full items-center">
-            {hasAccess('users', 'edit') && (
-              user.status?.toLowerCase() === 'active' ? (
-                <button
-                  onClick={() => handleHold(user)}
-                  className="p-2 rounded-full hover:bg-orange-100 transition-colors cursor-pointer"
-                  title="Put user on hold"
-                >
-                  <Pause size={16} className="text-orange-600" />
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleActivate(user)}
-                  className="p-2 rounded-full hover:bg-green-100 transition-colors cursor-pointer"
-                  title="Activate user account"
-                >
-                  <ShieldCheck size={16} className="text-green-600" />
-                </button>
-              )
-            )}
-
-            {hasAccess('users', 'edit') && (
-              <button
-                onClick={() => handleManageUser(user)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
-                title="Edit user permissions"
-              >
-                <UserCog size={16} className="text-blue-600" />
-              </button>
-            )}
-
-            {hasAccess('users', 'edit') && (
-              <button
-                onClick={() => handleEditClick(user)}
-                className="p-2 rounded-full hover:bg-blue-100 transition-colors cursor-pointer"
-                title="Edit user"
-              >
-                <UserRoundPen size={16} className="text-blue-600" />
-              </button>
-            )}
-
-          </div>
+          <ThreeDotsMenu
+            items={[
+              {
+                label: user.status?.toLowerCase() === 'active' ? "Put on Hold" : "Activate",
+                tone: user.status?.toLowerCase() === 'active' ? "warning" : "success",
+                icon: user.status?.toLowerCase() === 'active' ? <Pause size={20} /> : <ShieldCheck size={20} />,
+                hidden: !hasAccess('users', 'edit'),
+                onClick: () => user.status?.toLowerCase() === 'active' ? handleHold(user) : handleActivate(user),
+              },
+              {
+                label: "View Details",
+                tone: "info",
+                icon: <Eye size={20} />,
+                onClick: () => {
+                  setSelectedDetailUser(user);
+                  setIsUserDetailsModalOpen(true);
+                },
+              },
+              {
+                label: "Manage Permissions",
+                tone: "info",
+                icon: <UserCog size={20} />,
+                hidden: !hasAccess('users', 'edit'),
+                onClick: () => handleManageUser(user),
+              },
+              {
+                label: "Edit User",
+                tone: "info",
+                icon: <UserRoundPen size={20} />,
+                hidden: !hasAccess('users', 'edit'),
+                onClick: () => handleEditClick(user),
+              },
+            ]}
+          />
         );
       }
     }
-  ], [hasAccess, users]);
+  ].map((col) => ({
+    ...col,
+    headerTooltip: col.headerTooltip ?? col.headerName,
+  })), [hasAccess, users]);
 
   // AG Grid column definitions for roles
   const roleColumnDefs = useMemo(() => [
@@ -1111,6 +1123,10 @@ const UserManagement = () => {
   border-right: 1px solid #e5e7eb;
   padding: 8px 12px;
   font-size: 14px;
+  user-select: text !important;
+              -webkit-user-select: text !important;
+              -moz-user-select: text !important;
+              -ms-user-select: text !important;
 }
 
 
