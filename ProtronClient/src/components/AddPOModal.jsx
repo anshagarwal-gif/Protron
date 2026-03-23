@@ -715,12 +715,12 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO Start Date</label>
                                     <div
                                         onClick={() => StartDateInputRef.current?.focus()}
-                                        className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
+                                        className="relative w-full h-10 pl-3 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center"
                                     >
-                                        <Calendar
+                                        {/* <Calendar
                                             className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none"
                                             size={20}
-                                        />
+                                        /> */}
                                         <input
                                             ref={StartDateInputRef}
                                             type="date"
@@ -734,8 +734,8 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                 </div>
                                 <div className="lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">PO End Date</label>
-                                    <div onClick={() => EndDateInputRef.current?.focus()} className="relative w-full h-10 pl-10 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center">
-                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={20} />
+                                    <div onClick={() => EndDateInputRef.current?.focus()} className="relative w-full h-10 pl-3 pr-4 border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center">
+                                        {/* <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={20} /> */}
                                         <input
                                             ref={EndDateInputRef}
                                             type="date"
@@ -754,11 +754,11 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         PM/SPOC Name
                                     </label>
                                     <div className="relative w-full">
-                                        <UserCheck
+                                        {/* <UserCheck
                                             className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-20"
                                             size={20}
                                             title="Select or create initiative"
-                                        />
+                                        /> */}
                                         <CreatableSelect
                                             inputId="spocName"
                                             options={userOptions}
@@ -782,7 +782,7 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                                 control: (base) => ({
                                                     ...base,
                                                     height: '40px',
-                                                    paddingLeft: '28px',
+                                                    // paddingLeft: '28px',
                                                     borderColor: '#d1d5db',
                                                 }),
                                                 valueContainer: (base) => ({ ...base, padding: '0 6px' }),
@@ -800,11 +800,11 @@ const AddPOModal = ({ open, onClose, onSubmit }) => {
                                         Initiative name
                                     </label>
                                     <div className="relative w-full">
-                                        <Folder
+                                        {/* <Folder
                                             className="absolute left-3 top-1/2  -translate-y-1/2 text-green-600 z-15"
                                             size={20}
                                             title="Create initiative"
-                                        />
+                                        /> */}
                                         <CreatableSelect
                                             inputId="projectName"
                                             options={projectOptions}

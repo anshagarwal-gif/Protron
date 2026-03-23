@@ -1001,11 +1001,11 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                 </label>
                                 <div
                                     onClick={handleDateInputClick}
-                                    className={`relative w-full h-10 pl-10 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
+                                    className={`relative w-full h-10 pl-3 pr-4 border rounded-md focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500 cursor-pointer flex items-center ${
                                         errors.budgetEndDate ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 >
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} />
+                                    {/* <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-green-600 pointer-events-none" size={16} /> */}
                                     <input
                                         ref={budgetEndDateInputRef}
                                         type="date"
@@ -1023,7 +1023,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
                                 </label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-3 text-green-600 z-10" size={16} />
+                                    {/* <User className="absolute left-3 top-3 text-green-600 z-10" size={16} /> */}
                                     <CreatableSelect
                                         options={employees}
                                         value={getCreatableSelectValue(formData.budgetOwner, employees)}
@@ -1043,7 +1043,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                             control: (base, state) => ({
                                                 ...base,
                                                 height: '40px',
-                                                paddingLeft: '28px',
+                                                // paddingLeft: '28px',
                                                 borderColor: errors.budgetOwner ? '#ef4444' : state.isFocused ? '#10b981' : '#d1d5db',
                                                 boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
                                             }),
@@ -1065,7 +1065,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                     {loadingEmployees && <span className="text-xs text-gray-500 ml-1">(Loading...)</span>}
                                 </label>
                                 <div className="relative">
-                                    <Building className="absolute left-3 top-3 text-green-600 z-10" size={16} />
+                                    {/* <Building className="absolute left-3 top-3 text-green-600 z-10" size={16} /> */}
                                     <CreatableSelect
                                         options={sponsors}
                                         value={getCreatableSelectValue(formData.sponsor, sponsors)}
@@ -1085,7 +1085,7 @@ const AddBudgetLineModal = ({ open, onClose, onSubmit, budgetLine, isEdit = fals
                                             control: (base, state) => ({
                                                 ...base,
                                                 height: '40px',
-                                                paddingLeft: '28px',
+                                                // paddingLeft: '28px',
                                                 borderColor: errors.sponsor ? '#ef4444' : state.isFocused ? '#10b981' : '#d1d5db',
                                                 boxShadow: state.isFocused ? '0 0 0 2px rgba(16, 185, 129, 0.2)' : 'none',
                                             }),
