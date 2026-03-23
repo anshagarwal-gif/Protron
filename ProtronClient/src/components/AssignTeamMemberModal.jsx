@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMember }) => {
+const AssignTeamMemberModal = ({ isOpen, onClose, projectName, projectId: projectIdProp, project, onAddMember }) => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -20,21 +20,39 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
   });
   const dateInputRef = useRef(null);
 
+  const resolvedProjectId =
+    projectIdProp ?? project?.project?.projectId ?? project?.projectId;
+
   const fetchUsersNotInProject = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tenants/${sessionStorage.getItem("tenantId")}/users-not-in/${project?.project?.projectId}`, {
-        headers: { Authorization: `${sessionStorage.getItem('token')}` }
-      });
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.log(error)
+    const tenantId = sessionStorage.getItem('tenantId');
+    if (!tenantId || !resolvedProjectId) {
+      setUsers([]);
+      return;
     }
-  }
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/tenants/${tenantId}/users-not-in/${resolvedProjectId}`,
+        {
+          headers: { Authorization: `${sessionStorage.getItem('token')}` },
+        }
+      );
+      if (!response.ok) {
+        console.error('users-not-in failed:', response.status, await response.text());
+        setUsers([]);
+        return;
+      }
+      const data = await response.json();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setUsers([]);
+    }
+  };
 
   useEffect(() => {
+    if (!isOpen || !resolvedProjectId) return;
     fetchUsersNotInProject();
-  }, [project]);
+  }, [isOpen, resolvedProjectId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -73,10 +91,11 @@ const AssignTeamMemberModal = ({ isOpen, onClose, projectName, project, onAddMem
       const filtered = users.filter(
         (user) =>
           user.email.toLowerCase().includes(value.toLowerCase()) &&
-          !project.projectTeam?.some(
+          !project?.teamMembers?.some(
             (member) =>
-              member.status === "active" &&
-              member.user?.email?.toLowerCase() === user.email?.toLowerCase()
+              member.userId != null &&
+              user.userId != null &&
+              Number(member.userId) === Number(user.userId)
           )
       );
       setFilteredUsers(filtered);

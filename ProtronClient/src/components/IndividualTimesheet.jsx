@@ -26,9 +26,19 @@ import { useSession } from '../Context/SessionContext';
 import LogTimeModal from './LogTimeModal';
 import TaskDetailsModal from './TaskDetailsModal';
 import AddInvoiceModal from "../components/AddInvoice";
-import { formatExcelDate } from "../utils/dateUtils"; 
-
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+/** Excel/CSV export: DD-MMM-YYYY with leading apostrophe for Excel text (e.g. 11-Mar-2026); local calendar for Date objects. */
+const formatTimesheetDateForExcel = (date) => {
+  if (!date) return "N/A";
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "N/A";
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const day = String(d.getDate()).padStart(2, "0");
+  const monthStr = monthNames[d.getMonth()];
+  const year = d.getFullYear();
+  return `'${day}-${monthStr}-${year}`;
+};
 
 const formatDate = (date) =>
   date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
@@ -624,7 +634,7 @@ const IndividualTimesheet = () => {
         const entries = getTimeEntries(date);
         entries.forEach((entry) => {
           const row = [
-            `"${formatExcelDate(date)}"`,
+            `"${formatTimesheetDateForExcel(date)}"`,
             `"${entry.task}"`,
             `"${entry.hours}"`,
             `"${entry.minutes}"`,
