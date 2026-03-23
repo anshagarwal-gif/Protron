@@ -214,6 +214,9 @@ const POManagement = () => {
         'Supplier': po.supplier || 'N/A',
         'Initiative name': po.projectName || 'N/A',
         'SPOC Name': po.poSpoc || 'N/A',
+        'Budget Line Item': po.budgetLineItem || 'N/A',
+        'Budget Line Amount': po.budgetLineAmount ? `${po.budgetLineAmount.toLocaleString()}` : 'N/A',
+        'Business Value Amount': po.businessValueAmount ? `${po.businessValueAmount.toLocaleString()}` : 'N/A',
       }));
 
       const headers = Object.keys(excelData[0] || {});

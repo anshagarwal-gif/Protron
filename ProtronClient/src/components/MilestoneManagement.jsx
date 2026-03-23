@@ -24,10 +24,12 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
     const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
     const [viewMilestoneModalOpen, setViewMilestoneModalOpen] = useState(false)
     const [selectedMilestone, setSelectedMilestone] = useState(null);
+    const [poDetails, setPoDetails] = useState(null);
 
     useEffect(() => {
         if (open && poId) {
             fetchMilestones();
+            fetchPODetails();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, poId]);
@@ -47,6 +49,21 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
             setFilteredMilestones(filtered);
         }
     }, [searchTerm, milestones]);
+
+    const fetchPODetails = async () => {
+        try {
+            const token = sessionStorage.getItem('token');
+            const response = await axios.get(
+                `${import.meta.env.VITE_API_URL}/api/po/${poId}`,
+                {
+                    headers: { Authorization: `${token}` }
+                }
+            );
+            setPoDetails(response.data);
+        } catch (error) {
+            console.error('Error fetching PO details:', error);
+        }
+    };
 
     const fetchMilestones = async () => {
         try {
@@ -139,6 +156,8 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         setMilestoneModalOpen(false);
         setEditingMilestone(null);
         setSnackbar({ open: true, message: 'Milestone saved!', severity: 'success' });
+        // Refresh milestones after adding
+        fetchMilestones();
     };
 
     const handleEditMilestoneModalSubmit = (updatedMilestone) => {
@@ -153,6 +172,8 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         setIsEditMilestoneModalOpen(false);
         setSelectedMilestoneId(null);
         setSnackbar({ open: true, message: 'Milestone updated!', severity: 'success' });
+        // Refresh milestones after editing
+        fetchMilestones();
     };
 
     const handleDuplicateMilestone = (index) => {
@@ -312,14 +333,23 @@ const MilestoneManagement = ({ poId, open, onClose }) => {
         <>
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000059] bg-opacity-50">
                 <div className="bg-white rounded-lg shadow-xl max-w-[90vw] w-full mx-4 max-h-[95vh] overflow-hidden flex flex-col">
-                    <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
-                        <h2 className="text-lg sm:text-xl font-semibold text-green-900">Milestones Management</h2>
-                        <button
-                            onClick={onClose}
-                            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                        >
-                            Close
-                        </button>
+                    <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h2 className="text-lg sm:text-xl font-semibold text-green-900">Milestones Management</h2>
+                                {poDetails && (
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        PO: {poDetails.poNumber} | Customer: {poDetails.customer} | Amount: {poDetails.poCurrency} {poDetails.poAmount?.toLocaleString()}
+                                    </p>
+                                )}
+                            </div>
+                            <button
+                                onClick={onClose}
+                                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                     <div className="p-4 sm:p-6 overflow-y-auto flex-grow">
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-2 mb-4">
